@@ -1,12 +1,12 @@
 {
-    "name": "electron-quick-start",
+    "name": "cate-desktop",
     "version": "1.0.0",
-    "description": "A minimal Electron application",
+    "description": "Desktop GUI for Cate",
     "main": "main.js",
     "scripts": {
         "start": "electron ."
     },
-    "repository": "https://github.com/electron/electron-quick-start",
+    "repository": "https://github.com/CCI-Tools/cate-desktop",
     "keywords": [
         "Electron",
         "quick",
@@ -14,8 +14,8 @@
         "tutorial",
         "demo"
     ],
-    "author": "GitHub",
-    "license": "CC0-1.0",
+    "author": "Brockmann Consult GmbH",
+    "license": "MIT",
     "devDependencies": {
         "electron": "^1.4.1"
     }
