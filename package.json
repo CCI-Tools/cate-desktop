@@ -3,20 +3,26 @@
     "version": "0.0.1",
     "description": "Desktop GUI for Cate",
     "main": "main.js",
-    "scripts": {
-        "start": "electron ."
-    },
-    "repository": "https://github.com/CCI-Tools/cate-desktop",
-    "keywords": [
-        "Electron",
-        "quick",
-        "start",
-        "tutorial",
-        "demo"
-    ],
     "author": "Brockmann Consult GmbH",
     "license": "MIT",
+    "scripts": {
+        "start": "electron .",
+        "test": "mocha"
+    },
+    "repository": "https://github.com/CCI-Tools/cate-desktop",
+    "bugs": {
+        "url": "https://github.com/CCI-Tools/cate-desktop/issues"
+    },
+    "keywords": [
+        "cci",
+        "toolbox"
+    ],
     "devDependencies": {
-        "electron": "^1.4.1"
+        "electron": "^1.4.5",
+        "electron-prebuilt": "^1.4.5",
+        "spectron": "^3.4.0",
+        "mocha": "^3.1.2",
+        "chai": "^3.5.0",
+        "chai-as-promised": "^6.0.0"
     }
 }
