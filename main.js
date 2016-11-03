@@ -12,8 +12,20 @@ const url = require('url');
 let mainWindow;
 
 function createWindow() {
+
+    var  icon_file = "cate-icon.png";
+    if (process.platform === "darwin") {
+        icon_file = "cate-icon.icns";
+    } else  if (process.platform === "win32") {
+        icon_file = "cate-icon.ico";
+    }
+
     // Create the browser window.
-    mainWindow = new BrowserWindow({width: 800, height: 600});
+    mainWindow = new BrowserWindow({
+        width: 800,
+        height: 600,
+        icon: path.join(__dirname, 'resources', 'images', icon_file)
+    });
 
     // and load the index.html of the app.
     mainWindow.loadURL(url.format({
