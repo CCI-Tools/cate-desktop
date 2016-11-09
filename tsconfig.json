@@ -5,9 +5,10 @@
         "jsx": "react",
         "outDir": "app",
         "module": "commonjs",
-        "sourceMap": true
+        "sourceMap": true,
+        "sourceRoot": "src"
     },
-    "exclude": [
-        "node_modules"
+    "include": [
+      "**/*"
     ]
 }

@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/Microsoft/TypeScriptSamples",
   "dependencies": {
-    "react": "^0.13.3",
-    "react-dom": "^0.13.3"
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2",
+    "react-redux": "^4.4.5",
+    "redux": "^3.6.0"
   }
 }

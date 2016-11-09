@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron app",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "typings install && install-app-deps",
+    "postinstall": "install-app-deps",
     "build": "tsc",
     "release": "build --x64 --publish never"
   },
@@ -15,8 +15,7 @@
     "type": "git",
     "url": "https://github.com/Microsoft/TypeScriptSamples.git"
   },
-  "keywords": [
-  ],
+  "keywords": [],
   "author": "Norman Fomferra (Brockmann Consult GmbH)",
   "license": "MIT",
   "bugs": {
@@ -24,11 +23,18 @@
   },
   "homepage": "https://github.com/Microsoft/TypeScriptSamples",
   "devDependencies": {
-    "electron-prebuilt": "1.4.5",
+    "@types/electron": "^1.4.26",
+    "@types/react": "^0.14.46",
+    "@types/react-dom": "^0.14.18",
+    "@types/react-redux": "^4.4.32",
+    "@types/redux": "^3.6.31",
     "electron-builder": "latest",
-    "react": "^0.13.3",
-    "react-dom": "^0.13.3",
-
+    "electron-prebuilt": "1.4.5",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2",
+    "react-redux": "^4.4.5",
+    "redux": "^3.6.0",
+    "redux-log": "^2.0.0",
     "typescript": "^2.0.8",
     "typings": "^2.0.0"
   },

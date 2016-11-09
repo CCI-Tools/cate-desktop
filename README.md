@@ -2,7 +2,7 @@
 
 ## Overview
 
-`cate-desktop` provides a desktop GUI for *Cate* - the ESA CCI Toolbox.
+`cate-desktop` provides a desktop GUI for *Cate*, the ESA CCI Toolbox.
 
 
 ### Install dependencies
@@ -41,4 +41,3 @@ Single configuration files explained:
 
 * [.editorconfig](http://editorconfig.org/)
 * [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) 
-* [typings.json](https://github.com/typings/typings) 

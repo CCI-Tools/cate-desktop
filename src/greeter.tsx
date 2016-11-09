@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export interface GreeterProps extends React.Props<Greeter> {
+export interface GreeterProps {
     whomToGreet: string;
     greeting: string | (() => string);
 }

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 import {Greeter as Greeter, GreeterProps as GreeterProps} from './greeter';
 
 function getRandomGreeting() {
@@ -16,7 +17,7 @@ function main() {
         greeting: getRandomGreeting
     };
 
-    React.render(<Greeter {...props} />, document.getElementById('output'));
+    ReactDOM.render(<Greeter {...props} />, document.getElementById('output'));
 }
 
 main();
