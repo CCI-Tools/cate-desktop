@@ -1,0 +1,6 @@
+{
+  "name": "jsx-demo",
+  "globalDependencies": {
+    "react": "github:DefinitelyTyped/DefinitelyTyped/react/react.d.ts#04a025ada3492a22df24ca2d8521c911697721b3"
+  }
+}

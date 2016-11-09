@@ -1,16 +1,23 @@
 {
-  "name": "electron-react-boilerplate",
-  "productName": "electron-react-boilerplate",
-  "version": "1.0.0",
-  "description": "Electron application boilerplate based on React, React Router, Webpack, React Hot Loader for rapid application development",
-  "main": "./main.js",
-  "author": {
-    "name": "C. T. Lin",
-    "email": "chentsulin@gmail.com",
-    "url": "https://github.com/chentsulin"
+  "name": "cate-desktop",
+  "productName": "Cate",
+  "version": "0.0.1",
+  "description": "ESA CCI Toolbox (Cate)",
+  "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Microsoft/TypeScriptSamples.git"
   },
+  "keywords": [
+  ],
+  "author": "Norman Fomferra (Brockmann Consult GmbH)",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Microsoft/TypeScriptSamples/issues"
+  },
+  "homepage": "https://github.com/Microsoft/TypeScriptSamples",
   "dependencies": {
-    "source-map-support": "^0.4.3"
+    "react": "^0.13.3",
+    "react-dom": "^0.13.3"
   }
 }

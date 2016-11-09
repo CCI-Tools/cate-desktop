@@ -1,0 +1,13 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "target": "es6",
+        "jsx": "react",
+        "outDir": "app",
+        "module": "commonjs",
+        "sourceMap": true
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}

@@ -1,16 +1,44 @@
 # cate-desktop
-Desktop GUI for Cate
 
+## Overview
+
+`cate-desktop` provides a desktop GUI for *Cate* - the ESA CCI Toolbox.
+
+
+### Install dependencies
+
+```
+npm install
+```
+
+### Compile
+
+```
+npm run build
+```
+
+### Start App
+```
+npm start
+```
+
+### Build installers
+```
+npm run release
+```
 
 ## Project structure
 
-This projects has been bootstrapped from [electron-react-boilerplate](https://github.com/chentsulin/electron-react-boilerplate).
+The setup of this project was inspired by 
+* [electron-boilerplate](https://github.com/szwacz/electron-boilerplate) for the Electron part and by
+* [Microsoft/TypeScriptSamples/jsx](https://github.com/Microsoft/TypeScriptSamples/tree/master/jsx) for the TypeScript + React part.
 
-Single files explained:
+This project currently doesn't use any build tools apart from `npm` and `tsc`, the TypeScript compiler. 
+We'll one day want to have hot loading into Electron and then use a tool such as `webpack`. The article 
+[React & Webpack](http://www.typescriptlang.org/docs/handbook/react-&-webpack.html) describes how to use webpack + TypeScript + React.
+
+Single configuration files explained:
 
 * [.editorconfig](http://editorconfig.org/)
-* [.flowconfig](https://flowtype.org/docs/advanced-configuration.html) used by [Flow](https://flowtype.org/), see also `@flow` tag in source comments
-* [server.js](https://webpack.github.io/docs/hot-module-replacement-with-webpack.html) will be loaded by `npm run hot-server`
-* [webpack.config.*.js](https://webpack.github.io/docs/configuration.html)
-* [yarn.lock](https://yarnpkg.com/en/docs/yarn-lock)
-
+* [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) 
+* [typings.json](https://github.com/typings/typings) 
