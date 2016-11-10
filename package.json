@@ -51,7 +51,7 @@
     "app-category-type": "app.category.climate-science",
     "win": {
       "target": [
-        "nsis"
+        "nsis", "zip"
       ],
       "icon": "app/resources/win32/cate-icon.ico"
     },
