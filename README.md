@@ -27,7 +27,15 @@ npm start
 npm run release
 ```
 
-## Project structure
+## Project Tools
+
+The following tools are used
+
+* [mocha](https://mochajs.org/) unit-testing framework for Node.js.
+* [chai](http://chaijs.com/api/bdd/) adds Behaviour Driven Development (BDD) API to `mocha`. 
+* [spectron](https://github.com/electron/spectron#application-api) for end-to-end testing of the GUI applications. See script `test:e2e` in `package.json`. 
+
+## Project Structure
 
 The setup of this project was inspired by 
 * [electron-boilerplate](https://github.com/szwacz/electron-boilerplate) for the Electron part and by
