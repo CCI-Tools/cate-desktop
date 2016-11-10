@@ -7,7 +7,8 @@
   "scripts": {
     "start": "electron app",
     "test:e2e": "mocha e2e/**/*-test.js",
-    "test:unit": "mocha app/main/**/*.spec.js app/renderer/**/*.spec.js",
+    "pretest": "npm run compile",
+    "test": "mocha app/main/**/*.spec.js app/renderer/**/*.spec.js",
     "postinstall": "install-app-deps",
     "compile": "tsc",
     "clean": "rimraf app/main app/renderer dist",
@@ -16,15 +17,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Microsoft/TypeScriptSamples.git"
+    "url": "https://github.com/CCI-Tools/cate-desktop.git"
   },
-  "keywords": [],
+  "keywords": [
+    "esa",
+    "cci",
+    "toolbox",
+    "climate",
+    "science"
+  ],
   "author": "Norman Fomferra (Brockmann Consult GmbH)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Microsoft/TypeScriptSamples/issues"
+    "url": "https://github.com/CCI-Tools/cate-desktop/issues"
   },
-  "homepage": "https://github.com/Microsoft/TypeScriptSamples",
+  "homepage": "https://github.com/CCI-Tools/cate-desktop",
   "devDependencies": {
     "@types/electron": "^1.4.26",
     "@types/mocha": "^2.2.32",
