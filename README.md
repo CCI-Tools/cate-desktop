@@ -17,6 +17,12 @@ npm install
 npm run compile
 ```
 
+### Unit-tests
+
+```
+npm run test:unit
+```
+
 ### End-to-end tests
 
 ```
