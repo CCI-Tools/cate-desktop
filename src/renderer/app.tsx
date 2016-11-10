@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom';
 
 import {Greeter as Greeter, GreeterProps as GreeterProps} from './greeter';
 
-function getRandomGreeting() {
+export function getRandomGreeting() {
     switch (Math.floor(Math.random() * 4)) {
         case 0:
             return 'Hello';
@@ -12,7 +12,7 @@ function getRandomGreeting() {
         case 2:
             return 'Greetings to you';
         case 3:
-            return 'Hail';
+            return 'Hola';
     }
 }
 

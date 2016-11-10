@@ -6,20 +6,21 @@ const chaiAsPromised = require('chai-as-promised');
 chai.should();
 chai.use(chaiAsPromised);
 
-var electronPath = path.join(__dirname, '..', 'node_modules', '.bin', 'electron');
+let electronPath = path.join(__dirname, '..', 'node_modules', '.bin', 'electron');
 
 if (process.platform === 'win32') {
     electronPath += '.cmd';
 }
 
-var appPath = path.join(__dirname, '..', 'app');
+let appPath = path.join(__dirname, '..', 'app');
 
 
-// This will make WebStorm happy:
-beforeEach = global.beforeEach;
-afterEach = global.afterEach;
-describe = global.describe;
-it = global.it;
+// describe, it, before, after, beforeEach, afterEach are mocha's BDD interface, e.g. mocha --ui bdd.
+// WebStorm doesn't know these, so this will make WebStorm happy:
+let beforeEach = global.beforeEach;
+let afterEach = global.afterEach;
+let describe = global.describe;
+let it = global.it;
 
 describe('testing app launch', function () {
     this.timeout(10000);

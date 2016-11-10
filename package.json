@@ -6,10 +6,11 @@
   "main": "app.js",
   "scripts": {
     "start": "electron app",
-    "test:e2e": "mocha e2e/window-test.js",
+    "test:e2e": "mocha e2e/**/*-test.js",
+    "test:unit": "mocha app/main/**/*.spec.js app/renderer/**/*.spec.js",
     "postinstall": "install-app-deps",
     "compile": "tsc",
-    "clean": "rimraf app/main app/renderer",
+    "clean": "rimraf app/main app/renderer dist",
     "dist": "build --x64 --publish never",
     "pack": "build --x64 --publish never --dir"
   },
@@ -26,6 +27,7 @@
   "homepage": "https://github.com/Microsoft/TypeScriptSamples",
   "devDependencies": {
     "@types/electron": "^1.4.26",
+    "@types/mocha": "^2.2.32",
     "@types/react": "^0.14.46",
     "@types/react-dom": "^0.14.18",
     "@types/react-redux": "^4.4.32",
@@ -42,8 +44,7 @@
     "redux-log": "^2.0.0",
     "rimraf": "^2.5.4",
     "spectron": "^3.4.0",
-    "typescript": "^2.0.8",
-    "typings": "^2.0.0"
+    "typescript": "^2.0.8"
   },
   "build": {
     "appId": "org.esa.ccitools.Cate",
