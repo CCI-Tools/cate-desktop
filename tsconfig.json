@@ -1,14 +1,13 @@
 {
-    "compileOnSave": true,
-    "compilerOptions": {
-        "target": "es6",
-        "jsx": "react",
-        "outDir": "app",
-        "module": "commonjs",
-        "sourceMap": true,
-        "sourceRoot": "src"
-    },
-    "include": [
-      "**/*"
-    ]
+  "compileOnSave": true,
+  "compilerOptions": {
+    "target": "es5",
+    "jsx": "react",
+    "outDir": "app",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "sourceRoot": "src",
+    "rootDir": "src"
+  }
 }

@@ -5,8 +5,6 @@ node_modules/
 dist/
 typings/
 
-app/app.js
-app/app.js.map
-app/greeter.js
-app/greeter.js.map
+app/main
+app/renderer
 app/node_modules/

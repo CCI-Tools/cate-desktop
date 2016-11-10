@@ -6,16 +6,21 @@
   "main": "main.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Microsoft/TypeScriptSamples.git"
+    "url": "https://github.com/CCI-Tools/cate-desktop.git"
   },
   "keywords": [
+    "esa",
+    "cci",
+    "toolbox",
+    "climate",
+    "science"
   ],
   "author": "Norman Fomferra (Brockmann Consult GmbH)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Microsoft/TypeScriptSamples/issues"
+    "url": "https://github.com/CCI-Tools/cate-desktop/issues"
   },
-  "homepage": "https://github.com/Microsoft/TypeScriptSamples",
+  "homepage": "https://github.com/CCI-Tools/cate-desktop",
   "dependencies": {
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
