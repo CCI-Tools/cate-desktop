@@ -6,6 +6,7 @@
     "outDir": "app",
     "module": "commonjs",
     "moduleResolution": "node",
+    "inlineSources": true,
     "sourceMap": true,
     "sourceRoot": "src",
     "rootDir": "src"
