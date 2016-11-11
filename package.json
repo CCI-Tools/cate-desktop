@@ -3,7 +3,7 @@
   "productName": "Cate",
   "version": "0.0.1",
   "description": "ESA CCI Toolbox (Cate)",
-  "main": "app.js",
+  "private": true,
   "scripts": {
     "start": "electron app",
     "test:e2e": "mocha e2e/**/*-test.js",

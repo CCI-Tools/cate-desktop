@@ -6,6 +6,7 @@
   "main": "main.js",
   "author": "Norman Fomferra (Brockmann Consult GmbH)",
   "license": "MIT",
+  "private": true,
   "dependencies": {
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
