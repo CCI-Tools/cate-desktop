@@ -138,3 +138,7 @@ TypeScript with webpack and React.
   [onshape-desktop-shell](https://github.com/develar/onshape-desktop-shell).
 * Add [`yarn.lock`](https://yarnpkg.com/en/docs/yarn-lock) as well (what does it?) with example in
   [onshape-desktop-shell](https://github.com/develar/onshape-desktop-shell).
+* Provide [auto-updater](https://github.com/electron/electron/blob/master/docs/api/auto-updater.md) support
+* Have a look at other Electron development tools:
+  * [electron-compile](https://github.com/electron/electron-compile)
+  * [electron-debug](https://github.com/sindresorhus/electron-debug)
