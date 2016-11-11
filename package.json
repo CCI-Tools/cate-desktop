@@ -11,9 +11,10 @@
     "test": "mocha app/main/**/*.spec.js app/renderer/**/*.spec.js",
     "postinstall": "install-app-deps",
     "compile": "tsc",
-    "clean": "rimraf app/main app/renderer dist",
     "dist": "build --x64 --publish never",
-    "pack": "build --x64 --publish never --dir"
+    "pack": "build --x64 --publish never --dir",
+    "clean": "rimraf app/main app/renderer dist",
+    "clean:all": "npm run clean && rimraf node_modules app/node_modules"
   },
   "repository": {
     "type": "git",
