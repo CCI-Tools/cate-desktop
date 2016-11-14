@@ -1,11 +1,12 @@
-const electron = require('electron');
+import * as electron from 'electron';
+import * as path from 'path';
+import * as url from 'url';
+import * as fs from 'fs';
+
 // Module to control application life.
 const app = electron.app;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
-
-const path = require('path');
-const url = require('url');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -22,7 +23,28 @@ function getAppIconPath() {
     return path.join(_baseDir, 'resources', icon_file);
 }
 
+function loadConfig() {
+    const configPath = path.normalize(path.join(_baseDir, '..', 'cate-config.js'));
+    if (fs.existsSync(configPath)) {
+        var module = require(configPath);
+        console.log('loaded configuration: ', configPath);
+        return module;
+    } else {
+        console.log('no configuration found at ', configPath);
+    }
+    return {};
+}
+
 function createMainWindow() {
+    const config = loadConfig();
+
+    if (config.devToolsExtensions) {
+        for (let path of config.devToolsExtensions) {
+            BrowserWindow.addDevToolsExtension(path);
+            console.log('added DevTools extension: ', path);
+        }
+    }
+
     // Create the browser window.
     _mainWindow = new BrowserWindow({
         width: 800,

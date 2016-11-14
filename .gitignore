@@ -7,3 +7,5 @@ dist/
 app/main
 app/renderer
 app/node_modules/
+
+cate-config.js
