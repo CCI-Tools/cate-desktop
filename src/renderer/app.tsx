@@ -1,29 +1,24 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import {Header, Footer, Section} from './components';
 
-import {Greeter as Greeter, GreeterProps as GreeterProps} from './greeter';
-
-export function getRandomGreeting() {
-    switch (Math.floor(Math.random() * 4)) {
-        case 0:
-            return 'Hello';
-        case 1:
-            return 'Howdy';
-        case 2:
-            return 'Greetings to you';
-        case 3:
-            return 'Hola';
-    }
-}
+// TODO: we don't have a react-split-pane.d.ts yet, so we must use Node's CommonJS import
+// import * as SplitPane from 'react-split-pane';
+const SplitPane: any = require('react-split-pane');
 
 
 export function main() {
-    let props: GreeterProps = {
-        whomToGreet: 'world!',
-        greeting: getRandomGreeting
-    };
-
-    ReactDOM.render(<Greeter {...props} />, document.getElementById('output'));
+    ReactDOM.render(
+        <Section>
+            <Header>Header</Header>
+            <SplitPane defaultSize="40%" split="vertical">
+                <div>Left</div>
+                <div>Content</div>
+            </SplitPane>
+            <Footer>Footer</Footer>
+        </Section>,
+        document.getElementById('container')
+    );
 }
 
 

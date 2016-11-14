@@ -11,6 +11,7 @@
     "test": "mocha app/main/**/*.spec.js app/renderer/**/*.spec.js",
     "postinstall": "install-app-deps",
     "compile": "tsc",
+    "compile:trace": "tsc --traceResolution",
     "dist": "build --x64 --publish never",
     "pack": "build --x64 --publish never --dir",
     "clean": "rimraf app/main app/renderer dist",
@@ -48,6 +49,7 @@
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
     "react-redux": "^4.4.5",
+    "react-split-pane": "^0.1.52",
     "redux": "^3.6.0",
     "redux-log": "^2.0.0",
     "rimraf": "^2.5.4",
@@ -59,7 +61,8 @@
     "app-category-type": "app.category.climate-science",
     "win": {
       "target": [
-        "nsis", "zip"
+        "nsis",
+        "zip"
       ],
       "icon": "app/resources/win32/cate-icon.ico"
     },
