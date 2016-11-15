@@ -3,10 +3,28 @@
   <head>
     <meta charset="UTF-8">
     <title>Cate</title>
+    <style>
+      * {
+        overflow: hidden;
+      }
+
+      html, body, #container {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      body, #container {
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+    </style>
     <link href="styles.css" rel="stylesheet">
   </head>
-  <body class="vertical">
-    <div id="container"></div>
+  <body>
+    <div id="container" style=""></div>
     <script src="renderer.js"></script>
   </body>
 </html>
