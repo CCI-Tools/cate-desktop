@@ -50,7 +50,7 @@ function getOptionArg(options: string[]) {
     let args: Array<string> = process.argv.slice(1);
     for (let i = 0; i < args.length; i++) {
         let arg = args[i];
-        if (arg in options && i < args.length - 1) {
+        if (options.indexOf(arg) >= 0 && i < args.length - 1) {
             return args[i];
         }
     }
@@ -91,7 +91,7 @@ function loadConfig(): Config {
     if (config) {
         config.load(configFile, (err) => {
             if (err) {
-                console.error('failed to load configuration from ', configFile, err);
+                console.warn('failed to load configuration from ', configFile, err);
             } else {
                 console.log('configuration loaded from ', configFile);
             }
