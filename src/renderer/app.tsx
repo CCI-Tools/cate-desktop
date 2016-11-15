@@ -2,19 +2,6 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {HGLContainer, HGLHeader, HGLFooter, HGLMidsection, HGLLeft, HGLRight, HGLCenter} from './components';
 
-// TODO: we don't have a react-split-pane.d.ts yet, so we must use Node's CommonJS import
-// import * as SplitPane from 'react-split-pane';
-const SplitPane: any = require('react-split-pane');
-
-{/*<SplitPane defaultSize="40%" split="vertical">*/
-}
-{/*<div>Left</div>*/
-}
-{/*<div>Content</div>*/
-}
-{/*</SplitPane>*/
-}
-
 export function main() {
     let imgContainerStyle = {
         maxWidth: "100%",
