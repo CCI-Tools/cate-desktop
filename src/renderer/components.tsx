@@ -200,7 +200,8 @@ export class HGLHorSplitter extends React.Component<HGLSplitterProps, any> {
                 type="button"
                 className="hgl-hor-splitter"
                 onMouseDown={this.onMouseDown}
-            />
+            >
+            </input>
         );
     }
 }
