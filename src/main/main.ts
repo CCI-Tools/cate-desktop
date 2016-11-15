@@ -4,10 +4,14 @@ import * as url from 'url';
 import * as fs from 'fs';
 import {Config} from "./Config";
 
+const PREFS_OPTIONS = ['--prefs', '-p'];
+const CONFIG_OPTIONS = ['--config', '-c'];
+
 // Module to control application life.
 const app = electron.app;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
+
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -29,23 +33,6 @@ function getAppDataDir() {
     return path.join(app.getPath('home'), '.cate');
 }
 
-function getConfigFile() {
-    let file = getOptionArg(['--config', '-c']);
-    if (file) {
-        return file;
-    }
-    file = path.resolve('cate-config.js');
-    return fs.existsSync(file) ? file : null;
-}
-
-function getPrefsFile() {
-    let file = getOptionArg(['--prefs', '-p']);
-    if (file) {
-        return file;
-    }
-    return path.join(getAppDataDir(), 'cate-prefs.json');
-}
-
 function getOptionArg(options: string[]) {
     let args: Array<string> = process.argv.slice(1);
     for (let i = 0; i < args.length; i++) {
@@ -57,52 +44,65 @@ function getOptionArg(options: string[]) {
     return null;
 }
 
-function storePrefs() {
-    let stats = fs.statSync(getAppDataDir());
-    if (!stats.isDirectory()) {
-        fs.mkdirSync(getAppDataDir());
-    }
-    let prefsFile = getPrefsFile();
-    _prefs.store(prefsFile, (err) => {
-        if (err) {
-            console.log('failed to store preferences to ', prefsFile, err);
-        } else {
-            console.log('preferences stored to ', prefsFile);
-        }
-    });
-}
-
-function loadPrefs(): Config {
-    let prefs = new Config();
-    let prefsFile = getPrefsFile();
-    prefs.load(prefsFile, (err) => {
-        if (err) {
-            console.error('failed to load preferences from ', prefsFile, err);
-        } else {
-            console.log('preferences loaded from ', prefsFile);
-        }
-    });
-    return prefs;
-}
-
-function loadConfig(): Config {
+function loadConfiguration(options: string[], defaultConfigFile: string, configType: string): Config {
     let config = new Config();
-    let configFile = getConfigFile();
-    if (config) {
-        config.load(configFile, (err) => {
-            if (err) {
-                console.warn('failed to load configuration from ', configFile, err);
-            } else {
-                console.log('configuration loaded from ', configFile);
-            }
-        });
+    let configFile = getOptionArg(options);
+    if (!configFile) {
+        configFile = defaultConfigFile;
+        if (!fs.existsSync(configFile)) {
+            return config;
+        }
     }
+    config.load(configFile, (err) => {
+        if (err) {
+            console.error(`failed to load ${configType} from ${configFile}`, err);
+        } else {
+            console.log(`${configType} loaded from ${configFile}`);
+        }
+    });
     return config;
 }
 
+function storeConfiguration(config: Config, options: string[], defaultConfigFile: string, configType: string) {
+    let configFile = getOptionArg(options);
+    if (!configFile) {
+        configFile = defaultConfigFile;
+        let dir = path.dirname(configFile);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir);
+        }
+    }
+    config.store(configFile, (err) => {
+        if (err) {
+            console.error(`failed to store ${configType} to ${configFile}`, err);
+        } else {
+            console.log(`${configType} stored to ${configFile}`);
+        }
+    });
+}
+
+function loadConfig(): Config {
+    return loadConfiguration(CONFIG_OPTIONS, path.resolve('cate-config.js'), 'configuration');
+}
+
+function getDefaultPrefsFile() {
+    if (_config.data.prefsFile) {
+        return _config.data.prefsFile;
+    }
+    return path.join(getAppDataDir(), 'cate-prefs.json');
+}
+
+function storePrefs(prefs: Config) {
+    storeConfiguration(prefs, PREFS_OPTIONS, getDefaultPrefsFile(), 'preferences')
+}
+
+function loadPrefs(): Config {
+    return loadConfiguration(PREFS_OPTIONS, getDefaultPrefsFile(), 'preferences');
+}
+
 export function init() {
-    _prefs = loadPrefs();
     _config = loadConfig();
+    _prefs = loadPrefs();
 
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
@@ -173,7 +173,9 @@ function createMainWindow() {
 
     // Emitted when the window is closed.
     _mainWindow.on('closed', function () {
-        storePrefs();
+        storePrefs(_prefs);
+        _prefs = null;
+        _config = null;
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
