@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Menu, MenuItem, MenuDivider, Popover, Position } from "@blueprintjs/core";
+import {Menu, MenuItem, MenuDivider, Popover, Position, Collapse } from "@blueprintjs/core";
 
 interface IPanelProps {
     icon?: string;

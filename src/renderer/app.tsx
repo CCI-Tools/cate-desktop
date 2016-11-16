@@ -208,10 +208,7 @@ export class CollapseExample1 extends React.Component<any, any> {
     render() {
         return (
             <div>
-                <Button onClick={this.handleClick}>
-                    {this.state.isOpen ? "Hide" : "Show"} dataset tree
-                </Button>
-                {/*<Panel text="Tree Example" onOpenStateChanged={this.handleOpenStateChanged}/>*/}
+                <Panel text="Tree Example" onOpenStateChanged={this.handleOpenStateChanged}/>
                 <Collapse isOpen={this.state.isOpen}>
                     <TreeExample/>
                 </Collapse>
@@ -223,9 +220,9 @@ export class CollapseExample1 extends React.Component<any, any> {
         this.setState({isOpen: !this.state.isOpen});
     };
 
-    // private handleOpenStateChanged = (isOpen) => {
-    //     this.setState({isOpen: isOpen});
-    // };
+    private handleOpenStateChanged = (isOpen) => {
+         this.setState({isOpen: isOpen});
+    };
 }
 
 export class CollapseExample2 extends React.Component<any, any> {

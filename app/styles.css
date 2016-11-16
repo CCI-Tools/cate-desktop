@@ -85,11 +85,7 @@ input, button, textarea, :focus {
 
 .cate-panel {
     display: flex;
-}
-
-.cate-panel-title {
-    display: flex;
-    margin: 0;
+    margin: 1px;
     padding: 2px;
 
     /* blueprint @light-grey5 */
@@ -98,4 +94,8 @@ input, button, textarea, :focus {
     background-color: #293742;
     align-items: center;
     justify-content: center;
+}
+
+.cate-panel-title {
+    flex: 1 0 auto;
 }
