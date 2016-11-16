@@ -66,9 +66,9 @@ export class HGLCenter extends React.Component<any, any> {
 
 interface HGLMidsectionProps {
     leftWidth: number;
-    leftHidden: boolean;
+    leftHidden?: boolean;
     rightWidth: number;
-    rightHidden: boolean;
+    rightHidden?: boolean;
 }
 
 interface HGLMidsectionState {
@@ -201,13 +201,11 @@ export class HGLHorSplitter extends React.Component<HGLSplitterProps, any> {
     }
 
     private addBodyMouseListeners() {
-        console.log("addBodyMouseListeners: ", this);
         this.bodyEventListeners.forEach((pair: [string, (any) => any]) =>
             document.body.addEventListener(pair[0], pair[1]));
     }
 
     private removeBodyMouseListeners() {
-        console.log("removeBodyMouseListeners: ", this);
         this.bodyEventListeners.forEach((pair: [string, (any) => any]) =>
             document.body.removeEventListener(pair[0], pair[1]));
     }
