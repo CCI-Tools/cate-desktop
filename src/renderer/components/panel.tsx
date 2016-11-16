@@ -1,19 +1,19 @@
 import * as React from 'react'
-import {Menu, MenuItem, MenuDivider, Popover, Position, Collapse } from "@blueprintjs/core";
+import {Menu, MenuItem, MenuDivider, Popover, Position, Collapse} from "@blueprintjs/core";
 
 interface IPanelProps {
     icon?: string;
     text: string;
     isSelected?: boolean;
-    isOpen?: boolean;
     onSelectedStateChanged?: (isSelected: boolean) => any;
-    onOpenStateChanged?: (isOpen: boolean) => any;
+    isExpanded?: boolean;
+    onExpandedStateChanged?: (isOpen: boolean) => any;
 }
 
 interface IPanelState {
     isSelected: boolean;
-    isOpen: boolean;
-    isMenuShown: boolean;
+    isExpanded: boolean;
+    isMoreActive: boolean;
 }
 
 export class Panel extends React.Component<IPanelProps,IPanelState> {
@@ -21,12 +21,12 @@ export class Panel extends React.Component<IPanelProps,IPanelState> {
         super(props);
         this.state = {
             isSelected: props.isSelected || false,
-            isOpen: props.isOpen || false,
-            isMenuShown: false,
+            isExpanded: props.isExpanded || false,
+            isMoreActive: false,
         };
         this.handleTitleClicked = this.handleTitleClicked.bind(this);
-        this.handleMenuButtonClicked = this.handleMenuButtonClicked.bind(this);
-        this.handleCollapseButtonClicked = this.handleCollapseButtonClicked.bind(this);
+        this.handleMoreButtonClicked = this.handleMoreButtonClicked.bind(this);
+        this.handleExpandButtonClicked = this.handleExpandButtonClicked.bind(this);
     }
 
     handleTitleClicked() {
@@ -34,8 +34,8 @@ export class Panel extends React.Component<IPanelProps,IPanelState> {
         this.setState((state: IPanelState, props: IPanelProps) => {
             let newState = {
                 isSelected: !state.isSelected,
-                isMenuShown: state.isMenuShown,
-                isOpen: state.isOpen
+                isExpanded: state.isExpanded,
+                isMoreActive: state.isMoreActive
             };
             if (this.props.onSelectedStateChanged) {
                 this.props.onSelectedStateChanged(newState.isSelected);
@@ -44,27 +44,27 @@ export class Panel extends React.Component<IPanelProps,IPanelState> {
         });
     }
 
-    handleMenuButtonClicked() {
+    handleMoreButtonClicked() {
         //noinspection JSUnusedLocalSymbols
         this.setState((state: IPanelState, props: IPanelProps) => {
             return {
                 isSelected: state.isSelected,
-                isMenuShown: !state.isMenuShown,
-                isOpen: state.isOpen
+                isExpanded: state.isExpanded,
+                isMoreActive: !state.isMoreActive
             };
         });
     }
 
-    handleCollapseButtonClicked() {
+    handleExpandButtonClicked() {
         //noinspection JSUnusedLocalSymbols
         this.setState((state: IPanelState, props: IPanelProps) => {
             let newState = {
                 isSelected: state.isSelected,
-                isMenuShown: state.isMenuShown,
-                isOpen: !state.isOpen
+                isExpanded: !state.isExpanded,
+                isMoreActive: state.isMoreActive
             };
-            if (this.props.onOpenStateChanged) {
-                this.props.onOpenStateChanged(newState.isOpen);
+            if (this.props.onExpandedStateChanged) {
+                this.props.onExpandedStateChanged(newState.isExpanded);
             }
             return newState;
         });
@@ -74,27 +74,27 @@ export class Panel extends React.Component<IPanelProps,IPanelState> {
     render() {
         const menu = (
             <Menu>
-                <MenuItem iconName="graph" text="Graph" />
-                <MenuItem iconName="map" text="Map" />
-                <MenuItem iconName="th" text="Table" shouldDismissPopover={false} />
-                <MenuItem iconName="zoom-to-fit" text="Nucleus" disabled={true} />
+                <MenuItem iconName="graph" text="Graph"/>
+                <MenuItem iconName="map" text="Map"/>
+                <MenuItem iconName="th" text="Table" shouldDismissPopover={false}/>
+                <MenuItem iconName="zoom-to-fit" text="Nucleus" disabled={true}/>
                 <MenuDivider />
                 <MenuItem iconName="cog" text="Settings...">
-                    <MenuItem iconName="add" text="Add new application" disabled={true} />
-                    <MenuItem iconName="remove" text="Remove application" />
+                    <MenuItem iconName="add" text="Add new application" disabled={true}/>
+                    <MenuItem iconName="remove" text="Remove application"/>
                 </MenuItem>
             </Menu>
         );
-        const menuIcon = <span className="pt-icon-standard pt-icon-more" onClick={this.handleMenuButtonClicked}/>;
 
-        const collapseIcon =this. state.isOpen ? "pt-icon-chevron-down" : "pt-icon-chevron-up";
+        const menuIcon = this.state.isMoreActive ? "pt-icon-menu-open" : "pt-icon-menu-closed";
+        const expandIcon = this.state.isExpanded ? "pt-icon-chevron-up" : "pt-icon-chevron-down";
 
         return (<div className="cate-panel">
             <span className="cate-panel-title" onClick={this.handleTitleClicked}>{this.props.text}</span>
-            <Popover isOpen={this.state.isMenuShown} content={menu} position={Position.RIGHT_BOTTOM}>
-                {menuIcon}
+            <Popover isOpen={this.state.isMoreActive} content={menu} position={Position.RIGHT_BOTTOM}>
+                <span className={"pt-icon-standard " + menuIcon} onClick={this.handleMoreButtonClicked}/>
             </Popover>
-            <span className={"pt-icon-standard " + collapseIcon} onClick={this.handleCollapseButtonClicked}/>
+            <span className={"pt-icon-standard " + expandIcon} onClick={this.handleExpandButtonClicked}/>
         </div>);
     }
 }

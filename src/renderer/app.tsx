@@ -208,7 +208,7 @@ export class CollapseExample1 extends React.Component<any, any> {
     render() {
         return (
             <div>
-                <Panel text="Tree Example" onOpenStateChanged={this.handleOpenStateChanged}/>
+                <Panel text="Tree Example" onExpandedStateChanged={this.handleOpenStateChanged}/>
                 <Collapse isOpen={this.state.isOpen}>
                     <TreeExample/>
                 </Collapse>
