@@ -1,14 +1,8 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import {
-    HGLContainer, HGLHeader, HGLFooter,
-    HGLMidsection
-} from './components/hgl';
-
-import { Panel } from './components/panel';
-
-import {Classes, ITreeNode, Tooltip, Tree, Button, Collapse,
-    Menu, MenuDivider, MenuItem, Popover, Position } from "@blueprintjs/core";
+import {Classes, ITreeNode, Tooltip, Tree} from "@blueprintjs/core";
+import {HGLContainer, HGLHeader, HGLFooter, HGLMidsection} from './components/hgl';
+import {Panel} from './components/panel';
 
 
 export function main() {
@@ -79,6 +73,7 @@ export function main() {
     );
 }
 
+//noinspection JSUnusedLocalSymbols
 function NavBarExample(props) {
     return (
         <nav className="pt-navbar .modifier">
@@ -196,88 +191,28 @@ export class TreeExample extends React.Component<any, ITreeExampleState> {
     }
 }
 
-
-export class CollapseExample1 extends React.Component<any, any> {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isOpen: false,
-        };
-    }
-
-    render() {
-        return (
-            <div>
-                <Panel text="Tree Example" onExpandedStateChanged={this.handleOpenStateChanged}/>
-                <Collapse isOpen={this.state.isOpen}>
-                    <TreeExample/>
-                </Collapse>
-            </div>
-        );
-    }
-
-    private handleClick = () => {
-        this.setState({isOpen: !this.state.isOpen});
-    };
-
-    private handleOpenStateChanged = (isOpen) => {
-         this.setState({isOpen: isOpen});
-    };
+//noinspection JSUnusedLocalSymbols
+function CollapseExample1(props: any) {
+    return (
+        <Panel text="Tree Example">
+            <TreeExample/>
+        </Panel>
+    );
 }
 
-export class CollapseExample2 extends React.Component<any, any> {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isOpen: false,
-        };
-    }
-
-    render() {
-        return (
-            <div>
-                <Button onClick={this.handleClick}>
-                    {this.state.isOpen ? "Hide" : "Show"} build logs
-                </Button>
-                <Collapse isOpen={this.state.isOpen}>
-                    <pre>
-                        [11:53:30] Finished 'typescript-bundle-blueprint' after 769 ms<br/>
-                        [11:53:30] Starting 'typescript-typings-blueprint'...<br/>
-                        [11:53:30] Finished 'typescript-typings-blueprint' after 198 ms<br/>
-                        [11:53:30] write ./blueprint.css<br/>
-                        [11:53:30] Finished 'sass-compile-blueprint' after 2.84 s
-                    </pre>
-                </Collapse>
-            </div>
-        );
-    }
-
-    private handleClick = () => {
-        this.setState({isOpen: !this.state.isOpen});
-    }
+//noinspection JSUnusedLocalSymbols
+function CollapseExample2(props: any) {
+    return (
+        <Panel text="Build Logs">
+            <pre>
+                [11:53:30] Finished 'typescript-bundle-blueprint' after 769 ms<br/>
+                [11:53:30] Starting 'typescript-typings-blueprint'...<br/>
+                [11:53:30] Finished 'typescript-typings-blueprint' after 198 ms<br/>
+                [11:53:30] write ./blueprint.css<br/>
+                [11:53:30] Finished 'sass-compile-blueprint' after 2.84 s
+            </pre>
+        </Panel>
+    );
 }
 
-
-export class DropdownMenuExample extends React.Component<any, any> {
-    protected renderExample() {
-        const compassMenu = (
-            <Menu>
-                <MenuItem iconName="graph" text="Graph" />
-                <MenuItem iconName="map" text="Map" />
-                <MenuItem iconName="th" text="Table" shouldDismissPopover={false} />
-                <MenuItem iconName="zoom-to-fit" text="Nucleus" disabled={true} />
-                <MenuDivider />
-                <MenuItem iconName="cog" text="Settings...">
-                    <MenuItem iconName="add" text="Add new application" disabled={true} />
-                    <MenuItem iconName="remove" text="Remove application" />
-                </MenuItem>
-            </Menu>
-        );
-        return (
-            <Popover content={compassMenu} position={Position.RIGHT_BOTTOM}>
-                <button className="pt-button pt-icon-share" type="button">Open in...</button>
-            </Popover>
-        );
-    }
-}
 

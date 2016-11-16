@@ -89,12 +89,19 @@ export class Panel extends React.Component<IPanelProps,IPanelState> {
         const menuIcon = this.state.isMoreActive ? "pt-icon-menu-open" : "pt-icon-menu-closed";
         const expandIcon = this.state.isExpanded ? "pt-icon-chevron-up" : "pt-icon-chevron-down";
 
-        return (<div className="cate-panel">
-            <span className="cate-panel-title" onClick={this.handleTitleClicked}>{this.props.text}</span>
-            <Popover isOpen={this.state.isMoreActive} content={menu} position={Position.RIGHT_BOTTOM}>
-                <span className={"pt-icon-standard " + menuIcon} onClick={this.handleMoreButtonClicked}/>
-            </Popover>
-            <span className={"pt-icon-standard " + expandIcon} onClick={this.handleExpandButtonClicked}/>
-        </div>);
+        return (
+            <div>
+                <div className="cate-panel">
+                    <span className="cate-panel-title" onClick={this.handleTitleClicked}>{this.props.text}</span>
+                    <Popover isOpen={this.state.isMoreActive} content={menu} position={Position.RIGHT_BOTTOM}>
+                        <span className={"pt-icon-standard " + menuIcon} onClick={this.handleMoreButtonClicked}/>
+                    </Popover>
+                    <span className={"pt-icon-standard " + expandIcon} onClick={this.handleExpandButtonClicked}/>
+                </div>
+                <Collapse isOpen={this.state.isExpanded}>
+                    {this.props.children}
+                </Collapse>
+            </div>
+        );
     }
 }
