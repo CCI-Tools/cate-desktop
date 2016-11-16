@@ -1,3 +1,19 @@
+/*
+ * Disable highlighting/selecting across the application
+ * Solution taken from https://github.com/electron/electron/issues/2538
+ */
+:not(input):not(textarea),
+:not(input):not(textarea)::after,
+:not(input):not(textarea)::before {
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+input, button, textarea, :focus {
+    /* We must add some other style for :focus to help UX/a11y */
+    outline: none;
+}
+
 
 .hgl-container {
     height: 100%;
@@ -35,11 +51,11 @@
     flex: none;
     border: none;
     outline: none;
-    min-width: 0.1em;
-    max-width: 0.1em;
+    width: 4px;
     min-height: 100%;
     max-height: 100%;
     /*background-color: yellow;*/
+    cursor: col-resize;
 }
 
 /* For visible debugging ====================================================== */

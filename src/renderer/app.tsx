@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {
     HGLContainer, HGLHeader, HGLFooter,
-    HGLMidsection2
+    HGLMidsection
 } from './components';
 
 export function main() {
@@ -26,7 +26,7 @@ export function main() {
             <HGLHeader>
                 <p>HEADER</p>
             </HGLHeader>
-            <HGLMidsection2 leftWidth={100} rightWidth={100}>
+            <HGLMidsection leftWidth={100} rightWidth={100}>
                 <div style={leftStyle}>
                     <p>LEFT</p>
                     <p>LEFT</p>
@@ -46,7 +46,7 @@ export function main() {
                     <p>RIGHT</p>
                     <p>RIGHT</p>
                 </div>
-            </HGLMidsection2>
+            </HGLMidsection>
             <HGLFooter>
                 <p>FOOTER</p>
             </HGLFooter>
