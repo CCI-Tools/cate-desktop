@@ -94,7 +94,7 @@ export class HGLMidsection extends React.Component<HGLMidsectionProps, HGLMidsec
         this.setState((state: HGLMidsectionState, props: HGLMidsectionProps) => {
             return {
                 leftWidth: state.leftWidth + deltaX,
-            }
+            };
         });
     }
 
@@ -103,7 +103,7 @@ export class HGLMidsection extends React.Component<HGLMidsectionProps, HGLMidsec
         this.setState((state: HGLMidsectionState, props: HGLMidsectionProps) => {
             return {
                 rightWidth: state.rightWidth - deltaX,
-            }
+            };
         });
     }
 

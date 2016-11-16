@@ -11,6 +11,18 @@
       html, body, #container {
         width: 100vw;
         height: 100vh;
+        /* blueprint's @dark-gray5*/
+        background-color: #394B59;
+      }
+
+      body {
+        /*
+         * For a single-page app, if the <body> is styled with width: 100% and height: 100%,
+         * a blueprint's Portal (or Overlay) may take up extra whitespace and cause the window
+         * to undesirably scroll. To fix this, instead apply position: absolute to the <body> tag.
+         * See http://blueprintjs.com/docs/#components.portal
+         */
+        position: absolute;
       }
 
       body, #container {
@@ -20,10 +32,11 @@
       }
 
     </style>
+    <link href="node_modules/@blueprintjs/core/dist/blueprint.css" rel="stylesheet" />
     <link href="styles.css" rel="stylesheet">
   </head>
-  <body>
-    <div id="container" style=""></div>
+  <body class="pt-dark">
+    <div id="container" ></div>
     <script src="renderer.js"></script>
   </body>
 </html>

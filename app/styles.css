@@ -58,41 +58,19 @@ input, button, textarea, :focus {
     cursor: col-resize;
 }
 
-/* For visible debugging ====================================================== */
-
-html, body {
-    background: black;
+.cate-panel {
+    display: flex;
 }
 
-body {
-    color: white;
-}
+.cate-panel-title {
+    display: flex;
+    margin: 0;
+    padding: 2px;
 
-.hgl-container {
-    background: #111;
-}
-
-.hgl-header {
-    background: #222;
-}
-
-.hgl-footer {
-    background: #333;
-}
-
-.hgl-midsection {
-    background: #444;
-}
-
-.hgl-left {
-    background: #555;
-}
-
-.hgl-right {
-    background: #666;
-}
-
-.hgl-center {
-    background: #777;
-    color: lightyellow;
+    /* blueprint @light-grey5 */
+    color: #F5F8FA;
+    /* blueprint @dark-grey3 */
+    background-color: #293742;
+    align-items: center;
+    justify-content: center;
 }
