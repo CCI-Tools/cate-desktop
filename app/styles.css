@@ -9,11 +9,37 @@
     user-select: none;
     cursor: default;
 }
+
 input, button, textarea, :focus {
     /* We must add some other style for :focus to help UX/a11y */
     outline: none;
 }
 
+/*
+ * -webkit-scrollbar customization taken from
+ * https://css-tricks.com/examples/WebKitScrollbars/
+ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background: rgba(191, 204, 214, 0.8);
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
+::-webkit-scrollbar-thumb:window-inactive {
+    background: rgba(191, 204, 214, 0.4);
+}
 
 .hgl-container {
     height: 100%;
@@ -45,7 +71,6 @@ input, button, textarea, :focus {
     zzdisplay: flex;
     zzflex-flow: column;
 }
-
 
 .hgl-hor-splitter {
     flex: none;
