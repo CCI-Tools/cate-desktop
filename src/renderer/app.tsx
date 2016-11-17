@@ -262,7 +262,7 @@ export class TreeExample extends React.Component<any, ITreeExampleState> {
 //noinspection JSUnusedLocalSymbols
 function CollapseExample1(props: any) {
     return (
-        <Panel text="Tree Example">
+        <Panel icon="pt-icon-build" text="Tree Example">
             <TreeExample/>
         </Panel>
     );
@@ -271,7 +271,7 @@ function CollapseExample1(props: any) {
 //noinspection JSUnusedLocalSymbols
 function CollapseExample2(props: any) {
     return (
-        <Panel text="Build Logs">
+        <Panel icon="pt-icon-geosearch"  text="Build Logs">
             <pre>
                 [11:53:30] Finished 'typescript-bundle-blueprint' after 769 ms<br/>
                 [11:53:30] Starting 'typescript-typings-blueprint'...<br/>

@@ -96,7 +96,7 @@ input, button, textarea, :focus {
 .cate-panel-header {
     display: flex;
     margin: 1px;
-    padding: 1px;
+    padding: 3px;
 
     /* blueprint @light-grey5 */
     color: #F5F8FA;
@@ -105,8 +105,14 @@ input, button, textarea, :focus {
     align-items: center;
 }
 
+.cate-panel-icon {
+    flex: 1 1 auto;
+}
+
 .cate-panel-title {
     flex: 1 0 auto;
+    text-align: left;
+    margin-left: 2px;
 }
 
 span.cate-icon-small {

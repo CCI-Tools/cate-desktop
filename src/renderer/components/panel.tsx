@@ -120,15 +120,31 @@ export class Panel extends React.Component<IPanelProps,IPanelState> {
         const expandIconName = this.state.isExpanded ? "pt-icon-chevron-up" : "pt-icon-chevron-down";
         const closeIconName = "pt-icon-cross";
 
+        let icon = null;
+        if (this.props.icon) {
+            const iconClasses = classNames("pt-icon-standard", this.props.icon);
+            icon = <span className={iconClasses} onClick={this.handleTitleClicked}/>;
+        }
+        const title = <span className="cate-panel-title" onClick={this.handleTitleClicked}>{this.props.text}</span>;
+
+        const menuIcon = (
+            <Popover isOpen={this.state.isMoreActive} content={menu}>
+                <span className={"pt-icon-standard " + menuIconName + " cate-icon-small"}
+                      onClick={this.handleMoreButtonClicked}/>
+            </Popover>);
+        const expandIcon = (<span className={"pt-icon-standard " + expandIconName + " cate-icon-small"}
+                                  onClick={this.handleExpandButtonClicked}/>);
+        const closeIcon = (<span className={"pt-icon-standard " + closeIconName + " cate-icon-small"}
+                                 onClick={this.handleCloseButtonClicked}/>);
+
         return (
             <div className={panelClassNames}>
                 <div className="cate-panel-header">
-                    <span className="cate-panel-title" onClick={this.handleTitleClicked}>{this.props.text}</span>
-                    <Popover isOpen={this.state.isMoreActive} content={menu}>
-                        <span className={"pt-icon-standard " + menuIconName + " cate-icon-small"} onClick={this.handleMoreButtonClicked}/>
-                    </Popover>
-                    <span className={"pt-icon-standard " + expandIconName + " cate-icon-small"} onClick={this.handleExpandButtonClicked}/>
-                    <span className={"pt-icon-standard " + closeIconName + " cate-icon-small"} onClick={this.handleCloseButtonClicked}/>
+                    {icon}
+                    {title}
+                    {menuIcon}
+                    {expandIcon}
+                    {closeIcon}
                 </div>
                 <Collapse isOpen={this.state.isExpanded}>
                     {this.props.children}
