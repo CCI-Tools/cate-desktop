@@ -10,8 +10,10 @@
     cursor: default;
 }
 
+/*
+ * We must add some other style for :focus to help UX/a11y
+ */
 input, button, textarea, :focus {
-    /* We must add some other style for :focus to help UX/a11y */
     outline: none;
 }
 

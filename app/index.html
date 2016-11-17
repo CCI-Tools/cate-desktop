@@ -4,10 +4,17 @@
     <meta charset="UTF-8">
     <title>Cate</title>
     <style>
+
+      /*
+       * Get rid of any extra scrollbars added by the browser
+       */
       * {
         overflow: hidden;
       }
 
+      /*
+       * Assign all available viewport space to html and body and our top-level container
+       */
       html, body, #container {
         width: 100vw;
         height: 100vh;
@@ -15,16 +22,19 @@
         background-color: #394B59;
       }
 
+      /*
+       * For a single-page app, if the <body> is styled with width: 100% and height: 100%,
+       * a blueprint's Portal (or Overlay) may take up extra whitespace and cause the window
+       * to undesirably scroll. To fix this, instead apply position: absolute to the <body> tag.
+       * See http://blueprintjs.com/docs/#components.portal
+       */
       body {
-        /*
-         * For a single-page app, if the <body> is styled with width: 100% and height: 100%,
-         * a blueprint's Portal (or Overlay) may take up extra whitespace and cause the window
-         * to undesirably scroll. To fix this, instead apply position: absolute to the <body> tag.
-         * See http://blueprintjs.com/docs/#components.portal
-         */
         position: absolute;
       }
 
+      /*
+       * Get rid of all margins, paddings, borders.
+       */
       body, #container {
         margin: 0;
         padding: 0;
