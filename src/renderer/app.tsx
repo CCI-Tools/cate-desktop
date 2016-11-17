@@ -1,69 +1,137 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import {Classes, ITreeNode, Tooltip, Tree} from "@blueprintjs/core";
+import {Classes, ITreeNode, Tooltip, Tree, Tab, TabList, TabPanel, Tabs} from "@blueprintjs/core";
 import {HGLContainer, HGLHeader, HGLFooter, HGLMidsection} from './components/hgl';
 import {Panel} from './components/panel';
 
 
 export function main() {
-    let leftStyle = {
-        maxWidth: "100%",
-        maxHeight: "100%",
-        overflowX: "auto",
-        overflowY: "auto",
-    };
-    let rightStyle = {
-        maxWidth: "100%",
-        maxHeight: "100%",
-        overflowY: "auto",
-    };
-    let centerStyle = {
-        maxWidth: "100%",
-        maxHeight: "100%",
+    const leftStyle = {
+        width: "100%",
+        height: "100%",
         overflow: "auto",
     };
+    const rightStyle = {
+        width: "100%",
+        height: "100%",
+        overflow: "auto",
+    };
+    const centerStyle = {
+        width: "100%",
+        height: "100%",
+        overflow: "auto",
+    };
+    const closeIconName = "pt-icon-cross";
+
     ReactDOM.render(
         <HGLContainer>
             <HGLHeader>
                 <NavBarExample/>
             </HGLHeader>
             <HGLMidsection leftWidth={180} rightWidth={180}>
-                <div style={leftStyle}>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                    <CollapseExample1/>
-                </div>
-                <div style={centerStyle}>
-                    <img src="resources/SST.png"/>
-                </div>
-                <div style={rightStyle}>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                    <CollapseExample2/>
-                </div>
+                <Tabs>
+                    <TabList>
+                        <Tab>Tools-1</Tab>
+                        <Tab>Tools-2</Tab>
+                    </TabList>
+                    <TabPanel>
+                        <div style={leftStyle}>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                        </div>
+                    </TabPanel>
+                    <TabPanel>
+                        <div style={leftStyle}>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                        </div>
+                    </TabPanel>
+                </Tabs>
+                <Tabs>
+                    <TabList>
+                        {/* TODO: create component CloseableTab */}
+                        <Tab>
+                            <div className="cate-tab-header">
+                                <span>View-1</span>
+                                <span className={"pt-icon-standard  " + closeIconName + " cate-icon-small"}/>
+                            </div>
+                        </Tab>
+                        <Tab>
+                            <div className="cate-tab-header">
+                                <span>View-2</span>
+                                <span className={"pt-icon-standard  " + closeIconName + " cate-icon-small"}/>
+                            </div>
+                        </Tab>
+                    </TabList>
+
+                    <TabPanel>
+                        <div style={centerStyle}>
+                            <img src="resources/SST.png"/>
+                        </div>
+                    </TabPanel>
+
+                    <TabPanel>
+                        <div style={centerStyle}>
+                            <h2>Example panel: React</h2>
+                            <p className="pt-running-text">
+                                Lots of people use React as the V in MVC. Since React makes no assumptions about the
+                                rest of your technology stack, it's easy to try it out on a small feature in an existing
+                                project.
+                            </p>
+                        </div>
+                    </TabPanel>
+                </Tabs>
+                <Tabs>
+                    <TabList>
+                        <Tab>Tools-3</Tab>
+                        <Tab>Tools-4</Tab>
+                    </TabList>
+                    <TabPanel>
+                        <div style={rightStyle}>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                        </div>
+                    </TabPanel>
+                    <TabPanel>
+                        <div style={rightStyle}>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                        </div>
+                    </TabPanel>
+                </Tabs>
             </HGLMidsection>
             <HGLFooter>
                 <p>FOOTER</p>
@@ -76,9 +144,9 @@ export function main() {
 //noinspection JSUnusedLocalSymbols
 function NavBarExample(props) {
     return (
-        <nav className="pt-navbar .modifier">
+        <nav className="pt-navbar">
             <div className="pt-navbar-group pt-align-left">
-                <div className="pt-navbar-heading">Blueprint</div>
+                <div className="pt-navbar-heading">Cate</div>
                 <input className="pt-input" placeholder="Search files..." type="text"/>
             </div>
             <div className="pt-navbar-group pt-align-right">

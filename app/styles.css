@@ -62,16 +62,12 @@ input, button, textarea, :focus {
 
 .hgl-left, .hgl-right {
     flex: none;
-    /*overflow-y: auto;*/
+    max-height: 100%;
 }
 
 .hgl-center {
     flex: auto;
-    /*overflow-y: auto;*/
-    /* Chrome suggested workaround */
-    zzheight: 100%;
-    zzdisplay: flex;
-    zzflex-flow: column;
+    max-height: 100%;
 }
 
 .hgl-hor-splitter {
@@ -86,18 +82,77 @@ input, button, textarea, :focus {
 }
 
 .cate-panel {
+    padding: 1px;
+}
+
+.cate-panel.opened {
+    display: block;
+}
+
+.cate-panel.closed {
+    display: none;
+}
+
+.cate-panel-header {
     display: flex;
     margin: 1px;
-    padding: 2px;
+    padding: 1px;
 
     /* blueprint @light-grey5 */
     color: #F5F8FA;
     /* blueprint @dark-grey3 */
     background-color: #293742;
     align-items: center;
-    justify-content: center;
 }
 
 .cate-panel-title {
     flex: 1 0 auto;
+}
+
+.cate-icon-small {
+    font-size: 8px;
+    font-weight: lighter;
+    padding-left: 1px;
+}
+
+.cate-tab-header {
+    display: flex;
+    align-items: center;
+}
+
+.pt-tabs {
+    width: 100%;
+    height: 100%;
+}
+
+/*
+ * Fix blueprint's way too large TabPanel margin-top: 20px
+ */
+.pt-tab-panel {
+    margin-top: 5px;
+}
+
+.pt-tab-panel {
+    width: 100%;
+    /*
+     * calc(100% of parent 'pt-tabs'
+            minus height of 'pt-tab-list'
+            which is 30px line-height of font in 'pt-tab-list'
+               plus 5px margin-top of 'pt-tab-panel')
+     */
+    height: calc(100% - 35px);
+}
+
+/*
+ * Fix blueprint's way too large Tab margin-right: 20px
+ */
+.pt-tab {
+    margin-right: 5px;
+}
+
+/**
+ * Fix blueprint's h<N> line-height: 0.8em
+ */
+h1, h2, h3, h4, h5 {
+    line-height: 1.5em;
 }
