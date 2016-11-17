@@ -109,10 +109,18 @@ input, button, textarea, :focus {
     flex: 1 0 auto;
 }
 
-.cate-icon-small {
-    font-size: 8px;
+span.cate-icon-small {
+    font-size: 12px;
     font-weight: lighter;
-    padding-left: 1px;
+    padding-left: 2px;
+    transition: color 0.5s linear;
+    /* blueprint's @blue4 used for selection in pt-dark */
+    color: rgba(43, 149, 214, 0.1);
+}
+
+span.cate-icon-small:hover {
+    /* blueprint's @blue4 used for selection in pt-dark */
+    color: rgba(43, 149, 214, 1.0);
 }
 
 .cate-tab-header {
