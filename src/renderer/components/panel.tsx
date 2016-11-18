@@ -2,101 +2,103 @@ import * as React from "react"
 import {Menu, MenuItem, MenuDivider, Popover, Position, Collapse} from "@blueprintjs/core";
 import * as classNames from "classnames";
 
-interface IPanelProps {
+/**
+ * {@link ExpansionPanel} properties.
+ */
+interface IExpansionPanelProps {
     icon?: string;
     text: string;
     isOpen?: boolean;
-    onOpenStateChanged?: (isOpen: boolean) => any;
-    isSelected?: boolean;
-    onSelectedStateChanged?: (isSelected: boolean) => any;
+    onOpen?: () => any;
+    onClose?: () => any;
     isExpanded?: boolean;
-    onExpandedStateChanged?: (isExpanded: boolean) => any;
+    onExpand?: () => any;
+    onCollapse?: () => any;
+    hasFocus?: boolean;
+    onFocusGained?: () => any;
+    onFocusLost?: () => any;
 }
 
-interface IPanelState {
+/**
+ * {@link ExpansionPanel} state.
+ */
+interface IExpansionPanelState {
     isOpen: boolean;
-    isSelected: boolean;
     isExpanded: boolean;
+    hasFocus: boolean;
     isMoreActive: boolean;
 }
 
-export class Panel extends React.Component<IPanelProps,IPanelState> {
-    constructor(props: IPanelProps) {
+/**
+ * Expansion panels contain creation flows and allow lightweight editing of an element.
+ * The component comprises a panel header and blueprint's `Collapse` component which holds the content of the
+ * panel.
+ * See https://material.google.com/components/expansion-panels.html.
+ *
+ * @author Norman Fomferra
+ * @version 0.1
+ */
+export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpansionPanelState> {
+    constructor(props: IExpansionPanelProps) {
         super(props);
         this.state = {
             isOpen: props.isOpen !== false,
-            isSelected: props.isSelected || false,
             isExpanded: props.isExpanded || false,
+            hasFocus: props.hasFocus || false,
             isMoreActive: false,
         };
-        this.handleTitleClicked = this.handleTitleClicked.bind(this);
+        this.handlePanelHeaderClicked = this.handlePanelHeaderClicked.bind(this);
         this.handleMoreButtonClicked = this.handleMoreButtonClicked.bind(this);
         this.handleExpandButtonClicked = this.handleExpandButtonClicked.bind(this);
         this.handleCloseButtonClicked = this.handleCloseButtonClicked.bind(this);
     }
 
-    handleTitleClicked() {
-        //noinspection JSUnusedLocalSymbols
-        this.setState((state: IPanelState, props: IPanelProps) => {
-            let newState = {
-                isOpen: state.isOpen,
-                isSelected: !state.isSelected,
-                isExpanded: state.isExpanded,
-                isMoreActive: state.isMoreActive
-            };
-            if (this.props.onSelectedStateChanged) {
-                this.props.onSelectedStateChanged(newState.isSelected);
+    private handlePanelHeaderClicked() {
+        this.setState({
+            hasFocus: true,
+        } as IExpansionPanelState);
+    }
+
+    private handleMoreButtonClicked() {
+        this.setState({
+            isMoreActive: !this.state.isMoreActive
+        } as IExpansionPanelState);
+    }
+
+    private handleExpandButtonClicked() {
+        this.setState({
+            isExpanded: !this.state.isExpanded,
+            hasFocus: this.state.isExpanded ? this.state.hasFocus : true,
+        } as IExpansionPanelState);
+    }
+
+    private handleCloseButtonClicked() {
+        this.setState({
+            isOpen: false,
+            hasFocus: false,
+        }as IExpansionPanelState);
+    }
+
+    private static fireChange(oldState: boolean, newState: boolean, onTrue: () => any, onFalse: () => any) {
+        if (oldState !== newState) {
+            if (newState) {
+                if (onTrue) onTrue();
+            } else {
+                if (onFalse) onFalse();
             }
-            return newState;
-        });
+        }
     }
 
-    handleMoreButtonClicked() {
-        //noinspection JSUnusedLocalSymbols
-        this.setState((state: IPanelState, props: IPanelProps) => {
-            return {
-                isOpen: state.isOpen,
-                isSelected: state.isSelected,
-                isExpanded: state.isExpanded,
-                isMoreActive: !state.isMoreActive
-            };
-        });
+    componentWillUpdate(nextProps: IExpansionPanelState, nextState: IExpansionPanelState): void {
+        ExpansionPanel.fireChange(this.state.hasFocus, nextState.hasFocus,
+            this.props.onFocusGained, this.props.onFocusLost);
+        ExpansionPanel.fireChange(this.state.isOpen, nextState.isOpen,
+            this.props.onOpen, this.props.onClose);
+        ExpansionPanel.fireChange(this.state.isExpanded, nextState.isExpanded,
+            this.props.onExpand, this.props.onCollapse);
     }
 
-    handleExpandButtonClicked() {
-        //noinspection JSUnusedLocalSymbols
-        this.setState((state: IPanelState, props: IPanelProps) => {
-            let newState = {
-                isOpen: state.isOpen,
-                isSelected: state.isSelected,
-                isExpanded: !state.isExpanded,
-                isMoreActive: state.isMoreActive
-            };
-            if (this.props.onExpandedStateChanged) {
-                this.props.onExpandedStateChanged(newState.isExpanded);
-            }
-            return newState;
-        });
-    }
-
-    handleCloseButtonClicked() {
-        //noinspection JSUnusedLocalSymbols
-        this.setState((state: IPanelState, props: IPanelProps) => {
-            let newState = {
-                isOpen: false,
-                isSelected: state.isSelected,
-                isExpanded: state.isExpanded,
-                isMoreActive: state.isMoreActive
-            };
-            if (this.props.onExpandedStateChanged) {
-                this.props.onExpandedStateChanged(newState.isExpanded);
-            }
-            return newState;
-        });
-    }
-
-    // TODO: honour selection state
-    render() {
+    render(): JSX.Element {
         const menu = (
             <Menu>
                 <MenuItem iconName="graph" text="Graph"/>
@@ -122,10 +124,11 @@ export class Panel extends React.Component<IPanelProps,IPanelState> {
 
         let icon = null;
         if (this.props.icon) {
-            const iconClasses = classNames("pt-icon-standard", this.props.icon);
-            icon = <span className={iconClasses} onClick={this.handleTitleClicked}/>;
+            const iconClasses = classNames("pt-icon-standard", this.props.icon, {"cate-panel-selected": this.state.hasFocus});
+            icon = <span className={iconClasses} onClick={this.handlePanelHeaderClicked}/>;
         }
-        const title = <span className="cate-panel-title" onClick={this.handleTitleClicked}>{this.props.text}</span>;
+        const textClasses = classNames("cate-panel-text", {"cate-panel-selected": this.state.hasFocus});
+        const text = <span className={textClasses} onClick={this.handlePanelHeaderClicked}>{this.props.text}</span>;
 
         const menuIcon = (
             <Popover isOpen={this.state.isMoreActive} content={menu}>
@@ -141,7 +144,7 @@ export class Panel extends React.Component<IPanelProps,IPanelState> {
             <div className={panelClassNames}>
                 <div className="cate-panel-header">
                     {icon}
-                    {title}
+                    {text}
                     {menuIcon}
                     {expandIcon}
                     {closeIcon}

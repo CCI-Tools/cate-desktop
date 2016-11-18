@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {Classes, ITreeNode, Tooltip, Tree, Tab, TabList, TabPanel, Tabs} from "@blueprintjs/core";
 import {HGLContainer, HGLHeader, HGLFooter, HGLMidsection} from './components/hgl';
-import {Panel} from './components/panel';
+import {ExpansionPanel} from './components/panel';
 
 
 export function main() {
@@ -262,16 +262,16 @@ export class TreeExample extends React.Component<any, ITreeExampleState> {
 //noinspection JSUnusedLocalSymbols
 function CollapseExample1(props: any) {
     return (
-        <Panel icon="pt-icon-build" text="Tree Example">
+        <ExpansionPanel icon="pt-icon-build" text="Tree Example">
             <TreeExample/>
-        </Panel>
+        </ExpansionPanel>
     );
 }
 
 //noinspection JSUnusedLocalSymbols
 function CollapseExample2(props: any) {
     return (
-        <Panel icon="pt-icon-geosearch"  text="Build Logs">
+        <ExpansionPanel icon="pt-icon-geosearch" text="Build Logs">
             <pre>
                 [11:53:30] Finished 'typescript-bundle-blueprint' after 769 ms<br/>
                 [11:53:30] Starting 'typescript-typings-blueprint'...<br/>
@@ -279,7 +279,7 @@ function CollapseExample2(props: any) {
                 [11:53:30] write ./blueprint.css<br/>
                 [11:53:30] Finished 'sass-compile-blueprint' after 2.84 s
             </pre>
-        </Panel>
+        </ExpansionPanel>
     );
 }
 

@@ -85,6 +85,7 @@ input, button, textarea, :focus {
     padding: 1px;
 }
 
+
 .cate-panel.opened {
     display: block;
 }
@@ -105,16 +106,25 @@ input, button, textarea, :focus {
     align-items: center;
 }
 
+/* TODO: Apply to elements within a div with class .cate-panel-header */
+.cate-panel-selected {
+    /* blueprint's color @blue4 */
+    color: #2B95D6;
+}
+
+/* TODO: Apply to elements within a div with class .cate-panel-header */
 .cate-panel-icon {
     flex: 1 1 auto;
 }
 
-.cate-panel-title {
+/* TODO: Apply to elements within a div with class .cate-panel-header */
+.cate-panel-text {
     flex: 1 0 auto;
     text-align: left;
     margin-left: 2px;
 }
 
+/* TODO: Apply to right buttons (spans) within a div with class .cate-panel-header */
 span.cate-icon-small {
     font-size: 12px;
     font-weight: lighter;
@@ -124,16 +134,23 @@ span.cate-icon-small {
     color: rgba(43, 149, 214, 0.1);
 }
 
+/* TODO: Apply to right buttons (spans) within a div with class .cate-panel-header */
 span.cate-icon-small:hover {
     /* blueprint's @blue4 used for selection in pt-dark */
     color: rgba(43, 149, 214, 1.0);
 }
 
+/*
+ * we apply this to elements we put into blueprint "Tab" components
+ */
 .cate-tab-header {
     display: flex;
     align-items: center;
 }
 
+/*
+ * Override blueprint pa-tabs class for "Tabs" component, so that it has a defined size
+ */
 .pt-tabs {
     width: 100%;
     height: 100%;
@@ -146,6 +163,9 @@ span.cate-icon-small:hover {
     margin-top: 5px;
 }
 
+/*
+ * Fix blueprint's "TabPanel" style so that it has a defined size
+ */
 .pt-tab-panel {
     width: 100%;
     /*
@@ -158,14 +178,14 @@ span.cate-icon-small:hover {
 }
 
 /*
- * Fix blueprint's way too large Tab margin-right: 20px
+ * Fix blueprint's too large "Tab" margin-right of 20px
  */
 .pt-tab {
     margin-right: 5px;
 }
 
 /**
- * Fix blueprint's h<N> line-height: 0.8em
+ * Fix blueprint's h<N> line-height of 0.8em
  */
 h1, h2, h3, h4, h5 {
     line-height: 1.5em;
