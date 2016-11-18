@@ -4,6 +4,7 @@ import {Classes, ITreeNode, Tooltip, Tree, Tab, TabList, TabPanel, Tabs} from "@
 import {HGLContainer, HGLHeader, HGLFooter, HGLMidsection} from './components/hgl';
 import {ExpansionPanel} from './components/panel';
 
+import {CesiumView} from './components/cesium/view'
 
 export function main() {
     const leftStyle = {
@@ -31,8 +32,8 @@ export function main() {
             <HGLMidsection leftWidth={180} rightWidth={180}>
                 <Tabs>
                     <TabList>
-                        <Tab>Tools-1</Tab>
-                        <Tab>Tools-2</Tab>
+                        <Tab>Data</Tab>
+                        <Tab>Operations</Tab>
                     </TabList>
                     <TabPanel>
                         <div style={leftStyle}>
@@ -69,17 +70,29 @@ export function main() {
                         {/* TODO: create component CloseableTab */}
                         <Tab>
                             <div className="cate-tab-header">
-                                <span>View-1</span>
+                                <span>3D Globe</span>
                                 <span className={"pt-icon-standard  " + closeIconName + " cate-icon-small"}/>
                             </div>
                         </Tab>
                         <Tab>
                             <div className="cate-tab-header">
-                                <span>View-2</span>
+                                <span>2D Map</span>
+                                <span className={"pt-icon-standard  " + closeIconName + " cate-icon-small"}/>
+                            </div>
+                        </Tab>
+                        <Tab>
+                            <div className="cate-tab-header">
+                                <span>Info</span>
                                 <span className={"pt-icon-standard  " + closeIconName + " cate-icon-small"}/>
                             </div>
                         </Tab>
                     </TabList>
+
+                    <TabPanel>
+                        <div style={centerStyle}>
+                            <CesiumView/>
+                        </div>
+                    </TabPanel>
 
                     <TabPanel>
                         <div style={centerStyle}>
@@ -100,8 +113,8 @@ export function main() {
                 </Tabs>
                 <Tabs>
                     <TabList>
-                        <Tab>Tools-3</Tab>
-                        <Tab>Tools-4</Tab>
+                        <Tab>Analysis</Tab>
+                        <Tab>Layers</Tab>
                     </TabList>
                     <TabPanel>
                         <div style={rightStyle}>
@@ -134,7 +147,7 @@ export function main() {
                 </Tabs>
             </HGLMidsection>
             <HGLFooter>
-                <p>FOOTER</p>
+                FOOTER
             </HGLFooter>
         </HGLContainer>,
         document.getElementById('container')

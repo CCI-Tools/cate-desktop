@@ -46,6 +46,7 @@
     "@types/redux": "^3.6.31",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
+    "cesium": "^1.27.0",
     "classnames": "^2.2.5",
     "electron-builder": "latest",
     "electron-prebuilt": "1.4.5",

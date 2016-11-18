@@ -1,0 +1,82 @@
+[
+  {
+    "id": "1",
+    "name": "New York City",
+    "state": "New York",
+    "latitude": 40.7127,
+    "longitude": -74.0059,
+    "visible": true
+  },
+  {
+    "id": "2",
+    "name": "Los Angeles",
+    "state": "California",
+    "latitude": 34.05,
+    "longitude": -118.25,
+    "visible": true
+  },
+  {
+    "id": "3",
+    "name": "Chicago",
+    "state": "Illinois",
+    "latitude": 41.8369,
+    "longitude": -87.6847,
+    "visible": true
+  },
+  {
+    "id": "4",
+    "name": "Houston",
+    "state": "Texas",
+    "latitude": 29.7604,
+    "longitude": -95.3698,
+    "visible": true
+  },
+  {
+    "id": "5",
+    "name": "Philadelphia",
+    "state": "Pennsylvania",
+    "latitude": 39.95,
+    "longitude": -75.1667,
+    "visible": true
+  },
+  {
+    "id": "6",
+    "name": "Phoenix",
+    "state": "Arizona",
+    "latitude": 33.45,
+    "longitude": -112.0667,
+    "visible": true
+  },
+  {
+    "id": "7",
+    "name": "San Antonio",
+    "state": "Texas",
+    "latitude": 29.4167,
+    "longitude": -98.5,
+    "visible": true
+  },
+  {
+    "id": "8",
+    "name": "San Diego",
+    "state": "California",
+    "latitude": 32.715,
+    "longitude": -117.1625,
+    "visible": true
+  },
+  {
+    "id": "9",
+    "name": "Dallas",
+    "state": "Texas",
+    "latitude": 32.7767,
+    "longitude": -96.797,
+    "visible": true
+  },
+  {
+    "id": "10",
+    "name": "San Jose",
+    "state": "California",
+    "latitude": 37.3382,
+    "longitude": -121.8863,
+    "visible": true
+  }
+]
