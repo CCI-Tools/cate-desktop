@@ -14,7 +14,7 @@ interface IExpansionPanelProps {
     isExpanded?: boolean;
     onExpand?: () => any;
     onCollapse?: () => any;
-    hasFocus?: boolean;
+    isFocused?: boolean;
     onFocusGained?: () => any;
     onFocusLost?: () => any;
 }
@@ -25,7 +25,7 @@ interface IExpansionPanelProps {
 interface IExpansionPanelState {
     isOpen: boolean;
     isExpanded: boolean;
-    hasFocus: boolean;
+    isFocused: boolean;
     isMoreActive: boolean;
 }
 
@@ -44,7 +44,7 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
         this.state = {
             isOpen: props.isOpen !== false,
             isExpanded: props.isExpanded || false,
-            hasFocus: props.hasFocus || false,
+            isFocused: props.isFocused || false,
             isMoreActive: false,
         };
         this.handlePanelHeaderClicked = this.handlePanelHeaderClicked.bind(this);
@@ -55,7 +55,7 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
 
     private handlePanelHeaderClicked() {
         this.setState({
-            hasFocus: true,
+            isFocused: true,
         } as IExpansionPanelState);
     }
 
@@ -68,14 +68,14 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
     private handleExpandButtonClicked() {
         this.setState({
             isExpanded: !this.state.isExpanded,
-            hasFocus: this.state.isExpanded ? this.state.hasFocus : true,
+            isFocused: this.state.isExpanded ? this.state.isFocused : true,
         } as IExpansionPanelState);
     }
 
     private handleCloseButtonClicked() {
         this.setState({
             isOpen: false,
-            hasFocus: false,
+            isFocused: false,
         }as IExpansionPanelState);
     }
 
@@ -90,7 +90,7 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
     }
 
     componentWillUpdate(nextProps: IExpansionPanelState, nextState: IExpansionPanelState): void {
-        ExpansionPanel.fireChange(this.state.hasFocus, nextState.hasFocus,
+        ExpansionPanel.fireChange(this.state.isFocused, nextState.isFocused,
             this.props.onFocusGained, this.props.onFocusLost);
         ExpansionPanel.fireChange(this.state.isOpen, nextState.isOpen,
             this.props.onOpen, this.props.onClose);
@@ -124,10 +124,10 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
 
         let icon = null;
         if (this.props.icon) {
-            const iconClasses = classNames("pt-icon-standard", this.props.icon, {"cate-panel-selected": this.state.hasFocus});
+            const iconClasses = classNames("pt-icon-standard", this.props.icon, {"cate-panel-selected": this.state.isFocused});
             icon = <span className={iconClasses} onClick={this.handlePanelHeaderClicked}/>;
         }
-        const textClasses = classNames("cate-panel-text", {"cate-panel-selected": this.state.hasFocus});
+        const textClasses = classNames("cate-panel-text", {"cate-panel-selected": this.state.isFocused});
         const text = <span className={textClasses} onClick={this.handlePanelHeaderClicked}>{this.props.text}</span>;
 
         const menuIcon = (

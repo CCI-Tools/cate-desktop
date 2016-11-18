@@ -53,7 +53,7 @@ describe('testing app launch', function () {
             .browserWindow.isMinimized().should.eventually.be.false
             .browserWindow.isDevToolsOpened().should.eventually.be.true
             .browserWindow.isVisible().should.eventually.be.true
-            .browserWindow.hasFocus().should.eventually.be.false
+            .browserWindow.isFocused().should.eventually.be.false
             .browserWindow.getBounds().should.eventually.have.property('width').and.be.above(0)
             .browserWindow.getBounds().should.eventually.have.property('height').and.be.above(0)
     });
