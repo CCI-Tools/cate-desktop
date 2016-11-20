@@ -90,7 +90,7 @@ export function main() {
 
                     <TabPanel>
                         <div style={centerStyle}>
-                            <CesiumView/>
+                            <CesiumView id="cesiumView1"/>
                         </div>
                     </TabPanel>
 

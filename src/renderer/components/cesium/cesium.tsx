@@ -26,6 +26,9 @@ export interface ICesiumComponentProps {
 }
 
 export class CesiumComponent extends React.Component<ICesiumComponentProps, any> {
+    private static viewerCache: Object = {};
+    private container: HTMLDivElement | null = null;
+    private childContainer: HTMLDivElement | null = null;
     private viewer: any = null;
 
     constructor(props) {
@@ -57,7 +60,7 @@ export class CesiumComponent extends React.Component<ICesiumComponentProps, any>
             animation: false,
             baseLayerPicker: false,
             /* TODO: we need selectionIndicator later, but its style is currently corrupted*/
-            selectionIndicator: false,
+            selectionIndicator: true,
             fullscreenButton: false,
             geocoder: false,
             homeButton: false,
@@ -106,12 +109,12 @@ export class CesiumComponent extends React.Component<ICesiumComponentProps, any>
         });
     }
 
-    // private createViewerContainer() {
-    //     let div = document.createElement("div");
-    //     div.setAttribute("id", this.props.id);
-    //     div.setAttribute("class", "cesium-container");
-    //     return div;
-    // }
+    private createViewerContainer(): HTMLDivElement {
+        let div = document.createElement("div");
+        div.setAttribute("id", "__container" + this.props.id);
+        div.setAttribute("class", "cesium-container");
+        return div;
+    }
 
     //noinspection JSMethodCanBeStatic
     shouldComponentUpdate() {
@@ -130,10 +133,12 @@ export class CesiumComponent extends React.Component<ICesiumComponentProps, any>
     }
 
 
+    //noinspection JSMethodCanBeStatic
     componentWillUpdate(nextProps, nextState) {
         console.log("CesiumComponent.componentWillUpdate()", nextProps, nextState);
     }
 
+    //noinspection JSMethodCanBeStatic
     componentDidUpdate(prevProps, prevState) {
         console.log("CesiumComponent.componentDidUpdate()", prevProps, prevState);
     }
@@ -157,11 +162,32 @@ export class CesiumComponent extends React.Component<ICesiumComponentProps, any>
         return patches;
     }
 
-    handleContainerRef(container) {
+    handleContainerRef(container: HTMLDivElement | null) {
         if (container) {
-            this.viewer = this.createViewer(container);
-        } else {
+            let id = this.props.id;
+            let childContainer;
+            let viewer;
+            if (id in CesiumComponent.viewerCache) {
+                console.log("CesiumComponent.handleContainerRef(): reuse instance");
+                viewer = CesiumComponent.viewerCache[id];
+                childContainer = viewer.container;
+                container.appendChild(childContainer);
+            } else {
+                console.log("CesiumComponent.handleContainerRef(): new instance");
+                childContainer = this.createViewerContainer();
+                container.appendChild(childContainer);
+                viewer = this.createViewer(childContainer);
+                CesiumComponent.viewerCache[id] = viewer;
+            }
+            this.viewer = viewer;
+            this.container = container;
+            this.childContainer = childContainer;
+        } else if (this.container) {
+            console.log("CesiumComponent.handleContainerRef(): removing child instance");
+            this.container.removeChild(this.childContainer);
             this.viewer = null;
+            this.childContainer = null;
+            this.container = null;
         }
     }
 

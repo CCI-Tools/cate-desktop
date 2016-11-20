@@ -5,12 +5,16 @@ import {ICity, CesiumCityList} from './cities';
 // TODO: only used to get electron.app.getAppPath
 const {app} = require('electron').remote;
 
+interface ICesiumViewProps {
+    id: string;
+}
+
 interface ICesiumViewState {
     cities: Array<ICity>;
 }
 
-export class CesiumView extends React.Component<any, ICesiumViewState> {
-    constructor (props) {
+export class CesiumView extends React.Component<ICesiumViewProps, ICesiumViewState> {
+    constructor (props:ICesiumViewProps) {
         super(props);
         //noinspection JSFileReferences
         this.state = {
@@ -39,7 +43,7 @@ export class CesiumView extends React.Component<any, ICesiumViewState> {
     render() {
         return (
             <div style={{width:"100%", height:"100%"}}>
-                <CesiumComponent id="cesium5" cities={this.state.cities}/>
+                <CesiumComponent id={this.props.id} cities={this.state.cities}/>
                 {/*<CesiumCityList cities={this.state.cities} onChange={this.handleCheckboxChange.bind(this)}/>*/}
                 <div id="creditContainer" style={{display:"none"}}></div>
             </div>
