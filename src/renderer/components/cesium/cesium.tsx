@@ -18,54 +18,61 @@ const {app} = require('electron').remote;
 //
 Cesium.BingMapsApi.defaultKey = 'AnCcpOxnAAgq-KyFcczSZYZ_iFvCOmWl0Mx-6QzQ_rzMtpgxZrPZZNxa8_9ZNXci';
 
-// TODO: enable this by configuration, e.g. a switch -ccitbxui-offline-mode
-let offlineMode = false;
 
-let baseLayerImageryProvider;
-if (offlineMode) {
-    baseLayerImageryProvider = new Cesium.UrlTemplateImageryProvider({
-        url : Cesium.buildModuleUrl('node_modules/cesium/Build/Cesium/Assets/Textures/NaturalEarthII/{z}/{x}/{y}.jpg'),
-        tilingScheme: new Cesium.GeographicTilingScheme(),
-        minimumLevel: 0,
-        maximumLevel: 2,
-        credit : 'Natural Earth II: Tileset Copyright © 2012-2014 Analytical Graphics, Inc. (AGI). Original data courtesy Natural Earth and in the public domain.'
-    });
-} else {
-    baseLayerImageryProvider = new Cesium.BingMapsImageryProvider({
-        url: 'http://dev.virtualearth.net'
-    });
+export interface ICesiumComponentProps {
+    id: string;
+    offlineMode?: boolean;
+    cities?: Array<any>
 }
 
-const cesiumViewerOptions = {
-    animation: false,
-    baseLayerPicker: false,
-    /* TODO: we need selectionIndicator, but its style is currently corrupted*/
-    selectionIndicator: false,
-    fullscreenButton: false,
-    geocoder: false,
-    homeButton: false,
-    infoBox: false,
-    sceneModePicker: false,
-    timeline: false,
-    navigationHelpButton: false,
-    creditContainer: 'creditContainer',
-    imageryProvider: baseLayerImageryProvider,
-    navigationInstructionsInitiallyVisible: false,
-    automaticallyTrackDataSourceClocks: false,
-};
+export class CesiumComponent extends React.Component<ICesiumComponentProps, any> {
+    private viewer: any = null;
 
-export class CesiumComponent extends React.Component<any, any> {
-    viewer: any;
-
-    //noinspection JSMethodCanBeStatic
-    shouldComponentUpdate() {
-        return false;
+    constructor(props) {
+        super(props);
+        console.log("CesiumComponent.constructor()", props);
+        if (!props.id) {
+            throw new Error("can't construct CesiumComponent without id");
+        }
     }
 
-    componentDidMount() {
+    private createViewer(container) {
+
+        let baseLayerImageryProvider;
+        if (this.props.offlineMode) {
+            baseLayerImageryProvider = new Cesium.UrlTemplateImageryProvider({
+                url : Cesium.buildModuleUrl('node_modules/cesium/Build/Cesium/Assets/Textures/NaturalEarthII/{z}/{x}/{y}.jpg'),
+                tilingScheme: new Cesium.GeographicTilingScheme(),
+                minimumLevel: 0,
+                maximumLevel: 2,
+                credit : 'Natural Earth II: Tileset Copyright © 2012-2014 Analytical Graphics, Inc. (AGI). Original data courtesy Natural Earth and in the public domain.'
+            });
+        } else {
+            baseLayerImageryProvider = new Cesium.BingMapsImageryProvider({
+                url: 'http://dev.virtualearth.net'
+            });
+        }
+
+        const cesiumViewerOptions = {
+            animation: false,
+            baseLayerPicker: false,
+            /* TODO: we need selectionIndicator later, but its style is currently corrupted*/
+            selectionIndicator: false,
+            fullscreenButton: false,
+            geocoder: false,
+            homeButton: false,
+            infoBox: false,
+            sceneModePicker: false,
+            timeline: false,
+            navigationHelpButton: false,
+            creditContainer: 'creditContainer',
+            imageryProvider: baseLayerImageryProvider,
+            navigationInstructionsInitiallyVisible: false,
+            automaticallyTrackDataSourceClocks: false,
+        };
 
         // Create the Cesium Viewer
-        this.viewer = new CesiumViewer(this.refs["map"], cesiumViewerOptions);
+        let viewer = new CesiumViewer(container, cesiumViewerOptions);
 
         // Add the initial points
         this.props.cities.forEach((city) => {
@@ -75,16 +82,19 @@ export class CesiumComponent extends React.Component<any, any> {
                 width: 30,
                 height: 30
             };
-            this.viewer.entities.add(new Entity({
+            viewer.entities.add(new Entity({
                 id: city.id,
                 show: city.visible,
                 position: new Cartesian3.fromDegrees(city.longitude, city.latitude),
                 billboard: billboard
             }));
         });
+
+        return viewer;
     }
 
     componentWillReceiveProps(nextProps) {
+        console.log("CesiumComponent.componentWillReceiveProps()");
         let patches = CesiumComponent.calculatePatches(this.props, nextProps);
 
         // Map patch operations to Cesium's Entity API
@@ -94,6 +104,38 @@ export class CesiumComponent extends React.Component<any, any> {
             }
             // else if (patch.attribute === 'name') { .. and so on .. }
         });
+    }
+
+    // private createViewerContainer() {
+    //     let div = document.createElement("div");
+    //     div.setAttribute("id", this.props.id);
+    //     div.setAttribute("class", "cesium-container");
+    //     return div;
+    // }
+
+    //noinspection JSMethodCanBeStatic
+    shouldComponentUpdate() {
+        console.log("CesiumComponent.shouldComponentUpdate()");
+        return false;
+    }
+
+    //noinspection JSMethodCanBeStatic
+    componentDidMount() {
+        console.log("CesiumComponent.componentDidMount()");
+    }
+
+    //noinspection JSMethodCanBeStatic
+    componentWillUnmount() {
+        console.log("CesiumComponent.componentWillUnmount()");
+    }
+
+
+    componentWillUpdate(nextProps, nextState) {
+        console.log("CesiumComponent.componentWillUpdate()", nextProps, nextState);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        console.log("CesiumComponent.componentDidUpdate()", prevProps, prevState);
     }
 
     private static calculatePatches(currentState, nextState) {
@@ -115,10 +157,18 @@ export class CesiumComponent extends React.Component<any, any> {
         return patches;
     }
 
+    handleContainerRef(container) {
+        if (container) {
+            this.viewer = this.createViewer(container);
+        } else {
+            this.viewer = null;
+        }
+    }
+
     render() {
+        console.log("CesiumComponent.render()");
         return (
-            <div className="cesium-container" ref="map">
-            </div>
-    );
+            <div className="cesium-container" ref={this.handleContainerRef.bind(this)}/>
+        );
     }
 }
