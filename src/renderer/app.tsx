@@ -33,36 +33,32 @@ export function main() {
             <HGLMidsection leftWidth={180} rightWidth={180}>
                 <Tabs>
                     <TabList>
-                        <Tab>Data</Tab>
-                        <Tab>Operations</Tab>
+                        <Tab>Primary</Tab>
+                        <Tab>Secondary</Tab>
                     </TabList>
                     <TabPanel>
                         <div style={leftStyle}>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
+                            <DatasetsWindow/>
+                            <OperationsWindow/>
+                            <WorkspaceWindow/>
                         </div>
                     </TabPanel>
                     <TabPanel>
                         <div style={leftStyle}>
+                            <CollapseExample1/>
                             <CollapseExample2/>
                             <CollapseExample2/>
                             <CollapseExample2/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample2/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
                             <CollapseExample2/>
                             <CollapseExample2/>
-                            <CollapseExample2/>
+                            <CollapseExample1/>
+                            <CollapseExample1/>
                         </div>
                     </TabPanel>
                 </Tabs>
@@ -70,39 +66,25 @@ export function main() {
                     <TabList>
                         {/* TODO: create component CloseableTab */}
                         <Tab>
-                            <div className="cate-tab-header">
-                                <span>3D Globe</span>
-                                <span className={"pt-icon-standard  " + closeIconName + " cate-icon-small"}/>
-                            </div>
+                            <TabHeader icon="pt-icon-globe" text="3D Globe"/>
                         </Tab>
                         <Tab>
-                            <div className="cate-tab-header">
-                                <span>2D Map</span>
-                                <span className={"pt-icon-standard  " + closeIconName + " cate-icon-small"}/>
-                            </div>
+                            <TabHeader icon="pt-icon-map" text="2D Map"/>
                         </Tab>
                         <Tab>
-                            <div className="cate-tab-header">
-                                <span>Image</span>
-                                <span className={"pt-icon-standard  " + closeIconName + " cate-icon-small"}/>
-                            </div>
+                            <TabHeader icon="pt-icon-media" text="Image"/>
                         </Tab>
                         <Tab>
-                            <div className="cate-tab-header">
-                                <span>Info</span>
-                                <span className={"pt-icon-standard  " + closeIconName + " cate-icon-small"}/>
-                            </div>
+                            <TabHeader icon="pt-icon-info-sign" text="Info"/>
                         </Tab>
                     </TabList>
 
                     <TabPanel>
-                        <div style={centerStyle}>
-                            <CesiumView id="cesium-viewer"/>
-                        </div>
+                        <CesiumView id="cesium-viewer"/>
                     </TabPanel>
 
                     <TabPanel>
-                        <OpenLayersComponent id="openlayers-viewer" style={{width:"100%", height:"100%"}}  debug={true} />
+                        <OpenLayersComponent id="openlayers-viewer" style={{width:"100%", height:"100%"}} debug={true}/>
                     </TabPanel>
 
                     <TabPanel>
@@ -124,35 +106,32 @@ export function main() {
                 </Tabs>
                 <Tabs>
                     <TabList>
-                        <Tab>Analysis</Tab>
-                        <Tab>Layers</Tab>
+                        <Tab>Primary</Tab>
+                        <Tab>Secondary</Tab>
                     </TabList>
                     <TabPanel>
                         <div style={rightStyle}>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
+                            <AnalysisWindow/>
+                            <LayersWindow/>
+                            <LayerDetailsWindow/>
                         </div>
                     </TabPanel>
                     <TabPanel>
                         <div style={rightStyle}>
+                            <CollapseExample2/>
+                            <CollapseExample1/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
                             <CollapseExample1/>
                             <CollapseExample1/>
                             <CollapseExample1/>
+                            <CollapseExample2/>
                             <CollapseExample1/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
+                            <CollapseExample2/>
                             <CollapseExample1/>
-                            <CollapseExample1/>
+                            <CollapseExample2/>
                         </div>
                     </TabPanel>
                 </Tabs>
@@ -164,6 +143,18 @@ export function main() {
         document.getElementById('container')
     );
 }
+
+
+function TabHeader(props) {
+    return (
+        <div className="cate-tab-header">
+            <span className={"pt-icon-standard " + props.icon}/>
+            <span style={{marginLeft: "0.5em", marginRight: "0.5em", flexGrow: 1}}>{props.text}</span>
+            <span className={"pt-icon-standard pt-icon-cross cate-icon-small"}/>
+        </div>
+    );
+}
+
 
 //noinspection JSUnusedLocalSymbols
 function NavBarExample(props) {
@@ -281,6 +272,60 @@ export class TreeExample extends React.Component<any, ITreeExampleState> {
             this.forEachNode(node.childNodes, callback);
         }
     }
+}
+
+//noinspection JSUnusedLocalSymbols
+function DatasetsWindow(props: any) {
+    return (
+        <ExpansionPanel icon="pt-icon-database" text="Datasets">
+            <TreeExample/>
+        </ExpansionPanel>
+    );
+}
+
+//noinspection JSUnusedLocalSymbols
+function OperationsWindow(props: any) {
+    return (
+        <ExpansionPanel icon="pt-icon-function" text="Operations">
+            <TreeExample/>
+        </ExpansionPanel>
+    );
+}
+
+//noinspection JSUnusedLocalSymbols
+function WorkspaceWindow(props: any) {
+    return (
+        <ExpansionPanel icon="pt-icon-box" text="Workspace">
+            <TreeExample/>
+        </ExpansionPanel>
+    );
+}
+
+//noinspection JSUnusedLocalSymbols
+function AnalysisWindow(props: any) {
+    return (
+        <ExpansionPanel icon="pt-icon-scatter-plot" text="Analysis">
+            <TreeExample/>
+        </ExpansionPanel>
+    );
+}
+
+//noinspection JSUnusedLocalSymbols
+function LayersWindow(props: any) {
+    return (
+        <ExpansionPanel icon="pt-icon-layers" text="Layers">
+            <TreeExample/>
+        </ExpansionPanel>
+    );
+}
+
+//noinspection JSUnusedLocalSymbols
+function LayerDetailsWindow(props: any) {
+    return (
+        <ExpansionPanel icon="pt-icon-layer" text="Layer Details">
+            <TreeExample/>
+        </ExpansionPanel>
+    );
 }
 
 //noinspection JSUnusedLocalSymbols

@@ -124,7 +124,8 @@ input, button, textarea, :focus {
 .cate-panel-text {
     flex: 1 0 auto;
     text-align: left;
-    margin-left: 2px;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
 }
 
 /* TODO: Apply to right buttons (spans) within a div with class .cate-panel-header */

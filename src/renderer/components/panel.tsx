@@ -55,7 +55,8 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
 
     private handlePanelHeaderClicked() {
         this.setState({
-            isFocused: true,
+            isFocused: false,
+            // isFocused: true,
         } as IExpansionPanelState);
     }
 
@@ -68,7 +69,7 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
     private handleExpandButtonClicked() {
         this.setState({
             isExpanded: !this.state.isExpanded,
-            isFocused: this.state.isExpanded ? this.state.isFocused : true,
+            // isFocused: this.state.isExpanded ? this.state.isFocused : true,
         } as IExpansionPanelState);
     }
 
