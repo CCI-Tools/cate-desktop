@@ -1,5 +1,7 @@
+import {expect} from 'chai';
 import {ComponentBinding} from './compbind';
-import assert = require("assert");
+
+const should = require('chai').should();
 
 /**
  * HTMLElement mock
@@ -61,31 +63,30 @@ describe('ComponentBinding', function () {
 
         let parentContainer1 = new HTMLElement("div");
         myReactComp1.binding.handleParentContainerRef(parentContainer1);
-        assert.ok(myReactComp1.binding.parentContainer === parentContainer1);
+        expect(myReactComp1.binding.parentContainer).to.equal(parentContainer1);
         let component1 = myReactComp1.binding.component;
-        assert.ok(component1 !== null);
-        assert.equal(component1.id, "P6");
+        expect(component1).not.to.be.null;
+        expect(component1).not.to.be.undefined;
+        expect(component1.id).to.equal("P6");
         myReactComp1.binding.handleParentContainerRef(null);
-        assert.equal(myReactComp1.binding.parentContainer, null);
-        assert.equal(myReactComp1.binding.component, null);
+        expect(myReactComp1.binding.parentContainer).to.be.null;
+        expect(myReactComp1.binding.component).to.be.null;
 
         let parentContainer2 = new HTMLElement("div");
         myReactComp2.binding.handleParentContainerRef(parentContainer2);
-        assert.ok(myReactComp2.binding.parentContainer === parentContainer2);
+        expect(myReactComp2.binding.parentContainer).to.equal(parentContainer2);
         let component2 = myReactComp2.binding.component;
-        assert.ok(component2 !== null);
-        assert.ok(component2 === component1);
-        assert.equal(component2.id, "P6");
+        expect(component2).to.equal(component1);
         myReactComp2.binding.handleParentContainerRef(null);
-        assert.equal(myReactComp2.binding.parentContainer, null);
-        assert.equal(myReactComp2.binding.component, null);
+        expect(myReactComp2.binding.parentContainer).to.be.null;
+        expect(myReactComp2.binding.component).to.be.null;
 
-        assert.equal(Object.keys(componentStore).length, 1);
-        assert.equal("P6" in componentStore, true);
-        assert.ok(componentStore["P6"] === component1);
+        expect(Object.keys(componentStore).length).to.equal(1);
+        expect(componentStore).to.contain.keys("P6");
+        expect(componentStore["P6"]).to.equal(component1);
 
         myReactComp1.binding.deleteComponent("P6");
-        assert.deepEqual(myReactComp1.trace, ["create", "dispose"]);
+        expect(myReactComp1.trace).to.deep.equal(["create", "dispose"]);
 
     });
 });
