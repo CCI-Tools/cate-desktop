@@ -5,6 +5,7 @@ import {HGLContainer, HGLHeader, HGLFooter, HGLMidsection} from './components/hg
 import {ExpansionPanel} from './components/panel';
 
 import {CesiumView} from './components/cesium/view'
+import {OpenLayersComponent} from "./components/openlayers/openlayers";
 
 export function main() {
     const leftStyle = {
@@ -82,6 +83,12 @@ export function main() {
                         </Tab>
                         <Tab>
                             <div className="cate-tab-header">
+                                <span>Image</span>
+                                <span className={"pt-icon-standard  " + closeIconName + " cate-icon-small"}/>
+                            </div>
+                        </Tab>
+                        <Tab>
+                            <div className="cate-tab-header">
                                 <span>Info</span>
                                 <span className={"pt-icon-standard  " + closeIconName + " cate-icon-small"}/>
                             </div>
@@ -92,6 +99,10 @@ export function main() {
                         <div style={centerStyle}>
                             <CesiumView id="cesiumView1"/>
                         </div>
+                    </TabPanel>
+
+                    <TabPanel>
+                        <OpenLayersComponent id="mapOpenOrClose" style={{width:"100%", height:"100%"}}  debug={true} />
                     </TabPanel>
 
                     <TabPanel>

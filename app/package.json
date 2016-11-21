@@ -11,6 +11,7 @@
     "@blueprintjs/core": "^1.0.1",
     "cesium": "^1.27.0",
     "classnames": "^2.2.5",
+    "openlayers": "^3.19.1",
     "react": "^15.4.0",
     "react-addons-css-transition-group": "^15.4.0",
     "react-dom": "^15.4.0",
