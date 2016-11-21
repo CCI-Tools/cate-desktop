@@ -36,6 +36,7 @@
   "homepage": "https://github.com/CCI-Tools/cate-desktop",
   "devDependencies": {
     "@blueprintjs/core": "^1.0.1",
+    "@types/chai": "^3.4.34",
     "@types/classnames": "0.0.32",
     "@types/dom4": "^1.5.20",
     "@types/electron": "^1.4.26",
@@ -44,9 +45,9 @@
     "@types/react-dom": "^0.14.18",
     "@types/react-redux": "^4.4.32",
     "@types/redux": "^3.6.31",
+    "cesium": "^1.27.0",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
-    "cesium": "^1.27.0",
     "classnames": "^2.2.5",
     "electron-builder": "latest",
     "electron-prebuilt": "1.4.5",
