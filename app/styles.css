@@ -152,7 +152,7 @@ span.cate-icon-small:hover {
 }
 
 /*
- * Override blueprint pa-tabs class for "Tabs" component, so that it has a defined size
+ * Override blueprint pa-tabs class for "Tabs" nativeComponent, so that it has a defined size
  */
 .pt-tabs {
     width: 100%;
@@ -197,7 +197,7 @@ h1, h2, h3, h4, h5 {
 /* <<<< Cesium ============================================================ */
 
 /*
- * Assign 100% parent size to Cesium's main component with id="cesiumDiv"
+ * Assign 100% parent size to Cesium's main nativeComponent with id="cesiumDiv"
  */
 .cesium-container {
     width: 100%;

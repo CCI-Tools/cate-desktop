@@ -14,7 +14,7 @@ interface ICesiumViewState {
 }
 
 export class CesiumView extends React.Component<ICesiumViewProps, ICesiumViewState> {
-    constructor (props:ICesiumViewProps) {
+    constructor(props: ICesiumViewProps) {
         super(props);
         //noinspection JSFileReferences
         this.state = {
@@ -43,7 +43,7 @@ export class CesiumView extends React.Component<ICesiumViewProps, ICesiumViewSta
     render() {
         return (
             <div style={{width:"100%", height:"100%"}}>
-                <CesiumComponent id={this.props.id} cities={this.state.cities}/>
+                <CesiumComponent id={this.props.id} style={{width:"100%", height:"100%"}} cities={this.state.cities}/>
                 {/*<CesiumCityList cities={this.state.cities} onChange={this.handleCheckboxChange.bind(this)}/>*/}
                 <div id="creditContainer" style={{display:"none"}}></div>
             </div>

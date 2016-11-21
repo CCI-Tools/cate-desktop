@@ -31,7 +31,7 @@ interface IExpansionPanelState {
 
 /**
  * Expansion panels contain creation flows and allow lightweight editing of an element.
- * The component comprises a panel header and blueprint's `Collapse` component which holds the content of the
+ * The nativeComponent comprises a panel header and blueprint's `Collapse` nativeComponent which holds the content of the
  * panel.
  * See https://material.google.com/components/expansion-panels.html.
  *
