@@ -1,6 +1,6 @@
 import {expect} from 'chai';
 import * as React from 'react';
-import {INativeComponentProps, NativeComponent} from './nativecomp';
+import {IPermanentComponentProps, PermanentComponent} from './permcomp';
 
 const should = require('chai').should();
 
@@ -31,24 +31,24 @@ class HTMLElement {
     }
 }
 
-type MyNativeCompType = {
+type MyPermanentObject = {
     id: string;
     container: HTMLElement;
 };
 
-interface MyNativeCompProps extends INativeComponentProps {
+interface MyPermanentComponentProps extends IPermanentComponentProps {
     foo: number;
 }
 
-class MyNativeComponent extends NativeComponent<MyNativeCompType, INativeComponentProps, any> {
+class MyPermanentComponent extends PermanentComponent<MyPermanentObject, IPermanentComponentProps, any> {
 
     readonly trace: string[] = [];
 
-    constructor(props) {
+    constructor(props: IPermanentComponentProps) {
         super(props);
     }
 
-    createNativeComponent(parentContainer: HTMLElement): MyNativeCompType {
+    createPermanentObject(): MyPermanentObject {
         this.trace.push("create");
         let container = new HTMLElement("div");
         return {
@@ -57,45 +57,45 @@ class MyNativeComponent extends NativeComponent<MyNativeCompType, INativeCompone
         };
     }
 
-    disposeNativeComponent(component: MyNativeCompType): void {
+    disposePermanentObject(permanentObject: MyPermanentObject): void {
         this.trace.push("dispose");
     }
 
-    nativeComponentMounted(parentContainer: HTMLElement, component: MyNativeCompType): void {
+    permanentObjectMounted(permanentObject: MyPermanentObject): void {
         this.trace.push("mount");
     }
 
-    nativeComponentUnmounted(parentContainer: HTMLElement, component: MyNativeCompType): void {
+    permanentObjectUnmounted(permanentObject: MyPermanentObject): void {
         this.trace.push("unmount");
     }
 }
 
 
-describe('NativeComponent', function () {
+describe('PermanentComponent', function () {
     it('#handleRef (simulates mounting/unmounting of the React component)', function () {
         let cache = {};
-        let instance1 = new MyNativeComponent({id: "P6", cache: cache});
-        let instance2 = new MyNativeComponent({id: "P6", cache: cache});
+        let instance1 = new MyPermanentComponent({id: "P6", cache: cache});
+        let instance2 = new MyPermanentComponent({id: "P6", cache: cache});
 
         let parentContainer1 = new HTMLElement("div");
         instance1.handleRef(parentContainer1);
         expect(instance1.parentContainer).to.equal(parentContainer1);
-        let component1 = instance1.nativeComponent;
+        let component1 = instance1.permanentObject;
         expect(component1).not.to.be.null;
         expect(component1).not.to.be.undefined;
         expect(component1.id).to.equal("P6");
         instance1.handleRef(null);
         expect(instance1.parentContainer).to.be.null;
-        expect(instance1.nativeComponent).to.be.null;
+        expect(instance1.permanentObject).to.be.null;
 
         let parentContainer2 = new HTMLElement("div");
         instance2.handleRef(parentContainer2);
         expect(instance2.parentContainer).to.equal(parentContainer2);
-        let component2 = instance2.nativeComponent;
+        let component2 = instance2.permanentObject;
         expect(component2).to.equal(component1);
         instance2.handleRef(null);
         expect(instance2.parentContainer).to.be.null;
-        expect(instance2.nativeComponent).to.be.null;
+        expect(instance2.permanentObject).to.be.null;
 
         expect(Object.keys(cache).length).to.equal(1);
         expect(cache).to.contain.keys("P6");

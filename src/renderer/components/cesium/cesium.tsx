@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {INativeComponentProps, NativeComponent} from '../../util/nativecomp'
+import {IPermanentComponentProps, PermanentComponent} from '../../util/permcomp'
 
 const Cesium: any = require('cesium');
 // console.log(Cesium);
@@ -9,7 +9,10 @@ const CesiumViewer: any = Cesium.Viewer;
 const Entity: any = Cesium.Entity;
 const Cartesian3: any = Cesium.Cartesian3;
 
-type CesiumViewer = {container: HTMLElement, entities: any};
+interface CesiumViewer {
+    container: HTMLElement;
+    entities: any;
+}
 
 // TODO: only used to get electron.app.getAppPath
 const {app} = require('electron').remote;
@@ -22,23 +25,24 @@ const {app} = require('electron').remote;
 Cesium.BingMapsApi.defaultKey = 'AnCcpOxnAAgq-KyFcczSZYZ_iFvCOmWl0Mx-6QzQ_rzMtpgxZrPZZNxa8_9ZNXci';
 
 
-export interface ICesiumComponentProps extends INativeComponentProps {
+export interface ICesiumComponentProps extends IPermanentComponentProps {
     id: string;
     offlineMode?: boolean;
     cities?: Array<any>;
 }
 
-export class CesiumComponent extends NativeComponent<CesiumViewer, ICesiumComponentProps, any> {
-    private viewer: CesiumViewer;
+export class CesiumComponent extends PermanentComponent<CesiumViewer, ICesiumComponentProps, any> {
 
     constructor(props: ICesiumComponentProps) {
         super(props);
-        console.log("CesiumComponent.constructor()", props);
-        this.viewer = null;
     }
 
-    createNativeComponent(parentContainer: HTMLElement): CesiumViewer {
-        let container = this.createViewerContainer();
+    get viewer(): CesiumViewer {
+        return this.permanentObject;
+    }
+
+    createPermanentObject(): CesiumViewer {
+        let container = this.createContainer();
 
         let baseLayerImageryProvider;
         if (this.props.offlineMode) {
@@ -90,23 +94,14 @@ export class CesiumComponent extends NativeComponent<CesiumViewer, ICesiumCompon
                 billboard: billboard
             }));
         });
+
         return viewer;
-    }
-
-    nativeComponentMounted(parentContainer: HTMLElement, component: CesiumViewer): void {
-        console.log("CesiumComponent.nativeComponentMounted():", parentContainer, component);
-        this.viewer = component;
-    }
-
-    nativeComponentUnmounted(parentContainer: HTMLElement, component: CesiumViewer): void {
-        console.log("CesiumComponent.nativeComponentUnmounted():", parentContainer, component);
-        this.viewer = null;
     }
 
     componentWillReceiveProps(nextProps: ICesiumComponentProps) {
         console.log("CesiumComponent.componentWillReceiveProps()");
-        let patches = CesiumComponent.calculatePatches(this.props, nextProps);
-
+        const patches = CesiumComponent.calculatePatches(this.props, nextProps);
+        const viewer = this.viewer;
         // Map patch operations to Cesium's Entity API
         patches.forEach((patch) => {
             if (patch.attribute === 'visible') {
@@ -116,10 +111,8 @@ export class CesiumComponent extends NativeComponent<CesiumViewer, ICesiumCompon
         });
     }
 
-    //noinspection JSMethodCanBeStatic
-
     private static calculatePatches(currentProps: ICesiumComponentProps, nextProps: ICesiumComponentProps) {
-        let patches = [];
+        const patches = [];
 
         currentProps.cities.forEach((currCity, index) => {
             let nextCity = nextProps.cities[index];
@@ -137,9 +130,9 @@ export class CesiumComponent extends NativeComponent<CesiumViewer, ICesiumCompon
         return patches;
     }
 
-    private createViewerContainer(): HTMLDivElement {
-        let div = document.createElement("div");
-        div.setAttribute("id", "__container" + this.props.id);
+    private createContainer(): HTMLElement {
+        const div = document.createElement("div");
+        div.setAttribute("id", "cesium-container-" + this.props.id);
         div.setAttribute("class", "cesium-container");
         return div;
     }

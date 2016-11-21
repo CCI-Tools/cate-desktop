@@ -1,25 +1,24 @@
 import * as React from 'react';
 import * as ol from 'openlayers'
-import {INativeComponentProps, NativeComponent} from '../../util/nativecomp'
+import {IPermanentComponentProps, PermanentComponent} from '../../util/permcomp'
 
 
-type OpenLayersType = {
+type OpenLayersObject = {
     container: HTMLElement;
     map: ol.Map;
 }
 
-export interface OpenLayersProps extends INativeComponentProps {
+export interface OpenLayersProps extends IPermanentComponentProps {
 }
 
-export class OpenLayersComponent extends NativeComponent<OpenLayersType, OpenLayersProps,any> {
+export class OpenLayersComponent extends PermanentComponent<OpenLayersObject, OpenLayersProps,any> {
+
     constructor(props) {
         super(props)
     }
 
-    createNativeComponent(parentContainer: HTMLElement): OpenLayersType {
-        const divElement = document.createElement("div");
-        divElement.setAttribute("id", "container_" + this.props.id);
-        divElement.setAttribute("style", "width:100%; height:100%;");
+    createPermanentObject(parentContainer: HTMLElement): OpenLayersObject {
+        const divElement = this.createContainer();
         const options = {
             target: divElement,
             layers: [
@@ -38,7 +37,14 @@ export class OpenLayersComponent extends NativeComponent<OpenLayersType, OpenLay
         };
     }
 
-    nativeComponentMounted(parentContainer: HTMLElement, nativeComponent: OpenLayersType): void {
-        nativeComponent.map.updateSize();
+    permanentObjectMounted(permanentObject: OpenLayersObject): void {
+        permanentObject.map.updateSize();
+    }
+
+    private createContainer(): HTMLElement {
+        const div = document.createElement("div");
+        div.setAttribute("id", "ol-container-" + this.props.id);
+        div.setAttribute("class", "ol-container");
+        return div;
     }
 }

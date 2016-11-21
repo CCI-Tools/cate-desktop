@@ -97,12 +97,12 @@ export function main() {
 
                     <TabPanel>
                         <div style={centerStyle}>
-                            <CesiumView id="cesiumView1"/>
+                            <CesiumView id="cesium-viewer"/>
                         </div>
                     </TabPanel>
 
                     <TabPanel>
-                        <OpenLayersComponent id="mapOpenOrClose" style={{width:"100%", height:"100%"}}  debug={true} />
+                        <OpenLayersComponent id="openlayers-viewer" style={{width:"100%", height:"100%"}}  debug={true} />
                     </TabPanel>
 
                     <TabPanel>
