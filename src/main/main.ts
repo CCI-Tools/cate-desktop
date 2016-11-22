@@ -2,7 +2,7 @@ import * as electron from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 import * as fs from 'fs';
-import {Config} from "./Config";
+import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
@@ -45,8 +45,8 @@ function getOptionArg(options: string[]) {
     return null;
 }
 
-function loadConfiguration(options: string[], defaultConfigFile: string, configType: string): Config {
-    let config = new Config();
+function loadConfiguration(options: string[], defaultConfigFile: string, configType: string): Configuration {
+    let config = new Configuration();
     let configFile = getOptionArg(options);
     if (!configFile) {
         configFile = defaultConfigFile;
@@ -64,7 +64,7 @@ function loadConfiguration(options: string[], defaultConfigFile: string, configT
     return config;
 }
 
-function storeConfiguration(config: Config, options: string[], defaultConfigFile: string, configType: string) {
+function storeConfiguration(config: Configuration, options: string[], defaultConfigFile: string, configType: string) {
     let configFile = getOptionArg(options);
     if (!configFile) {
         configFile = defaultConfigFile;
@@ -82,7 +82,7 @@ function storeConfiguration(config: Config, options: string[], defaultConfigFile
     });
 }
 
-function loadConfig(): Config {
+function loadConfig(): Configuration {
     return loadConfiguration(CONFIG_OPTIONS, path.resolve('cate-config.js'), 'configuration');
 }
 
@@ -93,11 +93,11 @@ function getDefaultPrefsFile() {
     return path.join(getAppDataDir(), 'cate-prefs.json');
 }
 
-function storePrefs(prefs: Config) {
+function storePrefs(prefs: Configuration) {
     storeConfiguration(prefs, PREFS_OPTIONS, getDefaultPrefsFile(), 'preferences')
 }
 
-function loadPrefs(): Config {
+function loadPrefs(): Configuration {
     return loadConfiguration(PREFS_OPTIONS, getDefaultPrefsFile(), 'preferences');
 }
 

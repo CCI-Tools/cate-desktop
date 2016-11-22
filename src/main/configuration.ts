@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
-export class Config {
+export class Configuration {
     private _data: Object = {};
 
     constructor(data?: Object) {
@@ -21,12 +21,12 @@ export class Config {
         return defaultValue;
     }
 
-    set(name: string, value: any): Config {
+    set(name: string, value: any): Configuration {
         this._data[name] = value;
         return this;
     }
 
-    load(file: string, callback?: ((err: any) => any)): Config {
+    load(file: string, callback?: ((err: any) => any)): Configuration {
         let error;
         if (!fs.existsSync(file)) {
             error = new Error('file not found');
@@ -44,7 +44,7 @@ export class Config {
         return this;
     }
 
-    store(file: string, callback?: (err: any) => any): Config {
+    store(file: string, callback?: (err: any) => any): Configuration {
         let jsonText = JSON.stringify(this._data, null, 2);
         let error;
         try {
