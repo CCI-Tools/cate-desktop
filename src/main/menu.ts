@@ -24,7 +24,6 @@ if (OS_IS_NOT_DARWIN) {
         ________________,
         actions.exit
     );
-    console.log(fileSubMenu);
 }
 
 const editSubMenu: Array<any> = [
