@@ -4,6 +4,9 @@ import * as url from 'url';
 import * as fs from 'fs';
 import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
+import * as child_process from 'child_process'
+import {request} from './request';
+
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -105,10 +108,38 @@ export function init() {
     _config = loadConfig();
     _prefs = loadPrefs();
 
+
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
-    app.on('ready', createMainWindow);
+    app.on('ready', function () {
+
+        const wsStart = _config.get('wsStart');
+        if (!wsStart) {
+            throw Error("missing wsStart in configuration");
+        }
+
+        const cateWebApiProcess = child_process.spawn(wsStart.command, wsStart.args, wsStart.options);
+        cateWebApiProcess.stdout.on('data', (data) => {
+            console.log(`cate-webapi: ${data}`);
+        });
+        cateWebApiProcess.stderr.on('data', (data) => {
+            console.error(`cate-webapi: ${data}`);
+        });
+        cateWebApiProcess.on('close', (code) => {
+            console.log(`cate-webapi: exited with code ${code}`);
+        });
+
+        request("http://localhost:9090/")
+            .then((response: string) => {
+                console.log('cate-webapi:', response);
+            })
+            .catch((err) => {
+                console.error('cate-webapi:', err);
+            });
+
+        createMainWindow();
+    });
 
     // Quit when all windows are closed.
     app.on('window-all-closed', function () {
