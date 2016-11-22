@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as url from 'url';
 import * as fs from 'fs';
 import {Config} from "./Config";
+import {menuTemplate} from "./menu";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -152,6 +153,9 @@ function createMainWindow() {
         icon: getAppIconPath(),
         webPreferences: {},
     }, mainWindowBounds));
+
+    const menu = electron.Menu.buildFromTemplate(menuTemplate);
+    electron.Menu.setApplicationMenu(menu);
 
     // and load the index.html of the app.
     _mainWindow.loadURL(url.format({
