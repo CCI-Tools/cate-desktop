@@ -30,6 +30,6 @@
             response.on('end', () => resolve(body.join('')));
         });
         // handle connection errors of the request
-        request.on('error', (err) => reject(err))
+        request.on('error', (err) => reject(err));
     })
 };
