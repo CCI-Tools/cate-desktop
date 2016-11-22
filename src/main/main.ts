@@ -108,17 +108,15 @@ export function init() {
     _config = loadConfig();
     _prefs = loadPrefs();
 
-
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
     app.on('ready', function () {
-
+        // TODO (nf): try to connect to cate-webapi first. If this fails, launch new service instance.
         const wsStart = _config.get('wsStart');
         if (!wsStart) {
-            throw Error("missing wsStart in configuration");
+            throw Error("missing option 'wsStart' in configuration");
         }
-
         const cateWebApiProcess = child_process.spawn(wsStart.command, wsStart.args, wsStart.options);
         cateWebApiProcess.stdout.on('data', (data) => {
             console.log(`cate-webapi: ${data}`);
@@ -129,20 +127,42 @@ export function init() {
         cateWebApiProcess.on('close', (code) => {
             console.log(`cate-webapi: exited with code ${code}`);
         });
-
-        request("http://localhost:9090/")
-            .then((response: string) => {
-                console.log('cate-webapi:', response);
-            })
-            .catch((err) => {
-                console.error('cate-webapi:', err);
-            });
-
-        createMainWindow();
+        const msTimeout = 5000; // ms
+        const msDelay = 500; // ms
+        let msSpend = 0; // ms
+        const startUp = () => {
+            request("http://localhost:9090/")
+                .then((response: string) => {
+                    console.log('cate-webapi:', response);
+                    createMainWindow();
+                })
+                .catch((err) => {
+                    setTimeout(startUp, msDelay);
+                    msSpend += msDelay;
+                    if (msSpend > msTimeout) {
+                        console.error('cate-webapi:', err);
+                        let content = "Failed to start Cate service within ${} ms.";
+                        electron.dialog.showErrorBox("Internal Error", content);
+                        throw Error(content);
+                    }
+                });
+        };
+        startUp();
     });
 
-    // Quit when all windows are closed.
-    app.on('window-all-closed', function () {
+    // Emitted when all windows have been closed and the application will quit.
+    app.on('quit', () => {
+        const wsStop = _config.get('wsStop');
+        if (!wsStop) {
+            console.error("missing option 'wsStop' in configuration");
+        }
+        // Note we are async here, because sync can take a lot of time...
+        child_process.spawn(wsStop.command, wsStop.args, wsStop.options);
+        // child_process.spawnSync(wsStop.command, wsStop.args, wsStop.options);
+    });
+
+    // Emitted when all windows have been closed.
+    app.on('window-all-closed', () => {
         // On OS X it is common for applications and their menu bar
         // to stay active until the user quits explicitly with Cmd + Q
         if (process.platform !== 'darwin') {
@@ -150,7 +170,9 @@ export function init() {
         }
     });
 
-    app.on('activate', function () {
+    // OS X: Emitted when the application is activated, which usually happens when the user clicks
+    // on the application's dock icon.
+    app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
         if (_mainWindow === null) {
@@ -201,13 +223,13 @@ function createMainWindow() {
     }
 
     // Emitted when the window is going to be closed.
-    _mainWindow.on('close', function () {
+    _mainWindow.on('close', () => {
         _prefs.set('mainWindowBounds', _mainWindow.getBounds());
         _prefs.set('devToolsOpened', _mainWindow.webContents.isDevToolsOpened());
     });
 
     // Emitted when the window is closed.
-    _mainWindow.on('closed', function () {
+    _mainWindow.on('closed', () => {
         storePrefs(_prefs);
         _prefs = null;
         _config = null;
