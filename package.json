@@ -67,7 +67,6 @@
   },
   "build": {
     "appId": "org.esa.ccitools.Cate",
-    "app-category-type": "app.category.climate-science",
     "win": {
       "target": [
         "nsis",
@@ -80,7 +79,8 @@
       "installerHeaderIcon": "app/resources/win32/cate-icon.ico"
     },
     "mac": {
-      "icon": "app/resources/darwin/icon.icns"
+      "icon": "app/resources/darwin/icon.icns",
+      "category": "app.category.climate-science"
     },
     "dmg": {
       "icon": "app/resources/darwin/icon.icns",
