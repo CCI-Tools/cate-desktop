@@ -47,18 +47,34 @@ To get rid of all outputs since cloning the repo:
 
     npm run clean:all
 
-## Development Tools
+## Frameworks and Libraries used by Cate 
+
+The following frameworks and libraries are currently used in Cate's production code: 
+
+* [Electron](http://electron.atom.io/), to build cross platform desktop apps with JavaScript, HTML, and CSS.
+* [React](https://facebook.github.io/react/), a javascript library for building user interfaces.
+* [Redux](http://redux.js.org/), a predictable state container for JavaScript apps.
+* [Blueprint](http://blueprintjs.com/), a React UI toolkit.
+* [Cesium](https://cesiumjs.org/), an open-source JavaScript library for world-class 3D globes and maps.
+* [OpenLayers](https://openlayers.org/), the high-performance, feature-packed library for all your mapping needs.
+
+
+## Development Tools and Libraries
 
 For building:
 
 * [typescript](https://www.typescriptlang.org/index.html) provides Microsoft's TypeScript compiler `tsc`.
-* [electron-builder](https://github.com/electron-userland/electron-builder) is used to create distribution packages and installers.
+* [electron-builder](https://github.com/electron-userland/electron-builder) is used to create distribution packages 
+  and installers.
 
 For testing:
 
-* [mocha](https://mochajs.org/) unit-testing framework for Node.js.
-* [chai](http://chaijs.com/api/bdd/) adds Behaviour Driven Development (BDD) API to `mocha`. 
-* [spectron](https://github.com/electron/spectron#application-api) for end-to-end testing of the GUI applications. See script `test:e2e` in `package.json`. 
+* [ts-node](https://github.com/TypeStrong/ts-node) a TypeScript execution environment for Node.js and Electron.  
+* [mocha](https://mochajs.org/) JavaScript unit-testing framework for Node.js and Electron.
+* [chai](http://chaijs.com/api/bdd/) JavaScript assertion library that adds Behaviour Driven Development 
+  (BDD) API to `mocha`. 
+* [spectron](https://github.com/electron/spectron#application-api) for end-to-end testing of the GUI applications.
+  See script `test:e2e` in `package.json`.
 
 Other tools:
 
