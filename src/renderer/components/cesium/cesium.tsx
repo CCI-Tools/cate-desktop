@@ -99,7 +99,6 @@ export class CesiumComponent extends PermanentComponent<CesiumViewer, ICesiumCom
     }
 
     componentWillReceiveProps(nextProps: ICesiumComponentProps) {
-        console.log("CesiumComponent.componentWillReceiveProps()");
         const patches = CesiumComponent.calculatePatches(this.props, nextProps);
         const viewer = this.viewer;
         // Map patch operations to Cesium's Entity API
