@@ -1,8 +1,8 @@
-import {expect} from 'chai';
+import {should, expect} from 'chai';
 import * as React from 'react';
 import {IPermanentComponentProps, PermanentComponent} from './permcomp';
 
-const should = require('chai').should();
+should();
 
 /**
  * HTMLElement mock
