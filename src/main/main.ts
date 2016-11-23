@@ -2,10 +2,11 @@ import * as electron from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 import * as fs from 'fs';
-import {Configuration} from "./configuration";
-import {menuTemplate} from "./menu";
 import * as child_process from 'child_process'
 import {request} from './request';
+import {assignConditionally } from '../common/assign';
+import {Configuration} from "./configuration";
+import {menuTemplate} from "./menu";
 
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
@@ -106,22 +107,12 @@ function loadUserPrefs(): Configuration {
     return loadConfiguration(PREFS_OPTIONS, getDefaultUserPrefsFile(), 'User preferences');
 }
 
-function conditionallyAssign(target: Object, source: Object) {
-    for (let name of Object.keys(source)) {
-        const sourceValue = source[name];
-        if (typeof sourceValue === 'undefined') {
-            target[name] = sourceValue;
-        }
-    }
-    return target;
-}
-
 export function init() {
     _config = loadAppConfig();
     _prefs = loadUserPrefs();
 
     let webapiConfig = _config.get('webapiConfig', {});
-    webapiConfig = conditionallyAssign(webapiConfig, {
+    webapiConfig = assignConditionally(webapiConfig, {
         command: path.join(app.getAppPath(), process.platform == 'windows' ? 'python/Scripts/cate-webapi.exe' : 'python/bin/cate-webapi'),
         servicePort: 9090,
         serviceFile: 'cate-webapi.json',
@@ -131,13 +122,16 @@ export function init() {
         disabled: true,
     });
 
-    const webapiCommonArgs = ['--caller', 'cate-desktop',
+    console.log(CATE_DESKTOP_PREFIX, 'webapiConfig =', webapiConfig);
+
+    const webapiCommonArgs = [
+        '--caller', 'cate-desktop',
         '--port', webapiConfig.servicePort,
-        '--file', webapiConfig.serviceFile];
+        '--file', webapiConfig.serviceFile,
+    ];
 
     const webapiStartArgs = webapiCommonArgs.concat('start');
     const webapiStopArgs = webapiCommonArgs.concat('stop');
-
     const webapiBaseUrl = `http://localhost:${webapiConfig.servicePort}/`;
 
     let webapiStarted = false;
@@ -218,7 +212,7 @@ export function init() {
     app.on('ready', (): void => {
         console.log(CATE_DESKTOP_PREFIX, 'Ready.');
         if (!webapiConfig.disabled) {
-            console.log(CATE_DESKTOP_PREFIX, 'Ready. Starting Cate service...');
+            console.log(CATE_DESKTOP_PREFIX, 'Starting Cate service...');
             startUpWithWebapiService();
         } else {
             createMainWindow();

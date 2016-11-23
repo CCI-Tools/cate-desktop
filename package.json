@@ -8,13 +8,14 @@
     "start": "electron app",
     "test:e2e": "mocha e2e/**/*-test.js",
     "pretest": "npm run compile",
-    "test": "mocha app/main/**/*.spec.js app/renderer/**/*.spec.js",
+    "test": "mocha app/main/**/*.spec.js app/renderer/**/*.spec.js app/common/**/*.spec.js",
     "postinstall": "install-app-deps",
     "compile": "tsc",
     "compile:trace": "tsc --traceResolution",
     "dist": "npm run clean && npm run compile && build --x64 --publish never",
     "pack": "npm run clean && npm run compile && build --x64 --publish never --dir",
-    "clean": "rimraf app/main app/renderer npm-debug.log",
+    "clean": "rimraf app/main app/renderer app/common npm-debug.log",
+    "clean:dist": "rimraf dist",
     "clean:all": "npm run clean && rimraf dist app/node_modules && npm prune"
   },
   "repository": {

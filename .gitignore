@@ -6,6 +6,7 @@ dist/
 
 app/main
 app/renderer
+app/common
 app/node_modules/
 
 src/**/*.js
