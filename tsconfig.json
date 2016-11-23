@@ -9,6 +9,11 @@
     "inlineSources": true,
     "sourceMap": true,
     "sourceRoot": "src",
-    "rootDir": "src"
+    "rootDir": "src",
+    "types": [
+      "node",
+      "mocha",
+      "chai"
+    ]
   }
 }
