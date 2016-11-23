@@ -12,10 +12,10 @@
     "postinstall": "install-app-deps",
     "compile": "tsc",
     "compile:trace": "tsc --traceResolution",
-    "dist": "build --x64 --publish never",
-    "pack": "build --x64 --publish never --dir",
-    "clean": "rimraf app/main app/renderer dist npm-debug.log",
-    "clean:all": "npm run clean && rimraf app/node_modules && npm prune"
+    "dist": "npm run clean && npm run compile && build --x64 --publish never",
+    "pack": "npm run clean && npm run compile && build --x64 --publish never --dir",
+    "clean": "rimraf app/main app/renderer npm-debug.log",
+    "clean:all": "npm run clean && rimraf dist app/node_modules && npm prune"
   },
   "repository": {
     "type": "git",
