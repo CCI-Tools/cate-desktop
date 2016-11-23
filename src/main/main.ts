@@ -10,6 +10,8 @@ import {request} from './request';
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
+const CATE_WEBAPI_PREFIX = 'cate-webapi:';
+const CATE_DESKTOP_PREFIX = 'cate-desktop:';
 
 // Module to control application life.
 const app = electron.app;
@@ -59,9 +61,9 @@ function loadConfiguration(options: string[], defaultConfigFile: string, configT
     }
     config.load(configFile, (err) => {
         if (err) {
-            console.error(`failed to load ${configType} from ${configFile}`, err);
+            console.error(CATE_DESKTOP_PREFIX, `${configType} could not be loaded from "${configFile}"`, err);
         } else {
-            console.log(`${configType} loaded from ${configFile}`);
+            console.log(CATE_DESKTOP_PREFIX, `${configType} successfully loaded from "${configFile}"`);
         }
     });
     return config;
@@ -78,30 +80,30 @@ function storeConfiguration(config: Configuration, options: string[], defaultCon
     }
     config.store(configFile, (err) => {
         if (err) {
-            console.error(`failed to store ${configType} to ${configFile}`, err);
+            console.error(CATE_DESKTOP_PREFIX, `${configType} could not be stored in "${configFile}"`, err);
         } else {
-            console.log(`${configType} stored to ${configFile}`);
+            console.log(CATE_DESKTOP_PREFIX, `${configType} successfully stored in "${configFile}"`);
         }
     });
 }
 
-function loadConfig(): Configuration {
-    return loadConfiguration(CONFIG_OPTIONS, path.resolve('cate-config.js'), 'configuration');
+function loadAppConfig(): Configuration {
+    return loadConfiguration(CONFIG_OPTIONS, path.resolve('cate-config.js'), 'App configuration');
 }
 
-function getDefaultPrefsFile() {
+function getDefaultUserPrefsFile() {
     if (_config.data.prefsFile) {
         return _config.data.prefsFile;
     }
     return path.join(getAppDataDir(), 'cate-prefs.json');
 }
 
-function storePrefs(prefs: Configuration) {
-    storeConfiguration(prefs, PREFS_OPTIONS, getDefaultPrefsFile(), 'preferences')
+function storeUserPrefs(prefs: Configuration) {
+    storeConfiguration(prefs, PREFS_OPTIONS, getDefaultUserPrefsFile(), 'User preferences')
 }
 
-function loadPrefs(): Configuration {
-    return loadConfiguration(PREFS_OPTIONS, getDefaultPrefsFile(), 'preferences');
+function loadUserPrefs(): Configuration {
+    return loadConfiguration(PREFS_OPTIONS, getDefaultUserPrefsFile(), 'User preferences');
 }
 
 function conditionallyAssign(target: Object, source: Object) {
@@ -115,8 +117,8 @@ function conditionallyAssign(target: Object, source: Object) {
 }
 
 export function init() {
-    _config = loadConfig();
-    _prefs = loadPrefs();
+    _config = loadAppConfig();
+    _prefs = loadUserPrefs();
 
     let webapiConfig = _config.get('webapiConfig', {});
     webapiConfig = conditionallyAssign(webapiConfig, {
@@ -149,14 +151,14 @@ export function init() {
         const webapi = child_process.spawn(webapiConfig.command, webapiStartArgs, webapiConfig.processOptions);
         webapiStarted = true;
         webapi.stdout.on('data', (data: any) => {
-            console.log(`cate-webapi: ${data}`);
+            console.log(CATE_WEBAPI_PREFIX, `${data}`);
         });
         webapi.stderr.on('data', (data: any) => {
-            console.error(`cate-webapi: ${data}`);
+            console.error(CATE_WEBAPI_PREFIX, `${data}`);
         });
         webapi.on('error', (err: Error) => {
             let message = 'Failed to start Cate service.';
-            console.log('cate-webapi:', message, err);
+            console.log(CATE_WEBAPI_PREFIX, message, err);
             if (!webapiError) {
                 electron.dialog.showErrorBox('Internal Error', message);
             }
@@ -166,7 +168,7 @@ export function init() {
         });
         webapi.on('close', (code: number) => {
             let message = `Cate service exited with error code ${code}.`;
-            console.log('cate-webapi:', message);
+            console.log(CATE_WEBAPI_PREFIX, message);
             if (code != 0) {
                 if (!webapiError) {
                     electron.dialog.showErrorBox('Internal Error', message);
@@ -191,7 +193,7 @@ export function init() {
         let msSpend = 0; // ms
         request(webapiBaseUrl)
             .then((response: string) => {
-                console.log('cate-webapi:', response);
+                console.log(CATE_WEBAPI_PREFIX, `resonse: ${response}`);
                 createMainWindow();
             })
             .catch((err) => {
@@ -200,7 +202,7 @@ export function init() {
                 }
                 if (msSpend > msTimeout) {
                     let message = `Failed to start Cate service within ${msSpend} ms.`;
-                    console.error('cate-webapi:', message, err);
+                    console.error(CATE_WEBAPI_PREFIX, message, err);
                     if (!webapiError) {
                         electron.dialog.showErrorBox("Internal Error", message);
                     }
@@ -214,7 +216,9 @@ export function init() {
     }
 
     app.on('ready', (): void => {
+        console.log(CATE_DESKTOP_PREFIX, 'Ready.');
         if (!webapiConfig.disabled) {
+            console.log(CATE_DESKTOP_PREFIX, 'Ready. Starting Cate service...');
             startUpWithWebapiService();
         } else {
             createMainWindow();
@@ -223,6 +227,7 @@ export function init() {
 
     // Emitted when all windows have been closed and the application will quit.
     app.on('quit', () => {
+        console.log(CATE_DESKTOP_PREFIX, 'Quit.');
         if (!webapiConfig.disabled) {
             stopWebapiService();
         }
@@ -259,28 +264,19 @@ function createMainWindow() {
     if (_config.data.devToolsExtensions) {
         for (let path of _config.data.devToolsExtensions) {
             BrowserWindow.addDevToolsExtension(path);
-            console.log('added DevTools extension: ', path);
+            console.log(CATE_DESKTOP_PREFIX, `Added DevTools extension "${path}"`);
         }
     }
 
-    let mainWindowBounds = _prefs.data.mainWindowBounds;
-    if (!mainWindowBounds) {
-        mainWindowBounds = {
-            width: 800,
-            height: 600,
-        };
-    }
+    const mainWindowBounds = _prefs.data.mainWindowBounds || {width: 800, height: 600};
 
-    // Create the browser window.
-    _mainWindow = new BrowserWindow(Object.assign({
-        icon: getAppIconPath(),
-        webPreferences: {},
-    }, mainWindowBounds));
+    _mainWindow = new BrowserWindow(Object.assign({icon: getAppIconPath(), webPreferences: {}}, mainWindowBounds));
 
+    console.log(CATE_DESKTOP_PREFIX, 'Loading menu...');
     const menu = electron.Menu.buildFromTemplate(menuTemplate);
     electron.Menu.setApplicationMenu(menu);
 
-    // and load the index.html of the app.
+    console.log(CATE_DESKTOP_PREFIX, 'Loading UI...');
     _mainWindow.loadURL(url.format({
         pathname: path.join(app.getAppPath(), 'index.html'),
         protocol: 'file:',
@@ -292,15 +288,22 @@ function createMainWindow() {
         _mainWindow.webContents.openDevTools();
     }
 
+    // Emitted when the web page has been rendered and window can be displayed without a visual flash.
+    _mainWindow.on('ready-to-show', () => {
+        console.log(CATE_DESKTOP_PREFIX, 'Main window is ready to show.');
+    });
+
     // Emitted when the window is going to be closed.
     _mainWindow.on('close', () => {
+        console.log(CATE_DESKTOP_PREFIX, 'Main window is going to be closed, fetching user preferences...');
         _prefs.set('mainWindowBounds', _mainWindow.getBounds());
         _prefs.set('devToolsOpened', _mainWindow.webContents.isDevToolsOpened());
     });
 
     // Emitted when the window is closed.
     _mainWindow.on('closed', () => {
-        storePrefs(_prefs);
+        console.log(CATE_DESKTOP_PREFIX, 'Main window closed.');
+        storeUserPrefs(_prefs);
         _prefs = null;
         _config = null;
         // Dereference the window object, usually you would store windows
