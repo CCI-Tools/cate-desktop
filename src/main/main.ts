@@ -4,7 +4,7 @@ import * as url from 'url';
 import * as fs from 'fs';
 import * as child_process from 'child_process'
 import {request} from './request';
-import {assignConditionally } from '../common/assign';
+import {assignConditionally} from '../common/assign';
 import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
 
@@ -23,6 +23,7 @@ const BrowserWindow = electron.BrowserWindow;
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let _mainWindow;
+let _splashWindow;
 let _prefs;
 let _config;
 
@@ -108,6 +109,7 @@ function loadUserPrefs(): Configuration {
 }
 
 export function init() {
+
     _config = loadAppConfig();
     _prefs = loadUserPrefs();
 
@@ -210,6 +212,8 @@ export function init() {
     }
 
     app.on('ready', (): void => {
+        createSplashWindow(null);
+
         console.log(CATE_DESKTOP_PREFIX, 'Ready.');
         if (!webapiConfig.disabled) {
             console.log(CATE_DESKTOP_PREFIX, 'Starting Cate service...');
@@ -253,6 +257,29 @@ export function init() {
     // code. You can also put them in separate files and require them here.
 }
 
+
+function createSplashWindow(parent) {
+    _splashWindow = new BrowserWindow({
+        width: 256,
+        height: 256,
+        center: true,
+        useContentSize: true,
+        frame: false,
+        alwaysOnTop: true,
+        parent: parent,
+        transparent: true,
+    });
+    _splashWindow.loadURL(url.format({
+        pathname: path.join(app.getAppPath(), 'splash.html'),
+        protocol: 'file:',
+        slashes: true
+    }));
+    _splashWindow.on('closed', () => {
+        _splashWindow = null
+    });
+}
+
+
 function createMainWindow() {
 
     if (_config.data.devToolsExtensions) {
@@ -266,16 +293,23 @@ function createMainWindow() {
 
     _mainWindow = new BrowserWindow(Object.assign({icon: getAppIconPath(), webPreferences: {}}, mainWindowBounds));
 
-    console.log(CATE_DESKTOP_PREFIX, 'Loading menu...');
+    console.log(CATE_DESKTOP_PREFIX, 'Loading app menu...');
     const menu = electron.Menu.buildFromTemplate(menuTemplate);
     electron.Menu.setApplicationMenu(menu);
 
-    console.log(CATE_DESKTOP_PREFIX, 'Loading UI...');
+    console.log(CATE_DESKTOP_PREFIX, 'Loading main window UI...');
     _mainWindow.loadURL(url.format({
         pathname: path.join(app.getAppPath(), 'index.html'),
         protocol: 'file:',
         slashes: true
     }));
+
+    _mainWindow.webContents.on('did-finish-load', () => {
+        console.log(CATE_DESKTOP_PREFIX, 'Main window UI loaded.');
+        if (_splashWindow) {
+            _splashWindow.close();
+        }
+    });
 
     if (_config.data.devToolsOpened) {
         // Open the DevTools.
