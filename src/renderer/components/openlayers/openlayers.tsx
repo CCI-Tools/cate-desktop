@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ol from 'openlayers'
-import {IPermanentComponentProps, PermanentComponent} from '../../util/permcomp'
+import {IPermanentComponentProps, PermanentComponent} from '../permcomp'
 
 
 type OpenLayersObject = {
