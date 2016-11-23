@@ -12,5 +12,5 @@ src/**/*.js
 src/**/*.jsx
 
 cate-config.js
-cate-webapi.cmd
-*.lock
+cate-webapi-info.json
+

@@ -1,3 +1,19 @@
+const http = require('http');
+const https = require('https');
+
+/**
+ * The error type reported by the "request" function.
+ */
+export class HttpError extends Error {
+    readonly code: number;
+
+    constructor(message: string, code: number) {
+        super(message);
+        this.code = code;
+    }
+}
+
+
 /**
  * Usage:
  *
@@ -12,15 +28,13 @@
  * @param url The URL to request data from
  * @returns {Promise<string>}
  */
- export const request = function (url: string):Promise<string> {
+ export function request(url: string):Promise<string> {
     // return new pending promise
-    return new Promise<string>((resolve: (response: string) => void, reject: (err:Error) => void) => {
-        // select http or https module, depending on reqested url
-        const lib = url.startsWith('https') ? require('https') : require('http');
-        const request = lib.get(url, (response) => {
+    function requestExecutor(resolve: (response: string) => void, reject: (err:HttpError) => void) {
+        function httpGetCallback(response) {
             // handle http errors
             if (response.statusCode < 200 || response.statusCode > 299) {
-                reject(new Error('Failed to load page, status code: ' + response.statusCode));
+                reject(new HttpError(`Failed to get data from "${url}", status code ${response.statusCode}`, response.statusCode));
             }
             // temporary data holder
             const body = [];
@@ -28,8 +42,12 @@
             response.on('data', (chunk) => body.push(chunk));
             // we are done, resolve promise with those joined chunks
             response.on('end', () => resolve(body.join('')));
-        });
+        }
+        // select http or https module, depending on reqested url
+        const lib = url.startsWith('https') ? https : http;
+        const request = lib.get(url, httpGetCallback);
         // handle connection errors of the request
         request.on('error', (err) => reject(err));
-    })
-};
+    }
+    return new Promise<string>(requestExecutor);
+}

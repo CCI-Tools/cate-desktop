@@ -104,61 +104,128 @@ function loadPrefs(): Configuration {
     return loadConfiguration(PREFS_OPTIONS, getDefaultPrefsFile(), 'preferences');
 }
 
+function conditionallyAssign(target: Object, source: Object) {
+    for (let name of Object.keys(source)) {
+        const sourceValue = source[name];
+        if (typeof sourceValue === 'undefined') {
+            target[name] = sourceValue;
+        }
+    }
+    return target;
+}
+
 export function init() {
     _config = loadConfig();
     _prefs = loadPrefs();
 
+    let webapiConfig = _config.get('webapiConfig', {});
+    webapiConfig = conditionallyAssign(webapiConfig, {
+        command: path.join(app.getAppPath(), process.platform == 'windows' ? 'python/Scripts/cate-webapi.exe' : 'python/bin/cate-webapi'),
+        servicePort: 9090,
+        serviceFile: 'cate-webapi.json',
+        // Refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
+        processOptions: {},
+        // TODO: set disabled=false in production mode later
+        disabled: true,
+    });
+
+    const webapiCommonArgs = ['--caller', 'cate-desktop',
+        '--port', webapiConfig.servicePort,
+        '--file', webapiConfig.serviceFile];
+
+    const webapiStartArgs = webapiCommonArgs.concat('start');
+    const webapiStopArgs = webapiCommonArgs.concat('stop');
+
+    const webapiBaseUrl = `http://localhost:${webapiConfig.servicePort}/`;
+
+    let webapiStarted = false;
+    // Remember error occurred so
+    let webapiError = null;
+
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
-    app.on('ready', function () {
-        // TODO (nf): try to connect to cate-webapi first. If this fails, launch new service instance.
-        const wsStart = _config.get('wsStart');
-        if (!wsStart) {
-            throw Error("missing option 'wsStart' in configuration");
-        }
-        const cateWebApiProcess = child_process.spawn(wsStart.command, wsStart.args, wsStart.options);
-        cateWebApiProcess.stdout.on('data', (data) => {
+    function startWebapiService(): child_process.ChildProcess {
+        const webapi = child_process.spawn(webapiConfig.command, webapiStartArgs, webapiConfig.processOptions);
+        webapiStarted = true;
+        webapi.stdout.on('data', (data: any) => {
             console.log(`cate-webapi: ${data}`);
         });
-        cateWebApiProcess.stderr.on('data', (data) => {
+        webapi.stderr.on('data', (data: any) => {
             console.error(`cate-webapi: ${data}`);
         });
-        cateWebApiProcess.on('close', (code) => {
-            console.log(`cate-webapi: exited with code ${code}`);
+        webapi.on('error', (err: Error) => {
+            let message = 'Failed to start Cate service.';
+            console.log('cate-webapi:', message, err);
+            if (!webapiError) {
+                electron.dialog.showErrorBox('Internal Error', message);
+            }
+            webapiError = err;
+            // exit immediately
+            app.exit(1);
         });
+        webapi.on('close', (code: number) => {
+            let message = `Cate service exited with error code ${code}.`;
+            console.log('cate-webapi:', message);
+            if (code != 0) {
+                if (!webapiError) {
+                    electron.dialog.showErrorBox('Internal Error', message);
+                }
+                webapiError = new Error(message);
+                // exit immediately
+                app.exit(2);
+            }
+        });
+        return webapi;
+    }
+
+    function stopWebapiService() {
+        // Note we are async here, because sync can take a lot of time...
+        child_process.spawn(webapiConfig.command, webapiStopArgs, webapiConfig.processOptions);
+        // child_process.spawnSync(webapiConfig.command, webapiStopArgs, webapiConfig.options);
+    }
+
+    function startUpWithWebapiService() {
         const msTimeout = 5000; // ms
         const msDelay = 500; // ms
         let msSpend = 0; // ms
-        const startUp = () => {
-            request("http://localhost:9090/")
-                .then((response: string) => {
-                    console.log('cate-webapi:', response);
-                    createMainWindow();
-                })
-                .catch((err) => {
-                    setTimeout(startUp, msDelay);
-                    msSpend += msDelay;
-                    if (msSpend > msTimeout) {
-                        console.error('cate-webapi:', err);
-                        let content = "Failed to start Cate service within ${} ms.";
-                        electron.dialog.showErrorBox("Internal Error", content);
-                        throw Error(content);
+        request(webapiBaseUrl)
+            .then((response: string) => {
+                console.log('cate-webapi:', response);
+                createMainWindow();
+            })
+            .catch((err) => {
+                if (!webapiStarted) {
+                    startWebapiService();
+                }
+                if (msSpend > msTimeout) {
+                    let message = `Failed to start Cate service within ${msSpend} ms.`;
+                    console.error('cate-webapi:', message, err);
+                    if (!webapiError) {
+                        electron.dialog.showErrorBox("Internal Error", message);
                     }
-                });
-        };
-        startUp();
+                    webapiError = new Error(message);
+                    app.exit(2);
+                } else {
+                    setTimeout(startUpWithWebapiService, msDelay);
+                    msSpend += msDelay;
+                }
+            });
+    }
+
+    app.on('ready', (): void => {
+        if (!webapiConfig.disabled) {
+            startUpWithWebapiService();
+        } else {
+            createMainWindow();
+        }
     });
 
     // Emitted when all windows have been closed and the application will quit.
     app.on('quit', () => {
-        const wsStop = _config.get('wsStop');
-        if (!wsStop) {
-            console.error("missing option 'wsStop' in configuration");
+        if (!webapiConfig.disabled) {
+            stopWebapiService();
         }
-        // Note we are async here, because sync can take a lot of time...
-        child_process.spawn(wsStop.command, wsStop.args, wsStop.options);
-        // child_process.spawnSync(wsStop.command, wsStop.args, wsStop.options);
     });
 
     // Emitted when all windows have been closed.
@@ -176,6 +243,9 @@ export function init() {
         // On OS X it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
         if (_mainWindow === null) {
+            // TODO: must find out what Mac OS expects am app to do once it becomes deactivated
+            //   - is it a complete reatrt or should it remain in its previous state?
+            //   - must we stop the webapi on "deactivate" and start on "activate"?
             createMainWindow();
         }
     });

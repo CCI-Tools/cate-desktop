@@ -1,19 +1,12 @@
 module.exports = {
 
-    // Starts the cate-webapi executable (as new child process).
-    // see https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
-    wsStart: {
-        command: "C:\\Users\\norma\\Miniconda3\\envs\\ect\\Scripts\\cate-webapi.exe",
-        args: ['--port', '9090', '--caller', 'cate-desktop', '--file', 'cate-webapi.json', 'start'],
-        options: {}
-    },
-
-    // Stops the cate-webapi executable.
-    // see https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
-    wsStop: {
-        command: "C:\\Users\\norma\\Miniconda3\\envs\\ect\\Scripts\\cate-webapi.exe",
-        args: ['--port', '9090', '--caller', 'cate-desktop', '--file', 'cate-webapi.json', 'stop'],
-        options: {}
+    webapiConfig: {
+        command:  "C:\\Users\\Norman\\Miniconda3\\envs\\ect\\Scripts\\cate-webapi.exe",
+        servicePort: 9090,
+        serviceFile:  'cate-webapi-info.json',
+        // Refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
+        processOptions: {},
+        disabled: true,
     },
 
     // Preferences file, default is ~/.cate/cate-prefs.js
