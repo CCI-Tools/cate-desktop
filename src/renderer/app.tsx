@@ -5,26 +5,9 @@ import {HGLContainer, HGLHeader, HGLFooter, HGLMidsection} from './components/hg
 import {ExpansionPanel} from './components/panel';
 
 import {CesiumView} from './components/cesium/view'
-import {OpenLayersComponent} from "./components/openlayers/openlayers";
-
-function testWebSocket() {
-    // see https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications
-    try {
-        let webSocket = new WebSocket("ws://localhost:9090/app");
-        webSocket.onopen = () => {
-            webSocket.send("cate-desktop started");
-        };
-        webSocket.onmessage = (event) => {
-            console.log(`WebSocketClient: got [${event.data}]`);
-        };
-        return webSocket;
-    } catch (err) {
-        throw err;
-    }
-}
+import {OpenLayersComponent} from './components/openlayers/openlayers';
 
 export function main() {
-    testWebSocket();
 
     const leftStyle = {
         width: "100%",
