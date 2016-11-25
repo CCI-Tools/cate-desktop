@@ -6,20 +6,32 @@ should();
 class WebSocketMock {
     messageTrace: string[] = [];
 
-    emulateOnMessage(...messages: Object[]) {
+    emulateIncomingMessages(...messages: Object[]) {
         for (let i = 0; i < messages.length; i++) {
             const event = {data: JSON.stringify(messages[i])};
-            this.onmessage(event);
+            let x = this.onmessage(event);
         }
+    }
+
+    emulateOpen(event) {
+        this.onopen(event);
+    }
+
+    emulateError(event) {
+        this.onerror(event);
+    }
+
+    emulateClose(event) {
+        this.onclose(event);
     }
 
     ////////////////////////////////////////////
     // >>>> WebSocket interface impl.
 
     onmessage: (this: this, ev: any) => any;
-    //onclose: (this: this, ev: any) => any;
-    //onerror: (this: this, ev: any) => any;
-    //onopen: (this: this, ev: any) => any;
+    onopen: (this: this, ev: any) => any;
+    onerror: (this: this, ev: any) => any;
+    onclose: (this: this, ev: any) => any;
 
     send(message: string) {
         this.messageTrace.push(message);
@@ -29,8 +41,8 @@ class WebSocketMock {
     ////////////////////////////////////////////
 }
 
-describe('WebAPI', function () {
-    it('calls "then" if done', function () {
+describe('WebAPI callbacks', function () {
+    it('calls "then" callback if done', function () {
         const webSocket: any = new WebSocketMock();
         const webAPI = new WebAPI('ws://test/me/now', 0, webSocket);
 
@@ -42,7 +54,7 @@ describe('WebAPI', function () {
 
         expect(job.status).to.equal(JobStatus.SUBMITTED);
 
-        webSocket.emulateOnMessage(
+        webSocket.emulateIncomingMessages(
             {
                 jsonrcp: "2.0",
                 id: 0,
@@ -54,7 +66,7 @@ describe('WebAPI', function () {
         expect(actualResult).to.equal('ok');
     });
 
-    it('calls "during" while running', function () {
+    it('calls "during" callback while running', function () {
         const webSocket: any = new WebSocketMock();
         const webAPI = new WebAPI('ws://test/me/now', 769, webSocket);
 
@@ -70,7 +82,7 @@ describe('WebAPI', function () {
 
         expect(job.status).to.equal(JobStatus.SUBMITTED);
 
-        webSocket.emulateOnMessage(
+        webSocket.emulateIncomingMessages(
             {
                 jsonrcp: "2.0",
                 id: 769,
@@ -96,7 +108,7 @@ describe('WebAPI', function () {
             {worked: 60, total: 100, message: 'warning: low memory'}
         ]);
 
-        webSocket.emulateOnMessage(
+        webSocket.emulateIncomingMessages(
             {
                 jsonrcp: "2.0",
                 id: 769,
@@ -108,7 +120,7 @@ describe('WebAPI', function () {
         expect(actualResult).to.equal(42);
     });
 
-    it('calls "failed" on failure', function () {
+    it('calls "failed" callback on failure', function () {
         const webSocket: any = new WebSocketMock();
         const webAPI = new WebAPI('ws://test/me/now', 9421, webSocket);
 
@@ -118,7 +130,7 @@ describe('WebAPI', function () {
                 actualFailure = failure;
             });
 
-        webSocket.emulateOnMessage(
+        webSocket.emulateIncomingMessages(
             {
                 jsonrcp: "2.0",
                 id: 9421,
@@ -130,14 +142,15 @@ describe('WebAPI', function () {
         );
 
         expect(job.status).to.equal(JobStatus.FAILED);
+        expect(job.cancelled).to.be.false;
         expect(actualFailure).to.deep.equal({
-                message: 'out of memory',
-                code: 512,
+            message: 'out of memory',
+            code: 512,
         });
     });
 
 
-    it('calls "failed" on cancellation', function () {
+    it('calls "failed" callback on cancellation', function () {
         const webSocket: any = new WebSocketMock();
         const webAPI = new WebAPI('ws://test/me/now', 9421, webSocket);
 
@@ -147,20 +160,90 @@ describe('WebAPI', function () {
                 actualFailure = failure;
             });
 
-        webSocket.emulateOnMessage(
+        webSocket.emulateIncomingMessages(
             {
                 jsonrcp: "2.0",
                 id: 9421,
                 error: {
-                    cancelled: true,
+                    code: 999,
+                    message: 'killed'
                 },
             }
         );
 
         expect(job.status).to.equal(JobStatus.CANCELLED);
-        expect(job.isCancelled()).to.be.true;
+        expect(job.cancelled).to.be.true;
         expect(actualFailure).to.deep.equal({
-            cancelled: true,
+            code: 999,
+            message: 'killed'
         });
+    });
+});
+
+describe('WebAPI handlers', function () {
+    it('notifies on open/error/close handlers', function () {
+        const webSocket: any = new WebSocketMock();
+        const webAPI = new WebAPI('ws://test/me/now', 0, webSocket);
+
+        let actualOpenEvent;
+        let actualErrorEvent;
+        let actualCloseEvent;
+
+        webAPI.onOpen = (event) => {
+            actualOpenEvent = event;
+        };
+
+        webAPI.onError = (event) => {
+            actualErrorEvent = event;
+        };
+
+        webAPI.onClose = (event) => {
+            actualCloseEvent = event;
+        };
+
+        webSocket.emulateOpen({message: 'open'});
+        expect(actualOpenEvent).to.deep.equal({message: 'open'});
+        expect(actualErrorEvent).to.be.undefined;
+        expect(actualCloseEvent).to.be.undefined;
+
+        webSocket.emulateError({message: 'error'});
+        expect(actualOpenEvent).to.deep.equal({message: 'open'});
+        expect(actualErrorEvent).to.deep.equal({message: 'error'});
+        expect(actualCloseEvent).to.be.undefined;
+
+        webSocket.emulateClose({message: 'close'});
+        expect(actualOpenEvent).to.deep.equal({message: 'open'});
+        expect(actualErrorEvent).to.deep.equal({message: 'error'});
+        expect(actualCloseEvent).to.deep.equal({message: 'close'});
+    });
+
+    it('notifies on warning handlers', function () {
+        const webSocket: any = new WebSocketMock();
+        const webAPI = new WebAPI('ws://test/me/now', 0, webSocket);
+
+        let actualWarningEvent;
+
+        webAPI.onWarning = (event) => {
+            actualWarningEvent = event;
+        };
+
+        webSocket.emulateIncomingMessages({id: 0, response: 42});
+        expect(actualWarningEvent).to.deep.equal({
+            message: 'Received invalid Cate WebAPI message (id: 0). ' +
+            'Ignoring it.'
+        });
+
+        webSocket.emulateIncomingMessages({jsonrcp: "2.0", response: 42});
+        expect(actualWarningEvent).to.deep.equal({
+            message: 'Received invalid Cate WebAPI message (id: undefined). ' +
+            'Ignoring it.'
+        });
+
+        webSocket.emulateIncomingMessages({jsonrcp: "2.0", id: 2, response: 42});
+        expect(actualWarningEvent).to.deep.equal({
+            message: 'Received Cate WebAPI message (id: 2), ' +
+            'which does not have an associated job. Ignoring it.'
+        });
+
     });
 });
