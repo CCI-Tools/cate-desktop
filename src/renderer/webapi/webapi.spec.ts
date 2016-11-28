@@ -42,10 +42,16 @@ class WebSocketMock {
 }
 
 describe('WebAPI callbacks', function () {
-    it('calls "then" callback if done', function () {
-        const webSocket: any = new WebSocketMock();
-        const webAPI = openWebAPI('ws://test/me/now', 0, webSocket);
 
+    let webSocket;
+    let webAPI;
+
+    beforeEach(function() {
+        webSocket = new WebSocketMock();
+        webAPI = openWebAPI('ws://test/me/now', 0, webSocket);
+    });
+
+    it('calls "then" callback if done', function () {
         let actualResult = false;
         const job = webAPI.submit('openWorkspace', {path: 'bibo'})
             .then((result: any) => {
@@ -67,8 +73,6 @@ describe('WebAPI callbacks', function () {
     });
 
     it('calls "during" callback while running', function () {
-        const webSocket: any = new WebSocketMock();
-        const webAPI = openWebAPI('ws://test/me/now', 769, webSocket);
 
         let actualResult = false;
         let actualProgress: JobProgress[] = [];
@@ -85,7 +89,7 @@ describe('WebAPI callbacks', function () {
         webSocket.emulateIncomingMessages(
             {
                 jsonrcp: "2.0",
-                id: 769,
+                id: 0,
                 progress: {
                     worked: 30,
                     total: 100
@@ -93,7 +97,7 @@ describe('WebAPI callbacks', function () {
             },
             {
                 jsonrcp: "2.0",
-                id: 769,
+                id: 0,
                 progress: {
                     message: 'warning: low memory',
                     worked: 60,
@@ -111,7 +115,7 @@ describe('WebAPI callbacks', function () {
         webSocket.emulateIncomingMessages(
             {
                 jsonrcp: "2.0",
-                id: 769,
+                id: 0,
                 response: 42,
             }
         );
@@ -121,9 +125,6 @@ describe('WebAPI callbacks', function () {
     });
 
     it('calls "failed" callback on failure', function () {
-        const webSocket: any = new WebSocketMock();
-        const webAPI = openWebAPI('ws://test/me/now', 9421, webSocket);
-
         let actualFailure: JobFailure;
         const job = webAPI.submit('executeOp', {op: 'average', params: {dsId: 53242}})
             .failed((failure: JobFailure) => {
@@ -133,7 +134,7 @@ describe('WebAPI callbacks', function () {
         webSocket.emulateIncomingMessages(
             {
                 jsonrcp: "2.0",
-                id: 9421,
+                id: 0,
                 error: {
                     message: 'out of memory',
                     code: 512,
@@ -151,9 +152,6 @@ describe('WebAPI callbacks', function () {
 
 
     it('calls "failed" callback on cancellation', function () {
-        const webSocket: any = new WebSocketMock();
-        const webAPI = openWebAPI('ws://test/me/now', 9421, webSocket);
-
         let actualFailure: JobFailure;
         const job = webAPI.submit('executeOp', {op: 'average', params: {dsId: 53242}})
             .failed((failure: JobFailure) => {
@@ -163,7 +161,7 @@ describe('WebAPI callbacks', function () {
         webSocket.emulateIncomingMessages(
             {
                 jsonrcp: "2.0",
-                id: 9421,
+                id: 0,
                 error: {
                     code: 999,
                     message: 'killed'
@@ -181,10 +179,16 @@ describe('WebAPI callbacks', function () {
 });
 
 describe('WebAPI handlers', function () {
-    it('notifies on open/error/close handlers', function () {
-        const webSocket: any = new WebSocketMock();
-        const webAPI = openWebAPI('ws://test/me/now', 0, webSocket);
+    let webSocket;
+    let webAPI;
 
+    beforeEach(function() {
+        webSocket = new WebSocketMock();
+        webAPI = openWebAPI('ws://test/me/now', 0, webSocket);
+    });
+
+
+    it('notifies on open/error/close handlers', function () {
         let actualOpenEvent;
         let actualErrorEvent;
         let actualCloseEvent;
@@ -218,9 +222,6 @@ describe('WebAPI handlers', function () {
     });
 
     it('notifies on warning handlers', function () {
-        const webSocket: any = new WebSocketMock();
-        const webAPI = openWebAPI('ws://test/me/now', 0, webSocket);
-
         let actualWarningEvent;
 
         webAPI.onWarning = (event) => {
