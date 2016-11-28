@@ -1,5 +1,5 @@
 import {should, expect} from 'chai';
-import {JobStatus, WebAPI, JobProgress, JobFailure} from './webapi';
+import {JobStatus, WebAPI, JobProgress, JobFailure, openWebAPI} from './webapi';
 
 should();
 
@@ -44,7 +44,7 @@ class WebSocketMock {
 describe('WebAPI callbacks', function () {
     it('calls "then" callback if done', function () {
         const webSocket: any = new WebSocketMock();
-        const webAPI = new WebAPI('ws://test/me/now', 0, webSocket);
+        const webAPI = openWebAPI('ws://test/me/now', 0, webSocket);
 
         let actualResult = false;
         const job = webAPI.submit('openWorkspace', {path: 'bibo'})
@@ -68,7 +68,7 @@ describe('WebAPI callbacks', function () {
 
     it('calls "during" callback while running', function () {
         const webSocket: any = new WebSocketMock();
-        const webAPI = new WebAPI('ws://test/me/now', 769, webSocket);
+        const webAPI = openWebAPI('ws://test/me/now', 769, webSocket);
 
         let actualResult = false;
         let actualProgress: JobProgress[] = [];
@@ -122,7 +122,7 @@ describe('WebAPI callbacks', function () {
 
     it('calls "failed" callback on failure', function () {
         const webSocket: any = new WebSocketMock();
-        const webAPI = new WebAPI('ws://test/me/now', 9421, webSocket);
+        const webAPI = openWebAPI('ws://test/me/now', 9421, webSocket);
 
         let actualFailure: JobFailure;
         const job = webAPI.submit('executeOp', {op: 'average', params: {dsId: 53242}})
@@ -152,7 +152,7 @@ describe('WebAPI callbacks', function () {
 
     it('calls "failed" callback on cancellation', function () {
         const webSocket: any = new WebSocketMock();
-        const webAPI = new WebAPI('ws://test/me/now', 9421, webSocket);
+        const webAPI = openWebAPI('ws://test/me/now', 9421, webSocket);
 
         let actualFailure: JobFailure;
         const job = webAPI.submit('executeOp', {op: 'average', params: {dsId: 53242}})
@@ -183,7 +183,7 @@ describe('WebAPI callbacks', function () {
 describe('WebAPI handlers', function () {
     it('notifies on open/error/close handlers', function () {
         const webSocket: any = new WebSocketMock();
-        const webAPI = new WebAPI('ws://test/me/now', 0, webSocket);
+        const webAPI = openWebAPI('ws://test/me/now', 0, webSocket);
 
         let actualOpenEvent;
         let actualErrorEvent;
@@ -219,7 +219,7 @@ describe('WebAPI handlers', function () {
 
     it('notifies on warning handlers', function () {
         const webSocket: any = new WebSocketMock();
-        const webAPI = new WebAPI('ws://test/me/now', 0, webSocket);
+        const webAPI = openWebAPI('ws://test/me/now', 0, webSocket);
 
         let actualWarningEvent;
 
