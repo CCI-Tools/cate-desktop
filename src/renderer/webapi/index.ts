@@ -5,7 +5,8 @@ export {
     JobRequest,
     JobResponse,
     JobProgress,
-    WebAPI
+    WebAPI,
+    openWebAPI
 } from './webapi';
 
 export {DatasetAPI} from "./DatasetAPI";

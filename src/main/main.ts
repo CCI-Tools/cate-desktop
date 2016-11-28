@@ -108,6 +108,33 @@ function loadUserPrefs(): Configuration {
     return loadConfiguration(PREFS_OPTIONS, getDefaultUserPrefsFile(), 'User preferences');
 }
 
+
+function getWebapiCommonArgs(webapiConfig) {
+    return [
+        '--caller', 'cate-desktop',
+        '--port', webapiConfig.servicePort,
+        '--address', webapiConfig.serviceAddress,
+        '--file', webapiConfig.serviceFile,
+    ];
+}
+
+
+function getWebapiStartArgs(webapiConfig) {
+    return getWebapiCommonArgs(webapiConfig).concat('start');
+}
+
+function getWebapiStopArgs(webapiConfig) {
+    return getWebapiCommonArgs(webapiConfig).concat('stop');
+}
+
+function getWebapiHttpUrl(webapiConfig) {
+    return `http://${webapiConfig.serviceAddress || 'localhost'}:${webapiConfig.servicePort}/`;
+}
+
+function getWebapiWebSocketsUrl(webapiConfig) {
+    return `ws://${webapiConfig.serviceAddress || 'localhost'}:${webapiConfig.servicePort}/app`;
+}
+
 export function init() {
 
     _config = loadAppConfig();
@@ -117,6 +144,7 @@ export function init() {
     webapiConfig = assignConditionally(webapiConfig, {
         command: path.join(app.getAppPath(), process.platform == 'windows' ? 'python/Scripts/cate-webapi.exe' : 'python/bin/cate-webapi'),
         servicePort: 9090,
+        serviceAddress: '',
         serviceFile: 'cate-webapi.json',
         // Refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
         processOptions: {},
@@ -124,17 +152,9 @@ export function init() {
         disabled: true,
     });
 
+    _config.set('webapiConfig', webapiConfig);
+
     console.log(CATE_DESKTOP_PREFIX, 'webapiConfig =', webapiConfig);
-
-    const webapiCommonArgs = [
-        '--caller', 'cate-desktop',
-        '--port', webapiConfig.servicePort,
-        '--file', webapiConfig.serviceFile,
-    ];
-
-    const webapiStartArgs = webapiCommonArgs.concat('start');
-    const webapiStopArgs = webapiCommonArgs.concat('stop');
-    const webapiBaseUrl = `http://localhost:${webapiConfig.servicePort}/`;
 
     let webapiStarted = false;
     // Remember error occurred so
@@ -144,6 +164,7 @@ export function init() {
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
     function startWebapiService(): child_process.ChildProcess {
+        const webapiStartArgs = getWebapiStartArgs(webapiConfig);
         const webapi = child_process.spawn(webapiConfig.command, webapiStartArgs, webapiConfig.processOptions);
         webapiStarted = true;
         webapi.stdout.on('data', (data: any) => {
@@ -179,6 +200,7 @@ export function init() {
 
     function stopWebapiService() {
         // Note we are async here, because sync can take a lot of time...
+        const webapiStopArgs = getWebapiStopArgs(webapiConfig);
         child_process.spawn(webapiConfig.command, webapiStopArgs, webapiConfig.processOptions);
         // child_process.spawnSync(webapiConfig.command, webapiStopArgs, webapiConfig.options);
     }
@@ -187,7 +209,7 @@ export function init() {
         const msTimeout = 5000; // ms
         const msDelay = 500; // ms
         let msSpend = 0; // ms
-        request(webapiBaseUrl)
+        request(getWebapiHttpUrl(_config.data.webapiConfig))
             .then((response: string) => {
                 console.log(CATE_WEBAPI_PREFIX, `resonse: ${response}`);
                 createMainWindow();
@@ -308,6 +330,16 @@ function createMainWindow() {
         console.log(CATE_DESKTOP_PREFIX, 'Main window UI loaded.');
         if (_splashWindow) {
             _splashWindow.close();
+            _mainWindow.webContents.send('apply-initial-state', {
+                userPrefs: _prefs.data,
+                appConfig: Object.assign({}, _config.data, {
+                    appPath: app.getAppPath(),
+                    webapiConfig: Object.assign({}, _config.data.webapiConfig, {
+                        restUrl: getWebapiHttpUrl(_config.data.webapiConfig),
+                        webSocketUrl: getWebapiWebSocketsUrl(_config.data.webapiConfig),
+                    }),
+                })
+            });
         }
     });
 

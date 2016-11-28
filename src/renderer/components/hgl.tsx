@@ -64,14 +64,14 @@ export class HGLCenter extends React.Component<any, any> {
 
 // TODO: support the leftHidden, rightHidden props
 
-interface HGLMidsectionProps {
+export interface HGLMidsectionProps {
     leftWidth: number;
     leftHidden?: boolean;
     rightWidth: number;
     rightHidden?: boolean;
 }
 
-interface HGLMidsectionState {
+export interface HGLMidsectionState {
     leftWidth?: null | number;
     rightWidth?: null | number;
 }

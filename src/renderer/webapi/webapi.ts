@@ -24,12 +24,26 @@
  * @author Norman Fomferra
  */
 
+export interface WebAPI {
+    readonly url: string;
+    onOpen: (event) => void;
+    onClose: (event) => void;
+    onError: (event) => void;
+    onWarning: (event) => void;
+
+    submit(method: string, params: Array<any>|Object): Job;
+    close(): void;
+}
+
+export function openWebAPI(url: string, firstMessageId = 0, socket?: WebSocket): WebAPI {
+    return new WebAPIImpl(url, firstMessageId, socket);
+}
 
 /**
  * The WebAPI class is used to @submit JSON-RCP requests. Clients will receive a @Job object which provides
  * additional API to deal with asynchronously received job status messages and the final result.
  */
-export class WebAPI {
+class WebAPIImpl implements WebAPI {
 
     readonly url: string;
     onOpen: (event) => void;
@@ -88,6 +102,10 @@ export class WebAPI {
         const job = new JobImpl(this, message);
         this.activeJobs[id] = job;
         return job;
+    }
+
+    close(): void {
+        this.socket.close();
     }
 
     private processMessage(content: string): void {
