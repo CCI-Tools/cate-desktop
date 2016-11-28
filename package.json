@@ -47,6 +47,7 @@
     "@types/react-dom": "^0.14.18",
     "@types/react-redux": "^4.4.32",
     "@types/redux": "^3.6.31",
+    "@types/redux-logger": "^2.6.32",
     "cesium": "^1.27.0",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
@@ -60,11 +61,11 @@
     "react-dom": "^15.4.0",
     "react-redux": "^4.4.5",
     "redux": "^3.6.0",
-    "redux-log": "^2.0.0",
+    "redux-logger": "^2.7.4",
     "rimraf": "^2.5.4",
     "spectron": "^3.4.0",
-    "typescript": "^2.0.8",
-    "ts-node": "^1.7.0"
+    "ts-node": "^1.7.0",
+    "typescript": "^2.0.8"
   },
   "build": {
     "appId": "org.esa.ccitools.Cate",
