@@ -260,11 +260,13 @@ describe('WebAPI', function () {
 
 describe('WebSocketMock', function () {
     class MyServiceObject {
+        private state = 'me';
+
         generateSausages(num, veggie) {
             if (num < -1) {
                 throw Error('illegal num');
             }
-            return {num, veggie};
+            return {num, veggie, state: this.state};
         }
     }
 
@@ -293,7 +295,8 @@ describe('WebSocketMock', function () {
             id: 754934,
             response: {
                 num: 350,
-                veggie: true
+                veggie: true,
+                state: "me"
             }
         });
     });
