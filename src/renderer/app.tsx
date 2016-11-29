@@ -5,7 +5,7 @@ import * as logger from 'redux-logger';
 import {Provider} from 'react-redux';
 import {ipcRenderer} from 'electron';
 import {Layout} from './components/Layout'
-import {WebAPI, JobPromise, openWebAPI, JobResponse, JobProgress, JobFailure, JobStatus, JobRequest, WebSocketMock} from './webapi'
+import {WebAPI, openWebAPI, WebSocketMock, WebAPIServiceMock} from './webapi'
 
 
 
@@ -41,7 +41,7 @@ const userPrefsReducer = (state={}, action) => {
     return state;
 };
 
-let webapi:WebAPI = null;
+let webAPI = null;
 
 export function main() {
 
@@ -59,22 +59,22 @@ export function main() {
 
     ipcRenderer.on('apply-initial-state', (event, initialState) => {
         store.dispatch(applyInitialState(initialState));
+        store.dispatch(setWebapiOpenStatus('connecting'));
 
         const webapiConfig = initialState.appConfig.webapiConfig;
         if (webapiConfig.disabled !== true && webapiConfig.webSocketUrl) {
-            webapi = openWebAPI(webapiConfig.webSocketUrl);
+            webAPI = openWebAPI(webapiConfig.webSocketUrl);
         } else {
-            webapi = openWebAPI('ws://mock', 0, new WebSocketMock());
+            webAPI = openWebAPI('ws://mock', 0, new WebSocketMock(100, new WebAPIServiceMock()));
         }
 
-        store.dispatch(setWebapiOpenStatus('connecting'));
-        webapi.onOpen = () => {
+        webAPI.onOpen = () => {
             store.dispatch(setWebapiOpenStatus('open'));
         };
-        webapi.onClose = () => {
+        webAPI.onClose = () => {
             store.dispatch(setWebapiOpenStatus('closed'));
         };
-        webapi.onError = () => {
+        webAPI.onError = () => {
             store.dispatch(setWebapiOpenStatus('error'));
         };
     });
