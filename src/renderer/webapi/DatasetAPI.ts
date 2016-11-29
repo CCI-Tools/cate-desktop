@@ -7,7 +7,11 @@ export class DatasetAPI {
         this.webAPI = webAPI;
     }
 
-    getDataStoreNames(): JobPromise {
-        return this.webAPI.call('getDataStoreNames', {});
+    getDataStores(): JobPromise {
+        return this.webAPI.call('getDataStores', []);
+    }
+
+    getDataSources(dataStoreId: string): JobPromise {
+        return this.webAPI.call('getDataSources', [dataStoreId]);
     }
 }
