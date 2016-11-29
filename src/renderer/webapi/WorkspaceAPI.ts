@@ -8,6 +8,6 @@ export class WorkspaceAPI {
     }
 
     newWorkspace(path: string): Job {
-        return this.webAPI.submit('newWorkspace', {path: path});
+        return this.webAPI.call('newWorkspace', {path: path});
     }
 }

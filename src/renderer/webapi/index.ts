@@ -6,7 +6,8 @@ export {
     JobResponse,
     JobProgress,
     WebAPI,
-    openWebAPI
+    openWebAPI,
+    WebSocketMock
 } from './webapi';
 
 export {DatasetAPI} from "./DatasetAPI";

@@ -8,6 +8,6 @@ export class DatasetAPI {
     }
 
     getDataStoreNames(): Job {
-        return this.webAPI.submit('getDataStoreNames', {});
+        return this.webAPI.call('getDataStoreNames', {});
     }
 }

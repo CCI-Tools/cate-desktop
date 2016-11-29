@@ -24,6 +24,24 @@
  * @author Norman Fomferra
  */
 
+
+const CANCEL_METHOD = '__cancelJob__';
+const CANCELLED_CODE = 999;
+
+/*
+ * This represents the WebSocket API we are using in this very impl.
+ */
+interface WebSocketMin {
+    onclose: (this: this, ev: CloseEvent) => any;
+    onerror: (this: this, ev: ErrorEvent) => any;
+    onmessage: (this: this, ev: MessageEvent) => any;
+    onopen: (this: this, ev: Event) => any;
+
+    send(data: any): void;
+    close(code?: number, reason?: string): void;
+}
+
+
 export interface WebAPI {
     readonly url: string;
     onOpen: (event) => void;
@@ -31,11 +49,14 @@ export interface WebAPI {
     onError: (event) => void;
     onWarning: (event) => void;
 
-    submit(method: string, params: Array<any>|Object): Job;
+    call(method: string,
+         params: Array<any>|Object,
+         onProgress?: (progress: JobProgress) => void): Job;
+
     close(): void;
 }
 
-export function openWebAPI(url: string, firstMessageId = 0, socket?: WebSocket): WebAPI {
+export function openWebAPI(url: string, firstMessageId = 0, socket?: WebSocketMin): WebAPI {
     return new WebAPIImpl(url, firstMessageId, socket);
 }
 
@@ -51,12 +72,12 @@ class WebAPIImpl implements WebAPI {
     onError: (event) => void;
     onWarning: (event) => void;
 
+    readonly socket: WebSocketMin;
     private currentMessageId = 0;
-    private socket: WebSocket;
     private activeJobs: JobImpl[];
     private isOpen: boolean;
 
-    constructor(url: string, firstMessageId = 0, socket?: WebSocket) {
+    constructor(url: string, firstMessageId = 0, socket?: WebSocketMin) {
         this.url = url;
         this.currentMessageId = firstMessageId;
         this.activeJobs = [];
@@ -84,32 +105,38 @@ class WebAPIImpl implements WebAPI {
     }
 
     /**
-     * Submit an JSON-RCP request.
+     * Call a remote procedure / method.
      *
      * @param method The method name.
-     * @param params The named parameters.
-     * @returns {Job} The associated job.
+     * @param params Positional parameters as array or named parameters as object.
+     * @param onProgress Callback that is notified on progress.
+     * @returns {Promise} A promise.
      */
-    submit(method: string, params: Array<any>|Object): Job {
-        const id = this.newId();
-        const message = {
-            "jsonrcp": "2.0",
-            "id": id,
+    call(method: string,
+         params: Array<any>|Object,
+         onProgress?: (progress: JobProgress) => void): Job {
+        const request = {
+            "id": this.newId(),
             "method": method,
             "params": params,
         };
-        this.socket.send(JSON.stringify(message));
-        const job = new JobImpl(this, message);
-        this.activeJobs[id] = job;
-        return job;
+        const job = new JobImpl(this, request);
+        this.activeJobs[request.id] = job;
+        return job.invoke(onProgress);
     }
 
     close(): void {
         this.socket.close();
     }
 
-    private processMessage(content: string): void {
-        const message = JSON.parse(content);
+    sendMessage(request: JobRequest) {
+        const message = Object.assign({}, {jsonrpc: "2.0"}, request);
+        const messageText = JSON.stringify(message);
+        this.socket.send(messageText);
+    }
+
+    private processMessage(messageText: string): void {
+        const message = JSON.parse(messageText);
         if (message.jsonrcp !== '2.0' || typeof message.id !== 'number') {
             this.warn(`Received invalid Cate WebAPI message (id: ${message.id}). Ignoring it.`);
             return;
@@ -145,25 +172,20 @@ class WebAPIImpl implements WebAPI {
     }
 }
 
-const CANCEL_METHOD = '__cancelJob__';
-const CANCELLED_CODE = 999;
-
-export interface Job {
-    readonly status: JobStatus;
-    readonly request: JobRequest;
-    readonly cancelled: boolean;
-    then(callback: (response: JobResponse) => void): Job;
-    during(callback: (progress: JobProgress) => void): Job;
-    failed(callback: (failure: JobFailure) => void): Job;
-    cancel(): Job;
+export interface Job extends Promise<JobResponse> {
+    getRequest(): JobRequest;
+    getStatus(): JobStatus;
+    isCancelled(): boolean;
+    cancel(): Promise<JobResponse>;
 }
 
 export enum JobStatus {
+    NEW,
     SUBMITTED,
-    RUNNING,
+    IN_PROGRESS,
+    DONE,
     FAILED,
     CANCELLED,
-    DONE,
 }
 
 export interface JobRequest {
@@ -201,76 +223,160 @@ export interface JobFailure {
     readonly data?: any;
 }
 
-class JobImpl implements Job {
-    private webAPI: WebAPI;
-    readonly request: JobRequest;
-    private _status: JobStatus;
+export type JobProgressHandler = (progress: JobProgress) => void;
+export type JobResponseHandler = (response: JobResponse) => void;
+export type JobFailureHandler = (failure: JobFailure) => void;
 
-    private onProgress: (progress: JobProgress) => void;
-    private onDone: (result: JobResponse) => void;
-    private onFailure: (failure: JobFailure) => void;
+// TODO: JobProgressHandler should also be called async
 
-    constructor(webAPI: WebAPI, request: JobRequest) {
+class JobImpl /*implements Job */ {
+
+    private webAPI: WebAPIImpl;
+    private request: JobRequest;
+    private status: JobStatus;
+    private onProgress: JobProgressHandler;
+    private onResolve: JobResponseHandler;
+    private onReject: JobFailureHandler;
+
+    constructor(webAPI: WebAPIImpl, request: JobRequest) {
         this.webAPI = webAPI;
         this.request = request;
-        this._status = JobStatus.SUBMITTED;
+        this.status = JobStatus.NEW;
     }
 
-    get status(): JobStatus {
-        return this._status;
+    getRequest() {
+        return this.request;
     }
 
-    get cancelled(): boolean {
-        return this._status === JobStatus.CANCELLED;
+    getStatus(): JobStatus {
+        return this.status;
     }
 
-    then(callback: (response: JobResponse)=>void): Job {
-        this.onDone = callback;
-        return this;
+    isCancelled(): boolean {
+        return this.status === JobStatus.CANCELLED;
     }
 
-    during(callback: (progress: JobProgress)=>void): Job {
-        this.onProgress = callback;
-        return this;
-    }
-
-    failed(callback: (failure: JobFailure) => void): Job {
-        this.onFailure = callback;
-        return this;
-    }
-
-    cancel(successCallback?: (response: JobResponse) => void,
-           failureCallback?: (failure: JobFailure) => void): Job {
-        this.webAPI.submit(CANCEL_METHOD, {jobId: this.request.id})
-            .then(successCallback || (() => {}))
-            .failed(failureCallback || (() => {}));
-        return this;
+    cancel(onResolve?: JobResponseHandler,
+           onReject?: JobFailureHandler): Promise<JobResponse> {
+        return this.webAPI.call(CANCEL_METHOD, {jobId: this.request.id})
+            .then(onResolve || (() => {
+                }), onReject || (() => {
+                }));
     }
 
     ////////////////////////////////////////////////////////////
     // Implementation details
 
-    notifyDone(result: any) {
-        this._status = JobStatus.DONE;
-        if (this.onDone) {
-            this.onDone(result);
-        }
+    invoke(onProgress?: JobProgressHandler): Job {
+
+        const executor = (onResolve: JobResponseHandler, onReject: JobFailureHandler) => {
+            this.setHandlers(onProgress, onResolve, onReject);
+            this.sendMessage();
+            this.setStatus(JobStatus.SUBMITTED);
+        };
+
+        const promise = new Promise<JobResponse>(executor.bind(this));
+        promise['getRequest'] = this.getRequest.bind(this);
+        promise['getStatus'] = this.getStatus.bind(this);
+        promise['isCancelled'] = this.isCancelled.bind(this);
+        promise['cancel'] = this.cancel.bind(this);
+        return promise as Job;
+    }
+
+    private setHandlers(onProgress, onResolve, onReject) {
+        this.onProgress = onProgress;
+        this.onResolve = onResolve;
+        this.onReject = onReject;
+    }
+
+    private sendMessage() {
+        this.webAPI.sendMessage(this.request);
+    }
+
+    private setStatus(status: JobStatus) {
+        this.status = status;
     }
 
     notifyProgress(progress: JobProgress) {
-        this._status = JobStatus.RUNNING;
+        this.setStatus(JobStatus.IN_PROGRESS);
         if (this.onProgress) {
             this.onProgress(progress);
         }
     }
 
+    notifyDone(response: JobResponse) {
+        this.setStatus(JobStatus.DONE);
+        if (this.onResolve) {
+            this.onResolve(response);
+        }
+    }
+
     notifyFailure(failure: JobFailure) {
-        this._status = failure.code === CANCELLED_CODE ? JobStatus.CANCELLED : JobStatus.FAILED;
-        if (this.onFailure) {
-            this.onFailure(failure);
+        this.setStatus(failure.code === CANCELLED_CODE ? JobStatus.CANCELLED : JobStatus.FAILED);
+        if (this.onReject) {
+            this.onReject(failure);
         }
     }
 }
+
+
+
+////////////////////////////////////////////////////
+
+// TODO: let WebSocketMock invoke methods with given delay on a passed-in object (that has the requested methods).
+
+export class WebSocketMock implements WebSocketMin {
+    readonly messageLog: string[] = [];
+
+    constructor(openDelay = 100) {
+        if (openDelay) {
+            setTimeout(() => {
+                if (this.onopen) {
+                    this.onopen({})
+                }
+            }, openDelay || 100);
+        }
+    }
+
+    emulateIncomingMessages(...messages: Object[]) {
+        for (let i = 0; i < messages.length; i++) {
+            const event = {data: JSON.stringify(messages[i])};
+            this.onmessage(event);
+        }
+    }
+
+    emulateOpen(event) {
+        this.onopen(event);
+    }
+
+    emulateError(event) {
+        this.onerror(event);
+    }
+
+    emulateClose(event) {
+        this.onclose(event);
+    }
+
+    ////////////////////////////////////////////
+    // >>>> WebSocket interface impl.
+
+    onmessage: (this: this, ev: any) => any;
+    onopen: (this: this, ev: any) => any;
+    onerror: (this: this, ev: any) => any;
+    onclose: (this: this, ev: any) => any;
+
+    send(data: string) {
+        this.messageLog.push(data);
+    }
+
+    close(code?: number, reason?: string): void {
+        this.onclose({code, reason});
+    }
+
+    // <<<< WebSocket interface impl.
+    ////////////////////////////////////////////
+}
+
 
 
 

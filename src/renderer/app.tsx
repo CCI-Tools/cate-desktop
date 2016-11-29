@@ -5,56 +5,7 @@ import * as logger from 'redux-logger';
 import {Provider} from 'react-redux';
 import {ipcRenderer} from 'electron';
 import {Layout} from './components/Layout'
-import {WebAPI, Job, openWebAPI, JobResponse, JobProgress, JobFailure, JobStatus, JobRequest} from './webapi'
-
-
-export class WebAPIDummy implements WebAPI {
-    readonly url: string;
-    onOpen: (event) => void;
-    onClose: (event) => void;
-    onError: (event) => void;
-    onWarning: (event) => void;
-
-    constructor() {
-        this.url ='ws://dummy/app';
-        setTimeout(() => {
-            if (this.onOpen) {
-                this.onOpen({})
-            }
-        }, 500);
-    }
-
-    submit(method: string, params: Array<any>|Object): Job {
-        class JobImpl implements Job {
-            readonly status: JobStatus;
-            readonly request: JobRequest;
-            readonly cancelled: boolean;
-
-            then(callback: (response: JobResponse)=>void): Job {
-                return this;
-            }
-
-            during(callback: (progress: JobProgress)=>void): Job {
-                return this;
-            }
-
-            failed(callback: (failure: JobFailure)=>void): Job {
-                return this;
-            }
-
-            cancel(): Job {
-                return this;
-            }
-        }
-        return new JobImpl();
-    }
-    close(): void {
-        if (this.onClose) {
-            this.onClose({})
-        }
-    }
-}
-
+import {WebAPI, Job, openWebAPI, JobResponse, JobProgress, JobFailure, JobStatus, JobRequest, WebSocketMock} from './webapi'
 
 
 
@@ -107,15 +58,13 @@ export function main() {
     });
 
     ipcRenderer.on('apply-initial-state', (event, initialState) => {
-        console.log('apply-initial-state', event, initialState);
-
         store.dispatch(applyInitialState(initialState));
 
         const webapiConfig = initialState.appConfig.webapiConfig;
         if (webapiConfig.disabled !== true && webapiConfig.webSocketUrl) {
             webapi = openWebAPI(webapiConfig.webSocketUrl);
         } else {
-            webapi = new WebAPIDummy();
+            webapi = openWebAPI('ws://mock', 0, new WebSocketMock());
         }
 
         store.dispatch(setWebapiOpenStatus('connecting'));
