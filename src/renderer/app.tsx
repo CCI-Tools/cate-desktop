@@ -5,7 +5,7 @@ import * as logger from 'redux-logger';
 import {Provider} from 'react-redux';
 import {ipcRenderer} from 'electron';
 import {Layout} from './components/Layout'
-import {WebAPI, Job, openWebAPI, JobResponse, JobProgress, JobFailure, JobStatus, JobRequest, WebSocketMock} from './webapi'
+import {WebAPI, JobPromise, openWebAPI, JobResponse, JobProgress, JobFailure, JobStatus, JobRequest, WebSocketMock} from './webapi'
 
 
 

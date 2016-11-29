@@ -1,5 +1,5 @@
 export {
-    Job,
+    JobPromise,
     JobStatus,
     JobFailure,
     JobRequest,

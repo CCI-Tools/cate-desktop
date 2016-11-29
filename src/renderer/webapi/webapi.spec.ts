@@ -17,10 +17,10 @@ describe('WebAPI', function () {
         webAPI = openWebAPI('ws://test/me/now', 0, webSocket);
     });
 
-    describe('Promise', function () {
-        it('calls "then" callback if done', function () {
-            let actualResult;
-            const job = webAPI.call('openWorkspace', {path: 'bibo'});
+    describe('WebAPI Promise returned by call()', function () {
+
+        it('resolves on response: Promise.then()', function () {
+            const job = webAPI.call('anyMethod', ['A', 2, true]);
             webSocket.emulateIncomingMessages(
                 {
                     jsonrcp: "2.0",
@@ -31,30 +31,75 @@ describe('WebAPI', function () {
             return expect(job).to.eventually.equal('ok');
         });
 
-        it('calls "during" callback while running', function () {
 
+        it('is rejected on error: Promise.catch()', function () {
+            const job = webAPI.call('anyMethod', ['A', 2, true]);
+            webSocket.emulateIncomingMessages(
+                {
+                    jsonrcp: "2.0",
+                    id: 0,
+                    error: {
+                        message: 'out of memory',
+                        code: 512,
+                    },
+                }
+            );
+            return expect(job).to.be.rejectedWith({
+                message: 'out of memory',
+                code: 512,
+            });
         });
 
-        it('calls "failed" callback on failure', function () {
+        it('calls "onProgress" handler while running', function () {
+            const progresses = [];
+            const onProgress = (progress: JobProgress) => {
+                progresses.push(progress);
+            };
+            const job = webAPI.call('anyMethod', ['A', 2, true], onProgress);
+            webSocket.emulateIncomingMessages(
+                {
+                    jsonrcp: "2.0",
+                    id: 0,
+                    progress: {
+                        worked: 30,
+                        total: 100
+                    },
+                },
+                {
+                    jsonrcp: "2.0",
+                    id: 0,
+                    progress: {
+                        message: 'warning: low memory',
+                        worked: 60,
+                        total: 100
+                    },
+                },
+                {
+                    jsonrcp: "2.0",
+                    id: 0,
+                    response: 'that was hard!',
+                }
+            );
+            expect(progresses).to.deep.equal([
+                {
+                    worked: 30,
+                    total: 100
+                },
+                {
+                    message: 'warning: low memory',
+                    worked: 60,
+                    total: 100
+                }
+            ]);
+            return expect(job).to.eventually.equal('that was hard!');
         });
 
-
-        it('calls "failed" callback on cancellation', function () {
-        });
     });
 
-    describe('Job status', function () {
-
-        let webSocket;
-        let webAPI;
-
-        beforeEach(function () {
-            webSocket = new WebSocketMock();
-            webAPI = openWebAPI('ws://test/me/now', 0, webSocket);
-        });
+    describe('WebAPI job status changes', function () {
 
         it('changes status to done', function () {
-            const job = webAPI.call('openWorkspace', {path: 'bibo'});
+            const job = webAPI.call('anyMethod', ['A', 2, true]).getJob();
             expect(job.getStatus()).to.equal(JobStatus.SUBMITTED);
             webSocket.emulateIncomingMessages(
                 {
@@ -67,7 +112,11 @@ describe('WebAPI', function () {
         });
 
         it('changes status to failed', function () {
-            const job = webAPI.call('openWorkspace', {path: 'bibo'});
+            let promise = webAPI.call('anyMethod', ['A', 2, true]);
+            // Note: we must have a promise rejection handler, otherwise we get a node warning:
+            // UnhandledPromiseRejectionWarning: Unhandled promise rejection
+            promise.catch(() => {});
+            const job = promise.getJob();
             expect(job.getStatus()).to.equal(JobStatus.SUBMITTED);
             webSocket.emulateIncomingMessages(
                 {
@@ -83,7 +132,11 @@ describe('WebAPI', function () {
         });
 
         it('changes status to cancelled', function () {
-            const job = webAPI.call('openWorkspace', {path: 'bibo'});
+            let promise = webAPI.call('anyMethod', ['A', 2, true]);
+            // Note: we must have a promise rejection handler, otherwise we get a node warning:
+            // UnhandledPromiseRejectionWarning: Unhandled promise rejection
+            promise.catch(() => {});
+            const job = promise.getJob();
             expect(job.getStatus()).to.equal(JobStatus.SUBMITTED);
             webSocket.emulateIncomingMessages(
                 {
@@ -99,7 +152,7 @@ describe('WebAPI', function () {
         });
 
         it('changes status while progressing and then to done', function () {
-            const job = webAPI.call('openWorkspace', {path: 'bibo'});
+            const job = webAPI.call('anyMethod', ['A', 2, true]).getJob();
             expect(job.getStatus()).to.equal(JobStatus.SUBMITTED);
 
             webSocket.emulateIncomingMessages(
@@ -138,7 +191,7 @@ describe('WebAPI', function () {
         });
     });
 
-    describe('WebAPI handlers', function () {
+    describe('WebAPI handler notification', function () {
 
         it('notifies open/error/close handlers', function () {
             let actualOpenEvent;

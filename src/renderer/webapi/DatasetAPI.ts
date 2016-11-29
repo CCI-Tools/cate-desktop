@@ -1,4 +1,4 @@
-import {Job, WebAPI} from "./webapi";
+import {JobPromise, WebAPI} from "./webapi";
 
 export class DatasetAPI {
     private webAPI: WebAPI;
@@ -7,7 +7,7 @@ export class DatasetAPI {
         this.webAPI = webAPI;
     }
 
-    getDataStoreNames(): Job {
+    getDataStoreNames(): JobPromise {
         return this.webAPI.call('getDataStoreNames', {});
     }
 }

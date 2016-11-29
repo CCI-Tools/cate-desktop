@@ -51,7 +51,7 @@ export interface WebAPI {
 
     call(method: string,
          params: Array<any>|Object,
-         onProgress?: (progress: JobProgress) => void): Job;
+         onProgress?: (progress: JobProgress) => void): JobPromise;
 
     close(): void;
 }
@@ -114,7 +114,7 @@ class WebAPIImpl implements WebAPI {
      */
     call(method: string,
          params: Array<any>|Object,
-         onProgress?: (progress: JobProgress) => void): Job {
+         onProgress?: (progress: JobProgress) => void): JobPromise {
         const request = {
             "id": this.newId(),
             "method": method,
@@ -152,9 +152,9 @@ class WebAPIImpl implements WebAPI {
             job.notifyDone(message.response);
             delete this.activeJobs[message.id];
         } else if (message.progress) {
-            job.notifyProgress(message.progress)
+            job.notifyInProgress(message.progress)
         } else if (message.error) {
-            job.notifyFailure(message.error);
+            job.notifyFailed(message.error);
             delete this.activeJobs[message.id];
         } else {
             this.warn(`Received invalid Cate WebAPI message (id: ${message.id}), which is neither a response, progress, nor error. Ignoring it.`)
@@ -172,11 +172,17 @@ class WebAPIImpl implements WebAPI {
     }
 }
 
-export interface Job extends Promise<JobResponse> {
+export interface Job {
     getRequest(): JobRequest;
     getStatus(): JobStatus;
     isCancelled(): boolean;
     cancel(): Promise<JobResponse>;
+}
+
+// Note: Job must have the same interface as JobBase
+
+export interface JobPromise extends Promise<JobResponse> {
+    getJob(): Job;
 }
 
 export enum JobStatus {
@@ -229,7 +235,7 @@ export type JobFailureHandler = (failure: JobFailure) => void;
 
 // TODO: JobProgressHandler should also be called async
 
-class JobImpl /*implements Job */ {
+class JobImpl implements Job {
 
     private webAPI: WebAPIImpl;
     private request: JobRequest;
@@ -267,7 +273,7 @@ class JobImpl /*implements Job */ {
     ////////////////////////////////////////////////////////////
     // Implementation details
 
-    invoke(onProgress?: JobProgressHandler): Job {
+    invoke(onProgress?: JobProgressHandler): JobPromise {
 
         const executor = (onResolve: JobResponseHandler, onReject: JobFailureHandler) => {
             this.setHandlers(onProgress, onResolve, onReject);
@@ -276,11 +282,12 @@ class JobImpl /*implements Job */ {
         };
 
         const promise = new Promise<JobResponse>(executor.bind(this));
-        promise['getRequest'] = this.getRequest.bind(this);
-        promise['getStatus'] = this.getStatus.bind(this);
-        promise['isCancelled'] = this.isCancelled.bind(this);
-        promise['cancel'] = this.cancel.bind(this);
-        return promise as Job;
+        promise['getJob'] = this.getJob.bind(this);
+        return promise as JobPromise;
+    }
+
+    private getJob(): Job {
+        return this;
     }
 
     private setHandlers(onProgress, onResolve, onReject) {
@@ -297,7 +304,7 @@ class JobImpl /*implements Job */ {
         this.status = status;
     }
 
-    notifyProgress(progress: JobProgress) {
+    notifyInProgress(progress: JobProgress) {
         this.setStatus(JobStatus.IN_PROGRESS);
         if (this.onProgress) {
             this.onProgress(progress);
@@ -311,7 +318,7 @@ class JobImpl /*implements Job */ {
         }
     }
 
-    notifyFailure(failure: JobFailure) {
+    notifyFailed(failure: JobFailure) {
         this.setStatus(failure.code === CANCELLED_CODE ? JobStatus.CANCELLED : JobStatus.FAILED);
         if (this.onReject) {
             this.onReject(failure);

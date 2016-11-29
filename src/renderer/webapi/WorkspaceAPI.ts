@@ -1,4 +1,4 @@
-import {Job, WebAPI} from "./webapi";
+import {JobPromise, WebAPI} from "./webapi";
 
 export class WorkspaceAPI {
     private webAPI: WebAPI;
@@ -7,7 +7,7 @@ export class WorkspaceAPI {
         this.webAPI = webAPI;
     }
 
-    newWorkspace(path: string): Job {
+    newWorkspace(path: string): JobPromise {
         return this.webAPI.call('newWorkspace', {path: path});
     }
 }
