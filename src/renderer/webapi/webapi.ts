@@ -233,8 +233,6 @@ export type JobProgressHandler = (progress: JobProgress) => void;
 export type JobResponseHandler = (response: JobResponse) => void;
 export type JobFailureHandler = (failure: JobFailure) => void;
 
-// TODO: JobProgressHandler should also be called async
-
 class JobImpl implements Job {
 
     private webAPI: WebAPIImpl;
@@ -274,6 +272,7 @@ class JobImpl implements Job {
     // Implementation details
 
     invoke(onProgress?: JobProgressHandler): JobPromise {
+        // TODO: onProgress handler must be called async, simlilar to handlers of Promise.then(ononResolve, onReject)
 
         const executor = (onResolve: JobResponseHandler, onReject: JobFailureHandler) => {
             this.setHandlers(onProgress, onResolve, onReject);
@@ -327,15 +326,34 @@ class JobImpl implements Job {
 }
 
 
-
 ////////////////////////////////////////////////////
 
-// TODO: let WebSocketMock invoke methods with given delay on a passed-in object (that has the requested methods).
 
 export class WebSocketMock implements WebSocketMin {
-    readonly messageLog: string[] = [];
+    ////////////////////////////////////////////
+    // >>>> Minimum WebSocket interface impl.
 
-    constructor(openDelay = 100) {
+    onmessage: (this: this, ev: any) => any;
+    onopen: (this: this, ev: any) => any;
+    onerror: (this: this, ev: any) => any;
+    onclose: (this: this, ev: any) => any;
+
+    send(data: string) {
+        this.messageLog.push(data);
+        this.maybeUseServiceObj(data);
+    }
+
+    close(code?: number, reason?: string): void {
+        this.onclose({code, reason});
+    }
+
+    // <<<< WebSocket interface impl.
+    ////////////////////////////////////////////
+
+    readonly messageLog: string[] = [];
+    readonly serviceObj;
+
+    constructor(openDelay = 100, serviceObj?) {
         if (openDelay) {
             setTimeout(() => {
                 if (this.onopen) {
@@ -343,6 +361,7 @@ export class WebSocketMock implements WebSocketMin {
                 }
             }, openDelay || 100);
         }
+        this.serviceObj = serviceObj;
     }
 
     emulateIncomingMessages(...messages: Object[]) {
@@ -364,24 +383,58 @@ export class WebSocketMock implements WebSocketMin {
         this.onclose(event);
     }
 
-    ////////////////////////////////////////////
-    // >>>> WebSocket interface impl.
+    private maybeUseServiceObj(messageText) {
+        if (!this.serviceObj) {
+            return;
+        }
 
-    onmessage: (this: this, ev: any) => any;
-    onopen: (this: this, ev: any) => any;
-    onerror: (this: this, ev: any) => any;
-    onclose: (this: this, ev: any) => any;
+        // The following code emulates the behaviour of a remote service
 
-    send(data: string) {
-        this.messageLog.push(data);
+        let message;
+        try {
+            message = JSON.parse(messageText);
+        } catch (e) {
+            // Note we can't respond to any message here, because we don't have a method ID!
+            console.error(`WebSocketMock: received invalid JSON: ${messageText}`, e);
+            throw e;
+        }
+
+        if (message.id >= 0 && message.method && message.params) {
+            const method = this.serviceObj[message.method];
+
+            if (!method) {
+                this.emulateIncomingMessages({
+                    jsonrcp: "2.0",
+                    id: message.id,
+                    error: {
+                        code: 1,
+                        message: `${message.method}(): no such method`
+                    }
+                });
+                return;
+            }
+
+            // TODO: Use delayed async tasks here, also emulate progress emitting
+            try {
+                const result = method.apply(this.serviceObj, message.params);
+                this.emulateIncomingMessages({
+                    jsonrcp: "2.0",
+                    id: message.id,
+                    response: result
+                });
+            } catch (e) {
+                this.emulateIncomingMessages({
+                    jsonrcp: "2.0",
+                    id: message.id,
+                    error: {
+                        code: 2,
+                        message: `${message.method}(): ${e}`,
+                    }
+                });
+            }
+        }
     }
 
-    close(code?: number, reason?: string): void {
-        this.onclose({code, reason});
-    }
-
-    // <<<< WebSocket interface impl.
-    ////////////////////////////////////////////
 }
 
 

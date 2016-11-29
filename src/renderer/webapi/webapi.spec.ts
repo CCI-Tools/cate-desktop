@@ -115,7 +115,8 @@ describe('WebAPI', function () {
             let promise = webAPI.call('anyMethod', ['A', 2, true]);
             // Note: we must have a promise rejection handler, otherwise we get a node warning:
             // UnhandledPromiseRejectionWarning: Unhandled promise rejection
-            promise.catch(() => {});
+            promise.catch(() => {
+            });
             const job = promise.getJob();
             expect(job.getStatus()).to.equal(JobStatus.SUBMITTED);
             webSocket.emulateIncomingMessages(
@@ -135,7 +136,8 @@ describe('WebAPI', function () {
             let promise = webAPI.call('anyMethod', ['A', 2, true]);
             // Note: we must have a promise rejection handler, otherwise we get a node warning:
             // UnhandledPromiseRejectionWarning: Unhandled promise rejection
-            promise.catch(() => {});
+            promise.catch(() => {
+            });
             const job = promise.getJob();
             expect(job.getStatus()).to.equal(JobStatus.SUBMITTED);
             webSocket.emulateIncomingMessages(
@@ -251,6 +253,96 @@ describe('WebAPI', function () {
                 'which does not have an associated job. Ignoring it.'
             });
 
+        });
+    });
+});
+
+
+describe('WebSocketMock', function () {
+    class MyServiceObject {
+        generateSausages(num, veggie) {
+            if (num < -1) {
+                throw Error('illegal num');
+            }
+            return {num, veggie};
+        }
+    }
+
+    let webSocket;
+
+    beforeEach(function () {
+        webSocket = new WebSocketMock(0, new MyServiceObject());
+    });
+
+    it('calls methods of a service object', function () {
+
+        let actualMessage;
+        webSocket.onmessage = (event) => {
+            actualMessage = event.data;
+        };
+
+        webSocket.send(JSON.stringify({
+            jsonrcp: "2.0",
+            id: 754934,
+            method: 'generateSausages',
+            params: [350, true]
+        }));
+
+        expect(JSON.parse(actualMessage)).to.deep.equal({
+            jsonrcp: "2.0",
+            id: 754934,
+            response: {
+                num: 350,
+                veggie: true
+            }
+        });
+    });
+
+    it('catches exceptions from methods of a service object', function () {
+
+        let actualMessage;
+        webSocket.onmessage = (event) => {
+            actualMessage = event.data;
+        };
+
+        webSocket.send(JSON.stringify({
+            jsonrcp: "2.0",
+            id: 754934,
+            method: 'generateSausages',
+            params: [-3, true]
+        }));
+
+        expect(JSON.parse(actualMessage)).to.deep.equal({
+            jsonrcp: "2.0",
+            id: 754934,
+            error: {
+                code: 2,
+                message: "generateSausages(): Error: illegal num"
+            }
+        });
+    });
+
+    it('fails with an unknown method', function () {
+
+        let actualMessage;
+        webSocket.onmessage = (event) => {
+            actualMessage = event.data;
+        };
+
+        webSocket.send(JSON.stringify({
+            jsonrcp: "2.0",
+            id: 754935,
+            method: 'generateSteaks',
+            params: [-3, true]
+        }));
+
+        expect(JSON.parse(actualMessage)).to.deep.equal({
+            jsonrcp: "2.0",
+            id: 754935,
+            error: {
+                code: 1,
+                message: "generateSteaks(): no such method"
+            }
         });
     });
 });
