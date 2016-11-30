@@ -6,6 +6,7 @@
     "outDir": "app",
     "module": "commonjs",
     "moduleResolution": "node",
+    "experimentalDecorators": true,
     "inlineSources": true,
     "sourceMap": true,
     "sourceRoot": "src",

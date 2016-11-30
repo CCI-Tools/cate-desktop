@@ -1,9 +1,14 @@
 import * as React from 'react';
+import {connect} from 'react-redux';
 import {Classes, ITreeNode, Tooltip, Tree, Tab, TabList, TabPanel, Tabs} from "@blueprintjs/core";
 import {ExpansionPanel} from './panel';
 import {CesiumView} from './cesium/view'
 import {OpenLayersComponent} from './openlayers/openlayers';
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "./hgl";
+import {State} from "../state";
+import {Table, Column, Cell, SelectionModes} from "@blueprintjs/table";
+import {setSelectedDataStoreIndex} from '../actions'
+
 
 export function Layout(props) {
 
@@ -272,13 +277,70 @@ export class TreeExample extends React.Component<any, ITreeExampleState> {
     }
 }
 
-//noinspection JSUnusedLocalSymbols
-function DatasetsWindow(props: any) {
-    return (
-        <ExpansionPanel icon="pt-icon-database" text="Datasets">
-            <TreeExample/>
-        </ExpansionPanel>
-    );
+@connect(
+    (state: State) => {
+        return {
+            selectedDataStoreIndex: state.app.selectedDataStoreIndex,
+            dataStores: state.app.dataStores
+        };
+    })
+class DatasetsWindow extends React.Component<any, any> {
+
+    render() {
+        const dataStores = this.props.dataStores;
+        let selectedDataStoreIndex = this.props.selectedDataStoreIndex;
+
+        let dataSources;
+        if (selectedDataStoreIndex >= 0) {
+            dataSources = dataStores[selectedDataStoreIndex].dataSources;
+        } else {
+            selectedDataStoreIndex = null;
+        }
+
+        console.log(selectedDataStoreIndex, dataSources);
+
+        const options = [];
+        for (let i = 0; i < dataStores.length; i++) {
+            const dataStore = dataStores[i];
+            options.push(<option key={i} value={i}>{dataStore.name}</option>);
+        }
+
+        let table = null;
+        if (dataSources) {
+            const renderCell = (rowIndex: number) => {
+                return <Cell>{dataSources[rowIndex].name}</Cell>
+            };
+            table = (
+                <Table numRows={dataSources.length}
+                       selectionModes={SelectionModes.ROWS_AND_CELLS}
+                       isRowHeaderShown={false}
+                       isColumnResizable={false}
+                       isRowResizable={false}>
+                    <Column name="Datasets" renderCell={renderCell}/>
+                </Table>
+            );
+        }
+
+        const selectHandler = event => {
+            const selectedIndex = parseInt(event.target.value);
+            // console.log('selectHandler', selectedIndex);
+            this.props.dispatch(setSelectedDataStoreIndex(selectedIndex));
+        };
+
+        return (
+            <ExpansionPanel icon="pt-icon-database" text="Datasets">
+                <label className="pt-label pt-inline">
+                    Data store:
+                    <div className="pt-select">
+                        <select value={selectedDataStoreIndex} onChange={selectHandler.bind(this)}>
+                            {options}
+                        </select>
+                    </div>
+                </label>
+                {table}
+            </ExpansionPanel>
+        );
+    }
 }
 
 //noinspection JSUnusedLocalSymbols

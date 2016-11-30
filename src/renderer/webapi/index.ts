@@ -6,7 +6,7 @@ export {
     JobResponse,
     JobProgress,
     WebAPI,
-    openWebAPI,
+    openWebAPIClient,
     WebSocketMock
 } from './webapi';
 

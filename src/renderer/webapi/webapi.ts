@@ -56,7 +56,7 @@ export interface WebAPI {
     close(): void;
 }
 
-export function openWebAPI(url: string, firstMessageId = 0, socket?: WebSocketMin): WebAPI {
+export function openWebAPIClient(url: string, firstMessageId = 0, socket?: WebSocketMin): WebAPI {
     return new WebAPIImpl(url, firstMessageId, socket);
 }
 

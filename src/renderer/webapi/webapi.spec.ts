@@ -1,6 +1,6 @@
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import {JobStatus, WebAPI, JobProgress, JobFailure, openWebAPI, JobResponse, WebSocketMock} from './webapi';
+import {JobStatus, WebAPI, JobProgress, JobFailure, openWebAPIClient, JobResponse, WebSocketMock} from './webapi';
 
 const expect = chai.expect;
 chai.should();
@@ -14,7 +14,7 @@ describe('WebAPI', function () {
 
     beforeEach(function () {
         webSocket = new WebSocketMock();
-        webAPI = openWebAPI('ws://test/me/now', 0, webSocket);
+        webAPI = openWebAPIClient('ws://test/me/now', 0, webSocket);
     });
 
     describe('WebAPI Promise returned by call()', function () {
