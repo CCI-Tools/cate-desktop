@@ -136,7 +136,13 @@ class WebAPIImpl implements WebAPI {
     }
 
     private processMessage(messageText: string): void {
-        const message = JSON.parse(messageText);
+        let message;
+        try {
+            message = JSON.parse(messageText);
+        } catch (err) {
+            this.warn(`Received invalid JSON content from Cate WebAPI:\n--------------------\n${messageText}\n--------------------`);
+            return;
+        }
         if (message.jsonrcp !== '2.0' || typeof message.id !== 'number') {
             this.warn(`Received invalid Cate WebAPI message (id: ${message.id}). Ignoring it.`);
             return;
@@ -163,7 +169,8 @@ class WebAPIImpl implements WebAPI {
 
     private warn(message: string) {
         if (this.onWarning) {
-            this.onWarning({message: message})
+            const warnEvent = {type: 'warning', message};
+            this.onWarning(warnEvent);
         }
     }
 
@@ -367,6 +374,13 @@ export class WebSocketMock implements WebSocketMin {
     emulateIncomingMessages(...messages: Object[]) {
         for (let i = 0; i < messages.length; i++) {
             const event = {data: JSON.stringify(messages[i])};
+            this.onmessage(event);
+        }
+    }
+
+    emulateIncomingRawMessages(...messageTexts: string[]) {
+        for (let i = 0; i < messageTexts.length; i++) {
+            const event = {data: messageTexts};
             this.onmessage(event);
         }
     }

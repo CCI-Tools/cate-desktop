@@ -235,20 +235,32 @@ describe('WebAPI', function () {
                 actualWarningEvent = event;
             };
 
+            webSocket.emulateIncomingRawMessages('this is no valid JSON');
+            expect(actualWarningEvent).to.deep.equal({
+                type: 'warning',
+                message: 'Received invalid JSON content from Cate WebAPI:\n' +
+                '--------------------\n' +
+                'this is no valid JSON\n' +
+                '--------------------',
+            });
+
             webSocket.emulateIncomingMessages({id: 0, response: 42});
             expect(actualWarningEvent).to.deep.equal({
+                type: 'warning',
                 message: 'Received invalid Cate WebAPI message (id: 0). ' +
                 'Ignoring it.'
             });
 
             webSocket.emulateIncomingMessages({jsonrcp: "2.0", response: 42});
             expect(actualWarningEvent).to.deep.equal({
+                type: 'warning',
                 message: 'Received invalid Cate WebAPI message (id: undefined). ' +
                 'Ignoring it.'
             });
 
             webSocket.emulateIncomingMessages({jsonrcp: "2.0", id: 2, response: 42});
             expect(actualWarningEvent).to.deep.equal({
+                type: 'warning',
                 message: 'Received Cate WebAPI message (id: 2), ' +
                 'which does not have an associated job. Ignoring it.'
             });
