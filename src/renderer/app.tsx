@@ -5,7 +5,7 @@ import * as logger from 'redux-logger';
 import {Provider} from 'react-redux';
 import {ipcRenderer} from 'electron';
 import {Layout} from './components/Layout'
-import {WebAPI, openWebAPI, WebSocketMock, WebAPIServiceMock} from './webapi'
+import {openWebAPI, WebSocketMock, WebAPIServiceMock} from './webapi'
 import {OperationAPI} from "./webapi/OperationAPI";
 import {DatasetAPI} from "./webapi/DatasetAPI";
 
@@ -223,6 +223,9 @@ export function main() {
         };
         webAPI.onError = () => {
             store.dispatch(setWebapiOpenStatus('error'));
+        };
+        webAPI.onWarning = (event) => {
+            console.warn(`cate-webapi: ${event.message}`);
         };
     });
 
