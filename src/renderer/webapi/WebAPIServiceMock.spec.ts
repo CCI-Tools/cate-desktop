@@ -19,11 +19,11 @@ describe('WebAPIServiceMock', function () {
 
     it('has operations', function () {
         expect(serviceMock.getOperations()).to.have.length(120);
-        expect(serviceMock.getOperations()[0].header.tags).to.have.length(1);
-        expect(serviceMock.getOperations()[1].header.tags).to.have.length(2);
-        expect(serviceMock.getOperations()[2].header.tags).to.have.length(3);
-        expect(serviceMock.getOperations()[3].header.tags).to.have.length(4);
-        expect(serviceMock.getOperations()[4].header.tags).to.have.length(1);
+        expect(serviceMock.getOperations()[0].tags).to.have.length(1);
+        expect(serviceMock.getOperations()[1].tags).to.have.length(2);
+        expect(serviceMock.getOperations()[2].tags).to.have.length(3);
+        expect(serviceMock.getOperations()[3].tags).to.have.length(4);
+        expect(serviceMock.getOperations()[4].tags).to.have.length(1);
     });
 
     it('can deal with workspaces', function () {
