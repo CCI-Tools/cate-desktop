@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {Splitter} from "./Splitter";
 
 export class HGLContainer extends React.Component<any, any> {
     render() {
@@ -122,104 +123,12 @@ export class HGLMidsection extends React.Component<HGLMidsectionProps, HGLMidsec
         return (
             <div className="hgl-midsection">
                 <HGLLeft style={leftStyle}>{leftElement}</HGLLeft>
-                <HGLHorSplitter onDelta={this.onDeltaLeft}/>
+                <Splitter splitType="col" onPositionChange={this.onDeltaLeft}/>
                 <HGLCenter>{centerElement}</HGLCenter>
-                <HGLHorSplitter onDelta={this.onDeltaRight}/>
+                <Splitter splitType="col" onPositionChange={this.onDeltaRight}/>
                 <HGLRight style={rightStyle}>{rightElement}</HGLRight>
             </div>
         );
     }
 }
 
-
-interface HGLSplitterProps {
-    onDelta: (delta: number) => any;
-}
-
-// TODO: add splitter width, color, etc. style props
-
-export class HGLHorSplitter extends React.Component<HGLSplitterProps, any> {
-    mouseX: null | number = null;
-    bodyEventListeners: Array<[string, (any) => any]>;
-
-    constructor(props: HGLSplitterProps) {
-        super(props);
-        this.onMouseDown = this.onMouseDown.bind(this);
-        this.onBodyMouseMove = this.onBodyMouseMove.bind(this);
-        this.onBodyMouseUp = this.onBodyMouseUp.bind(this);
-        this.onBodyMouseEnter = this.onBodyMouseEnter.bind(this);
-        this.onBodyMouseLeave = this.onBodyMouseLeave.bind(this);
-        this.bodyEventListeners = [
-            ['mousemove', this.onBodyMouseMove],
-            ['mouseup', this.onBodyMouseUp],
-            ['onmouseenter', this.onBodyMouseEnter],
-            ['onmouseleave', this.onBodyMouseLeave],
-        ];
-    }
-
-    private onMouseDown(event: React.MouseEvent<HTMLDivElement>) {
-        let button1 = event.button === 0 && event.buttons === 1;
-        if (button1) {
-            this.mouseX = event.screenX;
-            this.removeBodyMouseListeners();
-            this.addBodyMouseListeners();
-        } else {
-            this.mouseX = null;
-        }
-    }
-
-    private onBodyMouseMove(event: MouseEvent) {
-        let button1 = event.button === 0 && event.buttons === 1;
-        if (this.mouseX === null || !button1) {
-            return;
-        }
-        let deltaX = event.screenX - this.mouseX;
-        this.mouseX = event.screenX;
-        if (deltaX != 0) {
-            this.props.onDelta(deltaX);
-        }
-    }
-
-    private onBodyMouseUp(event: MouseEvent) {
-        // console.log("onBodyMouseUp: ", event, this);
-        this.endDragging();
-    }
-
-    private onBodyMouseEnter(event: MouseEvent) {
-        // console.log("onBodyMouseEnter: ", event, this);
-        this.endDragging();
-    }
-
-    private onBodyMouseLeave(event: MouseEvent) {
-        // console.log("onBodyMouseLeave: ", event, this);
-        this.endDragging();
-    }
-
-    private endDragging() {
-        this.removeBodyMouseListeners();
-        this.mouseX = null;
-    }
-
-    private addBodyMouseListeners() {
-        this.bodyEventListeners.forEach((pair: [string, (any) => any]) =>
-            document.body.addEventListener(pair[0], pair[1]));
-    }
-
-    private removeBodyMouseListeners() {
-        this.bodyEventListeners.forEach((pair: [string, (any) => any]) =>
-            document.body.removeEventListener(pair[0], pair[1]));
-    }
-
-    componentWillUnmount() {
-        this.removeBodyMouseListeners();
-    }
-
-    render() {
-        return (
-            <div
-                className="hgl-hor-splitter"
-                onMouseDown={this.onMouseDown}
-            />
-        );
-    }
-}
