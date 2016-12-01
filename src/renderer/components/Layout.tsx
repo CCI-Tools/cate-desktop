@@ -297,8 +297,6 @@ class DatasetsWindow extends React.Component<any, any> {
             selectedDataStoreIndex = null;
         }
 
-        console.log(selectedDataStoreIndex, dataSources);
-
         const options = [];
         for (let i = 0; i < dataStores.length; i++) {
             const dataStore = dataStores[i];
