@@ -1,9 +1,10 @@
-import {JobPromise, WebAPI} from "./webapi";
+import {WebAPIClient} from "../WebAPIClient";
+import {JobPromise} from "../Job";
 
 export class DatasetAPI {
-    private webAPI: WebAPI;
+    private webAPI: WebAPIClient;
 
-    constructor(webAPI: WebAPI) {
+    constructor(webAPI: WebAPIClient) {
         this.webAPI = webAPI;
     }
 

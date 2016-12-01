@@ -1,23 +1,25 @@
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import {JobStatus, WebAPI, JobProgress, JobFailure, openWebAPIClient, JobResponse, WebSocketMock} from './webapi';
+import {WebSocketMock} from './WebSocketMock';
+import {JobStatus, JobProgress} from './Job';
+import {WebAPIClient, newWebAPIClient} from './WebAPIClient';
 
 const expect = chai.expect;
 chai.should();
 chai.use(chaiAsPromised);
 
 
-describe('WebAPI', function () {
+describe('WebAPIClient', function () {
 
     let webSocket;
     let webAPI;
 
     beforeEach(function () {
         webSocket = new WebSocketMock();
-        webAPI = openWebAPIClient('ws://test/me/now', 0, webSocket);
+        webAPI = newWebAPIClient('ws://test/me/now', 0, webSocket);
     });
 
-    describe('WebAPI Promise returned by call()', function () {
+    describe('WebAPIClient Promise returned by call()', function () {
 
         it('resolves on response: Promise.then()', function () {
             const job = webAPI.call('anyMethod', ['A', 2, true]);
@@ -96,7 +98,7 @@ describe('WebAPI', function () {
 
     });
 
-    describe('WebAPI job status changes', function () {
+    describe('WebAPIClient job status changes', function () {
 
         it('changes status to done', function () {
             const job = webAPI.call('anyMethod', ['A', 2, true]).getJob();
@@ -193,7 +195,7 @@ describe('WebAPI', function () {
         });
     });
 
-    describe('WebAPI handler notification', function () {
+    describe('WebAPIClient handler notification', function () {
 
         it('notifies open/error/close handlers', function () {
             let actualOpenEvent;

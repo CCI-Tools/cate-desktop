@@ -1,5 +1,5 @@
 /**
- * Simulates the a local/remote WebAPI service.
+ * Simulates the a local/remote WebAPIClient service.
  * Mimics a local/remote webservice usually running on a Python Tornado.
  */
 export class WebAPIServiceMock {

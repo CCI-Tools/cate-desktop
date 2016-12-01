@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {IPermanentComponentProps, PermanentComponent} from '../permcomp'
+import {IPermanentComponentProps, PermanentComponent} from '../PermanentComponent'
 
 const Cesium: any = require('cesium');
 // console.log(Cesium);
@@ -9,7 +9,10 @@ const CesiumViewer: any = Cesium.Viewer;
 const Entity: any = Cesium.Entity;
 const Cartesian3: any = Cesium.Cartesian3;
 
-interface CesiumViewer {
+/**
+ * Interface representing API subset of the CesiumViewer we are using in CesiumGlobe.
+ */
+interface CesiumViewerMin {
     container: HTMLElement;
     entities: any;
 }
@@ -25,23 +28,28 @@ const {app} = require('electron').remote;
 Cesium.BingMapsApi.defaultKey = 'AnCcpOxnAAgq-KyFcczSZYZ_iFvCOmWl0Mx-6QzQ_rzMtpgxZrPZZNxa8_9ZNXci';
 
 
-export interface ICesiumComponentProps extends IPermanentComponentProps {
+export interface ICesiumGlobeProps extends IPermanentComponentProps {
     id: string;
     offlineMode?: boolean;
     cities?: Array<any>;
 }
 
-export class CesiumComponent extends PermanentComponent<CesiumViewer, ICesiumComponentProps, any> {
+/**
+ * A component that wraps a Cesium 3D Globe.
+ *
+ * @author Norman Fomferra
+ */
+export class CesiumGlobe extends PermanentComponent<CesiumViewerMin, ICesiumGlobeProps, any> {
 
-    constructor(props: ICesiumComponentProps) {
+    constructor(props: ICesiumGlobeProps) {
         super(props);
     }
 
-    get viewer(): CesiumViewer {
+    get viewer(): CesiumViewerMin {
         return this.permanentObject;
     }
 
-    createPermanentObject(): CesiumViewer {
+    createPermanentObject(): CesiumViewerMin {
         let container = this.createContainer();
 
         let baseLayerImageryProvider;
@@ -98,8 +106,8 @@ export class CesiumComponent extends PermanentComponent<CesiumViewer, ICesiumCom
         return viewer;
     }
 
-    componentWillReceiveProps(nextProps: ICesiumComponentProps) {
-        const patches = CesiumComponent.calculatePatches(this.props, nextProps);
+    componentWillReceiveProps(nextProps: ICesiumGlobeProps) {
+        const patches = CesiumGlobe.calculatePatches(this.props, nextProps);
         const viewer = this.viewer;
         // Map patch operations to Cesium's Entity API
         patches.forEach((patch) => {
@@ -110,7 +118,7 @@ export class CesiumComponent extends PermanentComponent<CesiumViewer, ICesiumCom
         });
     }
 
-    private static calculatePatches(currentProps: ICesiumComponentProps, nextProps: ICesiumComponentProps) {
+    private static calculatePatches(currentProps: ICesiumGlobeProps, nextProps: ICesiumGlobeProps) {
         const patches = [];
 
         currentProps.cities.forEach((currCity, index) => {

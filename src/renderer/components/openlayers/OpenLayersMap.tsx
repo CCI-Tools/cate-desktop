@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ol from 'openlayers'
-import {IPermanentComponentProps, PermanentComponent} from '../permcomp'
+import {IPermanentComponentProps, PermanentComponent} from '../PermanentComponent'
 
 
 type OpenLayersObject = {
@@ -8,10 +8,16 @@ type OpenLayersObject = {
     map: ol.Map;
 }
 
-export interface OpenLayersProps extends IPermanentComponentProps {
+export interface IOpenLayersMapProps extends IPermanentComponentProps {
 }
 
-export class OpenLayersComponent extends PermanentComponent<OpenLayersObject, OpenLayersProps,any> {
+/**
+ * A component that wraps an OpenLayers 2D Map.
+ *
+ * @author Norman Fomferra
+ * @author Muhammad Bala
+ */
+export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLayersMapProps,any> {
 
     constructor(props) {
         super(props)

@@ -5,9 +5,9 @@ import * as loggerMiddleware from 'redux-logger';
 import {Provider} from 'react-redux';
 import {ipcRenderer} from 'electron';
 import {Layout} from './components/Layout'
-import {openWebAPIClient, WebSocketMock, WebAPIServiceMock} from './webapi'
-import {OperationAPI} from "./webapi/OperationAPI";
-import {DatasetAPI} from "./webapi/DatasetAPI";
+import {newWebAPIClient, WebSocketMock, WebAPIServiceMock} from './webapi'
+import {OperationAPI} from "./webapi/apis/OperationAPI";
+import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {State} from './state';
 import * as actions from './actions'
 import {reducers} from './reducers';
@@ -46,9 +46,9 @@ function connectWebAPIClient(store: Store<State>) {
 
     const webapiConfig = store.getState().appConfig.webapiConfig;
     if (webapiConfig.disabled !== true && webapiConfig.webSocketUrl) {
-        webAPIClient = openWebAPIClient(webapiConfig.webSocketUrl);
+        webAPIClient = newWebAPIClient(webapiConfig.webSocketUrl);
     } else {
-        webAPIClient = openWebAPIClient('ws://mock', 0, new WebSocketMock(100, new WebAPIServiceMock()));
+        webAPIClient = newWebAPIClient('ws://mock', 0, new WebSocketMock(100, new WebAPIServiceMock()));
     }
 
     webAPIClient.onOpen = () => {

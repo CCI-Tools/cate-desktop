@@ -36,7 +36,6 @@ interface IExpansionPanelState {
  * See https://material.google.com/components/expansion-panels.html.
  *
  * @author Norman Fomferra
- * @version 0.1
  */
 export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpansionPanelState> {
     constructor(props: IExpansionPanelProps) {

@@ -1,9 +1,9 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 import {Classes, ITreeNode, Tooltip, Tree, Tab, TabList, TabPanel, Tabs} from "@blueprintjs/core";
-import {ExpansionPanel} from './panel';
-import {CesiumView} from './cesium/view'
-import {OpenLayersComponent} from './openlayers/openlayers';
+import {ExpansionPanel} from './ExpansionPanel';
+import {CesiumGlobeExample} from './cesium/CesiumGlobeExample'
+import {OpenLayersMap} from './openlayers/OpenLayersMap';
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "./hgl";
 import {State} from "../state";
 import {Table, Column, Cell, SelectionModes} from "@blueprintjs/table";
@@ -84,11 +84,11 @@ export function Layout(props) {
                     </TabList>
 
                     <TabPanel>
-                        <CesiumView id="cesium-viewer"/>
+                        <CesiumGlobeExample id="cesium-viewer"/>
                     </TabPanel>
 
                     <TabPanel>
-                        <OpenLayersComponent id="openlayers-viewer" style={{width:"100%", height:"100%"}} debug={true}/>
+                        <OpenLayersMap id="openlayers-viewer" style={{width:"100%", height:"100%"}} debug={true}/>
                     </TabPanel>
 
                     <TabPanel>

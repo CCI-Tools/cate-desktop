@@ -1,6 +1,6 @@
 import {should, expect} from 'chai';
 import * as React from 'react';
-import {IPermanentComponentProps, PermanentComponent} from './permcomp';
+import {IPermanentComponentProps, PermanentComponent} from './PermanentComponent';
 
 should();
 
@@ -40,7 +40,7 @@ interface MyPermanentComponentProps extends IPermanentComponentProps {
     foo: number;
 }
 
-class MyPermanentComponent extends PermanentComponent<MyPermanentObject, IPermanentComponentProps, any> {
+class MyPermanentComponent extends PermanentComponent<MyPermanentObject, MyPermanentComponentProps, any> {
 
     readonly trace: string[] = [];
 

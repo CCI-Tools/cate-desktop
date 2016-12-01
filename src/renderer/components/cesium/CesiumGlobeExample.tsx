@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {CesiumComponent} from './cesium';
+import {CesiumGlobe} from './CesiumGlobe';
 import {ICity, CesiumCityList} from './cities';
 
 // TODO: only used to get electron.app.getAppPath
@@ -13,7 +13,10 @@ interface ICesiumViewState {
     cities: Array<ICity>;
 }
 
-export class CesiumView extends React.Component<ICesiumViewProps, ICesiumViewState> {
+/**
+ * An example of CesiumGlobe that displays some cities.
+ */
+export class CesiumGlobeExample extends React.Component<ICesiumViewProps, ICesiumViewState> {
     constructor(props: ICesiumViewProps) {
         super(props);
         //noinspection JSFileReferences
@@ -43,7 +46,7 @@ export class CesiumView extends React.Component<ICesiumViewProps, ICesiumViewSta
     render() {
         return (
             <div style={{width:"100%", height:"100%"}}>
-                <CesiumComponent id={this.props.id} debug={true} style={{width:"100%", height:"100%"}} cities={this.state.cities}/>
+                <CesiumGlobe id={this.props.id} debug={true} style={{width:"100%", height:"100%"}} cities={this.state.cities}/>
                 {/*<CesiumCityList cities={this.state.cities} onChange={this.handleCheckboxChange.bind(this)}/>*/}
                 <div id="creditContainer" style={{display:"none"}}></div>
             </div>
