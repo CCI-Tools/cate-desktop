@@ -328,11 +328,11 @@ class DatasetsWindow extends React.Component<any, any> {
         };
 
         return (
-            <ExpansionPanel icon="pt-icon-database" text="Datasets">
+            <ExpansionPanel icon="pt-icon-database" text="Datasets" isExpanded={true} height="20em">
                 <label className="pt-label pt-inline">
                     Data store:
                     <div className="pt-select">
-                        <select value={selectedDataStoreIndex} onChange={selectHandler.bind(this)}>
+                        <select value={selectedDataStoreIndex || ''} onChange={selectHandler.bind(this)}>
                             {options}
                         </select>
                     </div>
