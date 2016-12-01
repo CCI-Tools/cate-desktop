@@ -17,6 +17,7 @@ interface IExpansionPanelProps {
     isFocused?: boolean;
     onFocusGained?: () => any;
     onFocusLost?: () => any;
+    height?: number | string | null;
 }
 
 /**
@@ -27,6 +28,7 @@ interface IExpansionPanelState {
     isExpanded: boolean;
     isFocused: boolean;
     isMoreActive: boolean;
+    height: number | string | null;
 }
 
 /**
@@ -45,6 +47,7 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
             isExpanded: props.isExpanded || false,
             isFocused: props.isFocused || false,
             isMoreActive: false,
+            height: props.height || null
         };
         this.handlePanelHeaderClicked = this.handlePanelHeaderClicked.bind(this);
         this.handleMoreButtonClicked = this.handleMoreButtonClicked.bind(this);
@@ -140,6 +143,11 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
         const closeIcon = (<span className={"pt-icon-standard " + closeIconName + " cate-icon-small"}
                                  onClick={this.handleCloseButtonClicked}/>);
 
+        const childDivStyle = {width: '100%'};
+        if (this.state.height) {
+            childDivStyle['height'] = this.state.height;
+        }
+
         return (
             <div className={panelClassNames}>
                 <div className="cate-panel-header">
@@ -150,7 +158,9 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
                     {closeIcon}
                 </div>
                 <Collapse isOpen={this.state.isExpanded}>
-                    {this.props.children}
+                    <div style={childDivStyle}>
+                        {this.props.children}
+                    </div>
                 </Collapse>
             </div>
         );

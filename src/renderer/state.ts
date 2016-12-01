@@ -1,24 +1,61 @@
+import  {WebAPIClient} from './webapi';
+
+/**
+ * Interface describing Cate's application state structure.
+ * Cate's application state is a giant, structured, plain JavaScript object.
+ *
+ * It is modelled after the principles explained in http://jamesknelson.com/5-types-react-application-state/.
+ *
+ * @author Norman Fomferra
+ */
+
 export interface State {
-    app: AppState;
-    webapiStatus: any;
-    appConfig: any;
-    userPrefs: any;
+    data: DataState;
+    communication: CommunicationState;
+    control: ControlState;
+    session: SessionState;
+    location: LocationState; // not used
 }
 
-export interface AppState {
-    dataStores: Array<DataStoreState>;
-    selectedDataStoreIndex: number;
-    operations: Array<OperationState>;
-    selectedOperationIndex: number;
-    workspace: WorkspaceState;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// DataState
+
+/**
+ * Cate's business data which is usually received from the Cate WebAPI service.
+ */
+export interface DataState {
+    appConfig: AppConfigState;
+    dataStores: Array<DataStoreState> | null;
+    operations: Array<OperationState> | null;
+    workspace: WorkspaceState | null;
+}
+
+export interface AppConfigState {
+    // TODO (nf): I don't like the webAPIClient here in the state object.
+    // Maybe put it into the communication state, see http://jamesknelson.com/5-types-react-application-state/
+    // and see https://github.com/trbngr/react-example-pusher
+    webAPIClient: WebAPIClient | null;
+    webAPIConfig: WebAPIConfig;
+}
+
+export interface WebAPIConfig {
+    // Values read by main.ts from ./cate-config.js
+    command?: string;
+    servicePort: number;
+    serviceAddress: string;
+    serviceFile?:  string;
+    processOptions?: Object;
+    disabled?: boolean;
+    // Values computed in main.ts
+    restUrl: string;
+    webSocketUrl: string;
 }
 
 export interface DataStoreState {
     id: string;
     name: string;
     description: string;
-    dataSources: Array<DataSourceState>;
-    selectedDataSourceIndex: number;
+    dataSources?: Array<DataSourceState> | null;
 }
 
 export interface DataSourceState {
@@ -29,8 +66,8 @@ export interface DataSourceState {
 
 export interface OperationState {
     name: string;
-    description: Array<string>;
-    tags: Array<string>;
+    description?: string;
+    tags?: Array<string>;
     inputs: Array<OperationInputState>;
     outputs: Array<OperationOutputState>;
 }
@@ -53,4 +90,51 @@ export interface WorkspaceState {
     path: null;
     isOpen: boolean;
     isSaved: boolean;
+    workflow?: any;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CommunicationState
+
+/**
+ * Communication state is the status of any not-yet-complete requests to other services.
+ */
+export interface CommunicationState {
+    webAPIStatus: 'connecting'|'open'|'error'|'closed'|null;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ControlState
+
+/**
+ * Control State is state which is specific to a given container component, and which is not stored in the screen’s
+ * URL or in the HTML5 History API.
+ */
+export interface ControlState {
+    selectedDataStoreIndex: number;
+    selectedDataSourceIndex: number;
+    selectedOperationIndex: number;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SessionState
+
+/**
+ * Session state contains information about the human being which is currently using Cate.
+ * Session state is only ever read when a component is mounted.
+ * Session state can be used to save preferences.
+ */
+export interface SessionState {
+    lastDir?: string;
+    mainWindowBounds?: {x:number; y:number; width: number; height: number};
+    devToolsOpened?: boolean;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// LocationState
+
+/**
+ * Location state is the information stored in the URL and the HTML5 History state object.
+ */
+export interface LocationState {
 }

@@ -1,11 +1,13 @@
+import {OperationState, WorkspaceState, DataStoreState} from "../state";
+
 /**
  * Simulates the a local/remote WebAPIClient service.
  * Mimics a local/remote webservice usually running on a Python Tornado.
  */
 export class WebAPIServiceMock {
-    dataStores = [];
+    dataStores: Array<DataStoreState> = [];
     dataSources = {};
-    operations = [];
+    operations: Array<OperationState> = [];
     workspaces = {};
     workspaceId = 0;
 
@@ -45,12 +47,12 @@ export class WebAPIServiceMock {
         for (let i = 0; i < numOps; i++) {
 
             // See Python cate.core.op.OpMetaInfo
-            let opMetaInfo = {
+            let opMetaInfo: OperationState = {
                 name: `operation_${i}`,
                 description: descriptions[i % descriptions.length],
                 tags: [],
-                input: [],
-                output: [],
+                inputs: [],
+                outputs: [],
             };
 
             for (let j = 0; j < (1 + i % 4); j++) {
@@ -58,13 +60,13 @@ export class WebAPIServiceMock {
             }
 
             if (i % 8 !== 0) {
-                opMetaInfo.input.push({
+                opMetaInfo.inputs.push({
                     name: 'ds',
                     dataType: 'xr.Dataset',
                     description: 'Source dataset',
                 });
                 if (i % 5 === 0) {
-                    opMetaInfo.input.push({
+                    opMetaInfo.inputs.push({
                         name: 'ds_ref',
                         dataType: 'xr.Dataset',
                         description: 'Reference dataset',
@@ -72,7 +74,7 @@ export class WebAPIServiceMock {
                 }
             }
             for (let j = 0; j < i % inputNames.length; j++) {
-                opMetaInfo.input.push({
+                opMetaInfo.inputs.push({
                     name: inputNames[j],
                     dataType: inputDataTypes[j % inputDataTypes.length],
                     description: descriptions[j % descriptions.length],
@@ -80,13 +82,13 @@ export class WebAPIServiceMock {
             }
 
             if (i % 7 != 0) {
-                opMetaInfo.output.push({
+                opMetaInfo.outputs.push({
                     name: 'return',
                     dataType: 'xr.Dataset',
                     description: 'The transformed dataset',
                 });
             } else {
-                opMetaInfo.output.push({
+                opMetaInfo.outputs.push({
                     name: 'return',
                     dataType: inputDataTypes[i % inputDataTypes.length],
                     description: descriptions[(i + 1) % descriptions.length],
@@ -113,8 +115,8 @@ export class WebAPIServiceMock {
         const id = this.workspaceId++;
         let workspace = {
             path: `{workspace-${id}}`,
-            open: true,
-            saved: false,
+            isOpen: true,
+            isSaved: false,
             workflow: null,
         };
         this.workspaces[workspace.path] = workspace;
@@ -126,8 +128,8 @@ export class WebAPIServiceMock {
         if (!workspace) {
             throw Error(`Not a workspace: ${path}`);
         }
-        workspace.open = true;
-        workspace.saved = true;
+        workspace.isOpen = true;
+        workspace.isSaved = true;
         return Object.assign({}, workspace);
     }
 
@@ -136,7 +138,7 @@ export class WebAPIServiceMock {
         if (!workspace) {
             throw Error(`Not a workspace: ${path}`);
         }
-        workspace.open = false;
+        workspace.isOpen = false;
         return Object.assign({}, workspace);
     }
 
@@ -145,13 +147,13 @@ export class WebAPIServiceMock {
         if (!workspace) {
             throw Error(`Not a workspace: ${path}`);
         }
-        if (!workspace.open) {
+        if (!workspace.isOpen) {
             throw Error(`Workspace is not open: ${path}`);
         }
         if (workspace.path.startsWith('{workspace-') && workspace.path.endsWith('}')) {
             throw Error(`Workspace has no path: ${path}`);
         }
-        workspace.saved = true;
+        workspace.isSaved = true;
         return Object.assign({}, workspace);
     }
 
@@ -160,12 +162,12 @@ export class WebAPIServiceMock {
         if (!workspace) {
             throw Error(`Not a workspace: ${path}`);
         }
-        if (!workspace.open) {
+        if (!workspace.isOpen) {
             throw Error(`Workspace is not open: ${path}`);
         }
         workspace = Object.assign({}, workspace, {
             path: newPath,
-            saved: true,
+            isSaved: true,
         });
         this.workspaces[workspace.path] = workspace;
         return Object.assign({}, workspace);

@@ -1,6 +1,6 @@
 module.exports = {
 
-    webapiConfig: {
+    webAPIConfig: {
         command:  "C:\\Users\\Norman\\Miniconda3\\envs\\ect\\Scripts\\cate-webapi.exe",
         servicePort: 9090,
         serviceAddress: '',

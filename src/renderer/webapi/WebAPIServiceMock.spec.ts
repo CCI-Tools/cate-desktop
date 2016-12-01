@@ -29,43 +29,43 @@ describe('WebAPIServiceMock', function () {
     it('can deal with workspaces', function () {
         expect(serviceMock.newWorkspace()).to.deep.equal({
             path: "{workspace-0}",
-            open: true,
-            saved: false,
+            isOpen: true,
+            isSaved: false,
             workflow: null
         });
 
         expect(serviceMock.newWorkspace()).to.deep.equal({
             path: "{workspace-1}",
-            open: true,
-            saved: false,
+            isOpen: true,
+            isSaved: false,
             workflow: null
         });
 
         expect(serviceMock.saveWorkspaceAs("{workspace-1}", "ral/la/la")).to.deep.equal({
             path: "ral/la/la",
-            open: true,
-            saved: true,
+            isOpen: true,
+            isSaved: true,
             workflow: null
         });
 
         expect(serviceMock.saveWorkspace("ral/la/la")).to.deep.equal({
             path: "ral/la/la",
-            open: true,
-            saved: true,
+            isOpen: true,
+            isSaved: true,
             workflow: null
         });
 
         expect(serviceMock.closeWorkspace("ral/la/la")).to.deep.equal({
             path: "ral/la/la",
-            open: false,
-            saved: true,
+            isOpen: false,
+            isSaved: true,
             workflow: null
         });
 
         expect(serviceMock.openWorkspace("ral/la/la")).to.deep.equal({
             path: "ral/la/la",
-            open: true,
-            saved: true,
+            isOpen: true,
+            isSaved: true,
             workflow: null
         });
 

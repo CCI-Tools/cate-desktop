@@ -1,91 +1,124 @@
-import {State, AppState} from './state';
+import {State, DataState, LocationState, SessionState, CommunicationState, ControlState} from './state';
 import * as actions from './actions';
 import {combineReducers} from 'redux';
 
-const appReducer = (state: AppState, action) => {
-    if (!state) {
-        state = {
-            dataStores: [],
-            selectedDataStoreIndex: -1,
-            operations: [],
-            selectedOperationIndex: -1,
-            workspace: null,
-        };
-    }
-    if (action.type === actions.UPDATE_DATA_STORES) {
-        const newDataStores = action.dataStores.slice();
-        const newSelectedDataStoreIndex = (newDataStores.length > 0) ? 0 : -1;
-        return Object.assign({}, state, {
-            dataStores: newDataStores,
-            selectedDataStoreIndex: newSelectedDataStoreIndex
-        });
-    } else if (action.type === actions.UPDATE_DATA_SOURCES) {
-        const dataStoreIndex = action.dataStoreIndex;
-        if (dataStoreIndex < 0 || dataStoreIndex >= state.dataStores.length) {
-            throw Error('illegal data store index: ' + dataStoreIndex);
+const initialDataState: DataState = {
+    appConfig: {
+        webAPIClient: null,
+        webAPIConfig: {
+            servicePort: -1,
+            serviceAddress: '',
+            restUrl: '',
+            webSocketUrl: '',
         }
-        const newDataSources = action.dataSources.slice();
-        const newSelectedDataSourceIndex = (newDataSources.length > 0) ? 0 : -1;
-        const oldDataStore = state.dataStores[dataStoreIndex];
-        const newDataStore = Object.assign({}, oldDataStore, {
-            dataSources: newDataSources,
-            selectedDataSourceIndex: newSelectedDataSourceIndex
-        });
-        const newDataStores = state.dataStores.slice();
-        newDataStores[dataStoreIndex] = newDataStore;
-        return Object.assign({}, state, {
-            dataStores: newDataStores
-        });
-    } else if (action.type === actions.UPDATE_OPERATIONS) {
-        const newOperations = action.operations;
-        const newSelectedOperationIndex = (newOperations.length > 0) ? 0 : -1;
-        return Object.assign({}, state, {
-            operations: newOperations,
-            selectedOperationIndex: newSelectedOperationIndex
-        });
-    } else if (action.type === actions.SET_SELECTED_DATA_STORE_INDEX) {
-        const newSelectedDataStoreIndex = action.index;
-        return Object.assign({}, state, {
-            selectedDataStoreIndex: newSelectedDataStoreIndex
-        });
-    } else if (action.type === actions.SET_SELECTED_DATA_SOURCE_INDEX) {
-        const newSelectedDataSourceIndex = action.index;
-        return Object.assign({}, state, {
-            selectedDataSourceIndex: newSelectedDataSourceIndex
-        });
-    } else if (action.type === actions.SET_SELECTED_OPERATION_INDEX) {
-        const newSelectedOperationIndex = action.index;
-        return Object.assign({}, state, {
-            selectedOperationIndex: newSelectedOperationIndex
-        });
+    },
+    dataStores: null,
+    operations: null,
+    workspace: null,
+};
+
+const dataReducer = (state: DataState = initialDataState, action) => {
+    switch (action.type) {
+        case actions.SET_WEBAPI_STATUS: {
+            const webAPIClient = action.payload.webAPIClient;
+            return Object.assign({}, state, {
+                appConfig: Object.assign({}, state.appConfig, {webAPIClient})
+            });
+        }
+        case actions.UPDATE_DATA_STORES: {
+            const dataStores = action.payload.dataStores.slice();
+            return Object.assign({}, state, {dataStores});
+        }
+        case actions.UPDATE_DATA_SOURCES: {
+            const dataStoreIndex = action.payload.dataStoreIndex;
+            if (dataStoreIndex < 0 || dataStoreIndex >= state.dataStores.length) {
+                throw Error('illegal data store index: ' + dataStoreIndex);
+            }
+            const newDataSources = action.payload.dataSources.slice();
+            const oldDataStore = state.dataStores[dataStoreIndex];
+            const newDataStore = Object.assign({}, oldDataStore, {
+                dataSources: newDataSources,
+            });
+            const newDataStores = state.dataStores.slice();
+            newDataStores[dataStoreIndex] = newDataStore;
+            return Object.assign({}, state, {
+                dataStores: newDataStores
+            });
+        }
+        case actions.UPDATE_OPERATIONS: {
+            const newOperations = action.payload.operations;
+            return Object.assign({}, state, {
+                operations: newOperations,
+            });
+        }
+    }
+
+    return state;
+};
+
+const initialControlState: ControlState = {
+    selectedDataStoreIndex: -1,
+    selectedDataSourceIndex: -1,
+    selectedOperationIndex: -1,
+};
+
+const controlReducer = (state: ControlState = initialControlState, action) => {
+    switch (action.type) {
+        case actions.UPDATE_DATA_STORES:
+            return Object.assign({}, state, {
+                selectedDataStoreIndex: (action.payload.dataStores.length > 0) ? 0 : -1
+            });
+        case actions.UPDATE_DATA_SOURCES:
+            return Object.assign({}, state, {
+                selectedDataSourceIndex: (action.payload.dataSources.length > 0) ? 0 : -1
+            });
+        case actions.UPDATE_OPERATIONS:
+            return Object.assign({}, state, {
+                selectedOperationIndex: (action.payload.operations.length > 0) ? 0 : -1
+            });
+        case actions.SET_SELECTED_DATA_STORE_INDEX:
+        case actions.SET_SELECTED_DATA_SOURCE_INDEX:
+        case actions.SET_SELECTED_OPERATION_INDEX:
+            return Object.assign({}, state, action.payload);
     }
     return state;
 };
 
-const webapiStatusReducer = (state = {}, action) => {
-    if (action.type === actions.SET_WEBAPI_OPEN_STATUS) {
-        return Object.assign({}, {status: action.status})
+const initialSessionState: SessionState = {};
+
+const sessionReducer = (state: SessionState = initialSessionState, action) => {
+    switch (action.type) {
+        case actions.APPLY_INITIAL_STATE:
+            return Object.assign({}, state, action.payload.session);
     }
     return state;
 };
 
-const appConfigReducer = (state = {}, action) => {
-    if (action.type === actions.APPLY_INITIAL_STATE) {
-        return Object.assign({}, action.initialState.appConfig);
+const initialCommunicationState: CommunicationState = {
+    webAPIStatus: null
+};
+
+const communicationReducer = (state: CommunicationState = initialCommunicationState, action) => {
+    switch (action.type) {
+        case actions.SET_WEBAPI_STATUS:
+            return Object.assign({}, state, {webAPIStatus: action.payload.webAPIStatus})
     }
     return state;
 };
 
-const userPrefsReducer = (state = {}, action) => {
-    if (action.type === actions.APPLY_INITIAL_STATE) {
-        return Object.assign({}, action.initialState.userPrefs);
-    }
+const initialLocationState: LocationState = {
+    webAPIStatus: null
+};
+
+//noinspection JSUnusedLocalSymbols
+const locationReducer = (state: LocationState = initialLocationState, action) => {
     return state;
 };
 
 export const reducers = combineReducers<State>({
-    app: appReducer,
-    webapiStatus: webapiStatusReducer,
-    appConfig: appConfigReducer,
-    userPrefs: userPrefsReducer,
+    data: dataReducer,
+    control: controlReducer,
+    session: sessionReducer,
+    communication: communicationReducer,
+    location: locationReducer,
 });

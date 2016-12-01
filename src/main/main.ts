@@ -109,30 +109,30 @@ function loadUserPrefs(): Configuration {
 }
 
 
-function getWebapiCommonArgs(webapiConfig) {
+function getWebapiCommonArgs(webAPIConfig) {
     return [
         '--caller', 'cate-desktop',
-        '--port', webapiConfig.servicePort,
-        '--address', webapiConfig.serviceAddress,
-        '--file', webapiConfig.serviceFile,
+        '--port', webAPIConfig.servicePort,
+        '--address', webAPIConfig.serviceAddress,
+        '--file', webAPIConfig.serviceFile,
     ];
 }
 
 
-function getWebapiStartArgs(webapiConfig) {
-    return getWebapiCommonArgs(webapiConfig).concat('start');
+function getWebapiStartArgs(webAPIConfig) {
+    return getWebapiCommonArgs(webAPIConfig).concat('start');
 }
 
-function getWebapiStopArgs(webapiConfig) {
-    return getWebapiCommonArgs(webapiConfig).concat('stop');
+function getWebapiStopArgs(webAPIConfig) {
+    return getWebapiCommonArgs(webAPIConfig).concat('stop');
 }
 
-function getWebapiHttpUrl(webapiConfig) {
-    return `http://${webapiConfig.serviceAddress || 'localhost'}:${webapiConfig.servicePort}/`;
+function getWebapiHttpUrl(webAPIConfig) {
+    return `http://${webAPIConfig.serviceAddress || 'localhost'}:${webAPIConfig.servicePort}/`;
 }
 
-function getWebapiWebSocketsUrl(webapiConfig) {
-    return `ws://${webapiConfig.serviceAddress || 'localhost'}:${webapiConfig.servicePort}/app`;
+function getWebapiWebSocketsUrl(webAPIConfig) {
+    return `ws://${webAPIConfig.serviceAddress || 'localhost'}:${webAPIConfig.servicePort}/app`;
 }
 
 export function init() {
@@ -140,8 +140,8 @@ export function init() {
     _config = loadAppConfig();
     _prefs = loadUserPrefs();
 
-    let webapiConfig = _config.get('webapiConfig', {});
-    webapiConfig = assignConditionally(webapiConfig, {
+    let webAPIConfig = _config.get('webAPIConfig', {});
+    webAPIConfig = assignConditionally(webAPIConfig, {
         command: path.join(app.getAppPath(), process.platform == 'windows' ? 'python/Scripts/cate-webapi.exe' : 'python/bin/cate-webapi'),
         servicePort: 9090,
         serviceAddress: '',
@@ -152,57 +152,57 @@ export function init() {
         disabled: true,
     });
 
-    _config.set('webapiConfig', webapiConfig);
+    _config.set('webAPIConfig', webAPIConfig);
 
-    console.log(CATE_DESKTOP_PREFIX, 'webapiConfig =', webapiConfig);
+    console.log(CATE_DESKTOP_PREFIX, 'webAPIConfig:', webAPIConfig);
 
-    let webapiStarted = false;
+    let webAPIStarted = false;
     // Remember error occurred so
-    let webapiError = null;
+    let webAPIError = null;
 
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
     function startWebapiService(): child_process.ChildProcess {
-        const webapiStartArgs = getWebapiStartArgs(webapiConfig);
-        const webapi = child_process.spawn(webapiConfig.command, webapiStartArgs, webapiConfig.processOptions);
-        webapiStarted = true;
-        webapi.stdout.on('data', (data: any) => {
+        const webAPIStartArgs = getWebapiStartArgs(webAPIConfig);
+        const webAPIProcess = child_process.spawn(webAPIConfig.command, webAPIStartArgs, webAPIConfig.processOptions);
+        webAPIStarted = true;
+        webAPIProcess.stdout.on('data', (data: any) => {
             console.log(CATE_WEBAPI_PREFIX, `${data}`);
         });
-        webapi.stderr.on('data', (data: any) => {
+        webAPIProcess.stderr.on('data', (data: any) => {
             console.error(CATE_WEBAPI_PREFIX, `${data}`);
         });
-        webapi.on('error', (err: Error) => {
+        webAPIProcess.on('error', (err: Error) => {
             let message = 'Failed to start Cate service.';
             console.log(CATE_WEBAPI_PREFIX, message, err);
-            if (!webapiError) {
+            if (!webAPIError) {
                 electron.dialog.showErrorBox('Internal Error', message);
             }
-            webapiError = err;
+            webAPIError = err;
             // exit immediately
             app.exit(1);
         });
-        webapi.on('close', (code: number) => {
-            let message = `Cate service exited with error code ${code}.`;
+        webAPIProcess.on('close', (code: number) => {
+            let message = `Cate WebAPI service exited with error code ${code}.`;
             console.log(CATE_WEBAPI_PREFIX, message);
             if (code != 0) {
-                if (!webapiError) {
+                if (!webAPIError) {
                     electron.dialog.showErrorBox('Internal Error', message);
                 }
-                webapiError = new Error(message);
+                webAPIError = new Error(message);
                 // exit immediately
                 app.exit(2);
             }
         });
-        return webapi;
+        return webAPIProcess;
     }
 
     function stopWebapiService() {
         // Note we are async here, because sync can take a lot of time...
-        const webapiStopArgs = getWebapiStopArgs(webapiConfig);
-        child_process.spawn(webapiConfig.command, webapiStopArgs, webapiConfig.processOptions);
-        // child_process.spawnSync(webapiConfig.command, webapiStopArgs, webapiConfig.options);
+        const webAPIStopArgs = getWebapiStopArgs(webAPIConfig);
+        child_process.spawn(webAPIConfig.command, webAPIStopArgs, webAPIConfig.processOptions);
+        // child_process.spawnSync(webAPIConfig.command, webAPIStopArgs, webAPIConfig.options);
     }
 
     function startUpWithWebapiService() {
@@ -215,16 +215,16 @@ export function init() {
                 createMainWindow();
             })
             .catch((err) => {
-                if (!webapiStarted) {
+                if (!webAPIStarted) {
                     startWebapiService();
                 }
                 if (msSpend > msTimeout) {
-                    let message = `Failed to start Cate service within ${msSpend} ms.`;
+                    let message = `Failed to start Cate WebAPI service within ${msSpend} ms.`;
                     console.error(CATE_WEBAPI_PREFIX, message, err);
-                    if (!webapiError) {
+                    if (!webAPIError) {
                         electron.dialog.showErrorBox("Internal Error", message);
                     }
-                    webapiError = new Error(message);
+                    webAPIError = new Error(message);
                     app.exit(2);
                 } else {
                     setTimeout(startUpWithWebapiService, msDelay);
@@ -237,8 +237,8 @@ export function init() {
         createSplashWindow(null);
 
         console.log(CATE_DESKTOP_PREFIX, 'Ready.');
-        if (!webapiConfig.disabled) {
-            console.log(CATE_DESKTOP_PREFIX, 'Starting Cate service...');
+        if (!webAPIConfig.disabled) {
+            console.log(CATE_DESKTOP_PREFIX, 'Starting Cate WebAPI service...');
             startUpWithWebapiService();
         } else {
             createMainWindow();
@@ -248,7 +248,7 @@ export function init() {
     // Emitted when all windows have been closed and the application will quit.
     app.on('quit', () => {
         console.log(CATE_DESKTOP_PREFIX, 'Quit.');
-        if (!webapiConfig.disabled) {
+        if (!webAPIConfig.disabled) {
             stopWebapiService();
         }
     });
@@ -331,12 +331,12 @@ function createMainWindow() {
         if (_splashWindow) {
             _splashWindow.close();
             _mainWindow.webContents.send('apply-initial-state', {
-                userPrefs: _prefs.data,
+                session: _prefs.data,
                 appConfig: Object.assign({}, _config.data, {
                     appPath: app.getAppPath(),
-                    webapiConfig: Object.assign({}, _config.data.webapiConfig, {
-                        restUrl: getWebapiHttpUrl(_config.data.webapiConfig),
-                        webSocketUrl: getWebapiWebSocketsUrl(_config.data.webapiConfig),
+                    webAPIConfig: Object.assign({}, _config.data.webAPIConfig, {
+                        restUrl: getWebapiHttpUrl(_config.data.webAPIConfig),
+                        webSocketUrl: getWebapiWebSocketsUrl(_config.data.webAPIConfig),
                     }),
                 })
             });

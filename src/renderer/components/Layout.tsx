@@ -7,7 +7,10 @@ import {OpenLayersMap} from './openlayers/OpenLayersMap';
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "./hgl";
 import {State} from "../state";
 import {Table, Column, Cell, SelectionModes} from "@blueprintjs/table";
-import {setSelectedDataStoreIndex} from '../actions'
+import {setSelectedDataStoreIndex, updateDataSources} from '../actions'
+import {DatasetAPI} from '../webapi';
+import {DatasetsPanel} from "./DatasetsPanel";
+import {OperationsPanel} from "./OperationsPanel";
 
 
 export function Layout(props) {
@@ -32,9 +35,9 @@ export function Layout(props) {
     return (
         <HGLContainer>
             <HGLHeader>
-                <NavBarExample/>
+                {/*<NavBarExample/>*/}
             </HGLHeader>
-            <HGLMidsection leftWidth={180} rightWidth={180}>
+            <HGLMidsection leftWidth={220} rightWidth={220}>
                 <Tabs>
                     <TabList>
                         <Tab>Primary</Tab>
@@ -42,8 +45,8 @@ export function Layout(props) {
                     </TabList>
                     <TabPanel>
                         <div style={leftStyle}>
-                            <DatasetsWindow/>
-                            <OperationsWindow/>
+                            <DatasetsPanel/>
+                            <OperationsPanel/>
                             <WorkspaceWindow/>
                         </div>
                     </TabPanel>
@@ -277,78 +280,6 @@ export class TreeExample extends React.Component<any, ITreeExampleState> {
     }
 }
 
-@connect(
-    (state: State) => {
-        return {
-            selectedDataStoreIndex: state.app.selectedDataStoreIndex,
-            dataStores: state.app.dataStores
-        };
-    })
-class DatasetsWindow extends React.Component<any, any> {
-
-    render() {
-        const dataStores = this.props.dataStores;
-        let selectedDataStoreIndex = this.props.selectedDataStoreIndex;
-
-        let dataSources;
-        if (selectedDataStoreIndex >= 0) {
-            dataSources = dataStores[selectedDataStoreIndex].dataSources;
-        } else {
-            selectedDataStoreIndex = null;
-        }
-
-        const options = [];
-        for (let i = 0; i < dataStores.length; i++) {
-            const dataStore = dataStores[i];
-            options.push(<option key={i} value={i}>{dataStore.name}</option>);
-        }
-
-        let table = null;
-        if (dataSources) {
-            const renderCell = (rowIndex: number) => {
-                return <Cell>{dataSources[rowIndex].name}</Cell>
-            };
-            table = (
-                <Table numRows={dataSources.length}
-                       selectionModes={SelectionModes.ROWS_AND_CELLS}
-                       isRowHeaderShown={false}
-                       isColumnResizable={false}
-                       isRowResizable={false}>
-                    <Column name="Datasets" renderCell={renderCell}/>
-                </Table>
-            );
-        }
-
-        const selectHandler = event => {
-            const selectedIndex = parseInt(event.target.value);
-            // console.log('selectHandler', selectedIndex);
-            this.props.dispatch(setSelectedDataStoreIndex(selectedIndex));
-        };
-
-        return (
-            <ExpansionPanel icon="pt-icon-database" text="Datasets" isExpanded={true} height="20em">
-                <label className="pt-label pt-inline">
-                    Data store:
-                    <div className="pt-select">
-                        <select value={selectedDataStoreIndex || ''} onChange={selectHandler.bind(this)}>
-                            {options}
-                        </select>
-                    </div>
-                </label>
-                {table}
-            </ExpansionPanel>
-        );
-    }
-}
-
-//noinspection JSUnusedLocalSymbols
-function OperationsWindow(props: any) {
-    return (
-        <ExpansionPanel icon="pt-icon-function" text="Operations">
-            <TreeExample/>
-        </ExpansionPanel>
-    );
-}
 
 //noinspection JSUnusedLocalSymbols
 function WorkspaceWindow(props: any) {

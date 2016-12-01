@@ -12,21 +12,11 @@ import {State} from './state';
 import * as actions from './actions'
 import {reducers} from './reducers';
 
-// TODO (nf): I don't like this global webAPIClient here. Shall we make it part of the store?
-// Maybe in the communication state, see http://jamesknelson.com/5-types-react-application-state/
-// and see https://github.com/trbngr/react-example-pusher
-//
-let webAPIClient = null;
-
 //noinspection JSUnusedGlobalSymbols
 export function main() {
 
     const middleware = applyMiddleware(loggerMiddleware({level: 'info', collapsed: true}));
     const store = createStore(reducers, middleware);
-
-    store.subscribe(() => {
-        // console.log("store changed: ", store.getState());
-    });
 
     ipcRenderer.on('apply-initial-state', (event, initialState) => {
         store.dispatch(actions.applyInitialState(initialState));
@@ -42,22 +32,24 @@ export function main() {
 }
 
 function connectWebAPIClient(store: Store<State>) {
-    store.dispatch(actions.setWebapiOpenStatus('connecting'));
+    store.dispatch(actions.setWebAPIStatus(null, 'connecting'));
 
-    const webapiConfig = store.getState().appConfig.webapiConfig;
-    if (webapiConfig.disabled !== true && webapiConfig.webSocketUrl) {
-        webAPIClient = newWebAPIClient(webapiConfig.webSocketUrl);
+    const webAPIConfig = store.getState().data.appConfig.webAPIConfig;
+    let webAPIClient;
+    if (webAPIConfig.disabled !== true && webAPIConfig.webSocketUrl) {
+        webAPIClient = newWebAPIClient(webAPIConfig.webSocketUrl);
     } else {
         webAPIClient = newWebAPIClient('ws://mock', 0, new WebSocketMock(100, new WebAPIServiceMock()));
     }
 
     webAPIClient.onOpen = () => {
-        store.dispatch(actions.setWebapiOpenStatus('open'));
+        store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
         const datasetAPI = new DatasetAPI(webAPIClient);
         const operationAPI = new OperationAPI(webAPIClient);
         datasetAPI.getDataStores().then(dataStores => {
+            console.log(dataStores);
             store.dispatch(actions.updateDataStores(dataStores));
-            let index = store.getState().app.selectedDataStoreIndex;
+            let index = store.getState().control.selectedDataStoreIndex;
             if (index >= 0) {
                 datasetAPI.getDataSources(dataStores[index].id).then((dataSources => {
                     store.dispatch(actions.updateDataSources(index, dataSources));
@@ -68,12 +60,15 @@ function connectWebAPIClient(store: Store<State>) {
             store.dispatch(actions.updateOperations(operations));
         });
     };
+
     webAPIClient.onClose = () => {
-        store.dispatch(actions.setWebapiOpenStatus('closed'));
+        store.dispatch(actions.setWebAPIStatus(null, 'closed'));
     };
+
     webAPIClient.onError = () => {
-        store.dispatch(actions.setWebapiOpenStatus('error'));
+        store.dispatch(actions.setWebAPIStatus(webAPIClient, 'error'));
     };
+
     webAPIClient.onWarning = (event) => {
         console.warn(`cate-webapi: ${event.message}`);
     };
