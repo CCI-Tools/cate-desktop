@@ -75,6 +75,8 @@ For testing:
   (BDD) API to `mocha`. 
 * [spectron](https://github.com/electron/spectron#application-api) for end-to-end testing of the GUI applications.
   See script `test:e2e` in `package.json`.
+* [enzyme](http://airbnb.io/enzyme/) is a JavaScript Testing utility for React that makes it easier to assert, 
+  manipulate, and traverse React Components' output.
 
 Other tools:
 
