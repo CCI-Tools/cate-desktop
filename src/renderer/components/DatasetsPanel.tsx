@@ -76,7 +76,7 @@ export class DatasetsPanel extends React.Component<any, any> {
         };
 
         return (
-            <ExpansionPanel icon="pt-icon-database" text="Datasets" isExpanded={true} height="20em">
+            <ExpansionPanel icon="pt-icon-database" text="Datasets" isExpanded={true} defaultHeight="20em">
                 <label className="pt-label pt-inline">
                     Data store:
                     <div className="pt-select" style={{float:'right'}}>

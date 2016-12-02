@@ -92,7 +92,7 @@ export class OperationsPanel extends React.Component<any, any> {
         );
 
         return (
-            <ExpansionPanel icon="pt-icon-database" text="Operations" isExpanded={true} height="20em">
+            <ExpansionPanel icon="pt-icon-database" text="Operations" isExpanded={true} defaultHeight="20em">
                 {table}
             </ExpansionPanel>
         );

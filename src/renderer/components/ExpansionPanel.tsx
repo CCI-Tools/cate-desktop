@@ -1,6 +1,7 @@
 import * as React from "react"
 import {Menu, MenuItem, MenuDivider, Popover, Position, Collapse} from "@blueprintjs/core";
 import * as classNames from "classnames";
+import {Splitter} from "./Splitter";
 
 /**
  * {@link ExpansionPanel} properties.
@@ -17,7 +18,8 @@ interface IExpansionPanelProps {
     isFocused?: boolean;
     onFocusGained?: () => any;
     onFocusLost?: () => any;
-    height?: number | string | null;
+    defaultHeight?: number | string | null;
+    height?: number;
 }
 
 /**
@@ -28,7 +30,7 @@ interface IExpansionPanelState {
     isExpanded: boolean;
     isFocused: boolean;
     isMoreActive: boolean;
-    height: number | string | null;
+    height?: number;
 }
 
 /**
@@ -47,7 +49,7 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
             isExpanded: props.isExpanded || false,
             isFocused: props.isFocused || false,
             isMoreActive: false,
-            height: props.height || null
+            height: props.height,
         };
         this.handlePanelHeaderClicked = this.handlePanelHeaderClicked.bind(this);
         this.handleMoreButtonClicked = this.handleMoreButtonClicked.bind(this);
@@ -101,6 +103,29 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
             this.props.onExpand, this.props.onCollapse);
     }
 
+    handleSplitterDelta(deltaY: number) {
+        this.setState((state, props) => {
+            let newHeight: number = (state.height || 0) + deltaY;
+            if (newHeight < 0) {
+                newHeight = 0;
+            }
+            console.log('handleSplitterDelta: newHeight: ', newHeight, this);
+            const newState: any = {height: newHeight};
+            return newState as IExpansionPanelState;
+        });
+    }
+
+    handleContentPaneRef(contentPane: HTMLDivElement) {
+        if (contentPane) {
+            const initialHeight = contentPane.clientHeight;
+            console.log('handleSplitterDelta: initialHeight: ', initialHeight, this);
+            if (this.state.height != initialHeight) {
+                const newState: any = {height: initialHeight};
+                this.setState(newState as IExpansionPanelState);
+            }
+        }
+    }
+
     render(): JSX.Element {
         const menu = (
             <Menu>
@@ -144,8 +169,14 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
                                  onClick={this.handleCloseButtonClicked}/>);
 
         const childDivStyle = {width: '100%'};
+        let height;
         if (this.state.height) {
-            childDivStyle['height'] = this.state.height;
+            height = this.state.height;
+        } else if (this.props.defaultHeight) {
+            height = this.props.defaultHeight;
+        }
+        if (height) {
+            childDivStyle['height'] = height;
         }
 
         return (
@@ -158,9 +189,10 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
                     {closeIcon}
                 </div>
                 <Collapse isOpen={this.state.isExpanded}>
-                    <div style={childDivStyle}>
+                    <div ref={this.handleContentPaneRef.bind(this)} style={childDivStyle}>
                         {this.props.children}
                     </div>
+                    <Splitter splitType='row' onDelta={this.handleSplitterDelta.bind(this)}/>
                 </Collapse>
             </div>
         );

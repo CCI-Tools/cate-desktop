@@ -2,7 +2,7 @@ import * as React from 'react'
 
 interface ISplitterProps {
     splitType: "col" | "row";
-    onPositionChange: (delta: number) => any;
+    onDelta: (delta: number) => any;
 }
 
 interface IButtonEvent {
@@ -56,7 +56,7 @@ export class Splitter extends React.Component<ISplitterProps, any> {
         const positionDelta = currentPosition - this.lastPosition;
         this.lastPosition = currentPosition;
         if (positionDelta != 0) {
-            this.props.onPositionChange(positionDelta);
+            this.props.onDelta(positionDelta);
         }
     }
 
