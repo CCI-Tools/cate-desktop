@@ -30,6 +30,7 @@ interface IExpansionPanelState {
     isExpanded: boolean;
     isFocused: boolean;
     isMoreActive: boolean;
+    width?: number;
     height?: number;
 }
 
@@ -117,16 +118,20 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
 
     handleContentPaneRef(contentPane: HTMLDivElement) {
         if (contentPane) {
+            const initialWidth = contentPane.clientWidth;
             const initialHeight = contentPane.clientHeight;
-            // console.log('handleSplitterDelta: initialHeight: ', initialHeight, this);
-            if (this.state.height != initialHeight) {
-                const newState: any = {height: initialHeight};
+            if (this.state.width != initialWidth || this.state.height != initialHeight) {
+                const newState: any = {
+                    width: initialWidth,
+                    height: initialHeight
+                };
                 this.setState(newState as IExpansionPanelState);
             }
         }
     }
 
     render(): JSX.Element {
+        /*
         const menu = (
             <Menu>
                 <MenuItem iconName="graph" text="Graph"/>
@@ -140,13 +145,14 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
                 </MenuItem>
             </Menu>
         );
+        */
 
         const panelClassNames = classNames("cate-panel", {
             'opened': this.state.isOpen,
             'closed': !this.state.isOpen,
         });
 
-        const menuIconName = "pt-icon-properties";
+        // const menuIconName = "pt-icon-properties";
         const expandIconName = this.state.isExpanded ? "pt-icon-chevron-up" : "pt-icon-chevron-down";
         const closeIconName = "pt-icon-cross";
 
@@ -156,43 +162,47 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
             icon = <span className={iconClasses} onClick={this.handlePanelHeaderClicked}/>;
         }
         const textClasses = classNames("cate-panel-text", {"cate-panel-selected": this.state.isFocused});
-        const text = <span className={textClasses} onClick={this.handlePanelHeaderClicked}>{this.props.text}</span>;
+        const text = <span className={textClasses} onClick={this.handlePanelHeaderClicked}>{this.props.text.toUpperCase()}</span>;
 
+        /*
         const menuIcon = (
             <Popover isOpen={this.state.isMoreActive} content={menu}>
                 <span className={"pt-icon-standard " + menuIconName + " cate-icon-small"}
                       onClick={this.handleMoreButtonClicked}/>
             </Popover>);
+        */
         const expandIcon = (<span className={"pt-icon-standard " + expandIconName + " cate-icon-small"}
                                   onClick={this.handleExpandButtonClicked}/>);
         const closeIcon = (<span className={"pt-icon-standard " + closeIconName + " cate-icon-small"}
                                  onClick={this.handleCloseButtonClicked}/>);
 
-        const childDivStyle = {width: '100%'};
-        let height;
+        const contentPaneStyle = {width: '100%'};
+        let contentPaneHeight;
         if (this.state.height) {
-            height = this.state.height;
+            contentPaneHeight = this.state.height;
         } else if (this.props.defaultHeight) {
-            height = this.props.defaultHeight;
+            contentPaneHeight = this.props.defaultHeight;
         }
-        if (height) {
-            childDivStyle['height'] = height;
+        if (contentPaneHeight) {
+            contentPaneStyle['height'] = contentPaneHeight;
         }
+
+        // console.log(`${this.props.text}'s content pane size: ${this.state.width} x ${this.state.height}`);
 
         return (
             <div className={panelClassNames}>
                 <div className="cate-panel-header">
                     {icon}
                     {text}
-                    {menuIcon}
+                    {/*menuIcon*/}
                     {expandIcon}
                     {closeIcon}
                 </div>
                 <Collapse isOpen={this.state.isExpanded}>
-                    <div ref={this.handleContentPaneRef.bind(this)} style={childDivStyle}>
-                        {this.props.children}
+                    <div ref={this.handleContentPaneRef.bind(this)} style={contentPaneStyle}>
+                        {this.state.isExpanded ? this.props.children : null}
                     </div>
-                    <Splitter splitType='row' onDelta={this.handleSplitterDelta.bind(this)}/>
+                    <Splitter direction='ver' onChange={this.handleSplitterDelta.bind(this)}/>
                 </Collapse>
             </div>
         );

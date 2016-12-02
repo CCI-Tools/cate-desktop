@@ -54,12 +54,24 @@ input, button, textarea, :focus {
 
 .hgl-header, .hgl-footer {
     flex: none; /* same as "flex: 0 0 auto;" */
+    /* left and right padding should be aligned with .cate-splitter-hor/-ver sizes */
+    padding: 0 4px 0 4px;
+}
+
+.hgl-footer {
+    height: 1.5em;
+    font-size: small;
+    align-items: center;
+    /* blueprint's color @blue4 */
+    background-color: #2B95D6;
 }
 
 .hgl-midsection {
     flex: auto; /* same as "flex: 1 1 auto;" */
     display: flex;
     flex-flow: row nowrap;
+    /* left and right padding should be aligned with .cate-splitter-hor/-ver sizes */
+    padding: 0 4px 0 4px;
 }
 
 .hgl-left, .hgl-right {
@@ -72,7 +84,22 @@ input, button, textarea, :focus {
     max-height: 100%;
 }
 
-.cate-col-splitter {
+
+.cate-split-pane-hor {
+    width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+    flex: auto; /* same as "flex: 1 1 auto;" */
+}
+
+.cate-split-pane-ver {
+    height: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    flex: auto; /* same as "flex: 1 1 auto;" */
+}
+
+.cate-splitter-hor {
     flex: none;
     border: none;
     outline: none;
@@ -83,13 +110,13 @@ input, button, textarea, :focus {
     cursor: col-resize;
 }
 
-.cate-row-splitter {
+.cate-splitter-ver {
     flex: none;
     border: none;
     outline: none;
     height: 4px;
-    min-height: 100%;
-    max-height: 100%;
+    min-width: 100%;
+    max-width: 100%;
     /*background-color: yellow;*/
     cursor: row-resize;
 }
@@ -108,13 +135,20 @@ input, button, textarea, :focus {
 
 .cate-panel-header {
     display: flex;
-    margin: 1px;
-    padding: 3px;
+    margin: 0;
+    padding: 6px;
+
+    /* blueprint @grey1 */
+    border-top: 1px solid #5C7080;
+    border-bottom: 1px solid #5C7080;
+
+    font-size: medium;
+    /*font-weight: bolder;*/
 
     /* blueprint @light-grey5 */
     color: #F5F8FA;
-    /* blueprint @dark-grey3 */
-    background-color: #293742;
+    /* blueprint @dark-grey2 */
+    background-color: #202B33;
     align-items: center;
 }
 

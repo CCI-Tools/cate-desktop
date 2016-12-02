@@ -1,8 +1,9 @@
 import * as React from 'react'
 
+// TODO: add splitter width, color, etc. style props
 interface ISplitterProps {
-    splitType: "col" | "row";
-    onDelta: (delta: number) => any;
+    direction?: "hor" | "ver";
+    onChange: (delta: number) => any;
 }
 
 interface IButtonEvent {
@@ -12,15 +13,17 @@ interface IButtonEvent {
 
 interface IScreenEvent {
     screenX: number;
-    screenY : number;
+    screenY: number;
 }
 
 type EventListenerItem = [string, (any) => any];
 
-// TODO: add splitter width, color, etc. style props
 
 /**
  * A splitter component.
+ * In order to work properly, clients must provide the onChange which is a callback that receives the delta position
+ * either in x-direction if direction is "hor" or y-direction if direction is "ver". The callback must then
+ * adjust either a container's width if direction is "hor" or its height if direction is "ver".
  *
  * @author Norman Fomferra
  */
@@ -30,6 +33,9 @@ export class Splitter extends React.Component<ISplitterProps, any> {
 
     constructor(props: ISplitterProps) {
         super(props);
+        if (!props.onChange) {
+            throw Error('onChange property must be provided');
+        }
         this.bodyEventListeners = [
             ['mousemove', this.onBodyMouseMove.bind(this)],
             ['mouseup', this.onBodyMouseUp.bind(this)],
@@ -56,7 +62,7 @@ export class Splitter extends React.Component<ISplitterProps, any> {
         const positionDelta = currentPosition - this.lastPosition;
         this.lastPosition = currentPosition;
         if (positionDelta != 0) {
-            this.props.onDelta(positionDelta);
+            this.props.onChange(positionDelta);
         }
     }
 
@@ -84,7 +90,7 @@ export class Splitter extends React.Component<ISplitterProps, any> {
     }
 
     private getCurrentPosition(event: IScreenEvent) {
-        return this.props.splitType === 'row' ? event.screenY : event.screenX;
+        return this.props.direction === 'hor' ? event.screenX : event.screenY;
     }
 
     private endDragging() {
@@ -107,7 +113,7 @@ export class Splitter extends React.Component<ISplitterProps, any> {
     }
 
     render() {
-        const className = this.props.splitType === 'row' ? 'cate-row-splitter' : 'cate-col-splitter';
+        const className = this.props.direction === 'hor' ? 'cate-splitter-hor' : 'cate-splitter-ver';
         return (
             <div
                 className={className}

@@ -62,9 +62,9 @@ export class RowLayout extends React.Component<IRowLayoutProps, IRowLayoutState>
         return (
             <div className="hgl-midsection">
                 <RowLayoutLeft style={leftStyle}>{leftElement}</RowLayoutLeft>
-                <Splitter splitType="col" onDelta={this.onLeftSplitDelta}/>
+                <Splitter direction="hor" onChange={this.onLeftSplitDelta}/>
                 <RowLayoutCenter>{centerElement}</RowLayoutCenter>
-                <Splitter splitType="col" onDelta={this.onRightSplitDelta}/>
+                <Splitter direction="hor" onChange={this.onRightSplitDelta}/>
                 <RowLayoutRight style={rightStyle}>{rightElement}</RowLayoutRight>
             </div>
         );

@@ -1,17 +1,15 @@
 import * as React from 'react';
-import {connect} from 'react-redux';
 import {Classes, ITreeNode, Tooltip, Tree, Tab, TabList, TabPanel, Tabs} from "@blueprintjs/core";
 import {ExpansionPanel} from './ExpansionPanel';
 import {CesiumGlobeExample} from './cesium/CesiumGlobeExample'
 import {OpenLayersMap} from './openlayers/OpenLayersMap';
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "./hgl";
-import {State} from "../state";
-import {Table, Column, Cell, SelectionModes} from "@blueprintjs/table";
-import {setSelectedDataStoreIndex, updateDataSources} from '../actions'
-import {DatasetAPI} from '../webapi';
-import {DatasetsPanel} from "./DatasetsPanel";
-import {OperationsPanel} from "./OperationsPanel";
+import DatasetsPanel from "./DatasetsPanel";
+import OperationsPanel from "./OperationsPanel";
 
+/*
+ * IMPORTANT NODE: This is still prototype code!!!
+ */
 
 export function Layout(props) {
 
@@ -144,7 +142,7 @@ export function Layout(props) {
                 </Tabs>
             </HGLMidsection>
             <HGLFooter>
-                FOOTER
+                Ready.
             </HGLFooter>
         </HGLContainer>
     );

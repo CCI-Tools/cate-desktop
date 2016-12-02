@@ -123,9 +123,9 @@ export class HGLMidsection extends React.Component<HGLMidsectionProps, HGLMidsec
         return (
             <div className="hgl-midsection">
                 <HGLLeft style={leftStyle}>{leftElement}</HGLLeft>
-                <Splitter splitType="col" onDelta={this.onDeltaLeft}/>
+                <Splitter direction="hor" onChange={this.onDeltaLeft}/>
                 <HGLCenter>{centerElement}</HGLCenter>
-                <Splitter splitType="col" onDelta={this.onDeltaRight}/>
+                <Splitter direction="hor" onChange={this.onDeltaRight}/>
                 <HGLRight style={rightStyle}>{rightElement}</HGLRight>
             </div>
         );
