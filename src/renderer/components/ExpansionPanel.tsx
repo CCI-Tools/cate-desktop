@@ -109,7 +109,7 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
             if (newHeight < 0) {
                 newHeight = 0;
             }
-            console.log('handleSplitterDelta: newHeight: ', newHeight, this);
+            // console.log('handleSplitterDelta: newHeight: ', newHeight, this);
             const newState: any = {height: newHeight};
             return newState as IExpansionPanelState;
         });
@@ -118,7 +118,7 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
     handleContentPaneRef(contentPane: HTMLDivElement) {
         if (contentPane) {
             const initialHeight = contentPane.clientHeight;
-            console.log('handleSplitterDelta: initialHeight: ', initialHeight, this);
+            // console.log('handleSplitterDelta: initialHeight: ', initialHeight, this);
             if (this.state.height != initialHeight) {
                 const newState: any = {height: initialHeight};
                 this.setState(newState as IExpansionPanelState);
