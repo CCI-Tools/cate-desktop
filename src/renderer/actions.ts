@@ -7,7 +7,8 @@ export const UPDATE_OPERATIONS = 'UPDATE_OPERATIONS';
 
 export const SET_SELECTED_DATA_STORE_INDEX = 'SET_SELECTED_DATA_STORE_INDEX';
 export const SET_SELECTED_DATA_SOURCE_INDEX = 'SET_SELECTED_DATA_SOURCE_INDEX';
-export const SET_SELECTED_OPERATION_INDEX = 'SET_SELECTED_OPERATION_INDEX';
+export const SET_SELECTED_OPERATION_NAME = 'SET_SELECTED_OPERATION_NAME';
+export const SET_SELECTED_OPERATION_TAGS = 'SET_SELECTED_OPERATION_TAGS';
 
 export function applyInitialState(initialState: Object) {
     return {type: APPLY_INITIAL_STATE, payload: {initialState}};
@@ -37,8 +38,10 @@ export function setSelectedDataSourceIndex(selectedDataSourceIndex: number) {
     return {type: SET_SELECTED_DATA_SOURCE_INDEX, payload: {selectedDataSourceIndex}};
 }
 
-//noinspection JSUnusedLocalSymbols
-export function setSelectedOperationIndex(selectedOperationIndex: number) {
-    return {type: SET_SELECTED_OPERATION_INDEX,  payload: {selectedOperationIndex}};
+export function setSelectedOperationName(selectedOperationName: string) {
+    return {type: SET_SELECTED_OPERATION_NAME,  payload: {selectedOperationName}};
 }
 
+export function setSelectedOperationTags(selectedOperationTags: Array<string>) {
+    return {type: SET_SELECTED_OPERATION_TAGS,  payload: {selectedOperationTags}};
+}

@@ -59,7 +59,8 @@ const dataReducer = (state: DataState = initialDataState, action) => {
 const initialControlState: ControlState = {
     selectedDataStoreIndex: -1,
     selectedDataSourceIndex: -1,
-    selectedOperationIndex: -1,
+    selectedOperationName: null,
+    selectedOperationTags: [],
 };
 
 const controlReducer = (state: ControlState = initialControlState, action) => {
@@ -74,11 +75,12 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             });
         case actions.UPDATE_OPERATIONS:
             return Object.assign({}, state, {
-                selectedOperationIndex: (action.payload.operations.length > 0) ? 0 : -1
+                selectedOperationName: (action.payload.operations.length > 0) ? 0 : -1
             });
         case actions.SET_SELECTED_DATA_STORE_INDEX:
         case actions.SET_SELECTED_DATA_SOURCE_INDEX:
-        case actions.SET_SELECTED_OPERATION_INDEX:
+        case actions.SET_SELECTED_OPERATION_NAME:
+        case actions.SET_SELECTED_OPERATION_TAGS:
             return Object.assign({}, state, action.payload);
     }
     return state;

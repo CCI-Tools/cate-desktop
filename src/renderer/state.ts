@@ -113,7 +113,8 @@ export interface CommunicationState {
 export interface ControlState {
     selectedDataStoreIndex: number;
     selectedDataSourceIndex: number;
-    selectedOperationIndex: number;
+    selectedOperationName: string;
+    selectedOperationTags: Array<string>;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

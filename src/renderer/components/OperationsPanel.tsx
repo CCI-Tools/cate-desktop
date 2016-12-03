@@ -3,14 +3,16 @@ import {connect} from 'react-redux';
 import {ExpansionPanel} from './ExpansionPanel';
 import {State, OperationState} from "../state";
 import {Table, Column, Cell, SelectionModes, IRegion} from "@blueprintjs/table";
-import {setSelectedOperationIndex} from '../actions'
+import {setSelectedOperationName, setSelectedOperationTags} from '../actions'
 import {SplitPane} from "../containers/SplitPane";
+import {Popover, Position , Menu, MenuItem} from "@blueprintjs/core";
 
 
 function mapStateToProps(state: State) {
     return {
         operations: state.data.operations,
-        selectedOperationIndex: state.control.selectedOperationIndex,
+        selectedOperationName: state.control.selectedOperationName,
+        selectedOperationTags: state.control.selectedOperationTags,
     };
 }
 
@@ -23,31 +25,92 @@ function mapStateToProps(state: State) {
 class OperationsPanel extends React.Component<any, any> {
 
     render() {
-        const operations = this.props.operations;
-        if (!operations || !operations.length) {
+        const allOperations = this.props.operations;
+        if (!allOperations || !allOperations.length) {
             return <p>No operations found.</p>;
         }
 
-        let selectedOperationIndex: number = this.props.selectedOperationIndex;
+        const selectedOperationTags = new Set<string>(this.props.selectedOperationTags);
+        const selectedOperation = this.props.selectedOperationName
+            ? allOperations.find(op => op.name === this.props.selectedOperationName)
+            : null;
 
-        let operation: OperationState;
-        if (selectedOperationIndex >= 0) {
-            operation = operations[selectedOperationIndex];
-        } else {
-            operation = null;
-        }
+        let hasTag = op => (op.tags || []).some(tagName => selectedOperationTags.has(tagName));
+        const filteredOperations = selectedOperationTags.size == 0
+            ? allOperations
+            : allOperations.filter(hasTag);
 
-        const operationsTable = this.renderOperationsTable(operations);
-        const operationDetailsCard = this.renderOperationDetailsCard(operation);
+        const operationFilterPanel = this.renderOperationFilterPanel(allOperations, selectedOperationTags);
+        const operationsTable = this.renderOperationsTable(filteredOperations);
+        const operationDetailsCard = this.renderOperationDetailsCard(selectedOperation);
 
         return (
             <ExpansionPanel icon="pt-icon-function" text="Operations" isExpanded={true} defaultHeight={300}>
+                {operationFilterPanel}
                 <SplitPane direction="ver" initialSize={150}>
                     {operationsTable}
                     {operationDetailsCard}
                 </SplitPane>
             </ExpansionPanel>
         );
+    }
+    //noinspection JSMethodCanBeStatic
+    private renderOperationFilterPanel(operations: Array<OperationState>, selectedOperationTags: Set<string>) {
+
+        // Note: since our list of operations remains constant, we should compute tagCounts beforehand
+        let tagCounts = new Map<string, number>();
+        operations.forEach((op: OperationState) => (op.tags || []).forEach((tag: string) => {
+            tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+        }));
+
+        const tagContainerStyle = {padding: '0.2em'};
+        const tagStyle = {marginRight: '0.2em'};
+
+        let selectedTagItems = [];
+        selectedOperationTags.forEach(tagName => {
+            selectedTagItems.push(
+                <span className="pt-tag pt-intent-primary pt-tag-removable" style={tagStyle}>
+                    {`${tagName}`}
+                    <button className="pt-tag-remove pt-minimal"
+                            onClick={() => this.removeTagName.bind(this)(tagName)}/>
+                </span>);
+        });
+
+        let tagMenuItems = [];
+        tagCounts.forEach((tagCount, tagName) => {
+            if (!selectedOperationTags.has(tagName)) {
+                tagMenuItems.push(
+                    <MenuItem text={`${tagName} (${tagCount})`} onClick={() => this.addTagName.bind(this)(tagName)}/>);
+            }
+        });
+
+        let addTagButton = null;
+        if (tagMenuItems.length > 0) {
+            const tagMenu = (<Menu>{tagMenuItems}</Menu>);
+            addTagButton = (
+                <Popover content={tagMenu} position={Position.RIGHT_BOTTOM} useSmartPositioning={true}>
+                    <span className="pt-tag pt-intent-success pt-icon-small-plus" style={tagStyle}/>
+                </Popover>
+            );
+        }
+
+        return (
+            <div style={tagContainerStyle}>
+                {addTagButton}{selectedTagItems}
+            </div>
+        );
+    }
+
+    private addTagName(tagName: string) {
+        const tags = new Set<string>(this.props.selectedOperationTags);
+        tags.add(tagName);
+        this.props.dispatch(setSelectedOperationTags(Array.from(tags)));
+    }
+
+    private removeTagName(tagName: string) {
+        const tags = new Set<string>(this.props.selectedOperationTags);
+        tags.delete(tagName);
+        this.props.dispatch(setSelectedOperationTags(Array.from(tags)));
     }
 
     //noinspection JSMethodCanBeStatic
@@ -74,7 +137,7 @@ class OperationsPanel extends React.Component<any, any> {
                     outputs = (<p><b>Returns:</b> {`: (${output.dataType}) `}{output.description}</p>);
                 } else {
                     const outputElems = operation.outputs.map(output => (
-                        <li><i>{output.name}</i>{`: (${output.dataType}) `}{output.description}</li>));
+                        <li key={output.name}><i>{output.name}</i>{`: (${output.dataType}) `}{output.description}</li>));
                     outputs = (
                         <div><p><b>Outputs:</b></p>
                             <ul>{outputElems}</ul>
@@ -85,7 +148,7 @@ class OperationsPanel extends React.Component<any, any> {
 
             if (operation.inputs) {
                 const inputElems = operation.inputs.map(input =>
-                    <li><i>{input.name}</i>{`: (${input.dataType}) `}{input.description}</li>);
+                    <li key={input.name}><i>{input.name}</i>{`: (${input.dataType}) `}{input.description}</li>);
                 inputs = (
                     <div><p><b>Parameter(s):</b></p>
                         <ul>{inputElems}</ul>
@@ -139,14 +202,15 @@ class OperationsPanel extends React.Component<any, any> {
 
         const handleOperationSelection = (selectedRegions: IRegion[]) => {
             // console.log('handleOperationSelection: selectedRegions: ', selectedRegions);
-            let selectedOperationIndex;
+            let selectedOperationName;
             if (selectedRegions && selectedRegions.length > 0 && selectedRegions[0].rows) {
-                selectedOperationIndex = selectedRegions[0].rows[0];
+                const index = selectedRegions[0].rows[0];
+                selectedOperationName = operations[index].name;
             } else {
-                selectedOperationIndex = -1;
+                selectedOperationName = null;
             }
-            if (this.props.selectedOperationIndex !== selectedOperationIndex) {
-                this.props.dispatch(setSelectedOperationIndex(selectedOperationIndex));
+            if (this.props.selectedOperationName !== selectedOperationName) {
+                this.props.dispatch(setSelectedOperationName(selectedOperationName));
             }
         };
 

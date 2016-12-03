@@ -41,6 +41,10 @@ input, button, textarea, :focus {
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
 }
 
+::-webkit-scrollbar-corner {
+    background: rgba(0, 0, 0, 0)
+}
+
 ::-webkit-scrollbar-thumb:window-inactive {
     background: rgba(191, 204, 214, 0.4);
 }
