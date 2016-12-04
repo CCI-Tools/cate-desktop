@@ -8,7 +8,8 @@ export const UPDATE_OPERATIONS = 'UPDATE_OPERATIONS';
 export const SET_SELECTED_DATA_STORE_INDEX = 'SET_SELECTED_DATA_STORE_INDEX';
 export const SET_SELECTED_DATA_SOURCE_INDEX = 'SET_SELECTED_DATA_SOURCE_INDEX';
 export const SET_SELECTED_OPERATION_NAME = 'SET_SELECTED_OPERATION_NAME';
-export const SET_SELECTED_OPERATION_TAGS = 'SET_SELECTED_OPERATION_TAGS';
+export const SET_OPERATION_FILTER_TAGS = 'SET_OPERATION_FILTER_TAGS';
+export const SET_OPERATION_FILTER_EXPR = 'SET_OPERATION_FILTER_EXPR';
 
 export function applyInitialState(initialState: Object) {
     return {type: APPLY_INITIAL_STATE, payload: {initialState}};
@@ -42,6 +43,10 @@ export function setSelectedOperationName(selectedOperationName: string) {
     return {type: SET_SELECTED_OPERATION_NAME,  payload: {selectedOperationName}};
 }
 
-export function setSelectedOperationTags(selectedOperationTags: Array<string>) {
-    return {type: SET_SELECTED_OPERATION_TAGS,  payload: {selectedOperationTags}};
+export function setOperationFilterTags(operationFilterTags: Array<string>) {
+    return {type: SET_OPERATION_FILTER_TAGS,  payload: {operationFilterTags}};
+}
+
+export function setOperationFilterExpr(operationFilterExpr: Array<string>) {
+    return {type: SET_OPERATION_FILTER_EXPR,  payload: {operationFilterExpr}};
 }

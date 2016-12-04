@@ -60,7 +60,8 @@ const initialControlState: ControlState = {
     selectedDataStoreIndex: -1,
     selectedDataSourceIndex: -1,
     selectedOperationName: null,
-    selectedOperationTags: [],
+    operationFilterTags: [],
+    operationFilterExpr: '',
 };
 
 const controlReducer = (state: ControlState = initialControlState, action) => {
@@ -80,7 +81,8 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         case actions.SET_SELECTED_DATA_STORE_INDEX:
         case actions.SET_SELECTED_DATA_SOURCE_INDEX:
         case actions.SET_SELECTED_OPERATION_NAME:
-        case actions.SET_SELECTED_OPERATION_TAGS:
+        case actions.SET_OPERATION_FILTER_TAGS:
+        case actions.SET_OPERATION_FILTER_EXPR:
             return Object.assign({}, state, action.payload);
     }
     return state;

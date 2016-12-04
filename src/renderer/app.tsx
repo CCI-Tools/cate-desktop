@@ -47,7 +47,6 @@ function connectWebAPIClient(store: Store<State>) {
         const datasetAPI = new DatasetAPI(webAPIClient);
         const operationAPI = new OperationAPI(webAPIClient);
         datasetAPI.getDataStores().then(dataStores => {
-            console.log(dataStores);
             store.dispatch(actions.updateDataStores(dataStores));
             let index = store.getState().control.selectedDataStoreIndex;
             if (index >= 0) {

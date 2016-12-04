@@ -114,7 +114,8 @@ export interface ControlState {
     selectedDataStoreIndex: number;
     selectedDataSourceIndex: number;
     selectedOperationName: string;
-    selectedOperationTags: Array<string>;
+    operationFilterTags: Array<string>;
+    operationFilterExpr: string;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
