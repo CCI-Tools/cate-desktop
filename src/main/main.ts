@@ -154,7 +154,8 @@ export function init() {
 
     _config.set('webAPIConfig', webAPIConfig);
 
-    console.log(CATE_DESKTOP_PREFIX, 'webAPIConfig:', webAPIConfig);
+    console.log(CATE_DESKTOP_PREFIX, 'appConfig:', _config.data);
+    console.log(CATE_DESKTOP_PREFIX, 'userPrefs:', _prefs.data);
 
     let webAPIStarted = false;
     // Remember error occurred so
@@ -165,6 +166,7 @@ export function init() {
     // Some APIs can only be used after this event occurs.
     function startWebapiService(): child_process.ChildProcess {
         const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
+        console.log(CATE_WEBAPI_PREFIX, `starting Cate WebAPI service using arguments: ${webAPIStartArgs}`);
         const webAPIProcess = child_process.spawn(webAPIConfig.command, webAPIStartArgs, webAPIConfig.processOptions);
         webAPIStarted = true;
         webAPIProcess.stdout.on('data', (data: any) => {
@@ -174,7 +176,7 @@ export function init() {
             console.error(CATE_WEBAPI_PREFIX, `${data}`);
         });
         webAPIProcess.on('error', (err: Error) => {
-            let message = 'Failed to start Cate service.';
+            let message = 'Failed to start Cate WebAPI service.';
             console.log(CATE_WEBAPI_PREFIX, message, err);
             if (!webAPIError) {
                 electron.dialog.showErrorBox('Internal Error', message);
@@ -238,7 +240,7 @@ export function init() {
 
         console.log(CATE_DESKTOP_PREFIX, 'Ready.');
         if (!webAPIConfig.disabled) {
-            console.log(CATE_DESKTOP_PREFIX, 'Starting Cate WebAPI service...');
+            console.log(CATE_DESKTOP_PREFIX, 'Using Cate WebAPI service...');
             startUpWithWebapiService();
         } else {
             createMainWindow();
@@ -332,7 +334,6 @@ function createMainWindow() {
             _splashWindow.close();
 
             const webAPIConfig = _config.data.webAPIConfig;
-            console.log();
             _mainWindow.webContents.send('apply-initial-state', {
                 session: _prefs.data,
                 appConfig: Object.assign({}, _config.data, {

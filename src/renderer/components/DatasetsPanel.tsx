@@ -6,6 +6,7 @@ import {Table, Column, Cell, SelectionModes, IRegion} from "@blueprintjs/table";
 import {setSelectedDataStoreIndex, updateDataSources, setSelectedDataSourceIndex} from '../actions'
 import {DatasetAPI} from '../webapi';
 import {SplitPane} from "../containers/SplitPane";
+import {Tabs, TabList, Tab, TabPanel} from "@blueprintjs/core";
 
 
 function mapStateToProps(state: State) {
@@ -35,8 +36,10 @@ class DatasetsPanel extends React.Component<any, any> {
         if (selectedDataStoreIndex >= 0 && selectedDataStoreIndex < dataStores.length) {
             dataSources = dataStores[selectedDataStoreIndex].dataSources;
         } else {
-            dataSources = [];
             selectedDataStoreIndex = null;
+        }
+        if (!dataSources) {
+            dataSources = [];
         }
 
         let selectedDataSource;
@@ -142,34 +145,118 @@ class DatasetsPanel extends React.Component<any, any> {
 
     //noinspection JSMethodCanBeStatic
     private renderDataSourceDetails(dataSource: DataSourceState) {
-        let title = "No selection";
-        let description = null;
-        if (dataSource) {
-            title = dataSource.name;
-
-            if (dataSource.description) {
-                description = (<p><i>{dataSource.description}</i></p>);
+        if (!dataSource) {
+            return (
+                <div style={{padding: 6, overflow: 'auto'}}>
+                    <div className="pt-card pt-elevation-2">
+                        <p>No data source selected.</p>
+                    </div>
+                </div>
+            );
+        }
+        let metaInfo = null;
+        let variables = null;
+        if (dataSource.meta_info) {
+            const metaInfoItems = Object.keys(dataSource.meta_info).filter(key => key !== 'variables').map(key => {
+                const value = dataSource.meta_info[key];
+                return (<tr>
+                    <td>{key}</td>
+                    <td>{value}</td>
+                </tr>);
+            });
+            if (metaInfoItems.length > 0) {
+                metaInfo = (
+                    <table className="pt-table pt-condensed pt-striped">
+                        <thead>
+                        <th>Key</th>
+                        <th>Value</th>
+                        </thead>
+                        <tbody>{metaInfoItems}</tbody>
+                    </table>
+                );
+            }
+            if (dataSource.meta_info.variables) {
+                const variableItems = Object.keys(dataSource.meta_info.variables).map(key => {
+                    const value = dataSource.meta_info.variables[key];
+                    return (<tr>
+                        <td>{key}</td>
+                        <td>{value.units || '-'}</td>
+                    </tr>);
+                });
+                if (variableItems.length > 0) {
+                    variables = (
+                        <table className="pt-table pt-condensed pt-striped">
+                            <thead>
+                            <th>Name</th>
+                            <th>Units</th>
+                            </thead>
+                            <tbody>{variableItems}</tbody>
+                        </table>
+                    );
+                }
             }
         }
 
-        return (
-            <div style={{padding: 6, overflowY: 'auto'}}>
-                <div className="pt-card pt-elevation-2">
-                    <h5>{title}</h5>
-                    {description}
+        let metaInfoPanel;
+        if (metaInfo)
+            metaInfoPanel = (
+                <div style={{padding: 6, overflow: 'auto'}}>
+                    <div className="pt-card pt-elevation-2">
+                        {metaInfo}
+                    </div>
                 </div>
-            </div>);
+            );
+
+        let variablesPanel;
+        if (variables)
+            variablesPanel = (
+                <div style={{padding: 6, overflow: 'auto'}}>
+                    <div className="pt-card pt-elevation-2">
+                        {variables}
+                    </div>
+                </div>
+            );
+
+        if (metaInfoPanel && variablesPanel) {
+            return (
+                <Tabs>
+                    <TabList>
+                        <Tab>Variables</Tab>
+                        <Tab>Meta-Info</Tab>
+                    </TabList>
+                    <TabPanel>
+                        {variablesPanel}
+                    </TabPanel>
+                    <TabPanel>
+                        {metaInfoPanel}
+                    </TabPanel>
+                </Tabs>
+            );
+        } else if (metaInfoPanel) {
+            return metaInfoPanel;
+        } else if (variablesPanel) {
+            return variablesPanel;
+        } else {
+            return (
+                <div style={{padding: 6, overflow: 'auto'}}>
+                    <div className="pt-card pt-elevation-2">
+                        <p>No meta-information available.</p>
+                    </div>
+                </div>
+            );
+        }
     }
 
     //noinspection JSMethodCanBeStatic
     private renderNoDataStoreMessage() {
         return (
-            <div style={{padding: 6, overflowY: 'auto'}}>
+            <div style={{padding: 6, overflow: 'auto'}}>
                 <div className="pt-card pt-elevation-2">
                     <h5>No data stores found!</h5>
                     <p>This is very likely a configuration error, please check the logs of the Cate WebAPI service.</p>
                 </div>
-            </div>);
+            </div>
+        );
     }
 }
 

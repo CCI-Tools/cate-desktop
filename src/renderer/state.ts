@@ -61,7 +61,7 @@ export interface DataStoreState {
 export interface DataSourceState {
     id: string;
     name: string;
-    description: string;
+    meta_info: any | null;
 }
 
 export interface OperationState {
