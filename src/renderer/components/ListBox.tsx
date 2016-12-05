@@ -1,5 +1,11 @@
 import * as React from 'react'
-import './ListBox.css'
+//import './ListBox.css'
+
+export enum ListBoxSelectionMode {
+    SINGLE,
+    MULTIPLE
+}
+
 
 export interface IListBoxProps {
     numItems: number;
@@ -7,9 +13,9 @@ export interface IListBoxProps {
     getItemKey?: (itemIndex: number) => React.Key;
     onItemClick?: (key: React.Key, itemIndex: number) => void;
     onItemDoubleClick?: (key: React.Key, itemIndex: number) => void;
-    onSelectionChange?: (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => void;
-    multiSelect: boolean;
-    selection: Array<React.Key>;
+    onSelection?: (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => void;
+    selectionMode?: ListBoxSelectionMode;
+    selection?: Array<React.Key>;
     style?: Object;
     itemStyle?: Object;
 }
@@ -22,20 +28,26 @@ export class ListBox extends React.Component<IListBoxProps, any> {
     }
 
     handleClick(itemIndex, key: string|number) {
-        if (this.props.onSelectionChange) {
+        if (this.props.onSelection) {
+            const selectionMode = this.props.selectionMode || ListBoxSelectionMode.SINGLE;
             let newSelection;
             if (this.props.selection) {
-                newSelection = this.props.selection.slice();
                 const itemIndex = this.props.selection.findIndex(k => k === key);
                 if (itemIndex >= 0) {
+                    newSelection = this.props.selection.slice();
                     delete newSelection[itemIndex];
                 } else {
-                    newSelection.push(key);
+                    if (selectionMode === ListBoxSelectionMode.SINGLE) {
+                        newSelection = [key];
+                    } else {
+                        newSelection = this.props.selection.slice();
+                        newSelection.push(key);
+                    }
                 }
             } else {
                 newSelection = [key];
             }
-            this.props.onSelectionChange(this.props.selection, newSelection);
+            this.props.onSelection(this.props.selection, newSelection);
         }
         if (this.props.onItemClick) {
             this.props.onItemClick(key, itemIndex);
@@ -52,13 +64,13 @@ export class ListBox extends React.Component<IListBoxProps, any> {
         // see http://www.w3schools.com/css/tryit.asp?filename=trycss_list-style-border
         const border = '1px solid #ddd';
         const listStyle = Object.assign({
-            listStyleType: 'none',
-            padding: 0,
-            border
+            //listStyleType: 'none',
+            //padding: 0,
+            //border
         }, this.props.style || {});
         const normalItemStyle = Object.assign({
-            padding: '0.4em',
-            borderBottom: border,
+            //padding: '0.4em',
+            //borderBottom: border,
         }, this.props.itemStyle || {});
         const selectedItemStyle = Object.assign({}, normalItemStyle, {});
 
@@ -74,6 +86,7 @@ export class ListBox extends React.Component<IListBoxProps, any> {
                 <li key={key}
                     onClick={() => this.handleClick(itemIndex, key)}
                     onDoubleClick={() => this.handleDoubleClick(itemIndex, key)}
+                    className={selection.has(key) ? 'cate-selected' : null}
                     style={itemStyle}>
                     {item}
                 </li>
@@ -81,7 +94,7 @@ export class ListBox extends React.Component<IListBoxProps, any> {
         }
 
         return (
-            <ul style={listStyle}>
+            <ul className="cate-list-box" style={listStyle}>
                 {items}
             </ul>
         );

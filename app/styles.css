@@ -89,6 +89,34 @@ input, button, textarea, :focus {
 }
 
 
+.cate-list-box {
+    list-style-type: none;
+    padding: 0;
+    /* blueprint's @dark-grey1 */
+    border: 1px solid #182026;
+    /* blueprint's @dark-grey3 */
+    background-color: #293742;
+}
+
+.cate-list-box li {
+    padding: 0.3em 0.6em;
+    /* blueprint's @dark-grey1 */
+    border-bottom: 1px solid #182026;
+}
+
+.cate-list-box li:last-child {
+    border-bottom: none
+}
+
+.cate-list-box li:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+ul.cate-list-box li.cate-selected {
+    background-color: rgba(128, 128, 255, 0.6);
+}
+
+
 .cate-split-pane-hor {
     width: 100%;
     display: flex;

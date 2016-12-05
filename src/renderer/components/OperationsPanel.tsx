@@ -7,6 +7,7 @@ import {setSelectedOperationName, setOperationFilterTags, setOperationFilterExpr
 import {SplitPane} from "../containers/SplitPane";
 import {Popover, Position, Menu, MenuItem, InputGroup, Classes, Tag, Intent} from "@blueprintjs/core";
 import FormEvent = React.FormEvent;
+import {ListBox, ListBoxSelectionMode} from "./ListBox";
 
 
 function mapStateToProps(state: State) {
@@ -196,13 +197,11 @@ class OperationsPanel extends React.Component<any, any> {
 
 
     private renderOperationsTable(operations: Array<OperationState>) {
-        const renderNameCell = (rowIndex: number) => {
-            const operation: OperationState = operations[rowIndex];
-            return <Cell>{operation.name}</Cell>
-        };
+        const renderItem = (itemIndex: number) => {
+            const operation: OperationState = operations[itemIndex];
 
-        const renderTypeCell = (rowIndex: number) => {
-            const operation: OperationState = operations[rowIndex];
+            const name = operation.name;
+
             let dataType;
             if (!operation.outputs.length) {
                 dataType = '';
@@ -211,45 +210,30 @@ class OperationsPanel extends React.Component<any, any> {
             } else {
                 dataType = `${operation.outputs.length} types`;
             }
-            return <Cell>{dataType}</Cell>
+
+            return <span>{name} <span style={{color: 'rgba(0,255,0,0.8)', fontSize: '0.8em'}}>{dataType}</span></span>
         };
 
-        const renderTagsCell = (rowIndex: number) => {
-            const operation: OperationState = operations[rowIndex];
-            let tags;
-            if (!operation.tags) {
-                tags = '';
+        const handleOperationSelection = (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => {
+            console.log('newSelection: ', newSelection);
+            if (newSelection.length > 0) {
+                this.props.dispatch(setSelectedOperationName(newSelection[0] as string));
             } else {
-                tags = operation.tags.join();
+                this.props.dispatch(setSelectedOperationName(null));
             }
-            return <Cell>{tags}</Cell>
         };
 
-        const handleOperationSelection = (selectedRegions: IRegion[]) => {
-            let selectedOperationName;
-            if (selectedRegions && selectedRegions.length > 0 && selectedRegions[0].rows) {
-                const index = selectedRegions[0].rows[0];
-                selectedOperationName = operations[index].name;
-            } else {
-                selectedOperationName = null;
-            }
-            if (this.props.selectedOperationName !== selectedOperationName) {
-                this.props.dispatch(setSelectedOperationName(selectedOperationName));
-            }
-        };
+        const selectedOperationName = this.props.selectedOperationName;
 
         return (
-            <Table numRows={operations.length}
-                   allowMultipleSelection={false}
-                   selectionModes={SelectionModes.ROWS_AND_CELLS}
-                   isRowHeaderShown={false}
-                   isColumnResizable={true}
-                   isRowResizable={false}
-                   onSelection={handleOperationSelection.bind(this)}>
-                <Column name="Name" renderCell={renderNameCell}/>
-                <Column name="Type" renderCell={renderTypeCell}/>
-                <Column name="Tags" renderCell={renderTagsCell}/>
-            </Table>
+            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+                <ListBox numItems={operations.length}
+                         getItemKey={index => operations[index].name}
+                         renderItem={renderItem}
+                         selectionMode={ListBoxSelectionMode.SINGLE}
+                         selection={selectedOperationName ? [selectedOperationName] : []}
+                         onSelection={handleOperationSelection.bind(this)}/>
+            </div>
         );
     }
 }
