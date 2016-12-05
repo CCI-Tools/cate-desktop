@@ -62,6 +62,8 @@ const initialControlState: ControlState = {
     selectedOperationName: null,
     operationFilterTags: [],
     operationFilterExpr: '',
+    selectedWorkflowStepId: null,
+    selectedWorkflowResourceId: null,
 };
 
 const controlReducer = (state: ControlState = initialControlState, action) => {

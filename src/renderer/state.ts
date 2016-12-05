@@ -90,7 +90,29 @@ export interface WorkspaceState {
     path: null;
     isOpen: boolean;
     isSaved: boolean;
-    workflow?: any;
+    files: Array<WorkspaceFile>;
+    workflow: WorkflowState;
+}
+
+export interface WorkflowState {
+    resources: Array<WorkflowResourceState>;
+    steps: Array<WorkflowStepState>;
+}
+
+export interface WorkspaceFile {
+    id: string;
+    type: string;
+    path: string;
+}
+
+export interface WorkflowResourceState {
+    id: string;
+    type: string;
+}
+
+export interface WorkflowStepState {
+    id: string;
+    type: string;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,11 +133,18 @@ export interface CommunicationState {
  * URL or in the HTML5 History API.
  */
 export interface ControlState {
+    // DatasetsPanel
     selectedDataStoreIndex: number;
     selectedDataSourceIndex: number;
-    selectedOperationName: string;
+
+    // OperationsPanel
+    selectedOperationName: string|null;
     operationFilterTags: Array<string>;
     operationFilterExpr: string;
+
+    // WorkspacePanel
+    selectedWorkflowStepId: string|null;
+    selectedWorkflowResourceId: string|null;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
