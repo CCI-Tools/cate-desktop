@@ -19,6 +19,10 @@ const initialDataState: DataState = {
 
 const dataReducer = (state: DataState = initialDataState, action) => {
     switch (action.type) {
+        case actions.APPLY_INITIAL_STATE:
+            return Object.assign({}, state, {
+                appConfig: Object.assign({}, action.payload.appConfig)
+            });
         case actions.SET_WEBAPI_STATUS: {
             const webAPIClient = action.payload.webAPIClient;
             return Object.assign({}, state, {

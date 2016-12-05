@@ -35,6 +35,7 @@ function connectWebAPIClient(store: Store<State>) {
     store.dispatch(actions.setWebAPIStatus(null, 'connecting'));
 
     const webAPIConfig = store.getState().data.appConfig.webAPIConfig;
+    console.log('webAPIConfig:', webAPIConfig);
     let webAPIClient;
     if (webAPIConfig.disabled !== true && webAPIConfig.webSocketUrl) {
         webAPIClient = newWebAPIClient(webAPIConfig.webSocketUrl);

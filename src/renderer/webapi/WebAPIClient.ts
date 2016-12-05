@@ -177,6 +177,7 @@ class WebAPIClientImpl implements WebAPIClient {
     }
 
     sendMessage(request: JobRequest) {
+        console.log('WebAPIClient.sendMessage: request=', request)
         const message = Object.assign({}, {jsonrpc: "2.0"}, request);
         const messageText = JSON.stringify(message);
         this.socket.send(messageText);
@@ -187,11 +188,11 @@ class WebAPIClientImpl implements WebAPIClient {
         try {
             message = JSON.parse(messageText);
         } catch (err) {
-            this.warn(`Received invalid JSON content from Cate WebAPI:\n--------------------\n${messageText}\n--------------------`);
+            this.warn(`Received invalid JSON content from Cate WebAPI. Ignoring it.\n--------------------\n${messageText}\n--------------------`);
             return;
         }
         if (message.jsonrcp !== '2.0' || typeof message.id !== 'number') {
-            this.warn(`Received invalid Cate WebAPI message (id: ${message.id}). Ignoring it.`);
+            this.warn(`Received invalid Cate WebAPI message (id: ${message.id}). Ignoring it.\n--------------------\n${messageText}\n--------------------`);
             return;
         }
 
@@ -228,15 +229,15 @@ class WebAPIClientImpl implements WebAPIClient {
 
 class JobImpl implements Job {
 
-    private webAPI: WebAPIClientImpl;
+    private webAPIClient: WebAPIClientImpl;
     private request: JobRequest;
     private status: JobStatus;
     private onProgress: JobProgressHandler;
     private onResolve: JobResponseHandler;
     private onReject: JobFailureHandler;
 
-    constructor(webAPI: WebAPIClientImpl, request: JobRequest) {
-        this.webAPI = webAPI;
+    constructor(webAPIClient: WebAPIClientImpl, request: JobRequest) {
+        this.webAPIClient = webAPIClient;
         this.request = request;
         this.status = JobStatus.NEW;
     }
@@ -255,7 +256,7 @@ class JobImpl implements Job {
 
     cancel(onResolve?: JobResponseHandler,
            onReject?: JobFailureHandler): Promise<JobResponse> {
-        return this.webAPI.call(CANCEL_METHOD, {jobId: this.request.id})
+        return this.webAPIClient.call(CANCEL_METHOD, {jobId: this.request.id})
             .then(onResolve || (() => {
                 }), onReject || (() => {
                 }));
@@ -289,7 +290,7 @@ class JobImpl implements Job {
     }
 
     private sendMessage() {
-        this.webAPI.sendMessage(this.request);
+        this.webAPIClient.sendMessage(this.request);
     }
 
     private setStatus(status: JobStatus) {

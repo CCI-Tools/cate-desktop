@@ -12,7 +12,7 @@ export const SET_OPERATION_FILTER_TAGS = 'SET_OPERATION_FILTER_TAGS';
 export const SET_OPERATION_FILTER_EXPR = 'SET_OPERATION_FILTER_EXPR';
 
 export function applyInitialState(initialState: Object) {
-    return {type: APPLY_INITIAL_STATE, payload: {initialState}};
+    return {type: APPLY_INITIAL_STATE, payload: initialState};
 }
 
 export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting'|'open'|'error'|'closed') {

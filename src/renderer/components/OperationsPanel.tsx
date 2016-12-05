@@ -28,11 +28,7 @@ function mapStateToProps(state: State) {
 class OperationsPanel extends React.Component<any, any> {
 
     render() {
-        const allOperations = this.props.operations;
-        if (!allOperations || !allOperations.length) {
-            return <p>No operations found.</p>;
-        }
-
+        const allOperations = this.props.operations || [];
         const operationFilterTags = new Set<string>(this.props.operationFilterTags);
         const operationFilterExpr = this.props.operationFilterExpr;
         const selectedOperation = this.props.selectedOperationName
@@ -60,20 +56,30 @@ class OperationsPanel extends React.Component<any, any> {
             value={operationFilterExpr}
         />);
 
-        const operationTagFilterPanel = this.renderOperationTagFilterPanel(allOperations, operationFilterTags);
-        const operationsTable = this.renderOperationsTable(filteredOperations);
-        const operationDetailsCard = this.renderOperationDetailsCard(selectedOperation);
+        if (allOperations.length > 0) {
+            const operationTagFilterPanel = this.renderOperationTagFilterPanel(allOperations, operationFilterTags);
+            const operationsTable = this.renderOperationsTable(filteredOperations);
+            const operationDetailsCard = this.renderOperationDetailsCard(selectedOperation);
 
-        return (
-            <ExpansionPanel icon="pt-icon-function" text="Operations" isExpanded={true} defaultHeight={300}>
-                {operationFilterExprInput}
-                {operationTagFilterPanel}
-                <SplitPane direction="ver" initialSize={150}>
-                    {operationsTable}
-                    {operationDetailsCard}
-                </SplitPane>
-            </ExpansionPanel>
-        );
+            return (
+                <ExpansionPanel icon="pt-icon-function" text="Operations" isExpanded={true} defaultHeight={300}>
+                    {operationFilterExprInput}
+                    {operationTagFilterPanel}
+                    <SplitPane direction="ver" initialSize={150}>
+                        {operationsTable}
+                        {operationDetailsCard}
+                    </SplitPane>
+                </ExpansionPanel>
+            );
+        } else {
+            const noOperationsMessage = this.renderNoOperationsMessage();
+
+            return (
+                <ExpansionPanel icon="pt-icon-function" text="Operations" isExpanded={true} defaultHeight={300}>
+                    {noOperationsMessage}
+                </ExpansionPanel>
+            );
+        }
     }
 
     private handleOperationFilterExprChange(event) {
@@ -195,6 +201,16 @@ class OperationsPanel extends React.Component<any, any> {
             </div>);
     }
 
+    //noinspection JSMethodCanBeStatic
+    private renderNoOperationsMessage() {
+        return (
+            <div style={{padding: 6, overflowY: 'auto', flex: 'auto', maxHeight: '100%'}}>
+                <div className="pt-card pt-elevation-2">
+                    <h5>No operations found!</h5>
+                    <p>This is very likely a configuration error, please check the logs of the Cate WebAPI service.</p>
+                </div>
+            </div>);
+    }
 
     private renderOperationsTable(operations: Array<OperationState>) {
         const renderItem = (itemIndex: number) => {

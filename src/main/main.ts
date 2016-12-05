@@ -109,7 +109,7 @@ function loadUserPrefs(): Configuration {
 }
 
 
-function getWebapiCommonArgs(webAPIConfig) {
+function getWebAPICommonArgs(webAPIConfig) {
     return [
         '--caller', 'cate-desktop',
         '--port', webAPIConfig.servicePort,
@@ -119,19 +119,19 @@ function getWebapiCommonArgs(webAPIConfig) {
 }
 
 
-function getWebapiStartArgs(webAPIConfig) {
-    return getWebapiCommonArgs(webAPIConfig).concat('start');
+function getWebAPIStartArgs(webAPIConfig) {
+    return getWebAPICommonArgs(webAPIConfig).concat('start');
 }
 
-function getWebapiStopArgs(webAPIConfig) {
-    return getWebapiCommonArgs(webAPIConfig).concat('stop');
+function getWebAPIStopArgs(webAPIConfig) {
+    return getWebAPICommonArgs(webAPIConfig).concat('stop');
 }
 
-function getWebapiHttpUrl(webAPIConfig) {
+function getWebAPIRestUrl(webAPIConfig) {
     return `http://${webAPIConfig.serviceAddress || 'localhost'}:${webAPIConfig.servicePort}/`;
 }
 
-function getWebapiWebSocketsUrl(webAPIConfig) {
+function getWebAPIWebSocketsUrl(webAPIConfig) {
     return `ws://${webAPIConfig.serviceAddress || 'localhost'}:${webAPIConfig.servicePort}/app`;
 }
 
@@ -164,7 +164,7 @@ export function init() {
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
     function startWebapiService(): child_process.ChildProcess {
-        const webAPIStartArgs = getWebapiStartArgs(webAPIConfig);
+        const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
         const webAPIProcess = child_process.spawn(webAPIConfig.command, webAPIStartArgs, webAPIConfig.processOptions);
         webAPIStarted = true;
         webAPIProcess.stdout.on('data', (data: any) => {
@@ -200,7 +200,7 @@ export function init() {
 
     function stopWebapiService() {
         // Note we are async here, because sync can take a lot of time...
-        const webAPIStopArgs = getWebapiStopArgs(webAPIConfig);
+        const webAPIStopArgs = getWebAPIStopArgs(webAPIConfig);
         child_process.spawn(webAPIConfig.command, webAPIStopArgs, webAPIConfig.processOptions);
         // child_process.spawnSync(webAPIConfig.command, webAPIStopArgs, webAPIConfig.options);
     }
@@ -209,9 +209,9 @@ export function init() {
         const msTimeout = 5000; // ms
         const msDelay = 500; // ms
         let msSpend = 0; // ms
-        request(getWebapiHttpUrl(_config.data.webapiConfig))
+        request(getWebAPIRestUrl(_config.data.webAPIConfig))
             .then((response: string) => {
-                console.log(CATE_WEBAPI_PREFIX, `resonse: ${response}`);
+                console.log(CATE_WEBAPI_PREFIX, `response: ${response}`);
                 createMainWindow();
             })
             .catch((err) => {
@@ -330,13 +330,16 @@ function createMainWindow() {
         console.log(CATE_DESKTOP_PREFIX, 'Main window UI loaded.');
         if (_splashWindow) {
             _splashWindow.close();
+
+            const webAPIConfig = _config.data.webAPIConfig;
+            console.log();
             _mainWindow.webContents.send('apply-initial-state', {
                 session: _prefs.data,
                 appConfig: Object.assign({}, _config.data, {
                     appPath: app.getAppPath(),
-                    webAPIConfig: Object.assign({}, _config.data.webAPIConfig, {
-                        restUrl: getWebapiHttpUrl(_config.data.webAPIConfig),
-                        webSocketUrl: getWebapiWebSocketsUrl(_config.data.webAPIConfig),
+                    webAPIConfig: Object.assign({}, webAPIConfig, {
+                        restUrl: getWebAPIRestUrl(webAPIConfig),
+                        webSocketUrl: getWebAPIWebSocketsUrl(webAPIConfig),
                     }),
                 })
             });

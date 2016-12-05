@@ -27,39 +27,45 @@ function mapStateToProps(state: State) {
 class DatasetsPanel extends React.Component<any, any> {
 
     render() {
-        const dataStores = this.props.dataStores;
-        if (!dataStores || !dataStores.length) {
-            return <p>No data stores found.</p>;
-        }
-
+        const dataStores = this.props.dataStores || [];
         let selectedDataStoreIndex = this.props.selectedDataStoreIndex;
         let selectedDataSourceIndex = this.props.selectedDataSourceIndex;
 
         let dataSources;
-        if (selectedDataStoreIndex >= 0) {
+        if (selectedDataStoreIndex >= 0 && selectedDataStoreIndex < dataStores.length) {
             dataSources = dataStores[selectedDataStoreIndex].dataSources;
         } else {
+            dataSources = [];
             selectedDataStoreIndex = null;
         }
 
         let selectedDataSource;
-        if (dataSources && selectedDataSourceIndex >= 0) {
+        if (selectedDataSourceIndex >= 0 && selectedDataSourceIndex < dataSources.length) {
             selectedDataSource = dataSources[selectedDataSourceIndex];
         }
 
-        const dataStoreSelector = this.renderDataStoreSelector(dataStores, selectedDataStoreIndex);
-        const dataSourcesTable = this.renderDataSourcesTable(dataSources);
-        const dataSourceDetailsCard = this.renderDataSourceDetails(selectedDataSource);
+        if (dataStores.length > 0) {
+            const dataStoreSelector = this.renderDataStoreSelector(dataStores, selectedDataStoreIndex);
+            const dataSourcesTable = this.renderDataSourcesTable(dataSources);
+            const dataSourceDetailsCard = this.renderDataSourceDetails(selectedDataSource);
 
-        return (
-            <ExpansionPanel icon="pt-icon-database" text="Datasets" isExpanded={true} defaultHeight={400}>
-                {dataStoreSelector}
-                <SplitPane direction="ver" initialSize={200}>
-                    {dataSourcesTable}
-                    {dataSourceDetailsCard}
-                </SplitPane>
-            </ExpansionPanel>
-        );
+            return (
+                <ExpansionPanel icon="pt-icon-database" text="Datasets" isExpanded={true} defaultHeight={400}>
+                    {dataStoreSelector}
+                    <SplitPane direction="ver" initialSize={200}>
+                        {dataSourcesTable}
+                        {dataSourceDetailsCard}
+                    </SplitPane>
+                </ExpansionPanel>
+            );
+        } else {
+            const noDataStoreMessage = this.renderNoDataStoreMessage();
+            return (
+                <ExpansionPanel icon="pt-icon-database" text="Datasets" isExpanded={true} defaultHeight={400}>
+                    {noDataStoreMessage}
+                </ExpansionPanel>
+            );
+        }
     }
 
     private renderDataStoreSelector(dataStores: Array<DataStoreState>, selectedDataStoreIndex: number) {
@@ -155,6 +161,16 @@ class DatasetsPanel extends React.Component<any, any> {
             </div>);
     }
 
+    //noinspection JSMethodCanBeStatic
+    private renderNoDataStoreMessage() {
+        return (
+            <div style={{padding: 6, overflowY: 'auto'}}>
+                <div className="pt-card pt-elevation-2">
+                    <h5>No data stores found!</h5>
+                    <p>This is very likely a configuration error, please check the logs of the Cate WebAPI service.</p>
+                </div>
+            </div>);
+    }
 }
 
 export default connect(mapStateToProps)(DatasetsPanel);
