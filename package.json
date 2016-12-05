@@ -59,6 +59,7 @@
     "electron-prebuilt": "1.4.5",
     "enzyme": "^2.6.0",
     "mocha": "^3.1.2",
+    "ncp": "^2.0.0",
     "openlayers": "^3.19.1",
     "react": "^15.4.0",
     "react-addons-css-transition-group": "^15.4.0",
