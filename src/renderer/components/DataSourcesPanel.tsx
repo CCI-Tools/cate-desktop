@@ -36,7 +36,9 @@ class DataSourcesPanel extends React.Component<any, any> {
         let dataSources;
         if (selectedDataStoreId) {
             dataStore = dataStores.find(dataStore => dataStore.id === selectedDataStoreId);
-            dataSources = dataStore.dataSources;
+            if (dataStore) {
+                dataSources = dataStore.dataSources;
+            }
         }
 
         let dataSource;
@@ -46,14 +48,14 @@ class DataSourcesPanel extends React.Component<any, any> {
 
         if (dataStores.length > 0) {
             const dataStoreSelector = this.renderDataStoreSelector(dataStores, selectedDataStoreId);
-            const dataSourcesTable = this.renderDataSourcesList(dataSources, selectedDataSourceId);
+            const dataSourcesList = this.renderDataSourcesList(dataSources, selectedDataSourceId);
             const dataSourceDetailsCard = this.renderDataSourceDetails(dataSource);
 
             return (
                 <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
                     {dataStoreSelector}
                     <SplitPane direction="ver" initialSize={200}>
-                        {dataSourcesTable}
+                        {dataSourcesList}
                         {dataSourceDetailsCard}
                     </SplitPane>
                 </ExpansionPanel>

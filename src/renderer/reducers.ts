@@ -73,18 +73,24 @@ const initialControlState: ControlState = {
 
 const controlReducer = (state: ControlState = initialControlState, action) => {
     switch (action.type) {
-        case actions.UPDATE_DATA_STORES:
+        case actions.UPDATE_DATA_STORES: {
+            const dataStores = action.payload.dataStores;
             return Object.assign({}, state, {
-                selectedDataStoreId: (action.payload.dataStores.length > 0) ? 0 : -1
+                selectedDataStoreId: (dataStores && dataStores.length) ? dataStores[0].id : null
             });
-        case actions.UPDATE_DATA_SOURCES:
+        }
+        case actions.UPDATE_DATA_SOURCES: {
+            const dataSources = action.payload.dataSources;
             return Object.assign({}, state, {
-                selectedDataSourceId: (action.payload.dataSources.length > 0) ? 0 : -1
+                selectedDataSourceId: (dataSources && dataSources.length) ? dataSources[0].id : null
             });
-        case actions.UPDATE_OPERATIONS:
+        }
+        case actions.UPDATE_OPERATIONS: {
+            const operations = action.payload.operations;
             return Object.assign({}, state, {
-                selectedOperationName: (action.payload.operations.length > 0) ? 0 : -1
+                selectedOperationName: (operations && operations.length) ? operations[0].name : null
             });
+        }
         case actions.SET_SELECTED_DATA_STORE_ID:
         case actions.SET_SELECTED_DATA_SOURCE_ID:
         case actions.SET_SELECTED_OPERATION_NAME:

@@ -43,19 +43,33 @@ function connectWebAPIClient(store: Store<State>) {
         webAPIClient = newWebAPIClient('ws://mock', 0, new WebSocketMock(100, new WebAPIServiceMock()));
     }
 
+    // TODO (nf): this code can take considerable time and is executed BEFORE the window UI shows up
+    //            we urgently need to display some progress indicator beforehand.
     webAPIClient.onOpen = () => {
         store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
         const datasetAPI = new DatasetAPI(webAPIClient);
         const operationAPI = new OperationAPI(webAPIClient);
+
+        // Get data stores from remote
         datasetAPI.getDataStores().then((dataStores: Array<DataStoreState>) => {
             store.dispatch(actions.updateDataStores(dataStores));
-            let selectedDataStoreId = store.getState().control.selectedDataStoreId;
-            if (selectedDataStoreId) {
-                datasetAPI.getDataSources(selectedDataStoreId).then((dataSources => {
-                    store.dispatch(actions.updateDataSources(selectedDataStoreId, dataSources));
-                }));
+            const selectedDataStoreId = store.getState().control.selectedDataStoreId;
+            if (dataStores && selectedDataStoreId) {
+                const dataStore = dataStores.find(dataStore => dataStore.id === selectedDataStoreId);
+                if (dataStore && !dataStore.dataSources) {
+
+                    // Get data sources from remote
+                    datasetAPI.getDataSources(dataStore.id).then(dataSources => {
+                        store.dispatch(actions.updateDataSources(dataStore.id, dataSources));
+                    }).catch(error => {
+                        // what to do?
+                        console.error(error);
+                    });
+                }
             }
         });
+
+        // Get operations from remote
         operationAPI.getOperations().then(operations => {
             store.dispatch(actions.updateOperations(operations));
         });
@@ -70,6 +84,6 @@ function connectWebAPIClient(store: Store<State>) {
     };
 
     webAPIClient.onWarning = (event) => {
-        console.warn(`cate-webapi: ${event.message}`);
+        console.warn(`cate-desktop: warning from cate-webapi: ${event.message}`);
     };
 }
