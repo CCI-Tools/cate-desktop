@@ -161,6 +161,8 @@ export function init() {
     // Remember error occurred so
     let webAPIError = null;
 
+    let webAPIProcess = null;
+
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
@@ -200,7 +202,10 @@ export function init() {
         return webAPIProcess;
     }
 
-    function stopWebapiService() {
+    function stopWebapiService(webAPIProcess) {
+        if (!webAPIProcess) {
+            return;
+        }
         // Note we are async here, because sync can take a lot of time...
         const webAPIStopArgs = getWebAPIStopArgs(webAPIConfig);
         child_process.spawn(webAPIConfig.command, webAPIStopArgs, webAPIConfig.processOptions);
@@ -218,7 +223,7 @@ export function init() {
             })
             .catch((err) => {
                 if (!webAPIStarted) {
-                    startWebapiService();
+                    webAPIProcess = startWebapiService();
                 }
                 if (msSpend > msTimeout) {
                     let message = `Failed to start Cate WebAPI service within ${msSpend} ms.`;
@@ -251,7 +256,7 @@ export function init() {
     app.on('quit', () => {
         console.log(CATE_DESKTOP_PREFIX, 'Quit.');
         if (!webAPIConfig.disabled) {
-            stopWebapiService();
+            stopWebapiService(webAPIProcess);
         }
     });
 
