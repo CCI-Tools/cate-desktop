@@ -8,6 +8,7 @@ import {SplitPane} from "../containers/SplitPane";
 import {Popover, Position, Menu, MenuItem, InputGroup, Classes, Tag, Intent} from "@blueprintjs/core";
 import FormEvent = React.FormEvent;
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
+import {Card} from "./Card";
 
 
 function mapStateToProps(state: State) {
@@ -152,7 +153,8 @@ class OperationsPanel extends React.Component<any, any> {
         tagCounts.forEach((tagCount, tagName) => {
             if (!selectedOperationTags.has(tagName)) {
                 tagMenuItems.push(
-                    <MenuItem key={tagName} text={`${tagName} (${tagCount})`} onClick={() => this.addTagName.bind(this)(tagName)}/>);
+                    <MenuItem key={tagName} text={`${tagName} (${tagCount})`}
+                              onClick={() => this.addTagName.bind(this)(tagName)}/>);
             }
         });
 
@@ -161,7 +163,7 @@ class OperationsPanel extends React.Component<any, any> {
             const tagMenu = (<Menu>{tagMenuItems}</Menu>);
             addTagButton = (
                 <Popover content={tagMenu} position={Position.RIGHT_BOTTOM} useSmartPositioning={true}>
-                    <Tag  intent={Intent.SUCCESS}  className="pt-icon-small-plus" style={tagStyle}/>
+                    <Tag intent={Intent.SUCCESS} className="pt-icon-small-plus" style={tagStyle}/>
                 </Popover>
             );
         }
@@ -209,7 +211,8 @@ class OperationsPanel extends React.Component<any, any> {
                     outputs = (<p><b>Returns:</b> {`: (${output.dataType}) `}{output.description}</p>);
                 } else {
                     const outputElems = operation.outputs.map(output => (
-                        <li key={output.name}><i>{output.name}</i>{`: (${output.dataType}) `}{output.description}</li>));
+                        <li key={output.name}><i>{output.name}</i>{`: (${output.dataType}) `}{output.description}
+                        </li>));
                     outputs = (
                         <div><p><b>Outputs:</b></p>
                             <ul>{outputElems}</ul>
@@ -230,26 +233,26 @@ class OperationsPanel extends React.Component<any, any> {
         }
 
         return (
-            <div style={{padding: 6, overflowY: 'auto', flex: 'auto', maxHeight: '100%'}}>
-                <div className="pt-card pt-elevation-2">
-                    <h5>{title}</h5>
-                    {description}
-                    {tags}
-                    {outputs}
-                    {inputs}
-                </div>
-            </div>);
+            <Card>
+                <h5>{title}</h5>
+                {description}
+                {tags}
+                {outputs}
+                {inputs}
+            </Card>
+        );
     }
 
     //noinspection JSMethodCanBeStatic
     private renderNoOperationsMessage() {
         return (
-            <div style={{padding: 6, overflowY: 'auto', flex: 'auto', maxHeight: '100%'}}>
-                <div className="pt-card pt-elevation-2">
-                    <h5>No operations found!</h5>
-                    <p>This is very likely a configuration error, please check the logs of the Cate WebAPI service.</p>
-                </div>
-            </div>);
+            <Card>
+                <p>
+                    <strong>No operations found!</strong>
+                    This is very likely a configuration error,
+                    please check the logs of the Cate WebAPI service.
+                </p>
+            </Card>);
     }
 
 }

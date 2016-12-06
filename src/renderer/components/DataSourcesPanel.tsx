@@ -8,6 +8,7 @@ import {DatasetAPI} from '../webapi';
 import {SplitPane} from "../containers/SplitPane";
 import {Tabs, TabList, Tab, TabPanel} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
+import {Card} from "./Card";
 
 
 function mapStateToProps(state: State) {
@@ -206,24 +207,14 @@ class DataSourcesPanel extends React.Component<any, any> {
         }
 
         let metaInfoPanel;
-        if (metaInfo)
-            metaInfoPanel = (
-                <div style={{padding: 6, overflow: 'auto'}}>
-                    <div className="pt-card pt-elevation-2">
-                        {metaInfo}
-                    </div>
-                </div>
-            );
+        if (metaInfo) {
+            metaInfoPanel = (<Card>{metaInfo}</Card>);
+        }
 
         let variablesPanel;
-        if (variables)
-            variablesPanel = (
-                <div style={{padding: 6, overflow: 'auto'}}>
-                    <div className="pt-card pt-elevation-2">
-                        {variables}
-                    </div>
-                </div>
-            );
+        if (variables) {
+            variablesPanel = (<Card>{variables}</Card>);
+        }
 
         if (metaInfoPanel && variablesPanel) {
             return (
@@ -246,11 +237,9 @@ class DataSourcesPanel extends React.Component<any, any> {
             return variablesPanel;
         } else {
             return (
-                <div style={{padding: 6, overflow: 'auto'}}>
-                    <div className="pt-card pt-elevation-2">
-                        <p>No meta-information available.</p>
-                    </div>
-                </div>
+                <Card>
+                    <p>No meta-information available.</p>
+                </Card>
             );
         }
     }
@@ -258,12 +247,13 @@ class DataSourcesPanel extends React.Component<any, any> {
     //noinspection JSMethodCanBeStatic
     private renderNoDataStoreMessage() {
         return (
-            <div style={{padding: 6, overflow: 'auto'}}>
-                <div className="pt-card pt-elevation-2">
-                    <h5>No data stores found!</h5>
-                    <p>This is very likely a configuration error, please check the logs of the Cate WebAPI service.</p>
-                </div>
-            </div>
+            <Card>
+                <p>
+                    <strong>No data sources found!</strong>
+                    This is very likely a configuration error,
+                    please check the logs of the Cate WebAPI service.
+                </p>
+            </Card>
         );
     }
 }
