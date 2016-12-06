@@ -6,12 +6,19 @@ import {Table, Column, Cell, SelectionModes, IRegion} from "@blueprintjs/table";
 import {setSelectedDataStoreId, updateDataSources, setSelectedDataSourceId} from '../actions'
 import {DatasetAPI} from '../webapi';
 import {SplitPane} from "../containers/SplitPane";
-import {Tabs, TabList, Tab, TabPanel} from "@blueprintjs/core";
+import {Tabs, TabList, Tab, TabPanel, Button} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
 import {Card} from "./Card";
 
+interface IDataSourcesPanelProps {
+    dispatch?: (action: {type: string, payload: any}) => void;
+    webAPIClient: any;
+    dataStores: Array<DataStoreState>;
+    selectedDataStoreId: string|null;
+    selectedDataSourceId: string|null;
+}
 
-function mapStateToProps(state: State) {
+function mapStateToProps(state: State): IDataSourcesPanelProps {
     return {
         webAPIClient: state.data.appConfig.webAPIClient,
         dataStores: state.data.dataStores,
@@ -20,13 +27,12 @@ function mapStateToProps(state: State) {
     };
 }
 
-
 /**
  * The DataSourcesPanel is used browse and open data data sources originating from a selected data store.
  *
  * @author Norman Fomferra
  */
-class DataSourcesPanel extends React.Component<any, any> {
+class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
 
     render() {
         const dataStores = this.props.dataStores || [];
@@ -47,18 +53,27 @@ class DataSourcesPanel extends React.Component<any, any> {
             dataSource = dataSources.find(dataSource => dataSource.id === selectedDataSourceId);
         }
 
-        if (dataStores.length > 0) {
+        if (dataStores && dataStores.length) {
             const dataStoreSelector = this.renderDataStoreSelector(dataStores, selectedDataStoreId);
             const dataSourcesList = this.renderDataSourcesList(dataSources, selectedDataSourceId);
-            const dataSourceDetailsCard = this.renderDataSourceDetails(dataSource);
 
-            return (
-                <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
-                    {dataStoreSelector}
+            let dataSourcesPane;
+            if (dataSourcesList) {
+                const dataSourceDetailsCard = this.renderDataSourceDetails(dataSource);
+                dataSourcesPane = (
                     <SplitPane direction="ver" initialSize={200}>
                         {dataSourcesList}
                         {dataSourceDetailsCard}
                     </SplitPane>
+                );
+            } else {
+                dataSourcesPane = this.renderNoDataSourcesMessage();
+            }
+
+            return (
+                <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
+                    {dataStoreSelector}
+                    {dataSourcesPane}
                 </ExpansionPanel>
             );
         } else {
@@ -72,7 +87,7 @@ class DataSourcesPanel extends React.Component<any, any> {
     }
 
     private renderDataSourcesList(dataSources: Array<DataSourceState>, selectedDataSourceId: string) {
-        if (!dataSources) {
+        if (!dataSources || !dataSources.length) {
             return null;
         }
 
@@ -125,6 +140,11 @@ class DataSourcesPanel extends React.Component<any, any> {
             dataStoreOptions.push(<option key={dataStore.id} value={dataStore.id}>{dataStore.name}</option>);
         }
 
+        const handleOpenButtonClicked = () => {
+            console.log('now opening: ', this.props.selectedDataSourceId);
+        };
+
+
         const handleDataStoreSelection = event => {
             const dataStoreId = event.target.value;
             this.props.dispatch(setSelectedDataStoreId(dataStoreId));
@@ -139,21 +159,27 @@ class DataSourcesPanel extends React.Component<any, any> {
                 datasetAPI.getDataSources(dataStore.id).then(dataSources => {
                     this.props.dispatch(updateDataSources(dataStore.id, dataSources));
                 }).catch(error => {
-                    // ???
+                    // TODO: handle error
                 });
+            } else {
+                this.props.dispatch(setSelectedDataSourceId(dataStore.dataSources.length ? dataStore.dataSources[0].id : null));
             }
         };
 
         return (
-            <label className="pt-label pt-inline">
-                Select store:
-                <div className="pt-select" style={{float:'right'}}>
+            <div style={{display: 'flex', marginBottom: 4, alignItems: 'center'}}>
+                <span>Store </span>
+                <div className="pt-select" style={{flex: 'auto'}}>
                     <select value={selectedDataStoreId || ''}
                             onChange={handleDataStoreSelection.bind(this)}>
                         {dataStoreOptions}
                     </select>
                 </div>
-            </label>
+                <Button className="pt-intent-success"
+                        onClick={handleOpenButtonClicked.bind(this)}
+                        disabled={!this.props.selectedDataSourceId}
+                        iconName="add">Open</Button>
+            </div>
         );
     }
 
@@ -161,11 +187,9 @@ class DataSourcesPanel extends React.Component<any, any> {
     private renderDataSourceDetails(dataSource: DataSourceState) {
         if (!dataSource) {
             return (
-                <div style={{padding: 6, overflow: 'auto'}}>
-                    <div className="pt-card pt-elevation-2">
-                        <p>No data source selected.</p>
-                    </div>
-                </div>
+                <Card>
+                    <p>No data source selected.</p>
+                </Card>
             );
         }
         let metaInfo = null;
@@ -256,8 +280,21 @@ class DataSourcesPanel extends React.Component<any, any> {
     private renderNoDataStoreMessage() {
         return (
             <Card>
+                <p><strong>No data stores found!</strong></p>
                 <p>
-                    <strong>No data sources found!</strong>
+                    This is very likely a configuration error,
+                    please check the logs of the Cate WebAPI service.
+                </p>
+            </Card>
+        );
+    }
+
+    //noinspection JSMethodCanBeStatic
+    private renderNoDataSourcesMessage() {
+        return (
+            <Card>
+                <p><strong>No data sources found!</strong></p>
+                <p>
                     This is very likely a configuration error,
                     please check the logs of the Cate WebAPI service.
                 </p>
