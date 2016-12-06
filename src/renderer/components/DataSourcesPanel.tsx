@@ -76,6 +76,13 @@ class DataSourcesPanel extends React.Component<any, any> {
             return null;
         }
 
+        const defaultIconName = 'cci';
+
+        const handleIconLoadError = img => {
+            img.onError = null;
+            img.src = `resources/images/data-sources/esacci/${defaultIconName}.png`;
+        };
+
         const renderItem = (itemIndex: number) => {
             const dataSource = dataSources[itemIndex];
             // TODO: compute icon size based on screen resolution
@@ -85,7 +92,8 @@ class DataSourcesPanel extends React.Component<any, any> {
             return (
                 <div style={{display:'flex', alignItems: 'center'}}>
                     <img src={`resources/images/data-sources/esacci/${iconName}.png`}
-                         style={{width: imageSize, height: imageSize, flex: 'none', marginRight: 6}}/>
+                         style={{width: imageSize, height: imageSize, flex: 'none', marginRight: 6}}
+                         onError={handleIconLoadError}/>
                     <span>{displayName}</span>
                 </div>
             );
