@@ -247,8 +247,8 @@ class OperationsPanel extends React.Component<any, any> {
     private renderNoOperationsMessage() {
         return (
             <Card>
+                <p><strong>No data operations found!</strong></p>
                 <p>
-                    <strong>No operations found!</strong>
                     This is very likely a configuration error,
                     please check the logs of the Cate WebAPI service.
                 </p>
