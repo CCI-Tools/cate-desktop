@@ -77,7 +77,17 @@ class DataSourcesPanel extends React.Component<any, any> {
 
         const renderItem = (itemIndex: number) => {
             const dataSource = dataSources[itemIndex];
-            return (<span>{dataSource.name}</span>);
+            // TODO: compute icon size based on screen resolution
+            const imageSize = 32;
+            const iconName = ((dataSource.meta_info && dataSource.meta_info.cci_project) || 'cci').toLowerCase();
+            const displayName = dataSource.name.replace('esacci', '').replace(/\./g, ' ');
+            return (
+                <div style={{display:'flex', alignItems: 'center'}}>
+                    <img src={`resources/images/data-sources/esacci/${iconName}.png`}
+                         style={{width: imageSize, height: imageSize, flex: 'none', marginRight: 6}}/>
+                    <span>{displayName}</span>
+                </div>
+            );
         };
 
         const handleDataSourceSelection = (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => {
@@ -154,7 +164,7 @@ class DataSourcesPanel extends React.Component<any, any> {
         if (dataSource.meta_info) {
             const metaInfoItems = Object.keys(dataSource.meta_info).filter(key => key !== 'variables').map(key => {
                 const value = dataSource.meta_info[key];
-                return (<tr>
+                return (<tr key={key}>
                     <td>{key}</td>
                     <td>{value}</td>
                 </tr>);
@@ -163,8 +173,10 @@ class DataSourcesPanel extends React.Component<any, any> {
                 metaInfo = (
                     <table className="pt-table pt-condensed pt-striped">
                         <thead>
-                        <th>Key</th>
-                        <th>Value</th>
+                        <tr>
+                            <th>Key</th>
+                            <th>Value</th>
+                        </tr>
                         </thead>
                         <tbody>{metaInfoItems}</tbody>
                     </table>
@@ -172,7 +184,7 @@ class DataSourcesPanel extends React.Component<any, any> {
             }
             if (dataSource.meta_info.variables) {
                 const variableItems = dataSource.meta_info.variables.map(variable => {
-                    return (<tr>
+                    return (<tr key={variable.name}>
                         <td>{variable.name}</td>
                         <td>{variable.units || '-'}</td>
                     </tr>);
@@ -181,8 +193,10 @@ class DataSourcesPanel extends React.Component<any, any> {
                     variables = (
                         <table className="pt-table pt-condensed pt-striped">
                             <thead>
-                            <th>Name</th>
-                            <th>Units</th>
+                            <tr>
+                                <th>Name</th>
+                                <th>Units</th>
+                            </tr>
                             </thead>
                             <tbody>{variableItems}</tbody>
                         </table>
