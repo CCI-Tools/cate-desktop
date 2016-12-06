@@ -3,57 +3,54 @@ import {connect} from 'react-redux';
 import {ExpansionPanel} from './ExpansionPanel';
 import {State, DataSourceState, DataStoreState} from "../state";
 import {Table, Column, Cell, SelectionModes, IRegion} from "@blueprintjs/table";
-import {setSelectedDataStoreIndex, updateDataSources, setSelectedDataSourceIndex} from '../actions'
+import {setSelectedDataStoreId, updateDataSources, setSelectedDataSourceId} from '../actions'
 import {DatasetAPI} from '../webapi';
 import {SplitPane} from "../containers/SplitPane";
 import {Tabs, TabList, Tab, TabPanel} from "@blueprintjs/core";
+import {ListBox, ListBoxSelectionMode} from "./ListBox";
 
 
 function mapStateToProps(state: State) {
     return {
         webAPIClient: state.data.appConfig.webAPIClient,
         dataStores: state.data.dataStores,
-        selectedDataStoreIndex: state.control.selectedDataStoreIndex,
-        selectedDataSourceIndex: state.control.selectedDataSourceIndex,
+        selectedDataStoreId: state.control.selectedDataStoreId,
+        selectedDataSourceId: state.control.selectedDataSourceId,
     };
 }
 
 
 /**
- * The DatasetsPanel is used to select data stores, browse and select their data sources and to view the details of a
- * data source.
+ * The DataSourcesPanel is used browse and open data data sources originating from a selected data store.
  *
  * @author Norman Fomferra
  */
-class DatasetsPanel extends React.Component<any, any> {
+class DataSourcesPanel extends React.Component<any, any> {
 
     render() {
         const dataStores = this.props.dataStores || [];
-        let selectedDataStoreIndex = this.props.selectedDataStoreIndex;
-        let selectedDataSourceIndex = this.props.selectedDataSourceIndex;
+        const selectedDataStoreId = this.props.selectedDataStoreId;
+        const selectedDataSourceId = this.props.selectedDataSourceId;
 
+        let dataStore;
         let dataSources;
-        if (selectedDataStoreIndex >= 0 && selectedDataStoreIndex < dataStores.length) {
-            dataSources = dataStores[selectedDataStoreIndex].dataSources;
-        } else {
-            selectedDataStoreIndex = null;
-        }
-        if (!dataSources) {
-            dataSources = [];
+        if (selectedDataStoreId) {
+            dataStore = dataStores.find(dataStore => dataStore.id === selectedDataStoreId);
+            dataSources = dataStore.dataSources;
         }
 
-        let selectedDataSource;
-        if (selectedDataSourceIndex >= 0 && selectedDataSourceIndex < dataSources.length) {
-            selectedDataSource = dataSources[selectedDataSourceIndex];
+        let dataSource;
+        if (dataSources && selectedDataSourceId) {
+            dataSource = dataSources.find(dataSource => dataSource.id === selectedDataSourceId);
         }
 
         if (dataStores.length > 0) {
-            const dataStoreSelector = this.renderDataStoreSelector(dataStores, selectedDataStoreIndex);
-            const dataSourcesTable = this.renderDataSourcesTable(dataSources);
-            const dataSourceDetailsCard = this.renderDataSourceDetails(selectedDataSource);
+            const dataStoreSelector = this.renderDataStoreSelector(dataStores, selectedDataStoreId);
+            const dataSourcesTable = this.renderDataSourcesList(dataSources, selectedDataSourceId);
+            const dataSourceDetailsCard = this.renderDataSourceDetails(dataSource);
 
             return (
-                <ExpansionPanel icon="pt-icon-database" text="Datasets" isExpanded={true} defaultHeight={400}>
+                <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
                     {dataStoreSelector}
                     <SplitPane direction="ver" initialSize={200}>
                         {dataSourcesTable}
@@ -64,30 +61,62 @@ class DatasetsPanel extends React.Component<any, any> {
         } else {
             const noDataStoreMessage = this.renderNoDataStoreMessage();
             return (
-                <ExpansionPanel icon="pt-icon-database" text="Datasets" isExpanded={true} defaultHeight={400}>
+                <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
                     {noDataStoreMessage}
                 </ExpansionPanel>
             );
         }
     }
 
-    private renderDataStoreSelector(dataStores: Array<DataStoreState>, selectedDataStoreIndex: number) {
+    private renderDataSourcesList(dataSources: Array<DataSourceState>, selectedDataSourceId: string) {
+        if (!dataSources) {
+            return null;
+        }
+
+        const renderItem = (itemIndex: number) => {
+            const dataSource = dataSources[itemIndex];
+            return (<span>{dataSource.name}</span>);
+        };
+
+        const handleDataSourceSelection = (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => {
+            if (newSelection.length > 0) {
+                this.props.dispatch(setSelectedDataSourceId(newSelection[0] as string));
+            } else {
+                this.props.dispatch(setSelectedDataSourceId(null));
+            }
+        };
+
+        return (
+            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+                <ListBox numItems={dataSources.length}
+                         getItemKey={index => dataSources[index].id}
+                         renderItem={renderItem}
+                         selectionMode={ListBoxSelectionMode.SINGLE}
+                         selection={selectedDataSourceId ? [selectedDataSourceId] : []}
+                         onSelection={handleDataSourceSelection.bind(this)}/>
+            </div>
+        );
+    }
+
+    private renderDataStoreSelector(dataStores: Array<DataStoreState>, selectedDataStoreId: string) {
         const dataStoreOptions = [];
-        for (let i = 0; i < dataStores.length; i++) {
-            const dataStore = dataStores[i];
-            dataStoreOptions.push(<option key={i} value={i}>{dataStore.name}</option>);
+        for (let dataStore of dataStores) {
+            dataStoreOptions.push(<option key={dataStore.id} value={dataStore.id}>{dataStore.name}</option>);
         }
 
         const handleDataStoreSelection = event => {
-            const selectedDataStoreIndex = parseInt(event.target.value);
-            // console.log('selectHandler', selectedIndex);
-            this.props.dispatch(setSelectedDataStoreIndex(selectedDataStoreIndex));
-            const dataStore = this.props.dataStores[selectedDataStoreIndex];
-            const dataSources = dataStore.dataSources;
-            if (!dataSources) {
+            const dataStoreId = event.target.value;
+            this.props.dispatch(setSelectedDataStoreId(dataStoreId));
+            if (!dataStoreId) {
+                return;
+            }
+
+            const dataStore = this.props.dataStores.find(dataStore => dataStore.id === dataStoreId);
+            if (!dataStore.dataSources) {
+                // TODO: before calling into datasetAPI, check if we have a call in progress
                 const datasetAPI = new DatasetAPI(this.props.webAPIClient);
                 datasetAPI.getDataSources(dataStore.id).then(dataSources => {
-                    this.props.dispatch(updateDataSources(selectedDataStoreIndex, dataSources));
+                    this.props.dispatch(updateDataSources(dataStore.id, dataSources));
                 }).catch(error => {
                     // ???
                 });
@@ -96,50 +125,14 @@ class DatasetsPanel extends React.Component<any, any> {
 
         return (
             <label className="pt-label pt-inline">
-                Data store:
+                Select store:
                 <div className="pt-select" style={{float:'right'}}>
-                    <select value={selectedDataStoreIndex >= 0 ? selectedDataStoreIndex : ''}
+                    <select value={selectedDataStoreId || ''}
                             onChange={handleDataStoreSelection.bind(this)}>
                         {dataStoreOptions}
                     </select>
                 </div>
             </label>
-        );
-    }
-
-    private renderDataSourcesTable(dataSources: Array<DataSourceState>) {
-        if (!dataSources) {
-            return null;
-        }
-
-        const renderDataSourceNameCell = (rowIndex: number) => {
-            const dataSource = dataSources[rowIndex];
-            return <Cell>{dataSource.name}</Cell>
-        };
-
-        const handleDataSourceSelection = (selectedRegions: IRegion[]) => {
-            let selectedDataSourceIndex;
-            if (selectedRegions && selectedRegions.length > 0 && selectedRegions[0].rows) {
-                selectedDataSourceIndex = selectedRegions[0].rows[0];
-            } else {
-                selectedDataSourceIndex = -1;
-            }
-            if (this.props.selectedDataSourceIndex !== selectedDataSourceIndex) {
-                this.props.dispatch(setSelectedDataSourceIndex(selectedDataSourceIndex));
-            }
-        };
-
-        return (
-            <Table numRows={dataSources.length}
-                   allowMultipleSelection={false}
-                   selectionModes={SelectionModes.ROWS_AND_CELLS}
-                   isRowHeaderShown={false}
-                   isColumnResizable={false}
-                   isRowResizable={false}
-                   onSelection={handleDataSourceSelection.bind(this)}
-                   defaultColumnWidth={400}>
-                <Column name="Datasets" renderCell={renderDataSourceNameCell}/>
-            </Table>
         );
     }
 
@@ -176,11 +169,10 @@ class DatasetsPanel extends React.Component<any, any> {
                 );
             }
             if (dataSource.meta_info.variables) {
-                const variableItems = Object.keys(dataSource.meta_info.variables).map(key => {
-                    const value = dataSource.meta_info.variables[key];
+                const variableItems = dataSource.meta_info.variables.map(variable => {
                     return (<tr>
-                        <td>{key}</td>
-                        <td>{value.units || '-'}</td>
+                        <td>{variable.name}</td>
+                        <td>{variable.units || '-'}</td>
                     </tr>);
                 });
                 if (variableItems.length > 0) {
@@ -260,4 +252,4 @@ class DatasetsPanel extends React.Component<any, any> {
     }
 }
 
-export default connect(mapStateToProps)(DatasetsPanel);
+export default connect(mapStateToProps)(DataSourcesPanel);

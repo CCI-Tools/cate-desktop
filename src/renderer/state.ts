@@ -133,9 +133,9 @@ export interface CommunicationState {
  * URL or in the HTML5 History API.
  */
 export interface ControlState {
-    // DatasetsPanel
-    selectedDataStoreIndex: number;
-    selectedDataSourceIndex: number;
+    // DataSourcesPanel
+    selectedDataStoreId: string|null;
+    selectedDataSourceId: string|null;
 
     // OperationsPanel
     selectedOperationName: string|null;

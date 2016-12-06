@@ -34,12 +34,13 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             return Object.assign({}, state, {dataStores});
         }
         case actions.UPDATE_DATA_SOURCES: {
-            const dataStoreIndex = action.payload.dataStoreIndex;
-            if (dataStoreIndex < 0 || dataStoreIndex >= state.dataStores.length) {
-                throw Error('illegal data store index: ' + dataStoreIndex);
+            const dataStoreId = action.payload.dataStoreId;
+            const dataStoreIndex = state.dataStores.findIndex(dataStore => dataStore.id === dataStoreId);
+            if (dataStoreIndex < 0) {
+                throw Error('illegal data store ID: ' + dataStoreId);
             }
-            const newDataSources = action.payload.dataSources.slice();
             const oldDataStore = state.dataStores[dataStoreIndex];
+            const newDataSources = action.payload.dataSources.slice();
             const newDataStore = Object.assign({}, oldDataStore, {
                 dataSources: newDataSources,
             });
@@ -61,8 +62,8 @@ const dataReducer = (state: DataState = initialDataState, action) => {
 };
 
 const initialControlState: ControlState = {
-    selectedDataStoreIndex: -1,
-    selectedDataSourceIndex: -1,
+    selectedDataStoreId: null,
+    selectedDataSourceId: null,
     selectedOperationName: null,
     operationFilterTags: [],
     operationFilterExpr: '',
@@ -74,18 +75,18 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
     switch (action.type) {
         case actions.UPDATE_DATA_STORES:
             return Object.assign({}, state, {
-                selectedDataStoreIndex: (action.payload.dataStores.length > 0) ? 0 : -1
+                selectedDataStoreId: (action.payload.dataStores.length > 0) ? 0 : -1
             });
         case actions.UPDATE_DATA_SOURCES:
             return Object.assign({}, state, {
-                selectedDataSourceIndex: (action.payload.dataSources.length > 0) ? 0 : -1
+                selectedDataSourceId: (action.payload.dataSources.length > 0) ? 0 : -1
             });
         case actions.UPDATE_OPERATIONS:
             return Object.assign({}, state, {
                 selectedOperationName: (action.payload.operations.length > 0) ? 0 : -1
             });
-        case actions.SET_SELECTED_DATA_STORE_INDEX:
-        case actions.SET_SELECTED_DATA_SOURCE_INDEX:
+        case actions.SET_SELECTED_DATA_STORE_ID:
+        case actions.SET_SELECTED_DATA_SOURCE_ID:
         case actions.SET_SELECTED_OPERATION_NAME:
         case actions.SET_OPERATION_FILTER_TAGS:
         case actions.SET_OPERATION_FILTER_EXPR:

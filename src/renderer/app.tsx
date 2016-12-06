@@ -8,7 +8,7 @@ import {Layout} from './components/Layout'
 import {newWebAPIClient, WebSocketMock, WebAPIServiceMock} from './webapi'
 import {OperationAPI} from "./webapi/apis/OperationAPI";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
-import {State} from './state';
+import {State, DataStoreState} from './state';
 import * as actions from './actions'
 import {reducers} from './reducers';
 
@@ -47,12 +47,12 @@ function connectWebAPIClient(store: Store<State>) {
         store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
         const datasetAPI = new DatasetAPI(webAPIClient);
         const operationAPI = new OperationAPI(webAPIClient);
-        datasetAPI.getDataStores().then(dataStores => {
+        datasetAPI.getDataStores().then((dataStores: Array<DataStoreState>) => {
             store.dispatch(actions.updateDataStores(dataStores));
-            let index = store.getState().control.selectedDataStoreIndex;
-            if (index >= 0) {
-                datasetAPI.getDataSources(dataStores[index].id).then((dataSources => {
-                    store.dispatch(actions.updateDataSources(index, dataSources));
+            let selectedDataStoreId = store.getState().control.selectedDataStoreId;
+            if (selectedDataStoreId) {
+                datasetAPI.getDataSources(selectedDataStoreId).then((dataSources => {
+                    store.dispatch(actions.updateDataSources(selectedDataStoreId, dataSources));
                 }));
             }
         });

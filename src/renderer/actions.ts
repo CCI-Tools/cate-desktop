@@ -5,9 +5,10 @@ export const UPDATE_DATA_STORES = 'UPDATE_DATA_STORES';
 export const UPDATE_DATA_SOURCES = 'UPDATE_DATA_SOURCES';
 export const UPDATE_OPERATIONS = 'UPDATE_OPERATIONS';
 
-export const SET_SELECTED_DATA_STORE_INDEX = 'SET_SELECTED_DATA_STORE_INDEX';
-export const SET_SELECTED_DATA_SOURCE_INDEX = 'SET_SELECTED_DATA_SOURCE_INDEX';
+export const SET_SELECTED_DATA_STORE_ID = 'SET_SELECTED_DATA_STORE_ID';
+export const SET_SELECTED_DATA_SOURCE_ID = 'SET_SELECTED_DATA_SOURCE_ID';
 export const SET_SELECTED_OPERATION_NAME = 'SET_SELECTED_OPERATION_NAME';
+
 export const SET_OPERATION_FILTER_TAGS = 'SET_OPERATION_FILTER_TAGS';
 export const SET_OPERATION_FILTER_EXPR = 'SET_OPERATION_FILTER_EXPR';
 
@@ -23,23 +24,23 @@ export function updateDataStores(dataStores) {
     return {type: UPDATE_DATA_STORES, payload: {dataStores}};
 }
 
-export function updateDataSources(dataStoreIndex: number, dataSources) {
-    return {type: UPDATE_DATA_SOURCES, payload: {dataStoreIndex, dataSources}};
+export function updateDataSources(dataStoreId: string, dataSources) {
+    return {type: UPDATE_DATA_SOURCES, payload: {dataStoreId, dataSources}};
 }
 
 export function updateOperations(operations) {
     return {type: UPDATE_OPERATIONS, payload: {operations}};
 }
 
-export function setSelectedDataStoreIndex(selectedDataStoreIndex: number) {
-    return {type: SET_SELECTED_DATA_STORE_INDEX, payload: {selectedDataStoreIndex}};
+export function setSelectedDataStoreId(selectedDataStoreId: string|null) {
+    return {type: SET_SELECTED_DATA_STORE_ID, payload: {selectedDataStoreId}};
 }
 
-export function setSelectedDataSourceIndex(selectedDataSourceIndex: number) {
-    return {type: SET_SELECTED_DATA_SOURCE_INDEX, payload: {selectedDataSourceIndex}};
+export function setSelectedDataSourceId(selectedDataSourceId: string|null) {
+    return {type: SET_SELECTED_DATA_SOURCE_ID, payload: {selectedDataSourceId}};
 }
 
-export function setSelectedOperationName(selectedOperationName: string) {
+export function setSelectedOperationName(selectedOperationName: string|null) {
     return {type: SET_SELECTED_OPERATION_NAME,  payload: {selectedOperationName}};
 }
 

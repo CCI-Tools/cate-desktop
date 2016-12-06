@@ -57,8 +57,10 @@ class OperationsPanel extends React.Component<any, any> {
         />);
 
         if (allOperations.length > 0) {
+            const selectedOperationName = this.props.selectedOperationName;
+
             const operationTagFilterPanel = this.renderOperationTagFilterPanel(allOperations, operationFilterTags);
-            const operationsTable = this.renderOperationsTable(filteredOperations);
+            const operationsList = this.renderOperationsList(filteredOperations, selectedOperationName);
             const operationDetailsCard = this.renderOperationDetailsCard(selectedOperation);
 
             return (
@@ -66,7 +68,7 @@ class OperationsPanel extends React.Component<any, any> {
                     {operationFilterExprInput}
                     {operationTagFilterPanel}
                     <SplitPane direction="ver" initialSize={150}>
-                        {operationsTable}
+                        {operationsList}
                         {operationDetailsCard}
                     </SplitPane>
                 </ExpansionPanel>
@@ -80,6 +82,44 @@ class OperationsPanel extends React.Component<any, any> {
                 </ExpansionPanel>
             );
         }
+    }
+
+    private renderOperationsList(operations: Array<OperationState>, selectedOperationName: string) {
+        const renderItem = (itemIndex: number) => {
+            const operation: OperationState = operations[itemIndex];
+
+            const name = operation.name;
+
+            let dataType;
+            if (!operation.outputs.length) {
+                dataType = '';
+            } else if (operation.outputs.length === 1) {
+                dataType = operation.outputs[0].dataType;
+            } else {
+                dataType = `${operation.outputs.length} types`;
+            }
+
+            return <span>{name} <span style={{color: 'rgba(0,255,0,0.8)', fontSize: '0.8em'}}>{dataType}</span></span>
+        };
+
+        const handleOperationSelection = (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => {
+            if (newSelection.length > 0) {
+                this.props.dispatch(setSelectedOperationName(newSelection[0] as string));
+            } else {
+                this.props.dispatch(setSelectedOperationName(null));
+            }
+        };
+
+        return (
+            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+                <ListBox numItems={operations.length}
+                         getItemKey={index => operations[index].name}
+                         renderItem={renderItem}
+                         selectionMode={ListBoxSelectionMode.SINGLE}
+                         selection={selectedOperationName ? [selectedOperationName] : []}
+                         onSelection={handleOperationSelection.bind(this)}/>
+            </div>
+        );
     }
 
     private handleOperationFilterExprChange(event) {
@@ -212,46 +252,6 @@ class OperationsPanel extends React.Component<any, any> {
             </div>);
     }
 
-    private renderOperationsTable(operations: Array<OperationState>) {
-        const renderItem = (itemIndex: number) => {
-            const operation: OperationState = operations[itemIndex];
-
-            const name = operation.name;
-
-            let dataType;
-            if (!operation.outputs.length) {
-                dataType = '';
-            } else if (operation.outputs.length === 1) {
-                dataType = operation.outputs[0].dataType;
-            } else {
-                dataType = `${operation.outputs.length} types`;
-            }
-
-            return <span>{name} <span style={{color: 'rgba(0,255,0,0.8)', fontSize: '0.8em'}}>{dataType}</span></span>
-        };
-
-        const handleOperationSelection = (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => {
-            console.log('newSelection: ', newSelection);
-            if (newSelection.length > 0) {
-                this.props.dispatch(setSelectedOperationName(newSelection[0] as string));
-            } else {
-                this.props.dispatch(setSelectedOperationName(null));
-            }
-        };
-
-        const selectedOperationName = this.props.selectedOperationName;
-
-        return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
-                <ListBox numItems={operations.length}
-                         getItemKey={index => operations[index].name}
-                         renderItem={renderItem}
-                         selectionMode={ListBoxSelectionMode.SINGLE}
-                         selection={selectedOperationName ? [selectedOperationName] : []}
-                         onSelection={handleOperationSelection.bind(this)}/>
-            </div>
-        );
-    }
 }
 
 export default connect(mapStateToProps)(OperationsPanel);

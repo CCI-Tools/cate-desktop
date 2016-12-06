@@ -176,7 +176,7 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
         const closeIcon = (<span className={"pt-icon-standard " + closeIconName + " cate-icon-small"}
                                  onClick={this.handleCloseButtonClicked}/>);
 
-        const contentPaneStyle = {width: '100%'};
+        const contentPaneStyle = {width: '100%', paddingTop: 4, paddingBottom: 4};
         let contentPaneHeight;
         if (this.state.height) {
             contentPaneHeight = this.state.height;

@@ -4,7 +4,7 @@ import {ExpansionPanel} from './ExpansionPanel';
 import {CesiumGlobeExample} from './cesium/CesiumGlobeExample'
 import {OpenLayersMap} from './openlayers/OpenLayersMap';
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "./hgl";
-import DatasetsPanel from "./DatasetsPanel";
+import DatasetsPanel from "./DataSourcesPanel";
 import OperationsPanel from "./OperationsPanel";
 
 /*
