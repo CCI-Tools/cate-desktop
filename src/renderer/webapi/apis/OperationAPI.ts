@@ -1,14 +1,18 @@
 import {WebAPIClient} from "../WebAPIClient";
-import {JobPromise} from "../Job";
+import {JobPromise, JobProgress} from "../Job";
 
 export class OperationAPI {
-    private webAPI: WebAPIClient;
+    private webAPIClient: WebAPIClient;
 
     constructor(webAPI: WebAPIClient) {
-        this.webAPI = webAPI;
+        this.webAPIClient = webAPI;
     }
 
     getOperations(): JobPromise {
-        return this.webAPI.call('getOperations', []);
+        return this.webAPIClient.call('getOperations', []);
+    }
+
+    callOperation(opName: string, opParams: any, onProgress: (progress: JobProgress) => void): JobPromise {
+        return this.webAPIClient.call('callOperation', [opName, opParams], onProgress);
     }
 }

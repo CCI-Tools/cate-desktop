@@ -276,6 +276,8 @@ describe('WebSocketMock', function () {
     class MyServiceObject {
         private state = 'me';
 
+        processData = {};
+
         generateSausages(num, veggie) {
             if (num < -1) {
                 throw Error('illegal num');

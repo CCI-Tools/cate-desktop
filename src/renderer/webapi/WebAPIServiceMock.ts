@@ -1,15 +1,25 @@
 import {OperationState, WorkspaceState, DataStoreState} from "../state";
+import {IProcessData, IServiceObject} from "./WebSocketMock";
 
 /**
  * Simulates the a local/remote WebAPIClient service.
  * Mimics a local/remote webservice usually running on a Python Tornado.
  */
-export class WebAPIServiceMock {
+export class WebAPIServiceMock implements IServiceObject {
     dataStores: Array<DataStoreState> = [];
     dataSources = {};
     operations: Array<OperationState> = [];
     workspaces = {};
     workspaceId = 0;
+
+    // processData is picked up by WebSocketMock
+    processData: {[methodName:string]: IProcessData} = {
+        callOperation: {
+            numSteps: 10,
+            delayPerStep: 500,
+            delay: 500
+        }
+    };
 
     constructor() {
         const descriptions = [
@@ -126,6 +136,10 @@ export class WebAPIServiceMock {
 
     getOperations() {
         return this.operations;
+    }
+
+    callOperation(opName: string, opParam: any) {
+        return {opName, opParam};
     }
 
     newWorkspace(): Object {

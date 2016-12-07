@@ -1,4 +1,3 @@
-
 /**
  * This represents the WebSocket API we are implementing in WebSocketMock and using in WebAPIClientImpl.
  *
@@ -12,6 +11,28 @@ export interface WebSocketMin {
 
     send(data: any): void;
     close(code?: number, reason?: string): void;
+}
+
+/**
+ * Instances of this type can be stored for each method in the service object.
+ */
+export interface IProcessData {
+    /**
+     * Number of steps.
+     */
+    numSteps?: number;
+    /**
+     * Delay per step in milliseconds
+     */
+    delayPerStep?: number;
+    /**
+     * Delay in milliseconds before a method call returns.
+     */
+    delay;
+}
+
+export interface IServiceObject {
+    processData: {[methodName: string]: IProcessData};
 }
 
 /**
@@ -42,9 +63,10 @@ export class WebSocketMock implements WebSocketMin {
     ////////////////////////////////////////////
 
     readonly messageLog: string[] = [];
-    readonly serviceObj;
+    readonly serviceObj: any;
+    readonly asyncCalls: boolean;
 
-    constructor(openDelay = 100, serviceObj?) {
+    constructor(openDelay = 100, serviceObj?: IServiceObject, asyncCalls?: boolean) {
         if (openDelay) {
             setTimeout(() => {
                 if (this.onopen) {
@@ -53,6 +75,7 @@ export class WebSocketMock implements WebSocketMin {
             }, openDelay || 100);
         }
         this.serviceObj = serviceObj;
+        this.asyncCalls = asyncCalls;
     }
 
     emulateIncomingMessages(...messages: Object[]) {
@@ -98,38 +121,87 @@ export class WebSocketMock implements WebSocketMin {
         }
 
         if (message.id >= 0 && message.method && message.params) {
-            const method = this.serviceObj[message.method];
+            this.callServiceObjectMethod(message);
+        } else {
+            console.error(`WebSocketMock: received invalid message: ${message}`);
+        }
+    }
 
-            if (!method) {
-                this.emulateIncomingMessages({
-                    jsonrcp: "2.0",
-                    id: message.id,
-                    error: {
-                        code: 1,
-                        message: `${message.method}(): no such method`
-                    }
-                });
-                return;
-            }
+    private callServiceObjectMethod(requestMessage) {
+        const method = this.serviceObj[requestMessage.method];
+        if (!method) {
+            this.emulateIncomingMessages({
+                jsonrcp: "2.0",
+                id: requestMessage.id,
+                error: {
+                    code: 1,
+                    message: `${requestMessage.method}(): no such method`
+                }
+            });
+            return;
+        }
 
-            // TODO: Use delayed async tasks here, also emulate progress emitting
-            try {
-                const result = method.apply(this.serviceObj, message.params);
-                this.emulateIncomingMessages({
-                    jsonrcp: "2.0",
-                    id: message.id,
-                    response: result
-                });
-            } catch (e) {
-                this.emulateIncomingMessages({
-                    jsonrcp: "2.0",
-                    id: message.id,
-                    error: {
-                        code: 2,
-                        message: `${message.method}(): ${e}`,
-                    }
-                });
+        const processData = this.serviceObj.processData && this.serviceObj.processData[requestMessage.method];
+        const numSteps = (processData && processData.numSteps) || 0;
+        const delayPerStep = (processData && processData.delayPerStep) || 0;
+        const delay = (processData && processData.delay) || 0;
+
+        const responseTasks = [];
+
+        for (let i = 0; i < numSteps; i++) {
+            responseTasks.push({
+                delay: delayPerStep,
+                perform: () => {
+                    this.emulateIncomingMessages({
+                        jsonrcp: "2.0",
+                        id: requestMessage.id,
+                        progress: {
+                            worked: i + 1,
+                            total: numSteps
+                        }
+                    });
+                }
+            });
+        }
+
+        responseTasks.push({
+            delay: delay,
+            perform: () => {
+                try {
+                    const result = method.apply(this.serviceObj, requestMessage.params);
+                    this.emulateIncomingMessages({
+                        jsonrcp: "2.0",
+                        id: requestMessage.id,
+                        response: result
+                    });
+                } catch (e) {
+                    this.emulateIncomingMessages({
+                        jsonrcp: "2.0",
+                        id: requestMessage.id,
+                        error: {
+                            code: 2,
+                            message: `${requestMessage.method}(): ${e}`,
+                        }
+                    });
+                }
             }
+        });
+
+        if (!this.asyncCalls) {
+            responseTasks.forEach(task => task.perform());
+        } else {
+            function performDeferred(i) {
+                if (i < responseTasks.length) {
+                    const task = responseTasks[i];
+                    setTimeout(() => {
+                            task.perform();
+                            performDeferred(i + 1);
+                        },
+                        task.delay
+                    );
+                }
+            }
+            performDeferred(0);
         }
     }
 }

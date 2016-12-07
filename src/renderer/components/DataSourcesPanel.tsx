@@ -9,6 +9,8 @@ import {Tabs, TabList, Tab, TabPanel, Button} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
 import {Card} from "./Card";
 import {OpenDatasetDialog, IOpenDatasetDialogState} from "./OpenDatasetDialog";
+import {OperationAPI} from "../webapi/apis/OperationAPI";
+import {JobProgress} from "../webapi/Job";
 
 interface IDataSourcesPanelProps {
     dispatch?: (action: {type: string, payload: any}) => void;
@@ -47,6 +49,21 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
         this.props.dispatch(setDialogState('openDataset', dialogState));
         if (actionId) {
             console.log('now opening', this.props.selectedDataSourceId, 'with', dialogState, '...');
+
+            const opName = 'open_dataset';
+            const opParams = {
+                ds_id: this.props.selectedDataSourceId,
+                time_range: dialogState.timeRange
+            };
+
+            const onProgress = (progress: JobProgress) => {
+                console.log('Dataset open progress:', progress);
+            };
+            new OperationAPI(this.props.webAPIClient).callOperation(opName, opParams, onProgress).then((result) => {
+                console.log('Dataset open succeeded:', result);
+            }).catch(error => {
+                console.error('Dataset open failed:', error);
+            });
         }
     }
 

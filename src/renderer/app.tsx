@@ -40,7 +40,7 @@ function connectWebAPIClient(store: Store<State>) {
     if (webAPIConfig.disabled !== true && webAPIConfig.webSocketUrl) {
         webAPIClient = newWebAPIClient(webAPIConfig.webSocketUrl);
     } else {
-        webAPIClient = newWebAPIClient('ws://mock', 0, new WebSocketMock(100, new WebAPIServiceMock()));
+        webAPIClient = newWebAPIClient('ws://mock', 0, new WebSocketMock(100, new WebAPIServiceMock(), true));
     }
 
     // TODO (nf): this code can take considerable time and is executed BEFORE the window UI shows up
