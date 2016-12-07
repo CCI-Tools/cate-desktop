@@ -3,12 +3,13 @@ import {connect} from 'react-redux';
 import {ExpansionPanel} from './ExpansionPanel';
 import {State, DataSourceState, DataStoreState} from "../state";
 import {Table, Column, Cell, SelectionModes, IRegion} from "@blueprintjs/table";
-import {setSelectedDataStoreId, updateDataSources, setSelectedDataSourceId} from '../actions'
+import {setSelectedDataStoreId, updateDataSources, setSelectedDataSourceId, setOpenDatasetDialogState} from '../actions'
 import {DatasetAPI} from '../webapi';
 import {SplitPane} from "../containers/SplitPane";
 import {Tabs, TabList, Tab, TabPanel, Button} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
 import {Card} from "./Card";
+import {OpenDatasetDialog} from "./OpenDatasetDialog";
 
 interface IDataSourcesPanelProps {
     dispatch?: (action: {type: string, payload: any}) => void;
@@ -16,6 +17,7 @@ interface IDataSourcesPanelProps {
     dataStores: Array<DataStoreState>;
     selectedDataStoreId: string|null;
     selectedDataSourceId: string|null;
+    isOpenDatasetDialogOpen: boolean;
 }
 
 function mapStateToProps(state: State): IDataSourcesPanelProps {
@@ -24,6 +26,7 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         dataStores: state.data.dataStores,
         selectedDataStoreId: state.control.selectedDataStoreId,
         selectedDataSourceId: state.control.selectedDataSourceId,
+        isOpenDatasetDialogOpen: state.control.dialogs.openDataset.isOpen
     };
 }
 
@@ -33,60 +36,102 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
  * @author Norman Fomferra
  */
 class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
+    constructor(props: IDataSourcesPanelProps) {
+        super(props);
+    }
 
-    render() {
-        const dataStores = this.props.dataStores || [];
-        const selectedDataStoreId = this.props.selectedDataStoreId;
-        const selectedDataSourceId = this.props.selectedDataSourceId;
+    private handleOpenDatasetButtonClicked() {
+        this.props.dispatch(setOpenDatasetDialogState(true));
+    }
 
-        let dataStore;
-        let dataSources;
-        if (selectedDataStoreId) {
-            dataStore = dataStores.find(dataStore => dataStore.id === selectedDataStoreId);
-            if (dataStore) {
-                dataSources = dataStore.dataSources;
-            }
-        }
-
-        let dataSource;
-        if (dataSources && selectedDataSourceId) {
-            dataSource = dataSources.find(dataSource => dataSource.id === selectedDataSourceId);
-        }
-
-        if (dataStores && dataStores.length) {
-            const dataStoreSelector = this.renderDataStoreSelector(dataStores, selectedDataStoreId);
-            const dataSourcesList = this.renderDataSourcesList(dataSources, selectedDataSourceId);
-
-            let dataSourcesPane;
-            if (dataSourcesList) {
-                const dataSourceDetailsCard = this.renderDataSourceDetails(dataSource);
-                dataSourcesPane = (
-                    <SplitPane direction="ver" initialSize={200}>
-                        {dataSourcesList}
-                        {dataSourceDetailsCard}
-                    </SplitPane>
-                );
-            } else {
-                dataSourcesPane = this.renderNoDataSourcesMessage();
-            }
-
-            return (
-                <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
-                    {dataStoreSelector}
-                    {dataSourcesPane}
-                </ExpansionPanel>
-            );
-        } else {
-            const noDataStoreMessage = this.renderNoDataStoreMessage();
-            return (
-                <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
-                    {noDataStoreMessage}
-                </ExpansionPanel>
-            );
+    private handleOpenDatasetDialogClosed(ok: boolean) {
+        this.props.dispatch(setOpenDatasetDialogState(false));
+        if (ok) {
+            console.log('now opening: ', this.props.selectedDataSourceId);
         }
     }
 
-    private renderDataSourcesList(dataSources: Array<DataSourceState>, selectedDataSourceId: string) {
+    private handleDataStoreSelected(event) {
+        const dataStoreId = event.target.value;
+        this.props.dispatch(setSelectedDataStoreId(dataStoreId));
+        if (!dataStoreId) {
+            return;
+        }
+
+        const dataStore = this.props.dataStores.find(dataStore => dataStore.id === dataStoreId);
+        if (!dataStore.dataSources) {
+            // TODO: before calling into datasetAPI, check if we have a call in progress
+            const datasetAPI = new DatasetAPI(this.props.webAPIClient);
+            datasetAPI.getDataSources(dataStore.id).then(dataSources => {
+                this.props.dispatch(updateDataSources(dataStore.id, dataSources));
+            }).catch(error => {
+                // TODO: handle error
+            });
+        } else {
+            this.props.dispatch(setSelectedDataSourceId(dataStore.dataSources.length ? dataStore.dataSources[0].id : null));
+        }
+    }
+
+    private handleDataSourceSelected(oldSelection: Array<React.Key>, newSelection: Array<React.Key>) {
+        if (newSelection.length > 0) {
+            this.props.dispatch(setSelectedDataSourceId(newSelection[0] as string));
+        } else {
+            this.props.dispatch(setSelectedDataSourceId(null));
+        }
+    }
+
+    private getSelectedDataStore() {
+        if (!this.props.dataStores || !this.props.selectedDataStoreId) {
+            return null;
+        }
+        return this.props.dataStores.find(dataStore => dataStore.id === this.props.selectedDataStoreId);
+    }
+
+    private getDataSourcesOfSelectedDataStore() {
+        const selectedDataStore = this.getSelectedDataStore();
+        return (selectedDataStore && selectedDataStore.dataSources) || null;
+    }
+
+    private getSelectedDataSource() {
+        if (!this.props.selectedDataSourceId) {
+            return null;
+        }
+        const dataSources = this.getDataSourcesOfSelectedDataStore();
+        if (!dataSources) {
+            return null;
+        }
+        return dataSources.find(dataSource => dataSource.id === this.props.selectedDataSourceId);
+
+    }
+
+    render() {
+        let dataStoreSelector = this.renderDataStoreSelector();
+        let dataSourcesList = this.renderDataSourcesList();
+
+        let dataSourcesPane = null;
+        if (dataStoreSelector && dataSourcesList) {
+            const dataSourceDetailsCard = this.renderDataSourceDetails();
+            dataSourcesPane = (
+                <SplitPane direction="ver" initialSize={200}>
+                    {dataSourcesList}
+                    {dataSourceDetailsCard}
+                </SplitPane>
+            );
+        } else if (dataStoreSelector) {
+            dataSourcesPane = this.renderNoDataSourcesMessage();
+        } else {
+            dataStoreSelector = this.renderNoDataStoreMessage();
+        }
+        return (
+            <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
+                {dataStoreSelector}
+                {dataSourcesPane}
+            </ExpansionPanel>
+        );
+    }
+
+    private renderDataSourcesList() {
+        const dataSources = this.getDataSourcesOfSelectedDataStore();
         if (!dataSources || !dataSources.length) {
             return null;
         }
@@ -114,77 +159,59 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
             );
         };
 
-        const handleDataSourceSelection = (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => {
-            if (newSelection.length > 0) {
-                this.props.dispatch(setSelectedDataSourceId(newSelection[0] as string));
-            } else {
-                this.props.dispatch(setSelectedDataSourceId(null));
-            }
-        };
-
         return (
             <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
                 <ListBox numItems={dataSources.length}
                          getItemKey={index => dataSources[index].id}
                          renderItem={renderItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
-                         selection={selectedDataSourceId ? [selectedDataSourceId] : []}
-                         onSelection={handleDataSourceSelection.bind(this)}/>
+                         selection={this.props.selectedDataSourceId ? [this.props.selectedDataSourceId] : []}
+                         onSelection={this.handleDataSourceSelected.bind(this)}/>
             </div>
         );
     }
 
-    private renderDataStoreSelector(dataStores: Array<DataStoreState>, selectedDataStoreId: string) {
+    private renderDataStoreSelector() {
+        if (!this.props.dataStores || !this.props.dataStores.length) {
+            return null;
+        }
+
         const dataStoreOptions = [];
-        for (let dataStore of dataStores) {
+        for (let dataStore of this.props.dataStores) {
             dataStoreOptions.push(<option key={dataStore.id} value={dataStore.id}>{dataStore.name}</option>);
         }
 
-        const handleOpenButtonClicked = () => {
-            console.log('now opening: ', this.props.selectedDataSourceId);
-        };
-
-
-        const handleDataStoreSelection = event => {
-            const dataStoreId = event.target.value;
-            this.props.dispatch(setSelectedDataStoreId(dataStoreId));
-            if (!dataStoreId) {
-                return;
-            }
-
-            const dataStore = this.props.dataStores.find(dataStore => dataStore.id === dataStoreId);
-            if (!dataStore.dataSources) {
-                // TODO: before calling into datasetAPI, check if we have a call in progress
-                const datasetAPI = new DatasetAPI(this.props.webAPIClient);
-                datasetAPI.getDataSources(dataStore.id).then(dataSources => {
-                    this.props.dispatch(updateDataSources(dataStore.id, dataSources));
-                }).catch(error => {
-                    // TODO: handle error
-                });
-            } else {
-                this.props.dispatch(setSelectedDataSourceId(dataStore.dataSources.length ? dataStore.dataSources[0].id : null));
-            }
-        };
+        let openDatasetDialog = null;
+        if (this.props.isOpenDatasetDialogOpen) {
+            const dataSource = this.getSelectedDataSource();
+            openDatasetDialog = (
+                <OpenDatasetDialog
+                    dataSource={dataSource}
+                    onClose={this.handleOpenDatasetDialogClosed.bind(this)}/>
+            );
+        }
 
         return (
             <div style={{display: 'flex', marginBottom: 4, alignItems: 'center'}}>
                 <span>Store </span>
                 <div className="pt-select" style={{flex: 'auto'}}>
-                    <select value={selectedDataStoreId || ''}
-                            onChange={handleDataStoreSelection.bind(this)}>
+                    <select value={this.props.selectedDataStoreId || ''}
+                            onChange={this.handleDataStoreSelected.bind(this)}>
                         {dataStoreOptions}
                     </select>
                 </div>
                 <Button className="pt-intent-success"
-                        onClick={handleOpenButtonClicked.bind(this)}
+                        onClick={this.handleOpenDatasetButtonClicked.bind(this)}
                         disabled={!this.props.selectedDataSourceId}
                         iconName="add">Open</Button>
+                {openDatasetDialog}
             </div>
         );
     }
 
     //noinspection JSMethodCanBeStatic
-    private renderDataSourceDetails(dataSource: DataSourceState) {
+    private renderDataSourceDetails() {
+        const dataSource = this.getSelectedDataSource();
         if (!dataSource) {
             return (
                 <Card>

@@ -21,10 +21,10 @@ export interface State {
 // DataState
 
 /**
- * Cate's business data which is usually received from the Cate WebAPI service.
+ * Cate's domain data which is usually received from the Cate WebAPI service.
  */
 export interface DataState {
-    appConfig: AppConfigState;
+    appConfig: AppConfigState; // TBD: move this to session?
     dataStores: Array<DataStoreState> | null;
     operations: Array<OperationState> | null;
     workspace: WorkspaceState | null;
@@ -145,6 +145,12 @@ export interface ControlState {
     // WorkspacePanel
     selectedWorkflowStepId: string|null;
     selectedWorkflowResourceId: string|null;
+
+    dialogs: DialogsState;
+}
+
+export interface DialogsState {
+    openDataset: {isOpen?: boolean};
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

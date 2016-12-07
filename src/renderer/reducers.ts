@@ -2,6 +2,15 @@ import {State, DataState, LocationState, SessionState, CommunicationState, Contr
 import * as actions from './actions';
 import {combineReducers} from 'redux';
 
+/**
+ * Encapsulate the idea of passing a new object as the first parameter
+ * to Object.assign to ensure we correctly copy data instead of mutating.
+ */
+function updateObject(oldObject, newValues) {
+    return Object.assign({}, oldObject, newValues);
+}
+
+
 const initialDataState: DataState = {
     appConfig: {
         webAPIClient: null,
@@ -20,18 +29,18 @@ const initialDataState: DataState = {
 const dataReducer = (state: DataState = initialDataState, action) => {
     switch (action.type) {
         case actions.APPLY_INITIAL_STATE:
-            return Object.assign({}, state, {
-                appConfig: Object.assign({}, action.payload.appConfig)
+            return updateObject(state, {
+                appConfig: updateObject(state.appConfig, action.payload.appConfig)
             });
         case actions.SET_WEBAPI_STATUS: {
             const webAPIClient = action.payload.webAPIClient;
-            return Object.assign({}, state, {
-                appConfig: Object.assign({}, state.appConfig, {webAPIClient})
+            return updateObject(state, {
+                appConfig: updateObject(state.appConfig, {webAPIClient})
             });
         }
         case actions.UPDATE_DATA_STORES: {
             const dataStores = action.payload.dataStores.slice();
-            return Object.assign({}, state, {dataStores});
+            return updateObject(state, {dataStores});
         }
         case actions.UPDATE_DATA_SOURCES: {
             const dataStoreId = action.payload.dataStoreId;
@@ -41,18 +50,18 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             }
             const oldDataStore = state.dataStores[dataStoreIndex];
             const newDataSources = action.payload.dataSources.slice();
-            const newDataStore = Object.assign({}, oldDataStore, {
+            const newDataStore = updateObject(oldDataStore, {
                 dataSources: newDataSources,
             });
             const newDataStores = state.dataStores.slice();
             newDataStores[dataStoreIndex] = newDataStore;
-            return Object.assign({}, state, {
+            return updateObject(state, {
                 dataStores: newDataStores
             });
         }
         case actions.UPDATE_OPERATIONS: {
             const newOperations = action.payload.operations;
-            return Object.assign({}, state, {
+            return updateObject(state, {
                 operations: newOperations,
             });
         }
@@ -69,25 +78,28 @@ const initialControlState: ControlState = {
     operationFilterExpr: '',
     selectedWorkflowStepId: null,
     selectedWorkflowResourceId: null,
+    dialogs : {
+        openDataset: {}
+    }
 };
 
 const controlReducer = (state: ControlState = initialControlState, action) => {
     switch (action.type) {
         case actions.UPDATE_DATA_STORES: {
             const dataStores = action.payload.dataStores;
-            return Object.assign({}, state, {
+            return updateObject(state, {
                 selectedDataStoreId: (dataStores && dataStores.length) ? dataStores[0].id : null
             });
         }
         case actions.UPDATE_DATA_SOURCES: {
             const dataSources = action.payload.dataSources;
-            return Object.assign({}, state, {
+            return updateObject(state, {
                 selectedDataSourceId: (dataSources && dataSources.length) ? dataSources[0].id : null
             });
         }
         case actions.UPDATE_OPERATIONS: {
             const operations = action.payload.operations;
-            return Object.assign({}, state, {
+            return updateObject(state, {
                 selectedOperationName: (operations && operations.length) ? operations[0].name : null
             });
         }
@@ -96,7 +108,13 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         case actions.SET_SELECTED_OPERATION_NAME:
         case actions.SET_OPERATION_FILTER_TAGS:
         case actions.SET_OPERATION_FILTER_EXPR:
-            return Object.assign({}, state, action.payload);
+            return updateObject(state, action.payload);
+        case actions.SET_OPEN_DATASET_DIALOG_STATE:
+            return updateObject(state, {
+                dialogs: updateObject(state.dialogs, {
+                    openDataset: updateObject(state.dialogs.openDataset, action.payload)
+                })
+            });
     }
     return state;
 };
@@ -106,7 +124,7 @@ const initialSessionState: SessionState = {};
 const sessionReducer = (state: SessionState = initialSessionState, action) => {
     switch (action.type) {
         case actions.APPLY_INITIAL_STATE:
-            return Object.assign({}, state, action.payload.session);
+            return updateObject(state, action.payload.session);
     }
     return state;
 };
@@ -118,7 +136,7 @@ const initialCommunicationState: CommunicationState = {
 const communicationReducer = (state: CommunicationState = initialCommunicationState, action) => {
     switch (action.type) {
         case actions.SET_WEBAPI_STATUS:
-            return Object.assign({}, state, {webAPIStatus: action.payload.webAPIStatus})
+            return updateObject(state, {webAPIStatus: action.payload.webAPIStatus})
     }
     return state;
 };
