@@ -1,5 +1,6 @@
 export const APPLY_INITIAL_STATE = 'APPLY_INITIAL_STATE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
+export const SET_DIALOG_STATE = 'SET_DIALOG_STATE';
 
 //////////////////////////////////////////////////////////////////
 // Application-level actions
@@ -12,6 +13,10 @@ export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting'|'open'|
     return {type: SET_WEBAPI_STATUS, payload: {webAPIClient, webAPIStatus}};
 }
 
+export function setDialogState(dialogId: string, dialogState: any) {
+    return {type: SET_DIALOG_STATE,  payload: {dialogId, dialogState}};
+}
+
 //////////////////////////////////////////////////////////////////
 // Data stores / data sources actions
 
@@ -19,7 +24,6 @@ export const UPDATE_DATA_STORES = 'UPDATE_DATA_STORES';
 export const UPDATE_DATA_SOURCES = 'UPDATE_DATA_SOURCES';
 export const SET_SELECTED_DATA_STORE_ID = 'SET_SELECTED_DATA_STORE_ID';
 export const SET_SELECTED_DATA_SOURCE_ID = 'SET_SELECTED_DATA_SOURCE_ID';
-export const SET_OPEN_DATASET_DIALOG_STATE = 'SET_OPEN_DATASET_DIALOG_STATE';
 
 export function updateDataStores(dataStores) {
     return {type: UPDATE_DATA_STORES, payload: {dataStores}};
@@ -35,10 +39,6 @@ export function setSelectedDataStoreId(selectedDataStoreId: string|null) {
 
 export function setSelectedDataSourceId(selectedDataSourceId: string|null) {
     return {type: SET_SELECTED_DATA_SOURCE_ID, payload: {selectedDataSourceId}};
-}
-
-export function setOpenDatasetDialogState(isOpen: boolean) {
-    return {type: SET_OPEN_DATASET_DIALOG_STATE,  payload: {isOpen}};
 }
 
 //////////////////////////////////////////////////////////////////

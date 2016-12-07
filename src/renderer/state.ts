@@ -146,11 +146,15 @@ export interface ControlState {
     selectedWorkflowStepId: string|null;
     selectedWorkflowResourceId: string|null;
 
-    dialogs: DialogsState;
+    dialogs: {[key:string]:DialogState;};
 }
 
-export interface DialogsState {
-    openDataset: {isOpen?: boolean};
+export interface DialogState {
+    isOpen?: boolean;
+}
+
+export interface OpenDatasetDialogState extends DialogState {
+    timeRange: [number, number];
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

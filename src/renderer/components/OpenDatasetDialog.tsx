@@ -1,39 +1,41 @@
 import * as React from 'react';
 import {Dialog, Classes, Button, Tooltip, RangeSlider, NumberRange} from "@blueprintjs/core";
-import {DataSourceState} from "../state";
+import {DataSourceState, DialogState} from "../state";
 
 interface IOpenDatasetDialogProps {
+    onClose: (actionId: string, dialogState: IOpenDatasetDialogState) => void;
     dataSource: DataSourceState;
-    onClose: (ok: boolean) => void;
     timeRange?: NumberRange;
 }
 
-interface IOpenDatasetDialogState {
-    isOpen: boolean;
+export interface IOpenDatasetDialogState extends DialogState {
     timeRange: NumberRange;
 }
-
 
 export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDatasetDialogState> {
     constructor(props: IOpenDatasetDialogProps) {
         super(props);
         this.state = {isOpen: true, timeRange: this.props.timeRange || [1990, 2010]};
-        this.handleOk = this.handleOk.bind(this);
+        this.handleConfirm = this.handleConfirm.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
     }
 
-    private handleOk() {
-        this.setState({isOpen: false} as IOpenDatasetDialogState);
-        this.props.onClose(true);
+    private close(actionId: string) {
+        this.setState(Object.assign({}, this.state, {isOpen: false}), () => {
+            this.props.onClose(actionId, this.state);
+        });
+    }
+
+    private handleConfirm() {
+        this.close('openDataset');
     }
 
     private handleCancel() {
-        this.setState({isOpen: false} as IOpenDatasetDialogState);
-        this.props.onClose(false);
+        this.close(null);
     }
 
     private handleRangeSelected(timeRange: NumberRange) {
-        this.setState({ timeRange } as IOpenDatasetDialogState);
+        this.setState({timeRange} as IOpenDatasetDialogState);
     }
 
     render() {
@@ -73,7 +75,7 @@ export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, 
                     <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                         <Button onClick={this.handleCancel}>Cancel</Button>
                         <Tooltip content="Opens the dataset." inline>
-                            <Button className="pt-intent-primary" onClick={this.handleOk}>Open</Button>
+                            <Button className="pt-intent-primary" onClick={this.handleConfirm}>Open</Button>
                         </Tooltip>
                     </div>
                 </div>

@@ -6,10 +6,15 @@ import {combineReducers} from 'redux';
  * Encapsulate the idea of passing a new object as the first parameter
  * to Object.assign to ensure we correctly copy data instead of mutating.
  */
-function updateObject(oldObject, newValues) {
+export function updateObject(oldObject, newValues) {
     return Object.assign({}, oldObject, newValues);
 }
 
+export function updateProperty(oldObject: Object, key: string, value: any) {
+    const newValues =  {};
+    newValues[key] = updateObject(oldObject[key], value);
+    return updateObject(oldObject, newValues);
+}
 
 const initialDataState: DataState = {
     appConfig: {
@@ -109,11 +114,9 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         case actions.SET_OPERATION_FILTER_TAGS:
         case actions.SET_OPERATION_FILTER_EXPR:
             return updateObject(state, action.payload);
-        case actions.SET_OPEN_DATASET_DIALOG_STATE:
+        case actions.SET_DIALOG_STATE:
             return updateObject(state, {
-                dialogs: updateObject(state.dialogs, {
-                    openDataset: updateObject(state.dialogs.openDataset, action.payload)
-                })
+                dialogs: updateProperty(state.dialogs, action.payload.dialogId, action.payload.dialogState)
             });
     }
     return state;

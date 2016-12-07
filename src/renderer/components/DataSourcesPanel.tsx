@@ -1,15 +1,14 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 import {ExpansionPanel} from './ExpansionPanel';
-import {State, DataSourceState, DataStoreState} from "../state";
-import {Table, Column, Cell, SelectionModes, IRegion} from "@blueprintjs/table";
-import {setSelectedDataStoreId, updateDataSources, setSelectedDataSourceId, setOpenDatasetDialogState} from '../actions'
+import {State, DataStoreState} from "../state";
+import {setSelectedDataStoreId, updateDataSources, setSelectedDataSourceId, setDialogState} from '../actions'
 import {DatasetAPI} from '../webapi';
 import {SplitPane} from "../containers/SplitPane";
 import {Tabs, TabList, Tab, TabPanel, Button} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
 import {Card} from "./Card";
-import {OpenDatasetDialog} from "./OpenDatasetDialog";
+import {OpenDatasetDialog, IOpenDatasetDialogState} from "./OpenDatasetDialog";
 
 interface IDataSourcesPanelProps {
     dispatch?: (action: {type: string, payload: any}) => void;
@@ -17,7 +16,7 @@ interface IDataSourcesPanelProps {
     dataStores: Array<DataStoreState>;
     selectedDataStoreId: string|null;
     selectedDataSourceId: string|null;
-    isOpenDatasetDialogOpen: boolean;
+    openDatasetDialogState: IOpenDatasetDialogState;
 }
 
 function mapStateToProps(state: State): IDataSourcesPanelProps {
@@ -26,7 +25,7 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         dataStores: state.data.dataStores,
         selectedDataStoreId: state.control.selectedDataStoreId,
         selectedDataSourceId: state.control.selectedDataSourceId,
-        isOpenDatasetDialogOpen: state.control.dialogs.openDataset.isOpen
+        openDatasetDialogState: state.control.dialogs['openDataset'] as IOpenDatasetDialogState
     };
 }
 
@@ -41,13 +40,13 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
     }
 
     private handleOpenDatasetButtonClicked() {
-        this.props.dispatch(setOpenDatasetDialogState(true));
+        this.props.dispatch(setDialogState('openDataset', {isOpen: true}));
     }
 
-    private handleOpenDatasetDialogClosed(ok: boolean) {
-        this.props.dispatch(setOpenDatasetDialogState(false));
-        if (ok) {
-            console.log('now opening: ', this.props.selectedDataSourceId);
+    private handleOpenDatasetDialogClosed(actionId: string, dialogState: IOpenDatasetDialogState) {
+        this.props.dispatch(setDialogState('openDataset', dialogState));
+        if (actionId) {
+            console.log('now opening', this.props.selectedDataSourceId, 'with', dialogState, '...');
         }
     }
 
@@ -182,11 +181,12 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
         }
 
         let openDatasetDialog = null;
-        if (this.props.isOpenDatasetDialogOpen) {
+        if (this.props.openDatasetDialogState.isOpen) {
             const dataSource = this.getSelectedDataSource();
             openDatasetDialog = (
                 <OpenDatasetDialog
                     dataSource={dataSource}
+                    {...this.props.openDatasetDialogState}
                     onClose={this.handleOpenDatasetDialogClosed.bind(this)}/>
             );
         }
