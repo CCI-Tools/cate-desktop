@@ -2,7 +2,6 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {ExpansionPanel} from './ExpansionPanel';
 import {State, OperationState} from "../state";
-import {Table, Column, Cell, SelectionModes, IRegion} from "@blueprintjs/table";
 import {setSelectedOperationName, setOperationFilterTags, setOperationFilterExpr} from '../actions'
 import {SplitPane} from "../containers/SplitPane";
 import {Popover, Position, Menu, MenuItem, InputGroup, Classes, Tag, Intent} from "@blueprintjs/core";
