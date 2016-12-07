@@ -2,7 +2,6 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {ExpansionPanel} from './ExpansionPanel';
 import {State, DataStoreState} from "../state";
-import {setSelectedDataStoreId, updateDataSources, setSelectedDataSourceId, setDialogState} from '../actions'
 import {DatasetAPI} from '../webapi';
 import {SplitPane} from "../containers/SplitPane";
 import {Tabs, TabList, Tab, TabPanel, Button} from "@blueprintjs/core";
@@ -11,6 +10,7 @@ import {Card} from "./Card";
 import {OpenDatasetDialog, IOpenDatasetDialogState} from "./OpenDatasetDialog";
 import {OperationAPI} from "../webapi/apis/OperationAPI";
 import {JobProgress} from "../webapi/Job";
+import * as actions from '../actions';
 
 interface IDataSourcesPanelProps {
     dispatch?: (action: {type: string, payload: any}) => void;
@@ -41,58 +41,104 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
         super(props);
     }
 
+    componentDidMount() {
+        if (!this.props.dataStores) {
+            this.updateDataStores();
+        }
+    }
+
+    //noinspection JSUnusedLocalSymbols
+    componentDidUpdate(prevProps: IDataSourcesPanelProps, prevState: any, prevContext: any): void {
+        const selectedDataStore = this.getSelectedDataStore();
+        if (selectedDataStore && !selectedDataStore.dataSources) {
+            this.updateDataSources(selectedDataStore);
+        }
+    }
+
+    private updateDataStores() {
+        // TODO: show in the UI that we are in the process of getting data stores
+        this.getDatasetAPI().getDataStores().then((dataStores: Array<DataStoreState>) => {
+            this.props.dispatch(actions.updateDataStores(dataStores));
+        }).catch(error => {
+            // TODO: handle error
+            console.error(error);
+        });
+    }
+
+    private updateDataSources(dataStore: DataStoreState) {
+        // TODO: show in the UI that we are in the process of getting data sources
+        this.getDatasetAPI().getDataSources(dataStore.id).then(dataSources => {
+            this.props.dispatch(actions.updateDataSources(dataStore.id, dataSources));
+        }).catch(error => {
+            // TODO: handle error
+            console.error(error);
+        });
+    }
+
+    private callOperation(opName: string, opParams: {ds_id: string; time_range: [number, number]}) {
+        const onProgress = (progress: JobProgress) => {
+            // TODO: display progress bar
+            console.log('Operation in progress:', progress);
+        };
+        this.getOperationAPI().callOperation(opName, opParams, onProgress).then((result) => {
+            // TODO: update workspace
+            console.log('Operation succeeded:', result);
+        }).catch(error => {
+            // TODO: handle error
+            console.error('Operation failed:', error);
+        });
+    }
+
+    private getDatasetAPI(): DatasetAPI  {
+        return new DatasetAPI(this.props.webAPIClient);
+    }
+
+    private getOperationAPI(): OperationAPI  {
+        return new OperationAPI(this.props.webAPIClient);
+    }
+
     private handleOpenDatasetButtonClicked() {
-        this.props.dispatch(setDialogState('openDataset', {isOpen: true}));
+        this.props.dispatch(actions.setDialogState('openDataset', {isOpen: true}));
     }
 
     private handleOpenDatasetDialogClosed(actionId: string, dialogState: IOpenDatasetDialogState) {
-        this.props.dispatch(setDialogState('openDataset', dialogState));
+        this.props.dispatch(actions.setDialogState('openDataset', dialogState));
         if (actionId) {
-            console.log('now opening', this.props.selectedDataSourceId, 'with', dialogState, '...');
-
+            // console.log('now opening', this.props.selectedDataSourceId, 'with', dialogState, '...');
             const opName = 'open_dataset';
             const opParams = {
                 ds_id: this.props.selectedDataSourceId,
                 time_range: dialogState.timeRange
             };
-
-            const onProgress = (progress: JobProgress) => {
-                console.log('Dataset open progress:', progress);
-            };
-            new OperationAPI(this.props.webAPIClient).callOperation(opName, opParams, onProgress).then((result) => {
-                console.log('Dataset open succeeded:', result);
-            }).catch(error => {
-                console.error('Dataset open failed:', error);
-            });
+            this.callOperation(opName, opParams);
         }
     }
 
     private handleDataStoreSelected(event) {
         const dataStoreId = event.target.value;
-        this.props.dispatch(setSelectedDataStoreId(dataStoreId));
+        this.props.dispatch(actions.setSelectedDataStoreId(dataStoreId));
+
+        // TODO: find out if it is ok to perform any statements after this.props.dispatch() call?
+        // I guess not, because due to a state change, this component might be already unmounted?!
+
         if (!dataStoreId) {
             return;
         }
 
         const dataStore = this.props.dataStores.find(dataStore => dataStore.id === dataStoreId);
         if (!dataStore.dataSources) {
-            // TODO: before calling into datasetAPI, check if we have a call in progress
-            const datasetAPI = new DatasetAPI(this.props.webAPIClient);
-            datasetAPI.getDataSources(dataStore.id).then(dataSources => {
-                this.props.dispatch(updateDataSources(dataStore.id, dataSources));
-            }).catch(error => {
-                // TODO: handle error
-            });
+            this.updateDataSources(dataStore);
         } else {
-            this.props.dispatch(setSelectedDataSourceId(dataStore.dataSources.length ? dataStore.dataSources[0].id : null));
+            this.props.dispatch(actions.setSelectedDataSourceId(dataStore.dataSources.length ? dataStore.dataSources[0].id : null));
         }
     }
 
+    //noinspection JSUnusedLocalSymbols
     private handleDataSourceSelected(oldSelection: Array<React.Key>, newSelection: Array<React.Key>) {
         if (newSelection.length > 0) {
-            this.props.dispatch(setSelectedDataSourceId(newSelection[0] as string));
+            this.props.dispatch(actions.setSelectedDataSourceId(newSelection[0] as string));
         } else {
-            this.props.dispatch(setSelectedDataSourceId(null));
+            this.props.dispatch(actions.setSelectedDataSourceId(null));
         }
     }
 

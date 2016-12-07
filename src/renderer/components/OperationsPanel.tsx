@@ -8,10 +8,13 @@ import {Popover, Position, Menu, MenuItem, InputGroup, Classes, Tag, Intent} fro
 import FormEvent = React.FormEvent;
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
 import {Card} from "./Card";
+import {OperationAPI} from "../webapi/apis/OperationAPI";
+import * as actions from "../actions";
 
 
 function mapStateToProps(state: State) {
     return {
+        webAPIClient: state.data.appConfig.webAPIClient,
         operations: state.data.operations,
         selectedOperationName: state.control.selectedOperationName,
         operationFilterTags: state.control.operationFilterTags,
@@ -26,6 +29,26 @@ function mapStateToProps(state: State) {
  * @author Norman Fomferra
  */
 class OperationsPanel extends React.Component<any, any> {
+
+    componentDidMount() {
+        if (!this.props.operations) {
+            this.updateOperations();
+        }
+    }
+
+    private updateOperations() {
+        // TODO: show in the UI that we are in the process of getting operations
+        this.getOperationAPI().getOperations().then(operations => {
+            this.props.dispatch(actions.updateOperations(operations));
+        }).catch(error => {
+            // TODO: handle error
+            console.error(error);
+        });
+    }
+
+    private getOperationAPI(): OperationAPI  {
+        return new OperationAPI(this.props.webAPIClient);
+    }
 
     render() {
         const allOperations = this.props.operations || [];
