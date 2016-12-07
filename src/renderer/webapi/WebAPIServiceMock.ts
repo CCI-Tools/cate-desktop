@@ -21,6 +21,13 @@ export class WebAPIServiceMock {
             null,
         ];
 
+        const variables = [
+            {name: 'var_a', units: 'mm', long_name: 'Variable 1'},
+            {name: 'var_b', units: 'l', long_name: 'Variable 2'},
+            {name: 'var_c', units: 'm^3', long_name: 'Variable 3'},
+            {name: 'var_d', units: 'K', long_name: 'Variable 4'},
+        ];
+
         const dataSourcesSizes = [12, 300, 2, 0, 1];
         for (let i = 0; i < dataSourcesSizes.length; i++) {
             const dataStoreId = `data.store.${i}`;
@@ -31,10 +38,20 @@ export class WebAPIServiceMock {
             });
             const dataSources = [];
             for (let j = 0; j < dataSourcesSizes[i]; j++) {
+                let vars;
+                if (j % 5 != 0) {
+                    vars = [];
+                    for (let k = 0; k < variables.length; k++)  {
+                        vars.push(variables[(j + k) % variables.length]);
+                    }
+                }
                 dataSources.push({
                     id: `data.source.${i}.${j}`,
                     name: `Data Source ${i + 1}-${j + 1}`,
-                    description: descriptions[(j + 2) % descriptions.length],
+                    meta_info: {
+                        description: descriptions[(j + 2) % descriptions.length],
+                        variables: vars
+                    },
                 });
             }
             this.dataSources[dataStoreId] = dataSources;
