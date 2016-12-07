@@ -1,6 +1,12 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {State, OperationState} from "../state";
+import {State} from "../state";
+import {Classes, Tree, ITreeNode, Tooltip} from "@blueprintjs/core";
+import {ExpansionPanel} from "./ExpansionPanel";
+
+export interface ITreeExampleState {
+    nodes: ITreeNode[];
+}
 
 function mapStateToProps(state: State) {
     return {
@@ -18,9 +24,94 @@ function mapStateToProps(state: State) {
  * @author Norman Fomferra
  */
 class WorkspacePanel extends React.Component<any, any> {
+     constructor(props) {
+        super();
+
+        const resourcesTooltip = "Workspace resources that result from workflow steps";
+        const stepsTooltip = "Workflow steps that generate resources";
+        this.state = {
+            nodes: [
+                {
+                    id: 'resources',
+                    hasCaret: true,
+                    isExpanded: true,
+                    iconName: "database",
+                    label: <Tooltip content={resourcesTooltip}>Resources</Tooltip>,
+                    childNodes: [
+                        {label: "Resource #1"},
+                        {label: "Resource #2"},
+                        {label: "Resource #3"},
+                        {label: "Resource #4"},
+                    ],
+                },
+                {
+                    id: 'steps',
+                    hasCaret: false,
+                    isExpanded: true,
+                    iconName: "function",
+                    label: <Tooltip content={stepsTooltip}>Workflow Steps</Tooltip>,
+                    childNodes: [
+                        {label: "Operation Step #1"},
+                        {label: "Operation Step #2"},
+                        {label: "Operation Step #3"},
+                        {label: "Operation Step #4"},
+                    ],
+                },
+            ],
+        } as any as ITreeExampleState;
+    }
+
+    //noinspection JSMethodCanBeStatic
+    /**
+     * Override @PureRender because nodes are not a primitive type and therefore aren't included in
+     * shallow prop comparison
+     */
+    public shouldComponentUpdate() {
+        return true;
+    }
+
+    private handleNodeClick = (nodeData: ITreeNode, _nodePath: number[], e: React.MouseEvent<HTMLElement>) => {
+        const originallySelected = nodeData.isSelected;
+        if (!e.shiftKey) {
+            this.forEachNode(this.state.nodes, (n) => n.isSelected = false);
+        }
+        nodeData.isSelected = originallySelected == null ? true : !originallySelected;
+        this.setState(this.state);
+    };
+
+    private handleNodeCollapse = (nodeData: ITreeNode) => {
+        nodeData.isExpanded = false;
+        this.setState(this.state);
+    };
+
+    private handleNodeExpand = (nodeData: ITreeNode) => {
+        nodeData.isExpanded = true;
+        this.setState(this.state);
+    };
+
+    private forEachNode(nodes: ITreeNode[], callback: (node: ITreeNode) => void) {
+        if (nodes == null) {
+            return;
+        }
+
+        for (const node of nodes) {
+            callback(node);
+            this.forEachNode(node.childNodes, callback);
+        }
+    }
 
     render() {
-        return null;
+        return (
+            <ExpansionPanel icon="pt-icon-folder-close" text="Workspace" isExpanded={true} defaultHeight={300}>
+                <Tree
+                    contents={this.state.nodes}
+                    onNodeClick={this.handleNodeClick}
+                    onNodeCollapse={this.handleNodeCollapse}
+                    onNodeExpand={this.handleNodeExpand}
+                    className={Classes.ELEVATION_1}
+                />
+            </ExpansionPanel>
+        );
     }
 }
 

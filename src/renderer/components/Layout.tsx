@@ -6,11 +6,13 @@ import {OpenLayersMap} from './openlayers/OpenLayersMap';
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "./hgl";
 import DatasetsPanel from "./DataSourcesPanel";
 import OperationsPanel from "./OperationsPanel";
+import WorkspacePanel from "./WorkspacePanel";
 
 /*
  * IMPORTANT NODE: This is still prototype code!!!
  */
 
+//noinspection JSUnusedLocalSymbols
 export function Layout(props) {
 
     const leftStyle = {
@@ -28,7 +30,6 @@ export function Layout(props) {
         height: "100%",
         overflow: "auto",
     };
-    const closeIconName = "pt-icon-cross";
 
     return (
         <HGLContainer>
@@ -45,7 +46,7 @@ export function Layout(props) {
                         <div style={leftStyle}>
                             <DatasetsPanel/>
                             <OperationsPanel/>
-                            <WorkspaceWindow/>
+                            <WorkspacePanel/>
                         </div>
                     </TabPanel>
                     <TabPanel>
@@ -278,15 +279,6 @@ export class TreeExample extends React.Component<any, ITreeExampleState> {
     }
 }
 
-
-//noinspection JSUnusedLocalSymbols
-function WorkspaceWindow(props: any) {
-    return (
-        <ExpansionPanel icon="pt-icon-box" text="Workspace">
-            <TreeExample/>
-        </ExpansionPanel>
-    );
-}
 
 //noinspection JSUnusedLocalSymbols
 function AnalysisWindow(props: any) {
