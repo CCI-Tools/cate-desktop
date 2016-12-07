@@ -146,15 +146,12 @@ export interface ControlState {
     selectedWorkflowStepId: string|null;
     selectedWorkflowResourceId: string|null;
 
-    dialogs: {[key:string]:DialogState;};
+    // A map that stores the state of any dialog given a dialogId
+    dialogs: {[dialogId:string]:DialogState;};
 }
 
 export interface DialogState {
     isOpen?: boolean;
-}
-
-export interface OpenDatasetDialogState extends DialogState {
-    timeRange: [number, number];
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
