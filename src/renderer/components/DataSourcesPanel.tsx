@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import {ExpansionPanel} from './ExpansionPanel';
 import {State, DataStoreState} from "../state";
 import {DatasetAPI} from '../webapi';
-import {SplitPane} from "../containers/SplitPane";
+import {SplitPane} from "./SplitPane";
 import {Tabs, TabList, Tab, TabPanel, Button} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
 import {Card} from "./Card";

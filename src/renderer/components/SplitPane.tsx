@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Splitter} from "../components/Splitter";
+import {Splitter} from "./Splitter";
 
 
 export interface ISplitPaneProps {
