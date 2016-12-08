@@ -1,15 +1,30 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {State} from "../state";
+import {State, WorkspaceState} from "../state";
 import {Classes, Tree, ITreeNode, Tooltip} from "@blueprintjs/core";
 import {ExpansionPanel} from "./ExpansionPanel";
+import {WorkspaceAPI} from "../webapi/apis/WorkspaceAPI";
+import * as actions from '../actions'
 
 export interface ITreeExampleState {
     nodes: ITreeNode[];
 }
 
-function mapStateToProps(state: State) {
+interface IWorkspacePanelProps {
+    dispatch?: (action: {type: string, payload: any}) => void;
+    webAPIClient: any;
+    openLastWorkspace?: boolean,
+    lastWorkspacePath?: string|null,
+    workspace: WorkspaceState;
+    selectedWorkflowStepId: string|null;
+    selectedWorkflowResourceId: string|null;
+}
+
+function mapStateToProps(state: State): IWorkspacePanelProps {
     return {
+        webAPIClient: state.data.appConfig.webAPIClient,
+        openLastWorkspace: state.session.openLastWorkspace,
+        lastWorkspacePath: state.session.lastWorkspacePath,
         workspace: state.data.workspace,
         selectedWorkflowStepId: state.control.selectedWorkflowStepId,
         selectedWorkflowResourceId: state.control.selectedWorkflowResourceId,
@@ -23,8 +38,8 @@ function mapStateToProps(state: State) {
  *
  * @author Norman Fomferra
  */
-class WorkspacePanel extends React.Component<any, any> {
-     constructor(props) {
+class WorkspacePanel extends React.Component<IWorkspacePanelProps, any> {
+    constructor(props) {
         super();
 
         const resourcesTooltip = "Workspace resources that result from workflow steps";
@@ -63,6 +78,41 @@ class WorkspacePanel extends React.Component<any, any> {
                 },
             ],
         } as any as ITreeExampleState;
+    }
+
+    private getWorkspaceAPI(): WorkspaceAPI {
+        return new WorkspaceAPI(this.props.webAPIClient);
+    }
+
+    componentDidMount(): void {
+        if (!this.props.workspace) {
+            if (this.props.openLastWorkspace && this.props.lastWorkspacePath) {
+                this.openExistingWorkspace(this.props.lastWorkspacePath);
+            } else {
+                this.createInitialWorkspace();
+            }
+        }
+    }
+
+    private createInitialWorkspace() {
+        // TODO: show in the UI that we are in the process of getting a new workspace
+        this.getWorkspaceAPI().newWorkspace(null).then(workspace => {
+            this.props.dispatch(actions.setCurrentWorkspace(workspace));
+        }).catch(error => {
+            // TODO: handle error
+            console.error(error);
+        });
+    }
+
+    private openExistingWorkspace(workspacePath: string) {
+        // TODO: show in the UI that we are in the process of opening a workspace
+        this.getWorkspaceAPI().openWorkspace(workspacePath).then(workspace => {
+            this.props.dispatch(actions.setCurrentWorkspace(workspace));
+        }).catch(error => {
+            // TODO: handle error
+            console.error(error);
+            this.createInitialWorkspace();
+        });
     }
 
     //noinspection JSMethodCanBeStatic

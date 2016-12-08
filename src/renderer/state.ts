@@ -90,29 +90,26 @@ export interface WorkspaceState {
     path: null;
     isOpen: boolean;
     isSaved: boolean;
-    files: Array<WorkspaceFile>;
     workflow: WorkflowState;
 }
 
 export interface WorkflowState {
-    resources: Array<WorkflowResourceState>;
     steps: Array<WorkflowStepState>;
-}
-
-export interface WorkspaceFile {
-    id: string;
-    type: string;
-    path: string;
-}
-
-export interface WorkflowResourceState {
-    id: string;
-    type: string;
 }
 
 export interface WorkflowStepState {
     id: string;
     type: string;
+    action: string;
+    description?: string;
+    inputs: Array<WorkflowStepPortState>;
+    outputs: Array<WorkflowStepPortState>;
+}
+
+export interface WorkflowStepPortState {
+    name: string;
+    dataType?: string;
+    description?: string;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -166,6 +163,8 @@ export interface SessionState {
     lastDir?: string;
     mainWindowBounds?: {x:number; y:number; width: number; height: number};
     devToolsOpened?: boolean;
+    lastWorkspacePath?: string,
+    openLastWorkspace?: boolean,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

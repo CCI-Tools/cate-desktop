@@ -64,12 +64,14 @@ const dataReducer = (state: DataState = initialDataState, action) => {
                 dataStores: newDataStores
             });
         }
-        case actions.UPDATE_OPERATIONS: {
-            const newOperations = action.payload.operations;
+        case actions.UPDATE_OPERATIONS:
             return updateObject(state, {
-                operations: newOperations,
+                operations: action.payload.operations,
             });
-        }
+        case actions.SET_CURRENT_WORKSPACE:
+            return updateObject(state, {
+                workspace: action.payload.workspace,
+            });
     }
 
     return state;
@@ -122,12 +124,19 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
     return state;
 };
 
-const initialSessionState: SessionState = {};
+const initialSessionState: SessionState = {
+    openLastWorkspace: false,
+    lastWorkspacePath: null,
+};
 
 const sessionReducer = (state: SessionState = initialSessionState, action) => {
     switch (action.type) {
         case actions.APPLY_INITIAL_STATE:
             return updateObject(state, action.payload.session);
+        case actions.SET_CURRENT_WORKSPACE:
+            return updateObject(state, {
+                lastWorkspacePath: action.payload.workspace.path,
+            });
     }
     return state;
 };

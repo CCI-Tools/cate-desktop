@@ -1,3 +1,4 @@
+import {WorkspaceState} from "./state";
 export const APPLY_INITIAL_STATE = 'APPLY_INITIAL_STATE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const SET_DIALOG_STATE = 'SET_DIALOG_STATE';
@@ -65,6 +66,14 @@ export function setOperationFilterExpr(operationFilterExpr: Array<string>) {
     return {type: SET_OPERATION_FILTER_EXPR,  payload: {operationFilterExpr}};
 }
 
+//////////////////////////////////////////////////////////////////
+// Workspace actions
+
+export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
+
+export function setCurrentWorkspace(workspace: WorkspaceState) {
+    return {type: SET_CURRENT_WORKSPACE,  payload: {workspace}};
+}
 
 
 
