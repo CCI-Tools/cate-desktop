@@ -13,6 +13,8 @@ export interface IOpenDatasetDialogState extends DialogState {
 }
 
 export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDatasetDialogState> {
+    static readonly DIALOG_ID = 'openDataset';
+
     constructor(props: IOpenDatasetDialogProps) {
         super(props);
         this.state = {isOpen: true, timeRange: this.props.timeRange || [1990, 2010]};
@@ -27,7 +29,7 @@ export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, 
     }
 
     private handleConfirm() {
-        this.close('openDataset');
+        this.close(OpenDatasetDialog.DIALOG_ID);
     }
 
     private handleCancel() {

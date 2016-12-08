@@ -27,7 +27,7 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         dataStores: state.data.dataStores,
         selectedDataStoreId: state.control.selectedDataStoreId,
         selectedDataSourceId: state.control.selectedDataSourceId,
-        openDatasetDialogState: state.control.dialogs['openDataset'] as IOpenDatasetDialogState
+        openDatasetDialogState: state.control.dialogs[OpenDatasetDialog.DIALOG_ID] as IOpenDatasetDialogState
     };
 }
 
@@ -80,6 +80,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
             // TODO: display progress bar
             console.log('Operation in progress:', progress);
         };
+        // TODO: show in the UI that we are in the process of calling the operation
         this.getOperationAPI().callOperation(opName, opParams, onProgress).then((result) => {
             // TODO: update workspace
             console.log('Operation succeeded:', result);
@@ -98,11 +99,14 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
     }
 
     private handleOpenDatasetButtonClicked() {
-        this.props.dispatch(actions.setDialogState('openDataset', {isOpen: true}));
+        // Open "openDataset" dialog
+        this.props.dispatch(actions.setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: true}));
     }
 
     private handleOpenDatasetDialogClosed(actionId: string, dialogState: IOpenDatasetDialogState) {
-        this.props.dispatch(actions.setDialogState('openDataset', dialogState));
+        // Close "openDataset" dialog and save state
+        this.props.dispatch(actions.setDialogState(OpenDatasetDialog.DIALOG_ID, dialogState));
+        // Perform the action
         if (actionId) {
             // console.log('now opening', this.props.selectedDataSourceId, 'with', dialogState, '...');
             const opName = 'open_dataset';
