@@ -26,47 +26,74 @@ describe('WebAPIServiceMock', function () {
         expect(serviceMock.getOperations()[4].tags).to.have.length(1);
     });
 
+    it('can call operations', function () {
+        expect(serviceMock.callOperation('open_dataset', {
+            ds_name: 'bibo',
+            start_date: 2010,
+            end_date: 2012
+        })).to.deep.equal({
+            opName: 'open_dataset',
+            opArgs: {
+                ds_name: 'bibo',
+                start_date: 2010,
+                end_date: 2012
+            },
+        });
+    });
+
     it('can deal with workspaces', function () {
         expect(serviceMock.newWorkspace()).to.deep.equal({
             path: "{workspace-0}",
             isOpen: true,
             isSaved: false,
-            workflow: null
+            workflow: {
+                steps: []
+            }
         });
 
         expect(serviceMock.newWorkspace()).to.deep.equal({
             path: "{workspace-1}",
             isOpen: true,
             isSaved: false,
-            workflow: null
+            workflow: {
+                steps: []
+            }
         });
 
         expect(serviceMock.saveWorkspaceAs("{workspace-1}", "ral/la/la")).to.deep.equal({
             path: "ral/la/la",
             isOpen: true,
             isSaved: true,
-            workflow: null
+            workflow: {
+                steps: []
+            }
         });
 
         expect(serviceMock.saveWorkspace("ral/la/la")).to.deep.equal({
             path: "ral/la/la",
             isOpen: true,
             isSaved: true,
-            workflow: null
+            workflow: {
+                steps: []
+            }
         });
 
         expect(serviceMock.closeWorkspace("ral/la/la")).to.deep.equal({
             path: "ral/la/la",
             isOpen: false,
             isSaved: true,
-            workflow: null
+            workflow: {
+                steps: []
+            }
         });
 
         expect(serviceMock.openWorkspace("ral/la/la")).to.deep.equal({
             path: "ral/la/la",
             isOpen: true,
             isSaved: true,
-            workflow: null
+            workflow: {
+                steps: []
+            }
         });
 
     });

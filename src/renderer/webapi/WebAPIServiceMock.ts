@@ -138,8 +138,9 @@ export class WebAPIServiceMock implements IServiceObject {
         return this.operations;
     }
 
-    callOperation(opName: string, opParam: any) {
-        return {opName, opParam};
+    //noinspection JSMethodCanBeStatic
+    callOperation(opName: string, opArgs: any) {
+        return {opName, opArgs};
     }
 
     newWorkspace(): Object {
@@ -148,7 +149,9 @@ export class WebAPIServiceMock implements IServiceObject {
             path: `{workspace-${id}}`,
             isOpen: true,
             isSaved: false,
-            workflow: null,
+            workflow: {
+                steps: []
+            },
         };
         this.workspaces[workspace.path] = workspace;
         return Object.assign({}, workspace);

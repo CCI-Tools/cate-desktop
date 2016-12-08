@@ -177,7 +177,7 @@ class WebAPIClientImpl implements WebAPIClient {
     }
 
     sendMessage(request: JobRequest) {
-        console.log('WebAPIClient.sendMessage: request=', request)
+        // console.log('WebAPIClient.sendMessage: request=', request)
         const message = Object.assign({}, {jsonrpc: "2.0"}, request);
         const messageText = JSON.stringify(message);
         this.socket.send(messageText);
@@ -188,17 +188,17 @@ class WebAPIClientImpl implements WebAPIClient {
         try {
             message = JSON.parse(messageText);
         } catch (err) {
-            this.warn(`Received invalid JSON content from Cate WebAPI. Ignoring it.\n--------------------\n${messageText}\n--------------------`);
+            this.warnInvalidJsonRcpMessage('Message is no valid JSON', messageText);
             return;
         }
         if (message.jsonrcp !== '2.0' || typeof message.id !== 'number') {
-            this.warn(`Received invalid Cate WebAPI message (id: ${message.id}). Ignoring it.\n--------------------\n${messageText}\n--------------------`);
+            this.warnInvalidJsonRcpMessage('Message is not JSON-RCP 2.0 compliant', messageText);
             return;
         }
 
         const job = this.activeJobs[message.id];
         if (!job) {
-            this.warn(`Received Cate WebAPI message (id: ${message.id}), which does not have an associated job. Ignoring it.`);
+            this.warnInvalidJsonRcpMessage(`Method with "id"=${message.id} has no associated job`, messageText);
             return;
         }
 
@@ -211,14 +211,15 @@ class WebAPIClientImpl implements WebAPIClient {
             job.notifyFailed(message.error);
             delete this.activeJobs[message.id];
         } else {
-            this.warn(`Received invalid Cate WebAPI message (id: ${message.id}), which is neither a response, progress, nor error. Ignoring it.`)
+            this.warnInvalidJsonRcpMessage(`Method is neither a "response", "progress", nor "error"`, messageText);
+            return;
         }
     }
 
-    private warn(message: string) {
+    private warnInvalidJsonRcpMessage(detailsMessage: string, jsonRcpMessage: string) {
         if (this.onWarning) {
-            const warnEvent = {type: 'warning', message};
-            this.onWarning(warnEvent);
+            const message = `Received invalid JSON-RCP message from Cate WebAPI. ${detailsMessage}. Ignoring it.\n--------------------\n${jsonRcpMessage}\n--------------------`;
+            this.onWarning({type: 'warning', message});
         }
     }
 
