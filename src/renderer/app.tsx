@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {Store, createStore, applyMiddleware} from 'redux';
 import * as loggerMiddleware from 'redux-logger';
+import thunkMiddleware from 'redux-thunk';
 import {Provider} from 'react-redux';
 import {ipcRenderer} from 'electron';
 import {Layout} from './components/Layout'
@@ -13,7 +14,11 @@ import {reducers} from './reducers';
 //noinspection JSUnusedGlobalSymbols
 export function main() {
 
-    const middleware = applyMiddleware(loggerMiddleware({level: 'info', collapsed: true}));
+    const middleware = applyMiddleware(
+        loggerMiddleware({level: 'info', collapsed: true}),
+        thunkMiddleware
+    );
+
     const store = createStore(reducers, middleware);
 
     ipcRenderer.on('apply-initial-state', (event, initialState) => {
@@ -38,6 +43,20 @@ function connectWebAPIClient(store: Store<State>) {
     //            we urgently need to display some progress indicator beforehand.
     webAPIClient.onOpen = () => {
         store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
+
+        store.dispatch(dispatch => {
+            setTimeout(() => {
+                dispatch({type: 'BRING_KINDERSCHOKOLADE', payload: 'Here are 5kg Kinderschokolade'});
+            }, 5000);
+        });
+
+        // TODO: dispatch actions
+        // - load data stores
+        //   - set selected data store (if any)
+        //     - load data sources
+        //       - set selected data source (if any)
+        // - load operations
+        // - load current workspace
 
         ReactDOM.render(
             <Provider store={store}>

@@ -53,10 +53,18 @@ The following frameworks and libraries are currently used in Cate's production c
 
 * [Electron](http://electron.atom.io/), to build cross platform desktop apps with JavaScript, HTML, and CSS.
 * [React](https://facebook.github.io/react/), a javascript library for building user interfaces.
-* [Redux](http://redux.js.org/), a predictable state container for JavaScript apps.
+* [Redux](http://redux.js.org/), a predictable state container for JavaScript apps. We use the following
+  [middleware](http://redux.js.org/docs/advanced/Middleware.html):
+  * [redux-thunk](https://github.com/gaearon/redux-thunk), allows to write action creators that return a function 
+    instead of an action
+  * [redux-logger](https://github.com/evgenyrodionov/redux-logger), a logger middleware for Redux
 * [Blueprint](http://blueprintjs.com/), a React UI toolkit.
 * [Cesium](https://cesiumjs.org/), an open-source JavaScript library for world-class 3D globes and maps.
 * [OpenLayers](https://openlayers.org/), the high-performance, feature-packed library for all your mapping needs.
+
+For Redux, we use the following [middleware](http://redux.js.org/docs/advanced/Middleware.html):
+
+
 
 
 ## Development Tools and Libraries
