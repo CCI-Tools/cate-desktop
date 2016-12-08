@@ -91,6 +91,7 @@ export interface WorkspaceState {
     isOpen: boolean;
     isSaved: boolean;
     workflow: WorkflowState;
+    description?: string|null;
 }
 
 export interface WorkflowState {
