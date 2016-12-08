@@ -29,6 +29,10 @@ class WorkspacePanel extends React.Component<any, any> {
 
         const resourcesTooltip = "Workspace resources that result from workflow steps";
         const stepsTooltip = "Workflow steps that generate resources";
+
+        const resourcesMoreMenu = <span className="pt-icon-standard pt-icon-edit"/>;
+        const operationsMoreMenu = <span className="pt-icon-standard pt-icon-more"/>;
+
         this.state = {
             nodes: [
                 {
@@ -38,10 +42,10 @@ class WorkspacePanel extends React.Component<any, any> {
                     iconName: "database",
                     label: <Tooltip content={resourcesTooltip}>Resources</Tooltip>,
                     childNodes: [
-                        {label: "Resource #1"},
-                        {label: "Resource #2"},
-                        {label: "Resource #3"},
-                        {label: "Resource #4"},
+                        {label: "Resource #1", secondaryLabel: resourcesMoreMenu,},
+                        {label: "Resource #2", secondaryLabel: resourcesMoreMenu,},
+                        {label: "Resource #3", secondaryLabel: resourcesMoreMenu,},
+                        {label: "Resource #4", secondaryLabel: resourcesMoreMenu,},
                     ],
                 },
                 {
@@ -51,10 +55,10 @@ class WorkspacePanel extends React.Component<any, any> {
                     iconName: "function",
                     label: <Tooltip content={stepsTooltip}>Workflow Steps</Tooltip>,
                     childNodes: [
-                        {label: "Operation Step #1"},
-                        {label: "Operation Step #2"},
-                        {label: "Operation Step #3"},
-                        {label: "Operation Step #4"},
+                        {label: "Operation Step #1", secondaryLabel: operationsMoreMenu,},
+                        {label: "Operation Step #2", secondaryLabel: operationsMoreMenu,},
+                        {label: "Operation Step #3", secondaryLabel: operationsMoreMenu,},
+                        {label: "Operation Step #4", secondaryLabel: operationsMoreMenu,},
                     ],
                 },
             ],
