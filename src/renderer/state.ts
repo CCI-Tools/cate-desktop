@@ -87,11 +87,12 @@ export interface OperationOutputState {
 }
 
 export interface WorkspaceState {
-    path: null;
-    isOpen: boolean;
+    baseDir: string;
+    description: string|null;
+    isScratch: boolean;
+    isModified: boolean;
     isSaved: boolean;
     workflow: WorkflowState;
-    description?: string|null;
 }
 
 export interface WorkflowState {

@@ -1,30 +1,46 @@
 import {WebAPIClient} from "../WebAPIClient";
-import {JobPromise} from "../Job";
+import {JobPromise, JobResponse} from "../Job";
+import {WorkspaceState} from "../../state";
+
+function responseToWorkspace(workspaceResponse: JobResponse): WorkspaceState {
+    if (!workspaceResponse) {
+        return null;
+    }
+    return {
+        baseDir: workspaceResponse.base_dir,
+        description: workspaceResponse.description,
+        isScratch: workspaceResponse.is_scratch,
+        isModified: workspaceResponse.is_modified,
+        isSaved: workspaceResponse.is_saved,
+        workflow: workspaceResponse.workflow,
+    };
+}
 
 export class WorkspaceAPI {
-    private webAPI: WebAPIClient;
+    private webAPIClient: WebAPIClient;
 
     constructor(webAPI: WebAPIClient) {
-        this.webAPI = webAPI;
+        this.webAPIClient = webAPI;
     }
 
-    newWorkspace(path: string): JobPromise {
-        return this.webAPI.call('newWorkspace', [path]);
+    newWorkspace(): JobPromise {
+        return this.webAPIClient.call('newWorkspace', [], null, responseToWorkspace);
     }
 
     openWorkspace(path: string): JobPromise {
-        return this.webAPI.call('openWorkspace', [path]);
+        return this.webAPIClient.call('openWorkspace', [path], null, responseToWorkspace);
     }
 
     closeWorkspace(path: string): JobPromise {
-        return this.webAPI.call('closeWorkspace', [path]);
+        return this.webAPIClient.call('closeWorkspace', [path], null, responseToWorkspace);
     }
 
     saveWorkspace(path: string): JobPromise {
-        return this.webAPI.call('saveWorkspace', [path]);
+        return this.webAPIClient.call('saveWorkspace', [path], null, responseToWorkspace);
     }
 
     saveWorkspaceAs(path: string, newPath: string): JobPromise {
-        return this.webAPI.call('saveWorkspaceAs', [path, newPath]);
+        return this.webAPIClient.call('saveWorkspaceAs', [path, newPath], null, responseToWorkspace);
     }
+
 }

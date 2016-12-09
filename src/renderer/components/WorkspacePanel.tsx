@@ -57,7 +57,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
     private newWorkspace() {
         // TODO: show in the UI that we are in the process of getting a new workspace
-        this.getWorkspaceAPI().newWorkspace(null).then(workspace => {
+        this.getWorkspaceAPI().newWorkspace().then(workspace => {
             this.props.dispatch(actions.setCurrentWorkspace(workspace));
         }).catch(error => {
             // TODO: handle error

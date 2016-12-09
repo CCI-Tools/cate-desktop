@@ -148,8 +148,7 @@ export function init() {
         serviceFile: 'cate-webapi.json',
         // Refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
         processOptions: {},
-        // TODO: set disabled=false in production mode later
-        disabled: true,
+        useMockService: false,
     });
 
     _config.set('webAPIConfig', webAPIConfig);
@@ -244,7 +243,7 @@ export function init() {
         createSplashWindow(null);
 
         console.log(CATE_DESKTOP_PREFIX, 'Ready.');
-        if (!webAPIConfig.disabled) {
+        if (!webAPIConfig.useMockService) {
             console.log(CATE_DESKTOP_PREFIX, 'Using Cate WebAPI service...');
             startUpWithWebapiService();
         } else {
@@ -255,7 +254,7 @@ export function init() {
     // Emitted when all windows have been closed and the application will quit.
     app.on('quit', () => {
         console.log(CATE_DESKTOP_PREFIX, 'Quit.');
-        if (!webAPIConfig.disabled) {
+        if (!webAPIConfig.useMockService) {
             stopWebapiService(webAPIProcess);
         }
     });

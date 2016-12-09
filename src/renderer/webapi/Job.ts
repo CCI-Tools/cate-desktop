@@ -53,12 +53,13 @@ export interface JobRequest {
 export type JobResponse = any;
 
 /**
- * Progress info, this is not covered by JSON-RCP.
+ * Progress info, this is a Cate-specific extension to JSON-RCP.
  */
 export interface JobProgress {
+    readonly label?: string;
     readonly message?: string;
-    readonly worked?: number;
     readonly total?: number;
+    readonly worked?: number;
 }
 
 /**

@@ -134,9 +134,11 @@ const sessionReducer = (state: SessionState = initialSessionState, action) => {
         case actions.APPLY_INITIAL_STATE:
             return updateObject(state, action.payload.session);
         case actions.SET_CURRENT_WORKSPACE:
-            return updateObject(state, {
-                lastWorkspacePath: action.payload.workspace.path,
-            });
+            if (!action.payload.workspace.isScratch) {
+                return updateObject(state, {
+                    lastWorkspacePath: action.payload.workspace.isScratch ? null : action.payload.workspace.path,
+                });
+            }
     }
     return state;
 };

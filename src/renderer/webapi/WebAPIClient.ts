@@ -41,6 +41,8 @@ import {
 const CANCEL_METHOD = '__cancelJob__';
 const CANCELLED_CODE = 999;
 
+export type JobResponseTransformer = (JobResponse) => any;
+
 /**
  * A client for Cate's WebAPI.
  *
@@ -57,9 +59,10 @@ const CANCELLED_CODE = 999;
  * To report progress, the Cate WebAPIClient server can send "progress" objects:
  *
  *   {
- *      work?: number,
- *      total?: number,
+ *      label?: string
  *      message?: string
+ *      worked?: number
+ *      total?: number
  *   }
  *
  * This is non JSON-RCP, which only allows for either the "response" or an "error" object.
@@ -81,10 +84,12 @@ export interface WebAPIClient {
      *               providing keyword arguments.
      * @param onProgress An optional handler that is notified while the Job progresses.
      *        Note that not all server-side methods provide progress notifications.
+     * @param transformer Optional transformer for the returned responses
      */
     call(method: string,
          params: Array<any>|Object,
-         onProgress?: (progress: JobProgress) => void): JobPromise;
+         onProgress?: (progress: JobProgress) => void,
+         transformer?: JobResponseTransformer): JobPromise;
 
     /**
      * Closes this client and the underlying connection, if any.
@@ -107,10 +112,6 @@ export function newWebAPIClient(url: string, firstMessageId = 0, socket?: WebSoc
     return new WebAPIClientImpl(url, firstMessageId, socket);
 }
 
-/**
- * The WebAPIClient class is used to JSON-RCP requests. Clients will receive a JobPromise object which provides
- * additional API to deal with asynchronously received job status messages and the final result.
- */
 class WebAPIClientImpl implements WebAPIClient {
 
     readonly url: string;
@@ -151,23 +152,16 @@ class WebAPIClientImpl implements WebAPIClient {
         }
     }
 
-    /**
-     * Call a remote procedure / method.
-     *
-     * @param method The method name.
-     * @param params Positional parameters as array or named parameters as object.
-     * @param onProgress Callback that is notified on progress.
-     * @returns {Promise} A promise.
-     */
     call(method: string,
          params: Array<any>|Object,
-         onProgress?: (progress: JobProgress) => void): JobPromise {
+         onProgress?: (progress: JobProgress) => void,
+         transformer?: JobResponseTransformer): JobPromise {
         const request = {
             "id": this.newId(),
             "method": method,
             "params": params,
         };
-        const job = new JobImpl(this, request);
+        const job = new JobImpl(this, request, transformer);
         this.activeJobs[request.id] = job;
         return job.invoke(onProgress);
     }
@@ -236,11 +230,13 @@ class JobImpl implements Job {
     private onProgress: JobProgressHandler;
     private onResolve: JobResponseHandler;
     private onReject: JobFailureHandler;
+    private transformer: JobResponseTransformer;
 
-    constructor(webAPIClient: WebAPIClientImpl, request: JobRequest) {
+    constructor(webAPIClient: WebAPIClientImpl, request: JobRequest, transformer: JobResponseTransformer) {
         this.webAPIClient = webAPIClient;
         this.request = request;
         this.status = JobStatus.NEW;
+        this.transformer = transformer;
     }
 
     getRequest() {
@@ -267,7 +263,6 @@ class JobImpl implements Job {
     // Implementation details
 
     invoke(onProgress?: JobProgressHandler): JobPromise {
-        // TODO: onProgress handler must be called async, similar to handlers of Promise.then(onResolve, onReject)
 
         const executor = (onResolve: JobResponseHandler, onReject: JobFailureHandler) => {
             this.setHandlers(onProgress, onResolve, onReject);
@@ -308,7 +303,7 @@ class JobImpl implements Job {
     notifyDone(response: JobResponse) {
         this.setStatus(JobStatus.DONE);
         if (this.onResolve) {
-            this.onResolve(response);
+            this.onResolve(this.transformer ? this.transformer(response) : response);
         }
     }
 

@@ -147,8 +147,10 @@ export class WebAPIServiceMock implements IServiceObject {
         const id = this.workspaceId++;
         let workspace = {
             path: `{workspace-${id}}`,
+            description: null,
+            isScratch: true,
             isOpen: true,
-            isSaved: false,
+            isModified: false,
             workflow: {
                 steps: []
             },
