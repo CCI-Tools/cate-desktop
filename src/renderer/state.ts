@@ -45,7 +45,7 @@ export interface WebAPIConfig {
     serviceAddress: string;
     serviceFile?:  string;
     processOptions?: Object;
-    disabled?: boolean;
+    useMockService?: boolean;
     // Values computed in main.ts
     restUrl: string;
     webSocketUrl: string;

@@ -33,7 +33,7 @@ function connectWebAPIClient(store: Store<State>) {
     const webAPIConfig = store.getState().data.appConfig.webAPIConfig;
     console.log('webAPIConfig:', webAPIConfig);
     let webAPIClient;
-    if (webAPIConfig.disabled !== true && webAPIConfig.webSocketUrl) {
+    if (!webAPIConfig.useMockService && webAPIConfig.webSocketUrl) {
         webAPIClient = newWebAPIClient(webAPIConfig.webSocketUrl);
     } else {
         webAPIClient = newWebAPIClient('ws://mock', 0, new WebSocketMock(100, new WebAPIServiceMock(), true));
