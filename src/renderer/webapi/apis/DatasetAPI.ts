@@ -1,18 +1,18 @@
 import {WebAPIClient} from "../WebAPIClient";
-import {JobPromise} from "../Job";
+import {JobPromise, JobProgress} from "../Job";
 
 export class DatasetAPI {
-    private webAPI: WebAPIClient;
+    private readonly webAPIClient: WebAPIClient;
 
-    constructor(webAPI: WebAPIClient) {
-        this.webAPI = webAPI;
+    constructor(webAPIClient: WebAPIClient) {
+        this.webAPIClient = webAPIClient;
     }
 
     getDataStores(): JobPromise {
-        return this.webAPI.call('getDataStores', []);
+        return this.webAPIClient.call('getDataStores', []);
     }
 
-    getDataSources(dataStoreId: string): JobPromise {
-        return this.webAPI.call('getDataSources', [dataStoreId]);
+    getDataSources(dataStoreId: string, onProgress: (progress: JobProgress) => void): JobPromise {
+        return this.webAPIClient.call('getDataSources', [dataStoreId], onProgress);
     }
 }

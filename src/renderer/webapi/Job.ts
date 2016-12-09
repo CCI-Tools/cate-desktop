@@ -1,29 +1,6 @@
 /**
- * A client for Cate's WebAPI.
- *
- * Implementation is based on WebSockets with a JSON-RPC-based protocol.
- * For JSON-RPC details see http://www.jsonrpc.org/specification.
- *
- * A Cate WebAPIClient server must implement a general method "__cancelJob__(jobId: number): void"
- * which cancels the job with given *jobId*. The method call must either succeed with any "response" value
- * or fail by returning an "error" object.
- *
- * If the Cate WebAPIClient server has successfully cancelled a running job, an "error" object with code 999
- * must be returned.
- *
- * To report progress, the Cate WebAPIClient server can send "progress" objects:
- *
- *   {
- *      work?: number,
- *      total?: number,
- *      message?: string
- *   }
- *
- * This is non JSON-RCP, which only allows for either the "response" or an "error" object.
- *
  * @author Norman Fomferra
  */
-
 export interface Job {
     getRequest(): JobRequest;
     getStatus(): JobStatus;
@@ -35,13 +12,15 @@ export interface JobPromise extends Promise<JobResponse> {
     getJob(): Job;
 }
 
-export enum JobStatus {
-    NEW,
-    SUBMITTED,
-    IN_PROGRESS,
-    DONE,
-    FAILED,
-    CANCELLED,
+export type JobStatus = 'NEW'|'SUBMITTED'|'IN_PROGRESS'|'FAILED'|'CANCELLED'|'DONE';
+
+export class JobStatusEnum {
+    static readonly NEW = 'NEW';
+    static readonly SUBMITTED = 'SUBMITTED';
+    static readonly IN_PROGRESS = 'IN_PROGRESS';
+    static readonly DONE = 'DONE';
+    static readonly FAILED = 'FAILED';
+    static readonly CANCELLED = 'CANCELLED';
 }
 
 export interface JobRequest {

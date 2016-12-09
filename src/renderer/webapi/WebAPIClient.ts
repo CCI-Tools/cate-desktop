@@ -35,7 +35,7 @@ import {
     JobStatus,
     JobProgressHandler,
     JobResponseHandler,
-    JobFailureHandler
+    JobFailureHandler, JobStatusEnum
 } from './Job'
 
 const CANCEL_METHOD = '__cancelJob__';
@@ -235,7 +235,7 @@ class JobImpl implements Job {
     constructor(webAPIClient: WebAPIClientImpl, request: JobRequest, transformer: JobResponseTransformer) {
         this.webAPIClient = webAPIClient;
         this.request = request;
-        this.status = JobStatus.NEW;
+        this.status = JobStatusEnum.NEW;
         this.transformer = transformer;
     }
 
@@ -248,7 +248,7 @@ class JobImpl implements Job {
     }
 
     isCancelled(): boolean {
-        return this.status === JobStatus.CANCELLED;
+        return this.status === JobStatusEnum.CANCELLED;
     }
 
     cancel(onResolve?: JobResponseHandler,
@@ -267,7 +267,7 @@ class JobImpl implements Job {
         const executor = (onResolve: JobResponseHandler, onReject: JobFailureHandler) => {
             this.setHandlers(onProgress, onResolve, onReject);
             this.sendMessage();
-            this.setStatus(JobStatus.SUBMITTED);
+            this.setStatus(JobStatusEnum.SUBMITTED);
         };
 
         const promise = new Promise<JobResponse>(executor.bind(this));
@@ -294,21 +294,21 @@ class JobImpl implements Job {
     }
 
     notifyInProgress(progress: JobProgress) {
-        this.setStatus(JobStatus.IN_PROGRESS);
+        this.setStatus(JobStatusEnum.IN_PROGRESS);
         if (this.onProgress) {
             this.onProgress(progress);
         }
     }
 
     notifyDone(response: JobResponse) {
-        this.setStatus(JobStatus.DONE);
+        this.setStatus(JobStatusEnum.DONE);
         if (this.onResolve) {
             this.onResolve(this.transformer ? this.transformer(response) : response);
         }
     }
 
     notifyFailed(failure: JobFailure) {
-        this.setStatus(failure.code === CANCELLED_CODE ? JobStatus.CANCELLED : JobStatus.FAILED);
+        this.setStatus(failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED);
         if (this.onReject) {
             this.onReject(failure);
         }

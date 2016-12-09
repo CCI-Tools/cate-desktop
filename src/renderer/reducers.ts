@@ -2,6 +2,11 @@ import {State, DataState, LocationState, SessionState, CommunicationState, Contr
 import * as actions from './actions';
 import {combineReducers} from 'redux';
 
+// TODO write tests for reducers
+
+
+
+// TODO move updateObject() into obj.ts, see also src/common/assign.ts
 /**
  * Encapsulate the idea of passing a new object as the first parameter
  * to Object.assign to ensure we correctly copy data instead of mutating.
@@ -10,11 +15,15 @@ export function updateObject(oldObject, newValues) {
     return Object.assign({}, oldObject, newValues);
 }
 
+// TODO move updateProperty() into obj.ts, see also src/common/assign.ts
 export function updateProperty(oldObject: Object, key: string, value: any) {
-    const newValues =  {};
+    const newValues = {};
     newValues[key] = updateObject(oldObject[key], value);
     return updateObject(oldObject, newValues);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// state.data initial state and reducers
 
 const initialDataState: DataState = {
     appConfig: {
@@ -43,11 +52,11 @@ const dataReducer = (state: DataState = initialDataState, action) => {
                 appConfig: updateObject(state.appConfig, {webAPIClient})
             });
         }
-        case actions.UPDATE_DATA_STORES_SUCCESS: {
+        case actions.UPDATE_DATA_STORES: {
             const dataStores = action.payload.dataStores.slice();
             return updateObject(state, {dataStores});
         }
-        case actions.SET_DATA_SOURCES: {
+        case actions.UPDATE_DATA_SOURCES: {
             const dataStoreId = action.payload.dataStoreId;
             const dataStoreIndex = state.dataStores.findIndex(dataStore => dataStore.id === dataStoreId);
             if (dataStoreIndex < 0) {
@@ -77,6 +86,10 @@ const dataReducer = (state: DataState = initialDataState, action) => {
     return state;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// state.control initial state and reducers
+
+
 const initialControlState: ControlState = {
     selectedDataStoreId: null,
     selectedDataSourceId: null,
@@ -85,14 +98,14 @@ const initialControlState: ControlState = {
     operationFilterExpr: '',
     selectedWorkflowStepId: null,
     selectedWorkflowResourceId: null,
-    dialogs : {
+    dialogs: {
         openDataset: {}
     }
 };
 
 const controlReducer = (state: ControlState = initialControlState, action) => {
     switch (action.type) {
-        case actions.SET_DATA_SOURCES: {
+        case actions.UPDATE_DATA_SOURCES: {
             const dataSources = action.payload.dataSources;
             return updateObject(state, {
                 selectedDataSourceId: (dataSources && dataSources.length) ? dataSources[0].id : null
@@ -118,6 +131,9 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
     return state;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// state.session initial state and reducers
+
 const initialSessionState: SessionState = {
     openLastWorkspace: false,
     lastWorkspacePath: null,
@@ -137,17 +153,29 @@ const sessionReducer = (state: SessionState = initialSessionState, action) => {
     return state;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// state.communication initial state and reducers
+
 const initialCommunicationState: CommunicationState = {
-    webAPIStatus: null
+    webAPIStatus: null,
+    tasks: {}
 };
 
 const communicationReducer = (state: CommunicationState = initialCommunicationState, action) => {
     switch (action.type) {
         case actions.SET_WEBAPI_STATUS:
-            return updateObject(state, {webAPIStatus: action.payload.webAPIStatus})
+            return updateObject(state, {webAPIStatus: action.payload.webAPIStatus});
+        case actions.SET_TASK_STATE:
+            return updateObject(state, {
+                tasks: updateProperty(state.tasks, action.payload.taskId, action.payload.taskState)
+            });
     }
     return state;
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// state.location initial state and reducers
+
 
 const initialLocationState: LocationState = {
     webAPIStatus: null
@@ -158,7 +186,11 @@ const locationReducer = (state: LocationState = initialLocationState, action) =>
     return state;
 };
 
-export const reducers = combineReducers<State>({
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Combined State reducer
+
+export const stateReducer = combineReducers<State>({
     data: dataReducer,
     control: controlReducer,
     session: sessionReducer,

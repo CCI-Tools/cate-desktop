@@ -9,7 +9,7 @@ import {Layout} from './components/Layout'
 import {newWebAPIClient, WebSocketMock, WebAPIServiceMock} from './webapi'
 import {State} from './state';
 import * as actions from './actions'
-import {reducers} from './reducers';
+import {stateReducer} from './reducers';
 
 //noinspection JSUnusedGlobalSymbols
 export function main() {
@@ -19,7 +19,7 @@ export function main() {
         thunkMiddleware
     );
 
-    const store = createStore(reducers, middleware);
+    const store = createStore(stateReducer, middleware);
 
     ipcRenderer.on('apply-initial-state', (event, initialState) => {
         store.dispatch(actions.applyInitialState(initialState));

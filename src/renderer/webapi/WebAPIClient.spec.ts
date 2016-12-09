@@ -1,7 +1,7 @@
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import {WebSocketMock} from './WebSocketMock';
-import {JobStatus, JobProgress} from './Job';
+import {JobStatus, JobProgress, JobStatusEnum} from './Job';
 import {WebAPIClient, newWebAPIClient} from './WebAPIClient';
 
 const expect = chai.expect;
@@ -102,7 +102,7 @@ describe('WebAPIClient', function () {
 
         it('changes status to done', function () {
             const job = webAPI.call('anyMethod', ['A', 2, true]).getJob();
-            expect(job.getStatus()).to.equal(JobStatus.SUBMITTED);
+            expect(job.getStatus()).to.equal(JobStatusEnum.SUBMITTED);
             webSocket.emulateIncomingMessages(
                 {
                     jsonrcp: "2.0",
@@ -110,7 +110,7 @@ describe('WebAPIClient', function () {
                     response: 'ok',
                 }
             );
-            expect(job.getStatus()).to.equal(JobStatus.DONE);
+            expect(job.getStatus()).to.equal(JobStatusEnum.DONE);
         });
 
         it('changes status to failed', function () {
@@ -120,7 +120,7 @@ describe('WebAPIClient', function () {
             promise.catch(() => {
             });
             const job = promise.getJob();
-            expect(job.getStatus()).to.equal(JobStatus.SUBMITTED);
+            expect(job.getStatus()).to.equal(JobStatusEnum.SUBMITTED);
             webSocket.emulateIncomingMessages(
                 {
                     jsonrcp: "2.0",
@@ -131,7 +131,7 @@ describe('WebAPIClient', function () {
                     },
                 }
             );
-            expect(job.getStatus()).to.equal(JobStatus.FAILED);
+            expect(job.getStatus()).to.equal(JobStatusEnum.FAILED);
         });
 
         it('changes status to cancelled', function () {
@@ -141,7 +141,7 @@ describe('WebAPIClient', function () {
             promise.catch(() => {
             });
             const job = promise.getJob();
-            expect(job.getStatus()).to.equal(JobStatus.SUBMITTED);
+            expect(job.getStatus()).to.equal(JobStatusEnum.SUBMITTED);
             webSocket.emulateIncomingMessages(
                 {
                     jsonrcp: "2.0",
@@ -152,12 +152,12 @@ describe('WebAPIClient', function () {
                     },
                 }
             );
-            expect(job.getStatus()).to.equal(JobStatus.CANCELLED);
+            expect(job.getStatus()).to.equal(JobStatusEnum.CANCELLED);
         });
 
         it('changes status while progressing and then to done', function () {
             const job = webAPI.call('anyMethod', ['A', 2, true]).getJob();
-            expect(job.getStatus()).to.equal(JobStatus.SUBMITTED);
+            expect(job.getStatus()).to.equal(JobStatusEnum.SUBMITTED);
 
             webSocket.emulateIncomingMessages(
                 {
@@ -169,7 +169,7 @@ describe('WebAPIClient', function () {
                     },
                 }
             );
-            expect(job.getStatus()).to.equal(JobStatus.IN_PROGRESS);
+            expect(job.getStatus()).to.equal(JobStatusEnum.IN_PROGRESS);
 
             webSocket.emulateIncomingMessages(
                 {
@@ -182,7 +182,7 @@ describe('WebAPIClient', function () {
                     },
                 }
             );
-            expect(job.getStatus()).to.equal(JobStatus.IN_PROGRESS);
+            expect(job.getStatus()).to.equal(JobStatusEnum.IN_PROGRESS);
 
             webSocket.emulateIncomingMessages(
                 {
@@ -191,7 +191,7 @@ describe('WebAPIClient', function () {
                     response: 'ok',
                 }
             );
-            expect(job.getStatus()).to.equal(JobStatus.DONE);
+            expect(job.getStatus()).to.equal(JobStatusEnum.DONE);
         });
     });
 

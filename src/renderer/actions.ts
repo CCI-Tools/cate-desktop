@@ -1,11 +1,19 @@
-import {WorkspaceState, DataStoreState} from "./state";
+import {WorkspaceState, DataStoreState, State} from "./state";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
+import {JobStatus, JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
+
+// TODO write tests for actions
+
+
+const CANCELLED_CODE = 999;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Application-level actions
+
 export const APPLY_INITIAL_STATE = 'APPLY_INITIAL_STATE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const SET_DIALOG_STATE = 'SET_DIALOG_STATE';
-
-//////////////////////////////////////////////////////////////////
-// Application-level actions
+export const SET_TASK_STATE = 'SET_TASK_STATE';
 
 export function applyInitialState(initialState: Object) {
     return {type: APPLY_INITIAL_STATE, payload: initialState};
@@ -16,82 +24,120 @@ export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting'|'open'|
 }
 
 export function setDialogState(dialogId: string, dialogState: any) {
-    return {type: SET_DIALOG_STATE,  payload: {dialogId, dialogState}};
+    return {type: SET_DIALOG_STATE, payload: {dialogId, dialogState}};
 }
 
-//////////////////////////////////////////////////////////////////
+export function setTaskState(taskId: string, taskState: any) {
+    return {type: SET_TASK_STATE, payload: {taskId, taskState}};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data stores / data sources actions
 
-export const UPDATE_DATA_STORES_REQUEST = 'UPDATE_DATA_STORES_REQUEST';
-export const UPDATE_DATA_STORES_SUCCESS = 'UPDATE_DATA_STORES_SUCCESS';
-export const UPDATE_DATA_STORES_FAILURE = 'UPDATE_DATA_STORES_FAILURE';
-
-export const SET_DATA_SOURCES = 'SET_DATA_SOURCES';
+export const UPDATE_DATA_STORES = 'UPDATE_DATA_STORES';
+export const UPDATE_DATA_SOURCES = 'UPDATE_DATA_SOURCES';
 export const SET_SELECTED_DATA_STORE_ID = 'SET_SELECTED_DATA_STORE_ID';
 export const SET_SELECTED_DATA_SOURCE_ID = 'SET_SELECTED_DATA_SOURCE_ID';
 
-////////////////////////////////////////////
-// data store
+/**
+ * Asynchronously load the available Cate data stores.
+ *
+ * @returns {(dispatch:any, getState:any)=>undefined}
+ */
 export function loadDataStores() {
     return (dispatch, getState) => {
-        dispatch(updateDataStoresRequest());
-        const datasetAPI = new DatasetAPI(getState().data.appConfig.webAPIClient);
-        datasetAPI.getDataStores().then((dataStores: Array<DataStoreState>) => {
-            dispatch(updateDataStoresSucess(dataStores));
+        dispatch(updateDataStoresSubmitted());
+        datasetAPI(getState()).getDataStores().then((dataStores: Array<DataStoreState>) => {
+            dispatch(updateDataStores(dataStores));
+            dispatch(updateDataStoresDone());
             if (dataStores && dataStores.length) {
                 dispatch(setSelectedDataStoreId(dataStores[0].id));
             } else {
                 dispatch(setSelectedDataStoreId(null));
             }
-        }).catch(error => {
-            updateDataStoresFailure(error)
+        }).catch(failure => {
+            console.error(failure);
+            dispatch(updateDataStoresFailed(failure));
         });
     }
 }
 
-function updateDataStoresRequest() {
-    // TODO start showing progress indicator ???
-    return {type: UPDATE_DATA_STORES_REQUEST};
-}
-function updateDataStoresSucess(dataStores: Array<DataStoreState>) {
-    // TODO stop showing progress indicator ???
-    return {type: UPDATE_DATA_STORES_SUCCESS, payload: {dataStores}};
-}
-function updateDataStoresFailure(error) {
-    // TODO: handle error
-    return {type: UPDATE_DATA_STORES_FAILURE, payload: {error}};
+function updateDataStores(dataStores: Array<DataStoreState>) {
+    return {type: UPDATE_DATA_STORES, payload: {dataStores}};
 }
 
+function updateDataStoresSubmitted() {
+    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
+    return setTaskState('dataStores', {status: JobStatusEnum.SUBMITTED});
+}
+
+function updateDataStoresDone() {
+    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
+    return setTaskState('dataStores', {status: JobStatusEnum.DONE});
+}
+
+function updateDataStoresFailed(failure) {
+    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
+    return setTaskState('dataStores', {status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED, failure});
+}
+
+/**
+ * Asynchronously load data sources for given data store ID.
+ *
+ * @param dataStoreId
+ * @returns {(dispatch:any, getState:any)=>undefined}
+ */
 export function loadDataSources(dataStoreId: string) {
     return (dispatch, getState) => {
-        dispatch({type: "start_load_data_sources"}); // TODO
-        const datasetAPI = new DatasetAPI(getState().data.appConfig.webAPIClient);
-        datasetAPI.getDataSources(dataStoreId).then(dataSources => {
-            dispatch({type: "done_load_data_sources"}); // TODO
-            dispatch(setDataSources(dataStoreId, dataSources));
+        dispatch(updateDataSourcesSubmitted(dataStoreId));
+        datasetAPI(getState()).getDataSources(dataStoreId, (progress: JobProgress) => {
+            dispatch(updateDataSourcesProgress(dataStoreId, progress));
+        }).then(dataSources => {
+            dispatch(updateDataSources(dataStoreId, dataSources));
+            dispatch(updateDataSourcesDone(dataStoreId));
             if (dataSources && dataSources.length) {
                 dispatch(setSelectedDataSourceId(dataSources[0].id));
             } else {
                 dispatch(setSelectedDataSourceId(null));
             }
-        }).catch(error => {
-            dispatch({type: "error_load_data_sources"}); // TODO
-            console.error(error);
+        }).catch(failure => {
+            console.error(failure);
+            dispatch(updateDataSourcesFailed(dataStoreId, failure));
         });
     }
 }
 
-function setDataSources(dataStoreId: string, dataSources) {
-    return {type: SET_DATA_SOURCES, payload: {dataStoreId, dataSources}};
+function updateDataSources(dataStoreId: string, dataSources) {
+    return {type: UPDATE_DATA_SOURCES, payload: {dataStoreId, dataSources}};
+}
+
+function updateDataSourcesSubmitted(dataStoreId: string) {
+    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
+    return setTaskState('dataSources_' + dataStoreId, {status: JobStatusEnum.SUBMITTED});
+}
+
+function updateDataSourcesProgress(dataStoreId: string, progress: JobProgress) {
+    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
+    return setTaskState('dataSources_' + dataStoreId, {status: JobStatusEnum.IN_PROGRESS, progress});
+}
+
+function updateDataSourcesDone(dataStoreId: string) {
+    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
+    return setTaskState('dataSources_' + dataStoreId, {status: JobStatusEnum.DONE});
+}
+
+function updateDataSourcesFailed(dataStoreId: string, failure: JobFailure) {
+    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
+    return setTaskState('dataSources_' + dataStoreId, {status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED, failure});
 }
 
 export function setSelectedDataStoreId(selectedDataStoreId: string|null) {
     return (dispatch, getState) => {
-        if (getState().control.selectedDataStoreId == selectedDataStoreId) {
+        if (getState().control.selectedDataStoreId === selectedDataStoreId) {
             return;
         }
-        dispatch({type: SET_SELECTED_DATA_STORE_ID, payload: {selectedDataStoreId : selectedDataStoreId}});
-        if (selectedDataStoreId != null) {
+        dispatch({type: SET_SELECTED_DATA_STORE_ID, payload: {selectedDataStoreId: selectedDataStoreId}});
+        if (selectedDataStoreId !== null) {
             const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === selectedDataStoreId);
             if (!dataStore.dataSources) {
                 dispatch(loadDataSources(selectedDataStoreId));
@@ -104,7 +150,11 @@ export function setSelectedDataSourceId(selectedDataSourceId: string|null) {
     return {type: SET_SELECTED_DATA_SOURCE_ID, payload: {selectedDataSourceId}};
 }
 
-//////////////////////////////////////////////////////////////////
+function datasetAPI(state: State) {
+    return new DatasetAPI(state.data.appConfig.webAPIClient);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation actions
 
 export const UPDATE_OPERATIONS = 'UPDATE_OPERATIONS';
@@ -117,24 +167,24 @@ export function updateOperations(operations) {
 }
 
 export function setSelectedOperationName(selectedOperationName: string|null) {
-    return {type: SET_SELECTED_OPERATION_NAME,  payload: {selectedOperationName}};
+    return {type: SET_SELECTED_OPERATION_NAME, payload: {selectedOperationName}};
 }
 
 export function setOperationFilterTags(operationFilterTags: Array<string>) {
-    return {type: SET_OPERATION_FILTER_TAGS,  payload: {operationFilterTags}};
+    return {type: SET_OPERATION_FILTER_TAGS, payload: {operationFilterTags}};
 }
 
 export function setOperationFilterExpr(operationFilterExpr: Array<string>) {
-    return {type: SET_OPERATION_FILTER_EXPR,  payload: {operationFilterExpr}};
+    return {type: SET_OPERATION_FILTER_EXPR, payload: {operationFilterExpr}};
 }
 
-//////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Workspace actions
 
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
 
 export function setCurrentWorkspace(workspace: WorkspaceState) {
-    return {type: SET_CURRENT_WORKSPACE,  payload: {workspace}};
+    return {type: SET_CURRENT_WORKSPACE, payload: {workspace}};
 }
 
 

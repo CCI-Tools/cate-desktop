@@ -1,4 +1,5 @@
 import  {WebAPIClient} from './webapi';
+import {JobStatus, JobFailure, JobProgress} from "./webapi/Job";
 
 /**
  * Interface describing Cate's application state structure.
@@ -43,7 +44,7 @@ export interface WebAPIConfig {
     command?: string;
     servicePort: number;
     serviceAddress: string;
-    serviceFile?:  string;
+    serviceFile?: string;
     processOptions?: Object;
     useMockService?: boolean;
     // Values computed in main.ts
@@ -122,6 +123,15 @@ export interface WorkflowStepPortState {
  */
 export interface CommunicationState {
     webAPIStatus: 'connecting'|'open'|'error'|'closed'|null;
+
+    // A map that stores the current state of any tasks (e.g. data fetch jobs from remote API) given a taskId
+    tasks: {[taskId: string]: TaskState;};
+}
+
+export interface TaskState {
+    status: JobStatus;
+    failure?: JobFailure;
+    progress?: JobProgress;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,8 +155,8 @@ export interface ControlState {
     selectedWorkflowStepId: string|null;
     selectedWorkflowResourceId: string|null;
 
-    // A map that stores the state of any dialog given a dialogId
-    dialogs: {[dialogId:string]:DialogState;};
+    // A map that stores the last state of any dialog given a dialogId
+    dialogs: {[dialogId: string]: DialogState;};
 }
 
 export interface DialogState {
@@ -163,7 +173,7 @@ export interface DialogState {
  */
 export interface SessionState {
     lastDir?: string;
-    mainWindowBounds?: {x:number; y:number; width: number; height: number};
+    mainWindowBounds?: {x: number; y: number; width: number; height: number};
     devToolsOpened?: boolean;
     lastWorkspacePath?: string,
     openLastWorkspace?: boolean,
