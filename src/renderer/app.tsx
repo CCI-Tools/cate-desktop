@@ -43,7 +43,7 @@ function connectWebAPIClient(store: Store<State>) {
     //            we urgently need to display some progress indicator beforehand.
     webAPIClient.onOpen = () => {
         store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
-
+        store.dispatch(actions.loadDataStores());
         store.dispatch(dispatch => {
             setTimeout(() => {
                 dispatch({type: 'BRING_KINDERSCHOKOLADE', payload: 'Here are 5kg Kinderschokolade'});

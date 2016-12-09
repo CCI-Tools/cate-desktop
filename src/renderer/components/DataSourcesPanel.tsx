@@ -13,7 +13,7 @@ import {JobProgress} from "../webapi/Job";
 import * as actions from '../actions';
 
 interface IDataSourcesPanelProps {
-    dispatch?: (action: {type: string, payload: any}) => void;
+    dispatch?: any;//(action: {type: string, payload: any}) => void; TODO(mz)
     webAPIClient: any;
     dataStores: Array<DataStoreState>;
     selectedDataStoreId: string|null;
@@ -41,40 +41,6 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
         super(props);
     }
 
-    componentDidMount() {
-        if (!this.props.dataStores) {
-            this.updateDataStores();
-        }
-    }
-
-    //noinspection JSUnusedLocalSymbols
-    componentDidUpdate(prevProps: IDataSourcesPanelProps, prevState: any, prevContext: any): void {
-        const selectedDataStore = this.getSelectedDataStore();
-        if (selectedDataStore && !selectedDataStore.dataSources) {
-            this.updateDataSources(selectedDataStore);
-        }
-    }
-
-    private updateDataStores() {
-        // TODO: show in the UI that we are in the process of getting data stores
-        this.getDatasetAPI().getDataStores().then((dataStores: Array<DataStoreState>) => {
-            this.props.dispatch(actions.updateDataStores(dataStores));
-        }).catch(error => {
-            // TODO: handle error
-            console.error(error);
-        });
-    }
-
-    private updateDataSources(dataStore: DataStoreState) {
-        // TODO: show in the UI that we are in the process of getting data sources
-        this.getDatasetAPI().getDataSources(dataStore.id).then(dataSources => {
-            this.props.dispatch(actions.updateDataSources(dataStore.id, dataSources));
-        }).catch(error => {
-            // TODO: handle error
-            console.error(error);
-        });
-    }
-
     private callOperation(opName: string, opParams: {ds_id: string; time_range: [number, number]}) {
         const onProgress = (progress: JobProgress) => {
             // TODO: display progress bar
@@ -88,10 +54,6 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
             // TODO: handle error
             console.error('Operation failed:', error);
         });
-    }
-
-    private getDatasetAPI(): DatasetAPI  {
-        return new DatasetAPI(this.props.webAPIClient);
     }
 
     private getOperationAPI(): OperationAPI  {
@@ -121,20 +83,6 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
     private handleDataStoreSelected(event) {
         const dataStoreId = event.target.value;
         this.props.dispatch(actions.setSelectedDataStoreId(dataStoreId));
-
-        // TODO: find out if it is ok to perform any statements after this.props.dispatch() call?
-        // I guess not, because due to a state change, this component might be already unmounted?!
-
-        if (!dataStoreId) {
-            return;
-        }
-
-        const dataStore = this.props.dataStores.find(dataStore => dataStore.id === dataStoreId);
-        if (!dataStore.dataSources) {
-            this.updateDataSources(dataStore);
-        } else {
-            this.props.dispatch(actions.setSelectedDataSourceId(dataStore.dataSources.length ? dataStore.dataSources[0].id : null));
-        }
     }
 
     //noinspection JSUnusedLocalSymbols

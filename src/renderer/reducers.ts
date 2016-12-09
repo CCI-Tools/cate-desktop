@@ -43,11 +43,11 @@ const dataReducer = (state: DataState = initialDataState, action) => {
                 appConfig: updateObject(state.appConfig, {webAPIClient})
             });
         }
-        case actions.UPDATE_DATA_STORES: {
+        case actions.UPDATE_DATA_STORES_SUCCESS: {
             const dataStores = action.payload.dataStores.slice();
             return updateObject(state, {dataStores});
         }
-        case actions.UPDATE_DATA_SOURCES: {
+        case actions.SET_DATA_SOURCES: {
             const dataStoreId = action.payload.dataStoreId;
             const dataStoreIndex = state.dataStores.findIndex(dataStore => dataStore.id === dataStoreId);
             if (dataStoreIndex < 0) {
@@ -92,13 +92,7 @@ const initialControlState: ControlState = {
 
 const controlReducer = (state: ControlState = initialControlState, action) => {
     switch (action.type) {
-        case actions.UPDATE_DATA_STORES: {
-            const dataStores = action.payload.dataStores;
-            return updateObject(state, {
-                selectedDataStoreId: (dataStores && dataStores.length) ? dataStores[0].id : null
-            });
-        }
-        case actions.UPDATE_DATA_SOURCES: {
+        case actions.SET_DATA_SOURCES: {
             const dataSources = action.payload.dataSources;
             return updateObject(state, {
                 selectedDataSourceId: (dataSources && dataSources.length) ? dataSources[0].id : null

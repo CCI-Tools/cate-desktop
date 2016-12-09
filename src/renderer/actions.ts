@@ -1,4 +1,5 @@
-import {WorkspaceState} from "./state";
+import {WorkspaceState, DataStoreState} from "./state";
+import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 export const APPLY_INITIAL_STATE = 'APPLY_INITIAL_STATE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const SET_DIALOG_STATE = 'SET_DIALOG_STATE';
@@ -21,21 +22,82 @@ export function setDialogState(dialogId: string, dialogState: any) {
 //////////////////////////////////////////////////////////////////
 // Data stores / data sources actions
 
-export const UPDATE_DATA_STORES = 'UPDATE_DATA_STORES';
-export const UPDATE_DATA_SOURCES = 'UPDATE_DATA_SOURCES';
+export const UPDATE_DATA_STORES_REQUEST = 'UPDATE_DATA_STORES_REQUEST';
+export const UPDATE_DATA_STORES_SUCCESS = 'UPDATE_DATA_STORES_SUCCESS';
+export const UPDATE_DATA_STORES_FAILURE = 'UPDATE_DATA_STORES_FAILURE';
+
+export const SET_DATA_SOURCES = 'SET_DATA_SOURCES';
 export const SET_SELECTED_DATA_STORE_ID = 'SET_SELECTED_DATA_STORE_ID';
 export const SET_SELECTED_DATA_SOURCE_ID = 'SET_SELECTED_DATA_SOURCE_ID';
 
-export function updateDataStores(dataStores) {
-    return {type: UPDATE_DATA_STORES, payload: {dataStores}};
+////////////////////////////////////////////
+// data store
+export function loadDataStores() {
+    return (dispatch, getState) => {
+        dispatch(updateDataStoresRequest());
+        const datasetAPI = new DatasetAPI(getState().data.appConfig.webAPIClient);
+        datasetAPI.getDataStores().then((dataStores: Array<DataStoreState>) => {
+            dispatch(updateDataStoresSucess(dataStores));
+            if (dataStores && dataStores.length) {
+                dispatch(setSelectedDataStoreId(dataStores[0].id));
+            } else {
+                dispatch(setSelectedDataStoreId(null));
+            }
+        }).catch(error => {
+            updateDataStoresFailure(error)
+        });
+    }
 }
 
-export function updateDataSources(dataStoreId: string, dataSources) {
-    return {type: UPDATE_DATA_SOURCES, payload: {dataStoreId, dataSources}};
+function updateDataStoresRequest() {
+    // TODO start showing progress indicator ???
+    return {type: UPDATE_DATA_STORES_REQUEST};
+}
+function updateDataStoresSucess(dataStores: Array<DataStoreState>) {
+    // TODO stop showing progress indicator ???
+    return {type: UPDATE_DATA_STORES_SUCCESS, payload: {dataStores}};
+}
+function updateDataStoresFailure(error) {
+    // TODO: handle error
+    return {type: UPDATE_DATA_STORES_FAILURE, payload: {error}};
+}
+
+export function loadDataSources(dataStoreId: string) {
+    return (dispatch, getState) => {
+        dispatch({type: "start_load_data_sources"}); // TODO
+        const datasetAPI = new DatasetAPI(getState().data.appConfig.webAPIClient);
+        datasetAPI.getDataSources(dataStoreId).then(dataSources => {
+            dispatch({type: "done_load_data_sources"}); // TODO
+            dispatch(setDataSources(dataStoreId, dataSources));
+            if (dataSources && dataSources.length) {
+                dispatch(setSelectedDataSourceId(dataSources[0].id));
+            } else {
+                dispatch(setSelectedDataSourceId(null));
+            }
+        }).catch(error => {
+            dispatch({type: "error_load_data_sources"}); // TODO
+            console.error(error);
+        });
+    }
+}
+
+function setDataSources(dataStoreId: string, dataSources) {
+    return {type: SET_DATA_SOURCES, payload: {dataStoreId, dataSources}};
 }
 
 export function setSelectedDataStoreId(selectedDataStoreId: string|null) {
-    return {type: SET_SELECTED_DATA_STORE_ID, payload: {selectedDataStoreId}};
+    return (dispatch, getState) => {
+        if (getState().control.selectedDataStoreId == selectedDataStoreId) {
+            return;
+        }
+        dispatch({type: SET_SELECTED_DATA_STORE_ID, payload: {selectedDataStoreId : selectedDataStoreId}});
+        if (selectedDataStoreId != null) {
+            const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === selectedDataStoreId);
+            if (!dataStore.dataSources) {
+                dispatch(loadDataSources(selectedDataStoreId));
+            }
+        }
+    }
 }
 
 export function setSelectedDataSourceId(selectedDataSourceId: string|null) {
