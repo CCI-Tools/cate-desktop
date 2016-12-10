@@ -1,6 +1,10 @@
 import {OperationState, WorkspaceState, DataStoreState} from "../state";
 import {IProcessData, IServiceObject} from "./WebSocketMock";
 
+interface WorkspaceStateMock extends WorkspaceState {
+    readonly isOpen: boolean;
+}
+
 /**
  * Simulates the a local/remote WebAPIClient service.
  * Mimics a local/remote webservice usually running on a Python Tornado.
@@ -13,7 +17,7 @@ export class WebAPIServiceMock implements IServiceObject {
     workspaceId = 0;
 
     // processData is picked up by WebSocketMock
-    processData: {[methodName:string]: IProcessData} = {
+    processData: {[methodName: string]: IProcessData} = {
         callOperation: {
             numSteps: 10,
             delayPerStep: 500,
@@ -51,7 +55,7 @@ export class WebAPIServiceMock implements IServiceObject {
                 let vars;
                 if (j % 5 != 0) {
                     vars = [];
-                    for (let k = 0; k < variables.length; k++)  {
+                    for (let k = 0; k < variables.length; k++) {
                         vars.push(variables[(j + k) % variables.length]);
                     }
                 }
@@ -143,23 +147,24 @@ export class WebAPIServiceMock implements IServiceObject {
         return {opName, opArgs};
     }
 
-    newWorkspace(): Object {
+    newWorkspace(): WorkspaceState {
         const id = this.workspaceId++;
-        let workspace = {
-            path: `{workspace-${id}}`,
+        let workspace: WorkspaceStateMock = {
+            baseDir: `scratch/workspace-${id}`,
             description: null,
             isScratch: true,
-            isOpen: true,
+            isSaved: false,
             isModified: false,
+            isOpen: true,
             workflow: {
                 steps: []
             },
         };
-        this.workspaces[workspace.path] = workspace;
+        this.workspaces[workspace.baseDir] = workspace;
         return Object.assign({}, workspace);
     }
 
-    openWorkspace(path: string): Object {
+    openWorkspace(path: string): WorkspaceState {
         const workspace = this.workspaces[path];
         if (!workspace) {
             throw Error(`Not a workspace: ${path}`);
@@ -169,43 +174,44 @@ export class WebAPIServiceMock implements IServiceObject {
         return Object.assign({}, workspace);
     }
 
-    closeWorkspace(path: string): Object {
-        const workspace = this.workspaces[path];
+    closeWorkspace(baseDir: string): WorkspaceState {
+        const workspace = this.workspaces[baseDir];
         if (!workspace) {
-            throw Error(`Not a workspace: ${path}`);
+            throw Error(`Not a workspace: ${baseDir}`);
         }
         workspace.isOpen = false;
         return Object.assign({}, workspace);
     }
 
-    saveWorkspace(path: string): Object {
-        const workspace = this.workspaces[path];
+    saveWorkspace(baseDir: string): WorkspaceState {
+        const workspace = this.workspaces[baseDir];
         if (!workspace) {
-            throw Error(`Not a workspace: ${path}`);
+            throw Error(`Not a workspace: ${baseDir}`);
         }
         if (!workspace.isOpen) {
-            throw Error(`Workspace is not open: ${path}`);
+            throw Error(`Workspace is not open: ${baseDir}`);
         }
-        if (workspace.path.startsWith('{workspace-') && workspace.path.endsWith('}')) {
-            throw Error(`Workspace has no path: ${path}`);
+        if (workspace.isScratch) {
+            throw Error(`Scratch workspace cannot be saved: ${baseDir}`);
         }
         workspace.isSaved = true;
         return Object.assign({}, workspace);
     }
 
-    saveWorkspaceAs(path: string, newPath: string): Object {
-        let workspace = this.workspaces[path];
+    saveWorkspaceAs(baseDir: string, newBaseDir: string): Object {
+        let workspace = this.workspaces[baseDir];
         if (!workspace) {
-            throw Error(`Not a workspace: ${path}`);
+            throw Error(`Not a workspace: ${baseDir}`);
         }
         if (!workspace.isOpen) {
-            throw Error(`Workspace is not open: ${path}`);
+            throw Error(`Workspace is not open: ${baseDir}`);
         }
         workspace = Object.assign({}, workspace, {
-            path: newPath,
+            baseDir: newBaseDir,
             isSaved: true,
+            isScratch: false,
         });
-        this.workspaces[workspace.path] = workspace;
+        this.workspaces[workspace.baseDir] = workspace;
         return Object.assign({}, workspace);
     }
 }

@@ -43,54 +43,72 @@ describe('WebAPIServiceMock', function () {
 
     it('can deal with workspaces', function () {
         expect(serviceMock.newWorkspace()).to.deep.equal({
-            path: "{workspace-0}",
+            baseDir: "scratch/workspace-0",
+            description: null,
             isScratch: true,
+            isModified: false,
             isSaved: false,
+            isOpen: true,
             workflow: {
                 steps: []
             }
         });
 
         expect(serviceMock.newWorkspace()).to.deep.equal({
-            path: "{workspace-1}",
+            baseDir: "scratch/workspace-1",
+            description: null,
             isScratch: true,
+            isModified: false,
             isSaved: false,
+            isOpen: true,
             workflow: {
                 steps: []
             }
         });
 
-        expect(serviceMock.saveWorkspaceAs("{workspace-1}", "ral/la/la")).to.deep.equal({
-            path: "ral/la/la",
+        expect(serviceMock.saveWorkspaceAs("scratch/workspace-1", "ral/la/la")).to.deep.equal({
+            baseDir: "ral/la/la",
+            description: null,
             isScratch: false,
+            isModified: false,
             isSaved: true,
+            isOpen: true,
             workflow: {
                 steps: []
             }
         });
 
         expect(serviceMock.saveWorkspace("ral/la/la")).to.deep.equal({
-            path: "ral/la/la",
+            baseDir: "ral/la/la",
+            description: null,
             isScratch: false,
+            isModified: false,
             isSaved: true,
+            isOpen: true,
             workflow: {
                 steps: []
             }
         });
 
         expect(serviceMock.closeWorkspace("ral/la/la")).to.deep.equal({
-            path: "ral/la/la",
+            baseDir: "ral/la/la",
+            description: null,
             isScratch: false,
+            isModified: false,
             isSaved: true,
+            isOpen: false,
             workflow: {
                 steps: []
             }
         });
 
         expect(serviceMock.openWorkspace("ral/la/la")).to.deep.equal({
-            path: "ral/la/la",
+            baseDir: "ral/la/la",
+            description: null,
             isScratch: false,
+            isModified: false,
             isSaved: true,
+            isOpen: true,
             workflow: {
                 steps: []
             }
