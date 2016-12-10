@@ -36,8 +36,8 @@
   },
   "homepage": "https://github.com/CCI-Tools/cate-desktop",
   "devDependencies": {
-    "@blueprintjs/core": "^1.2.0",
-    "@blueprintjs/table": "^1.2.0",
+    "@blueprintjs/core": "1.2.0",
+    "@blueprintjs/table": "1.2.0",
     "@types/chai": "^3.4.34",
     "@types/chai-as-promised": "0.0.29",
     "@types/classnames": "0.0.32",
