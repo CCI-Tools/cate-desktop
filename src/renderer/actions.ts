@@ -1,6 +1,7 @@
 import {WorkspaceState, DataStoreState, State} from "./state";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {JobStatus, JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
+import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 
 // TODO write tests for actions
 
@@ -182,10 +183,73 @@ export function setOperationFilterExpr(operationFilterExpr: Array<string>) {
 // Workspace actions
 
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
+export const SET_SELECTED_WORKSPACE_RESOURCE_ID = 'SET_SELECTED_WORKSPACE_RESOURCE_ID';
+export const SET_SELECTED_WORKFLOW_STEP_ID = 'SET_SELECTED_WORKFLOW_STEP_ID';
+
+/**
+ * Asynchronously load the available Cate data stores.
+ *
+ * @returns {(dispatch:any, getState:any)=>undefined}
+ */
+export function loadWorkspace() {
+    return (dispatch, getState) => {
+        const openLastWorkspace = getState().session.openLastWorkspace;
+        const lastWorkspacePath = getState().session.lastWorkspacePath;
+
+        let workspacePromise;
+        if (openLastWorkspace && lastWorkspacePath) {
+            workspacePromise = workspaceAPI(getState()).openWorkspace(lastWorkspacePath);
+        } else {
+            workspacePromise = workspaceAPI(getState()).newWorkspace();
+        }
+
+        dispatch(setCurrentWorkspaceSubmitted());
+        workspacePromise.then((workspace: WorkspaceState) => {
+            dispatch(setCurrentWorkspace(workspace));
+            dispatch(setCurrentWorkspaceDone());
+            if (workspace && workspace.workflow.steps.length > 0) {
+                dispatch(setSelectedWorkspaceResourceId(workspace.workflow.steps[0].id));
+            } else {
+                dispatch(setSelectedWorkspaceResourceId(null));
+            }
+        }).catch(failure => {
+            console.error(failure);
+            dispatch(setCurrentWorkspaceFailed(failure));
+        });
+    }
+}
 
 export function setCurrentWorkspace(workspace: WorkspaceState) {
     return {type: SET_CURRENT_WORKSPACE, payload: {workspace}};
 }
 
+function setCurrentWorkspaceSubmitted() {
+    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
+    return setTaskState('workspace', {status: JobStatusEnum.SUBMITTED});
+}
+
+
+function setCurrentWorkspaceDone() {
+    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
+    return setTaskState('workspace', {status: JobStatusEnum.DONE});
+}
+
+function setCurrentWorkspaceFailed(failure: JobFailure) {
+    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
+    return setTaskState('workspace', {status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED, failure});
+}
+
+export function setSelectedWorkspaceResourceId(selectedWorkspaceResourceId: string) {
+    return {type: SET_SELECTED_WORKSPACE_RESOURCE_ID, payload: {selectedWorkspaceResourceId}};
+}
+
+//noinspection JSUnusedGlobalSymbols
+export function setSelectedWorkflowStepId(selectedWorkflowStepId: string) {
+    return {type: SET_SELECTED_WORKFLOW_STEP_ID, payload: {selectedWorkflowStepId}};
+}
+
+function workspaceAPI(state: State): WorkspaceAPI {
+    return new WorkspaceAPI(state.data.appConfig.webAPIClient);
+}
 
 

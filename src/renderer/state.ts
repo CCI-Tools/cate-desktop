@@ -67,31 +67,40 @@ export interface DataSourceState {
 
 export interface OperationState {
     name: string;
-    description?: string;
-    tags?: Array<string>;
+    description?: string|null;
+    tags?: Array<string>|null;
     inputs: Array<OperationInputState>;
     outputs: Array<OperationOutputState>;
 }
 
 export interface OperationInputState {
     name: string;
-    description: string;
     dataType: string;
+    description?: string|null;
     valueSet?: Array<any>;
     valueRange?: Array<any>;
 }
 
 export interface OperationOutputState {
     name: string;
-    description: string;
     dataType: string;
+    description?: string|null;
 }
 
 export interface WorkspaceState {
     baseDir: string;
     description: string|null;
+    /**
+     * Is it a scratch workspace? Scratch workspaces must be saved-as to some real location.
+     */
     isScratch: boolean;
+    /**
+     * Has it been modified since it has been created, opened, or saved?
+     */
     isModified: boolean;
+    /**
+     * Has it been saved before?
+     */
     isSaved: boolean;
     workflow: WorkflowState;
 }
@@ -101,18 +110,44 @@ export interface WorkflowState {
 }
 
 export interface WorkflowStepState {
+    /**
+     * Step ID. The ID will be used as Workspace's resource name.
+     */
     id: string;
-    type: string;
-    action: string;
-    description?: string;
-    inputs: Array<WorkflowStepPortState>;
-    outputs: Array<WorkflowStepPortState>;
+    /**
+     * Step type.
+     */
+    type: 'operation'|'workflow'|'python-expression'|'python-script'|'executable';
+    /**
+     * The actual action to be performed. Allowed values depend on 'type'.
+     * For example, 'action' is the operation's name, if typoe==="operation".
+     */
+    action: any;
+    inputs: Array<WorkflowPortState>;
+    outputs: Array<WorkflowPortState>;
 }
 
-export interface WorkflowStepPortState {
+/**
+ * See cate-core/cate/core/workspace.py, class NodePort
+ */
+export interface WorkflowPortState {
+    /**
+     * Name of the port.
+     */
     name: string;
-    dataType?: string;
-    description?: string;
+    /**
+     * A constant value.
+     * Constraint: value!==undefined, if sourceRef===null.
+     */
+    value: any|undefined;
+    /**
+     * Reference to a step which provides the value of this port.
+     * Constraint: sourceRef!==null, if value===undefined.
+     *
+     * Source reference can either be the ID of another (single-output) step or it can have the form
+     * "stepId.outputPort" if it refers to specific output of a (multi-output) step.
+     */
+    sourceRef: string|null;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,7 +188,7 @@ export interface ControlState {
 
     // WorkspacePanel
     selectedWorkflowStepId: string|null;
-    selectedWorkflowResourceId: string|null;
+    selectedWorkspaceResourceId: string|null;
 
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState;};

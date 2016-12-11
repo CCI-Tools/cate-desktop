@@ -97,7 +97,7 @@ const initialControlState: ControlState = {
     operationFilterTags: [],
     operationFilterExpr: '',
     selectedWorkflowStepId: null,
-    selectedWorkflowResourceId: null,
+    selectedWorkspaceResourceId: null,
     dialogs: {
         openDataset: {}
     }
@@ -122,6 +122,8 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         case actions.SET_SELECTED_OPERATION_NAME:
         case actions.SET_OPERATION_FILTER_TAGS:
         case actions.SET_OPERATION_FILTER_EXPR:
+        case actions.SET_SELECTED_WORKSPACE_RESOURCE_ID:
+        case actions.SET_SELECTED_WORKFLOW_STEP_ID:
             return updateObject(state, action.payload);
         case actions.SET_DIALOG_STATE:
             return updateObject(state, {

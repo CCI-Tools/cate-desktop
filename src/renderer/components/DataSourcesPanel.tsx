@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 import {ExpansionPanel} from './ExpansionPanel';
-import {State, DataStoreState} from "../state";
+import {State, DataStoreState, WorkspaceState} from "../state";
 import {DatasetAPI} from '../webapi';
 import {SplitPane} from "./SplitPane";
 import {Tabs, TabList, Tab, TabPanel, Button} from "@blueprintjs/core";
@@ -11,10 +11,12 @@ import {OpenDatasetDialog, IOpenDatasetDialogState} from "./OpenDatasetDialog";
 import {OperationAPI} from "../webapi/apis/OperationAPI";
 import {JobProgress} from "../webapi/Job";
 import * as actions from '../actions';
+import {WorkspaceAPI} from "../webapi/apis/WorkspaceAPI";
 
 interface IDataSourcesPanelProps {
     dispatch?: any;//(action: {type: string, payload: any}) => void; TODO(mz)
     webAPIClient: any;
+    workspace: WorkspaceState;
     dataStores: Array<DataStoreState>;
     selectedDataStoreId: string|null;
     selectedDataSourceId: string|null;
@@ -24,6 +26,7 @@ interface IDataSourcesPanelProps {
 function mapStateToProps(state: State): IDataSourcesPanelProps {
     return {
         webAPIClient: state.data.appConfig.webAPIClient,
+        workspace: state.data.workspace,
         dataStores: state.data.dataStores,
         selectedDataStoreId: state.control.selectedDataStoreId,
         selectedDataSourceId: state.control.selectedDataSourceId,
@@ -41,22 +44,29 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
         super(props);
     }
 
-    private callOperation(opName: string, opParams: {ds_id: string; time_range: [number, number]}) {
+    private setWorkspaceResource(resName: string, opName: string, opArgs: any) {
+        const baseDir = this.props.workspace.baseDir;
         const onProgress = (progress: JobProgress) => {
             // TODO: display progress bar
             console.log('Operation in progress:', progress);
         };
+        console.log("opArgs:", opArgs);
         // TODO: show in the UI that we are in the process of calling the operation
-        this.getOperationAPI().callOperation(opName, opParams, onProgress).then((result) => {
-            // TODO: update workspace
-            console.log('Operation succeeded:', result);
+        this.getWorkspaceAPI().setWorkspaceResource(baseDir, resName, opName, opArgs, onProgress).then((workspace) => {
+            console.log('Operation succeeded:', workspace);
+            this.props.dispatch(actions.setCurrentWorkspace(workspace));
+            this.props.dispatch(actions.setSelectedWorkspaceResourceId(resName));
         }).catch(error => {
             // TODO: handle error
             console.error('Operation failed:', error);
         });
     }
 
-    private getOperationAPI(): OperationAPI  {
+    private getWorkspaceAPI(): WorkspaceAPI {
+        return new WorkspaceAPI(this.props.webAPIClient);
+    }
+
+    private getOperationAPI(): OperationAPI {
         return new OperationAPI(this.props.webAPIClient);
     }
 
@@ -65,18 +75,23 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
         this.props.dispatch(actions.setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: true}));
     }
 
+
+    static resourceId = 0;
+
     private handleOpenDatasetDialogClosed(actionId: string, dialogState: IOpenDatasetDialogState) {
         // Close "openDataset" dialog and save state
         this.props.dispatch(actions.setDialogState(OpenDatasetDialog.DIALOG_ID, dialogState));
         // Perform the action
         if (actionId) {
-            // console.log('now opening', this.props.selectedDataSourceId, 'with', dialogState, '...');
+            const resName = 'ds_' + (DataSourcesPanel.resourceId++);
             const opName = 'open_dataset';
-            const opParams = {
-                ds_id: this.props.selectedDataSourceId,
-                time_range: dialogState.timeRange
+            const opArgs = {
+                ds_name: this.props.selectedDataSourceId,
+                start_date: `${dialogState.timeRange[0]}`,
+                end_date: `${dialogState.timeRange[1]}`,
+                sync: true
             };
-            this.callOperation(opName, opParams);
+            this.setWorkspaceResource(resName, 'open_dataset', opArgs);
         }
     }
 
@@ -217,7 +232,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
                 </div>
                 <Button className="pt-intent-success"
                         onClick={this.handleOpenDatasetButtonClicked.bind(this)}
-                        disabled={!this.props.selectedDataSourceId}
+                        disabled={!this.props.selectedDataSourceId || !this.props.workspace}
                         iconName="add">Open</Button>
                 {openDatasetDialog}
             </div>

@@ -1,5 +1,5 @@
 import {WebAPIClient} from "../WebAPIClient";
-import {JobPromise, JobResponse} from "../Job";
+import {JobPromise, JobResponse, JobProgress} from "../Job";
 import {WorkspaceState} from "../../state";
 
 function responseToWorkspace(workspaceResponse: JobResponse): WorkspaceState {
@@ -27,20 +27,25 @@ export class WorkspaceAPI {
         return this.webAPIClient.call('newWorkspace', [], null, responseToWorkspace);
     }
 
-    openWorkspace(path: string): JobPromise {
-        return this.webAPIClient.call('openWorkspace', [path], null, responseToWorkspace);
+    openWorkspace(baseDir: string): JobPromise {
+        return this.webAPIClient.call('openWorkspace', [baseDir], null, responseToWorkspace);
     }
 
-    closeWorkspace(path: string): JobPromise {
-        return this.webAPIClient.call('closeWorkspace', [path], null, responseToWorkspace);
+    closeWorkspace(baseDir: string): JobPromise {
+        return this.webAPIClient.call('closeWorkspace', [baseDir], null, responseToWorkspace);
     }
 
-    saveWorkspace(path: string): JobPromise {
-        return this.webAPIClient.call('saveWorkspace', [path], null, responseToWorkspace);
+    saveWorkspace(baseDir: string): JobPromise {
+        return this.webAPIClient.call('saveWorkspace', [baseDir], null, responseToWorkspace);
     }
 
-    saveWorkspaceAs(path: string, newPath: string): JobPromise {
-        return this.webAPIClient.call('saveWorkspaceAs', [path, newPath], null, responseToWorkspace);
+    saveWorkspaceAs(baseDir: string, newBaseDir: string): JobPromise {
+        return this.webAPIClient.call('saveWorkspaceAs', [baseDir, newBaseDir], null, responseToWorkspace);
     }
 
+    setWorkspaceResource(baseDir: string, resName: string, opName: string, opArgs: any,
+                         onProgress: (progress: JobProgress) => void): JobPromise {
+        return this.webAPIClient.call('setWorkspaceResource',  [baseDir, resName, opName, opArgs],
+            onProgress, responseToWorkspace);
+    }
 }

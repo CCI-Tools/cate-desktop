@@ -3,28 +3,25 @@ import {connect} from 'react-redux';
 import {State, WorkspaceState} from "../state";
 import {Tooltip, Tab, Tabs, TabList, TabPanel} from "@blueprintjs/core";
 import {ExpansionPanel} from "./ExpansionPanel";
-import {WorkspaceAPI} from "../webapi/apis/WorkspaceAPI";
 import * as actions from '../actions'
 import {ListBox} from "./ListBox";
+import {Card} from "./Card";
+import * as assert from "assert";
 
 interface IWorkspacePanelProps {
     dispatch?: (action: {type: string, payload: any}) => void;
     webAPIClient: any;
-    openLastWorkspace?: boolean,
-    lastWorkspacePath?: string|null,
     workspace: WorkspaceState;
+    selectedWorkspaceResourceId: string|null;
     selectedWorkflowStepId: string|null;
-    selectedWorkflowResourceId: string|null;
 }
 
 function mapStateToProps(state: State): IWorkspacePanelProps {
     return {
         webAPIClient: state.data.appConfig.webAPIClient,
-        openLastWorkspace: state.session.openLastWorkspace,
-        lastWorkspacePath: state.session.lastWorkspacePath,
         workspace: state.data.workspace,
+        selectedWorkspaceResourceId: state.control.selectedWorkspaceResourceId,
         selectedWorkflowStepId: state.control.selectedWorkflowStepId,
-        selectedWorkflowResourceId: state.control.selectedWorkflowResourceId,
     };
 }
 
@@ -37,89 +34,89 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
  */
 class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
-    constructor(props) {
-        super();
-    }
-
-    private getWorkspaceAPI(): WorkspaceAPI {
-        return new WorkspaceAPI(this.props.webAPIClient);
-    }
-
-    componentDidMount(): void {
-        if (!this.props.workspace) {
-            if (this.props.openLastWorkspace && this.props.lastWorkspacePath) {
-                this.openWorkspace(this.props.lastWorkspacePath);
-            } else {
-                this.newWorkspace();
-            }
+    //noinspection JSUnusedLocalSymbols
+    private handleWorkspaceResourceIdSelected(oldSelection: Array<React.Key>, newSelection: Array<React.Key>) {
+        if (newSelection && newSelection.length) {
+            this.props.dispatch(actions.setSelectedWorkspaceResourceId(newSelection[0] as string));
+        } else {
+            this.props.dispatch(actions.setSelectedWorkspaceResourceId(null));
         }
     }
 
-    private newWorkspace() {
-        // TODO: show in the UI that we are in the process of getting a new workspace
-        this.getWorkspaceAPI().newWorkspace().then(workspace => {
-            this.props.dispatch(actions.setCurrentWorkspace(workspace));
-        }).catch(error => {
-            // TODO: handle error
-            console.error(error);
-        });
-    }
-
-    private openWorkspace(workspacePath: string) {
-        // TODO: show in the UI that we are in the process of opening a workspace
-        this.getWorkspaceAPI().openWorkspace(workspacePath).then(workspace => {
-            this.props.dispatch(actions.setCurrentWorkspace(workspace));
-        }).catch(error => {
-            // TODO: handle error
-            console.error(error);
-            this.newWorkspace();
-        });
+    //noinspection JSUnusedLocalSymbols
+    private handleWorkflowStepIdSelected(oldSelection: Array<React.Key>, newSelection: Array<React.Key>) {
+        if (newSelection && newSelection.length) {
+            this.props.dispatch(actions.setSelectedWorkflowStepId(newSelection[0] as string));
+        } else {
+            this.props.dispatch(actions.setSelectedWorkflowStepId(null));
+        }
     }
 
     render() {
-        const resourcesTooltip = "Workspace resources that result from workflow steps";
-        const workflowTooltip = "Workflow steps that generate resources";
+        const workspace = this.props.workspace;
 
-        const resourcesMoreMenu = <span className="pt-icon-standard pt-icon-edit"/>;
-        const operationsMoreMenu = <span className="pt-icon-standard pt-icon-more"/>;
+        let workspaceInfo; // For debug only
+        let workspacePane;
+        if (workspace) {
+            assert.ok(workspace.workflow);
+            const steps = workspace.workflow.steps;
+            assert.ok(steps);
 
-        const resources = [
-            "Resource #1",
-            "Resource #2",
-            "Resource #3",
-            "Resource #4",
-        ];
-        const steps = [
-            "Operation Step #1",
-            "Operation Step #2",
-            "Operation Step #3",
-            "Operation Step #4",
-        ];
+            const selectedWorkspaceResourceId = this.props.selectedWorkspaceResourceId;
+            const selectedWorkflowStepId = this.props.selectedWorkflowStepId;
 
-        return (
-            <ExpansionPanel icon="pt-icon-folder-close" text="Workspace" isExpanded={true} defaultHeight={300}>
+            const resourcesTooltip = "Workspace resources that result from workflow steps";
+            const workflowTooltip = "Workflow steps that generate workspace resources";
+
+            // const resourcesMoreMenu = <span className="pt-icon-standard pt-icon-edit"/>;
+            // const operationsMoreMenu = <span className="pt-icon-standard pt-icon-more"/>;
+
+            workspaceInfo = <span>Path: {workspace.baseDir}</span>;
+            workspacePane = (
                 <Tabs>
                     <TabList>
                         <Tab>
                             <Tooltip content={resourcesTooltip}>
                                 <span className="pt-icon-database" style={{marginRight: 4}}/>
                             </Tooltip>
-                            <span>Resources</span>
+                            <span>{`Resources (${steps.length})`}</span>
                         </Tab>
                         <Tab>
                             <Tooltip content={workflowTooltip}>
                                 <span className="pt-icon-database" style={{marginRight: 4}}/>
                             </Tooltip>
-                            <span>Workflow</span>
+                            <span>{`Workflow (${steps.length})`}</span>
                         </Tab>
                     </TabList>
                     <TabPanel>
-                        <ListBox numItems={resources.length} renderItem={i => <span>{resources[i]}</span>}/>
+                        <ListBox numItems={steps.length}
+                                 getItemKey={i => steps[i].id}
+                                 renderItem={i => <span>{steps[i].id}</span>}
+                                 selection={selectedWorkspaceResourceId ? [selectedWorkspaceResourceId] : null}
+                                 onSelection={this.handleWorkspaceResourceIdSelected.bind(this)}/>
                     </TabPanel>
                     <TabPanel>
-                        <ListBox numItems={steps.length} renderItem={i => <span>{steps[i]}</span>}/>
+                        <ListBox numItems={steps.length}
+                                 getItemKey={i => steps[i].id}
+                                 renderItem={i => <span>{steps[i].action}</span>}
+                                 selection={selectedWorkflowStepId ? [selectedWorkflowStepId] : null}
+                                 onSelection={this.handleWorkflowStepIdSelected.bind(this)}/>
                     </TabPanel>
                 </Tabs>
+            );
+        } else {
+            workspaceInfo = null;
+            workspacePane = (
+                <Card>
+                    <p>No workspace available.</p>
+                </Card>
+            );
+        }
+
+        return (
+            <ExpansionPanel icon="pt-icon-folder-close" text="Workspace" isExpanded={true} defaultHeight={300}>
+                {workspaceInfo}
+                {workspacePane}
             </ExpansionPanel>
         );
     }

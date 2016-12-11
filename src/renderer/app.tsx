@@ -43,6 +43,7 @@ function connectWebAPIClient(store: Store<State>) {
     //            we urgently need to display some progress indicator beforehand.
     webAPIClient.onOpen = () => {
         store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
+        store.dispatch(actions.loadWorkspace());
         store.dispatch(actions.loadDataStores());
         store.dispatch(dispatch => {
             setTimeout(() => {
@@ -50,13 +51,7 @@ function connectWebAPIClient(store: Store<State>) {
             }, 5000);
         });
 
-        // TODO: dispatch actions
-        // - load data stores
-        //   - set selected data store (if any)
-        //     - load data sources
-        //       - set selected data source (if any)
-        // - load operations
-        // - load current workspace
+        // TODO: dispatch actions: load operations
 
         ReactDOM.render(
             <Provider store={store}>
