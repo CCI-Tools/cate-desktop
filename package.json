@@ -58,7 +58,7 @@
     "chai-as-promised": "^6.0.0",
     "classnames": "^2.2.5",
     "electron-builder": "^10.6.1",
-    "electron-prebuilt": "1.4.5",
+    "electron": "1.4.12",
     "enzyme": "^2.6.0",
     "mocha": "^3.2.0",
     "openlayers": "^3.19.1",
