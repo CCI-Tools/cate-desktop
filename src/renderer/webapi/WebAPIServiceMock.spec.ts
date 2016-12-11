@@ -9,26 +9,26 @@ describe('WebAPIServiceMock', function () {
     });
 
     it('has data stores', function () {
-        expect(serviceMock.getDataStores()).to.have.length(5);
+        expect(serviceMock.get_data_stores()).to.have.length(5);
     });
 
     it('has data sources', function () {
-        expect(serviceMock.getDataSources('data.store.0')).to.have.length(12);
-        expect(serviceMock.getDataSources('data.store.1')).to.have.length(300);
+        expect(serviceMock.get_data_sources('data.store.0')).to.have.length(12);
+        expect(serviceMock.get_data_sources('data.store.1')).to.have.length(300);
     });
 
     it('has operations', function () {
-        expect(serviceMock.getOperations()).to.have.length(121);
-        expect(serviceMock.getOperations()[0].tags).to.have.length(1);
-        expect(serviceMock.getOperations()[1].tags).to.have.length(1);
-        expect(serviceMock.getOperations()[2].tags).to.have.length(2);
-        expect(serviceMock.getOperations()[3].tags).to.have.length(3);
-        expect(serviceMock.getOperations()[4].tags).to.have.length(4);
-        expect(serviceMock.getOperations()[5].tags).to.have.length(1);
+        expect(serviceMock.get_operations()).to.have.length(121);
+        expect(serviceMock.get_operations()[0].tags).to.have.length(1);
+        expect(serviceMock.get_operations()[1].tags).to.have.length(1);
+        expect(serviceMock.get_operations()[2].tags).to.have.length(2);
+        expect(serviceMock.get_operations()[3].tags).to.have.length(3);
+        expect(serviceMock.get_operations()[4].tags).to.have.length(4);
+        expect(serviceMock.get_operations()[5].tags).to.have.length(1);
     });
 
     it('can call operations', function () {
-        expect(serviceMock.callOperation('open_dataset', {
+        expect(serviceMock.call_operation('open_dataset', {
             ds_name: 'bibo',
             start_date: 2010,
             end_date: 2012
@@ -43,7 +43,7 @@ describe('WebAPIServiceMock', function () {
     });
 
     it('can deal with workspaces', function () {
-        expect(serviceMock.newWorkspace()).to.deep.equal({
+        expect(serviceMock.new_workspace()).to.deep.equal({
             base_dir: "scratch/workspace-0",
             description: null,
             is_scratch: true,
@@ -55,7 +55,7 @@ describe('WebAPIServiceMock', function () {
             }
         });
 
-        expect(serviceMock.newWorkspace()).to.deep.equal({
+        expect(serviceMock.new_workspace()).to.deep.equal({
             base_dir: "scratch/workspace-1",
             description: null,
             is_scratch: true,
@@ -67,7 +67,7 @@ describe('WebAPIServiceMock', function () {
             }
         });
 
-        expect(serviceMock.saveWorkspaceAs("scratch/workspace-1", "ral/la/la")).to.deep.equal({
+        expect(serviceMock.save_workspace_as("scratch/workspace-1", "ral/la/la")).to.deep.equal({
             base_dir: "ral/la/la",
             description: null,
             is_scratch: false,
@@ -79,7 +79,7 @@ describe('WebAPIServiceMock', function () {
             }
         });
 
-        expect(serviceMock.saveWorkspace("ral/la/la")).to.deep.equal({
+        expect(serviceMock.save_workspace("ral/la/la")).to.deep.equal({
             base_dir: "ral/la/la",
             description: null,
             is_scratch: false,
@@ -91,7 +91,7 @@ describe('WebAPIServiceMock', function () {
             }
         });
 
-        expect(serviceMock.closeWorkspace("ral/la/la")).to.deep.equal({
+        expect(serviceMock.close_workspace("ral/la/la")).to.deep.equal({
             base_dir: "ral/la/la",
             description: null,
             is_scratch: false,
@@ -103,7 +103,7 @@ describe('WebAPIServiceMock', function () {
             }
         });
 
-        expect(serviceMock.openWorkspace("ral/la/la")).to.deep.equal({
+        expect(serviceMock.open_workspace("ral/la/la")).to.deep.equal({
             base_dir: "ral/la/la",
             description: null,
             is_scratch: false,
@@ -115,7 +115,7 @@ describe('WebAPIServiceMock', function () {
             }
         });
 
-        expect(serviceMock.setWorkspaceResource("ral/la/la", 'resource_34', 'open_dataset', {})).to.deep.equal({
+        expect(serviceMock.set_workspace_resource("ral/la/la", 'resource_34', 'open_dataset', {})).to.deep.equal({
             base_dir: "ral/la/la",
             description: null,
             is_scratch: false,

@@ -14,10 +14,15 @@ export class WebAPIServiceMock implements IServiceObject {
 
     // processData is picked up by WebSocketMock
     processData: {[methodName: string]: IProcessData} = {
-        callOperation: {
+        call_operation: {
             numSteps: 10,
-            delayPerStep: 500,
+            delayPerStep: 1000,
             delay: 500
+        },
+        set_workspace_resource: {
+            numSteps: 20,
+            delayPerStep: 200,
+            delay: 100
         }
     };
 
@@ -156,24 +161,24 @@ export class WebAPIServiceMock implements IServiceObject {
         }
     }
 
-    getDataStores() {
+    get_data_stores() {
         return this.dataStores;
     }
 
-    getDataSources(dataStoreId) {
+    get_data_sources(dataStoreId) {
         return this.dataSources[dataStoreId];
     }
 
-    getOperations() {
+    get_operations() {
         return this.operations;
     }
 
     //noinspection JSMethodCanBeStatic
-    callOperation(opName: string, opArgs: any) {
+    call_operation(opName: string, opArgs: any) {
         return {opName, opArgs};
     }
 
-    newWorkspace(): Object {
+    new_workspace(): Object {
         const id = this.workspaceId++;
         let workspace = {
             base_dir: `scratch/workspace-${id}`,
@@ -190,7 +195,7 @@ export class WebAPIServiceMock implements IServiceObject {
         return Object.assign({}, workspace);
     }
 
-    openWorkspace(baseDir: string): WorkspaceState {
+    open_workspace(baseDir: string): WorkspaceState {
         const workspace = this.workspaces[baseDir];
         if (!workspace) {
             throw Error(`Not a workspace: ${baseDir}`);
@@ -200,7 +205,7 @@ export class WebAPIServiceMock implements IServiceObject {
         return Object.assign({}, workspace);
     }
 
-    closeWorkspace(baseDir: string): WorkspaceState {
+    close_workspace(baseDir: string): WorkspaceState {
         const workspace = this.workspaces[baseDir];
         if (!workspace) {
             throw Error(`Not a workspace: ${baseDir}`);
@@ -209,7 +214,7 @@ export class WebAPIServiceMock implements IServiceObject {
         return Object.assign({}, workspace);
     }
 
-    saveWorkspace(baseDir: string): WorkspaceState {
+    save_workspace(baseDir: string): WorkspaceState {
         const workspace = this.workspaces[baseDir];
         if (!workspace) {
             throw Error(`Not a workspace: ${baseDir}`);
@@ -224,7 +229,7 @@ export class WebAPIServiceMock implements IServiceObject {
         return Object.assign({}, workspace);
     }
 
-    saveWorkspaceAs(baseDir: string, newBaseDir: string): WorkspaceState {
+    save_workspace_as(baseDir: string, newBaseDir: string): WorkspaceState {
         let workspace = this.workspaces[baseDir];
         if (!workspace) {
             throw Error(`Not a workspace: ${baseDir}`);
@@ -241,7 +246,7 @@ export class WebAPIServiceMock implements IServiceObject {
         return Object.assign({}, workspace);
     }
 
-    setWorkspaceResource(baseDir: string, resName: string, opName: string, opArgs: any): WorkspaceState {
+    set_workspace_resource(baseDir: string, resName: string, opName: string, opArgs: any): WorkspaceState {
         let workspace = this.workspaces[baseDir];
         if (!workspace) {
             throw Error(`Not a workspace: ${baseDir}`);

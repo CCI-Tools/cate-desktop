@@ -9,10 +9,10 @@ export class OperationAPI {
     }
 
     getOperations(): JobPromise {
-        return this.webAPIClient.call('getOperations', []);
+        return this.webAPIClient.call('get_operations', []);
     }
 
     callOperation(opName: string, opParams: any, onProgress: (progress: JobProgress) => void): JobPromise {
-        return this.webAPIClient.call('callOperation', [opName, opParams], onProgress);
+        return this.webAPIClient.call('call_operation', [opName, opParams], onProgress);
     }
 }

@@ -24,28 +24,28 @@ export class WorkspaceAPI {
     }
 
     newWorkspace(): JobPromise {
-        return this.webAPIClient.call('newWorkspace', [], null, responseToWorkspace);
+        return this.webAPIClient.call('new_workspace', [], null, responseToWorkspace);
     }
 
     openWorkspace(baseDir: string): JobPromise {
-        return this.webAPIClient.call('openWorkspace', [baseDir], null, responseToWorkspace);
+        return this.webAPIClient.call('open_workspace', [baseDir], null, responseToWorkspace);
     }
 
     closeWorkspace(baseDir: string): JobPromise {
-        return this.webAPIClient.call('closeWorkspace', [baseDir], null, responseToWorkspace);
+        return this.webAPIClient.call('close_workspace', [baseDir], null, responseToWorkspace);
     }
 
     saveWorkspace(baseDir: string): JobPromise {
-        return this.webAPIClient.call('saveWorkspace', [baseDir], null, responseToWorkspace);
+        return this.webAPIClient.call('save_workspace', [baseDir], null, responseToWorkspace);
     }
 
     saveWorkspaceAs(baseDir: string, newBaseDir: string): JobPromise {
-        return this.webAPIClient.call('saveWorkspaceAs', [baseDir, newBaseDir], null, responseToWorkspace);
+        return this.webAPIClient.call('save_workspace_as', [baseDir, newBaseDir], null, responseToWorkspace);
     }
 
     setWorkspaceResource(baseDir: string, resName: string, opName: string, opArgs: any,
                          onProgress: (progress: JobProgress) => void): JobPromise {
-        return this.webAPIClient.call('setWorkspaceResource',  [baseDir, resName, opName, opArgs],
+        return this.webAPIClient.call('set_workspace_resource',  [baseDir, resName, opName, opArgs],
             onProgress, responseToWorkspace);
     }
 }

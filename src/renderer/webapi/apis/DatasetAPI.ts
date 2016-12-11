@@ -9,10 +9,10 @@ export class DatasetAPI {
     }
 
     getDataStores(): JobPromise {
-        return this.webAPIClient.call('getDataStores', []);
+        return this.webAPIClient.call('get_data_stores', []);
     }
 
     getDataSources(dataStoreId: string, onProgress: (progress: JobProgress) => void): JobPromise {
-        return this.webAPIClient.call('getDataSources', [dataStoreId], onProgress);
+        return this.webAPIClient.call('get_data_sources', [dataStoreId], onProgress);
     }
 }
