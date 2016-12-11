@@ -36,8 +36,8 @@
   },
   "homepage": "https://github.com/CCI-Tools/cate-desktop",
   "devDependencies": {
-    "@blueprintjs/core": "1.2.0",
-    "@blueprintjs/table": "1.2.0",
+    "@blueprintjs/core": "^1.3.1",
+    "@blueprintjs/table": "^1.2.0",
     "@types/chai": "^3.4.34",
     "@types/chai-as-promised": "0.0.29",
     "@types/classnames": "0.0.32",
@@ -52,6 +52,7 @@
     "@types/redux": "^3.6.31",
     "@types/redux-logger": "^2.6.32",
     "@types/redux-thunk": "^2.1.32",
+    "@types/tether": "^1.1.27",
     "cesium": "^1.28.0",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
