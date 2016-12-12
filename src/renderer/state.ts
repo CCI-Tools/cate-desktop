@@ -29,6 +29,7 @@ export interface DataState {
     dataStores: Array<DataStoreState> | null;
     operations: Array<OperationState> | null;
     workspace: WorkspaceState | null;
+    activities: Array<Activity> | null;
 }
 
 export interface AppConfigState {
@@ -150,6 +151,21 @@ export interface WorkflowPortState {
     sourceRef: string|null;
 }
 
+export interface Activity {
+    /**
+     * The id of the  {Job} of this activity
+     */
+    jobId:  number;
+    title: string;
+    /**
+     * the progress of the activity, if is ongoing.
+     */
+    progress?: number;
+    /**
+     * Individual messages that are generated while the activity is ongoing.
+     */
+    messages?: [string];
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CommunicationState
 

@@ -38,6 +38,14 @@ const initialDataState: DataState = {
     dataStores: null,
     operations: null,
     workspace: null,
+    activities: null
+    //     [
+    //     {jobId: 1, title: "open ds_0", progress: 0.3, messages : ["syncing 2002", "syncing 2003"]},
+    //     {jobId: 2, title: "open ds_1", progress: 0.8},
+    //     {jobId: 3, title: "open ds_2"},
+    //     {jobId: 4, title: "open ds_3", progress: 0.1},
+    //     {jobId: 5, title: "open ds_4",  messages : [ "I/O error"] }
+    // ]
 };
 
 const dataReducer = (state: DataState = initialDataState, action) => {
@@ -81,8 +89,31 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             return updateObject(state, {
                 workspace: action.payload.workspace,
             });
+        case actions.UPDATE_ACTIVITY:
+            const newActivity = action.payload.activity;
+            if (state.activities) {
+                const activityIndex = state.activities.findIndex(activity => activity.jobId === newActivity.jobId);
+                if (activityIndex < 0) {
+                    // new activity
+                    const newActivities = state.activities.slice();
+                    newActivities.push(newActivity);
+                    return updateObject(state, {
+                        activities: newActivities,
+                    });
+                } else {
+                    // update activity
+                    const newActivities = state.activities.slice();
+                    const oldActivity = state.activities[activityIndex];
+                    newActivities[activityIndex] = updateObject(oldActivity, newActivity);
+                    return updateObject(state, {activities: newActivities});
+                }
+            } else {
+                // first activity
+                return updateObject(state, {
+                    activities: [newActivity],
+                });
+            }
     }
-
     return state;
 };
 
