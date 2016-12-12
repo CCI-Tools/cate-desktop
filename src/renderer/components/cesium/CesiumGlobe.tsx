@@ -50,17 +50,20 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewerMin, ICesiumGlob
     }
 
     createPermanentObject(): CesiumViewerMin {
-        let container = this.createContainer();
+        const container = this.createContainer();
 
         let baseLayerImageryProvider;
         if (this.props.offlineMode) {
-            baseLayerImageryProvider = new Cesium.UrlTemplateImageryProvider({
-                url: Cesium.buildModuleUrl('node_modules/cesium/Build/Cesium/Assets/Textures/NaturalEarthII/{z}/{x}/{y}.jpg'),
+            const baseUrl = Cesium.buildModuleUrl('');
+            const globeOptions = {
+                url: baseUrl + 'Assets/Textures/NaturalEarthII/{z}/{x}/{reverseY}.jpg',
                 tilingScheme: new Cesium.GeographicTilingScheme(),
                 minimumLevel: 0,
                 maximumLevel: 2,
                 credit: 'Natural Earth II: Tileset Copyright © 2012-2014 Analytical Graphics, Inc. (AGI). Original data courtesy Natural Earth and in the public domain.'
-            });
+            };
+            console.log('globeOptions: ', globeOptions);
+            baseLayerImageryProvider = new Cesium.UrlTemplateImageryProvider(globeOptions);
         } else {
             baseLayerImageryProvider = new Cesium.BingMapsImageryProvider({
                 url: 'http://dev.virtualearth.net'

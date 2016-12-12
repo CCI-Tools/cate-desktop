@@ -46,7 +46,11 @@ export class CesiumGlobeExample extends React.Component<ICesiumViewProps, ICesiu
     render() {
         return (
             <div style={{width:"100%", height:"100%"}}>
-                <CesiumGlobe id={this.props.id} debug={true} style={{width:"100%", height:"100%"}} cities={this.state.cities}/>
+                <CesiumGlobe id={this.props.id}
+                             debug={true}
+                             offlineMode={false}
+                             style={{width:"100%", height:"100%"}}
+                             cities={this.state.cities}/>
                 {/*<CesiumCityList cities={this.state.cities} onChange={this.handleCheckboxChange.bind(this)}/>*/}
                 <div id="creditContainer" style={{display:"none"}}></div>
             </div>
