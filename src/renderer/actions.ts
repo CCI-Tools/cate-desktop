@@ -1,6 +1,6 @@
-import {WorkspaceState, DataStoreState, State} from "./state";
+import {WorkspaceState, DataStoreState, TaskState, State} from "./state";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
-import {JobStatus, JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
+import {JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
 import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 
 // TODO write tests for actions
@@ -28,7 +28,7 @@ export function setDialogState(dialogId: string, dialogState: any) {
     return {type: SET_DIALOG_STATE, payload: {dialogId, dialogState}};
 }
 
-export function setTaskState(taskId: string, taskState: any) {
+export function setTaskState(taskId: string, taskState: TaskState) {
     return {type: SET_TASK_STATE, payload: {taskId, taskState}};
 }
 
@@ -250,6 +250,44 @@ export function setSelectedWorkflowStepId(selectedWorkflowStepId: string) {
 
 function workspaceAPI(state: State): WorkspaceAPI {
     return new WorkspaceAPI(state.data.appConfig.webAPIClient);
+}
+
+export function setWorkspaceResource(resName: string, opName: string, opArgs: any) {
+    return (dispatch, getState) => {
+        const baseDir = getState().data.workspace.baseDir;
+        const opId = 'workspace_' + resName + '=' + opName;
+        dispatch(setWorkspaceResourceSubmitted(opId));
+        workspaceAPI(getState()).setWorkspaceResource(baseDir, resName, opName, opArgs, (progress: JobProgress) => {
+            dispatch(setWorkspaceResourceProgress(opId, progress));
+        }).then(workspace => {
+            dispatch(setWorkspaceResourcesDone(opId));
+            dispatch(setCurrentWorkspace(workspace));
+            dispatch(setSelectedWorkspaceResourceId(resName));
+        }).catch(failure => {
+            console.error(failure);
+            dispatch(setWorkspaceResourceFailed(opId, failure));
+        });
+    }
+}
+
+function setWorkspaceResourceSubmitted(opId: string) {
+    // TODO update UI according to task state change: workspace panel, status bar, and task list panel
+    return setTaskState(opId, {status: JobStatusEnum.SUBMITTED});
+}
+
+function setWorkspaceResourceProgress(opId: string, progress: JobProgress) {
+    // TODO update UI according to task state change: workspace panel, status bar, and task list panel
+    return setTaskState(opId, {status: JobStatusEnum.IN_PROGRESS, progress});
+}
+
+function setWorkspaceResourcesDone(opId: string) {
+    // TODO update UI according to task state change: workspace panel, status bar, and task list panel
+    return setTaskState(opId, {status: JobStatusEnum.DONE});
+}
+
+function setWorkspaceResourceFailed(opId: string, failure: JobFailure) {
+    // TODO update UI according to task state change: workspace panel, status bar, and task list panel
+    return setTaskState(opId, {status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED, failure});
 }
 
 

@@ -1,17 +1,13 @@
-import * as React from 'react';
-import {connect} from 'react-redux';
-import {ExpansionPanel} from './ExpansionPanel';
+import * as React from "react";
+import {connect} from "react-redux";
+import {ExpansionPanel} from "./ExpansionPanel";
 import {State, DataStoreState, WorkspaceState} from "../state";
-import {DatasetAPI} from '../webapi';
 import {SplitPane} from "./SplitPane";
 import {Tabs, TabList, Tab, TabPanel, Button} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
 import {Card} from "./Card";
 import {OpenDatasetDialog, IOpenDatasetDialogState} from "./OpenDatasetDialog";
-import {OperationAPI} from "../webapi/apis/OperationAPI";
-import {JobProgress} from "../webapi/Job";
-import * as actions from '../actions';
-import {WorkspaceAPI} from "../webapi/apis/WorkspaceAPI";
+import * as actions from "../actions";
 
 interface IDataSourcesPanelProps {
     dispatch?: any;//(action: {type: string, payload: any}) => void; TODO(mz)
@@ -44,37 +40,10 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
         super(props);
     }
 
-    private setWorkspaceResource(resName: string, opName: string, opArgs: any) {
-        const baseDir = this.props.workspace.baseDir;
-        const onProgress = (progress: JobProgress) => {
-            // TODO: display progress bar
-            console.log('Operation in progress:', progress);
-        };
-        console.log("opArgs:", opArgs);
-        // TODO: show in the UI that we are in the process of calling the operation
-        this.getWorkspaceAPI().setWorkspaceResource(baseDir, resName, opName, opArgs, onProgress).then((workspace) => {
-            console.log('Operation succeeded:', workspace);
-            this.props.dispatch(actions.setCurrentWorkspace(workspace));
-            this.props.dispatch(actions.setSelectedWorkspaceResourceId(resName));
-        }).catch(error => {
-            // TODO: handle error
-            console.error('Operation failed:', error);
-        });
-    }
-
-    private getWorkspaceAPI(): WorkspaceAPI {
-        return new WorkspaceAPI(this.props.webAPIClient);
-    }
-
-    private getOperationAPI(): OperationAPI {
-        return new OperationAPI(this.props.webAPIClient);
-    }
-
     private handleOpenDatasetButtonClicked() {
         // Open "openDataset" dialog
         this.props.dispatch(actions.setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: true}));
     }
-
 
     static resourceId = 0;
 
@@ -91,7 +60,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
                 end_date: `${dialogState.timeRange[1]}`,
                 sync: true
             };
-            this.setWorkspaceResource(resName, 'open_dataset', opArgs);
+            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs));
         }
     }
 

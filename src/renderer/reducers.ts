@@ -155,7 +155,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
                 const oldMsgs = oldActivity.messages;
                 if (oldMsgs && newActivity.messages) {
                     const newMessages = oldMsgs.slice();
-                    newMessages.push(...newActivity.messages)
+                    newMessages.push(...newActivity.messages);
                     ativitiesCopy[activityIndex].messages = newMessages;
                 }
                 return updateObject(state, {activities: ativitiesCopy});
