@@ -20,7 +20,7 @@ interface IActivityPanelProps {
 
 function mapStateToProps(state: State): IActivityPanelProps {
     return {
-        activities: state.data.activities
+        activities: state.control.activities
     };
 }
 
@@ -52,12 +52,12 @@ class ActivityPanel extends React.Component<IActivityPanelProps, null> {
             }
             return (<span>{item.title}{pm}{msg}</span>);
         };
-
+        const allActivities = this.props.activities || []
         return (
             <ExpansionPanel icon="pt-icon-database" text="Activities" isExpanded={true} defaultHeight={400}>
                 <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
-                    <ListBox numItems={this.props.activities.length}
-                             getItemKey={index => this.props.activities[index].jobId}
+                    <ListBox numItems={allActivities.length}
+                             getItemKey={index => allActivities[index].jobId}
                              renderItem={renderItem}
                              selectionMode={ListBoxSelectionMode.SINGLE}/>
                 </div>
