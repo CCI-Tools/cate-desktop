@@ -55,7 +55,7 @@ class TaskPanel extends React.Component<ITaskPanelProps, null> {
             return (<span>{taskIdList[itemIndex]}{pm} {msg}</span>);
         };
         return (
-            <ExpansionPanel icon="pt-icon-database" text="Activities" isExpanded={true} defaultHeight={400}>
+            <ExpansionPanel icon="pt-icon-database" text="Tasks" isExpanded={true} defaultHeight={400}>
                 <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
                     <ListBox numItems={taskIdList.length}
                              getItemKey={index => taskIdList[index]}
