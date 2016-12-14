@@ -5,6 +5,7 @@ import {CesiumGlobeExample} from './cesium/CesiumGlobeExample'
 import {OpenLayersMap} from './openlayers/OpenLayersMap';
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "./hgl";
 import DatasetsPanel from "./DataSourcesPanel";
+import TaskPanel from "./TaskPanel";
 import OperationsPanel from "./OperationsPanel";
 import WorkspacePanel from "./WorkspacePanel";
 
@@ -120,6 +121,7 @@ export function Layout(props) {
                             <AnalysisWindow/>
                             <LayersWindow/>
                             <LayerDetailsWindow/>
+                            <TaskPanel/>
                         </div>
                     </TabPanel>
                     <TabPanel>

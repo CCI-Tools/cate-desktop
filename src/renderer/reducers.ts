@@ -37,7 +37,7 @@ const initialDataState: DataState = {
     },
     dataStores: null,
     operations: null,
-    workspace: null,
+    workspace: null
 };
 
 const dataReducer = (state: DataState = initialDataState, action) => {
@@ -82,7 +82,6 @@ const dataReducer = (state: DataState = initialDataState, action) => {
                 workspace: action.payload.workspace,
             });
     }
-
     return state;
 };
 

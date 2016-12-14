@@ -1,5 +1,5 @@
-import {updateObject, updateProperty} from './reducers';
-import {should} from 'chai';
+import {updateObject, updateProperty} from "./reducers";
+import {should} from "chai";
 
 should();
 
