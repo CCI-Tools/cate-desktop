@@ -99,16 +99,7 @@ const initialControlState: ControlState = {
     selectedWorkspaceResourceId: null,
     dialogs: {
         openDataset: {}
-    },
-    activities: []
-    //     [
-    //     {jobId: 1, title: "open ds_0", progress: 0.3, messages : ["syncing 2002", "syncing 2003"]},
-    //     {jobId: 2, title: "open ds_1", progress: 0.8},
-    //     {jobId: 3, title: "open ds_2"},
-    //     {jobId: 4, title: "open ds_3", progress: 0.1},
-    //     {jobId: 5, title: "open ds_4",  messages : [ "I/O error"] }
-    // ]
-
+    }
 };
 
 const controlReducer = (state: ControlState = initialControlState, action) => {
@@ -137,29 +128,6 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             return updateObject(state, {
                 dialogs: updateProperty(state.dialogs, action.payload.dialogId, action.payload.dialogState)
             });
-        case actions.UPDATE_ACTIVITY:
-            const newActivity = action.payload.activity;
-            const activityIndex = state.activities.findIndex(activity => activity.jobId === newActivity.jobId);
-            if (activityIndex < 0) {
-                // new activity
-                const newActivities = state.activities.slice();
-                newActivities.push(newActivity);
-                return updateObject(state, {
-                    activities: newActivities,
-                });
-            } else {
-                // update activity
-                const ativitiesCopy = state.activities.slice();
-                const oldActivity = state.activities[activityIndex];
-                ativitiesCopy[activityIndex] = updateObject(oldActivity, newActivity);
-                const oldMsgs = oldActivity.messages;
-                if (oldMsgs && newActivity.messages) {
-                    const newMessages = oldMsgs.slice();
-                    newMessages.push(...newActivity.messages);
-                    ativitiesCopy[activityIndex].messages = newMessages;
-                }
-                return updateObject(state, {activities: ativitiesCopy});
-            }
     }
     return state;
 };
