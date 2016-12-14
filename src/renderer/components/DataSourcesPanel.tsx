@@ -1,5 +1,5 @@
 import * as React from "react";
-import {connect} from "react-redux";
+import {connect, Dispatch} from "react-redux";
 import {ExpansionPanel} from "./ExpansionPanel";
 import {State, DataStoreState, WorkspaceState} from "../state";
 import {SplitPane} from "./SplitPane";
@@ -10,7 +10,7 @@ import {OpenDatasetDialog, IOpenDatasetDialogState} from "./OpenDatasetDialog";
 import * as actions from "../actions";
 
 interface IDataSourcesPanelProps {
-    dispatch?: any;//(action: {type: string, payload: any}) => void; TODO(mz)
+    dispatch?: Dispatch<State>;
     webAPIClient: any;
     workspace: WorkspaceState;
     dataStores: Array<DataStoreState>;

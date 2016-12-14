@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {connect} from 'react-redux';
+import {connect, Dispatch} from 'react-redux';
 import {State, WorkspaceState} from "../state";
 import {Tooltip, Tab, Tabs, TabList, TabPanel} from "@blueprintjs/core";
 import {ExpansionPanel} from "./ExpansionPanel";
@@ -9,7 +9,7 @@ import {Card} from "./Card";
 import * as assert from "assert";
 
 interface IWorkspacePanelProps {
-    dispatch?: (action: {type: string, payload: any}) => void;
+    dispatch?: Dispatch<State>;
     webAPIClient: any;
     workspace: WorkspaceState;
     selectedWorkspaceResourceId: string|null;
