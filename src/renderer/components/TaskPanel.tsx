@@ -50,9 +50,13 @@ class TaskPanel extends React.Component<ITaskPanelProps, null> {
             }
             let msg = null;
             if (tastState.progress && tastState.progress.message) {
-                msg = <span style={{color: 'rgba(0,255,0,0.8)', fontSize: '0.8em'}}>{tastState.progress.message}</span>
+                msg = <span style={{fontSize: '0.8em'}}><br/>{tastState.progress.message}</span>
             }
-            return (<span>{taskIdList[itemIndex]}{pm} {msg}</span>);
+            let error = null;
+            if (tastState.failure && tastState.failure.message) {
+                error = <span style={{color: 'rgb(255, 0, 0)', fontSize: '0.8em'}}><br/>{tastState.failure.message}</span>
+            }
+            return (<span>{taskIdList[itemIndex]}{pm}{msg}{error}</span>);
         };
         return (
             <ExpansionPanel icon="pt-icon-database" text="Tasks" isExpanded={true} defaultHeight={400}>
