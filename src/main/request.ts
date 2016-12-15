@@ -26,9 +26,10 @@ export class HttpError extends Error {
  * JavaScript version stolen from from https://www.tomas-dvorak.cz/posts/nodejs-request-without-dependencies/.
  *
  * @param url The URL to request data from
+ * @param timeout the timeout in milliseconds
  * @returns {Promise<string>}
  */
- export function request(url: string):Promise<string> {
+ export function request(url: string, timeout = 1000):Promise<string> {
     // return new pending promise
     function requestExecutor(resolve: (response: string) => void, reject: (err:HttpError) => void) {
         function httpGetCallback(response) {
@@ -46,6 +47,7 @@ export class HttpError extends Error {
         // select http or https module, depending on reqested url
         const lib = url.startsWith('https') ? https : http;
         const request = lib.get(url, httpGetCallback);
+        request.setTimeout(timeout);
         // handle connection errors of the request
         request.on('error', (err) => reject(err));
     }
