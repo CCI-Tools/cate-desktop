@@ -5,6 +5,7 @@ import {Splitter} from "./Splitter";
 export interface ISplitPaneProps {
     direction: "hor" | "ver";
     initialSize?: number;
+    onChange?: (newSize: number, oldSize: number) => void;
 }
 
 export interface ISplitPaneState {
@@ -31,8 +32,13 @@ export class SplitPane extends React.Component<ISplitPaneProps, ISplitPaneState>
 
     private handleSplitDelta(delta: number) {
         this.setState((state: ISplitPaneState, props: ISplitPaneProps) => {
+            const oldSize = state.size;
+            const newSize = oldSize + delta;
+            if (this.props.onChange) {
+                this.props.onChange(newSize, oldSize);
+            }
             return {
-                size: state.size + delta,
+                size: newSize,
             };
         });
     }
