@@ -4,7 +4,10 @@ import {ExpansionPanel} from './ExpansionPanel';
 import {State, OperationState} from "../state";
 import {setSelectedOperationName, setOperationFilterTags, setOperationFilterExpr} from '../actions'
 import {SplitPane} from "./SplitPane";
-import {Popover, Position, Menu, MenuItem, InputGroup, Classes, Tag, Intent} from "@blueprintjs/core";
+import {
+    Popover, Position, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
+    PopoverInteractionKind, Tooltip
+} from "@blueprintjs/core";
 import FormEvent = React.FormEvent;
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
 import {Card} from "./Card";
@@ -46,7 +49,7 @@ class OperationsPanel extends React.Component<any, any> {
         });
     }
 
-    private getOperationAPI(): OperationAPI  {
+    private getOperationAPI(): OperationAPI {
         return new OperationAPI(this.props.webAPIClient);
     }
 
@@ -181,12 +184,18 @@ class OperationsPanel extends React.Component<any, any> {
         });
 
         let addTagButton = null;
-        if (tagMenuItems.length > 0) {
+        if (tagMenuItems.length) {
             const tagMenu = (<Menu>{tagMenuItems}</Menu>);
             addTagButton = (
-                <Popover content={tagMenu} position={Position.RIGHT_BOTTOM} useSmartPositioning={true}>
-                    <Tag intent={Intent.SUCCESS} className="pt-icon-small-plus" style={tagStyle}/>
-                </Popover>
+                <Tooltip content="Filter by tags">
+                    <Popover
+                        content={tagMenu}
+                        position={Position.RIGHT_BOTTOM}
+                        interactionKind={PopoverInteractionKind.CLICK}
+                        useSmartPositioning={true}>
+                        <Tag intent={Intent.SUCCESS} className="pt-icon-small-plus" style={tagStyle}/>
+                    </Popover>
+                </Tooltip>
             );
         }
 
