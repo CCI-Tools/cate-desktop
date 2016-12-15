@@ -22,14 +22,14 @@ export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, 
         this.handleCancel = this.handleCancel.bind(this);
     }
 
-    private close(actionId: string) {
+    private close(dialogId: string) {
         this.setState(Object.assign({}, this.state, {isOpen: false}), () => {
-            this.props.onClose(actionId, this.state);
+            this.props.onClose(dialogId, this.state);
         });
     }
 
     private handleConfirm() {
-        this.close(OpenDatasetDialog.DIALOG_ID);
+        this.close('open');
     }
 
     private handleCancel() {
@@ -59,7 +59,7 @@ export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, 
         return (
             <Dialog
                 isOpen={this.state.isOpen}
-                iconName="folder-shared-open"
+                iconName="database"
                 onClose={this.handleCancel}
                 title="Open Dataset"
                 autoFocus={true}
@@ -77,7 +77,9 @@ export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, 
                     <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                         <Button onClick={this.handleCancel}>Cancel</Button>
                         <Tooltip content="Opens the dataset." inline>
-                            <Button className="pt-intent-primary" onClick={this.handleConfirm}>Open</Button>
+                            <Button className="pt-intent-primary"
+                                    onClick={this.handleConfirm}
+                                    iconName="folder-shared-open">Open</Button>
                         </Tooltip>
                     </div>
                 </div>

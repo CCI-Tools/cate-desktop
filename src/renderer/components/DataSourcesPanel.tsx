@@ -28,7 +28,7 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         selectedDataStoreId: state.control.selectedDataStoreId,
         selectedDataSourceId: state.control.selectedDataSourceId,
         showDataSourceDetails: state.control.showDataSourceDetails,
-        openDatasetDialogState: state.control.dialogs[OpenDatasetDialog.DIALOG_ID] as IOpenDatasetDialogState
+        openDatasetDialogState: (state.control.dialogs[OpenDatasetDialog.DIALOG_ID] || {}) as IOpenDatasetDialogState
     };
 }
 
@@ -38,6 +38,8 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
  * @author Norman Fomferra
  */
 class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
+    static resourceId = 0;
+
     constructor(props: IDataSourcesPanelProps) {
         super(props);
     }
@@ -46,8 +48,6 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
         // Open "openDataset" dialog
         this.props.dispatch(actions.setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: true}));
     }
-
-    static resourceId = 0;
 
     private handleOpenDatasetDialogClosed(actionId: string, dialogState: IOpenDatasetDialogState) {
         // Close "openDataset" dialog and save state
@@ -128,10 +128,10 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
 
             const actionComponent = (
                 <div>
-                    <Button className="pt-intent-success"
+                    <Button className="pt-intent-primary"
                             onClick={this.handleOpenDatasetButtonClicked.bind(this)}
                             disabled={!this.props.selectedDataSourceId || !this.props.workspace}
-                            iconName="folder-shared-open">Open</Button>
+                            iconName="folder-shared-open">Open...</Button>
                     {openDatasetDialog}
                 </div>
             );

@@ -29,6 +29,7 @@ interface IOperationsPanelProps {
 
 
 function mapStateToProps(state: State) : IOperationsPanelProps {
+    const dialogId = EditOpStepDialog.getDialogId(state.control.selectedOperationName, true);
     return {
         webAPIClient: state.data.appConfig.webAPIClient,
         workspace: state.data.workspace,
@@ -37,7 +38,7 @@ function mapStateToProps(state: State) : IOperationsPanelProps {
         operationFilterTags: state.control.operationFilterTags,
         operationFilterExpr: state.control.operationFilterExpr,
         showOperationDetails: state.control.showOperationDetails,
-        editOpStepDialogState: state.control.dialogs[EditOpStepDialog.DIALOG_ID] as IEditOpStepDialogState
+        editOpStepDialogState: ((dialogId && state.control.dialogs[dialogId]) || {}) as IEditOpStepDialogState
     };
 }
 
@@ -73,13 +74,15 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     }
 
     private handleAddOpStepButtonClicked() {
-        // Open "openDataset" dialog
-        // TODO this.props.dispatch(actions.setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: true}));
+        // Open "addOpStep_X" dialog
+        const dialogId = EditOpStepDialog.getDialogId(this.props.selectedOperationName, true);
+        this.props.dispatch(actions.setDialogState(dialogId, {isOpen: true}));
     }
 
     private handleAddOpStepDialogClosed(actionId: string, dialogState: IEditOpStepDialogState) {
-        // Close "openDataset" dialog and save state
-        this.props.dispatch(actions.setDialogState(EditOpStepDialog.DIALOG_ID, dialogState));
+        // Close "addOpStep_X" dialog and save state
+        const dialogId = EditOpStepDialog.getDialogId(this.props.selectedOperationName, true);
+        this.props.dispatch(actions.setDialogState(dialogId, dialogState));
 
         // Perform the action
         if (actionId) {
@@ -132,21 +135,25 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             const operationTagFilterPanel = this.renderOperationTagFilterPanel(allOperations, operationFilterTags);
             const operationsList = this.renderOperationsList(filteredOperations, selectedOperationName);
             const operationDetailsCard = this.renderOperationDetailsCard(selectedOperation);
-            const addOperationDialog = selectedOperation ? (
-                <EditOpStepDialog
-                    operation={selectedOperation}
-                    isAddOpStepDialog={true}
-                    {...this.props.editOpStepDialogState}
-                    onClose={this.handleAddOpStepDialogClosed.bind(this)}/>
-            ) : null;
+
+            let addOpStepDialog = null;
+            if (this.props.editOpStepDialogState.isOpen) {
+                addOpStepDialog = (
+                    <EditOpStepDialog
+                        operation={selectedOperation}
+                        isAddOpStepDialog={true}
+                        {...this.props.editOpStepDialogState}
+                        onClose={this.handleAddOpStepDialogClosed.bind(this)}/>
+                );
+            }
 
             const actionComponent = (
                 <div>
-                    <Button className="pt-intent-success"
+                    <Button className="pt-intent-primary"
                             onClick={this.handleAddOpStepButtonClicked.bind(this)}
                             disabled={!this.props.selectedOperationName || !this.props.workspace}
-                            iconName="add">Add</Button>
-                    {addOperationDialog}
+                            iconName="add">Add...</Button>
+                    {addOpStepDialog}
                 </div>
             );
 

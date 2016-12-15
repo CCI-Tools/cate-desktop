@@ -12,23 +12,31 @@ export interface IEditOpStepDialogState extends DialogState {
 }
 
 export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IEditOpStepDialogState> {
-    static readonly DIALOG_ID = 'editOpStep';
+    private readonly dialogId: string;
 
     constructor(props: IEditOpStepDialogProps) {
         super(props);
         this.state = {isOpen: true};
+        this.dialogId = EditOpStepDialog.getDialogId(props.operation.name, props.isAddOpStepDialog);
         this.handleConfirm = this.handleConfirm.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
     }
 
-    private close(actionId: string) {
+    static getDialogId(operationName:string, isAddOpStepDialog: boolean) {
+        if (!operationName) {
+            return null;
+        }
+        return (isAddOpStepDialog ? 'addOpStep_' : 'editOpStep_') + operationName;
+    }
+
+    private close(dialogId: string) {
         this.setState(Object.assign({}, this.state, {isOpen: false}), () => {
-            this.props.onClose(actionId, this.state);
+            this.props.onClose(dialogId, this.state);
         });
     }
 
     private handleConfirm() {
-        this.close(EditOpStepDialog.DIALOG_ID);
+        this.close(this.props.isAddOpStepDialog ? 'add' : 'edit');
     }
 
     private handleCancel() {
@@ -39,12 +47,15 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
 
         const operationParamPanel = (<p>TODO...</p>); // TODO
 
+        const dialogTitle = this.props.isAddOpStepDialog ? "Add Workflow Step" : "Change Workflow Step";
+        const tooltipText = this.props.isAddOpStepDialog? 'Add a new step to the workflow' : 'Change the step parameters.';
+
         return (
             <Dialog
                 isOpen={this.state.isOpen}
-                iconName="folder-shared-open"
+                iconName="function"
                 onClose={this.handleCancel}
-                title={this.props.isAddOpStepDialog ? "Add Operation Step" : "Change Operation Step Parameters"}
+                title={dialogTitle}
                 autoFocus={true}
                 canEscapeKeyClose={true}
                 canOutsideClickClose={true}
@@ -57,8 +68,10 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                 <div className={Classes.DIALOG_FOOTER}>
                     <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                         <Button onClick={this.handleCancel}>Cancel</Button>
-                        <Tooltip content={this.props.isAddOpStepDialog? 'Add a new operation step to the workflow' : 'Changes the operation step parameters.'} inline>
-                            <Button className="pt-intent-primary" onClick={this.handleConfirm}>Open</Button>
+                        <Tooltip content={tooltipText} inline>
+                            <Button className="pt-intent-primary"
+                                    onClick={this.handleConfirm}
+                                    iconName="add">Add</Button>
                         </Tooltip>
                     </div>
                 </div>

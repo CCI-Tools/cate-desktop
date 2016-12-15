@@ -5,7 +5,6 @@ import {combineReducers} from 'redux';
 // TODO write tests for reducers
 
 
-
 // TODO move updateObject() into obj.ts, see also src/common/assign.ts
 /**
  * Encapsulate the idea of passing a new object as the first parameter
@@ -99,9 +98,7 @@ const initialControlState: ControlState = {
     showOperationDetails: true,
     selectedWorkflowStepId: null,
     selectedWorkspaceResourceId: null,
-    dialogs: {
-        openDataset: {}
-    }
+    dialogs: {}
 };
 
 const controlReducer = (state: ControlState = initialControlState, action) => {
