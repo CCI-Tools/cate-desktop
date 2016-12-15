@@ -13,6 +13,7 @@ export interface IListBoxProps {
     getItemKey?: (itemIndex: number) => React.Key;
     onItemClick?: (key: React.Key, itemIndex: number) => void;
     onItemDoubleClick?: (key: React.Key, itemIndex: number) => void;
+    // TODO (nf): change param order, so users can drop oldSelection in their impl.
     onSelection?: (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => void;
     selectionMode?: ListBoxSelectionMode;
     selection?: Array<React.Key>;
@@ -20,6 +21,11 @@ export interface IListBoxProps {
     itemStyle?: Object;
 }
 
+/**
+ * A  ListBox is used similar to Blueprint's `Table` component.
+ *
+ * @author Norman Fomferra
+ */
 export class ListBox extends React.Component<IListBoxProps, any> {
     constructor(props: IListBoxProps) {
         super(props);
