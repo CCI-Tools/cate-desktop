@@ -59,7 +59,7 @@ export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, 
         return (
             <Dialog
                 isOpen={this.state.isOpen}
-                iconName="inbox"
+                iconName="folder-shared-open"
                 onClose={this.handleCancel}
                 title="Open Dataset"
                 autoFocus={true}
