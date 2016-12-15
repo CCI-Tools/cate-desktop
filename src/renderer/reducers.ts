@@ -96,6 +96,7 @@ const initialControlState: ControlState = {
     showDataSourceDetails: true,
     operationFilterTags: [],
     operationFilterExpr: '',
+    showOperationDetails: true,
     selectedWorkflowStepId: null,
     selectedWorkspaceResourceId: null,
     dialogs: {

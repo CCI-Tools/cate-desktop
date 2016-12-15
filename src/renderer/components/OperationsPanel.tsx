@@ -1,37 +1,52 @@
 import * as React from 'react';
-import {connect} from 'react-redux';
+import {connect, Dispatch} from 'react-redux';
 import {ExpansionPanel} from './ExpansionPanel';
-import {State, OperationState} from "../state";
+import {State, OperationState, WorkspaceState} from "../state";
 import {setSelectedOperationName, setOperationFilterTags, setOperationFilterExpr} from '../actions'
-import {SplitPane} from "./SplitPane";
 import {
     Popover, Position, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
-    PopoverInteractionKind, Tooltip
+    PopoverInteractionKind, Tooltip, Button
 } from "@blueprintjs/core";
 import FormEvent = React.FormEvent;
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
 import {Card} from "./Card";
 import {OperationAPI} from "../webapi/apis/OperationAPI";
 import * as actions from "../actions";
+import {ContentWithDetailsPanel} from "./ContentWithDetailsPanel";
+import {EditOpStepDialog, IEditOpStepDialogState} from "./EditOpStepDialog";
+
+interface IOperationsPanelProps {
+    dispatch?: Dispatch<State>;
+    webAPIClient: any;
+    workspace: WorkspaceState;
+    operations: Array<OperationState>;
+    selectedOperationName: string|null;
+    operationFilterTags: Array<string>|null;
+    operationFilterExpr: string|null;
+    showOperationDetails: boolean;
+    editOpStepDialogState: IEditOpStepDialogState;
+}
 
 
-function mapStateToProps(state: State) {
+function mapStateToProps(state: State) : IOperationsPanelProps {
     return {
         webAPIClient: state.data.appConfig.webAPIClient,
+        workspace: state.data.workspace,
         operations: state.data.operations,
         selectedOperationName: state.control.selectedOperationName,
         operationFilterTags: state.control.operationFilterTags,
         operationFilterExpr: state.control.operationFilterExpr,
+        showOperationDetails: state.control.showOperationDetails,
+        editOpStepDialogState: state.control.dialogs[EditOpStepDialog.DIALOG_ID] as IEditOpStepDialogState
     };
 }
-
 
 /**
  * The OperationsPanel is used to select and browse available operations.
  *
  * @author Norman Fomferra
  */
-class OperationsPanel extends React.Component<any, any> {
+class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
     componentDidMount() {
         if (!this.props.operations) {
@@ -51,6 +66,35 @@ class OperationsPanel extends React.Component<any, any> {
 
     private getOperationAPI(): OperationAPI {
         return new OperationAPI(this.props.webAPIClient);
+    }
+
+    private handleShowDetailsChanged(value: boolean) {
+        this.props.dispatch(actions.setControlState('showOperationDetails', value));
+    }
+
+    private handleAddOpStepButtonClicked() {
+        // Open "openDataset" dialog
+        // TODO this.props.dispatch(actions.setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: true}));
+    }
+
+    private handleAddOpStepDialogClosed(actionId: string, dialogState: IEditOpStepDialogState) {
+        // Close "openDataset" dialog and save state
+        this.props.dispatch(actions.setDialogState(EditOpStepDialog.DIALOG_ID, dialogState));
+
+        // Perform the action
+        if (actionId) {
+            /*
+            const resName = 'ds_' + (DataSourcesPanel.resourceId++);
+            const opName = 'open_dataset';
+            const opArgs = {
+                ds_name: this.props.selectedDataSourceId,
+                start_date: `${dialogState.timeRange[0]}`,
+                end_date: `${dialogState.timeRange[1]}`,
+                sync: true
+            };
+            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs));
+            */
+        }
     }
 
     render() {
@@ -88,15 +132,36 @@ class OperationsPanel extends React.Component<any, any> {
             const operationTagFilterPanel = this.renderOperationTagFilterPanel(allOperations, operationFilterTags);
             const operationsList = this.renderOperationsList(filteredOperations, selectedOperationName);
             const operationDetailsCard = this.renderOperationDetailsCard(selectedOperation);
+            const addOperationDialog = selectedOperation ? (
+                <EditOpStepDialog
+                    operation={selectedOperation}
+                    isAddOpStepDialog={true}
+                    {...this.props.editOpStepDialogState}
+                    onClose={this.handleAddOpStepDialogClosed.bind(this)}/>
+            ) : null;
+
+            const actionComponent = (
+                <div>
+                    <Button className="pt-intent-success"
+                            onClick={this.handleAddOpStepButtonClicked.bind(this)}
+                            disabled={!this.props.selectedOperationName || !this.props.workspace}
+                            iconName="add">Add</Button>
+                    {addOperationDialog}
+                </div>
+            );
 
             return (
                 <ExpansionPanel icon="pt-icon-function" text="Operations" isExpanded={true} defaultHeight={300}>
                     {operationFilterExprInput}
                     {operationTagFilterPanel}
-                    <SplitPane direction="ver" initialSize={150}>
+                    <ContentWithDetailsPanel showDetails={this.props.showOperationDetails}
+                                             onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
+                                             isSplitPanel={true}
+                                             initialContentHeight={200}
+                                             actionComponent={actionComponent}>
                         {operationsList}
                         {operationDetailsCard}
-                    </SplitPane>
+                    </ContentWithDetailsPanel>
                 </ExpansionPanel>
             );
         } else {

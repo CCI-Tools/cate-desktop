@@ -186,6 +186,7 @@ export interface ControlState {
     selectedOperationName: string|null;
     operationFilterTags: Array<string>;
     operationFilterExpr: string;
+    showOperationDetails: boolean;
 
     // WorkspacePanel
     selectedWorkflowStepId: string|null;
