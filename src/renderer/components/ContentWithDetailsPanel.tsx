@@ -5,7 +5,7 @@ import {Switch} from "@blueprintjs/core";
 
 export interface IContentWithDetailsPanelProps {
     showDetails: boolean;
-    actions?: JSX.Element|null;
+    actionComponent?: JSX.Element|null;
     onShowDetailsChange: (value: boolean) => void;
     isSplitPanel?: boolean;
     initialContentHeight?: number;
@@ -19,7 +19,6 @@ export class ContentWithDetailsPanel extends React.PureComponent<IContentWithDet
     }
 
     private handleSwitchChange(event) {
-        console.log('handleSwitchChange', event.target.checked);
         this.props.onShowDetailsChange(event.target.checked);
     }
 
@@ -28,6 +27,7 @@ export class ContentWithDetailsPanel extends React.PureComponent<IContentWithDet
         const detailsChild = this.props.children[1];
 
         const detailsSwitch = (<Switch checked={this.props.showDetails}
+                                       style={{alignSelf: 'flex-end', marginBottom: 0}}
                                        label="Details"
                                        disabled={!detailsChild}
                                        onChange={this.handleSwitchChange.bind(this)}/>);
@@ -35,12 +35,12 @@ export class ContentWithDetailsPanel extends React.PureComponent<IContentWithDet
         const detailsContentPanel = this.props.showDetails ? detailsChild : null;
 
         let detailsControlPanel;
-        if (this.props.actions) {
+        if (this.props.actionComponent) {
             detailsControlPanel = (
-                <div style={{display: 'flex', marginBottom: 4, alignItems: 'center'}}>
+                <div style={{display: 'flex', alignItems: 'flex-end'}}>
                     {detailsSwitch}
                     <span style={{flex: 'auto'}}/>
-                    { this.props.actions}
+                    {this.props.actionComponent}
                 </div>
             );
         } else {
