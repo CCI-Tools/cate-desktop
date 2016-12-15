@@ -124,13 +124,13 @@ export class WebAPIServiceMock implements IServiceObject {
             if (i % 8 !== 0) {
                 opMetaInfo.inputs.push({
                     name: 'ds',
-                    dataType: 'xr.Dataset',
+                    dataType: 'Dataset',
                     description: 'Source dataset',
                 });
                 if (i % 5 === 0) {
                     opMetaInfo.inputs.push({
                         name: 'ds_ref',
-                        dataType: 'xr.Dataset',
+                        dataType: 'Dataset',
                         description: 'Reference dataset',
                     });
                 }
@@ -138,15 +138,15 @@ export class WebAPIServiceMock implements IServiceObject {
             for (let j = 0; j < i % inputNames.length; j++) {
                 opMetaInfo.inputs.push({
                     name: inputNames[j],
-                    dataType: inputDataTypes[j % inputDataTypes.length],
-                    description: descriptions[j % descriptions.length],
+                    dataType: inputDataTypes[(i + j) % inputDataTypes.length],
+                    description: descriptions[(i + j) % descriptions.length],
                 });
             }
 
             if (i % 7 != 0) {
                 opMetaInfo.outputs.push({
                     name: 'return',
-                    dataType: 'xr.Dataset',
+                    dataType: 'Dataset',
                     description: 'The transformed dataset',
                 });
             } else {
