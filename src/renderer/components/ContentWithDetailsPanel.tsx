@@ -6,7 +6,7 @@ import {Switch} from "@blueprintjs/core";
 export interface IContentWithDetailsPanelProps {
     showDetails: boolean;
     actions?: JSX.Element|null;
-    onShowDetailsChange: () => void;
+    onShowDetailsChange: (value: boolean) => void;
     isSplitPanel?: boolean;
     initialContentHeight?: number;
 }
@@ -18,14 +18,19 @@ export class ContentWithDetailsPanel extends React.PureComponent<IContentWithDet
         super(props);
     }
 
+    private handleSwitchChange(event) {
+        console.log('handleSwitchChange', event.target.checked);
+        this.props.onShowDetailsChange(event.target.checked);
+    }
+
     render(): JSX.Element {
         const contentChild = this.props.children[0];
         const detailsChild = this.props.children[1];
 
         const detailsSwitch = (<Switch checked={this.props.showDetails}
                                        label="Details"
-                                       disabled={detailsChild ? true : false}
-                                       onChange={this.props.onShowDetailsChange}/>);
+                                       disabled={!detailsChild}
+                                       onChange={this.handleSwitchChange.bind(this)}/>);
 
         const detailsContentPanel = this.props.showDetails ? detailsChild : null;
 

@@ -180,6 +180,7 @@ export interface ControlState {
     // DataSourcesPanel
     selectedDataStoreId: string|null;
     selectedDataSourceId: string|null;
+    showDataSourceDetails: boolean;
 
     // OperationsPanel
     selectedOperationName: string|null;

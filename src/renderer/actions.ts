@@ -15,6 +15,7 @@ export const APPLY_INITIAL_STATE = 'APPLY_INITIAL_STATE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const SET_DIALOG_STATE = 'SET_DIALOG_STATE';
 export const SET_TASK_STATE = 'SET_TASK_STATE';
+export const SET_CONTROL_STATE = 'SET_CONTROL_STATE';
 
 export function applyInitialState(initialState: Object) {
     return {type: APPLY_INITIAL_STATE, payload: initialState};
@@ -31,6 +32,13 @@ export function setDialogState(dialogId: string, dialogState: any) {
 export function setTaskState(taskId: string, taskState: TaskState) {
     return {type: SET_TASK_STATE, payload: {taskId, taskState}};
 }
+
+export function setControlState(propertyName:string, value: any) {
+    const payload = {};
+    payload[propertyName] = value;
+    return {type: SET_CONTROL_STATE, payload};
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data stores / data sources actions

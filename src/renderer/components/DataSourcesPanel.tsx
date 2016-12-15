@@ -8,6 +8,7 @@ import {ListBox, ListBoxSelectionMode} from "./ListBox";
 import {Card} from "./Card";
 import {OpenDatasetDialog, IOpenDatasetDialogState} from "./OpenDatasetDialog";
 import * as actions from "../actions";
+import {ContentWithDetailsPanel} from "./ContentWithDetailsPanel";
 
 interface IDataSourcesPanelProps {
     dispatch?: Dispatch<State>;
@@ -16,6 +17,7 @@ interface IDataSourcesPanelProps {
     dataStores: Array<DataStoreState>;
     selectedDataStoreId: string|null;
     selectedDataSourceId: string|null;
+    showDataSourceDetails: boolean;
     openDatasetDialogState: IOpenDatasetDialogState;
 }
 
@@ -26,6 +28,7 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         dataStores: state.data.dataStores,
         selectedDataStoreId: state.control.selectedDataStoreId,
         selectedDataSourceId: state.control.selectedDataSourceId,
+        showDataSourceDetails: state.control.showDataSourceDetails,
         openDatasetDialogState: state.control.dialogs[OpenDatasetDialog.DIALOG_ID] as IOpenDatasetDialogState
     };
 }
@@ -78,6 +81,10 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
         }
     }
 
+    private handleShowDetailsChanged(value: boolean) {
+        this.props.dispatch(actions.setControlState('showDataSourceDetails', value));
+    }
+
     private getSelectedDataStore() {
         if (!this.props.dataStores || !this.props.selectedDataStoreId) {
             return null;
@@ -110,10 +117,13 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
         if (dataStoreSelector && dataSourcesList) {
             const dataSourceDetailsCard = this.renderDataSourceDetails();
             dataSourcesPane = (
-                <SplitPane direction="ver" initialSize={200}>
+                <ContentWithDetailsPanel showDetails={this.props.showDataSourceDetails}
+                                         onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
+                                         isSplitPanel={true}
+                                         initialContentHeight={200}>
                     {dataSourcesList}
                     {dataSourceDetailsCard}
-                </SplitPane>
+                </ContentWithDetailsPanel>
             );
         } else if (dataStoreSelector) {
             dataSourcesPane = this.renderNoDataSourcesMessage();
@@ -212,11 +222,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
     private renderDataSourceDetails() {
         const dataSource = this.getSelectedDataSource();
         if (!dataSource) {
-            return (
-                <Card>
-                    <p>No data source selected.</p>
-                </Card>
-            );
+            return null;
         }
         let metaInfo = null;
         let variables = null;
