@@ -2,7 +2,6 @@ import * as React from "react";
 import {connect, Dispatch} from "react-redux";
 import {ExpansionPanel} from "./ExpansionPanel";
 import {State, DataStoreState, WorkspaceState} from "../state";
-import {SplitPane} from "./SplitPane";
 import {Tabs, TabList, Tab, TabPanel, Button} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
 import {Card} from "./Card";
@@ -115,12 +114,35 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
 
         let dataSourcesPane = null;
         if (dataStoreSelector && dataSourcesList) {
+
+            let openDatasetDialog = null;
+            if (this.props.openDatasetDialogState.isOpen) {
+                const dataSource = this.getSelectedDataSource();
+                openDatasetDialog = (
+                    <OpenDatasetDialog
+                        dataSource={dataSource}
+                        {...this.props.openDatasetDialogState}
+                        onClose={this.handleOpenDatasetDialogClosed.bind(this)}/>
+                );
+            }
+
+            const actionComponent = (
+                <div>
+                    <Button className="pt-intent-success"
+                            onClick={this.handleOpenDatasetButtonClicked.bind(this)}
+                            disabled={!this.props.selectedDataSourceId || !this.props.workspace}
+                            iconName="folder-shared-open">Open</Button>
+                    {openDatasetDialog}
+                </div>
+            );
+
             const dataSourceDetailsCard = this.renderDataSourceDetails();
             dataSourcesPane = (
                 <ContentWithDetailsPanel showDetails={this.props.showDataSourceDetails}
                                          onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
                                          isSplitPanel={true}
-                                         initialContentHeight={200}>
+                                         initialContentHeight={200}
+                                         actionComponent={actionComponent}>
                     {dataSourcesList}
                     {dataSourceDetailsCard}
                 </ContentWithDetailsPanel>
@@ -189,32 +211,16 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
             dataStoreOptions.push(<option key={dataStore.id} value={dataStore.id}>{dataStore.name}</option>);
         }
 
-        let openDatasetDialog = null;
-        if (this.props.openDatasetDialogState.isOpen) {
-            const dataSource = this.getSelectedDataSource();
-            openDatasetDialog = (
-                <OpenDatasetDialog
-                    dataSource={dataSource}
-                    {...this.props.openDatasetDialogState}
-                    onClose={this.handleOpenDatasetDialogClosed.bind(this)}/>
-            );
-        }
-
         return (
-            <div style={{display: 'flex', marginBottom: 4, alignItems: 'center'}}>
-                <span>Store </span>
-                <div className="pt-select" style={{flex: 'auto'}}>
+            <label className="pt-label pt-inline">
+                Data store
+                <div className="pt-select">
                     <select value={this.props.selectedDataStoreId || ''}
                             onChange={this.handleDataStoreSelected.bind(this)}>
                         {dataStoreOptions}
                     </select>
                 </div>
-                <Button className="pt-intent-success"
-                        onClick={this.handleOpenDatasetButtonClicked.bind(this)}
-                        disabled={!this.props.selectedDataSourceId || !this.props.workspace}
-                        iconName="add">Open</Button>
-                {openDatasetDialog}
-            </div>
+            </label>
         );
     }
 
