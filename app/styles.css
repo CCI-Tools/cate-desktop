@@ -24,21 +24,22 @@ input, button, textarea, :focus {
  * https://css-tricks.com/examples/WebKitScrollbars/
  */
 ::-webkit-scrollbar {
-    width: 1em;
-    height: 1em;
+    width: 0.8em;
+    height: 0.8em;
 }
 
 ::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 0.5em rgba(0, 0, 0, 0.3);
-    -webkit-border-radius: 1em;
-    border-radius: 1em;
+    -webkit-box-shadow: inset 0 0 0.4em rgba(0, 0, 0, 0.3);
+    -webkit-border-radius: 0.8em;
+    border-radius: 0.8em;
 }
 
 ::-webkit-scrollbar-thumb {
-    -webkit-border-radius: 1em;
-    border-radius: 1em;
-    background: rgba(191, 204, 214, 0.8);
-    -webkit-box-shadow: inset 0 0 0.5em rgba(0, 0, 0, 0.5);
+    -webkit-border-radius: 0.8em;
+    border-radius: 0.8em;
+    /* blueprint's @gray5 */
+    background: rgba(191, 204, 214, 1.0);
+    -webkit-box-shadow: inset 0 0 0.4em rgba(0, 0, 0, 0.5);
 }
 
 ::-webkit-scrollbar-corner {
@@ -46,7 +47,8 @@ input, button, textarea, :focus {
 }
 
 ::-webkit-scrollbar-thumb:window-inactive {
-    background: rgba(191, 204, 214, 0.4);
+    /* blueprint's @gray5 */
+    background: rgba(191, 204, 214, 0.5);
 }
 
 .hgl-container {
