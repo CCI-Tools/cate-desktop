@@ -1,5 +1,5 @@
 import * as React from "react"
-import {Menu, MenuItem, MenuDivider, Popover, Position, Collapse} from "@blueprintjs/core";
+import {Menu, MenuItem, MenuDivider, Popover, Position, Collapse, PopoverInteractionKind} from "@blueprintjs/core";
 import * as classNames from "classnames";
 import {Splitter} from "./Splitter";
 
@@ -20,6 +20,7 @@ interface IExpansionPanelProps {
     onFocusLost?: () => any;
     defaultHeight?: number | string | null;
     height?: number;
+    isHeightAdjustable?: boolean;
 }
 
 /**
@@ -29,7 +30,6 @@ interface IExpansionPanelState {
     isOpen: boolean;
     isExpanded: boolean;
     isFocused: boolean;
-    isMoreActive: boolean;
     width?: number;
     height?: number;
 }
@@ -49,25 +49,18 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
             isOpen: props.isOpen !== false,
             isExpanded: props.isExpanded || false,
             isFocused: props.isFocused || false,
-            isMoreActive: false,
             height: props.height,
         };
         this.handlePanelHeaderClicked = this.handlePanelHeaderClicked.bind(this);
-        this.handleMoreButtonClicked = this.handleMoreButtonClicked.bind(this);
         this.handleExpandButtonClicked = this.handleExpandButtonClicked.bind(this);
         this.handleCloseButtonClicked = this.handleCloseButtonClicked.bind(this);
     }
 
     private handlePanelHeaderClicked() {
         this.setState({
+            isExpanded: !this.state.isExpanded,
             isFocused: false,
             // isFocused: true,
-        } as IExpansionPanelState);
-    }
-
-    private handleMoreButtonClicked() {
-        this.setState({
-            isMoreActive: !this.state.isMoreActive
         } as IExpansionPanelState);
     }
 
@@ -131,78 +124,76 @@ export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpans
     }
 
     render(): JSX.Element {
-        /*
+
         const menu = (
             <Menu>
-                <MenuItem iconName="graph" text="Graph"/>
-                <MenuItem iconName="map" text="Map"/>
-                <MenuItem iconName="th" text="Table" shouldDismissPopover={false}/>
-                <MenuItem iconName="zoom-to-fit" text="Nucleus" disabled={true}/>
+                <MenuItem text="Move up"/>
+                <MenuItem text="Move down"/>
                 <MenuDivider />
-                <MenuItem iconName="cog" text="Settings...">
-                    <MenuItem iconName="add" text="Add new application" disabled={true}/>
-                    <MenuItem iconName="remove" text="Remove application"/>
-                </MenuItem>
+                <MenuItem text="Hide"/>
             </Menu>
         );
-        */
 
         const panelClassNames = classNames("cate-panel", {
             'opened': this.state.isOpen,
             'closed': !this.state.isOpen,
         });
 
-        // const menuIconName = "pt-icon-properties";
-        const expandIconName = this.state.isExpanded ? "pt-icon-chevron-up" : "pt-icon-chevron-down";
+        const headerItemStyle = {margin: '0.2em'};
+
+        const menuIconName = "pt-icon-properties";
+        //const expandIconName = this.state.isExpanded ? "pt-icon-chevron-up" : "pt-icon-chevron-down";
         const closeIconName = "pt-icon-cross";
 
         let icon = null;
         if (this.props.icon) {
-            const iconClasses = classNames("pt-icon-standard", this.props.icon, {"cate-panel-selected": this.state.isFocused});
+            const iconClasses = classNames("pt-icon-standard", this.props.icon, {"cate-panel-selected": this.state.isFocused}, "cate-panel-header-item");
             icon = <span className={iconClasses} onClick={this.handlePanelHeaderClicked}/>;
         }
-        const textClasses = classNames("cate-panel-text", {"cate-panel-selected": this.state.isFocused});
+        const textClasses = classNames("cate-panel-text", {"cate-panel-selected": this.state.isFocused}, "cate-panel-header-item");
         const text = <span className={textClasses} onClick={this.handlePanelHeaderClicked}>{this.props.text.toUpperCase()}</span>;
 
-        /*
         const menuIcon = (
-            <Popover isOpen={this.state.isMoreActive} content={menu}>
-                <span className={"pt-icon-standard " + menuIconName + " cate-icon-small"}
-                      onClick={this.handleMoreButtonClicked}/>
+            <Popover content={menu}
+                     interactionKind={PopoverInteractionKind.CLICK}>
+                <span className={"pt-icon-standard " + menuIconName + " cate-icon-small cate-panel-header-item"}/>
             </Popover>);
-        */
-        const expandIcon = (<span className={"pt-icon-standard " + expandIconName + " cate-icon-small"}
-                                  onClick={this.handleExpandButtonClicked}/>);
-        const closeIcon = (<span className={"pt-icon-standard " + closeIconName + " cate-icon-small"}
+
+        // const expandIcon = (<span className={"pt-icon-standard " + expandIconName + " cate-icon-small"}
+        //                           onClick={this.handleExpandButtonClicked}/>);
+        const closeIcon = (<span className={"pt-icon-standard " + closeIconName + " cate-icon-small cate-panel-header-item"}
                                  onClick={this.handleCloseButtonClicked}/>);
 
         const contentPaneStyle = {width: '100%', paddingTop: 4, paddingBottom: 4};
-        let contentPaneHeight;
-        if (this.state.height) {
-            contentPaneHeight = this.state.height;
-        } else if (this.props.defaultHeight) {
-            contentPaneHeight = this.props.defaultHeight;
-        }
-        if (contentPaneHeight) {
-            contentPaneStyle['height'] = contentPaneHeight;
-        }
 
-        // console.log(`${this.props.text}'s content pane size: ${this.state.width} x ${this.state.height}`);
+        let heightAdjuster = null;
+        if (this.props.isHeightAdjustable) {
+            let contentPaneHeight;
+            if (this.state.height) {
+                contentPaneHeight = this.state.height;
+            } else if (this.props.defaultHeight) {
+                contentPaneHeight = this.props.defaultHeight;
+            }
+            if (contentPaneHeight) {
+                contentPaneStyle['height'] = contentPaneHeight;
+            }
+            heightAdjuster = (<Splitter direction='ver' onChange={this.handleSplitterDelta.bind(this)}/>);
+        }
 
         return (
             <div className={panelClassNames}>
                 <div className="cate-panel-header">
                     {icon}
                     {text}
-                    {/*menuIcon*/}
-                    {expandIcon}
+                    {menuIcon}
+                    {/*{expandIcon}*/}
                     {closeIcon}
                 </div>
                 <Collapse isOpen={this.state.isExpanded}>
                     <div ref={this.handleContentPaneRef.bind(this)} style={contentPaneStyle}>
                         {this.state.isExpanded ? this.props.children : null}
                     </div>
-                    <Splitter direction='ver' onChange={this.handleSplitterDelta.bind(this)}/>
+                    {heightAdjuster}
                 </Collapse>
             </div>
         );

@@ -24,21 +24,21 @@ input, button, textarea, :focus {
  * https://css-tricks.com/examples/WebKitScrollbars/
  */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 1em;
+    height: 1em;
 }
 
 ::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 0.5em rgba(0, 0, 0, 0.3);
+    -webkit-border-radius: 1em;
+    border-radius: 1em;
 }
 
 ::-webkit-scrollbar-thumb {
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
+    -webkit-border-radius: 1em;
+    border-radius: 1em;
     background: rgba(191, 204, 214, 0.8);
-    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: inset 0 0 0.5em rgba(0, 0, 0, 0.5);
 }
 
 ::-webkit-scrollbar-corner {
@@ -169,7 +169,7 @@ ul.cate-list-box li.cate-selected {
 .cate-panel-header {
     display: flex;
     margin: 0;
-    padding: 6px;
+    padding: 0.2em;
 
     /* blueprint @grey1 */
     border-top: 1px solid #5C7080;
@@ -183,6 +183,11 @@ ul.cate-list-box li.cate-selected {
     /* blueprint @dark-grey2 */
     background-color: #202B33;
     align-items: center;
+}
+
+.cate-panel-header-item {
+    margin-left: 0.1em;
+    margin-right: 0.1em;
 }
 
 /* TODO: Apply to elements within a div with class .cate-panel-header */
