@@ -1,4 +1,4 @@
-import {OperationState, WorkspaceState, DataStoreState, WorkflowStepState, WorkflowPortState} from "../state";
+import * as State from "../state";
 import {IProcessData, IServiceObject} from "./WebSocketMock";
 
 /**
@@ -6,9 +6,9 @@ import {IProcessData, IServiceObject} from "./WebSocketMock";
  * Mimics a local/remote webservice usually running on a Python Tornado.
  */
 export class WebAPIServiceMock implements IServiceObject {
-    dataStores: Array<DataStoreState> = [];
+    dataStores: Array<State.DataStoreState> = [];
     dataSources = {};
-    operations: Array<OperationState> = [];
+    operations: Array<State.OperationState> = [];
     workspaces = {};
     workspaceId = 0;
 
@@ -20,7 +20,7 @@ export class WebAPIServiceMock implements IServiceObject {
             delay: 500
         },
         set_workspace_resource: {
-            numSteps: 20,
+            numSteps: 5,
             delayPerStep: 200,
             delay: 100
         }
@@ -109,7 +109,7 @@ export class WebAPIServiceMock implements IServiceObject {
         for (let i = 0; i < numOps; i++) {
 
             // See Python cate.core.op.OpMetaInfo
-            let opMetaInfo: OperationState = {
+            let opMetaInfo: State.OperationState = {
                 name: `operation_${i}`,
                 description: descriptions[i % descriptions.length],
                 tags: [],
@@ -195,7 +195,7 @@ export class WebAPIServiceMock implements IServiceObject {
         return Object.assign({}, workspace);
     }
 
-    open_workspace(baseDir: string): WorkspaceState {
+    open_workspace(baseDir: string): State.WorkspaceState {
         const workspace = this.workspaces[baseDir];
         if (!workspace) {
             throw Error(`Not a workspace: ${baseDir}`);
@@ -205,7 +205,7 @@ export class WebAPIServiceMock implements IServiceObject {
         return Object.assign({}, workspace);
     }
 
-    close_workspace(baseDir: string): WorkspaceState {
+    close_workspace(baseDir: string): State.WorkspaceState {
         const workspace = this.workspaces[baseDir];
         if (!workspace) {
             throw Error(`Not a workspace: ${baseDir}`);
@@ -214,7 +214,7 @@ export class WebAPIServiceMock implements IServiceObject {
         return Object.assign({}, workspace);
     }
 
-    save_workspace(baseDir: string): WorkspaceState {
+    save_workspace(baseDir: string): State.WorkspaceState {
         const workspace = this.workspaces[baseDir];
         if (!workspace) {
             throw Error(`Not a workspace: ${baseDir}`);
@@ -229,7 +229,7 @@ export class WebAPIServiceMock implements IServiceObject {
         return Object.assign({}, workspace);
     }
 
-    save_workspace_as(baseDir: string, newBaseDir: string): WorkspaceState {
+    save_workspace_as(baseDir: string, newBaseDir: string): State.WorkspaceState {
         let workspace = this.workspaces[baseDir];
         if (!workspace) {
             throw Error(`Not a workspace: ${baseDir}`);
@@ -246,7 +246,7 @@ export class WebAPIServiceMock implements IServiceObject {
         return Object.assign({}, workspace);
     }
 
-    set_workspace_resource(baseDir: string, resName: string, opName: string, opArgs: any): WorkspaceState {
+    set_workspace_resource(baseDir: string, resName: string, opName: string, opArgs: any): State.WorkspaceState {
         let workspace = this.workspaces[baseDir];
         if (!workspace) {
             throw Error(`Not a workspace: ${baseDir}`);
@@ -259,7 +259,7 @@ export class WebAPIServiceMock implements IServiceObject {
             throw Error(`Unknown operation: ${opName}`);
         }
 
-        const inputs = [] as Array<WorkflowPortState>;
+        const inputs = [] as Array<State.WorkflowPortState>;
         for (let input of op.inputs) {
             if (input.name in opArgs) {
                 // TODO (nf/mz): check if opArgs[input.name] is a sourceRef or a constant value. We use just value here.
@@ -269,12 +269,12 @@ export class WebAPIServiceMock implements IServiceObject {
                     sourceRef: null,
                 });
             }
-            console.log(input);
+            console.log('input', input);
         }
 
-        const outputs = [] as Array<WorkflowPortState>;
+        const outputs = [] as Array<State.WorkflowPortState>;
         for (let output of op.outputs) {
-            console.log(output);
+            console.log('output', output);
         }
 
         const oldWorkflow = workspace.workflow;
@@ -285,11 +285,30 @@ export class WebAPIServiceMock implements IServiceObject {
             action: opName,
             inputs,
             outputs,
-        } as WorkflowStepState);
+        } as State.WorkflowStepState);
         const newWorkflow = Object.assign({}, oldWorkflow, {steps: newSteps});
+
+        const varList = ['var_a','var_b','var_c','var_d'].map(v => v + '_' + resName)  as Array<string>;
+        const variables = [] as Array<State.VariableState>;
+        for (const v of varList) {
+            variables.push({
+                name: v,
+                unit: 'si',
+                dataType: 'float32',
+                shape: [420, 840]
+            });
+        }
+
+        const oldResources = workspace.resources || [];
+        const newResources = oldResources.slice();
+        newResources.push({
+            name: resName,
+            variables: variables
+        });
         workspace = Object.assign({}, workspace, {
             is_modified: true,
             workflow: newWorkflow,
+            resources: newResources,
         });
         this.workspaces[workspace.base_dir] = workspace;
         return Object.assign({}, workspace);

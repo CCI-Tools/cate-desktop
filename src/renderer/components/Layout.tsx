@@ -6,6 +6,7 @@ import {OpenLayersMap} from './openlayers/OpenLayersMap';
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "./hgl";
 import DatasetsPanel from "./DataSourcesPanel";
 import TaskPanel from "./TaskPanel";
+import VariablePanel from "./VariablePanel";
 import OperationsPanel from "./OperationsPanel";
 import WorkspacePanel from "./WorkspacePanel";
 
@@ -121,6 +122,7 @@ export function Layout(props) {
                             <AnalysisWindow/>
                             <LayersWindow/>
                             <LayerDetailsWindow/>
+                            <VariablePanel/>
                             <TaskPanel/>
                         </div>
                     </TabPanel>

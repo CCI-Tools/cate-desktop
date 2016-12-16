@@ -98,6 +98,10 @@ const initialControlState: ControlState = {
     showOperationDetails: true,
     selectedWorkflowStepId: null,
     selectedWorkspaceResourceId: null,
+    selectedResourceVariableId: null,
+    dialogs: {
+        openDataset: {}
+    }
     dialogs: {}
 };
 
@@ -120,6 +124,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         case actions.SET_SELECTED_OPERATION_NAME:
         case actions.SET_OPERATION_FILTER_TAGS:
         case actions.SET_OPERATION_FILTER_EXPR:
+        case actions.SET_SELECTED_RESOURCE_VARIABLE_ID:
         case actions.SET_SELECTED_WORKSPACE_RESOURCE_ID:
         case actions.SET_SELECTED_WORKFLOW_STEP_ID:
         case actions.SET_CONTROL_STATE:

@@ -103,6 +103,10 @@ export interface WorkspaceState {
      */
     isSaved: boolean;
     workflow: WorkflowState;
+    /**
+     * Information about the resources
+     */
+    resources: Array<ResourceState>;
 }
 
 export interface WorkflowState {
@@ -149,6 +153,17 @@ export interface WorkflowPortState {
      */
     sourceRef: string|null;
 }
+export interface ResourceState {
+    name: string;
+    variables : Array<VariableState>;
+}
+
+export interface VariableState {
+    name : string;
+    unit: string;
+    dataType: string;
+    shape: number[];
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CommunicationState
@@ -191,6 +206,9 @@ export interface ControlState {
     // WorkspacePanel
     selectedWorkflowStepId: string|null;
     selectedWorkspaceResourceId: string|null;
+
+    // VariablePanel
+    selectedResourceVariableId: string|null;
 
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState;};

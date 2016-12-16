@@ -13,6 +13,7 @@ function responseToWorkspace(workspaceResponse: JobResponse): WorkspaceState {
         isModified: workspaceResponse.is_modified,
         isSaved: workspaceResponse.is_saved,
         workflow: workspaceResponse.workflow,
+        resources: workspaceResponse.resources,
     };
 }
 
