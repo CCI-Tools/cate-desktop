@@ -91,6 +91,7 @@ const dataReducer = (state: DataState = initialDataState, action) => {
 const initialControlState: ControlState = {
     selectedDataStoreId: null,
     selectedDataSourceId: null,
+    dataSourceFilterExpr: '',
     selectedOperationName: null,
     showDataSourceDetails: true,
     operationFilterTags: [],
@@ -119,6 +120,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         }
         case actions.SET_SELECTED_DATA_STORE_ID:
         case actions.SET_SELECTED_DATA_SOURCE_ID:
+        case actions.SET_DATA_SOURCE_FILTER_EXPR:
         case actions.SET_SELECTED_OPERATION_NAME:
         case actions.SET_OPERATION_FILTER_TAGS:
         case actions.SET_OPERATION_FILTER_EXPR:

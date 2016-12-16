@@ -196,6 +196,7 @@ export interface ControlState {
     // DataSourcesPanel
     selectedDataStoreId: string|null;
     selectedDataSourceId: string|null;
+    dataSourceFilterExpr: string;
     showDataSourceDetails: boolean;
 
     // OperationsPanel

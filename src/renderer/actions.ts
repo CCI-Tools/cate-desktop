@@ -47,6 +47,7 @@ export const UPDATE_DATA_STORES = 'UPDATE_DATA_STORES';
 export const UPDATE_DATA_SOURCES = 'UPDATE_DATA_SOURCES';
 export const SET_SELECTED_DATA_STORE_ID = 'SET_SELECTED_DATA_STORE_ID';
 export const SET_SELECTED_DATA_SOURCE_ID = 'SET_SELECTED_DATA_SOURCE_ID';
+export const SET_DATA_SOURCE_FILTER_EXPR = 'SET_DATA_SOURCE_FILTER_EXPR';
 
 /**
  * Asynchronously load the available Cate data stores.
@@ -157,6 +158,10 @@ export function setSelectedDataStoreId(selectedDataStoreId: string|null) {
 
 export function setSelectedDataSourceId(selectedDataSourceId: string|null) {
     return {type: SET_SELECTED_DATA_SOURCE_ID, payload: {selectedDataSourceId}};
+}
+
+export function setDataSourceFilterExpr(dataSourceFilterExpr: string) {
+    return {type: SET_DATA_SOURCE_FILTER_EXPR, payload: {dataSourceFilterExpr}};
 }
 
 function datasetAPI(state: State) {

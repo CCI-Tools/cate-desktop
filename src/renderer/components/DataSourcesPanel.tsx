@@ -1,8 +1,8 @@
 import * as React from "react";
 import {connect, Dispatch} from "react-redux";
 import {ExpansionPanel} from "./ExpansionPanel";
-import {State, DataStoreState, WorkspaceState} from "../state";
-import {Tabs, TabList, Tab, TabPanel, Button} from "@blueprintjs/core";
+import {State, DataStoreState, WorkspaceState, DataSourceState} from "../state";
+import {Tabs, TabList, Tab, TabPanel, Button, InputGroup, Classes, Tag} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "./ListBox";
 import {Card} from "./Card";
 import {OpenDatasetDialog, IOpenDatasetDialogState} from "./OpenDatasetDialog";
@@ -16,6 +16,7 @@ interface IDataSourcesPanelProps {
     dataStores: Array<DataStoreState>;
     selectedDataStoreId: string|null;
     selectedDataSourceId: string|null;
+    dataSourceFilterExpr: string;
     showDataSourceDetails: boolean;
     openDatasetDialogState: IOpenDatasetDialogState;
 }
@@ -27,6 +28,7 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         dataStores: state.data.dataStores,
         selectedDataStoreId: state.control.selectedDataStoreId,
         selectedDataSourceId: state.control.selectedDataSourceId,
+        dataSourceFilterExpr: state.control.dataSourceFilterExpr,
         showDataSourceDetails: state.control.showDataSourceDetails,
         openDatasetDialogState: (state.control.dialogs[OpenDatasetDialog.DIALOG_ID] || {}) as IOpenDatasetDialogState
     };
@@ -84,19 +86,23 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
         this.props.dispatch(actions.setControlState('showDataSourceDetails', value));
     }
 
-    private getSelectedDataStore() {
+    private handleDataSourceFilterExprChange(event) {
+        this.props.dispatch(actions.setDataSourceFilterExpr(event.target.value));
+    }
+
+    private getSelectedDataStore(): DataStoreState|null {
         if (!this.props.dataStores || !this.props.selectedDataStoreId) {
             return null;
         }
         return this.props.dataStores.find(dataStore => dataStore.id === this.props.selectedDataStoreId);
     }
 
-    private getDataSourcesOfSelectedDataStore() {
+    private getDataSourcesOfSelectedDataStore(): Array<DataSourceState>|null {
         const selectedDataStore = this.getSelectedDataStore();
         return (selectedDataStore && selectedDataStore.dataSources) || null;
     }
 
-    private getSelectedDataSource() {
+    private getSelectedDataSource(): DataSourceState|null {
         if (!this.props.selectedDataSourceId) {
             return null;
         }
@@ -109,11 +115,36 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
     }
 
     render() {
-        let dataStoreSelector = this.renderDataStoreSelector();
-        let dataSourcesList = this.renderDataSourcesList();
+        const allDataStores = this.props.dataStores;
+        const hasDataStores = allDataStores && allDataStores.length;
 
-        let dataSourcesPane = null;
-        if (dataStoreSelector && dataSourcesList) {
+        const allDataSources = this.getDataSourcesOfSelectedDataStore();
+        const hasDataSources = allDataSources && allDataSources.length;
+
+        if (hasDataStores && hasDataSources) {
+
+            const dataSourceFilterExpr = this.props.dataSourceFilterExpr;
+            const dataSourceFilterExprLC = dataSourceFilterExpr ? dataSourceFilterExpr.toLowerCase() : null;
+
+            const nameMatches = ds => !dataSourceFilterExprLC || ds.name.toLowerCase().includes(dataSourceFilterExprLC);
+            const filteredDataSources = !dataSourceFilterExpr
+                ? allDataSources
+                : allDataSources.filter(ds => nameMatches(ds));
+
+            const resultsTag = (
+                <Tag className={Classes.MINIMAL}>
+                    {filteredDataSources.length}
+                </Tag>
+            );
+
+            const dataSourceFilterExprInput = (<InputGroup
+                disabled={false}
+                leftIconName="filter"
+                onChange={this.handleDataSourceFilterExprChange.bind(this)}
+                placeholder="Find data source"
+                rightElement={resultsTag}
+                value={dataSourceFilterExpr}
+            />);
 
             let openDatasetDialog = null;
             if (this.props.openDatasetDialogState.isOpen) {
@@ -136,35 +167,39 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
                 </div>
             );
 
+            const dataSourcesList = this.renderDataSourcesList(filteredDataSources);
             const dataSourceDetailsCard = this.renderDataSourceDetails();
-            dataSourcesPane = (
-                <ContentWithDetailsPanel showDetails={this.props.showDataSourceDetails}
-                                         onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
-                                         isSplitPanel={true}
-                                         initialContentHeight={200}
-                                         actionComponent={actionComponent}>
-                    {dataSourcesList}
-                    {dataSourceDetailsCard}
-                </ContentWithDetailsPanel>
+            return (
+                <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
+                    {this.renderDataStoreSelector()}
+                    <div style={{paddingBottom: '0.1em'}}>{dataSourceFilterExprInput}</div>
+                    <ContentWithDetailsPanel showDetails={this.props.showDataSourceDetails}
+                                             onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
+                                             isSplitPanel={true}
+                                             initialContentHeight={200}
+                                             actionComponent={actionComponent}>
+                        {dataSourcesList}
+                        {dataSourceDetailsCard}
+                    </ContentWithDetailsPanel>
+                </ExpansionPanel>
             );
-        } else if (dataStoreSelector) {
-            dataSourcesPane = this.renderNoDataSourcesMessage();
+        } else if (hasDataStores) {
+            return (
+                <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
+                    {this.renderDataStoreSelector()}
+                    {this.renderNoDataSourcesMessage()}
+                </ExpansionPanel>
+            );
         } else {
-            dataStoreSelector = this.renderNoDataStoreMessage();
+            return (
+                <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
+                    {this.renderNoDataStoreMessage()}
+                </ExpansionPanel>
+            );
         }
-        return (
-            <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
-                {dataStoreSelector}
-                {dataSourcesPane}
-            </ExpansionPanel>
-        );
     }
 
-    private renderDataSourcesList() {
-        const dataSources = this.getDataSourcesOfSelectedDataStore();
-        if (!dataSources || !dataSources.length) {
-            return null;
-        }
+    private renderDataSourcesList(dataSources: Array<DataSourceState>) {
 
         const defaultIconName = 'cci';
 
@@ -213,8 +248,8 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
 
         return (
             <label className="pt-label pt-inline">
-                Data store
-                <div className="pt-select">
+                Data store:
+                <div className="pt-select" style={{padding: '0.2em'}}>
                     <select value={this.props.selectedDataStoreId || ''}
                             onChange={this.handleDataStoreSelected.bind(this)}>
                         {dataStoreOptions}
