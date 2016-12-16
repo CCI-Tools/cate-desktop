@@ -1,9 +1,9 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {ExpansionPanel} from "./ExpansionPanel";
+import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, TaskState} from "../state";
 import {ProgressBar} from "@blueprintjs/core";
-import {ListBox, ListBoxSelectionMode} from "./ListBox";
+import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {JobStatusEnum} from "../webapi/Job";
 
 interface ITaskPanelProps {

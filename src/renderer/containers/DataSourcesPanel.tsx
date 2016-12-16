@@ -1,13 +1,13 @@
 import * as React from "react";
 import {connect, Dispatch} from "react-redux";
-import {ExpansionPanel} from "./ExpansionPanel";
+import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, DataStoreState, WorkspaceState, DataSourceState} from "../state";
 import {Tabs, TabList, Tab, TabPanel, Button, InputGroup, Classes, Tag} from "@blueprintjs/core";
-import {ListBox, ListBoxSelectionMode} from "./ListBox";
-import {Card} from "./Card";
+import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
+import {Card} from "../components/Card";
 import {OpenDatasetDialog, IOpenDatasetDialogState} from "./OpenDatasetDialog";
 import * as actions from "../actions";
-import {ContentWithDetailsPanel} from "./ContentWithDetailsPanel";
+import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 
 interface IDataSourcesPanelProps {
     dispatch?: Dispatch<State>;

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
-import {ExpansionPanel} from './ExpansionPanel';
+import {ExpansionPanel} from '../components/ExpansionPanel';
 import {State, OperationState, WorkspaceState} from "../state";
 import {setSelectedOperationName, setOperationFilterTags, setOperationFilterExpr} from '../actions'
 import {
@@ -8,11 +8,11 @@ import {
     PopoverInteractionKind, Tooltip, Button
 } from "@blueprintjs/core";
 import FormEvent = React.FormEvent;
-import {ListBox, ListBoxSelectionMode} from "./ListBox";
-import {Card} from "./Card";
+import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
+import {Card} from "../components/Card";
 import {OperationAPI} from "../webapi/apis/OperationAPI";
 import * as actions from "../actions";
-import {ContentWithDetailsPanel} from "./ContentWithDetailsPanel";
+import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {EditOpStepDialog, IEditOpStepDialogState} from "./EditOpStepDialog";
 
 interface IOperationsPanelProps {

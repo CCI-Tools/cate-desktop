@@ -2,10 +2,10 @@ import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {State, WorkspaceState} from "../state";
 import {Tooltip, Tab, Tabs, TabList, TabPanel, Button} from "@blueprintjs/core";
-import {ExpansionPanel} from "./ExpansionPanel";
+import {ExpansionPanel} from "../components/ExpansionPanel";
 import * as actions from '../actions'
-import {ListBox} from "./ListBox";
-import {Card} from "./Card";
+import {ListBox} from "../components/ListBox";
+import {Card} from "../components/Card";
 import * as assert from "assert";
 
 interface IWorkspacePanelProps {

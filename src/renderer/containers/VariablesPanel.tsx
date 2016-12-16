@@ -1,11 +1,11 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {ExpansionPanel} from "./ExpansionPanel";
+import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, WorkspaceState, ResourceState, VariableState} from "../state";
 import * as actions from "../actions";
-import {ListBox, ListBoxSelectionMode} from "./ListBox";
-import {ContentWithDetailsPanel} from "./ContentWithDetailsPanel";
-import {Card} from "./Card";
+import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
+import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
+import {Card} from "../components/Card";
 
 interface IVariablesPanelProps {
     dispatch?: any;

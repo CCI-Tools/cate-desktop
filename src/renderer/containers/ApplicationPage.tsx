@@ -1,9 +1,9 @@
 import * as React from 'react';
 import {Classes, ITreeNode, Tooltip, Tree, Tab, TabList, TabPanel, Tabs} from "@blueprintjs/core";
-import {ExpansionPanel} from './ExpansionPanel';
-import {CesiumGlobeExample} from './cesium/CesiumGlobeExample'
-import {OpenLayersMap} from './openlayers/OpenLayersMap';
-import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "./hgl";
+import {ExpansionPanel} from '../components/ExpansionPanel';
+import {CesiumGlobeExample} from '../components/cesium/CesiumGlobeExample'
+import {OpenLayersMap} from '../components/openlayers/OpenLayersMap';
+import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "../components/hgl";
 import DatasetsPanel from "./DataSourcesPanel";
 import TaskPanel from "./TasksPanel";
 import VariablePanel from "./VariablesPanel";
