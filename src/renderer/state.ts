@@ -208,7 +208,7 @@ export interface ControlState {
     selectedWorkflowStepId: string|null;
     selectedWorkspaceResourceId: string|null;
 
-    // VariablePanel
+    // VariablesPanel
     selectedResourceVariableId: string|null;
 
     // A map that stores the last state of any dialog given a dialogId

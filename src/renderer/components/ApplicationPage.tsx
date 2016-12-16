@@ -5,8 +5,8 @@ import {CesiumGlobeExample} from './cesium/CesiumGlobeExample'
 import {OpenLayersMap} from './openlayers/OpenLayersMap';
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "./hgl";
 import DatasetsPanel from "./DataSourcesPanel";
-import TaskPanel from "./TaskPanel";
-import VariablePanel from "./VariablePanel";
+import TaskPanel from "./TasksPanel";
+import VariablePanel from "./VariablesPanel";
 import OperationsPanel from "./OperationsPanel";
 import WorkspacePanel from "./WorkspacePanel";
 

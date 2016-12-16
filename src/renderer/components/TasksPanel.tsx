@@ -18,12 +18,12 @@ function mapStateToProps(state: State): ITaskPanelProps {
 }
 
 /**
- * The TaskPanel is used display all tasks originating from cate desktop,
+ * The TasksPanel is used display all tasks originating from cate desktop,
  * this includes progress and error messages.
  *
  * @author Marco Zuehlke
  */
-class TaskPanel extends React.Component<ITaskPanelProps, null> {
+class TasksPanel extends React.Component<ITaskPanelProps, null> {
     constructor(props: ITaskPanelProps) {
         super(props);
     }
@@ -45,7 +45,7 @@ class TaskPanel extends React.Component<ITaskPanelProps, null> {
         const renderItem = (itemIndex: number) => {
             let pm = null;
             const tastState = taskStateList[itemIndex];
-            if (TaskPanel.hasActiveProgress(tastState)) {
+            if (TasksPanel.hasActiveProgress(tastState)) {
                 pm = <ProgressBar value={tastState.progress.worked / tastState.progress.total}/>;
             }
             let msg = null;
@@ -54,12 +54,13 @@ class TaskPanel extends React.Component<ITaskPanelProps, null> {
             }
             let error = null;
             if (tastState.failure && tastState.failure.message) {
-                error = <span style={{color: 'rgb(255, 0, 0)', fontSize: '0.8em'}}><br/>{tastState.failure.message}</span>
+                error =
+                    <span style={{color: 'rgb(255, 0, 0)', fontSize: '0.8em'}}><br/>{tastState.failure.message}</span>
             }
             return (<span>{taskIdList[itemIndex]}{pm}{msg}{error}</span>);
         };
         return (
-            <ExpansionPanel icon="pt-icon-database" text="Tasks" isExpanded={true} defaultHeight={400}>
+            <ExpansionPanel icon="pt-icon-play" text="Tasks" isExpanded={true} defaultHeight={400}>
                 <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
                     <ListBox numItems={taskIdList.length}
                              getItemKey={index => taskIdList[index]}
@@ -71,4 +72,4 @@ class TaskPanel extends React.Component<ITaskPanelProps, null> {
 
     }
 }
-export default connect(mapStateToProps)(TaskPanel);
+export default connect(mapStateToProps)(TasksPanel);
