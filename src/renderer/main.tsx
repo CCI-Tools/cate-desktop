@@ -5,7 +5,7 @@ import * as loggerMiddleware from 'redux-logger';
 import thunkMiddleware from 'redux-thunk';
 import {Provider} from 'react-redux';
 import {ipcRenderer} from 'electron';
-import {Layout} from './components/Layout'
+import {ApplicationPage} from './components/ApplicationPage'
 import {newWebAPIClient, WebSocketMock, WebAPIServiceMock} from './webapi'
 import {State} from './state';
 import * as actions from './actions'
@@ -55,7 +55,7 @@ function connectWebAPIClient(store: Store<State>) {
 
         ReactDOM.render(
             <Provider store={store}>
-                <Layout/>
+                <ApplicationPage/>
             </Provider>,
             document.getElementById('container')
         );

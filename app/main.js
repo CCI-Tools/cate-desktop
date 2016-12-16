@@ -1,2 +1,1 @@
-let main = require('./main/main.js');
-main.init();
+require('./main/main.js').init();

@@ -15,7 +15,7 @@ import WorkspacePanel from "./WorkspacePanel";
  */
 
 //noinspection JSUnusedLocalSymbols
-export function Layout(props) {
+export function ApplicationPage(props) {
 
     const leftStyle = {
         width: "100%",
@@ -48,7 +48,6 @@ export function Layout(props) {
                         <div style={leftStyle}>
                             <DatasetsPanel/>
                             <OperationsPanel/>
-                            <WorkspacePanel/>
                         </div>
                     </TabPanel>
                     <TabPanel>
@@ -119,29 +118,16 @@ export function Layout(props) {
                     </TabList>
                     <TabPanel>
                         <div style={rightStyle}>
-                            <AnalysisWindow/>
-                            <LayersWindow/>
-                            <LayerDetailsWindow/>
+                            <WorkspacePanel/>
                             <VariablePanel/>
                             <TaskPanel/>
                         </div>
                     </TabPanel>
                     <TabPanel>
                         <div style={rightStyle}>
-                            <CollapseExample2/>
-                            <CollapseExample1/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample2/>
-                            <CollapseExample1/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample1/>
-                            <CollapseExample2/>
+                            <AnalysisWindow/>
+                            <LayersWindow/>
+                            <LayerDetailsWindow/>
                         </div>
                     </TabPanel>
                 </Tabs>
