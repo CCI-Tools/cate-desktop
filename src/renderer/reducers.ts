@@ -99,9 +99,6 @@ const initialControlState: ControlState = {
     selectedWorkflowStepId: null,
     selectedWorkspaceResourceId: null,
     selectedResourceVariableId: null,
-    dialogs: {
-        openDataset: {}
-    }
     dialogs: {}
 };
 
