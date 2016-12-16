@@ -39,8 +39,11 @@ class TasksPanel extends React.Component<ITaskPanelProps, null> {
         const taskIdList: string[] = [];
         const taskStateList: TaskState[] = [];
         for (let taskId in this.props.tasks) {
-            taskIdList.push(taskId);
-            taskStateList.push(this.props.tasks[taskId]);
+            const task = this.props.tasks[taskId];
+            if (task.status !== JobStatusEnum.DONE) {
+                taskIdList.push(taskId);
+                taskStateList.push(task);
+            }
         }
         const renderItem = (itemIndex: number) => {
             let pm = null;
