@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {State, WorkspaceState} from "../state";
-import {Tooltip, Tab, Tabs, TabList, TabPanel} from "@blueprintjs/core";
+import {Tooltip, Tab, Tabs, TabList, TabPanel, Button} from "@blueprintjs/core";
 import {ExpansionPanel} from "./ExpansionPanel";
 import * as actions from '../actions'
 import {ListBox} from "./ListBox";
@@ -76,16 +76,16 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                 <Tabs>
                     <TabList>
                         <Tab>
+                            <span className="pt-icon-database" style={{marginRight: 4}}/>
                             <Tooltip content={resourcesTooltip}>
-                                <span className="pt-icon-database" style={{marginRight: 4}}/>
+                                <span>{`Resources (${steps.length})`}</span>
                             </Tooltip>
-                            <span>{`Resources (${steps.length})`}</span>
                         </Tab>
                         <Tab>
+                            <span className="pt-icon-flows" style={{marginRight: 4}}/>
                             <Tooltip content={workflowTooltip}>
-                                <span className="pt-icon-database" style={{marginRight: 4}}/>
+                                <span>{`Steps (${steps.length})`}</span>
                             </Tooltip>
-                            <span>{`Workflow (${steps.length})`}</span>
                         </Tab>
                     </TabList>
                     <TabPanel>
@@ -94,6 +94,9 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                                  renderItem={i => <span>{steps[i].id}</span>}
                                  selection={selectedWorkspaceResourceId ? [selectedWorkspaceResourceId] : null}
                                  onSelection={this.handleWorkspaceResourceIdSelected.bind(this)}/>
+                        <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
+                            <Button disabled={!steps.length} iconName="label"/>
+                        </div>
                     </TabPanel>
                     <TabPanel>
                         <ListBox numItems={steps.length}
@@ -101,6 +104,11 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                                  renderItem={i => <span>{steps[i].action}</span>}
                                  selection={selectedWorkflowStepId ? [selectedWorkflowStepId] : null}
                                  onSelection={this.handleWorkflowStepIdSelected.bind(this)}/>
+                        <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
+                            <Button disabled={!steps.length} style={{marginRight: '0.2em'}} iconName="duplicate"/>
+                            <Button disabled={!steps.length} style={{marginRight: '0.2em'}} iconName="edit"/>
+                            <Button disabled={!steps.length} iconName="delete"/>
+                        </div>
                     </TabPanel>
                 </Tabs>
             );
