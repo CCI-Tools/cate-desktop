@@ -1,9 +1,10 @@
 import * as React from 'react';
 import {Dialog, Classes, Button, Tooltip, Checkbox} from "@blueprintjs/core";
-import {DialogState, OperationState} from "../state";
+import {DialogState, OperationState, WorkspaceState} from "../state";
 
 interface IEditOpStepDialogProps {
     onClose: (actionId: string, dialogState: IEditOpStepDialogState) => void;
+    workspace: WorkspaceState;
     operation: OperationState;
     isAddOpStepDialog: boolean;
     parameterValues: any;
@@ -51,12 +52,55 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
         console.log('EditOpStepDialog: Validating...');
     }
 
-    render() {
+    private getMandatoryDatasetInputs() {
+        const mandatoryDatasetInputs = [];
+        for (let input of this.props.operation.inputs) {
+            const hasDefaultValue = input.defaultValue || input.defaultValue === null;
+            if (input.dataType === 'Dataset' && !hasDefaultValue) {
+                mandatoryDatasetInputs.push(input);
+            }
+        }
+        return mandatoryDatasetInputs;
+    }
 
+    private getAvailableDatasetResources() {
+        const steps = this.props.workspace.workflow.steps;
+        return steps.map(step => step.id);
+    }
+
+    render() {
+        const operation = this.props.operation;
         const parameterPanel = this.renderParameterPanel();
 
         const dialogTitle = this.props.isAddOpStepDialog ? "Add Workflow Step" : "Change Workflow Step";
         const tooltipText = this.props.isAddOpStepDialog ? 'Add a new step to the workflow' : 'Change the step parameters.';
+
+        const mandatoryDatasetInputs = this.getMandatoryDatasetInputs();
+        const hasAvailableDatasetResources = this.getAvailableDatasetResources().length > 0;
+
+        const bodyHeaderText = (
+            <p style={{marginBottom: '1em'}}>
+                Adjustable parameter(s) for operation <code>{operation.name}</code>:
+            </p>
+        );
+
+        let validationFailed = false;
+        let bodyFooterText;
+        if (mandatoryDatasetInputs.length && !hasAvailableDatasetResources) {
+            validationFailed = true;
+            bodyFooterText = (
+                <p style={{marginTop: '1em'}}>
+                    <span style={{color: '#A82A2A', fontWeight: 'bold'}}>Please note:</span> This operation has
+                    parameter(s) of type <code>Dataset</code>, but there are no dataset resources available yet.
+                    You may consider opening a data source or use one of the <code>read_xxx</code> operations.
+                </p>);
+        } else {
+            bodyFooterText = (
+                <p style={{marginTop: '1em'}}>
+                    Pressing <strong>Add</strong> will add operation <code>{operation.name}</code> as a new workflow step to
+                    the current workspace. You can remove the step or change it's parameters later.
+                </p>);
+        }
 
         return (
             <Dialog
@@ -70,8 +114,9 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                 enforceFocus={true}
             >
                 <div className={Classes.DIALOG_BODY}>
-                    <p><strong>{this.props.operation.name}</strong> parameters:</p>
+                    {bodyHeaderText}
                     {parameterPanel}
+                    {bodyFooterText}
                 </div>
                 <div className={Classes.DIALOG_FOOTER}>
                     <div className={Classes.DIALOG_FOOTER_ACTIONS}>
@@ -79,6 +124,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                         <Button onClick={this.handleValidate}>Validate</Button>
                         <Tooltip content={tooltipText} inline>
                             <Button className="pt-intent-primary"
+                                    disabled={validationFailed}
                                     onClick={this.handleConfirm}
                                     iconName="add">Add</Button>
                         </Tooltip>
@@ -94,7 +140,12 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             return null;
         }
 
-        const createChild = (key: string, content: any) : JSX.Element => {
+        const steps = this.props.workspace.workflow.steps;
+        const firstDatasetOption = (<option key='__first__' value=''>Select dataset...</option>);
+        const stepOptions = steps.map(step => <option key={step.id} value={step.id}>{step.id}</option>);
+        const datasetOptions = [firstDatasetOption].concat(stepOptions);
+
+        const createChild = (key: string, content: any): JSX.Element => {
             return (<div key={key}
                          style={{display: 'flex' , padding: '0.2em'}}>{content}</div>);
         };
@@ -116,11 +167,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                     const valueField = (
                         <div key="v" className="pt-select pt-intent-primary">
                             <select>
-                                <option key="0" value="_">Select dataset...</option>
-                                <option key="1" value="ds_1">ds_1</option>
-                                <option key="2" value="ds_2">ds_2</option>
-                                <option key="3" value="ds_3">ds_3</option>
-                                <option key="4" value="ds_4">ds_4</option>
+                                {datasetOptions}
                             </select>
                         </div>);
                     return createChild(input.name, [nameField, valueField]);

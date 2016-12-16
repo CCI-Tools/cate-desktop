@@ -140,6 +140,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             if (this.props.editOpStepDialogState.isOpen) {
                 addOpStepDialog = (
                     <EditOpStepDialog
+                        workspace={this.props.workspace}
                         operation={selectedOperation}
                         isAddOpStepDialog={true}
                         {...this.props.editOpStepDialogState}
@@ -259,15 +260,11 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         if (tagMenuItems.length) {
             const tagMenu = (<Menu>{tagMenuItems}</Menu>);
             addTagButton = (
-                <Tooltip content="Filter by tags">
-                    <Popover
-                        content={tagMenu}
-                        position={Position.RIGHT_BOTTOM}
-                        interactionKind={PopoverInteractionKind.CLICK}
-                        useSmartPositioning={true}>
-                        <Tag intent={Intent.SUCCESS} className="pt-icon-small-plus" style={tagStyle}/>
-                    </Popover>
-                </Tooltip>
+                <Popover
+                    content={tagMenu}
+                    interactionKind={PopoverInteractionKind.CLICK}>
+                    <Tag intent={Intent.SUCCESS} className="pt-icon-small-plus" style={tagStyle}/>
+                </Popover>
             );
         }
 

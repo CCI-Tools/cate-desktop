@@ -76,6 +76,7 @@ export interface OperationState {
 export interface OperationInputState {
     name: string;
     dataType: string;
+    defaultValue?: any;
     description?: string|null;
     valueSet?: Array<any>;
     valueRange?: Array<any>;
