@@ -99,6 +99,7 @@ const initialControlState: ControlState = {
     selectedWorkflowStepId: null,
     selectedWorkspaceResourceId: null,
     selectedResourceVariableId: null,
+    showVariablesDetails: true,
     dialogs: {}
 };
 

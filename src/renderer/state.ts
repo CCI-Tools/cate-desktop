@@ -210,6 +210,7 @@ export interface ControlState {
 
     // VariablesPanel
     selectedResourceVariableId: string|null;
+    showVariablesDetails: boolean;
 
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState;};
