@@ -55,15 +55,15 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewerMin, ICesiumGlob
         let baseLayerImageryProvider;
         if (this.props.offlineMode) {
             const baseUrl = Cesium.buildModuleUrl('');
-            const globeOptions = {
+            const imageryProviderOptions = {
                 url: baseUrl + 'Assets/Textures/NaturalEarthII/{z}/{x}/{reverseY}.jpg',
                 tilingScheme: new Cesium.GeographicTilingScheme(),
                 minimumLevel: 0,
                 maximumLevel: 2,
                 credit: 'Natural Earth II: Tileset Copyright © 2012-2014 Analytical Graphics, Inc. (AGI). Original data courtesy Natural Earth and in the public domain.'
             };
-            console.log('globeOptions: ', globeOptions);
-            baseLayerImageryProvider = new Cesium.UrlTemplateImageryProvider(globeOptions);
+            console.log('imageryProviderOptions: ', imageryProviderOptions);
+            baseLayerImageryProvider = new Cesium.UrlTemplateImageryProvider(imageryProviderOptions);
         } else {
             baseLayerImageryProvider = new Cesium.BingMapsImageryProvider({
                 url: 'http://dev.virtualearth.net'
