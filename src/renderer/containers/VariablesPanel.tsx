@@ -65,7 +65,6 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         if (this.props.workspace && this.props.selectedWorkspaceResourceId) {
             const resources: Array<ResourceState> = this.props.workspace.resources;
             if (resources) {
-                console.log(resources);
                 const selectedResource = resources.find(res => res.name === this.props.selectedWorkspaceResourceId);
                 if (selectedResource && selectedResource.variables) {
                     variableStates = selectedResource.variables;
@@ -86,8 +85,6 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         if (variableStates && this.props.selectedResourceVariableId) {
             const selectedVariable = variableStates.find(v => v.name === this.props.selectedResourceVariableId);
             if (selectedVariable) {
-                console.log("selectedVariable", selectedVariable);
-
                 const variableItems = [];
                 variableItems.push(<tr key='dataType'><td>Datatype</td><td>{selectedVariable.dataType || '-'}</td></tr>);
 
