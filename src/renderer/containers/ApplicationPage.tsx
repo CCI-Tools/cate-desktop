@@ -4,6 +4,7 @@ import {ExpansionPanel} from '../components/ExpansionPanel';
 import {CesiumGlobeExample} from '../components/cesium/CesiumGlobeExample'
 import {OpenLayersMap} from '../components/openlayers/OpenLayersMap';
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "../components/hgl";
+import LayersPanel from "./LayersPanel";
 import DatasetsPanel from "./DataSourcesPanel";
 import TaskPanel from "./TasksPanel";
 import VariablePanel from "./VariablesPanel";
@@ -125,9 +126,8 @@ export function ApplicationPage(props) {
                     </TabPanel>
                     <TabPanel>
                         <div style={rightStyle}>
+                            <LayersPanel/>
                             <AnalysisWindow/>
-                            <LayersWindow/>
-                            <LayerDetailsWindow/>
                         </div>
                     </TabPanel>
                 </Tabs>
@@ -279,23 +279,6 @@ function AnalysisWindow(props: any) {
     );
 }
 
-//noinspection JSUnusedLocalSymbols
-function LayersWindow(props: any) {
-    return (
-        <ExpansionPanel icon="pt-icon-layers" text="Layers">
-            <TreeExample/>
-        </ExpansionPanel>
-    );
-}
-
-//noinspection JSUnusedLocalSymbols
-function LayerDetailsWindow(props: any) {
-    return (
-        <ExpansionPanel icon="pt-icon-layer" text="Layer Details">
-            <TreeExample/>
-        </ExpansionPanel>
-    );
-}
 
 //noinspection JSUnusedLocalSymbols
 function CollapseExample1(props: any) {

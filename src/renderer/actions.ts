@@ -33,7 +33,7 @@ export function setTaskState(taskId: string, taskState: TaskState) {
     return {type: SET_TASK_STATE, payload: {taskId, taskState}};
 }
 
-export function setControlState(propertyName:string, value: any) {
+export function setControlState(propertyName: string, value: any) {
     const payload = {};
     payload[propertyName] = value;
     return {type: SET_CONTROL_STATE, payload};
@@ -88,7 +88,10 @@ function updateDataStoresDone() {
 
 function updateDataStoresFailed(failure) {
     // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('dataStores', {status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED, failure});
+    return setTaskState('dataStores', {
+        status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED,
+        failure
+    });
 }
 
 /**
@@ -138,7 +141,10 @@ function updateDataSourcesDone(dataStoreId: string) {
 
 function updateDataSourcesFailed(dataStoreId: string, failure: JobFailure) {
     // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('dataSources_' + dataStoreId, {status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED, failure});
+    return setTaskState('dataSources_' + dataStoreId, {
+        status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED,
+        failure
+    });
 }
 
 export function setSelectedDataStoreId(selectedDataStoreId: string|null) {
@@ -197,7 +203,6 @@ export function setOperationFilterExpr(operationFilterExpr: Array<string>) {
 
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
 export const SET_SELECTED_WORKSPACE_RESOURCE_ID = 'SET_SELECTED_WORKSPACE_RESOURCE_ID';
-export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
 export const SET_SELECTED_WORKFLOW_STEP_ID = 'SET_SELECTED_WORKFLOW_STEP_ID';
 
 /**
@@ -249,7 +254,10 @@ function setCurrentWorkspaceDone() {
 
 function setCurrentWorkspaceFailed(failure: JobFailure) {
     // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('workspace', {status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED, failure});
+    return setTaskState('workspace', {
+        status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED,
+        failure
+    });
 }
 
 export function setSelectedWorkspaceResourceId(selectedWorkspaceResourceId: string) {
@@ -265,10 +273,6 @@ export function setSelectedWorkspaceResourceId(selectedWorkspaceResourceId: stri
             }
         }
     }
-}
-
-export function setSelectedVariableName(selectedVariableName: string) {
-    return {type: SET_SELECTED_VARIABLE_NAME, payload: {selectedVariableName}};
 }
 
 function setSelectedWorkspaceResourceIdImpl(selectedWorkspaceResourceId: string) {
@@ -319,12 +323,29 @@ function workspaceActionDone(taskId: string) {
 
 function workspaceActionFailed(taskId: string, failure: JobFailure) {
     // TODO update UI according to task state change: workspace panel, status bar, and task list panel
-    return setTaskState(taskId, {status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED, failure});
+    return setTaskState(taskId, {
+        status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED,
+        failure
+    });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Variable actions
+
+export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
+
+export function setSelectedVariableName(selectedVariableName: string|null) {
+    return {type: SET_SELECTED_VARIABLE_NAME, payload: {selectedVariableName}};
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Activity actions
+// Layer actions
 
-export const UPDATE_ACTIVITY = 'UPDATE_ACTIVITY';
+export const SET_SELECTED_LAYER_ID = 'SET_SELECTED_LAYER_ID';
+
+export function setSelectedLayerId(selectedLayerId: string|null) {
+    return {type: SET_SELECTED_LAYER_ID, payload: {selectedLayerId}};
+}
+
 

@@ -120,7 +120,7 @@ export interface WorkspaceState {
     /**
      * Information about the views
      */
-    globeLayers: Array<VariableImageLayerState>;
+    layers: Array<VariableImageLayerState>;
 }
 
 export interface WorkflowState {
@@ -167,6 +167,7 @@ export interface WorkflowPortState {
      */
     sourceRef: string|null;
 }
+
 export interface ResourceState {
     name: string;
     variables: Array<VariableState>;
@@ -223,6 +224,16 @@ export interface ImageLayout {
  * State of a layer.
  */
 export interface LayerState {
+    /**
+     * Layer ID.
+     */
+    id: string;
+
+    /**
+     * Layer name.
+     */
+    name: string;
+
     /**
      * True if the layer is shown; otherwise, false.
      */
@@ -335,6 +346,10 @@ export interface ControlState {
     // VariablesPanel
     selectedVariableName: string|null;
     showVariableDetails: boolean;
+
+    // LayersPanel
+    selectedLayerId: string|null;
+    showLayerDetails: boolean;
 
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState;};

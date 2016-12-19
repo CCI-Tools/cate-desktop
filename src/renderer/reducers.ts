@@ -101,6 +101,8 @@ const initialControlState: ControlState = {
     selectedWorkspaceResourceId: null,
     selectedVariableName: null,
     showVariableDetails: true,
+    selectedLayerId: null,
+    showLayerDetails: true,
     dialogs: {}
 };
 
@@ -127,6 +129,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         case actions.SET_SELECTED_VARIABLE_NAME:
         case actions.SET_SELECTED_WORKSPACE_RESOURCE_ID:
         case actions.SET_SELECTED_WORKFLOW_STEP_ID:
+        case actions.SET_SELECTED_LAYER_ID:
         case actions.SET_CONTROL_STATE:
             return updateObject(state, action.payload);
         case actions.SET_DIALOG_STATE:

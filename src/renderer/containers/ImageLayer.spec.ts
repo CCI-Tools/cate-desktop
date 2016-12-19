@@ -50,6 +50,8 @@ describe('VariableImageLayer', function () {
             'myvar',
             {numLevels: 5, tileWidth: 512, tileHeight: 256, numLevelZeroTilesX: 2, numLevelZeroTilesY: 1},
             {
+                id: 'myres/myvar',
+                name: 'myvar',
                 show: true,
 
                 alpha: 0.9,
