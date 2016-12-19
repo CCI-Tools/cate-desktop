@@ -1,15 +1,50 @@
+import {VariableImageLayerState} from "../state";
 const Cesium: any = require('cesium');
 
 
-import {expect, should} from "chai";
+import {expect} from "chai";
 import {VariableImageLayer} from "./ImageLayer";
 
-should();
 
-describe('updateProperty()', function () {
+class CesiumViewerMock {
 
-    it('works', function () {
-        const imageLayer = new VariableImageLayer('http://localhost:9090/',
+    imageryLayers: ImageryLayersMock;
+
+    constructor() {
+        this.imageryLayers = new ImageryLayersMock();
+    }
+}
+
+
+class ImageryLayersMock {
+    layerList = [];
+
+    addImageryProvider(imageryProvider) {
+        const imageryLayer = {};
+        this.layerList.push(imageryLayer);
+        return imageryLayer;
+    }
+
+    indexOf(layer: any) {
+        return this.layerList.findIndex(l => l === layer);
+    }
+
+    remove(layer: any) {
+        const index = this.indexOf(layer);
+        if (index >= 0) {
+            this.layerList.splice(index, 1);
+        }
+    }
+}
+
+describe('VariableImageLayer', function () {
+
+    let viewer: CesiumViewerMock = null;
+    let imageLayer: VariableImageLayer = null;
+
+    beforeEach(function () {
+        viewer = new CesiumViewerMock();
+        imageLayer = new VariableImageLayer('http://localhost:9090/',
             'myws',
             'myres',
             'myvar',
@@ -30,27 +65,32 @@ describe('updateProperty()', function () {
                 displayMax: 2.5
             }
         );
+    });
 
-        class ImageryLayers {
-            layers = [];
+    it('#updateInViewer', function () {
+        const imageryLayer1 = imageLayer.updateInViewer(viewer);
+        expect(viewer.imageryLayers.layerList).to.deep.equal([imageryLayer1]);
 
-            addImageryProvider(imageryProvider) {
-                const imageryLayer = {};
-                this.layers.push(imageryLayer);
-                return imageryLayer;
-            }
-        }
+        const imageryLayer2 = imageLayer.updateInViewer(viewer, {alpha: 0.1, saturation: 0.9} as VariableImageLayerState);
+        expect(imageryLayer1).to.be.eq(imageryLayer2);
+        expect(viewer.imageryLayers.layerList).to.deep.equal([imageryLayer1]);
 
-        class CesiumMockViewer {
+        const imageryLayer3 = imageLayer.updateInViewer(viewer, {displayMin: 0} as VariableImageLayerState);
+        expect(imageryLayer1).not.to.be.eq(imageryLayer3);
+        expect(viewer.imageryLayers.layerList).to.deep.equal([imageryLayer3]);
+    });
 
-            imageryLayers: ImageryLayers;
-            constructor() {
-                this.imageryLayers = new ImageryLayers();
-            }
-        }
+    it('#removeFromViewer', function () {
+        const imageryLayer1 = imageLayer.updateInViewer(viewer);
+        const imageryLayer2 = imageLayer.removeFromViewer(viewer);
+        expect(imageryLayer1).to.be.eq(imageryLayer2);
+        expect(viewer.imageryLayers.layerList).to.deep.equal([]);
+    });
 
-        const viewer = new CesiumMockViewer();
-        imageLayer.updateLayer(viewer);
+    it('#imageryProviderUrl', function () {
+        const imageryLayer = imageLayer.updateInViewer(viewer);
+        expect(imageLayer.imageryProviderUrl).to.equal('http://localhost:9090/ws/res/tile/myws/myres/{z}/{y}/{x}.png' +
+            '?&var=myvar&cmap=jet&min=-2.5&max=2.5');
     });
 });
 

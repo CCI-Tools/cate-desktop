@@ -34,7 +34,7 @@ export class VariableImageLayer {
         return this._imageryLayer;
     }
 
-    updateLayer(viewer: any, layerState?: VariableImageLayerState): void {
+    updateInViewer(viewer: any, layerState?: VariableImageLayerState): any {
 
         if (layerState) {
             this._layerState = Object.assign({}, this._layerState, layerState);
@@ -58,7 +58,7 @@ export class VariableImageLayer {
                 })
             });
 
-            const oldLayer = this.imageryLayer;
+            const oldLayer = this._imageryLayer;
             let imageryLayer;
             if (oldLayer != null) {
                 // Insert new layer at position of old layer
@@ -82,18 +82,22 @@ export class VariableImageLayer {
         this._imageryLayer.hue = this._layerState.hue;
         this._imageryLayer.saturation = this._layerState.saturation;
         this._imageryLayer.gamma = this._layerState.gamma;
+
+        return this._imageryLayer;
     }
 
     /**
      * Destroys the variable's imagery layer, if any.
      */
-    removeLayer(viewer: any): void {
-        if (this.imageryLayer !== null) {
+    removeFromViewer(viewer: any): any {
+        const oldLayer = this._imageryLayer;
+        if (this._imageryLayer !== null) {
             console.log('Destroying imagery layer "' + this._imageryLayer.name + '"');
             viewer.imageryLayers.remove(this.imageryLayer, true);
             this._imageryLayer = null;
             this._imageryProviderUrl = null;
         }
+        return oldLayer;
     }
 
     private createImageryProviderUrl() {
