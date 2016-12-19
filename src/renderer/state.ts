@@ -89,7 +89,13 @@ export interface OperationOutputState {
 }
 
 export interface WorkspaceState {
+    /**
+     * The workspace's base directory path.
+     */
     baseDir: string;
+    /**
+     * The workspace's description.
+     */
     description: string|null;
     /**
      * Is it a scratch workspace? Scratch workspaces must be saved-as to some real location.
@@ -103,11 +109,18 @@ export interface WorkspaceState {
      * Has it been saved before?
      */
     isSaved: boolean;
+    /**
+     * The workflow and its steps.
+     */
     workflow: WorkflowState;
     /**
      * Information about the resources
      */
     resources: Array<ResourceState>;
+    /**
+     * Information about the views
+     */
+    globeLayers: Array<VariableImageLayerState>;
 }
 
 export interface WorkflowState {
@@ -156,16 +169,16 @@ export interface WorkflowPortState {
 }
 export interface ResourceState {
     name: string;
-    variables : Array<VariableState>;
+    variables: Array<VariableState>;
 }
 
 export interface VariableState {
-    name: string;
-    dataType?: string;
-    ndim?: number;
-    shape?: number[];
+    name : string;
+    dataType: string;
+    ndim: number;
+    shape: number[];
+    dimensions: string[];
     chunks?: number[];
-    dimensions?: string[];
     valid_min?: number;
     valid_max?: number;
     add_offset?: number;
@@ -174,6 +187,106 @@ export interface VariableState {
     long_name?: string;
     units?: string;
     comment?: string;
+    imageLayout: ImageLayout;
+}
+
+/**
+ * Image layout for use with Cesium and OpenLayers.
+ */
+export interface ImageLayout {
+    sector?: {
+        /** The westernmost longitude, in radians, in the range [-Pi, Pi]. */
+        west: number,
+        /** The southernmost latitude, in radians, in the range [-Pi/2, Pi/2]. */
+        south: number,
+        /** The easternmost longitude, in radians, in the range [-Pi, Pi]. */
+        east: number,
+        /** The northernmost latitude, in radians, in the range [-Pi/2, Pi/2]. */
+        north: number
+    };
+    ellipsoid?: {
+        /** The radius in the x direction. */
+        x: number;
+        /** The radius in the y direction. */
+        y: number;
+        /** The radius in the z direction. */
+        z: number;
+    };
+    numLevels: number;
+    numLevelZeroTilesX: number;
+    numLevelZeroTilesY: number;
+    tileWidth: number;
+    tileHeight: number;
+}
+
+/**
+ * State of a layer.
+ */
+export interface LayerState {
+    /**
+     * True if the layer is shown; otherwise, false.
+     */
+    show: boolean;
+}
+
+/**
+ * State of an image layer.
+ */
+export interface ImageLayerState extends LayerState {
+    /**
+     * The alpha blending value of this layer, from 0.0 to 1.0.
+     */
+    alpha: number;
+
+    /**
+     * The brightness of this layer. 1.0 uses the unmodified imagery color.
+     * Less than 1.0 makes the imagery darker while greater than 1.0 makes it brighter.
+     */
+    brightness: number;
+
+    /**
+     * The contrast of this layer. 1.0 uses the unmodified imagery color.
+     * Less than 1.0 reduces the contrast while greater than 1.0 increases it.
+     */
+    contrast: number;
+
+    /**
+     * The hue of this layer. 0.0 uses the unmodified imagery color.
+     */
+    hue: number;
+
+    /**
+     * The saturation of this layer. 1.0 uses the unmodified imagery color.
+     * Less than 1.0 reduces the saturation while greater than 1.0 increases it.
+     */
+    saturation: number;
+
+    /**
+     * The gamma correction to apply to this layer. 1.0 uses the unmodified imagery color.
+     */
+    gamma: number;
+}
+
+/**
+ * State of an image layer that displays a variable.
+ */
+export interface VariableImageLayerState extends ImageLayerState {
+    /**
+     * Image layer color map. The color bar is CBARS[variableColorMap].
+     */
+    colorMapName: string;
+    /**
+     * Image layer minimum display value.
+     */
+    displayMin: number;
+    /**
+     * Image layer maximum display value.
+     */
+    displayMax: number;
+    /**
+     * Whether to blend alpha 0...1 at bottom value range.
+     */
+    displayAlpha: boolean;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

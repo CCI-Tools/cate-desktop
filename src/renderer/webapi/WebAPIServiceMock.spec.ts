@@ -132,7 +132,98 @@ describe('WebAPIServiceMock', function () {
                         type: "operation",
                     }
                 ]
-            }
+            },
+            "resources": [
+                {
+                    "name": "resource_34",
+                    "variables": [
+                        {
+                            "dataType": "float32",
+                            "dimensions": [
+                                "lat",
+                                "lon",
+                            ],
+                            "imageLayout": {
+                                "numLevelZeroTilesX": 2,
+                                "numLevelZeroTilesY": 1,
+                                "numLevels": 5,
+                                "tileHeight": 256,
+                                "tileWidth": 512,
+                            },
+                            "name": "var_a_resource_34",
+                            "ndim": 2,
+                            "shape": [
+                                420,
+                                840,
+                            ],
+                            "units": "si",
+                        },
+                        {
+                            "dataType": "float32",
+                            "dimensions": [
+                                "lat",
+                                "lon",
+                            ],
+                            "imageLayout": {
+                                "numLevelZeroTilesX": 2,
+                                "numLevelZeroTilesY": 1,
+                                "numLevels": 5,
+                                "tileHeight": 256,
+                                "tileWidth": 512
+                            },
+                            "name": "var_b_resource_34",
+                            "ndim": 2,
+                            "shape": [
+                                420,
+                                840,
+                            ],
+                            "units": "si"
+                        },
+                        {
+                            "dataType": "float32",
+                            "dimensions": [
+                                "lat",
+                                "lon",
+                            ],
+                            "imageLayout": {
+                                "numLevelZeroTilesX": 2,
+                                "numLevelZeroTilesY": 1,
+                                "numLevels": 5,
+                                "tileHeight": 256,
+                                "tileWidth": 512,
+                            },
+                            "name": "var_c_resource_34",
+                            "ndim": 2,
+                            "shape": [
+                                420,
+                                840,
+                            ],
+                            "units": "si",
+                        },
+                        {
+                            "dataType": "float32",
+                            "dimensions": [
+                                "lat",
+                                "lon",
+                            ],
+                            "imageLayout": {
+                                "numLevelZeroTilesX": 2,
+                                "numLevelZeroTilesY": 1,
+                                "numLevels": 5,
+                                "tileHeight": 256,
+                                "tileWidth": 512,
+                            },
+                            "name": "var_d_resource_34",
+                            "ndim": 2,
+                            "shape": [
+                                420,
+                                840,
+                            ],
+                            "units": "si",
+                        }
+                    ]
+                }
+            ]
         });
     });
 });

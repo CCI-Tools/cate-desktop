@@ -295,7 +295,16 @@ export class WebAPIServiceMock implements IServiceObject {
                 name: v,
                 units: 'si',
                 dataType: 'float32',
-                shape: [420, 840]
+                ndim: 2,
+                shape: [420, 840],
+                dimensions: ['lat', 'lon'],
+                imageLayout: {
+                    numLevels: 5,
+                    numLevelZeroTilesX: 2,
+                    numLevelZeroTilesY: 1,
+                    tileWidth: 512,
+                    tileHeight: 256,
+                }
             });
         }
 
