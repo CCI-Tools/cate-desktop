@@ -1,19 +1,13 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {ExpansionPanel} from '../components/ExpansionPanel';
-import {State, OperationState, WorkspaceState, LayerState} from "../state";
-import {setSelectedOperationName, setOperationFilterTags, setOperationFilterExpr} from '../actions'
-import {
-    Popover, Position, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
-    PopoverInteractionKind, Tooltip, Button
-} from "@blueprintjs/core";
+import {State, WorkspaceState, LayerState} from "../state";
+import {Button, Checkbox} from "@blueprintjs/core";
 import FormEvent = React.FormEvent;
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
-import {OperationAPI} from "../webapi/apis/OperationAPI";
 import * as actions from "../actions";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
-import {EditOpStepDialog, IEditOpStepDialogState} from "./EditOpStepDialog";
 
 interface ILayersPanelProps {
     dispatch?: Dispatch<State>;
@@ -60,21 +54,29 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
         const layersList = this.renderLayersList();
         const layerDetailsCard = this.renderOperationDetailsCard();
 
+        const selectedLayer = this.getSelectedLayer();
         const actionComponent = (
             <div style={{display: 'inline', padding: '0.2em'}}>
                 <Button className="pt-intent-primary"
                         style={{marginRight: '0.1em'}}
                         onClick={this.handleAddLayerButtonClicked.bind(this)}
                         iconName="add"/>
-                <Button className="pt-intent-primary"
-                        disabled={!this.getSelectedLayer()}
+                <Button style={{marginRight: '0.1em'}}
+                        disabled={!selectedLayer}
                         onClick={this.handleRemoveLayerButtonClicked.bind(this)}
                         iconName="remove"/>
+                <Button style={{marginRight: '0.1em'}}
+                        disabled={!selectedLayer}
+                        onClick={this.handleRemoveLayerButtonClicked.bind(this)}
+                        iconName="arrow-up"/>
+                <Button disabled={!selectedLayer}
+                        onClick={this.handleRemoveLayerButtonClicked.bind(this)}
+                        iconName="pt-icon-arrow-down"/>
             </div>
         );
 
         return (
-            <ExpansionPanel icon="pt-icon-function" text="Layers" isExpanded={true} defaultHeight={300}>
+            <ExpansionPanel icon="pt-icon-layers" text="Layers" isExpanded={true} defaultHeight={300}>
                 <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
                                          onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
                                          isSplitPanel={true}
@@ -95,9 +97,22 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
 
         const selectedLayerId = this.props.selectedLayerId;
 
+        const handleLayerVisibilityChanged = (itemIndex: number) => {
+            const layer: LayerState = layers[itemIndex];
+
+        };
+
+        // todo (nf): for layer types use icons:
+        // - shapefile: pt-icon-polygon-filter
+        // - image/raster: pt-icon-grid
         const renderItem = (itemIndex: number) => {
             const layer: LayerState = layers[itemIndex];
-            return <span>{layer.name}</span>
+            return (
+                <Checkbox checked={layer.show}
+                          onChange={() => handleLayerVisibilityChanged(itemIndex)}>
+                    <span className="pt-icon-grid"/><span>{layer.name}</span>
+                </Checkbox>
+            );
         };
 
         const handleLayerSelection = (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => {
