@@ -2,10 +2,9 @@ import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {ExpansionPanel} from '../components/ExpansionPanel';
 import {State, OperationState, WorkspaceState} from "../state";
-import {setSelectedOperationName, setOperationFilterTags, setOperationFilterExpr} from '../actions'
 import {
-    Popover, Position, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
-    PopoverInteractionKind, Tooltip, Button
+    Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
+    PopoverInteractionKind, Button
 } from "@blueprintjs/core";
 import FormEvent = React.FormEvent;
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
@@ -28,7 +27,7 @@ interface IOperationsPanelProps {
 }
 
 
-function mapStateToProps(state: State) : IOperationsPanelProps {
+function mapStateToProps(state: State): IOperationsPanelProps {
     const dialogId = EditOpStepDialog.getDialogId(state.control.selectedOperationName, true);
     return {
         webAPIClient: state.data.appConfig.webAPIClient,
@@ -87,16 +86,16 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         // Perform the action
         if (actionId) {
             /*
-            const resName = 'ds_' + (DataSourcesPanel.resourceId++);
-            const opName = 'open_dataset';
-            const opArgs = {
-                ds_name: this.props.selectedDataSourceId,
-                start_date: `${dialogState.timeRange[0]}`,
-                end_date: `${dialogState.timeRange[1]}`,
-                sync: true
-            };
-            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs));
-            */
+             const resName = 'ds_' + (DataSourcesPanel.resourceId++);
+             const opName = 'open_dataset';
+             const opArgs = {
+             ds_name: this.props.selectedDataSourceId,
+             start_date: `${dialogState.timeRange[0]}`,
+             end_date: `${dialogState.timeRange[1]}`,
+             sync: true
+             };
+             this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs));
+             */
         }
     }
 
@@ -203,9 +202,9 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
         const handleOperationSelection = (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => {
             if (newSelection.length > 0) {
-                this.props.dispatch(setSelectedOperationName(newSelection[0] as string));
+                this.props.dispatch(actions.setSelectedOperationName(newSelection[0] as string));
             } else {
-                this.props.dispatch(setSelectedOperationName(null));
+                this.props.dispatch(actions.setSelectedOperationName(null));
             }
         };
 
@@ -222,7 +221,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     }
 
     private handleOperationFilterExprChange(event) {
-        this.props.dispatch(setOperationFilterExpr(event.target.value));
+        this.props.dispatch(actions.setOperationFilterExpr(event.target.value));
     }
 
     //noinspection JSMethodCanBeStatic
@@ -278,13 +277,13 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     private addTagName(tagName: string) {
         const tags = new Set<string>(this.props.operationFilterTags);
         tags.add(tagName);
-        this.props.dispatch(setOperationFilterTags(Array.from(tags)));
+        this.props.dispatch(actions.setOperationFilterTags(Array.from(tags)));
     }
 
     private removeTagName(tagName: string) {
         const tags = new Set<string>(this.props.operationFilterTags);
         tags.delete(tagName);
-        this.props.dispatch(setOperationFilterTags(Array.from(tags)));
+        this.props.dispatch(actions.setOperationFilterTags(Array.from(tags)));
     }
 
     //noinspection JSMethodCanBeStatic
