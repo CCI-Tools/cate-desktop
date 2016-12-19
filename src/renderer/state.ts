@@ -160,20 +160,20 @@ export interface ResourceState {
 }
 
 export interface VariableState {
-    name : string;
-    dataType: string;
-    ndim: number;
-    shape: number[];
-    chunks: number[];
-    dimensions: string[];
-    valid_min: number;
-    valid_max: number;
-    add_offset: number;
-    scale_factor: number;
-    standard_name: string;
-    long_name: string;
-    units: string;
-    comment: string;
+    name: string;
+    dataType?: string;
+    ndim?: number;
+    shape?: number[];
+    chunks?: number[];
+    dimensions?: string[];
+    valid_min?: number;
+    valid_max?: number;
+    add_offset?: number;
+    scale_factor?: number;
+    standard_name?: string;
+    long_name?: string;
+    units?: string;
+    comment?: string;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

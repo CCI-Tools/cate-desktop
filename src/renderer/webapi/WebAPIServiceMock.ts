@@ -293,7 +293,7 @@ export class WebAPIServiceMock implements IServiceObject {
         for (const v of varList) {
             variables.push({
                 name: v,
-                unit: 'si',
+                units: 'si',
                 dataType: 'float32',
                 shape: [420, 840]
             });
