@@ -10,17 +10,17 @@ import {Card} from "../components/Card";
 interface IVariablesPanelProps {
     dispatch?: any;
     workspace: WorkspaceState;
-    selectedResourceVariableId: string;
+    selectedVariableName: string;
     selectedWorkspaceResourceId: string;
-    showVariablesDetails: boolean;
+    showVariableDetails: boolean;
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
     return {
         workspace: state.data.workspace,
-        selectedResourceVariableId: state.control.selectedResourceVariableId,
+        selectedVariableName: state.control.selectedVariableName,
         selectedWorkspaceResourceId: state.control.selectedWorkspaceResourceId,
-        showVariablesDetails : state.control.showVariablesDetails,
+        showVariableDetails : state.control.showVariableDetails,
     }
 }
 
@@ -36,14 +36,14 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
 
     private handleSelected(oldSelection: Array<React.Key>, newSelection: Array<React.Key>) {
         if (newSelection && newSelection.length) {
-            this.props.dispatch(actions.setSelectedResourceVariableId(newSelection[0] as string));
+            this.props.dispatch(actions.setSelectedVariableName(newSelection[0] as string));
         } else {
-            this.props.dispatch(actions.setSelectedResourceVariableId(null));
+            this.props.dispatch(actions.setSelectedVariableName(null));
         }
     }
 
     private handleShowDetailsChanged(value: boolean) {
-        this.props.dispatch(actions.setControlState('showVariablesDetails', value));
+        this.props.dispatch(actions.setControlState('showVariableDetails', value));
     }
 
     private numberArrayToString(numbers: number[], defaultValue: string) {
@@ -77,36 +77,36 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         const varListComponent = <ListBox numItems={variableStates.length}
                                           getItemKey={index => variableStates[index].name}
                                           renderItem={renderItem}
-                                          selection={this.props.selectedResourceVariableId ? [this.props.selectedResourceVariableId] : null}
+                                          selection={this.props.selectedVariableName ? [this.props.selectedVariableName] : null}
                                           selectionMode={ListBoxSelectionMode.SINGLE}
                                           onSelection={this.handleSelected.bind(this)}/>;
 
-        let variablesDetailsPanel = null;
-        if (variableStates && this.props.selectedResourceVariableId) {
-            const selectedVariable = variableStates.find(v => v.name === this.props.selectedResourceVariableId);
+        let detailPanel = null;
+        if (variableStates && this.props.selectedVariableName) {
+            const selectedVariable = variableStates.find(v => v.name === this.props.selectedVariableName);
             if (selectedVariable) {
-                const variableItems = [];
-                variableItems.push(<tr key='dataType'><td>Datatype</td><td>{selectedVariable.dataType || '-'}</td></tr>);
+                const entries = [];
+                entries.push(<tr key='dataType'><td>Datatype</td><td>{selectedVariable.dataType || '-'}</td></tr>);
 
-                variableItems.push(<tr key='ndim'><td>Num dims</td><td>{selectedVariable.ndim || '-'}</td></tr>);
-                variableItems.push(<tr key='shape'><td>Shape</td><td>{this.numberArrayToString(selectedVariable.shape, '-')}</td></tr>);
+                entries.push(<tr key='ndim'><td>Num dims</td><td>{selectedVariable.ndim || '-'}</td></tr>);
+                entries.push(<tr key='shape'><td>Shape</td><td>{this.numberArrayToString(selectedVariable.shape, '-')}</td></tr>);
                 // chunk  TODO
-                variableItems.push(<tr key='dimensions'><td>Dimensions</td><td>{this.stringArrayToString(selectedVariable.dimensions, '-')}</td></tr>);
+                entries.push(<tr key='dimensions'><td>Dimensions</td><td>{this.stringArrayToString(selectedVariable.dimensions, '-')}</td></tr>);
 
-                variableItems.push(<tr key='valid_min'><td>Valid min</td><td>{selectedVariable.valid_min || '-'}</td></tr>);
-                variableItems.push(<tr key='valid_max'><td>Valid max</td><td>{selectedVariable.valid_max || '-'}</td></tr>);
-                variableItems.push(<tr key='add_offset'><td>Add offset</td><td>{selectedVariable.add_offset || '-'}</td></tr>);
-                variableItems.push(<tr key='scale_factor'><td>Scale Factor</td><td>{selectedVariable.scale_factor || '-'}</td></tr>);
+                entries.push(<tr key='valid_min'><td>Valid min</td><td>{selectedVariable.valid_min || '-'}</td></tr>);
+                entries.push(<tr key='valid_max'><td>Valid max</td><td>{selectedVariable.valid_max || '-'}</td></tr>);
+                entries.push(<tr key='add_offset'><td>Add offset</td><td>{selectedVariable.add_offset || '-'}</td></tr>);
+                entries.push(<tr key='scale_factor'><td>Scale Factor</td><td>{selectedVariable.scale_factor || '-'}</td></tr>);
 
-                variableItems.push(<tr key='standard_name'><td>Standard Name</td><td>{selectedVariable.standard_name || '-'}</td></tr>);
-                variableItems.push(<tr key='long_name'><td>Long name</td><td>{selectedVariable.long_name || '-'}</td></tr>);
-                variableItems.push(<tr key='units'><td>Units</td><td>{selectedVariable.units || '-'}</td></tr>);
-                variableItems.push(<tr key='comment'><td>Comment</td><td>{selectedVariable.comment || '-'}</td></tr>);
+                entries.push(<tr key='standard_name'><td>Standard Name</td><td>{selectedVariable.standard_name || '-'}</td></tr>);
+                entries.push(<tr key='long_name'><td>Long name</td><td>{selectedVariable.long_name || '-'}</td></tr>);
+                entries.push(<tr key='units'><td>Units</td><td>{selectedVariable.units || '-'}</td></tr>);
+                entries.push(<tr key='comment'><td>Comment</td><td>{selectedVariable.comment || '-'}</td></tr>);
 
-                variablesDetailsPanel = (
+                detailPanel = (
                     <Card>
                         <table className="pt-table pt-condensed pt-striped">
-                            <tbody>{variableItems}</tbody>
+                            <tbody>{entries}</tbody>
                         </table>
                     </Card>
                 );
@@ -114,12 +114,12 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         }
         return (
             <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
-                <ContentWithDetailsPanel showDetails={this.props.showVariablesDetails}
+                <ContentWithDetailsPanel showDetails={this.props.showVariableDetails}
                                          onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
                                          isSplitPanel={true}
                                          initialContentHeight={200}>
                     {varListComponent}
-                    {variablesDetailsPanel}
+                    {detailPanel}
                 </ContentWithDetailsPanel>
             </ExpansionPanel>
         );

@@ -197,7 +197,7 @@ export function setOperationFilterExpr(operationFilterExpr: Array<string>) {
 
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
 export const SET_SELECTED_WORKSPACE_RESOURCE_ID = 'SET_SELECTED_WORKSPACE_RESOURCE_ID';
-export const SET_SELECTED_RESOURCE_VARIABLE_ID = 'SET_SELECTED_RESOURCE_VARIABLE_ID';
+export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
 export const SET_SELECTED_WORKFLOW_STEP_ID = 'SET_SELECTED_WORKFLOW_STEP_ID';
 
 /**
@@ -260,15 +260,15 @@ export function setSelectedWorkspaceResourceId(selectedWorkspaceResourceId: stri
             if (resources) {
                 const resource = resources.find(res => res.name === selectedWorkspaceResourceId);
                 if (resource && resource.variables) {
-                    dispatch(setSelectedResourceVariableId(resource.variables[0].name));
+                    dispatch(setSelectedVariableName(resource.variables[0].name));
                 }
             }
         }
     }
 }
 
-export function setSelectedResourceVariableId(selectedResourceVariableId: string) {
-    return {type: SET_SELECTED_RESOURCE_VARIABLE_ID, payload: {selectedResourceVariableId}};
+export function setSelectedVariableName(selectedVariableName: string) {
+    return {type: SET_SELECTED_VARIABLE_NAME, payload: {selectedVariableName}};
 }
 
 function setSelectedWorkspaceResourceIdImpl(selectedWorkspaceResourceId: string) {

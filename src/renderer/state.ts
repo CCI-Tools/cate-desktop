@@ -333,8 +333,8 @@ export interface ControlState {
     selectedWorkspaceResourceId: string|null;
 
     // VariablesPanel
-    selectedResourceVariableId: string|null;
-    showVariablesDetails: boolean;
+    selectedVariableName: string|null;
+    showVariableDetails: boolean;
 
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState;};
