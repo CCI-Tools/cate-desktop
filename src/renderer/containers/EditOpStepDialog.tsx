@@ -116,13 +116,14 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                 <p style={{marginTop: '1em'}}>
                     <span style={{color: '#A82A2A', fontWeight: 'bold'}}>Please note:</span> This operation has
                     parameter(s) of type <code>Dataset</code>, but there are no dataset resources available yet.
-                    You may consider opening a data source or use one of the <code>read_xxx</code> operations.
+                    You may consider opening a data source or use the <code>read_netcdf</code> or
+                    <code>read_shapefile</code> operations.
                 </p>);
         } else {
             bodyFooterText = (
                 <p style={{marginTop: '1em'}}>
-                    Pressing <strong>Add</strong> will add operation <code>{operation.name}</code> as a new workflow step to
-                    the current workspace. You can remove the step or change it's parameters later.
+                    Pressing <span className="pt-icon-play"/> will add operation <code>{operation.name}</code> as a new
+                    workflow step to the current workspace. You can remove the step or change it's parameters later.
                 </p>);
         }
 
@@ -151,7 +152,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                             <Button className="pt-intent-primary"
                                     disabled={validationFailed}
                                     onClick={this.handleConfirm}
-                                    iconName="add">Add</Button>
+                                    iconName="play">Apply</Button>
                         </Tooltip>
                     </div>
                 </div>
