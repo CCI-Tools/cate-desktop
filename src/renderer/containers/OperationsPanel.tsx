@@ -108,16 +108,15 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
     render() {
         const allOperations = this.props.operations || [];
-        const operationFilterTags = new Set<string>(this.props.operationFilterTags);
+        const operationFilterTags = this.props.operationFilterTags || [];
         const operationFilterExpr = this.props.operationFilterExpr;
         const selectedOperation = this.getSelectedOperation();
 
         let nameMatches = op => !operationFilterExpr || op.name.includes(operationFilterExpr);
-        let hasTag = op => !operationFilterTags.size || (op.tags || []).some(tagName => operationFilterTags.has(tagName));
-        const filteredOperations = !operationFilterExpr && !operationFilterTags.size
+        let hasTag = op => !operationFilterTags.length || operationFilterTags.every(tag => new Set(op.tags).has(tag));
+        const filteredOperations = !operationFilterExpr && !operationFilterTags.length
             ? allOperations
             : allOperations.filter(op => nameMatches(op) && hasTag(op));
-
 
         const resultsTag = (
             <Tag className={Classes.MINIMAL}>
@@ -136,7 +135,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         if (allOperations.length > 0) {
             const selectedOperationName = this.props.selectedOperationName;
 
-            const operationTagFilterPanel = this.renderOperationTagFilterPanel(allOperations, operationFilterTags);
+            const operationTagFilterPanel = this.renderOperationTagFilterPanel(allOperations, new Set(operationFilterTags));
             const operationsList = this.renderOperationsList(filteredOperations, selectedOperationName);
             const operationDetailsCard = this.renderOperationDetailsCard(selectedOperation);
 
