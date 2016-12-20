@@ -170,6 +170,7 @@ export interface WorkflowPortState {
 
 export interface ResourceState {
     name: string;
+    dataType: string;
     variables: Array<VariableState>;
 }
 

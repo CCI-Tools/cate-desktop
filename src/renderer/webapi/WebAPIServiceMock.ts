@@ -293,8 +293,8 @@ export class WebAPIServiceMock implements IServiceObject {
         for (const v of varList) {
             variables.push({
                 name: v,
-                units: 'si',
                 dataType: 'float32',
+                units: 'si',
                 ndim: 2,
                 shape: [420, 840],
                 dimensions: ['lat', 'lon'],
@@ -312,6 +312,7 @@ export class WebAPIServiceMock implements IServiceObject {
         const newResources = oldResources.slice();
         newResources.push({
             name: resName,
+            dataType: 'Dataset',
             variables: variables
         });
         workspace = Object.assign({}, workspace, {
