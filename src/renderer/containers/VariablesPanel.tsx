@@ -112,7 +112,6 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
                 );
             }
         }
-        console.log(variableStates);
         if (variableStates.length) {
             return (
                 <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
