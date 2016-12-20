@@ -2,7 +2,7 @@ import * as React from "react";
 import {connect} from "react-redux";
 import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, TaskState} from "../state";
-import {ProgressBar} from "@blueprintjs/core";
+import {ProgressBar, Intent} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {JobStatusEnum} from "../webapi/Job";
 
@@ -49,18 +49,19 @@ class TasksPanel extends React.Component<ITaskPanelProps, null> {
             let pm = null;
             const tastState = taskStateList[itemIndex];
             if (TasksPanel.hasActiveProgress(tastState)) {
-                pm = <ProgressBar value={tastState.progress.worked / tastState.progress.total}/>;
+                pm = <div style={{padding: '0.5em'}}>
+                    <ProgressBar intent={Intent.SUCCESS} value={tastState.progress.worked / tastState.progress.total}/>
+                </div>
             }
             let msg = null;
             if (tastState.progress && tastState.progress.message) {
-                msg = <span style={{fontSize: '0.8em'}}><br/>{tastState.progress.message}</span>
+                msg = <div style={{fontSize: '0.8em'}}>{tastState.progress.message}</div>;
             }
             let error = null;
             if (tastState.failure && tastState.failure.message) {
-                error =
-                    <span style={{color: 'rgb(255, 0, 0)', fontSize: '0.8em'}}><br/>{tastState.failure.message}</span>
+                error = <div style={{color: 'rgb(255, 0, 0)', fontSize: '0.8em'}}>{tastState.failure.message}</div>;
             }
-            return (<span>{taskIdList[itemIndex]}{pm}{msg}{error}</span>);
+            return (<div>{taskIdList[itemIndex]}{pm}{msg}{error}</div>);
         };
         return (
             <ExpansionPanel icon="pt-icon-play" text="Tasks" isExpanded={true} defaultHeight={400}>
