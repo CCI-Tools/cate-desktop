@@ -48,10 +48,18 @@ function mapStateToProps(state: State): IOperationsPanelProps {
  */
 class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
+    private static resourceId = 0;
+
     componentDidMount() {
         if (!this.props.operations) {
             this.updateOperations();
         }
+    }
+
+    private getSelectedOperation(): OperationState {
+        return this.props.selectedOperationName
+            ? (this.props.operations || []).find(op => op.name === this.props.selectedOperationName)
+            : null;
     }
 
     private updateOperations() {
@@ -79,23 +87,21 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     }
 
     private handleAddOpStepDialogClosed(actionId: string, dialogState: IEditOpStepDialogState) {
+        const selectedOperation = this.getSelectedOperation();
+
         // Close "addOpStep_X" dialog and save state
         const dialogId = EditOpStepDialog.getDialogId(this.props.selectedOperationName, true);
         this.props.dispatch(actions.setDialogState(dialogId, dialogState));
 
         // Perform the action
         if (actionId) {
-            /*
-             const resName = 'ds_' + (DataSourcesPanel.resourceId++);
-             const opName = 'open_dataset';
-             const opArgs = {
-             ds_name: this.props.selectedDataSourceId,
-             start_date: `${dialogState.timeRange[0]}`,
-             end_date: `${dialogState.timeRange[1]}`,
-             sync: true
-             };
-             this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs));
-             */
+            const resName = 'res_' + (++OperationsPanel.resourceId);
+            const opName = selectedOperation.name;
+            const opArgs = {};
+            selectedOperation.inputs.forEach((input, index) => {
+                opArgs[input.name] = dialogState.parameterValues[index];
+            });
+            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs));
         }
     }
 
@@ -103,9 +109,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         const allOperations = this.props.operations || [];
         const operationFilterTags = new Set<string>(this.props.operationFilterTags);
         const operationFilterExpr = this.props.operationFilterExpr;
-        const selectedOperation = this.props.selectedOperationName
-            ? allOperations.find(op => op.name === this.props.selectedOperationName)
-            : null;
+        const selectedOperation = this.getSelectedOperation();
 
         let nameMatches = op => !operationFilterExpr || op.name.includes(operationFilterExpr);
         let hasTag = op => !operationFilterTags.size || (op.tags || []).some(tagName => operationFilterTags.has(tagName));
@@ -152,7 +156,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                     <Button className="pt-intent-primary"
                             onClick={this.handleAddOpStepButtonClicked.bind(this)}
                             disabled={!this.props.selectedOperationName || !this.props.workspace}
-                            iconName="add">Add...</Button>
+                            iconName="play">Apply...</Button>
                     {addOpStepDialog}
                 </div>
             );
