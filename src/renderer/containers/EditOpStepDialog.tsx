@@ -202,7 +202,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                     return createChild(input.name, (
                         <Switch label={input.name}
                                 checked={value}
-                                onChange={(event:any) => changeParameterValue(index, event.target.value === 'on')}/>
+                                onChange={(event:any) => changeParameterValue(index, event.target.checked)}/>
                     ));
                 }
                 case 'Dataset': {
