@@ -36,7 +36,14 @@ const initialDataState: DataState = {
     },
     dataStores: null,
     operations: null,
-    workspace: null
+    workspace: null,
+    layers: [
+        {
+            id: 'selectedVariable',
+            name: null,
+            show: true
+        }
+    ]
 };
 
 const dataReducer = (state: DataState = initialDataState, action) => {
@@ -80,6 +87,14 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             return updateObject(state, {
                 workspace: action.payload.workspace,
             });
+        case actions.SET_SELECTED_VARIABLE_NAME: {
+            const selectedVariableName = action.payload.selectedVariableName;
+            if (selectedVariableName) {
+                const layers = state.layers.slice();
+                layers[0] = updateObject(layers[0], {name: selectedVariableName});
+                return updateObject(state, {layers});
+            }
+        }
     }
     return state;
 };

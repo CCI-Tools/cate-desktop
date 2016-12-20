@@ -29,6 +29,7 @@ export interface DataState {
     dataStores: Array<DataStoreState> | null;
     operations: Array<OperationState> | null;
     workspace: WorkspaceState | null;
+    layers: Array<LayerState>;
 }
 
 export interface AppConfigState {
@@ -117,10 +118,6 @@ export interface WorkspaceState {
      * Information about the resources
      */
     resources: Array<ResourceState>;
-    /**
-     * Information about the views
-     */
-    layers: Array<VariableImageLayerState>;
 }
 
 export interface WorkflowState {

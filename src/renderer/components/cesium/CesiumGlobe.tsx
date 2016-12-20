@@ -31,7 +31,7 @@ Cesium.BingMapsApi.defaultKey = 'AnCcpOxnAAgq-KyFcczSZYZ_iFvCOmWl0Mx-6QzQ_rzMtpg
 export interface ICesiumGlobeProps extends IPermanentComponentProps {
     id: string;
     offlineMode?: boolean;
-    cities?: Array<any>;
+    pins?: Array<any>;
 }
 
 /**
@@ -91,7 +91,7 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewerMin, ICesiumGlob
         let viewer = new CesiumViewer(container, cesiumViewerOptions);
 
         // Add the initial points
-        this.props.cities.forEach((city) => {
+        this.props.pins.forEach((point) => {
             //noinspection JSFileReferences
             let billboard = {
                 image: app.getAppPath() + '/resources/images/pin.svg',
@@ -99,9 +99,9 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewerMin, ICesiumGlob
                 height: 30
             };
             viewer.entities.add(new Entity({
-                id: city.id,
-                show: city.visible,
-                position: new Cartesian3.fromDegrees(city.longitude, city.latitude),
+                id: point.id,
+                show: point.visible,
+                position: new Cartesian3.fromDegrees(point.longitude, point.latitude),
                 billboard: billboard
             }));
         });
@@ -124,8 +124,8 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewerMin, ICesiumGlob
     private static calculatePatches(currentProps: ICesiumGlobeProps, nextProps: ICesiumGlobeProps) {
         const patches = [];
 
-        currentProps.cities.forEach((currCity, index) => {
-            let nextCity = nextProps.cities[index];
+        currentProps.pins.forEach((currCity, index) => {
+            let nextCity = nextProps.pins[index];
 
             if (currCity.visible !== nextCity.visible) {
                 patches.push({
