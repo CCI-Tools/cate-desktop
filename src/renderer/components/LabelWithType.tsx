@@ -3,6 +3,7 @@ import * as React from "react";
 export interface ILabelWithTypeProps {
     label: string;
     dataType: string;
+    style?: {[cssProperty: string]: any;}
 }
 
 /**
@@ -11,6 +12,6 @@ export interface ILabelWithTypeProps {
  * @author Norman Fomferra
  */
 export function LabelWithType(props: ILabelWithTypeProps) {
-    return (<span>{props.label} <span style={{color: 'rgba(0,255,0,0.8)', fontSize: '0.8em'}}>{props.dataType}</span></span>);
+    return (<span style={props.style}>{props.label} <span style={{color: 'rgba(0,255,0,0.8)', fontSize: '0.8em'}}>{props.dataType}</span></span>);
 }
 
