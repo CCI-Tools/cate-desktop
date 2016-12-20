@@ -1,18 +1,19 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
-import {ExpansionPanel} from '../components/ExpansionPanel';
-import {State, OperationState, WorkspaceState} from "../state";
 import {
     Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
     PopoverInteractionKind, Button
 } from "@blueprintjs/core";
 import FormEvent = React.FormEvent;
+import {ExpansionPanel} from '../components/ExpansionPanel';
+import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
+import {LabelWithType} from "../components/LabelWithType";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
 import {OperationAPI} from "../webapi/apis/OperationAPI";
-import * as actions from "../actions";
-import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {EditOpStepDialog, IEditOpStepDialogState} from "./EditOpStepDialog";
+import {State, OperationState, WorkspaceState} from "../state";
+import * as actions from "../actions";
 
 interface IOperationsPanelProps {
     dispatch?: Dispatch<State>;
@@ -177,7 +178,6 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             );
         } else {
             const noOperationsMessage = this.renderNoOperationsMessage();
-
             return (
                 <ExpansionPanel icon="pt-icon-function" text="Operations" isExpanded={true} defaultHeight={300}>
                     {noOperationsMessage}
@@ -201,7 +201,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                 dataType = `${operation.outputs.length} types`;
             }
 
-            return <span>{name} <span style={{color: 'rgba(0,255,0,0.8)', fontSize: '0.8em'}}>{dataType}</span></span>
+            return <LabelWithType label={name} dataType={dataType}/>
         };
 
         const handleOperationSelection = (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => {
