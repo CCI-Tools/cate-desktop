@@ -1,6 +1,7 @@
 import * as React from 'react';
-import {Dialog, Classes, Button, Tooltip, Checkbox} from "@blueprintjs/core";
-import {DialogState, OperationState, WorkspaceState} from "../state";
+import {Dialog, Classes, Button, Tooltip, Switch} from "@blueprintjs/core";
+import {DialogState, OperationState, WorkspaceState, OperationInputState} from "../state";
+import FormEvent = React.FormEvent;
 
 interface IEditOpStepDialogProps {
     onClose: (actionId: string, dialogState: IEditOpStepDialogState) => void;
@@ -19,10 +20,12 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
 
     constructor(props: IEditOpStepDialogProps) {
         super(props);
-        this.state = {isOpen: true, parameterValues: props.parameterValues};
+        const parameterValues = EditOpStepDialog.getInitialParameterValues(props.operation, props.parameterValues);
+        this.state = {isOpen: true, parameterValues};
         this.dialogId = EditOpStepDialog.getDialogId(props.operation.name, props.isAddOpStepDialog);
         this.handleConfirm = this.handleConfirm.bind(this);
         this.handleValidate = this.handleValidate.bind(this);
+        this.handleDefaults = this.handleDefaults.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
     }
 
@@ -33,8 +36,24 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
         return (isAddOpStepDialog ? 'addOpStep_' : 'editOpStep_') + operationName;
     }
 
+    private static getInitialParameterValues(operation, parameterValues) {
+        return operation.inputs.map((input, index) =>
+            parameterValues && typeof parameterValues[index] !== 'undefined'
+                ? parameterValues[index]
+                : input.defaultValue);
+    }
+
+    private static getDefaultParameterValues(operation, parameterValues) {
+        return operation.inputs.map((input, index) =>
+            typeof input.defaultValue !== 'undefined'
+                ? input.defaultValue
+                : (parameterValues && parameterValues[index]));
+    }
+
     private close(dialogId: string) {
-        this.setState(Object.assign({}, this.state, {isOpen: false}), () => {
+        const parameterValues = [];
+
+        this.setState(Object.assign({}, this.state, {isOpen: false, parameterValues}), () => {
             this.props.onClose(dialogId, this.state);
         });
     }
@@ -50,6 +69,11 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
     //noinspection JSMethodCanBeStatic
     private handleValidate() {
         console.log('EditOpStepDialog: Validating...');
+    }
+
+    private handleDefaults() {
+        const parameterValues = EditOpStepDialog.getDefaultParameterValues(this.props.operation, this.props.parameterValues);
+        this.setState({parameterValues});
     }
 
     private getMandatoryDatasetInputs() {
@@ -122,6 +146,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                     <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                         <Button onClick={this.handleCancel}>Cancel</Button>
                         <Button onClick={this.handleValidate}>Validate</Button>
+                        <Button onClick={this.handleDefaults}>Defaults</Button>
                         <Tooltip content={tooltipText} inline>
                             <Button className="pt-intent-primary"
                                     disabled={validationFailed}
@@ -150,23 +175,41 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                          style={{display: 'flex' , padding: '0.2em'}}>{content}</div>);
         };
 
-        const inputElems = operation.inputs.map(input => {
+        const changeParameterValue = (index: number, newValue: any) => {
+            const parameterValues = this.state.parameterValues.slice();
+            parameterValues[index] = newValue;
+            this.setState({parameterValues});
+        };
+
+        const parameterValues = this.state.parameterValues;
+
+        const inputElems = operation.inputs.map((input: OperationInputState, index: number) => {
+            const value = parameterValues[index];
             switch (input.dataType) {
                 case 'float':
                 case 'int':
                 case 'str': {
                     const nameField = <span key="n" style={{flex: 'auto'}}>{input.name}</span>;
-                    const valueField = <input key="v" className="pt-input pt-intent-primary" type="text"/>;
+                    const valueField = (<input key="v"
+                                               className="pt-input pt-intent-primary"
+                                               type="text"
+                                               value={value}
+                                               onChange={(event:any) => changeParameterValue(index, event.target.value)}/>);
                     return createChild(input.name, [nameField, valueField]);
                 }
                 case 'bool': {
-                    return createChild(input.name, <Checkbox label={input.name}/>);
+                    return createChild(input.name, (
+                        <Switch label={input.name}
+                                checked={value}
+                                onChange={(event:any) => changeParameterValue(index, event.target.value === 'on')}/>
+                    ));
                 }
                 case 'Dataset': {
                     const nameField = <span key="n" style={{flex: 'auto'}}>{input.name}</span>;
                     const valueField = (
                         <div key="v" className="pt-select pt-intent-primary">
-                            <select>
+                            <select value={value}
+                                    onChange={(event:any) => changeParameterValue(index, event.target.value)}>
                                 {datasetOptions}
                             </select>
                         </div>);
