@@ -1,18 +1,26 @@
 import * as React from 'react';
-import {Dialog, Classes, Button, Tooltip, Switch} from "@blueprintjs/core";
+import {Dialog, Classes, Button, Tooltip, Switch, Checkbox} from "@blueprintjs/core";
 import {DialogState, OperationState, WorkspaceState, OperationInputState} from "../state";
 import FormEvent = React.FormEvent;
+import {ParameterEditor} from "../components/ParameterEditor";
+
+
+interface ParameterValueState {
+    constantValue: any;
+    resourceName: string;
+    isValueUsed: boolean;
+}
 
 interface IEditOpStepDialogProps {
     onClose: (actionId: string, dialogState: IEditOpStepDialogState) => void;
     workspace: WorkspaceState;
     operation: OperationState;
     isAddOpStepDialog: boolean;
-    parameterValues: any;
+    parameterValues: Array<ParameterValueState>;
 }
 
 export interface IEditOpStepDialogState extends DialogState {
-    parameterValues: any;
+    parameterValues: Array<ParameterValueState>;
 }
 
 export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IEditOpStepDialogState> {
@@ -36,24 +44,30 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
         return (isAddOpStepDialog ? 'addOpStep_' : 'editOpStep_') + operationName;
     }
 
-    private static getInitialParameterValues(operation, parameterValues) {
-        return operation.inputs.map((input, index) =>
-            parameterValues && typeof parameterValues[index] !== 'undefined'
-                ? parameterValues[index]
-                : input.defaultValue);
+    private static getInitialParameterValues(operation: OperationState, parameterValues: Array<ParameterValueState>) {
+        return operation.inputs.map((input, index): ParameterValueState => {
+            const parameterValue = parameterValues && parameterValues[index];
+            if (parameterValue) {
+                return parameterValue;
+            } else {
+                return {constantValue: input.defaultValue, isValueUsed: true, resourceName: null};
+            }
+        });
     }
 
-    private static getDefaultParameterValues(operation, parameterValues) {
-        return operation.inputs.map((input, index) =>
-            typeof input.defaultValue !== 'undefined'
-                ? input.defaultValue
-                : (parameterValues && parameterValues[index]));
+    private static getDefaultParameterValues(operation: OperationState, parameterValues: Array<ParameterValueState>): Array<ParameterValueState> {
+        return operation.inputs.map((input, index): ParameterValueState => {
+            const parameterValue = parameterValues && parameterValues[index];
+            if (typeof input.defaultValue !== 'undefined') {
+                return {constantValue: input.defaultValue, isValueUsed: true, resourceName: null};
+            } else {
+                return parameterValue || {constantValue: null, isValueUsed: true, resourceName: null};
+            }
+        });
     }
 
     private close(dialogId: string) {
-        const parameterValues = [];
-
-        this.setState(Object.assign({}, this.state, {isOpen: false, parameterValues}), () => {
+        this.setState(Object.assign({}, this.state, {isOpen: false}), () => {
             this.props.onClose(dialogId, this.state);
         });
     }
@@ -73,7 +87,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
 
     private handleDefaults() {
         const parameterValues = EditOpStepDialog.getDefaultParameterValues(this.props.operation, this.props.parameterValues);
-        this.setState({parameterValues});
+        this.setState(Object.assign({}, this.state, {parameterValues}));
     }
 
     private getMandatoryDatasetInputs() {
@@ -166,57 +180,54 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             return null;
         }
 
-        const steps = this.props.workspace.workflow.steps;
-        const firstDatasetOption = (<option key='__first__' value=''>Select dataset...</option>);
-        const stepOptions = steps.map(step => <option key={step.id} value={step.id}>{step.id}</option>);
-        const datasetOptions = [firstDatasetOption].concat(stepOptions);
+        const resources = this.props.workspace.resources;
 
-        const createChild = (key: string, content: any): JSX.Element => {
-            return (<div key={key}
-                         style={{display: 'flex' , padding: '0.2em'}}>{content}</div>);
-        };
-
-        const changeParameterValue = (index: number, newValue: any) => {
+        const changeParameterConstantValue = (index: number, constantValue: any) => {
             const parameterValues = this.state.parameterValues.slice();
-            parameterValues[index] = newValue;
+            parameterValues[index] = Object.assign({}, parameterValues[index], {constantValue, isValueUsed: true});
             this.setState({parameterValues});
         };
 
-        const parameterValues = this.state.parameterValues;
+        const changeParameterResourceName = (index: number, resourceName: string, isValueUsed: boolean) => {
+            const parameterValues = this.state.parameterValues.slice();
+            parameterValues[index] = Object.assign({}, parameterValues[index], {resourceName, isValueUsed});
+            this.setState({parameterValues});
+        };
 
         const inputElems = operation.inputs.map((input: OperationInputState, index: number) => {
-            const value = parameterValues[index];
+            const parameterValue = this.state.parameterValues[index];
+            let valueEditor = null;
             switch (input.dataType) {
                 case 'float':
                 case 'int':
                 case 'str': {
-                    const nameField = <span key="n" style={{flex: 'auto'}}>{input.name}</span>;
-                    const valueField = (<input key="v"
-                                               className="pt-input pt-intent-primary"
-                                               type="text"
-                                               value={value}
-                                               onChange={(event:any) => changeParameterValue(index, event.target.value)}/>);
-                    return createChild(input.name, [nameField, valueField]);
+                    valueEditor = (<input key="v"
+                                          className="pt-input pt-intent-primary"
+                                          type="text"
+                                          value={parameterValue.constantValue}
+                                          onChange={(event:any) => changeParameterConstantValue(index, event.target.value)}/>);
+                    break;
                 }
                 case 'bool': {
-                    return createChild(input.name, (
-                        <Switch label={input.name}
-                                checked={value}
-                                onChange={(event:any) => changeParameterValue(index, event.target.checked)}/>
-                    ));
+                    valueEditor = (
+                        <Checkbox checked={parameterValue.constantValue}
+                                  onChange={(event:any) => changeParameterConstantValue(index, event.target.checked)}/>
+                    );
+                    break;
                 }
                 case 'Dataset': {
-                    const nameField = <span key="n" style={{flex: 'auto'}}>{input.name}</span>;
-                    const valueField = (
-                        <div key="v" className="pt-select pt-intent-primary">
-                            <select value={value}
-                                    onChange={(event:any) => changeParameterValue(index, event.target.value)}>
-                                {datasetOptions}
-                            </select>
-                        </div>);
-                    return createChild(input.name, [nameField, valueField]);
+                    valueEditor = null;
+                    break;
                 }
             }
+            return (<ParameterEditor resources={resources}
+                                     name={input.name}
+                                     dataType={input.dataType}
+                                     onChange={(resourceName, isValueUsed) => changeParameterResourceName(index, resourceName, isValueUsed)}
+                                     isValueEditorShown={parameterValue.isValueUsed}
+                                     resourceName={parameterValue.resourceName}
+                                     valueEditor={valueEditor}/>
+            );
         });
         return (<div>{inputElems}</div>);
     }
