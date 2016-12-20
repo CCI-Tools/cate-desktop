@@ -6,6 +6,7 @@ import * as actions from "../actions";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {Card} from "../components/Card";
+import {LabelWithType} from "../components/LabelWithType";
 
 interface IVariablesPanelProps {
     dispatch?: any;
@@ -46,6 +47,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         this.props.dispatch(actions.setControlState('showVariableDetails', value));
     }
 
+    //noinspection JSMethodCanBeStatic
     private numberArrayToString(numbers: number[], defaultValue: string) {
         if (numbers)
             return "[" + numbers.join(",") + "]";
@@ -53,6 +55,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
             return defaultValue;
     }
 
+    //noinspection JSMethodCanBeStatic
     private stringArrayToString(numbers: string[], defaultValue: string) {
         if (numbers)
             return numbers.join("\n");
@@ -61,29 +64,30 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     }
 
     render() {
-        let variableStates: VariableState[] = [];
+        let variables: VariableState[] = [];
         if (this.props.workspace && this.props.selectedWorkspaceResourceId) {
             const resources: Array<ResourceState> = this.props.workspace.resources;
             if (resources) {
                 const selectedResource = resources.find(res => res.name === this.props.selectedWorkspaceResourceId);
                 if (selectedResource && selectedResource.variables) {
-                    variableStates = selectedResource.variables;
+                    variables = selectedResource.variables;
                 }
             }
         }
         const renderItem = (itemIndex: number) => {
-            return (<span>{variableStates[itemIndex].name}</span>);
+            const variable = variables[itemIndex];
+            return <LabelWithType label={variable.name} dataType={variable.dataType}/>;
         };
-        const varListComponent = <ListBox numItems={variableStates.length}
-                                          getItemKey={index => variableStates[index].name}
+        const varListComponent = <ListBox numItems={variables.length}
+                                          getItemKey={index => variables[index].name}
                                           renderItem={renderItem}
                                           selection={this.props.selectedVariableName ? [this.props.selectedVariableName] : null}
                                           selectionMode={ListBoxSelectionMode.SINGLE}
                                           onSelection={this.handleSelected.bind(this)}/>;
 
         let detailPanel = null;
-        if (variableStates && this.props.selectedVariableName) {
-            const selectedVariable = variableStates.find(v => v.name === this.props.selectedVariableName);
+        if (variables && this.props.selectedVariableName) {
+            const selectedVariable = variables.find(v => v.name === this.props.selectedVariableName);
             if (selectedVariable) {
                 const entries = [];
                 entries.push(<tr key='dataType'><td>Datatype</td><td>{selectedVariable.dataType || '-'}</td></tr>);
