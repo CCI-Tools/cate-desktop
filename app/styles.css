@@ -171,7 +171,7 @@ ul.cate-list-box li.cate-selected {
 .cate-panel-header {
     display: flex;
     margin: 0;
-    padding: 0.2em;
+    padding: 0.3em;
 
     /* blueprint @grey1 */
     border-top: 1px solid #5C7080;
