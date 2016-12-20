@@ -116,17 +116,30 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
                 );
             }
         }
-        return (
-            <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
-                <ContentWithDetailsPanel showDetails={this.props.showVariableDetails}
-                                         onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
-                                         isSplitPanel={true}
-                                         initialContentHeight={200}>
-                    {varListComponent}
-                    {detailPanel}
-                </ContentWithDetailsPanel>
-            </ExpansionPanel>
-        );
+        if (variableStates.length) {
+            return (
+                <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
+                    <ContentWithDetailsPanel showDetails={this.props.showVariableDetails}
+                                             onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
+                                             isSplitPanel={true}
+                                             initialContentHeight={200}>
+                        {varListComponent}
+                        {detailPanel}
+                    </ContentWithDetailsPanel>
+                </ExpansionPanel>
+            );
+        } else {
+            return (
+                <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
+                    <Card>
+                        <p><strong>No variables available!</strong></p>
+                        <p>
+                            The currently selected resource in the workspace contains no variables.
+                        </p>
+                    </Card>
+                </ExpansionPanel>
+            );
+        }
     }
 }
 export default connect(mapStateToProps)(VariablesPanel);
