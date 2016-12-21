@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {Classes, ITreeNode, Tooltip, Tree, Tab, TabList, TabPanel, Tabs} from "@blueprintjs/core";
 import {ExpansionPanel} from '../components/ExpansionPanel';
-import {CesiumGlobeExample} from '../components/cesium/CesiumGlobeExample'
+import GlobeView from './GlobeView'
 import {OpenLayersMap} from '../components/openlayers/OpenLayersMap';
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "../components/hgl";
 import LayersPanel from "./LayersPanel";
@@ -88,7 +88,7 @@ export function ApplicationPage(props) {
                     </TabList>
 
                     <TabPanel>
-                        <CesiumGlobeExample id="cesium-viewer"/>
+                        <GlobeView/>
                     </TabPanel>
 
                     <TabPanel>

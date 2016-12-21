@@ -243,7 +243,8 @@ export interface LayerState {
  */
 export interface ImageLayerState extends LayerState {
     /**
-     * The alpha blending value of this layer, from 0.0 to 1.0.
+     * The alpha blending value of this layer, from 0.0 to 1.0,
+     * with 0.0 representing fully transparent and 1.0 representing fully opaque.
      */
     alpha: number;
 
@@ -296,6 +297,14 @@ export interface VariableImageLayerState extends ImageLayerState {
      * Whether to blend alpha 0...1 at bottom value range.
      */
     displayAlpha: boolean;
+    /**
+     * The name of the resource that contains the variable.
+     */
+    resName: string;
+    /**
+     * The name of the variable.
+     */
+    varName: string;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

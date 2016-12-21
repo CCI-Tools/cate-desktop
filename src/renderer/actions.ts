@@ -1,4 +1,4 @@
-import {WorkspaceState, DataStoreState, TaskState, State, ResourceState} from "./state";
+import {WorkspaceState, DataStoreState, TaskState, State, ResourceState, VariableImageLayerState} from "./state";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
 import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
@@ -335,6 +335,32 @@ function workspaceActionFailed(taskId: string, failure: JobFailure) {
 export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
 
 export function setSelectedVariableName(selectedVariableName: string|null) {
+    return (dispatch, getState) => {
+        dispatch(setSelectedVariableNameImpl(selectedVariableName));
+        const selectedWorkspaceResourceId = getState().control.selectedWorkspaceResourceId;
+        if (selectedWorkspaceResourceId && selectedVariableName) {
+            const variableImageLayerState =  {
+                name : selectedWorkspaceResourceId + '.' + selectedVariableName,
+                alpha : 1.0,
+                brightness : 1.0,
+                contrast : 1.0,
+                hue : 0.0,
+                saturation : 1.0,
+                gamma : 1.0,
+                colorMapName : "",
+                displayMin : 0, // TODO
+                displayMax : 1000, // TODO
+                displayAlpha : false,
+                resName : selectedWorkspaceResourceId,
+                varName : selectedVariableName,
+            } as VariableImageLayerState;
+            dispatch(updateLayer('selectedVariable', variableImageLayerState));
+            dispatch(setSelectedLayerId('selectedVariable'));
+        }
+    }
+}
+
+function setSelectedVariableNameImpl(selectedVariableName: string|null) {
     return {type: SET_SELECTED_VARIABLE_NAME, payload: {selectedVariableName}};
 }
 
@@ -343,9 +369,13 @@ export function setSelectedVariableName(selectedVariableName: string|null) {
 // Layer actions
 
 export const SET_SELECTED_LAYER_ID = 'SET_SELECTED_LAYER_ID';
+export const UPDATE_LAYER = 'UPDATE_LAYER';
 
 export function setSelectedLayerId(selectedLayerId: string|null) {
     return {type: SET_SELECTED_LAYER_ID, payload: {selectedLayerId}};
 }
 
+export function updateLayer(layerId: string, layerState : VariableImageLayerState) {
+    return {type: UPDATE_LAYER, payload: {layerId, layerState}};
+}
 

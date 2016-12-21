@@ -87,13 +87,14 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             return updateObject(state, {
                 workspace: action.payload.workspace,
             });
-        case actions.SET_SELECTED_VARIABLE_NAME: {
-            const selectedVariableName = action.payload.selectedVariableName;
-            if (selectedVariableName) {
-                const layers = state.layers.slice();
-                layers[0] = updateObject(layers[0], {name: selectedVariableName});
-                return updateObject(state, {layers});
-            }
+        case actions.UPDATE_LAYER: {
+            // TODO
+            // const selectedVariableName = action.payload.selectedVariableName;
+            // if (selectedVariableName) {
+            //     const layers = state.layers.slice();
+            //     layers[0] = updateObject(layers[0], {name: selectedVariableName});
+            //     return updateObject(state, {layers});
+            // }
         }
     }
     return state;
