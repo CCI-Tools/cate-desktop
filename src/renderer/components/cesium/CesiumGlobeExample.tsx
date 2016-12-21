@@ -1,6 +1,5 @@
 import * as React from 'react';
-import {CesiumGlobe} from './CesiumGlobe';
-import {ICity, CesiumCityList} from './cities';
+import {CesiumGlobe, CesiumPin} from './CesiumGlobe';
 
 // TODO: only used to get electron.app.getAppPath
 const {app} = require('electron').remote;
@@ -10,37 +9,30 @@ interface ICesiumViewProps {
 }
 
 interface ICesiumViewState {
-    cities: Array<ICity>;
+    pins: Array<CesiumPin>;
 }
 
 /**
- * An example of CesiumGlobe that displays some cities.
+ * An example of CesiumGlobe that displays some pins.
  */
 export class CesiumGlobeExample extends React.Component<ICesiumViewProps, ICesiumViewState> {
     constructor(props: ICesiumViewProps) {
         super(props);
-        //noinspection JSFileReferences
-        this.state = {
-            cities: require(app.getAppPath() + '/resources/data/top10cities.json')
-        };
+
+        const pinIcon = app.getAppPath() + '/resources/images/pin.svg';
+        const pins = require(app.getAppPath() + '/resources/data/top10cities.json');
+        const pinsWithIcon = pins.map(pin => Object.assign(pin, {image: pinIcon}));
+
+        this.state = {pins: pinsWithIcon};
     }
 
     private handleCheckboxChange(event) {
-        let cities = this.state.cities;
-        let newCities = cities.map((city) => {
-            let visible = (city.id === event.target.value) ? event.target.checked : city.visible;
-            return {
-                id: city.id,
-                name: city.name,
-                state: city.state,
-                latitude: city.latitude,
-                longitude: city.longitude,
-                visible: visible
-            }
+        let pins = this.state.pins;
+        let newPins = pins.map((pin) => {
+            let visible = (pin.id === event.target.value) ? event.target.checked : pin.visible;
+            return Object.assign({}, pin, {visible});
         });
-        this.setState({
-            cities: newCities
-        })
+        this.setState({pins: newPins})
     }
 
     render() {
@@ -50,8 +42,8 @@ export class CesiumGlobeExample extends React.Component<ICesiumViewProps, ICesiu
                              debug={true}
                              offlineMode={false}
                              style={{width:"100%", height:"100%"}}
-                             pins={this.state.cities}/>
-                {/*<CesiumCityList pins={this.state.cities} onChange={this.handleCheckboxChange.bind(this)}/>*/}
+                             pins={this.state.pins}/>
+                {/*<CesiumCityList pins={this.state.pins} onChange={this.handleCheckboxChange.bind(this)}/>*/}
                 <div id="creditContainer" style={{display:"none"}}></div>
             </div>
         );

@@ -14,7 +14,6 @@ function responseToWorkspace(workspaceResponse: JobResponse): WorkspaceState {
         isSaved: workspaceResponse.is_saved,
         workflow: workspaceResponse.workflow,
         resources: workspaceResponse.resources,
-        layers: [],
     };
 }
 

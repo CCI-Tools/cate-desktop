@@ -23,7 +23,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
     return {
         webAPIClient: state.data.appConfig.webAPIClient,
         workspace: state.data.workspace,
-        layers: state.data.workspace.layers,
+        layers: state.data.layers,
         selectedLayerId: state.control.selectedLayerId,
         showLayerDetails: state.control.showLayerDetails,
     };

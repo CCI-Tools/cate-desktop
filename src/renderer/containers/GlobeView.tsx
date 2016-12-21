@@ -24,10 +24,14 @@ function mapStateToProps(state: State): IGlobeViewProps {
 export class GlobeView extends React.Component<IGlobeViewProps, null> {
 
     render() {
+        // todo: transform this.props.layers --> imageLayers
+        const imageLayers = [];
+
         return (
             <div style={{width:"100%", height:"100%"}}>
                 <CesiumGlobe id="defaultGlobeView"
                              debug={true}
+                             imageLayers={imageLayers}
                              offlineMode={false}
                              style={{width:"100%", height:"100%"}}/>
                 {/*<CesiumCityList pins={this.state.pins} onChange={this.handleCheckboxChange.bind(this)}/>*/}
