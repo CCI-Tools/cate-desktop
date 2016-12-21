@@ -135,6 +135,7 @@ describe('WebAPIServiceMock', function () {
             },
             "resources": [
                 {
+                    "dataType": "Dataset",
                     "name": "resource_34",
                     "variables": [
                         {
