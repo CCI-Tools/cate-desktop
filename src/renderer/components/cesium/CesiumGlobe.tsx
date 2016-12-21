@@ -156,21 +156,22 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         let viewer = new Cesium.Viewer(container, cesiumViewerOptions);
 
         // Add the initial points
-        this.props.pins.forEach((pin) => {
-            //noinspection JSFileReferences
-            let billboard = {
-                image: pin.image,
-                width: 30,
-                height: 30
-            };
-            viewer.entities.add(new Cesium.Entity({
-                id: pin.id,
-                show: pin.visible,
-                position: new Cesium.Cartesian3.fromDegrees(pin.longitude, pin.latitude),
-                billboard: billboard
-            }));
-        });
-
+        if (this.props.pins) {
+            this.props.pins.forEach((pin) => {
+                //noinspection JSFileReferences
+                let billboard = {
+                    image: pin.image,
+                    width: 30,
+                    height: 30
+                };
+                viewer.entities.add(new Cesium.Entity({
+                    id: pin.id,
+                    show: pin.visible,
+                    position: new Cesium.Cartesian3.fromDegrees(pin.longitude, pin.latitude),
+                    billboard: billboard
+                }));
+            });
+        }
         return viewer;
     }
 
