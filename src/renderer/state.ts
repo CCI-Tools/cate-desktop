@@ -228,6 +228,11 @@ export interface LayerState {
     id: string;
 
     /**
+     * Layer type
+     */
+    type: 'VariableImage'|'Shape';
+
+    /**
      * Layer name.
      */
     name: string;
@@ -239,12 +244,11 @@ export interface LayerState {
 }
 
 /**
- * State of an image layer.
+ * Possible image enhancement attributes.
  */
-export interface ImageLayerState extends LayerState {
+export interface ImageEnhancementState {
     /**
-     * The alpha blending value of this layer, from 0.0 to 1.0,
-     * with 0.0 representing fully transparent and 1.0 representing fully opaque.
+     * The alpha blending value of this layer, from 0.0 to 1.0.
      */
     alpha: number;
 
@@ -277,10 +281,19 @@ export interface ImageLayerState extends LayerState {
     gamma: number;
 }
 
+
 /**
  * State of an image layer that displays a variable.
  */
-export interface VariableImageLayerState extends ImageLayerState {
+export interface VariableImageLayerState extends LayerState {
+    /**
+     * The name of the resource that contains the variable.
+     */
+    resName: string;
+    /**
+     * The name of the variable.
+     */
+    varName: string;
     /**
      * Image layer color map. The color bar is CBARS[variableColorMap].
      */
@@ -298,13 +311,9 @@ export interface VariableImageLayerState extends ImageLayerState {
      */
     displayAlpha: boolean;
     /**
-     * The name of the resource that contains the variable.
+     * Image enhancement attributes.
      */
-    resName: string;
-    /**
-     * The name of the variable.
-     */
-    varName: string;
+    imageEnhancement?: ImageEnhancementState;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {LayerState, State, WorkspaceState, VariableImageLayerState} from "../state";
-import {CesiumGlobe} from "../components/cesium/CesiumGlobe";
+import {CesiumGlobe, CesiumImageLayer, ImageryProvider} from "../components/cesium/CesiumGlobe";
 import {connect} from "react-redux";
 const Cesium: any = require('cesium');
 
@@ -24,57 +24,19 @@ function mapStateToProps(state: State): IGlobeViewProps {
  */
 export class GlobeView extends React.Component<IGlobeViewProps, null> {
 
-    private createImageryProviderUrl(baseDir : string, layerState : VariableImageLayerState) : string {
-        return this.props.baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${encodeURIComponent(layerState.resName)}/{z}/{y}/{x}.png?`
-            + `&var=${encodeURIComponent(layerState.varName)}`
-            + `&cmap=${encodeURIComponent(layerState.colorMapName) + (layerState.displayAlpha ? '_alpha' : '')}`
-            + `&min=${encodeURIComponent(layerState.displayMin + '')}`
-            + `&max=${encodeURIComponent(layerState.displayMax + '')}`;
-    }
-
-    private static imageryProvider(imageryProviderOptions) {
-        const imageryProviderUrl = imageryProviderOptions.url;
-        const imageLayout = imageryProviderOptions.imageLayout;
-        // see https://cesiumjs.org/Cesium/Build/Documentation/UrlTemplateImageryProvider.html
-        const imageryProvider = new Cesium.UrlTemplateImageryProvider({
-            url: imageryProviderUrl,
-            // # todo - use imageConfig.sector to specify 'rectangle' option. See backend todo.
-            // rectangle: imageLayout.sector,
-            minimumLevel: 0,
-            maximumLevel: imageLayout.numLevels - 1,
-            tileWidth: imageLayout.tileWidth,
-            tileHeight: imageLayout.tileHeight,
-            tilingScheme: new Cesium.GeographicTilingScheme({
-                numberOfLevelZeroTilesX: imageLayout.numLevelZeroTilesX,
-                numberOfLevelZeroTilesY: imageLayout.numLevelZeroTilesY
-            })
-        });
-        return imageryProvider;
-    }
-
     render() {
-        // todo: transform this.props.layers --> imageLayers
-        const imageLayers = [];
-        for (let i = 0; i < this.props.layers.length; i++) {
-            const layer = this.props.layers[i];
-            // if (layer instanceof VariableImageLayerState) { // TODO (mz) how to check this ???
-            const baseDir = this.props.workspace.baseDir;
-            const varImgLayerState = layer as VariableImageLayerState;
-            const url = this.createImageryProviderUrl(baseDir, varImgLayerState);
-            const resource = this.props.workspace.resources.find(r => r.name === varImgLayerState.resName);
-            if (resource) {
-                const imageLayout = resource.variables.find(v => v.name === varImgLayerState.varName);
-                if (imageLayout) {
-                    imageLayers.push({
-                        id: layer.id,
-                        name: layer.name,
-                        visible: layer.show,
-                        imageryProvider: GlobeView.imageryProvider,
-                        imageryProviderOptions: {
-                            url: url,
-                            imageLayout: imageLayout
-                        }
-                    });
+        const cesiumImageLayers = [];
+        if (this.props.workspace && this.props.layers) {
+            for (let layer of this.props.layers) {
+                let cesiumImageLayer;
+                switch (layer.type) {
+                    case 'VariableImage':
+                        cesiumImageLayer = this.convertVariableImageLayerToCesiumImageLayer(layer as VariableImageLayerState);
+                }
+                if (cesiumImageLayer) {
+                    cesiumImageLayers.push(cesiumImageLayer);
+                } else {
+                    console.warn(`GlobeView: layer with ID "${layer.id}" will not be rendered`);
                 }
             }
         }
@@ -83,13 +45,68 @@ export class GlobeView extends React.Component<IGlobeViewProps, null> {
             <div style={{width:"100%", height:"100%"}}>
                 <CesiumGlobe id="defaultGlobeView"
                              debug={true}
-                             imageLayers={imageLayers}
+                             imageLayers={cesiumImageLayers}
                              offlineMode={false}
                              style={{width:"100%", height:"100%"}}/>
                 {/*<CesiumCityList pins={this.state.pins} onChange={this.handleCheckboxChange.bind(this)}/>*/}
                 <div id="creditContainer" style={{display:"none"}}></div>
             </div>
         );
+    }
+
+    private convertVariableImageLayerToCesiumImageLayer(layer: VariableImageLayerState): CesiumImageLayer|null {
+        const resource = this.props.workspace.resources.find(r => r.name === layer.resName);
+        if (resource) {
+            const variable = resource.variables.find(v => v.name === layer.varName);
+            if (variable) {
+                const imageLayout = variable.imageLayout;
+                if (variable.imageLayout) {
+                    const baseDir = this.props.workspace.baseDir;
+                    const url = this.createVariableImageryProviderUrl(baseDir, layer);
+                    return Object.assign({}, layer, {
+                        imageryProvider: GlobeView.createImageryProvider,
+                        imageryProviderOptions: {
+                            url: url,
+                            // TODO - use imageConfig.sector to specify 'rectangle' option. See backend todo.
+                            // rectangle: imageLayout.sector,
+                            minimumLevel: 0,
+                            maximumLevel: imageLayout.numLevels - 1,
+                            tileWidth: imageLayout.tileWidth,
+                            tileHeight: imageLayout.tileHeight,
+                            tilingScheme: new Cesium.GeographicTilingScheme({
+                                numberOfLevelZeroTilesX: imageLayout.numLevelZeroTilesX,
+                                numberOfLevelZeroTilesY: imageLayout.numLevelZeroTilesY
+                            }),
+                        },
+                    });
+                } else {
+                    console.warn(`GlobeView: variable "${layer.varName}" of resource "${layer.resName}" has no imageLayout`);
+                }
+            } else {
+                console.warn(`GlobeView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
+            }
+        } else {
+            console.warn(`GlobeView: resource "${layer.resName}" not found`);
+        }
+        return null;
+    }
+
+    private createVariableImageryProviderUrl(baseDir: string, layer: VariableImageLayerState): string {
+        return this.props.baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/{z}/{y}/{x}.png?`
+            + `&var=${encodeURIComponent(layer.varName)}`
+            + `&cmap=${encodeURIComponent(layer.colorMapName) + (layer.displayAlpha ? '_alpha' : '')}`
+            + `&min=${encodeURIComponent(layer.displayMin + '')}`
+            + `&max=${encodeURIComponent(layer.displayMax + '')}`;
+    }
+
+    /**
+     * Creates a Cesium.UrlTemplateImageryProvider instance.
+     *
+     * @param imageryProviderOptions see https://cesiumjs.org/Cesium/Build/Documentation/UrlTemplateImageryProvider.html
+     * @returns {Cesium.UrlTemplateImageryProvider}
+     */
+    private static createImageryProvider(imageryProviderOptions): ImageryProvider {
+        return new Cesium.UrlTemplateImageryProvider(imageryProviderOptions);
     }
 }
 

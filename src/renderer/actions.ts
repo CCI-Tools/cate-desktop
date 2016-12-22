@@ -1,4 +1,7 @@
-import {WorkspaceState, DataStoreState, TaskState, State, ResourceState, VariableImageLayerState} from "./state";
+import {
+    WorkspaceState, DataStoreState, TaskState, State, ResourceState, VariableImageLayerState,
+    LayerState
+} from "./state";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
 import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
@@ -338,23 +341,42 @@ export function setSelectedVariableName(selectedVariableName: string|null) {
     return (dispatch, getState) => {
         dispatch(setSelectedVariableNameImpl(selectedVariableName));
         const selectedWorkspaceResourceId = getState().control.selectedWorkspaceResourceId;
+        // TODO: get default value from some mapping varName => {colorMapName, displayMin?, displayMax?, displayAlpha?}
+        // TODO: get actual selected variable so we can test if this variable is displayable as imagery layer
+        //       get additional variable info from WebAPI:
+        //       class VariableInterpretation {
+        //          spaceXDim?: number;
+        //          spaceYDim?: number;
+        //          timeDim?: number;
+        //          layerDim?: number;
+        //          colorMapName?: string;
+        //          displayMin?: number;
+        //          displayMax?: number;
+        //          displayAlpha:? boolean;
+        //       }
         if (selectedWorkspaceResourceId && selectedVariableName) {
-            const variableImageLayerState =  {
-                name : selectedWorkspaceResourceId + '.' + selectedVariableName,
-                alpha : 1.0,
-                brightness : 1.0,
-                contrast : 1.0,
-                hue : 0.0,
-                saturation : 1.0,
-                gamma : 1.0,
-                colorMapName : "",
-                displayMin : 0, // TODO
-                displayMax : 1000, // TODO
-                displayAlpha : false,
-                resName : selectedWorkspaceResourceId,
-                varName : selectedVariableName,
-            } as VariableImageLayerState;
-            dispatch(updateLayer('selectedVariable', variableImageLayerState));
+            const variableImageLayerState = {
+                id: 'selectedVariable',
+                type: 'VariableImage' as any,
+                name: selectedWorkspaceResourceId + '.' + selectedVariableName,
+                show: true,
+                resName: selectedWorkspaceResourceId,
+                varName: selectedVariableName,
+                colorMapName: 'jet',
+                displayMin: 0,
+                displayMax: 1000,
+                displayAlpha: false,
+                imageEnhancement: {
+                    alpha: 1.0,
+                    brightness: 1.0,
+                    contrast: 1.0,
+                    hue: 0.0,
+                    saturation: 1.0,
+                    gamma: 1.0,
+                },
+            };
+            dispatch(updateLayer(variableImageLayerState));
+            // TODO: replace this by a the ID of the layer that represents this variable
             dispatch(setSelectedLayerId('selectedVariable'));
         }
     }
@@ -375,7 +397,7 @@ export function setSelectedLayerId(selectedLayerId: string|null) {
     return {type: SET_SELECTED_LAYER_ID, payload: {selectedLayerId}};
 }
 
-export function updateLayer(layerId: string, layerState : VariableImageLayerState) {
-    return {type: UPDATE_LAYER, payload: {layerId, layerState}};
+export function updateLayer(layer: LayerState) {
+    return {type: UPDATE_LAYER, payload: {layer}};
 }
 

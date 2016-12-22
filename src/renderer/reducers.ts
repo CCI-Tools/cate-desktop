@@ -40,6 +40,7 @@ const initialDataState: DataState = {
     layers: [
         {
             id: 'selectedVariable',
+            type: 'VariableImage',
             name: null,
             show: true
         }
@@ -88,13 +89,12 @@ const dataReducer = (state: DataState = initialDataState, action) => {
                 workspace: action.payload.workspace,
             });
         case actions.UPDATE_LAYER: {
-            // TODO
-            // const selectedVariableName = action.payload.selectedVariableName;
-            // if (selectedVariableName) {
-            //     const layers = state.layers.slice();
-            //     layers[0] = updateObject(layers[0], {name: selectedVariableName});
-            //     return updateObject(state, {layers});
-            // }
+            const layer = action.payload.layer;
+            const layers = state.layers.slice();
+            const layerIndex = layers.findIndex(l => l.id === layer.id);
+            // assert layerIndex >= 0
+            layers[layerIndex] = updateObject(layers[layerIndex], layer);
+            return updateObject(state, {layers});
         }
     }
     return state;

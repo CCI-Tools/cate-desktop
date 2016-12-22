@@ -26,15 +26,6 @@ export class CesiumGlobeExample extends React.Component<ICesiumViewProps, ICesiu
         this.state = {pins: pinsWithIcon};
     }
 
-    private handleCheckboxChange(event) {
-        let pins = this.state.pins;
-        let newPins = pins.map((pin) => {
-            let visible = (pin.id === event.target.value) ? event.target.checked : pin.visible;
-            return Object.assign({}, pin, {visible});
-        });
-        this.setState({pins: newPins})
-    }
-
     render() {
         return (
             <div style={{width:"100%", height:"100%"}}>

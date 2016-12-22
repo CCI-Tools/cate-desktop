@@ -11,7 +11,7 @@ BuildModuleUrl.setBaseUrl('./');
  * - ImageryProvider
  * - CesiumViewer
  */
-export type  ImageryProvider = any;
+export type ImageryProvider = any;
 export type ImageryLayer = any;
 export type ImageryLayerCollection = {
     addImageryProvider: (provider: ImageryProvider, index: number) => ImageryLayer;
@@ -33,7 +33,7 @@ export type  CesiumViewer = {
 export interface CesiumPin {
     id: string;
     name: string;
-    visible: boolean;
+    show: boolean;
     image: string;
     state: string;
     latitude: number;
@@ -78,7 +78,7 @@ export interface ImageEnhancement {
 export interface CesiumImageLayer {
     id: string;
     name: string;
-    visible: boolean;
+    show: boolean;
     imageryProvider: (options: any) => ImageryProvider | ImageryProvider;
     imageryProviderOptions?: any;
     imageEnhancement?: ImageEnhancement;
@@ -98,6 +98,10 @@ export interface ICesiumGlobeProps extends IPermanentComponentProps {
     pins?: Array<CesiumPin>;
     imageLayers?: Array<CesiumImageLayer>;
 }
+
+const CENTRAL_EUROPE_BOX = Cesium.Rectangle.fromDegrees(-30, 20, 40, 80);
+Cesium.Camera.DEFAULT_VIEW_RECTANGLE = CENTRAL_EUROPE_BOX;
+Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
 
 /**
  * A component that wraps a Cesium 3D Globe.
@@ -156,22 +160,22 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         let viewer = new Cesium.Viewer(container, cesiumViewerOptions);
 
         // Add the initial points
-        if (this.props.pins) {
-            this.props.pins.forEach((pin) => {
-                //noinspection JSFileReferences
-                let billboard = {
-                    image: pin.image,
-                    width: 30,
-                    height: 30
-                };
-                viewer.entities.add(new Cesium.Entity({
-                    id: pin.id,
-                    show: pin.visible,
-                    position: new Cesium.Cartesian3.fromDegrees(pin.longitude, pin.latitude),
-                    billboard: billboard
-                }));
-            });
-        }
+        const pins = this.props.pins || [];
+        pins.forEach((pin) => {
+            //noinspection JSFileReferences
+            let billboard = {
+                image: pin.image,
+                width: 30,
+                height: 30
+            };
+            viewer.entities.add(new Cesium.Entity({
+                id: pin.id,
+                show: pin.show,
+                position: new Cesium.Cartesian3.fromDegrees(pin.longitude, pin.latitude),
+                billboard: billboard
+            }));
+        });
+
         return viewer;
     }
 
@@ -194,7 +198,6 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         const currentLayers = this.props.imageLayers || [];
         const nextLayers = nextProps.imageLayers || [];
 
-
         // remove layers of currentLayers which are not in nextLayers
         // also, remember layers from Cesium
         const currentImageLayers = new Map();
@@ -203,6 +206,7 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         for (let i = 0; i < currentLayers.length; i++) {
             const currentLayer = currentLayers[i];
             const imageryLayer = this.viewer.imageryLayers.get(i + 1); // +1 because of baseLayer, which is always available
+            // assert !!imageryLayer
             if (!imageryLayer) {
                 throw Error('!imageryLayer');
             }
@@ -245,7 +249,7 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
 
             // update imageryLayer
             imageryLayer.name = nextLayer.name;
-            imageryLayer.show = nextLayer.visible;
+            imageryLayer.show = nextLayer.show;
             imageryLayer.alpha = nextLayer.imageEnhancement.alpha;
             imageryLayer.brightness = nextLayer.imageEnhancement.brightness;
             imageryLayer.contrast = nextLayer.imageEnhancement.contrast;
