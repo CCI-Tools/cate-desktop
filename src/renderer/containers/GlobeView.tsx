@@ -26,7 +26,7 @@ export class GlobeView extends React.Component<IGlobeViewProps, null> {
 
     render() {
         const cesiumImageLayers = [];
-        if (this.props.workspace && this.props.layers) {
+        if (this.props.workspace && this.props.workspace.resources && this.props.layers) {
             for (let layer of this.props.layers) {
                 let cesiumImageLayer;
                 switch (layer.type) {
