@@ -16,7 +16,7 @@ export function main() {
 
     const middleware = applyMiddleware(
         thunkMiddleware,
-        loggerMiddleware({level: 'info', collapsed: true})
+        loggerMiddleware({level: 'info', collapsed: true, diff: true})
     );
 
     const store = createStore(stateReducer, middleware);
