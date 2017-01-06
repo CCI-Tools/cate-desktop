@@ -23,6 +23,11 @@ export class WebAPIServiceMock implements IServiceObject {
             numSteps: 5,
             delayPerStep: 200,
             delay: 100
+        },
+        get_data_sources: {
+            numSteps: 20,
+            delayPerStep: 200,
+            delay: 100
         }
     };
 

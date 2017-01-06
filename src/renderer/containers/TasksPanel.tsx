@@ -1,19 +1,32 @@
 import * as React from "react";
-import {connect} from "react-redux";
+import {connect, Dispatch} from "react-redux";
 import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, TaskState} from "../state";
 import {ProgressBar, Intent} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {JobStatusEnum} from "../webapi/Job";
+import * as actions from "../actions";
+import {Button} from "../../../app/node_modules/@blueprintjs/core/dist/components/button/buttons";
 
 interface ITaskPanelProps {
-    dispatch?: any;
     tasks: {[taskId: string]: TaskState};
+}
+
+interface ITaskPanelDispatch {
+    cancel: any;
 }
 
 function mapStateToProps(state: State): ITaskPanelProps {
     return {
         tasks: state.communication.tasks
+    };
+}
+
+function mapDispatchToProps(dispatch: Dispatch<State>): ITaskPanelDispatch {
+    return {
+        cancel: (jobId) => {
+            dispatch(actions.cancelJob(jobId))
+        }
     };
 }
 
@@ -23,7 +36,7 @@ function mapStateToProps(state: State): ITaskPanelProps {
  *
  * @author Marco Zuehlke
  */
-class TasksPanel extends React.Component<ITaskPanelProps, null> {
+class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, null> {
     constructor(props: ITaskPanelProps) {
         super(props);
     }
@@ -47,21 +60,31 @@ class TasksPanel extends React.Component<ITaskPanelProps, null> {
         }
         const renderItem = (itemIndex: number) => {
             let pm = null;
-            const tastState = taskStateList[itemIndex];
-            if (TasksPanel.hasActiveProgress(tastState)) {
+            const taskState = taskStateList[itemIndex];
+            if (TasksPanel.hasActiveProgress(taskState)) {
+                let cancelButton = null;
+                if (taskState.jobId) {
+                    const cancelJob = () => this.props.cancel(taskState.jobId);
+                    cancelButton = <Button type="button"
+                                           className="pt-intent-primary"
+                                           onClick={cancelJob}
+                                           iconName="pt-icon-cross">Cancel</Button>;
+                }
                 pm = <div style={{padding: '0.5em'}}>
-                    <ProgressBar intent={Intent.SUCCESS} value={tastState.progress.worked / tastState.progress.total}/>
+                    <ProgressBar intent={Intent.SUCCESS} value={taskState.progress.worked / taskState.progress.total}/>
+                    {cancelButton}
                 </div>
             }
             let msg = null;
-            if (tastState.progress && tastState.progress.message) {
-                msg = <div style={{fontSize: '0.8em'}}>{tastState.progress.message}</div>;
+            if (taskState.progress && taskState.progress.message) {
+                msg = <div style={{fontSize: '0.8em'}}>{taskState.progress.message}</div>;
             }
             let error = null;
-            if (tastState.failure && tastState.failure.message) {
-                error = <div style={{color: 'rgb(255, 0, 0)', fontSize: '0.8em'}}>{tastState.failure.message}</div>;
+            if (taskState.failure && taskState.failure.message) {
+                error = <div style={{color: 'rgb(255, 0, 0)', fontSize: '0.8em'}}>{taskState.failure.message}</div>;
             }
-            return (<div>{taskIdList[itemIndex]}{pm}{msg}{error}</div>);
+            const title = taskState.jobTitle || taskIdList[itemIndex];
+            return (<div>{title}{pm}{msg}{error}</div>);
         };
         return (
             <ExpansionPanel icon="pt-icon-play" text="Tasks" isExpanded={true} defaultHeight={400}>
@@ -76,4 +99,4 @@ class TasksPanel extends React.Component<ITaskPanelProps, null> {
 
     }
 }
-export default connect(mapStateToProps)(TasksPanel);
+export default connect(mapStateToProps, mapDispatchToProps)(TasksPanel);

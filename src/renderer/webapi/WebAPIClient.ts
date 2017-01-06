@@ -92,6 +92,13 @@ export interface WebAPIClient {
          transformer?: JobResponseTransformer): JobPromise;
 
     /**
+     * Cancels the job with the given ID.
+     *
+     * @param jobId the job ID
+     */
+    cancel(jobId: number);
+
+    /**
      * Closes this client and the underlying connection, if any.
      */
     close(): void;
@@ -166,6 +173,16 @@ class WebAPIClientImpl implements WebAPIClient {
         return job.invoke(onProgress);
     }
 
+    cancel(jobId: number) {
+        const job = this.activeJobs[jobId];
+        if (!job) {
+            this.warn(`Job with "id"=${jobId} does not exist`);
+            return;
+        } else {
+            job.cancel(); //TODO what to do with the promise ???
+        }
+    }
+
     close(): void {
         this.socket.close();
     }
@@ -213,6 +230,12 @@ class WebAPIClientImpl implements WebAPIClient {
     private warnInvalidJsonRcpMessage(detailsMessage: string, jsonRcpMessage: string) {
         if (this.onWarning) {
             const message = `Received invalid JSON-RCP message from Cate WebAPI. ${detailsMessage}. Ignoring it.\n--------------------\n${jsonRcpMessage}\n--------------------`;
+            this.onWarning({type: 'warning', message});
+        }
+    }
+
+    private warn(message: string) {
+        if (this.onWarning) {
             this.onWarning({type: 'warning', message});
         }
     }

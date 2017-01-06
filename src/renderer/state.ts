@@ -330,6 +330,8 @@ export interface CommunicationState {
 }
 
 export interface TaskState {
+    jobId?: number;
+    jobTitle?: string;
     status: JobStatus;
     failure?: JobFailure;
     progress?: JobProgress;

@@ -42,6 +42,32 @@ export function setControlState(propertyName: string, value: any) {
     return {type: SET_CONTROL_STATE, payload};
 }
 
+export function cancelJob(jobId: number) {
+    return (dispatch, getState) => {
+        const state: State = getState();
+        // TODO jobSubmitted, jobDone ???
+        state.data.appConfig.webAPIClient.cancel(jobId);
+    }
+}
+
+function jobSubmitted(taskId: string, jobTitle: string, jobId: number) {
+    return setTaskState(taskId, {status: JobStatusEnum.SUBMITTED, jobTitle: jobTitle, jobId: jobId});
+}
+
+function jobProgress(taskId: string, progress: JobProgress) {
+    return setTaskState(taskId, {status: JobStatusEnum.IN_PROGRESS, progress});
+}
+
+function jobDone(taskId: string) {
+    return setTaskState(taskId, {status: JobStatusEnum.DONE});
+}
+
+function jobFailed(taskId: string, failure: JobFailure) {
+    return setTaskState(taskId, {
+        status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED,
+        failure
+    });
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data stores / data sources actions
@@ -105,12 +131,17 @@ function updateDataStoresFailed(failure) {
  */
 export function loadDataSources(dataStoreId: string) {
     return (dispatch, getState) => {
-        dispatch(updateDataSourcesSubmitted(dataStoreId));
-        datasetAPI(getState()).getDataSources(dataStoreId, (progress: JobProgress) => {
-            dispatch(updateDataSourcesProgress(dataStoreId, progress));
-        }).then(dataSources => {
+        const taskId = 'dataSources_' + dataStoreId;
+
+        const jobPromise = datasetAPI(getState()).getDataSources(dataStoreId, (progress: JobProgress) => {
+            dispatch(jobProgress(taskId, progress));
+        });
+        const jobId = jobPromise.getJob().getRequest().id;
+        const jobTitle = "Loading Data Sources";
+        dispatch(jobSubmitted(taskId, jobTitle, jobId));
+        jobPromise.then(dataSources => {
             dispatch(updateDataSources(dataStoreId, dataSources));
-            dispatch(updateDataSourcesDone(dataStoreId));
+            dispatch(jobDone(taskId));
             if (dataSources && dataSources.length) {
                 dispatch(setSelectedDataSourceId(dataSources[0].id));
             } else {
@@ -118,36 +149,13 @@ export function loadDataSources(dataStoreId: string) {
             }
         }).catch(failure => {
             console.error(failure);
-            dispatch(updateDataSourcesFailed(dataStoreId, failure));
+            dispatch(jobFailed(taskId, failure));
         });
     }
 }
 
 function updateDataSources(dataStoreId: string, dataSources) {
     return {type: UPDATE_DATA_SOURCES, payload: {dataStoreId, dataSources}};
-}
-
-function updateDataSourcesSubmitted(dataStoreId: string) {
-    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('dataSources_' + dataStoreId, {status: JobStatusEnum.SUBMITTED});
-}
-
-function updateDataSourcesProgress(dataStoreId: string, progress: JobProgress) {
-    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('dataSources_' + dataStoreId, {status: JobStatusEnum.IN_PROGRESS, progress});
-}
-
-function updateDataSourcesDone(dataStoreId: string) {
-    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('dataSources_' + dataStoreId, {status: JobStatusEnum.DONE});
-}
-
-function updateDataSourcesFailed(dataStoreId: string, failure: JobFailure) {
-    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('dataSources_' + dataStoreId, {
-        status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED,
-        failure
-    });
 }
 
 export function setSelectedDataStoreId(selectedDataStoreId: string|null) {
@@ -224,6 +232,7 @@ export function loadWorkspace() {
         } else {
             workspacePromise = workspaceAPI(getState()).newWorkspace();
         }
+        const jobId = workspacePromise.getJob().getRequest().id;
 
         dispatch(setCurrentWorkspaceSubmitted());
         workspacePromise.then((workspace: WorkspaceState) => {
