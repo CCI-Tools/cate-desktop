@@ -63,6 +63,7 @@ function jobDone(taskId: string) {
 }
 
 function jobFailed(taskId: string, failure: JobFailure) {
+    console.error(failure);
     return setTaskState(taskId, {
         status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED,
         failure
@@ -85,42 +86,29 @@ export const SET_DATA_SOURCE_FILTER_EXPR = 'SET_DATA_SOURCE_FILTER_EXPR';
  */
 export function loadDataStores() {
     return (dispatch, getState) => {
-        dispatch(updateDataStoresSubmitted());
-        datasetAPI(getState()).getDataStores().then((dataStores: Array<DataStoreState>) => {
+        const taskId = 'dataStores';
+        const jobTitle = "Loading Data Stores";
+
+        const jobPromise = datasetAPI(getState()).getDataStores();
+        const jobId = jobPromise.getJob().getRequest().id;
+        dispatch(jobSubmitted(taskId, jobTitle, jobId));
+
+        jobPromise.then((dataStores: Array<DataStoreState>) => {
             dispatch(updateDataStores(dataStores));
-            dispatch(updateDataStoresDone());
+            dispatch(jobDone(taskId));
             if (dataStores && dataStores.length) {
                 dispatch(setSelectedDataStoreId(dataStores[0].id));
             } else {
                 dispatch(setSelectedDataStoreId(null));
             }
         }).catch(failure => {
-            console.error(failure);
-            dispatch(updateDataStoresFailed(failure));
+            dispatch(jobFailed(taskId, failure));
         });
     }
 }
 
 function updateDataStores(dataStores: Array<DataStoreState>) {
     return {type: UPDATE_DATA_STORES, payload: {dataStores}};
-}
-
-function updateDataStoresSubmitted() {
-    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('dataStores', {status: JobStatusEnum.SUBMITTED});
-}
-
-function updateDataStoresDone() {
-    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('dataStores', {status: JobStatusEnum.DONE});
-}
-
-function updateDataStoresFailed(failure) {
-    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('dataStores', {
-        status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED,
-        failure
-    });
 }
 
 /**
@@ -132,13 +120,13 @@ function updateDataStoresFailed(failure) {
 export function loadDataSources(dataStoreId: string) {
     return (dispatch, getState) => {
         const taskId = 'dataSources_' + dataStoreId;
+        const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === dataStoreId);
+        const jobTitle = "Loading Data Sources: " + dataStore.name;
 
         const jobPromise = datasetAPI(getState()).getDataSources(dataStoreId, (progress: JobProgress) => {
             dispatch(jobProgress(taskId, progress));
         });
-        const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === dataStoreId);
         const jobId = jobPromise.getJob().getRequest().id;
-        const jobTitle = "Loading Data Sources: " + dataStore.name;
         dispatch(jobSubmitted(taskId, jobTitle, jobId));
         jobPromise.then(dataSources => {
             dispatch(updateDataSources(dataStoreId, dataSources));
@@ -149,7 +137,6 @@ export function loadDataSources(dataStoreId: string) {
                 dispatch(setSelectedDataSourceId(null));
             }
         }).catch(failure => {
-            console.error(failure);
             dispatch(jobFailed(taskId, failure));
         });
     }
@@ -233,44 +220,27 @@ export function loadWorkspace() {
         } else {
             workspacePromise = workspaceAPI(getState()).newWorkspace();
         }
+        const taskId = 'dataStores';
+        const jobTitle = "Loading Workspace";
         const jobId = workspacePromise.getJob().getRequest().id;
+        dispatch(jobSubmitted(taskId, jobTitle, jobId));
 
-        dispatch(setCurrentWorkspaceSubmitted());
         workspacePromise.then((workspace: WorkspaceState) => {
             dispatch(setCurrentWorkspace(workspace));
-            dispatch(setCurrentWorkspaceDone());
+            dispatch(jobDone(taskId));
             if (workspace && workspace.workflow.steps.length > 0) {
                 dispatch(setSelectedWorkspaceResourceId(workspace.workflow.steps[0].id));
             } else {
                 dispatch(setSelectedWorkspaceResourceId(null));
             }
         }).catch(failure => {
-            console.error(failure);
-            dispatch(setCurrentWorkspaceFailed(failure));
+            dispatch(jobFailed(taskId, failure));
         });
     }
 }
 
 export function setCurrentWorkspace(workspace: WorkspaceState) {
     return {type: SET_CURRENT_WORKSPACE, payload: {workspace}};
-}
-
-function setCurrentWorkspaceSubmitted() {
-    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('workspace', {status: JobStatusEnum.SUBMITTED});
-}
-
-function setCurrentWorkspaceDone() {
-    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('workspace', {status: JobStatusEnum.DONE});
-}
-
-function setCurrentWorkspaceFailed(failure: JobFailure) {
-    // TODO update UI according to task state change: data stores panel, status bar, and task list panel
-    return setTaskState('workspace', {
-        status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED,
-        failure
-    });
 }
 
 export function setSelectedWorkspaceResourceId(selectedWorkspaceResourceId: string) {
@@ -305,41 +275,23 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: an
     return (dispatch, getState) => {
         const baseDir = getState().data.workspace.baseDir;
         const taskId = 'workspace_' + resName + '=' + opName;
-        dispatch(workspaceActionSubmitted(taskId));
-        workspaceAPI(getState()).setWorkspaceResource(baseDir, resName, opName, opArgs, (progress: JobProgress) => {
-            dispatch(workspaceActionProgress(taskId, progress));
-        }).then(workspace => {
-            dispatch(workspaceActionDone(taskId));
+
+        const jobTitle = "Loading Workspace";
+        const workspacePromise = workspaceAPI(getState()).setWorkspaceResource(baseDir, resName, opName, opArgs,
+            (progress: JobProgress) => {
+                dispatch(jobProgress(taskId, progress));
+            });
+        const jobId = workspacePromise.getJob().getRequest().id;
+
+        dispatch(jobSubmitted(taskId, jobTitle, jobId));
+        workspacePromise.then(workspace => {
+            dispatch(jobDone(taskId));
             dispatch(setCurrentWorkspace(workspace));
             dispatch(setSelectedWorkspaceResourceId(resName));
         }).catch(failure => {
-            console.error(failure);
-            dispatch(workspaceActionFailed(taskId, failure));
+            dispatch(jobFailed(taskId, failure));
         });
     }
-}
-
-function workspaceActionSubmitted(taskId: string) {
-    // TODO update UI according to task state change: workspace panel, status bar, and task list panel
-    return setTaskState(taskId, {status: JobStatusEnum.SUBMITTED});
-}
-
-function workspaceActionProgress(taskId: string, progress: JobProgress) {
-    // TODO update UI according to task state change: workspace panel, status bar, and task list panel
-    return setTaskState(taskId, {status: JobStatusEnum.IN_PROGRESS, progress});
-}
-
-function workspaceActionDone(taskId: string) {
-    // TODO update UI according to task state change: workspace panel, status bar, and task list panel
-    return setTaskState(taskId, {status: JobStatusEnum.DONE});
-}
-
-function workspaceActionFailed(taskId: string, failure: JobFailure) {
-    // TODO update UI according to task state change: workspace panel, status bar, and task list panel
-    return setTaskState(taskId, {
-        status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED,
-        failure
-    });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
