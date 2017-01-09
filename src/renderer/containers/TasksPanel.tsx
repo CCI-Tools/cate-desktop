@@ -59,21 +59,27 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
             }
         }
         const renderItem = (itemIndex: number) => {
-            let pm = null;
+            let activity = null;
             const taskState = taskStateList[itemIndex];
             if (TasksPanel.hasActiveProgress(taskState)) {
-                let cancelButton = null;
+                const progress = <div style={{padding: '0.5em'}}>
+                    <ProgressBar intent={Intent.SUCCESS}
+                                 value={taskState.progress.worked / taskState.progress.total}/>
+                </div>;
                 if (taskState.jobId) {
                     const cancelJob = () => this.props.cancel(taskState.jobId);
-                    cancelButton = <Button type="button"
-                                           className="pt-intent-primary"
-                                           onClick={cancelJob}
-                                           iconName="pt-icon-cross">Cancel</Button>;
+                    const cancelButton = <Button type="button"
+                                                 className="pt-intent-primary"
+                                                 onClick={cancelJob}
+                                                 iconName="pt-icon-cross">Cancel</Button>;
+
+                    activity = <div>
+                        {progress}
+                        {cancelButton}
+                    </div>
+                } else {
+                    activity =progress;
                 }
-                pm = <div style={{padding: '0.5em'}}>
-                    <ProgressBar intent={Intent.SUCCESS} value={taskState.progress.worked / taskState.progress.total}/>
-                    {cancelButton}
-                </div>
             }
             let msg = null;
             if (taskState.progress && taskState.progress.message) {
@@ -84,7 +90,7 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
                 error = <div style={{color: 'rgb(255, 0, 0)', fontSize: '0.8em'}}>{taskState.failure.message}</div>;
             }
             const title = taskState.jobTitle || taskIdList[itemIndex];
-            return (<div>{title}{pm}{msg}{error}</div>);
+            return (<div>{title}{activity}{msg}{error}</div>);
         };
         return (
             <ExpansionPanel icon="pt-icon-play" text="Tasks" isExpanded={true} defaultHeight={400}>
