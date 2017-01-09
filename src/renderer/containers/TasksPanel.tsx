@@ -13,7 +13,7 @@ interface ITaskPanelProps {
 }
 
 interface ITaskPanelDispatch {
-    cancel: any;
+    cancel: (number) => void;
 }
 
 function mapStateToProps(state: State): ITaskPanelProps {
