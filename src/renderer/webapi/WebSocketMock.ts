@@ -202,7 +202,7 @@ export class WebSocketMock implements WebSocketMin {
                         id: requestMessage.id,
                         error: {
                             code: 999,
-                            message: `cancelled ${requestMessage.method}()`,
+                            message: `Cancelled ${requestMessage.method}()`,
                         }                    });
                 } else {
                     if (i < responseTasks.length) {
