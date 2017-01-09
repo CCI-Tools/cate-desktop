@@ -136,8 +136,9 @@ export function loadDataSources(dataStoreId: string) {
         const jobPromise = datasetAPI(getState()).getDataSources(dataStoreId, (progress: JobProgress) => {
             dispatch(jobProgress(taskId, progress));
         });
+        const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === dataStoreId);
         const jobId = jobPromise.getJob().getRequest().id;
-        const jobTitle = "Loading Data Sources";
+        const jobTitle = "Loading Data Sources: " + dataStore.name;
         dispatch(jobSubmitted(taskId, jobTitle, jobId));
         jobPromise.then(dataSources => {
             dispatch(updateDataSources(dataStoreId, dataSources));
