@@ -39,7 +39,7 @@ export class ParameterEditor extends React.PureComponent<IParameterEditorProps, 
             editor = this.props.valueEditor;
         } else {
             const firstResourceOption = (<option key='__first__' value=''>Select resource...</option>);
-            const otherResourceOptions = this.props.resources.map(resource => (
+            const otherResourceOptions = (this.props.resources || []).map(resource => (
                 <option key={resource.name} value={resource.name}>
                     <LabelWithType label={resource.name} dataType={resource.dataType}/>
                 </option>)
