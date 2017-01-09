@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
-import {State, WorkspaceState} from "../state";
+import {State, WorkspaceState, WorkflowStepState} from "../state";
 import {Tooltip, Tab, Tabs, TabList, TabPanel, Button} from "@blueprintjs/core";
 import {ExpansionPanel} from "../components/ExpansionPanel";
 import * as actions from '../actions'
@@ -101,7 +101,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                     <TabPanel>
                         <ListBox numItems={steps.length}
                                  getItemKey={i => steps[i].id}
-                                 renderItem={i => <span>{steps[i].action}</span>}
+                                 renderItem={i => <span>{this.getStepLabel(steps[i])}</span>}
                                  selection={selectedWorkflowStepId ? [selectedWorkflowStepId] : null}
                                  onSelection={this.handleWorkflowStepIdSelected.bind(this)}/>
                         <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
@@ -127,6 +127,14 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                 {workspacePane}
             </ExpansionPanel>
         );
+    }
+
+    private getStepLabel(step: WorkflowStepState) {
+        if (step["op"]) {
+            return step["op"];
+        } else {
+            return "?";
+        }
     }
 }
 

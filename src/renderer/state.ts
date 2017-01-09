@@ -133,13 +133,16 @@ export interface WorkflowStepState {
      * Step type.
      */
     type: 'operation'|'workflow'|'python-expression'|'python-script'|'executable';
-    /**
-     * The actual action to be performed. Allowed values depend on 'type'.
-     * For example, 'action' is the operation's name, if typoe==="operation".
-     */
-    action: any;
     inputs: Array<WorkflowPortState>;
     outputs: Array<WorkflowPortState>;
+}
+
+export interface WorkflowOperationStepState extends WorkflowStepState {
+    /**
+     * The actual action to be performed. Allowed values depend on 'type'.
+     * For example, 'action' is the operation's name, if type==="operation".
+     */
+    op: string;
 }
 
 /**
