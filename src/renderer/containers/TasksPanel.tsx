@@ -2,11 +2,10 @@ import * as React from "react";
 import {connect, Dispatch} from "react-redux";
 import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, TaskState} from "../state";
-import {ProgressBar, Intent} from "@blueprintjs/core";
+import {Button, ProgressBar, Intent} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {JobStatusEnum} from "../webapi/Job";
 import * as actions from "../actions";
-import {Button} from "../../../app/node_modules/@blueprintjs/core/dist/components/button/buttons";
 
 interface ITaskPanelProps {
     tasks: {[taskId: string]: TaskState};
@@ -79,6 +78,7 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
                 }
 
                 if (taskState.jobId) {
+                    // TODO: place cancel button right to progress bar
                     const cancelJob = () => this.props.cancel(taskState.jobId);
                     const cancelButton = <Button type="button"
                                                  className="pt-intent-primary"
