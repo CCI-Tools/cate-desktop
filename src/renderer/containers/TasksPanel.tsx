@@ -41,7 +41,13 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
         super(props);
     }
 
-    private static hasActiveProgress(tastState: TaskState): boolean {
+    private static isActive(tastState: TaskState): boolean {
+        return tastState.status === JobStatusEnum.NEW ||
+            tastState.status === JobStatusEnum.SUBMITTED ||
+            tastState.status === JobStatusEnum.IN_PROGRESS;
+    }
+
+    private static isMakingProgress(tastState: TaskState): boolean {
         return tastState.status === JobStatusEnum.IN_PROGRESS &&
             tastState.progress &&
             tastState.progress.worked &&
@@ -61,11 +67,17 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
         const renderItem = (itemIndex: number) => {
             let activity = null;
             const taskState = taskStateList[itemIndex];
-            if (TasksPanel.hasActiveProgress(taskState)) {
-                const progress = <div style={{padding: '0.5em'}}>
-                    <ProgressBar intent={Intent.SUCCESS}
-                                 value={taskState.progress.worked / taskState.progress.total}/>
-                </div>;
+            if (TasksPanel.isActive(taskState)) {
+                let progress = null;
+                if (TasksPanel.isMakingProgress(taskState)) {
+                    progress = <div style={{padding: '0.5em'}}>
+                        <ProgressBar intent={Intent.SUCCESS}
+                                     value={taskState.progress.worked / taskState.progress.total}/>
+                    </div>;
+                } else {
+                    progress = <div style={{padding: '0.5em'}}><ProgressBar intent={Intent.SUCCESS}/></div>;
+                }
+
                 if (taskState.jobId) {
                     const cancelJob = () => this.props.cancel(taskState.jobId);
                     const cancelButton = <Button type="button"
@@ -78,7 +90,7 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
                         {cancelButton}
                     </div>
                 } else {
-                    activity =progress;
+                    activity = progress;
                 }
             }
             let msg = null;
