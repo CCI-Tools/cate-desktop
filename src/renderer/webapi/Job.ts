@@ -35,6 +35,8 @@ export type JobResponse = any;
  * Progress info, this is a Cate-specific extension to JSON-RCP.
  */
 export interface JobProgress {
+    /** The ID of the job request. */
+    readonly id?: number;
     readonly label?: string;
     readonly message?: string;
     readonly total?: number;
@@ -45,6 +47,7 @@ export interface JobProgress {
  * JSON-RCP error value.
  */
 export interface JobFailure {
+
     /** A Number that indicates the error type that occurred. */
     readonly code: number;
 

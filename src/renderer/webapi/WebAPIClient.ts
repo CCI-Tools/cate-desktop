@@ -217,6 +217,7 @@ class WebAPIClientImpl implements WebAPIClient {
             job.notifyDone(message.response);
             delete this.activeJobs[message.id];
         } else if (message.progress) {
+            message.progress.id = message.id;
             job.notifyInProgress(message.progress)
         } else if (message.error) {
             job.notifyFailed(message.error);

@@ -84,10 +84,12 @@ describe('WebAPIClient', function () {
             );
             expect(progresses).to.deep.equal([
                 {
+                    id: 0,
                     worked: 30,
                     total: 100
                 },
                 {
+                    id: 0,
                     message: 'warning: low memory',
                     worked: 60,
                     total: 100
