@@ -65,7 +65,7 @@ export class WebSocketMock implements WebSocketMin {
     readonly messageLog: string[] = [];
     readonly serviceObj: any;
     readonly asyncCalls: boolean;
-    readonly canceledJobsIds: Set<number> = new Set();
+    readonly cancelledJobsIds: Set<number> = new Set();
 
     constructor(openDelay = 100, serviceObj?: IServiceObject, asyncCalls?: boolean) {
         if (openDelay) {
@@ -123,7 +123,7 @@ export class WebSocketMock implements WebSocketMin {
 
         if (message.id >= 0 && message.method && message.params) {
             if (message.method === '__cancelJob__') {
-                this.canceledJobsIds.add(message.params['jobId']);
+                this.cancelledJobsIds.add(message.params['jobId']);
             } else {
                 this.callServiceObjectMethod(message);
             }
@@ -196,13 +196,13 @@ export class WebSocketMock implements WebSocketMin {
             responseTasks.forEach(task => task.perform());
         } else {
             function performDeferred(i: number, webSocketMock: WebSocketMock) {
-                if (webSocketMock.canceledJobsIds.has(requestMessage.id)) {
+                if (webSocketMock.cancelledJobsIds.has(requestMessage.id)) {
                     webSocketMock. emulateIncomingMessages({
                         jsonrcp: "2.0",
                         id: requestMessage.id,
                         error: {
                             code: 999,
-                            message: `canceled ${requestMessage.method}()`,
+                            message: `cancelled ${requestMessage.method}()`,
                         }                    });
                 } else {
                     if (i < responseTasks.length) {
