@@ -197,13 +197,14 @@ export class WebSocketMock implements WebSocketMin {
         } else {
             function performDeferred(i: number, webSocketMock: WebSocketMock) {
                 if (webSocketMock.cancelledJobsIds.has(requestMessage.id)) {
-                    webSocketMock. emulateIncomingMessages({
+                    webSocketMock.emulateIncomingMessages({
                         jsonrcp: "2.0",
                         id: requestMessage.id,
                         error: {
                             code: 999,
                             message: `Cancelled ${requestMessage.method}()`,
-                        }                    });
+                        }
+                    });
                 } else {
                     if (i < responseTasks.length) {
                         const task = responseTasks[i];
