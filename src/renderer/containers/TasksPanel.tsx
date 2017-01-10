@@ -21,11 +21,7 @@ function mapStateToProps(state: State): ITaskPanelProps {
     };
 }
 
-function mapDispatchToProps(): ITaskPanelDispatch {
-    return {
-        cancel: actions.cancelJob
-    }
-}
+const mapDispatchToProps = {cancel: actions.cancelJob};
 
 /**
  * The TasksPanel is used display all tasks originating from cate desktop,
