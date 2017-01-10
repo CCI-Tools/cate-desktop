@@ -125,7 +125,7 @@ describe('WebAPIServiceMock', function () {
             workflow: {
                 steps: [
                     {
-                        action: "open_dataset",
+                        op: "open_dataset",
                         id: "resource_34",
                         inputs: [],
                         outputs: [],

@@ -64,7 +64,8 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
                 end_date: `${dialogState.timeRange[1]}`,
                 sync: true
             };
-            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs));
+            const title = "Opening Dataset";
+            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, title));
         }
     }
 

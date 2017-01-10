@@ -328,13 +328,12 @@ export interface VariableImageLayerState extends LayerState {
 export interface CommunicationState {
     webAPIStatus: 'connecting'|'open'|'error'|'closed'|null;
 
-    // A map that stores the current state of any tasks (e.g. data fetch jobs from remote API) given a taskId
-    tasks: {[taskId: string]: TaskState;};
+    // A map that stores the current state of any tasks (e.g. data fetch jobs from remote API) given a jobId
+    tasks: {[jobId: number]: TaskState;};
 }
 
 export interface TaskState {
-    jobId?: number;
-    jobTitle?: string;
+    title?: string;
     status: JobStatus;
     failure?: JobFailure;
     progress?: JobProgress;

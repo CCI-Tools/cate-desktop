@@ -296,11 +296,16 @@ class JobImpl implements Job {
 
         const promise = new Promise<JobResponse>(executor.bind(this));
         promise['getJob'] = this.getJob.bind(this);
+        promise['getJobId'] = this.getJobId.bind(this);
         return promise as JobPromise;
     }
 
     private getJob(): Job {
         return this;
+    }
+
+    private getJobId(): number {
+        return this.getRequest().id;
     }
 
     private setHandlers(onProgress, onResolve, onReject) {

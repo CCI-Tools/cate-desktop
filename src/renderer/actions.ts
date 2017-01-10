@@ -32,8 +32,8 @@ export function setDialogState(dialogId: string, dialogState: any) {
     return {type: SET_DIALOG_STATE, payload: {dialogId, dialogState}};
 }
 
-export function setTaskState(taskId: string, taskState: TaskState) {
-    return {type: SET_TASK_STATE, payload: {taskId, taskState}};
+export function setTaskState(jobId: number, taskState: TaskState) {
+    return {type: SET_TASK_STATE, payload: {jobId, taskState}};
 }
 
 export function setControlState(propertyName: string, value: any) {
@@ -50,21 +50,21 @@ export function cancelJob(jobId: number) {
     }
 }
 
-function jobSubmitted(taskId: string, jobTitle: string, jobId: number) {
-    return setTaskState(taskId, {status: JobStatusEnum.SUBMITTED, jobTitle: jobTitle, jobId: jobId});
+function jobSubmitted(jobId: number, title: string) {
+    return setTaskState(jobId, {status: JobStatusEnum.SUBMITTED, title: title});
 }
 
-function jobProgress(taskId: string, progress: JobProgress) {
-    return setTaskState(taskId, {status: JobStatusEnum.IN_PROGRESS, progress});
+function jobProgress(progress: JobProgress) {
+    return setTaskState(progress.id, {status: JobStatusEnum.IN_PROGRESS, progress});
 }
 
-function jobDone(taskId: string) {
-    return setTaskState(taskId, {status: JobStatusEnum.DONE});
+function jobDone(jobId: number) {
+    return setTaskState(jobId, {status: JobStatusEnum.DONE});
 }
 
-function jobFailed(taskId: string, failure: JobFailure) {
+function jobFailed(jobId: number, failure: JobFailure) {
     console.error(failure);
-    return setTaskState(taskId, {
+    return setTaskState(jobId, {
         status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED,
         failure
     });
@@ -86,23 +86,18 @@ export const SET_DATA_SOURCE_FILTER_EXPR = 'SET_DATA_SOURCE_FILTER_EXPR';
  */
 export function loadDataStores() {
     return (dispatch, getState) => {
-        const taskId = 'dataStores';
-        const jobTitle = "Loading Data Stores";
-
         const jobPromise = datasetAPI(getState()).getDataStores();
-        const jobId = jobPromise.getJob().getRequest().id;
-        dispatch(jobSubmitted(taskId, jobTitle, jobId));
-
+        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Data Stores"));
         jobPromise.then((dataStores: Array<DataStoreState>) => {
             dispatch(updateDataStores(dataStores));
-            dispatch(jobDone(taskId));
+            dispatch(jobDone(jobPromise.getJobId()));
             if (dataStores && dataStores.length) {
                 dispatch(setSelectedDataStoreId(dataStores[0].id));
             } else {
                 dispatch(setSelectedDataStoreId(null));
             }
         }).catch(failure => {
-            dispatch(jobFailed(taskId, failure));
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
         });
     }
 }
@@ -119,25 +114,21 @@ function updateDataStores(dataStores: Array<DataStoreState>) {
  */
 export function loadDataSources(dataStoreId: string) {
     return (dispatch, getState) => {
-        const taskId = 'dataSources_' + dataStoreId;
         const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === dataStoreId);
-        const jobTitle = "Loading Data Sources: " + dataStore.name;
-
         const jobPromise = datasetAPI(getState()).getDataSources(dataStoreId, (progress: JobProgress) => {
-            dispatch(jobProgress(taskId, progress));
+            dispatch(jobProgress(progress));
         });
-        const jobId = jobPromise.getJob().getRequest().id;
-        dispatch(jobSubmitted(taskId, jobTitle, jobId));
+        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Data Sources: " + dataStore.name));
         jobPromise.then(dataSources => {
             dispatch(updateDataSources(dataStoreId, dataSources));
-            dispatch(jobDone(taskId));
+            dispatch(jobDone(jobPromise.getJobId()));
             if (dataSources && dataSources.length) {
                 dispatch(setSelectedDataSourceId(dataSources[0].id));
             } else {
                 dispatch(setSelectedDataSourceId(null));
             }
         }).catch(failure => {
-            dispatch(jobFailed(taskId, failure));
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
         });
     }
 }
@@ -214,27 +205,23 @@ export function loadWorkspace() {
         const openLastWorkspace = getState().session.openLastWorkspace;
         const lastWorkspacePath = getState().session.lastWorkspacePath;
 
-        let workspacePromise;
+        let jobPromise;
         if (openLastWorkspace && lastWorkspacePath) {
-            workspacePromise = workspaceAPI(getState()).openWorkspace(lastWorkspacePath);
+            jobPromise = workspaceAPI(getState()).openWorkspace(lastWorkspacePath);
         } else {
-            workspacePromise = workspaceAPI(getState()).newWorkspace();
+            jobPromise = workspaceAPI(getState()).newWorkspace();
         }
-        const taskId = 'dataStores';
-        const jobTitle = "Loading Workspace";
-        const jobId = workspacePromise.getJob().getRequest().id;
-        dispatch(jobSubmitted(taskId, jobTitle, jobId));
-
-        workspacePromise.then((workspace: WorkspaceState) => {
+        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Workspace"));
+        jobPromise.then((workspace: WorkspaceState) => {
             dispatch(setCurrentWorkspace(workspace));
-            dispatch(jobDone(taskId));
+            dispatch(jobDone(jobPromise.getJobId()));
             if (workspace && workspace.workflow.steps.length > 0) {
                 dispatch(setSelectedWorkspaceResourceId(workspace.workflow.steps[0].id));
             } else {
                 dispatch(setSelectedWorkspaceResourceId(null));
             }
         }).catch(failure => {
-            dispatch(jobFailed(taskId, failure));
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
         });
     }
 }
@@ -271,25 +258,21 @@ function workspaceAPI(state: State): WorkspaceAPI {
     return new WorkspaceAPI(state.data.appConfig.webAPIClient);
 }
 
-export function setWorkspaceResource(resName: string, opName: string, opArgs: any) {
+export function setWorkspaceResource(resName: string, opName: string, opArgs: any, title: string) {
     return (dispatch, getState) => {
         const baseDir = getState().data.workspace.baseDir;
-        const taskId = 'workspace_' + resName + '=' + opName;
 
-        const jobTitle = "Loading Workspace";
-        const workspacePromise = workspaceAPI(getState()).setWorkspaceResource(baseDir, resName, opName, opArgs,
+        const jobPromise = workspaceAPI(getState()).setWorkspaceResource(baseDir, resName, opName, opArgs,
             (progress: JobProgress) => {
-                dispatch(jobProgress(taskId, progress));
+                dispatch(jobProgress(progress));
             });
-        const jobId = workspacePromise.getJob().getRequest().id;
-
-        dispatch(jobSubmitted(taskId, jobTitle, jobId));
-        workspacePromise.then(workspace => {
-            dispatch(jobDone(taskId));
+        dispatch(jobSubmitted(jobPromise.getJobId(), title));
+        jobPromise.then(workspace => {
+            dispatch(jobDone(jobPromise.getJobId()));
             dispatch(setCurrentWorkspace(workspace));
             dispatch(setSelectedWorkspaceResourceId(resName));
         }).catch(failure => {
-            dispatch(jobFailed(taskId, failure));
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
         });
     }
 }

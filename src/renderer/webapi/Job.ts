@@ -10,6 +10,7 @@ export interface Job {
 
 export interface JobPromise extends Promise<JobResponse> {
     getJob(): Job;
+    getJobId(): number;
 }
 
 export type JobStatus = 'NEW'|'SUBMITTED'|'IN_PROGRESS'|'FAILED'|'CANCELLED'|'DONE';

@@ -192,7 +192,7 @@ const communicationReducer = (state: CommunicationState = initialCommunicationSt
             return updateObject(state, {webAPIStatus: action.payload.webAPIStatus});
         case actions.SET_TASK_STATE:
             return updateObject(state, {
-                tasks: updateProperty(state.tasks, action.payload.taskId, action.payload.taskState)
+                tasks: updateProperty(state.tasks, action.payload.jobId, action.payload.taskState)
             });
     }
     return state;

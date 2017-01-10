@@ -102,7 +102,8 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             selectedOperation.inputs.forEach((input, index) => {
                 opArgs[input.name] = dialogState.parameterValues[index];
             });
-            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs));
+            const title = `Performing '${opName}'`;
+            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, title));
         }
     }
 

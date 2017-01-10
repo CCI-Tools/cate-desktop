@@ -8,7 +8,7 @@ import {JobStatusEnum} from "../webapi/Job";
 import * as actions from "../actions";
 
 interface ITaskPanelProps {
-    tasks: {[taskId: string]: TaskState};
+    tasks: {[jobId: number]: TaskState};
 }
 
 interface ITaskPanelDispatch {
@@ -54,18 +54,19 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
     }
 
     render() {
-        const taskIdList: string[] = [];
+        const visibleTaskIds: string[] = [];
         const taskStateList: TaskState[] = [];
         for (let taskId in this.props.tasks) {
             const task = this.props.tasks[taskId];
             if (task.status !== JobStatusEnum.DONE) {
-                taskIdList.push(taskId);
+                visibleTaskIds.push(taskId);
                 taskStateList.push(task);
             }
         }
         const renderItem = (itemIndex: number) => {
-            let activity = null;
             const taskState = taskStateList[itemIndex];
+            const jobId = visibleTaskIds[itemIndex];
+            let activity = null;
             if (TasksPanel.isActive(taskState)) {
                 let progress = null;
                 if (TasksPanel.isMakingProgress(taskState)) {
@@ -77,21 +78,17 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
                     progress = <div style={{padding: '0.5em'}}><ProgressBar intent={Intent.SUCCESS}/></div>;
                 }
 
-                if (taskState.jobId) {
-                    // TODO: place cancel button right to progress bar
-                    const cancelJob = () => this.props.cancel(taskState.jobId);
-                    const cancelButton = <Button type="button"
-                                                 className="pt-intent-primary"
-                                                 onClick={cancelJob}
-                                                 iconName="pt-icon-cross">Cancel</Button>;
+                // TODO: place cancel button right to progress bar
+                const cancelJob = () => this.props.cancel(jobId);
+                const cancelButton = <Button type="button"
+                                             className="pt-intent-primary"
+                                             onClick={cancelJob}
+                                             iconName="pt-icon-cross">Cancel</Button>;
 
-                    activity = <div>
-                        {progress}
-                        {cancelButton}
-                    </div>
-                } else {
-                    activity = progress;
-                }
+                activity = <div>
+                    {progress}
+                    {cancelButton}
+                </div>
             }
             let msg = null;
             if (taskState.progress && taskState.progress.message) {
@@ -101,14 +98,14 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
             if (taskState.failure && taskState.failure.message) {
                 error = <div style={{color: 'rgb(255, 0, 0)', fontSize: '0.8em'}}>{taskState.failure.message}</div>;
             }
-            const title = taskState.jobTitle || taskIdList[itemIndex];
+            const title = taskState.title || visibleTaskIds[itemIndex];
             return (<div>{title}{activity}{msg}{error}</div>);
         };
         return (
             <ExpansionPanel icon="pt-icon-play" text="Tasks" isExpanded={true} defaultHeight={400}>
                 <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
-                    <ListBox numItems={taskIdList.length}
-                             getItemKey={index => taskIdList[index]}
+                    <ListBox numItems={visibleTaskIds.length}
+                             getItemKey={index => visibleTaskIds[index]}
                              renderItem={renderItem}
                              selectionMode={ListBoxSelectionMode.SINGLE}/>
                 </div>
