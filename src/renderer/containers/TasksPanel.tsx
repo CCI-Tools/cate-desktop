@@ -12,7 +12,7 @@ interface ITaskPanelProps {
 }
 
 interface ITaskPanelDispatch {
-    cancel: (number) => void;
+    cancel(number): void;
 }
 
 function mapStateToProps(state: State): ITaskPanelProps {
@@ -21,12 +21,10 @@ function mapStateToProps(state: State): ITaskPanelProps {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<State>): ITaskPanelDispatch {
+function mapDispatchToProps(): ITaskPanelDispatch {
     return {
-        cancel: (jobId) => {
-            dispatch(actions.cancelJob(jobId))
-        }
-    };
+        cancel: actions.cancelJob
+    }
 }
 
 /**
