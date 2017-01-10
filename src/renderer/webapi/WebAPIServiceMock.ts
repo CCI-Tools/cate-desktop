@@ -287,10 +287,10 @@ export class WebAPIServiceMock implements IServiceObject {
         newSteps.push({
             id: resName,
             type: 'operation',
-            action: opName,
+            op: opName,
             inputs,
             outputs,
-        } as State.WorkflowStepState);
+        } as State.WorkflowOperationStepState);
         const newWorkflow = Object.assign({}, oldWorkflow, {steps: newSteps});
 
         const varList = ['var_a', 'var_b', 'var_c', 'var_d'].map(v => v + '_' + resName)  as Array<string>;
