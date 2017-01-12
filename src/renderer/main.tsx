@@ -43,8 +43,10 @@ function connectWebAPIClient(store: Store<State>) {
     //            we urgently need to display some progress indicator beforehand.
     webAPIClient.onOpen = () => {
         store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
-        store.dispatch(actions.loadWorkspace());
+        store.dispatch(actions.loadInitialWorkspace());
         store.dispatch(actions.loadDataStores());
+
+        // This is a test, we keep it as a test an a code template for code that need to run later
         store.dispatch(dispatch => {
             setTimeout(() => {
                 dispatch({type: 'BRING_KINDERSCHOKOLADE', payload: 'Here are 5kg Kinderschokolade'});

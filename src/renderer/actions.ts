@@ -81,6 +81,7 @@ export const SET_DATA_SOURCE_FILTER_EXPR = 'SET_DATA_SOURCE_FILTER_EXPR';
 
 /**
  * Asynchronously load the available Cate data stores.
+ * Called only a single time on app initialisation.
  *
  * @returns {(dispatch:any, getState:any)=>undefined}
  */
@@ -196,11 +197,12 @@ export const SET_SELECTED_WORKSPACE_RESOURCE_ID = 'SET_SELECTED_WORKSPACE_RESOUR
 export const SET_SELECTED_WORKFLOW_STEP_ID = 'SET_SELECTED_WORKFLOW_STEP_ID';
 
 /**
- * Asynchronously load the available Cate data stores.
+ * Asynchronously load the initial workspace.
+ * Called only a single time on app initialisation.
  *
  * @returns {(dispatch:any, getState:any)=>undefined}
  */
-export function loadWorkspace() {
+export function loadInitialWorkspace() {
     return (dispatch, getState) => {
         const openLastWorkspace = getState().session.openLastWorkspace;
         const lastWorkspacePath = getState().session.lastWorkspacePath;
