@@ -30,6 +30,7 @@ export interface DataState {
     operations: Array<OperationState> | null;
     workspace: WorkspaceState | null;
     layers: Array<LayerState>;
+    colorMaps: Array<ColorMapCategoryState> | null;
 }
 
 export interface AppConfigState {
@@ -319,6 +320,22 @@ export interface VariableImageLayerState extends LayerState {
     imageEnhancement?: ImageEnhancementState;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ColorMapState
+
+
+export interface ColorMapState {
+    name: string;
+    imageData: string;
+}
+
+export interface ColorMapCategoryState {
+    name: string;
+    description: string;
+    colorMaps: Array<ColorMapState>;
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CommunicationState
 
@@ -370,6 +387,9 @@ export interface ControlState {
     // LayersPanel
     selectedLayerId: string|null;
     showLayerDetails: boolean;
+
+    // ColorBarsPanel
+    selectedColorMapName: string|null;
 
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState;};

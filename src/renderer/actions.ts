@@ -1,10 +1,11 @@
 import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState, VariableImageLayerState,
-    LayerState
+    LayerState, ColorMapCategoryState
 } from "./state";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
 import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
+import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 
 // TODO write tests for actions
 
@@ -346,5 +347,42 @@ export function setSelectedLayerId(selectedLayerId: string|null) {
 
 export function updateLayer(layer: LayerState) {
     return {type: UPDATE_LAYER, payload: {layer}};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ColorMap actions
+
+export const UPDATE_COLOR_MAPS = 'UPDATE_COLOR_MAPS';
+export const SET_SELECTED_COLOR_MAP_NAME = 'SET_SELECTED_COLOR_MAP_NAME';
+
+
+function colorMapsAPI(state: State): ColorMapsAPI {
+    return new ColorMapsAPI(state.data.appConfig.webAPIClient);
+}
+
+/**
+ * Asynchronously load the initial workspace.
+ * Called only a single time on app initialisation.
+ *
+ * @returns {(dispatch:any, getState:any)=>undefined}
+ */
+export function loadColorMaps() {
+    return (dispatch, getState: () => State) => {
+        let jobPromise = colorMapsAPI(getState()).getColorMaps();
+        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Color Maps"));
+        jobPromise.then((colorMaps: Array<ColorMapCategoryState>) => {
+            dispatch(updateColorMaps(colorMaps));
+        }).catch(failure => {
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
+        });
+    }
+}
+
+function updateColorMaps(colorMaps: Array<ColorMapCategoryState>) {
+    return {type: UPDATE_COLOR_MAPS, payload: {colorMaps}};
+}
+
+function setSelectedColorMapNameImpl(selectedColorMapName: string|null) {
+    return {type: SET_SELECTED_COLOR_MAP_NAME, payload: {selectedColorMapName}};
 }
 

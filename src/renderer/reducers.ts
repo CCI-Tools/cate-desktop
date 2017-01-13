@@ -44,7 +44,8 @@ const initialDataState: DataState = {
             name: null,
             show: true
         }
-    ]
+    ],
+    colorMaps: null
 };
 
 const dataReducer = (state: DataState = initialDataState, action) => {
@@ -96,6 +97,9 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             layers[layerIndex] = updateObject(layers[layerIndex], layer);
             return updateObject(state, {layers});
         }
+        case actions.UPDATE_COLOR_MAPS: {
+            return updateObject(state, action.payload);
+        }
     }
     return state;
 };
@@ -116,6 +120,7 @@ const initialControlState: ControlState = {
     selectedWorkflowStepId: null,
     selectedWorkspaceResourceId: null,
     selectedVariableName: null,
+    selectedColorMapName: null,
     showVariableDetails: true,
     selectedLayerId: null,
     showLayerDetails: true,
@@ -146,6 +151,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         case actions.SET_SELECTED_WORKSPACE_RESOURCE_ID:
         case actions.SET_SELECTED_WORKFLOW_STEP_ID:
         case actions.SET_SELECTED_LAYER_ID:
+        case actions.SET_SELECTED_COLOR_MAP_NAME:
         case actions.SET_CONTROL_STATE:
             return updateObject(state, action.payload);
         case actions.SET_DIALOG_STATE:
