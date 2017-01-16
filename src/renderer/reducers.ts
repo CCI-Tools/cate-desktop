@@ -45,6 +45,7 @@ const initialDataState: DataState = {
             show: true
         }
     ],
+    savedLayers: {},
     colorMaps: null
 };
 
@@ -93,12 +94,21 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             const layer = action.payload.layer;
             const layers = state.layers.slice();
             const layerIndex = layers.findIndex(l => l.id === layer.id);
-            // assert layerIndex >= 0
+            if (layerIndex == -1) {
+                console.warn(`WARNING: can't find layer with ID ${layer.id}`);
+                return state;
+            }
             layers[layerIndex] = updateObject(layers[layerIndex], layer);
             return updateObject(state, {layers});
         }
         case actions.UPDATE_COLOR_MAPS: {
             return updateObject(state, action.payload);
+        }
+        case actions.SAVE_LAYER: {
+            const key = action.payload.key;
+            const layer = action.payload.layer;
+            const savedLayers = updateObject(state.savedLayers, {[key]: updateObject(layer, {})});
+            return updateObject(state, {savedLayers});
         }
     }
     return state;

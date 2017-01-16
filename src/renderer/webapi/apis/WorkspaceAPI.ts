@@ -49,4 +49,8 @@ export class WorkspaceAPI {
         return this.webAPIClient.call('set_workspace_resource',  [baseDir, resName, opName, opArgs],
             onProgress, responseToWorkspace);
     }
+
+    getWorkspaceVariableStatistics(baseDir: string, resName: string, varName: string, varIndex: Array<number>|null): JobPromise {
+        return this.webAPIClient.call('get_workspace_variable_statistics',  [baseDir, resName, varName, varIndex]);
+    }
 }

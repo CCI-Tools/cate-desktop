@@ -1,6 +1,6 @@
 import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState, VariableImageLayerState,
-    LayerState, ColorMapCategoryState
+    LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, VariableState
 } from "./state";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
@@ -11,6 +11,13 @@ import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 
 
 const CANCELLED_CODE = 999;
+
+function assert(condition: any, message: string) {
+    if (!condition) {
+        throw new Error(`assertion failed: ${message}`);
+    }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application-level actions
@@ -280,6 +287,25 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: an
     }
 }
 
+// TODO (nf): use this in LAYERS panel to get real min/max of selected layer
+export function getWorkspaceVariableStatistics(resName: string,
+                                               varName: string,
+                                               index: Array<number>|null,
+                                               action: (statistics: ImageStatisticsState) => void) {
+    return (dispatch, getState) => {
+        const baseDir = getState().data.workspace.baseDir;
+
+        const jobPromise = workspaceAPI(getState()).getWorkspaceVariableStatistics(baseDir, resName, varName, index);
+        dispatch(jobSubmitted(jobPromise.getJobId(), `Computing statistics for variable "${varName}"`));
+        jobPromise.then(statistics => {
+            dispatch(jobDone(jobPromise.getJobId()));
+            dispatch(action(statistics));
+        }).catch(failure => {
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
+        });
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Variable actions
 
@@ -288,44 +314,66 @@ export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
 export function setSelectedVariableName(selectedVariableName: string|null) {
     return (dispatch, getState) => {
         dispatch(setSelectedVariableNameImpl(selectedVariableName));
-        const selectedWorkspaceResourceId = getState().control.selectedWorkspaceResourceId;
-        // TODO: get default value from some mapping varName => {colorMapName, displayMin?, displayMax?, displayAlpha?}
-        // TODO: get actual selected variable so we can test if this variable is displayable as imagery layer
-        //       get additional variable info from WebAPI:
-        //       class VariableInterpretation {
-        //          spaceXDim?: number;
-        //          spaceYDim?: number;
-        //          timeDim?: number;
-        //          layerDim?: number;
-        //          colorMapName?: string;
-        //          displayMin?: number;
-        //          displayMax?: number;
-        //          displayAlpha:? boolean;
-        //       }
-        if (selectedWorkspaceResourceId && selectedVariableName) {
-            const variableImageLayerState = {
-                id: 'selectedVariable',
+        const selectedResourceName = getState().control.selectedWorkspaceResourceId;
+        if (selectedResourceName && selectedVariableName) {
+            const resource = getState().data.workspace.resources.find((resource: ResourceState) => resource.name == selectedResourceName);
+            assert(resource, selectedResourceName);
+            assert(resource.variables, selectedResourceName);
+
+            const variable = resource.variables.find((variable: VariableState) => variable.name == selectedVariableName);
+            assert(variable, selectedVariableName);
+
+            // We need at least 2 dimensions
+            if (!variable.ndim || variable.ndim < 2) {
+                return;
+            }
+
+            const lastSelectedVariableLayer = getState().data.layers.find((layer: LayerState) => layer.id == SELECTED_VARIABLE_LAYER_ID);
+            const restoredLayer = getState().data.savedLayers[selectedVariableName];
+
+            let layerDisplayProperties = {};
+            let varIndex;
+            if (restoredLayer) {
+                varIndex = restoredLayer.varIndex;
+                layerDisplayProperties = null;
+            } else {
+                varIndex = null;
+                layerDisplayProperties = {
+                    colorMapName: 'jet',
+                    displayMin: 0.,
+                    displayMax: 1.,
+                    alphaBlending: false,
+                    imageEnhancement: {
+                        alpha: 1.0,
+                        brightness: 1.0,
+                        contrast: 1.0,
+                        hue: 0.0,
+                        saturation: 1.0,
+                        gamma: 1.0,
+                    },
+                };
+            }
+
+            if (!varIndex || varIndex.length != variable.ndim - 2) {
+                varIndex = Array(variable.ndim - 2).fill(0);
+            }
+
+            const currentSelectedVariableLayer = Object.assign({}, restoredLayer, {
+                id: SELECTED_VARIABLE_LAYER_ID,
                 type: 'VariableImage' as any,
-                name: selectedWorkspaceResourceId + '.' + selectedVariableName,
+                name: selectedResourceName + '.' + selectedVariableName,
                 show: true,
-                resName: selectedWorkspaceResourceId,
+                resName: selectedResourceName,
                 varName: selectedVariableName,
-                colorMapName: 'jet',
-                displayMin: 0,
-                displayMax: 1000,
-                displayAlpha: false,
-                imageEnhancement: {
-                    alpha: 1.0,
-                    brightness: 1.0,
-                    contrast: 1.0,
-                    hue: 0.0,
-                    saturation: 1.0,
-                    gamma: 1.0,
-                },
-            };
-            dispatch(updateLayer(variableImageLayerState));
-            // TODO: replace this by a the ID of the layer that represents this variable
-            dispatch(setSelectedLayerId('selectedVariable'));
+                varIndex,
+            });
+
+            if (lastSelectedVariableLayer) {
+                dispatch(saveLayer(selectedVariableName, lastSelectedVariableLayer));
+            }
+
+            dispatch(updateLayer(currentSelectedVariableLayer));
+            dispatch(setSelectedLayerId(currentSelectedVariableLayer.id));
         }
     }
 }
@@ -340,6 +388,9 @@ function setSelectedVariableNameImpl(selectedVariableName: string|null) {
 
 export const SET_SELECTED_LAYER_ID = 'SET_SELECTED_LAYER_ID';
 export const UPDATE_LAYER = 'UPDATE_LAYER';
+export const SAVE_LAYER = 'SAVE_LAYER';
+
+export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 
 export function setSelectedLayerId(selectedLayerId: string|null) {
     return {type: SET_SELECTED_LAYER_ID, payload: {selectedLayerId}};
@@ -348,6 +399,27 @@ export function setSelectedLayerId(selectedLayerId: string|null) {
 export function updateLayer(layer: LayerState) {
     return {type: UPDATE_LAYER, payload: {layer}};
 }
+
+export function updateLayerVisibility(layer: LayerState, show: boolean) {
+    updateLayer(Object.assign({}, layer, {show}));
+}
+
+export function updateLayerImageEnhancement(layer: ImageLayerState, name: string, value: number) {
+    const imageEnhancement = Object.assign({}, layer.imageEnhancement, {[name]: value});
+    const changedLayer = Object.assign({}, layer, {imageEnhancement});
+    return updateLayer(changedLayer);
+}
+
+export function updateLayerImageStatistics(layer: VariableImageLayerState, newStatistics: any) {
+    const statistics = Object.assign({}, layer.statistics, newStatistics);
+    const changedLayer = Object.assign({}, layer, {statistics});
+    return updateLayer(changedLayer);
+}
+
+export function saveLayer(variableName: string, layer: VariableImageLayerState) {
+    return {type: SAVE_LAYER, payload: {variableName, layer}};
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ColorMap actions

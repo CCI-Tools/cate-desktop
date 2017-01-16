@@ -11,6 +11,7 @@ interface IGlobeViewProps {
 }
 
 function mapStateToProps(state: State): IGlobeViewProps {
+    console.log("GlobeView::mapStateToProps called");
     return {
         workspace: state.data.workspace,
         layers: state.data.layers,
@@ -94,7 +95,8 @@ export class GlobeView extends React.Component<IGlobeViewProps, null> {
     private createVariableImageryProviderUrl(baseDir: string, layer: VariableImageLayerState): string {
         return this.props.baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/{z}/{y}/{x}.png?`
             + `&var=${encodeURIComponent(layer.varName)}`
-            + `&cmap=${encodeURIComponent(layer.colorMapName) + (layer.displayAlpha ? '_alpha' : '')}`
+            + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
+            + `&cmap=${encodeURIComponent(layer.colorMapName) + (layer.alphaBlending ? '_alpha' : '')}`
             + `&min=${encodeURIComponent(layer.displayMin + '')}`
             + `&max=${encodeURIComponent(layer.displayMax + '')}`;
     }

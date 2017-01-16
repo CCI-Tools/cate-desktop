@@ -1,13 +1,17 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {ExpansionPanel} from '../components/ExpansionPanel';
-import {State, WorkspaceState, LayerState} from "../state";
-import {Button, Checkbox} from "@blueprintjs/core";
+import {
+    State, WorkspaceState, LayerState, ColorMapCategoryState, ColorMapState, ImageLayerState,
+    VariableImageLayerState
+} from "../state";
+import {Button, Checkbox, Slider, Popover, Position, PopoverInteractionKind, Switch} from "@blueprintjs/core";
 import FormEvent = React.FormEvent;
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
 import * as actions from "../actions";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
+
 
 interface ILayersPanelProps {
     dispatch?: Dispatch<State>;
@@ -15,7 +19,9 @@ interface ILayersPanelProps {
     workspace: WorkspaceState;
     layers: Array<LayerState>;
     selectedLayerId: string|null;
+    selectedLayer: LayerState|null;
     showLayerDetails: boolean;
+    colorMaps: Array<ColorMapCategoryState>;
 }
 
 
@@ -25,9 +31,16 @@ function mapStateToProps(state: State): ILayersPanelProps {
         workspace: state.data.workspace,
         layers: state.data.layers,
         selectedLayerId: state.control.selectedLayerId,
+        selectedLayer: getSelectedLayer(state.data.layers, state.control.selectedLayerId),
         showLayerDetails: state.control.showLayerDetails,
+        colorMaps: state.data.colorMaps,
     };
 }
+
+function getSelectedLayer(layers: Array<LayerState>|null, selectedLayerId: string|null): LayerState|null {
+    return (layers || []).find(layer => layer.id === selectedLayerId);
+}
+
 
 /**
  * The LayersPanel is used to select and browse available layers.
@@ -36,26 +49,46 @@ function mapStateToProps(state: State): ILayersPanelProps {
  */
 class LayersPanel extends React.Component<ILayersPanelProps, any> {
 
+    componentDidMount() {
+        if (!this.props.colorMaps) {
+            this.props.dispatch(actions.loadColorMaps());
+        }
+    }
+
     private handleShowDetailsChanged(value: boolean) {
         this.props.dispatch(actions.setControlState('showLayerDetails', value));
     }
 
     //noinspection JSMethodCanBeStatic
     private handleAddLayerButtonClicked() {
+        // TODO
         console.log('handleAddLayerButtonClicked');
     }
 
     //noinspection JSMethodCanBeStatic
     private handleRemoveLayerButtonClicked() {
+        // TODO
         console.log('handleAddLayerButtonClicked');
     }
 
     render() {
-        const layersList = this.renderLayersList();
-        const layerDetailsCard = this.renderOperationDetailsCard();
+        return (
+            <ExpansionPanel icon="pt-icon-layers" text="Layers" isExpanded={true} defaultHeight={300}>
+                <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
+                                         onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
+                                         isSplitPanel={true}
+                                         initialContentHeight={200}
+                                         actionComponent={this.renderActionButtonRow()}>
+                    {this.renderLayersList()}
+                    {this.renderLayerDetailsCard()}
+                </ContentWithDetailsPanel>
+            </ExpansionPanel>
+        );
+    }
 
-        const selectedLayer = this.getSelectedLayer();
-        const actionComponent = (
+    private renderActionButtonRow() {
+        const selectedLayer = this.props.selectedLayer;
+        return (
             <div style={{display: 'inline', padding: '0.2em'}}>
                 <Button className="pt-intent-primary"
                         style={{marginRight: '0.1em'}}
@@ -74,19 +107,6 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
                         iconName="pt-icon-arrow-down"/>
             </div>
         );
-
-        return (
-            <ExpansionPanel icon="pt-icon-layers" text="Layers" isExpanded={true} defaultHeight={300}>
-                <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
-                                         onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
-                                         isSplitPanel={true}
-                                         initialContentHeight={200}
-                                         actionComponent={actionComponent}>
-                    {layersList}
-                    {layerDetailsCard}
-                </ContentWithDetailsPanel>
-            </ExpansionPanel>
-        );
     }
 
     private renderLayersList() {
@@ -95,48 +115,42 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
             return null;
         }
 
-        const selectedLayerId = this.props.selectedLayerId;
+        function handleChangedLayerVisibility(dispatch, itemIndex: number, show: boolean) {
+            dispatch(actions.updateLayerVisibility(layers[itemIndex], show));
+        }
 
-        const handleLayerVisibilityChanged = (itemIndex: number) => {
-            const layer: LayerState = layers[itemIndex];
+        function handleChangedLayerSelection(dispatch, selectedLayerId: string|null) {
+            dispatch(actions.setSelectedLayerId(selectedLayerId));
+        }
 
-        };
-
-        // todo (nf): for layer types use icons:
-        // - shapefile: pt-icon-polygon-filter
-        // - image/raster: pt-icon-grid
         const renderItem = (itemIndex: number) => {
-            const layer: LayerState = layers[itemIndex];
+            const layer = layers[itemIndex];
             return (
-                <Checkbox checked={layer.show}
-                          onChange={() => handleLayerVisibilityChanged(itemIndex)}>
-                    <span className="pt-icon-grid"/><span>{layer.name}</span>
-                </Checkbox>
+                <span>
+                    <Checkbox checked={layer.show}
+                              onChange={(ev: FormEvent<HTMLInputElement>) => {
+                                  handleChangedLayerVisibility(this.props.dispatch, itemIndex, ev.currentTarget.checked);
+                                  ev.stopPropagation();
+                              }}/>
+                    <span className="pt-icon-layout-grid" style={{marginRight: 4}}/>
+                    <span>{layer.name}</span>
+                </span>
             );
-        };
-
-        const handleLayerSelection = (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => {
-            if (newSelection.length > 0) {
-                this.props.dispatch(actions.setSelectedLayerId(newSelection[0] as string));
-            } else {
-                this.props.dispatch(actions.setSelectedLayerId(null));
-            }
         };
 
         return (
             <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
                 <ListBox numItems={layers.length}
-                         getItemKey={index => layers[index].name}
+                         getItemKey={index => layers[index].id}
                          renderItem={renderItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
-                         selection={selectedLayerId ? [selectedLayerId] : []}
-                         onSelection={handleLayerSelection.bind(this)}/>
+                         selection={this.props.selectedLayerId ? [this.props.selectedLayerId] : []}
+                         onSelection={(oldSelection, newSelection) => handleChangedLayerSelection(this.props.dispatch, newSelection.length ? newSelection[0] as string : null)}/>
             </div>
         );
     }
 
-    //noinspection JSMethodCanBeStatic
-    private renderOperationDetailsCard() {
+    private renderLayerDetailsCard() {
         const layers = this.props.layers;
         if (!layers || !layers.length) {
             return (
@@ -148,8 +162,7 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
                 </Card>);
         }
 
-        const layer = this.getSelectedLayer();
-        if (!layer) {
+        if (!this.props.selectedLayer) {
             return (
                 <Card>
                     <p><strong>No layer selected.</strong></p>
@@ -161,17 +174,190 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
         }
 
         return (
-            <Card>
-                <h5>{layer.name}</h5>
-                <p>TODO!</p>
-            </Card>
+            <table>
+                <tbody>
+                {this.renderFormDisplayMinMax()}
+                {this.renderFormDisplayColorBar()}
+                {this.renderFormDisplayAlphaBlend()}
+                {this.renderFormImageEnhancement('alpha', 'Alpha', 0., 1.)}
+                {this.renderFormImageEnhancement('brightness', 'Brightness', 0., 2.)}
+                {this.renderFormImageEnhancement('contrast', 'Contrast', 0., 2.)}
+                {this.renderFormImageEnhancement('hue', 'Hue', 0., 1.)}
+                {this.renderFormImageEnhancement('saturation', 'Saturation', 0., 2.)}
+                {this.renderFormImageEnhancement('gamma', 'Gamma', 1., 2.)}
+                </tbody>
+            </table>
         );
     }
 
-    private getSelectedLayer() {
-        const layers = this.props.layers;
-        const selectedLayerId = this.props.selectedLayerId;
-        return (layers || []).find(layer => layer.id === selectedLayerId);
+    private renderFormDisplayColorBar() {
+        const imageLayer = this.getSelectedVariableImageLayer();
+        if (!imageLayer) {
+            return null;
+        }
+
+        function handleChangedColorMapName(dispatch, colorMapName: string) {
+            dispatch(actions.updateLayer(Object.assign({}, imageLayer, {colorMapName})));
+        }
+
+        const selectedColorMapName = imageLayer.colorMapName;
+
+        let comp = null;
+        if (this.props.colorMaps) {
+            let selectedColorMapImage = null;
+            const colorMapNames = [];
+            const colorMapImages = [];
+            for (let cat of this.props.colorMaps) {
+                for (let cm of cat.colorMaps) {
+                    const colorMapName = cm.name;
+                    const colorMapImage = (
+                        <img src={`data:image/png;base64,${cm.imageData}`}
+                             alt={colorMapName}
+                             width="100%"
+                             height="14px"/>
+                    );
+                    colorMapNames.push(colorMapName);
+                    colorMapImages.push(colorMapImage);
+                    if (selectedColorMapName === colorMapName) {
+                        selectedColorMapImage = colorMapImage;
+                    }
+                }
+            }
+
+            let popoverContent = <ListBox numItems={colorMapNames.length}
+                                          getItemKey={(i) => colorMapNames[i]}
+                                          renderItem={(i) => colorMapImages[i]}
+                                          selectionMode={ListBoxSelectionMode.SINGLE}
+                                          selection={selectedColorMapName ? [selectedColorMapName] : null}
+                                          onSelection={(oldSelection, newSelection) => {
+                                              if (newSelection.length > 0) {
+                                                  handleChangedColorMapName(this.props.dispatch, newSelection[0] as string);
+                                              }
+                                          }}/>;
+
+            comp = (
+                <Popover content={popoverContent}
+                         interactionKind={PopoverInteractionKind.CLICK}
+                         popoverClassName="pt-popover-content-sizing cate-color-bars-popover"
+                         position={Position.LEFT}>
+                    <Button>{selectedColorMapImage ? selectedColorMapImage : "Select Color Bar"}</Button>
+                </Popover>
+            );
+        } else {
+            comp = <p>{selectedColorMapName ? selectedColorMapName : "No color bars available"}</p>;
+        }
+
+        return (
+            <tr key="colorMapName">
+                <td>Color bar</td>
+                <td style={{width: "100%"}}>{comp}</td>
+            </tr>
+        );
+    }
+
+    private renderFormDisplayMinMax() {
+        const imageLayer = this.getSelectedVariableImageLayer();
+        if (!imageLayer) {
+            return null;
+        }
+
+        function handleChangedDisplayMin(dispatch, displayMinText: string) {
+            let displayMin;
+            try {
+                displayMin = parseFloat(displayMinText);
+            } catch (e) {
+                // Do not change
+                return;
+            }
+            dispatch(actions.updateLayer(Object.assign({}, imageLayer, {displayMin})));
+        }
+
+        function handleChangedDisplayMax(dispatch, displayMaxText: string) {
+            let displayMax;
+            try {
+                displayMax = parseFloat(displayMaxText);
+            } catch (e) {
+                // Do not change
+                return;
+            }
+            dispatch(actions.updateLayer(Object.assign({}, imageLayer, {displayMax})));
+        }
+
+        return (
+            <tr key="displayMinMax">
+                <td>Value range</td>
+                <td style={{width: "100%"}}>
+                    <input className="pt-input" type="text" style={{width: "6em", textAlign: "right"}}
+                           value={imageLayer.displayMin}
+                           onChange={(ev: any) => handleChangedDisplayMin(this.props.dispatch, ev.target.value)} placeholder="From"/>
+                    <input className="pt-input" type="text" style={{width: "6em", textAlign: "right"}}
+                           value={imageLayer.displayMax}
+                           onChange={(ev: any) => handleChangedDisplayMax(this.props.dispatch, ev.target.value)} placeholder="To"/>
+                </td>
+            </tr>
+        );
+    }
+
+    private renderFormDisplayAlphaBlend() {
+        const imageLayer = this.getSelectedVariableImageLayer();
+        if (!imageLayer) {
+            return null;
+        }
+        function handleChangedDisplayAlphaBlend(dispatch, displayAlphaBlend: boolean) {
+            dispatch(actions.updateLayer(Object.assign({}, imageLayer, {displayAlphaBlend})));
+        }
+
+        return (
+            <tr key="displayAlphaBlend">
+                <td colSpan={2}>
+                    <Switch label="Color bar alpha blending"
+                            checked={imageLayer.alphaBlending}
+                            onChange={(ev: any) => handleChangedDisplayAlphaBlend(this.props.dispatch, ev.target.checked)}/>
+                </td>
+            </tr>
+        );
+    }
+
+    private renderFormImageEnhancement(key: string, label: string, min: number, max: number) {
+        const imageLayer = this.getSelectedImageLayer();
+        if (!imageLayer) {
+            return null;
+        }
+
+        function handleChangedImageEnhancement(dispatch, name: string, value: number) {
+            dispatch(actions.updateLayerImageEnhancement(imageLayer, name, value));
+        }
+
+        return (
+            <tr key={key}>
+                <td>{label}</td>
+                <td style={{width: "100%"}}>
+                    <Slider renderLabel={false}
+                            min={min}
+                            max={max}
+                            stepSize={(max - min) / 20.}
+                            value={imageLayer.imageEnhancement[key]}
+                            onChange={(value: number) => handleChangedImageEnhancement(this.props.dispatch, key, value)}/>
+                </td>
+            </tr>
+        );
+    }
+
+
+    private getSelectedImageLayer(): ImageLayerState|null {
+        if (this.props.selectedLayer
+            && (this.props.selectedLayer.type === 'Image' || this.props.selectedLayer.type === 'VariableImage')) {
+            return this.props.selectedLayer as ImageLayerState;
+        }
+        return null;
+    }
+
+    private getSelectedVariableImageLayer(): VariableImageLayerState|null {
+        if (this.props.selectedLayer
+            && this.props.selectedLayer.type === 'VariableImage') {
+            return this.props.selectedLayer as VariableImageLayerState;
+        }
+        return null;
     }
 }
 

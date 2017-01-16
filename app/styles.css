@@ -90,6 +90,11 @@ input, button, textarea, :focus {
     max-height: 100%;
 }
 
+.cate-color-bars-popover  .pt-popover-content {
+    max-height: 20em;
+    overflow-y: auto;
+}
+
 
 .cate-list-box {
     list-style-type: none;

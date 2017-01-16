@@ -5,7 +5,20 @@ import {ListBox} from "../components/ListBox";
 import {State, ColorMapCategoryState, ColorMapState} from "../state";
 import * as actions from "../actions";
 import {ExpansionPanel} from "../components/ExpansionPanel";
+import {Tooltip} from "@blueprintjs/core";
 //import {Tooltip} from '@blueprintjs/core';
+
+
+function findColorMap(colorMaps: Array<ColorMapCategoryState>, name: string): ColorMapState {
+    for (let category of colorMaps) {
+        const colorMap = category.colorMaps.find(cm => cm.name === name);
+        if (colorMap) {
+            return colorMap;
+        }
+    }
+    return null;
+}
+
 
 interface IColorBarsPanelProps {
     dispatch?: Dispatch<State>;
@@ -35,13 +48,7 @@ class ColorBarsPanel extends React.Component<IColorBarsPanelProps, any> {
     }
 
     private getSelectedColorMap(): ColorMapState {
-        for (let category of this.props.colorMaps) {
-            const colorMap = category.colorMaps.find(cm => cm.name === this.props.selectedColorMapName);
-            if (colorMap) {
-                return colorMap;
-            }
-        }
-        return null;
+        return findColorMap(this.props.colorMaps, this.props.selectedColorMapName);
     }
 
     render() {
@@ -53,21 +60,26 @@ class ColorBarsPanel extends React.Component<IColorBarsPanelProps, any> {
                 const imageData = colorMap.imageData;
                 return (
                     // Waiting for @blueprint/core issue #478
-                    //<Tooltip content={colorMap.name}>
+                    <Tooltip content={colorMap.name}>
                         <img src={`data:image/png;base64,${colorMap.imageData}`}
                              alt={colorMap.name}
                              width="100%"
                              height="16px"/>
-                    //</Tooltip>
+                    </Tooltip>
                 );
             };
 
+            let k = 0;
             for (let category of this.props.colorMaps) {
                 const colorMaps = category.colorMaps;
                 // Waiting for @blueprint/core issue #478
                 //children.push(<Tooltip content={category.description}><h5>{category.name}</h5></Tooltip>);
-                children.push(<p style={{marginTop: "0.5em", marginBottom: "0.5em"}}>{category.name}</p>);
-                children.push(<ListBox numItems={colorMaps.length}
+                children.push(
+                    <p key={k++} style={{marginTop: "0.5em", marginBottom: "0.5em"}}>
+                        {category.name}
+                    </p>);
+                children.push(<ListBox key={k++}
+                                       numItems={colorMaps.length}
                                        getItemKey={i => category.colorMaps[i].name}
                                        renderItem={i => renderItem(colorMaps[i])}
                                        itemStyle={{lineHeight: 0}}
