@@ -52,8 +52,6 @@ class ColorBarsPanel extends React.Component<IColorBarsPanelProps, any> {
     }
 
     render() {
-        console.log(this.props.colorMaps);
-
         let children: Array<JSX.Element> = [];
         if (this.props.colorMaps) {
             const renderItem = (colorMap: ColorMapState) => {
