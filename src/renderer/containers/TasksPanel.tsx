@@ -12,7 +12,7 @@ interface ITaskPanelProps {
 }
 
 interface ITaskPanelDispatch {
-    cancel(number): void;
+    cancelJob(number): void;
 }
 
 function mapStateToProps(state: State): ITaskPanelProps {
@@ -21,7 +21,7 @@ function mapStateToProps(state: State): ITaskPanelProps {
     };
 }
 
-const mapDispatchToProps = {cancel: actions.cancelJob};
+const mapDispatchToProps = {cancelJob: actions.cancelJob};
 
 /**
  * The TasksPanel is used display all tasks originating from cate desktop,
@@ -73,7 +73,7 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
                 }
 
                 // TODO: place cancel button right to progress bar
-                const cancelJob = () => this.props.cancel(jobId);
+                const cancelJob = () => this.props.cancelJob(jobId);
                 const cancelButton = <Button type="button"
                                              className="pt-intent-primary"
                                              onClick={cancelJob}
