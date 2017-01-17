@@ -134,8 +134,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             return null;
         }
 
-        function handleChangedLayerVisibility(dispatch, itemIndex: number, show: boolean) {
-            dispatch(actions.updateLayerVisibility(layers[itemIndex], show));
+        function handleChangedLayerVisibility(dispatch, layer: LayerState, show: boolean) {
+            dispatch(actions.updateLayer(layer, {show}));
         }
 
         function handleChangedLayerSelection(dispatch, selectedLayerId: string|null) {
@@ -146,14 +146,15 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             const layer = layers[itemIndex];
             return (
                 <div>
-                    <Checkbox checked={layer.show}
-                              style={{width:"2.5em", maxWidth: "2.5em", marginRight: "1em"}}
-                              onChange={(ev: any) => {
-                                  handleChangedLayerVisibility(this.props.dispatch, itemIndex, ev.target.checked);
-                                  //ev.stopPropagation();
-                              }}/>
-                    <span className="pt-icon-layout-grid" style={{marginRight: "1em"}}/>
-                    <span>{layer.name}</span>
+                    <input type="checkbox"
+                           checked={layer.show}
+                           onChange={(ev: any) => {
+                                    handleChangedLayerVisibility(this.props.dispatch, layer, ev.target.checked);
+                                    ev.stopPropagation();
+                            }}
+                    />
+                    <span style={{marginLeft: "0.5em"}} className="pt-icon-layout-grid"/>
+                    <span style={{marginLeft: "0.5em"}}>{layer.name}</span>
                 </div>
             );
         };

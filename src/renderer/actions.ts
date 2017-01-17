@@ -406,18 +406,9 @@ export function updateLayer(layer: LayerState, ...layerSources) {
     return {type: UPDATE_LAYER, payload: {layer}};
 }
 
-export function updateLayerVisibility(layer: LayerState, show: boolean) {
-    updateLayer(layer, {show});
-}
-
 export function updateLayerImageEnhancement(layer: ImageLayerState, name: string, value: number) {
     const imageEnhancement = Object.assign({}, layer.imageEnhancement, {[name]: value});
     return updateLayer(layer, {imageEnhancement});
-}
-
-export function updateLayerImageStatistics(layer: VariableImageLayerState, newStatistics: any) {
-    const statistics = Object.assign({}, layer.statistics, newStatistics);
-    return updateLayer(layer, {statistics});
 }
 
 export function saveLayer(key: string, layer: LayerState) {
