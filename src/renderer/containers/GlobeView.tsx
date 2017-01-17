@@ -11,7 +11,6 @@ interface IGlobeViewProps {
 }
 
 function mapStateToProps(state: State): IGlobeViewProps {
-    console.log("GlobeView::mapStateToProps called");
     return {
         workspace: state.data.workspace,
         layers: state.data.layers,
