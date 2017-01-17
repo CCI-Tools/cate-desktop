@@ -132,9 +132,9 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
             return (
                 <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
                     <Card>
-                        <p><strong>No variables available!</strong></p>
+                        <p><strong>No variables</strong></p>
                         <p>
-                            The currently selected resource in the workspace contains no variables.
+                            The currently selected resource in the workspace does not contain any variables.
                         </p>
                     </Card>
                 </ExpansionPanel>
