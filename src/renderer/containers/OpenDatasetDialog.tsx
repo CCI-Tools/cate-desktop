@@ -3,9 +3,11 @@ import {Dialog, Classes, Button, Tooltip, RangeSlider, NumberRange} from "@bluep
 import {DataSourceState, DialogState} from "../state";
 
 interface IOpenDatasetDialogProps {
-    onClose: (actionId: string, dialogState: IOpenDatasetDialogState) => void;
     dataSource: DataSourceState;
-    timeRange?: NumberRange;
+    availableTimeRange: NumberRange|null;
+    // timeInfoLoading: boolean;
+    onConfirm: (dataSourceId: string, timeRange: NumberRange) => void;
+    onCancel: () => void;
 }
 
 export interface IOpenDatasetDialogState extends DialogState {
@@ -13,27 +15,26 @@ export interface IOpenDatasetDialogState extends DialogState {
 }
 
 export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDatasetDialogState> {
+    static resourceId = 0;
     static readonly DIALOG_ID = 'openDataset';
 
     constructor(props: IOpenDatasetDialogProps) {
         super(props);
-        this.state = {isOpen: true, timeRange: this.props.timeRange || [1990, 2010]};
+        this.state = {
+            isOpen: true,
+            timeRange: [NaN, NaN]
+        };
         this.handleConfirm = this.handleConfirm.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
-    }
-
-    private close(dialogId: string) {
-        this.setState(Object.assign({}, this.state, {isOpen: false}), () => {
-            this.props.onClose(dialogId, this.state);
-        });
+        this.handleRangeSelected = this.handleRangeSelected.bind(this);
     }
 
     private handleConfirm() {
-        this.close('open');
+        this.props.onConfirm(this.props.dataSource.id, this.state.timeRange);
     }
 
     private handleCancel() {
-        this.close(null);
+        this.props.onCancel();
     }
 
     private handleRangeSelected(timeRange: NumberRange) {
@@ -41,20 +42,57 @@ export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, 
     }
 
     render() {
+        const millisInDay = 1000 * 60 * 60 * 24;
+        const disabled = !this.props.availableTimeRange;
+        let timeLineSlider;
+        if (!disabled) {
+            const d1 = new Date(this.props.availableTimeRange[0]);
+            const d2 = new Date(this.props.availableTimeRange[1]);
+            const startYear = d1.getUTCFullYear();
+            const endYear = d2.getUTCFullYear();
+            let rangeStart, rangeEnd, stepDays;
+            if (startYear === endYear) {
+                // same year
+                rangeStart = new Date(startYear, 1, 1).valueOf();
+                rangeEnd = new Date(startYear + 1, 1, 1).valueOf();
+                stepDays = 90;
+                // y -> y+1
+                // quarterly ticks
+            } else {
+                // multiple years
+                rangeStart = new Date(startYear, 1, 1).valueOf();
+                rangeEnd = new Date(endYear + 1, 1, 1).valueOf();
+                stepDays = 365;
+            }
 
-        const timeLineSlider = (
-            <div style={{ width: "100%", padding: 10}}>
-                <RangeSlider
-                    min={1980}
-                    max={2020}
-                    stepSize={1}
-                    labelStepSize={5}
-                    onChange={this.handleRangeSelected.bind(this)}
-                    value={this.state.timeRange}
-                />
-            </div>
-        );
+            console.log(this.props.availableTimeRange, d1, d2, startYear, endYear);
+            const renderLabelAsDates = value =>{
+                const date = new Date(value);
+                return date.getUTCFullYear() +
+                    '-' + (date.getUTCMonth() + 1) +
+                    '-' + date.getUTCDate();
+            };
+            // onChange={this.handleRangeSelected}
+            timeLineSlider = (
+                <div style={{ width: "100%", padding: 10}}>
+                    <RangeSlider
+                        min={rangeStart}
+                        max={rangeEnd}
+                        stepSize={millisInDay}
+                        labelStepSize={millisInDay*stepDays}
 
+                        value={[rangeStart, rangeEnd]}
+                        renderLabel={renderLabelAsDates}
+                    />
+                </div>
+            );
+        } else {
+            timeLineSlider = (
+                <div style={{ width: "100%", padding: 10}}>
+                    Loading time coverage
+                </div>
+            );
+        }
 
         return (
             <Dialog
@@ -79,7 +117,9 @@ export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, 
                         <Tooltip content="Opens the dataset." inline>
                             <Button className="pt-intent-primary"
                                     onClick={this.handleConfirm}
-                                    iconName="folder-shared-open">Open</Button>
+                                    iconName="folder-shared-open"
+                                    disabled={disabled}
+                            >Open</Button>
                         </Tooltip>
                     </div>
                 </div>

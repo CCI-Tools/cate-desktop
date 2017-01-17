@@ -2,7 +2,7 @@ import * as React from "react";
 import {connect, Dispatch} from "react-redux";
 import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, DataStoreState, WorkspaceState, DataSourceState} from "../state";
-import {Tabs, TabList, Tab, TabPanel, Button, InputGroup, Classes, Tag} from "@blueprintjs/core";
+import {Tabs, TabList, Tab, TabPanel, Button, InputGroup, Classes, Tag, NumberRange} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
 import {OpenDatasetDialog, IOpenDatasetDialogState} from "./OpenDatasetDialog";
@@ -10,7 +10,6 @@ import * as actions from "../actions";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 
 interface IDataSourcesPanelProps {
-    dispatch?: Dispatch<State>;
     webAPIClient: any;
     workspace: WorkspaceState;
     dataStores: Array<DataStoreState>;
@@ -34,61 +33,53 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
     };
 }
 
+interface IDataSourcesPanelDispatch {
+    setSelectedDataStoreId(selectedDataStoreId: string): void;
+    setSelectedDataSourceId(selectedDataSourceId: string): void;
+    setDataSourceFilterExpr(dataSourceFilterExpr: string): void;
+    setControlState(propertyName: string, value: any): void;
+    openDialogOpenDataset(dataStoreId: string, dataSourceId: string, loadTimeInfo: boolean): void;
+    confirmDialogOpenDataset(dataSourceId: string, timeRange: NumberRange): void;
+    cancelDialogOpenDataset(): void;
+}
+
+const mapDispatchToProps = {
+    setSelectedDataStoreId: actions.setSelectedDataStoreId,
+    setSelectedDataSourceId: actions.setSelectedDataSourceId,
+    setDataSourceFilterExpr: actions.setDataSourceFilterExpr,
+    setControlState: actions.setControlState,
+    openDialogOpenDataset: actions.openDialogOpenDataset,
+    confirmDialogOpenDataset: actions.confirmDialogOpenDataset,
+    cancelDialogOpenDataset: actions.cancelDialogOpenDataset,
+};
+
 /**
  * The DataSourcesPanel is used browse and open data data sources originating from a selected data store.
  *
  * @author Norman Fomferra
  */
-class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
-    static resourceId = 0;
+class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSourcesPanelDispatch, null> {
 
     constructor(props: IDataSourcesPanelProps) {
         super(props);
     }
 
-    private handleOpenDatasetButtonClicked() {
-        // Open "openDataset" dialog
-        this.props.dispatch(actions.setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: true}));
-    }
-
-    private handleOpenDatasetDialogClosed(actionId: string, dialogState: IOpenDatasetDialogState) {
-        // Close "openDataset" dialog and save state
-        this.props.dispatch(actions.setDialogState(OpenDatasetDialog.DIALOG_ID, dialogState));
-        // Perform the action
-        if (actionId) {
-            const resName = 'ds_' + (DataSourcesPanel.resourceId++);
-            const opName = 'open_dataset';
-            const opArgs = {
-                ds_name: this.props.selectedDataSourceId,
-                start_date: `${dialogState.timeRange[0]}`,
-                end_date: `${dialogState.timeRange[1]}`,
-                sync: true
-            };
-            const title = "Opening Dataset";
-            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, title));
-        }
+    private handleOpenDialogOpenDataset() {
+        const selectedDataSource = this.getSelectedDataSource();
+        this.props.openDialogOpenDataset(
+            this.props.selectedDataStoreId,
+            this.props.selectedDataSourceId,
+            !selectedDataSource.temporalCoverage
+        );
     }
 
     private handleDataStoreSelected(event) {
         const dataStoreId = event.target.value;
-        this.props.dispatch(actions.setSelectedDataStoreId(dataStoreId));
-    }
-
-    //noinspection JSUnusedLocalSymbols
-    private handleDataSourceSelected(oldSelection: Array<React.Key>, newSelection: Array<React.Key>) {
-        if (newSelection.length > 0) {
-            this.props.dispatch(actions.setSelectedDataSourceId(newSelection[0] as string));
-        } else {
-            this.props.dispatch(actions.setSelectedDataSourceId(null));
-        }
+        this.props.setSelectedDataStoreId(dataStoreId);
     }
 
     private handleShowDetailsChanged(value: boolean) {
-        this.props.dispatch(actions.setControlState('showDataSourceDetails', value));
-    }
-
-    private handleDataSourceFilterExprChange(event) {
-        this.props.dispatch(actions.setDataSourceFilterExpr(event.target.value));
+        this.props.setControlState('showDataSourceDetails', value);
     }
 
     private getSelectedDataStore(): DataStoreState|null {
@@ -112,7 +103,6 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
             return null;
         }
         return dataSources.find(dataSource => dataSource.id === this.props.selectedDataSourceId);
-
     }
 
     render() {
@@ -141,35 +131,35 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
             const dataSourceFilterExprInput = (<InputGroup
                 disabled={false}
                 leftIconName="filter"
-                onChange={this.handleDataSourceFilterExprChange.bind(this)}
+                onChange={(event) => this.props.setDataSourceFilterExpr(event.target.value)}
                 placeholder="Find data source"
                 rightElement={resultsTag}
                 value={dataSourceFilterExpr}
             />);
-
+            // {...this.props.openDatasetDialogState}
             let openDatasetDialog = null;
             if (this.props.openDatasetDialogState.isOpen) {
                 const dataSource = this.getSelectedDataSource();
+
                 openDatasetDialog = (
                     <OpenDatasetDialog
                         dataSource={dataSource}
-                        {...this.props.openDatasetDialogState}
-                        onClose={this.handleOpenDatasetDialogClosed.bind(this)}/>
+                        availableTimeRange={dataSource.temporalCoverage}
+                        onConfirm={this.props.confirmDialogOpenDataset}
+                        onCancel={this.props.cancelDialogOpenDataset}/>
                 );
             }
 
             const actionComponent = (
                 <div>
                     <Button className="pt-intent-primary"
-                            onClick={this.handleOpenDatasetButtonClicked.bind(this)}
+                            onClick={this.handleOpenDialogOpenDataset.bind(this)}
                             disabled={!this.props.selectedDataSourceId || !this.props.workspace}
                             iconName="folder-shared-open">Open...</Button>
                     {openDatasetDialog}
                 </div>
             );
 
-            const dataSourcesList = this.renderDataSourcesList(filteredDataSources);
-            const dataSourceDetailsCard = this.renderDataSourceDetails();
             return (
                 <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
                     {this.renderDataStoreSelector()}
@@ -179,8 +169,10 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
                                              isSplitPanel={true}
                                              initialContentHeight={200}
                                              actionComponent={actionComponent}>
-                        {dataSourcesList}
-                        {dataSourceDetailsCard}
+                        <DataSourcesList dataSources={filteredDataSources}
+                                         selectedDataSourceId={this.props.selectedDataSourceId}
+                                         setSelectedDataSourceId={this.props.setSelectedDataSourceId}/>
+                        <DataSourceDetails dataSource={this.getSelectedDataSource()}/>
                     </ContentWithDetailsPanel>
                 </ExpansionPanel>
             );
@@ -198,43 +190,6 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
                 </ExpansionPanel>
             );
         }
-    }
-
-    private renderDataSourcesList(dataSources: Array<DataSourceState>) {
-
-        const defaultIconName = 'cci';
-
-        const handleIconLoadError = img => {
-            img.onError = null;
-            img.src = `resources/images/data-sources/esacci/${defaultIconName}.png`;
-        };
-
-        const renderItem = (itemIndex: number) => {
-            const dataSource = dataSources[itemIndex];
-            // TODO: compute icon size based on screen resolution
-            const imageSize = 32;
-            const iconName = ((dataSource.meta_info && dataSource.meta_info.cci_project) || 'cci').toLowerCase();
-            const displayName = dataSource.name.replace('esacci', '').replace(/\./g, ' ');
-            return (
-                <div style={{display:'flex', alignItems: 'center'}}>
-                    <img src={`resources/images/data-sources/esacci/${iconName}.png`}
-                         style={{width: imageSize, height: imageSize, flex: 'none', marginRight: 6}}
-                         onError={handleIconLoadError}/>
-                    <span>{displayName}</span>
-                </div>
-            );
-        };
-
-        return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
-                <ListBox numItems={dataSources.length}
-                         getItemKey={index => dataSources[index].id}
-                         renderItem={renderItem}
-                         selectionMode={ListBoxSelectionMode.SINGLE}
-                         selection={this.props.selectedDataSourceId ? [this.props.selectedDataSourceId] : []}
-                         onSelection={this.handleDataSourceSelected.bind(this)}/>
-            </div>
-        );
     }
 
     private renderDataStoreSelector() {
@@ -261,8 +216,98 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
     }
 
     //noinspection JSMethodCanBeStatic
-    private renderDataSourceDetails() {
-        const dataSource = this.getSelectedDataSource();
+    private renderNoDataStoreMessage() {
+        return (
+            <Card>
+                <p><strong>No data stores found!</strong></p>
+                <p>
+                    This is very likely a configuration error,
+                    please check the logs of the Cate WebAPI service.
+                </p>
+            </Card>
+        );
+    }
+
+    //noinspection JSMethodCanBeStatic
+    private renderNoDataSourcesMessage() {
+        return (
+            <Card>
+                <p><strong>No data sources found!</strong></p>
+                <p>
+                    This is very likely a configuration error,
+                    please check the logs of the Cate WebAPI service.
+                </p>
+            </Card>
+        );
+    }
+}
+
+interface IDataSourcesListProps {
+    dataSources: Array<DataSourceState>;
+    selectedDataSourceId: string|null;
+    setSelectedDataSourceId: (selectedDataSourceId: string) => void;
+}
+class DataSourcesList extends React.Component<IDataSourcesListProps, null> {
+
+    readonly defaultIconName = 'cci';
+
+    constructor(props: IDataSourcesListProps) {
+        super(props);
+        this.renderItem = this.renderItem.bind(this);
+        this.handleDataSourceSelected = this.handleDataSourceSelected.bind(this);
+        this.handleIconLoadError = this.handleIconLoadError.bind(this);
+    }
+
+    private handleDataSourceSelected(oldSelection: Array<React.Key>, newSelection: Array<React.Key>) {
+        if (newSelection.length > 0) {
+            this.props.setSelectedDataSourceId(newSelection[0] as string);
+        } else {
+            this.props.setSelectedDataSourceId(null);
+        }
+    }
+
+    private handleIconLoadError(img) {
+        img.onError = null;
+        img.src = `resources/images/data-sources/esacci/${this.defaultIconName}.png`;
+    }
+
+    private renderItem(itemIndex: number) {
+        const dataSource = this.props.dataSources[itemIndex];
+        // TODO: compute icon size based on screen resolution
+        const imageSize = 32;
+        const iconName = ((dataSource.meta_info && dataSource.meta_info.cci_project) || 'cci').toLowerCase();
+        const displayName = dataSource.name.replace('esacci', '').replace(/\./g, ' ');
+        return (
+            <div style={{display:'flex', alignItems: 'center'}}>
+                <img src={`resources/images/data-sources/esacci/${iconName}.png`}
+                     style={{width: imageSize, height: imageSize, flex: 'none', marginRight: 6}}
+                     onError={this.handleIconLoadError}/>
+                <span>{displayName}</span>
+            </div>
+        );
+    }
+
+    render() {
+        return (
+            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+                <ListBox numItems={this.props.dataSources.length}
+                         getItemKey={index => this.props.dataSources[index].id}
+                         renderItem={this.renderItem}
+                         selectionMode={ListBoxSelectionMode.SINGLE}
+                         selection={this.props.selectedDataSourceId ? [this.props.selectedDataSourceId] : []}
+                         onSelection={this.handleDataSourceSelected}/>
+            </div>
+        );
+    }
+}
+
+interface IDataSourceDetailsProps {
+    dataSource: DataSourceState
+}
+class DataSourceDetails extends React.Component<IDataSourceDetailsProps, null> {
+
+    render() {
+        const dataSource = this.props.dataSource;
         if (!dataSource) {
             return null;
         }
@@ -349,32 +394,6 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps, null> {
             );
         }
     }
-
-    //noinspection JSMethodCanBeStatic
-    private renderNoDataStoreMessage() {
-        return (
-            <Card>
-                <p><strong>No data stores found!</strong></p>
-                <p>
-                    This is very likely a configuration error,
-                    please check the logs of the Cate WebAPI service.
-                </p>
-            </Card>
-        );
-    }
-
-    //noinspection JSMethodCanBeStatic
-    private renderNoDataSourcesMessage() {
-        return (
-            <Card>
-                <p><strong>No data sources found!</strong></p>
-                <p>
-                    This is very likely a configuration error,
-                    please check the logs of the Cate WebAPI service.
-                </p>
-            </Card>
-        );
-    }
 }
 
-export default connect(mapStateToProps)(DataSourcesPanel);
+export default connect(mapStateToProps, mapDispatchToProps)(DataSourcesPanel);

@@ -1,4 +1,7 @@
-import {State, DataState, LocationState, SessionState, CommunicationState, ControlState} from './state';
+import {
+    State, DataState, LocationState, SessionState, CommunicationState, ControlState,
+    DataSourceState
+} from './state';
 import * as actions from './actions';
 import {combineReducers} from 'redux';
 
@@ -71,6 +74,37 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             }
             const oldDataStore = state.dataStores[dataStoreIndex];
             const newDataSources = action.payload.dataSources.slice();
+            const newDataStore = updateObject(oldDataStore, {
+                dataSources: newDataSources,
+            });
+            const newDataStores = state.dataStores.slice();
+            newDataStores[dataStoreIndex] = newDataStore;
+            return updateObject(state, {
+                dataStores: newDataStores
+            });
+        }
+        case actions.UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE: {
+            // TODO mz use combineReducers()
+            const dataStoreId = action.payload.dataStoreId;
+            const dataSourceId = action.payload.dataSourceId;
+            const temporalCoverage = action.payload.temporalCoverage;
+
+            const dataStoreIndex = state.dataStores.findIndex(dataStore => dataStore.id === dataStoreId);
+            if (dataStoreIndex < 0) {
+                throw Error('illegal data store ID: ' + dataStoreId);
+            }
+            const oldDataStore = state.dataStores[dataStoreIndex];
+
+            const dataSourceIndex = oldDataStore.dataSources.findIndex(dataSource => dataSource.id === dataSourceId);
+            if (dataSourceIndex < 0) {
+                throw Error('illegal data source ID: ' + dataSourceId);
+            }
+            const oldDataSource = oldDataStore.dataSources[dataSourceIndex];
+
+            const newDataSource = Object.assign({}, oldDataSource, {temporalCoverage});
+            const newDataSources = oldDataStore.dataSources.slice();
+            newDataSources[dataSourceIndex] = newDataSource;
+
             const newDataStore = updateObject(oldDataStore, {
                 dataSources: newDataSources,
             });

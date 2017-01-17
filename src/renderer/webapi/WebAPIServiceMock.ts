@@ -28,6 +28,10 @@ export class WebAPIServiceMock implements IServiceObject {
             numSteps: 2,
             delayPerStep: 100,
             delay: 100
+        },
+        get_ds_temporal_coverage: {
+            numSteps: 0,
+            delay: 1000
         }
     };
 
@@ -172,6 +176,20 @@ export class WebAPIServiceMock implements IServiceObject {
 
     get_data_sources(dataStoreId) {
         return this.dataSources[dataStoreId];
+    }
+
+    get_ds_temporal_coverage(dataStoreId: string, dataSourceId: string) {
+        if (dataStoreId.endsWith("1")) {
+            return {
+                temporal_coverage_start: "2010-01-01",
+                temporal_coverage_end: "2014-12-31"
+            };
+        } else {
+            return {
+                temporal_coverage_start: "2010-01-01",
+                temporal_coverage_end: "2010-12-31"
+            };
+        }
     }
 
     get_operations() {

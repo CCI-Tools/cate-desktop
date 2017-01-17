@@ -64,6 +64,7 @@ export interface DataSourceState {
     id: string;
     name: string;
     meta_info: any | null;
+    temporalCoverage?: any | null;
 }
 
 export interface OperationState {

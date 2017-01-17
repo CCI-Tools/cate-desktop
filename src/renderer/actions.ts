@@ -5,6 +5,8 @@ import {
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
 import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
+import {OpenDatasetDialog, IOpenDatasetDialogState} from "./containers/OpenDatasetDialog";
+import {NumberRange} from "@blueprintjs/core";
 
 // TODO write tests for actions
 
@@ -78,6 +80,7 @@ export const UPDATE_DATA_SOURCES = 'UPDATE_DATA_SOURCES';
 export const SET_SELECTED_DATA_STORE_ID = 'SET_SELECTED_DATA_STORE_ID';
 export const SET_SELECTED_DATA_SOURCE_ID = 'SET_SELECTED_DATA_SOURCE_ID';
 export const SET_DATA_SOURCE_FILTER_EXPR = 'SET_DATA_SOURCE_FILTER_EXPR';
+export const UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE = 'UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE';
 
 /**
  * Asynchronously load the available Cate data stores.
@@ -158,6 +161,47 @@ export function setSelectedDataSourceId(selectedDataSourceId: string|null) {
 
 export function setDataSourceFilterExpr(dataSourceFilterExpr: string) {
     return {type: SET_DATA_SOURCE_FILTER_EXPR, payload: {dataSourceFilterExpr}};
+}
+
+export function openDialogOpenDataset(dataStoreId: string, dataSourceId: string, loadTimeInfo: boolean) {
+    return (dispatch, getState) => {
+        dispatch(setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: true, timeInfoLoading: loadTimeInfo}));
+        if (loadTimeInfo) {
+            const jobPromise = datasetAPI(getState()).getTemporalCoverage(dataStoreId, dataSourceId);
+            dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Temporal Coverage: " + dataSourceId));
+            jobPromise.then(temporalCoverage => {
+                dispatch(updateDataSourceTemporalCoverage(dataStoreId, dataSourceId, temporalCoverage));
+                dispatch(jobDone(jobPromise.getJobId()));
+            }).catch(failure => {
+                dispatch(jobFailed(jobPromise.getJobId(), failure));
+            });
+        }
+    };
+}
+
+function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: string, temporalCoverage: NumberRange) {
+    return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
+}
+
+export function confirmDialogOpenDataset(dataSourceId: string, timeRange: NumberRange) {
+    return (dispatch) => {
+        dispatch(setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: false}));
+
+        const resName = 'ds_' + (OpenDatasetDialog.resourceId++);
+        const opName = 'open_dataset';
+        const opArgs = {
+            ds_name: dataSourceId,
+            start_date: `${timeRange[0]}`,
+            end_date: `${timeRange[1]}`,
+            sync: true
+        };
+        const title = "Opening Dataset";
+        dispatch(setWorkspaceResource(resName, opName, opArgs, title));
+    }
+}
+
+export function cancelDialogOpenDataset() {
+    return setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: false});
 }
 
 function datasetAPI(state: State) {
