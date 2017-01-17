@@ -229,13 +229,13 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
                 const currentLayer = currentImageLayers.get(nextLayer.id);
                 // todo: perform a shallow comparison between imageryProviderOptions of nextLayer and currentLayer
                 if (nextLayer.imageryProviderOptions.url !== currentLayer.imageryProviderOptions.url) {
-                    // remove oldImageryLayer
+                    // save oldImageryLayer
                     const oldImageryLayer = cesiumImageryLayers.get(nextLayer.id);
-                    this.viewer.imageryLayers.remove(oldImageryLayer, true);
-
                     // add nextLayer
                     const imageryProvider = CesiumGlobe.getImageryProvider(nextLayer);
                     imageryLayer = this.viewer.imageryLayers.addImageryProvider(imageryProvider, i + 1); // +1 because of baseLayer, which is always available
+                    // remove oldImageryLayer
+                    this.viewer.imageryLayers.remove(oldImageryLayer, true);
                 } else {
                     imageryLayer = cesiumImageryLayers.get(nextLayer.id);
                 }
