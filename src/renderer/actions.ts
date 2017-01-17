@@ -287,15 +287,14 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: an
     }
 }
 
-// TODO (nf): use this in LAYERS panel to get real min/max of selected layer
 export function getWorkspaceVariableStatistics(resName: string,
                                                varName: string,
-                                               index: Array<number>|null,
-                                               action: (statistics: ImageStatisticsState) => void) {
+                                               varIndex: Array<number>,
+                                               action: (statistics: ImageStatisticsState) => any) {
     return (dispatch, getState) => {
         const baseDir = getState().data.workspace.baseDir;
 
-        const jobPromise = workspaceAPI(getState()).getWorkspaceVariableStatistics(baseDir, resName, varName, index);
+        const jobPromise = workspaceAPI(getState()).getWorkspaceVariableStatistics(baseDir, resName, varName, varIndex);
         dispatch(jobSubmitted(jobPromise.getJobId(), `Computing statistics for variable "${varName}"`));
         jobPromise.then(statistics => {
             dispatch(jobDone(jobPromise.getJobId()));
@@ -314,6 +313,7 @@ export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
 export function setSelectedVariableName(selectedVariableName: string|null) {
     return (dispatch, getState) => {
         dispatch(setSelectedVariableNameImpl(selectedVariableName));
+        // TODO (nf): use "reselect" JS library here and use selectors from selectors.ts
         const selectedResourceName = getState().control.selectedWorkspaceResourceId;
         if (selectedResourceName && selectedVariableName) {
             const resource = getState().data.workspace.resources.find((resource: ResourceState) => resource.name == selectedResourceName);
@@ -366,10 +366,13 @@ export function setSelectedVariableName(selectedVariableName: string|null) {
                 resName: selectedResourceName,
                 varName: selectedVariableName,
                 varIndex,
-            });
+            }, layerDisplayProperties);
 
             if (lastSelectedVariableLayer) {
                 dispatch(saveLayer(selectedVariableName, lastSelectedVariableLayer));
+            } else {
+                // TODO (nf): add layer ID SELECTED_VARIABLE_LAYER_ID
+                // dispatch(addLayer(currentSelectedVariableLayer));
             }
 
             dispatch(updateLayer(currentSelectedVariableLayer));
@@ -396,28 +399,29 @@ export function setSelectedLayerId(selectedLayerId: string|null) {
     return {type: SET_SELECTED_LAYER_ID, payload: {selectedLayerId}};
 }
 
-export function updateLayer(layer: LayerState) {
+export function updateLayer(layer: LayerState, ...layerSources) {
+    if (layerSources.length) {
+        layer = Object.assign({}, layer, ...layerSources);
+    }
     return {type: UPDATE_LAYER, payload: {layer}};
 }
 
 export function updateLayerVisibility(layer: LayerState, show: boolean) {
-    updateLayer(Object.assign({}, layer, {show}));
+    updateLayer(layer, {show});
 }
 
 export function updateLayerImageEnhancement(layer: ImageLayerState, name: string, value: number) {
     const imageEnhancement = Object.assign({}, layer.imageEnhancement, {[name]: value});
-    const changedLayer = Object.assign({}, layer, {imageEnhancement});
-    return updateLayer(changedLayer);
+    return updateLayer(layer, {imageEnhancement});
 }
 
 export function updateLayerImageStatistics(layer: VariableImageLayerState, newStatistics: any) {
     const statistics = Object.assign({}, layer.statistics, newStatistics);
-    const changedLayer = Object.assign({}, layer, {statistics});
-    return updateLayer(changedLayer);
+    return updateLayer(layer, {statistics});
 }
 
-export function saveLayer(variableName: string, layer: VariableImageLayerState) {
-    return {type: SAVE_LAYER, payload: {variableName, layer}};
+export function saveLayer(key: string, layer: LayerState) {
+    return {type: SAVE_LAYER, payload: {key, layer}};
 }
 
 
@@ -441,8 +445,9 @@ function colorMapsAPI(state: State): ColorMapsAPI {
 export function loadColorMaps() {
     return (dispatch, getState: () => State) => {
         let jobPromise = colorMapsAPI(getState()).getColorMaps();
-        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Color Maps"));
+        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading color maps"));
         jobPromise.then((colorMaps: Array<ColorMapCategoryState>) => {
+            dispatch(jobDone(jobPromise.getJobId()));
             dispatch(updateColorMaps(colorMaps));
         }).catch(failure => {
             dispatch(jobFailed(jobPromise.getJobId(), failure));

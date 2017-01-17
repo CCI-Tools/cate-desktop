@@ -2,52 +2,71 @@ import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {ExpansionPanel} from '../components/ExpansionPanel';
 import {
-    State, WorkspaceState, LayerState, ColorMapCategoryState, ColorMapState, ImageLayerState,
-    VariableImageLayerState
+    State, LayerState, ColorMapCategoryState, ImageLayerState,
+    VariableImageLayerState, VariableState, ResourceState
 } from "../state";
-import {Button, Checkbox, Slider, Popover, Position, PopoverInteractionKind, Switch} from "@blueprintjs/core";
+import {
+    Button, Checkbox, Slider, Popover, Position, PopoverInteractionKind, Switch,
+    RangeSlider, NumberRange, Tooltip
+} from "@blueprintjs/core";
 import FormEvent = React.FormEvent;
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
 import * as actions from "../actions";
+import * as selectors from "../selectors";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 
+function getDisplayFractionDigits(min: number, max: number) {
+    const n = Math.round(Math.log10(max - min));
+    if (n < 0) {
+        return 1 - n;
+    } else if (n <= 2) {
+        return 2;
+    } else if (n <= 3) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+function formatNumber(x: number, fractionDigits: number) {
+    return fractionDigits < 3 ? x.toFixed(fractionDigits) : x.toExponential(1);
+}
+
+interface ILayersPanelDispatch {
+    dispatch: Dispatch<State>;
+}
 
 interface ILayersPanelProps {
-    dispatch?: Dispatch<State>;
-    webAPIClient: any;
-    workspace: WorkspaceState;
+    selectedResource: ResourceState|null;
+    selectedVariable: VariableState|null,
     layers: Array<LayerState>;
-    selectedLayerId: string|null;
     selectedLayer: LayerState|null;
+    selectedImageLayer: ImageLayerState|null;
+    selectedVariableImageLayer: VariableImageLayerState|null;
     showLayerDetails: boolean;
     colorMaps: Array<ColorMapCategoryState>;
 }
 
-
 function mapStateToProps(state: State): ILayersPanelProps {
     return {
-        webAPIClient: state.data.appConfig.webAPIClient,
-        workspace: state.data.workspace,
-        layers: state.data.layers,
-        selectedLayerId: state.control.selectedLayerId,
-        selectedLayer: getSelectedLayer(state.data.layers, state.control.selectedLayerId),
+        selectedResource: selectors.selectedResourceSelector(state),
+        selectedVariable: selectors.selectedVariableSelector(state),
+        layers: selectors.layersSelector(state),
+        selectedLayer: selectors.selectedLayerSelector(state),
+        selectedImageLayer: selectors.selectedImageLayerSelector(state),
+        selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
         showLayerDetails: state.control.showLayerDetails,
         colorMaps: state.data.colorMaps,
     };
 }
-
-function getSelectedLayer(layers: Array<LayerState>|null, selectedLayerId: string|null): LayerState|null {
-    return (layers || []).find(layer => layer.id === selectedLayerId);
-}
-
 
 /**
  * The LayersPanel is used to select and browse available layers.
  *
  * @author Norman Fomferra
  */
-class LayersPanel extends React.Component<ILayersPanelProps, any> {
+class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispatch, any> {
 
     componentDidMount() {
         if (!this.props.colorMaps) {
@@ -126,15 +145,16 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
         const renderItem = (itemIndex: number) => {
             const layer = layers[itemIndex];
             return (
-                <span>
+                <div>
                     <Checkbox checked={layer.show}
-                              onChange={(ev: FormEvent<HTMLInputElement>) => {
-                                  handleChangedLayerVisibility(this.props.dispatch, itemIndex, ev.currentTarget.checked);
-                                  ev.stopPropagation();
+                              style={{width:"2.5em", maxWidth: "2.5em", marginRight: "1em"}}
+                              onChange={(ev: any) => {
+                                  handleChangedLayerVisibility(this.props.dispatch, itemIndex, ev.target.checked);
+                                  //ev.stopPropagation();
                               }}/>
-                    <span className="pt-icon-layout-grid" style={{marginRight: 4}}/>
+                    <span className="pt-icon-layout-grid" style={{marginRight: "1em"}}/>
                     <span>{layer.name}</span>
-                </span>
+                </div>
             );
         };
 
@@ -144,7 +164,7 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
                          getItemKey={index => layers[index].id}
                          renderItem={renderItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
-                         selection={this.props.selectedLayerId ? [this.props.selectedLayerId] : []}
+                         selection={this.props.selectedLayer ? [this.props.selectedLayer.id] : []}
                          onSelection={(oldSelection, newSelection) => handleChangedLayerSelection(this.props.dispatch, newSelection.length ? newSelection[0] as string : null)}/>
             </div>
         );
@@ -167,18 +187,20 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
                 <Card>
                     <p><strong>No layer selected.</strong></p>
                     <p>
-                        Select a layer to edit its details.
+                        Select a layer to browse and edit its details.
                     </p>
                 </Card>
             );
         }
 
         return (
-            <table>
+            <table className="pt-condensed pt-bordered">
                 <tbody>
                 {this.renderFormDisplayMinMax()}
+                {this.renderFormDisplayRange()}
                 {this.renderFormDisplayColorBar()}
-                {this.renderFormDisplayAlphaBlend()}
+                {this.renderFormAlphaBlending()}
+                {this.renderFormVarIndex()}
                 {this.renderFormImageEnhancement('alpha', 'Alpha', 0., 1.)}
                 {this.renderFormImageEnhancement('brightness', 'Brightness', 0., 2.)}
                 {this.renderFormImageEnhancement('contrast', 'Contrast', 0., 2.)}
@@ -191,16 +213,16 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
     }
 
     private renderFormDisplayColorBar() {
-        const imageLayer = this.getSelectedVariableImageLayer();
-        if (!imageLayer) {
+        const layer = this.props.selectedVariableImageLayer;
+        if (!layer) {
             return null;
         }
 
         function handleChangedColorMapName(dispatch, colorMapName: string) {
-            dispatch(actions.updateLayer(Object.assign({}, imageLayer, {colorMapName})));
+            dispatch(actions.updateLayer(layer, {colorMapName}));
         }
 
-        const selectedColorMapName = imageLayer.colorMapName;
+        const selectedColorMapName = layer.colorMapName;
 
         let comp = null;
         if (this.props.colorMaps) {
@@ -211,10 +233,12 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
                 for (let cm of cat.colorMaps) {
                     const colorMapName = cm.name;
                     const colorMapImage = (
-                        <img src={`data:image/png;base64,${cm.imageData}`}
-                             alt={colorMapName}
-                             width="100%"
-                             height="14px"/>
+                        <Tooltip content={colorMapName}>
+                            <img src={`data:image/png;base64,${cm.imageData}`}
+                                 alt={colorMapName}
+                                 width="100%"
+                                 height="14px"/>
+                        </Tooltip>
                     );
                     colorMapNames.push(colorMapName);
                     colorMapImages.push(colorMapImage);
@@ -255,9 +279,83 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
         );
     }
 
+    private renderFormDisplayRange() {
+        const layer = this.props.selectedVariableImageLayer;
+        if (!layer) {
+            return null;
+        }
+
+        function handleUpdateDisplayStatistics() {
+            const resource = this.props.selectedResource;
+            const variable = this.props.selectedVariable;
+            const layer = this.props.selectedVariableImageLayer;
+            if (!resource || !variable || !layer) {
+                return;
+            }
+            this.props.dispatch(actions.getWorkspaceVariableStatistics(resource.name, variable.name, layer.varIndex,
+                (statistics) => {
+                    return actions.updateLayer(layer, {statistics})
+                }
+            ));
+        }
+
+        const statistics = layer.statistics;
+        let rangeSlider;
+        if (statistics) {
+
+            function handleChangedDisplayRange(dispatch, displayRange: NumberRange) {
+                dispatch(actions.updateLayer(layer, {
+                    displayMin: displayRange[0],
+                    displayMax: displayRange[1]
+                }));
+            }
+
+            let min = statistics.min;
+            let max = statistics.max;
+            const fractionDigits = getDisplayFractionDigits(min, max);
+
+            rangeSlider = (
+                <RangeSlider
+                    min={min}
+                    max={max}
+                    stepSize={(max - min) / 100.}
+                    labelStepSize={max - min}
+                    renderLabel={(x: number) => formatNumber(x, fractionDigits)}
+                    onChange={(displayRange: NumberRange) => handleChangedDisplayRange(this.props.dispatch, displayRange)}
+                    value={[layer.displayMin, layer.displayMax]}
+                />
+            );
+        } else {
+            rangeSlider = (
+                <RangeSlider
+                    min={0}
+                    max={1}
+                    stepSize={0.1}
+                    labelStepSize={1}
+                    disabled={true}
+                />
+            );
+        }
+
+        return (
+            <tr key="displayRange">
+                <td/>
+                <td>
+                    <div>
+                        {rangeSlider}
+                        <Tooltip content="Compute valid min/max">
+                            <Button iconName="arrows-horizontal"
+                                    onClick={handleUpdateDisplayStatistics.bind(this)}/>
+                        </Tooltip>
+                    </div>
+                </td>
+            </tr>
+        );
+    }
+
     private renderFormDisplayMinMax() {
-        const imageLayer = this.getSelectedVariableImageLayer();
-        if (!imageLayer) {
+        const layer = this.props.selectedVariableImageLayer;
+        if (!layer) {
             return null;
         }
 
@@ -269,7 +367,7 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
                 // Do not change
                 return;
             }
-            dispatch(actions.updateLayer(Object.assign({}, imageLayer, {displayMin})));
+            dispatch(actions.updateLayer(layer, {displayMin}));
         }
 
         function handleChangedDisplayMax(dispatch, displayMaxText: string) {
@@ -280,85 +378,114 @@ class LayersPanel extends React.Component<ILayersPanelProps, any> {
                 // Do not change
                 return;
             }
-            dispatch(actions.updateLayer(Object.assign({}, imageLayer, {displayMax})));
+            dispatch(actions.updateLayer(layer, {displayMax}));
+        }
+
+        let fractionDigits = 1;
+        if (layer.statistics) {
+            fractionDigits = getDisplayFractionDigits(layer.statistics.min, layer.statistics.max);
         }
 
         return (
             <tr key="displayMinMax">
                 <td>Value range</td>
-                <td style={{width: "100%"}}>
+                <td>
                     <input className="pt-input" type="text" style={{width: "6em", textAlign: "right"}}
-                           value={imageLayer.displayMin}
-                           onChange={(ev: any) => handleChangedDisplayMin(this.props.dispatch, ev.target.value)} placeholder="From"/>
+                           value={formatNumber(layer.displayMin, fractionDigits)}
+                           onChange={(ev: any) => handleChangedDisplayMin(this.props.dispatch, ev.target.value)}
+                           placeholder="From"/>
+                    <span style={{width: "0.5em"}}/>
                     <input className="pt-input" type="text" style={{width: "6em", textAlign: "right"}}
-                           value={imageLayer.displayMax}
-                           onChange={(ev: any) => handleChangedDisplayMax(this.props.dispatch, ev.target.value)} placeholder="To"/>
+                           value={formatNumber(layer.displayMax, fractionDigits)}
+                           onChange={(ev: any) => handleChangedDisplayMax(this.props.dispatch, ev.target.value)}
+                           placeholder="To"/>
                 </td>
             </tr>
         );
     }
 
-    private renderFormDisplayAlphaBlend() {
-        const imageLayer = this.getSelectedVariableImageLayer();
-        if (!imageLayer) {
+    private renderFormAlphaBlending() {
+        const layer = this.props.selectedVariableImageLayer;
+        if (!layer) {
             return null;
         }
-        function handleChangedDisplayAlphaBlend(dispatch, displayAlphaBlend: boolean) {
-            dispatch(actions.updateLayer(Object.assign({}, imageLayer, {displayAlphaBlend})));
+
+        function handleChangedDisplayAlphaBlend(dispatch, alphaBlending: boolean) {
+            dispatch(actions.updateLayer(layer, {alphaBlending}));
         }
 
         return (
-            <tr key="displayAlphaBlend">
-                <td colSpan={2}>
-                    <Switch label="Color bar alpha blending"
-                            checked={imageLayer.alphaBlending}
+            <tr key="alphaBlending">
+                <td>Alpha blending</td>
+                <td>
+                    <Switch checked={layer.alphaBlending}
                             onChange={(ev: any) => handleChangedDisplayAlphaBlend(this.props.dispatch, ev.target.checked)}/>
                 </td>
             </tr>
         );
     }
 
+    private renderFormVarIndex() {
+        const layer = this.props.selectedVariableImageLayer;
+        const variable = this.props.selectedVariable;
+        if (!layer || !variable || variable.ndim <= 2) {
+            return null;
+        }
+
+        function handleChangedLayerVarIndex(dispatch, i: number, value: number) {
+            const varIndex = layer.varIndex.slice();
+            varIndex[i] = value;
+            dispatch(actions.updateLayer(layer, {varIndex}));
+        }
+
+        const n = variable.ndim - 2;
+        const dimensionRows = [];
+        for (let i = 0; i < n; i++) {
+            const dimension = variable.dimensions[i];
+            const max = variable.shape[i] - 1;
+            const value = layer.varIndex[i];
+            dimensionRows.push(<tr key={dimension + "_index"}>
+                <td>{"Index into " + dimension}</td>
+                <td>
+                    <Slider min={0}
+                            max={max}
+                            stepSize={1}
+                            labelStepSize={max}
+                            value={value}
+                            onChange={(value: number) => handleChangedLayerVarIndex(this.props.dispatch, i, value)}
+                    />
+                </td>
+            </tr>);
+        }
+        return dimensionRows;
+    }
+
     private renderFormImageEnhancement(key: string, label: string, min: number, max: number) {
-        const imageLayer = this.getSelectedImageLayer();
-        if (!imageLayer) {
+        const layer = this.props.selectedImageLayer;
+        if (!layer) {
             return null;
         }
 
         function handleChangedImageEnhancement(dispatch, name: string, value: number) {
-            dispatch(actions.updateLayerImageEnhancement(imageLayer, name, value));
+            dispatch(actions.updateLayerImageEnhancement(layer, name, value));
         }
 
         return (
             <tr key={key}>
                 <td>{label}</td>
-                <td style={{width: "100%"}}>
-                    <Slider renderLabel={false}
-                            min={min}
+                <td>
+                    <Slider min={min}
                             max={max}
-                            stepSize={(max - min) / 20.}
-                            value={imageLayer.imageEnhancement[key]}
+                            stepSize={(max - min) / 10.}
+                            labelStepSize={max - min}
+                            renderLabel={(x) => formatNumber(x, 1)}
+                            value={layer.imageEnhancement[key]}
                             onChange={(value: number) => handleChangedImageEnhancement(this.props.dispatch, key, value)}/>
                 </td>
             </tr>
         );
     }
 
-
-    private getSelectedImageLayer(): ImageLayerState|null {
-        if (this.props.selectedLayer
-            && (this.props.selectedLayer.type === 'Image' || this.props.selectedLayer.type === 'VariableImage')) {
-            return this.props.selectedLayer as ImageLayerState;
-        }
-        return null;
-    }
-
-    private getSelectedVariableImageLayer(): VariableImageLayerState|null {
-        if (this.props.selectedLayer
-            && this.props.selectedLayer.type === 'VariableImage') {
-            return this.props.selectedLayer as VariableImageLayerState;
-        }
-        return null;
-    }
 }
 
 export default connect(mapStateToProps)(LayersPanel);

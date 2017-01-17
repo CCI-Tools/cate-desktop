@@ -2,6 +2,12 @@ import {State, DataState, LocationState, SessionState, CommunicationState, Contr
 import * as actions from './actions';
 import {combineReducers} from 'redux';
 
+function assert(condition: any, message: string) {
+    if (!condition) {
+        throw new Error(`assertion failed: ${message}`);
+    }
+}
+
 // TODO write tests for reducers
 
 
@@ -94,10 +100,7 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             const layer = action.payload.layer;
             const layers = state.layers.slice();
             const layerIndex = layers.findIndex(l => l.id === layer.id);
-            if (layerIndex == -1) {
-                console.warn(`WARNING: can't find layer with ID ${layer.id}`);
-                return state;
-            }
+            assert(layerIndex >= 0, "layerIndex >= 0");
             layers[layerIndex] = updateObject(layers[layerIndex], layer);
             return updateObject(state, {layers});
         }
