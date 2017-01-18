@@ -3,7 +3,7 @@ import {connect, Dispatch} from 'react-redux';
 import {ExpansionPanel} from '../components/ExpansionPanel';
 import {
     State, LayerState, ColorMapCategoryState, ImageLayerState,
-    VariableImageLayerState, VariableState, ResourceState
+    VariableImageLayerState, VariableState, ResourceState, ColorMapState
 } from "../state";
 import {
     Button, Checkbox, Slider, Popover, Position, PopoverInteractionKind, Switch,
@@ -45,19 +45,23 @@ interface ILayersPanelProps {
     selectedImageLayer: ImageLayerState|null;
     selectedVariableImageLayer: VariableImageLayerState|null;
     showLayerDetails: boolean;
-    colorMaps: Array<ColorMapCategoryState>;
+    colorMapCategories: Array<ColorMapCategoryState>;
+    selectedColorMap: ColorMapState|null;
 }
 
 function mapStateToProps(state: State): ILayersPanelProps {
+    const selectedVariableImageLayer = selectors.selectedVariableImageLayerSelector(state);
+    const colorMapCategories = selectors.colorMapCategoriesSelector(state);
     return {
         selectedResource: selectors.selectedResourceSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
         layers: selectors.layersSelector(state),
         selectedLayer: selectors.selectedLayerSelector(state),
         selectedImageLayer: selectors.selectedImageLayerSelector(state),
-        selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
+        selectedVariableImageLayer: selectedVariableImageLayer,
         showLayerDetails: state.control.showLayerDetails,
-        colorMaps: state.data.colorMaps,
+        colorMapCategories: colorMapCategories,
+        selectedColorMap: selectors.selectedColorMapSelector(colorMapCategories, selectedVariableImageLayer)
     };
 }
 
@@ -69,7 +73,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
 class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispatch, any> {
 
     componentDidMount() {
-        if (!this.props.colorMaps) {
+        if (!this.props.colorMapCategories) {
             this.props.dispatch(actions.loadColorMaps());
         }
     }
@@ -219,63 +223,25 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             return null;
         }
 
-        function handleChangedColorMapName(dispatch, colorMapName: string) {
-            dispatch(actions.updateLayer(layer, {colorMapName}));
-        }
-
-        const selectedColorMapName = layer.colorMapName;
-
-        let comp = null;
-        if (this.props.colorMaps) {
-            let selectedColorMapImage = null;
-            const colorMapNames = [];
-            const colorMapImages = [];
-            for (let cat of this.props.colorMaps) {
-                for (let cm of cat.colorMaps) {
-                    const colorMapName = cm.name;
-                    const colorMapImage = (
-                        <Tooltip content={colorMapName}>
-                            <img src={`data:image/png;base64,${cm.imageData}`}
-                                 alt={colorMapName}
-                                 width="100%"
-                                 height="14px"/>
-                        </Tooltip>
-                    );
-                    colorMapNames.push(colorMapName);
-                    colorMapImages.push(colorMapImage);
-                    if (selectedColorMapName === colorMapName) {
-                        selectedColorMapImage = colorMapImage;
-                    }
-                }
-            }
-
-            let popoverContent = <ListBox numItems={colorMapNames.length}
-                                          getItemKey={(i) => colorMapNames[i]}
-                                          renderItem={(i) => colorMapImages[i]}
-                                          selectionMode={ListBoxSelectionMode.SINGLE}
-                                          selection={selectedColorMapName ? [selectedColorMapName] : null}
-                                          onSelection={(oldSelection, newSelection) => {
-                                              if (newSelection.length > 0) {
-                                                  handleChangedColorMapName(this.props.dispatch, newSelection[0] as string);
-                                              }
-                                          }}/>;
-
-            comp = (
+        let colorBarButton = null;
+        if (this.props.colorMapCategories) {
+            const popoverContent = this.renderColorBarBox(layer);
+            colorBarButton = (
                 <Popover content={popoverContent}
                          interactionKind={PopoverInteractionKind.CLICK}
                          popoverClassName="pt-popover-content-sizing cate-color-bars-popover"
                          position={Position.LEFT}>
-                    <Button>{selectedColorMapImage ? selectedColorMapImage : "Select Color Bar"}</Button>
+                    {this.renderColorBarButton(layer, false)}
                 </Popover>
             );
         } else {
-            comp = <p>{selectedColorMapName ? selectedColorMapName : "No color bars available"}</p>;
+            colorBarButton = this.renderColorBarButton(layer, true);
         }
 
         return (
             <tr key="colorMapName">
                 <td>Color bar</td>
-                <td style={{width: "100%"}}>{comp}</td>
+                <td style={{width: "100%"}}>{colorBarButton}</td>
             </tr>
         );
     }
@@ -386,7 +352,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         if (layer.statistics) {
             fractionDigits = getDisplayFractionDigits(layer.statistics.min, layer.statistics.max);
         }
-
+        // TODO (nf): use onKeyDown  handler
+        // TODO (nf): use onFocusOut handler, http://stackoverflow.com/questions/155188/trigger-a-button-click-with-javascript-on-the-enter-key-in-a-text-box
         return (
             <tr key="displayMinMax">
                 <td>Value range</td>
@@ -487,6 +454,61 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         );
     }
 
+
+    private renderColorBarButton(layer: VariableImageLayerState, disabled: boolean) {
+        const selectedColorMapName = layer.colorMapName;
+        const selectedColorMapImage = this.renderColorMapImage(this.props.selectedColorMap);
+        const buttonContent = (selectedColorMapImage || (selectedColorMapName || "Select Color Bar"));
+        return (<Button style={{width: "100%"}} disabled={disabled}>{buttonContent}</Button>);
+    }
+
+    private renderColorBarBox(layer: VariableImageLayerState) {
+        function handleChangedColorMapName(dispatch, colorMapName: string) {
+            dispatch(actions.updateLayer(layer, {colorMapName}));
+        }
+
+        const children = [];
+        for (let cat of this.props.colorMapCategories) {
+            const colorMaps = cat.colorMaps;
+            children.push(
+                <p key={cat.name + "_head"} style={{marginTop: 2, marginBottom: 2}}>
+                    <Tooltip content={cat.description}>
+                        {cat.name}
+                    </Tooltip>
+                </p>
+            );
+            children.push(
+                <ListBox key={cat.name + "_list"}
+                         numItems={colorMaps.length}
+                         getItemKey={(i) => colorMaps[i].name}
+                         renderItem={(i) => this.renderColorMapImage(colorMaps[i])}
+                         selectionMode={ListBoxSelectionMode.SINGLE}
+                         selection={layer.colorMapName ? [layer.colorMapName] : []}
+                         onSelection={(oldSelection, newSelection) => {
+                            if (newSelection.length > 0) {
+                                handleChangedColorMapName(this.props.dispatch, newSelection[0] as string);
+                            }
+                         }}
+                />
+            );
+        }
+
+        return <div style={{padding: 5, overflowY: "auto"}}>{children}</div>;
+    }
+
+    //noinspection JSMethodCanBeStatic
+    private renderColorMapImage(colorMap: ColorMapState) {
+        if (colorMap) {
+            return (
+                <Tooltip content={colorMap.name}>
+                    <img src={`data:image/png;base64,${colorMap.imageData}`}
+                         alt={colorMap.name}
+                         style={{width:"100%", height: "1em"}}/>
+                </Tooltip>
+            );
+        }
+        return null;
+    }
 }
 
 export default connect(mapStateToProps)(LayersPanel);
