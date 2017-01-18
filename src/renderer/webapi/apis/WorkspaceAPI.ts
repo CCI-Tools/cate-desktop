@@ -44,7 +44,7 @@ export class WorkspaceAPI {
         return this.webAPIClient.call('save_workspace_as', [baseDir, newBaseDir], null, responseToWorkspace);
     }
 
-    setWorkspaceResource(baseDir: string, resName: string, opName: string, opArgs: any,
+    setWorkspaceResource(baseDir: string, resName: string, opName: string, opArgs: {[name: string]: any},
                          onProgress: (progress: JobProgress) => void): JobPromise {
         return this.webAPIClient.call('set_workspace_resource',  [baseDir, resName, opName, opArgs],
             onProgress, responseToWorkspace);

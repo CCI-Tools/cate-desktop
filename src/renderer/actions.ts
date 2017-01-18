@@ -195,7 +195,6 @@ function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: str
 export function confirmDialogOpenDataset(dataSourceId: string, args: any) {
     return (dispatch) => {
         dispatch(setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: false}));
-
         const resName = 'ds_' + (OpenDatasetDialog.resourceId++);
         const opName = 'open_dataset';
         const opArgs = {
@@ -203,8 +202,16 @@ export function confirmDialogOpenDataset(dataSourceId: string, args: any) {
             sync: true,
             ...args
         };
+
+        // Wrap the opArgs into a new OpArgs object where each value is indicated by a "value" key.
+        // The reason is that an opArg could also refer to a resource, the "source" key would be used instead.
+        //
+        const wrappedOpArgs = {};
+        Object.keys(opArgs).forEach(name => {
+            wrappedOpArgs[name] = {value: opArgs[name]};
+        });
         const title = "Opening Dataset";
-        dispatch(setWorkspaceResource(resName, opName, opArgs, title));
+        dispatch(setWorkspaceResource(resName, opName, wrappedOpArgs, title));
     }
 }
 

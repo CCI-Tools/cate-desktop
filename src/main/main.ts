@@ -19,6 +19,9 @@ const app = electron.app;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
 
+const ipcMain = electron.ipcMain;
+const dialog = electron.dialog;
+
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -379,5 +382,14 @@ function createMainWindow() {
         // when you should delete the corresponding element.
         _mainWindow = null;
     });
+
+    ipcMain.on('show-open-dialog', (event, openDialogOptions) => {
+        dialog.showOpenDialog(_mainWindow, openDialogOptions, (filePaths: Array<string>) => {
+            event.sender.send('show-open-dialog-reply', filePaths || []);
+        });
+    });
 }
+
+
+
 

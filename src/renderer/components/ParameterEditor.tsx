@@ -8,7 +8,7 @@ export interface IParameterEditorProps {
     dataType: string;
     valueEditor?: JSX.Element;
     tooltipText?: string; // todo: use me!
-    units?: string; // todo: use me!
+    units?: string; // todo: use me! add me as a tag label into each text field
     resources: Array<ResourceState>;
     resourceName?: string|null;
     isValueEditorShown?: boolean;
@@ -47,7 +47,7 @@ export class ParameterEditor extends React.PureComponent<IParameterEditorProps, 
             const resourceOptions = [firstResourceOption].concat(otherResourceOptions);
             editor = (
                 <div className="pt-select pt-intent-primary">
-                    <select value={this.props.resourceName}
+                    <select value={this.props.resourceName || ''}
                             onChange={(event:any) => this.handleChange(event.target.value, this.props.isValueEditorShown)}>
                         {resourceOptions}
                     </select>
@@ -58,7 +58,7 @@ export class ParameterEditor extends React.PureComponent<IParameterEditorProps, 
         const editorSwitch = (
             <Switch checked={isValueEditorUsable}
                     disabled={!this.props.valueEditor}
-                    style={{marginLeft: '0.2em', marginBottom: 0}}
+                    style={{marginLeft: '1em', marginBottom: 0}}
                     onChange={(event:any) => this.handleChange(this.props.resourceName, event.target.checked)}/>
         );
 

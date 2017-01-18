@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Dialog, Classes, Button, Tooltip, Switch, Checkbox} from "@blueprintjs/core";
+import {Dialog, Classes, Button, Tooltip, Checkbox} from "@blueprintjs/core";
 import {DialogState, OperationState, WorkspaceState, OperationInputState} from "../state";
 import FormEvent = React.FormEvent;
 import {ParameterEditor} from "../components/ParameterEditor";
@@ -183,36 +183,41 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
         const resources = this.props.workspace.resources;
 
         const changeParameterConstantValue = (index: number, constantValue: any) => {
+            console.log('changeParameterConstantValue: ', this, index, constantValue);
             const parameterValues = this.state.parameterValues.slice();
             parameterValues[index] = Object.assign({}, parameterValues[index], {constantValue, isValueUsed: true});
             this.setState({parameterValues});
         };
 
         const changeParameterResourceName = (index: number, resourceName: string, isValueUsed: boolean) => {
+            console.log('changeParameterResourceName: ', this, index, resourceName, isValueUsed);
             const parameterValues = this.state.parameterValues.slice();
             parameterValues[index] = Object.assign({}, parameterValues[index], {resourceName, isValueUsed});
             this.setState({parameterValues});
         };
 
         const inputElems = operation.inputs.map((input: OperationInputState, index: number) => {
+            console.log("################# INPUT:", input);
             const parameterValue = this.state.parameterValues[index];
+            const constantValue = parameterValue.constantValue;
             let valueEditor = null;
             switch (input.dataType) {
-                case 'float':
                 case 'int':
-                case 'str': {
-                    valueEditor = (<input key="v"
-                                          className="pt-input pt-intent-primary"
-                                          type="text"
-                                          value={parameterValue.constantValue}
-                                          onChange={(event:any) => changeParameterConstantValue(index, event.target.value)}/>);
+                    valueEditor = EditOpStepDialog.renderIntInputEditor(index, constantValue, changeParameterConstantValue);
+                    break;
+                case 'float':
+                    valueEditor = EditOpStepDialog.renderFloatInputEditor(index, constantValue, changeParameterConstantValue);
+                    break;
+                case 'bool': {
+                    valueEditor = EditOpStepDialog.renderBoolInputEditor(index, constantValue, changeParameterConstantValue);
                     break;
                 }
-                case 'bool': {
-                    valueEditor = (
-                        <Checkbox checked={parameterValue.constantValue}
-                                  onChange={(event:any) => changeParameterConstantValue(index, event.target.checked)}/>
-                    );
+                case 'str': {
+                    if (input.name.toLowerCase().endsWith('file')) {
+                        valueEditor = EditOpStepDialog.renderFileInputEditor(index, constantValue, changeParameterConstantValue);
+                    } else {
+                        valueEditor = EditOpStepDialog.renderStringInputEditor(index, constantValue, changeParameterConstantValue);
+                    }
                     break;
                 }
                 case 'Dataset': {
@@ -220,7 +225,8 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                     break;
                 }
             }
-            return (<ParameterEditor resources={resources}
+            return (<ParameterEditor key={index}
+                                     resources={resources}
                                      name={input.name}
                                      dataType={input.dataType}
                                      onChange={(resourceName, isValueUsed) => changeParameterResourceName(index, resourceName, isValueUsed)}
@@ -230,5 +236,94 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             );
         });
         return (<div>{inputElems}</div>);
+    }
+
+    private static renderBoolInputEditor(index: number, constantValue: boolean, changeParameterConstantValue: (index: number, constantValue: any) => any) {
+        return (
+            <Checkbox checked={constantValue || false}
+                      onChange={(event:any) => changeParameterConstantValue(index, event.target.checked)}/>
+        );
+    }
+
+    private static renderIntInputEditor(index: number, constantValue: number, changeParameterConstantValue: (index: number, constantValue: number) => any) {
+        return (
+            <input className="pt-input"
+                   type="text"
+                   style={{textAlign: "right"}}
+                   value={constantValue || 0}
+                   onChange={(event:any) => {
+                       const textValue = event.target.value;
+                       try {
+                           const value = parseInt(textValue);
+                           changeParameterConstantValue(index, value);
+                       } catch (e) {
+                           // inform user
+                       }
+                   }}
+            />
+        );
+    }
+
+    private static renderFloatInputEditor(index: number, constantValue: number, changeParameterConstantValue: (index: number, constantValue: any) => any) {
+        return (
+            <input className="pt-input"
+                   type="text"
+                   style={{textAlign: "right"}}
+                   value={constantValue || 0.0}
+                   onChange={(event:any) => {
+                       const textValue = event.target.value;
+                       try {
+                           const value = parseFloat(textValue);
+                           changeParameterConstantValue(index, value);
+                       } catch (e) {
+                           // inform user
+                       }
+                   }}
+            />
+        );
+    }
+
+    private static renderStringInputEditor(index: number, constantValue: string|null, changeParameterConstantValue: (index: number, constantValue: any) => any) {
+        return (
+            <input className="pt-input"
+                   type="text"
+                   value={constantValue || ''}
+                   onChange={(event:any) => changeParameterConstantValue(index, event.target.value)}
+            />
+        );
+    }
+
+    private static renderFileInputEditor(index: number, constantValue: string|null, changeParameterConstantValue: (index: number, constantValue: any) => any) {
+        const browseFile = () => {
+            const electron = require('electron');
+            console.log('contacting main process...', electron);
+            // see https://github.com/electron/electron/blob/master/docs/api/dialog.md
+            const openDialogOptions = {
+                title: "Select File Path",
+                defaultPath: constantValue,
+                buttonLabel: "Select File",
+                properties: ["openFile"],
+            };
+            electron.ipcRenderer.send('show-open-dialog', openDialogOptions);
+            electron.ipcRenderer.on('show-open-dialog-reply', (event, filePaths: Array<string>) => {
+                console.log('received...', filePaths);
+                if (filePaths && filePaths.length) {
+                    changeParameterConstantValue(index, filePaths[0]);
+                }
+            });
+        };
+
+        return (
+            <div className="pt-control-group" style={{width: '20em', display: 'flex'}}>
+                <input className="pt-input"
+                       type="text"
+                       style={{flexGrow: 1}}
+                       value={constantValue || ''}
+                       placeholder="Enter local file path"
+                       onChange={(event:any) => changeParameterConstantValue(index, event.target.value)}
+                />
+                <Button className="pt-intent-primary" style={{flex: 'none'}} onClick={browseFile}>...</Button>
+            </div>
+        );
     }
 }
