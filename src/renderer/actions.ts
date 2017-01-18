@@ -1,11 +1,11 @@
 import {
-    WorkspaceState, DataStoreState, TaskState, State, ResourceState, VariableImageLayerState,
+    WorkspaceState, DataStoreState, TaskState, State, ResourceState,
     LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, VariableState
 } from "./state";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
 import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
-import {OpenDatasetDialog, IOpenDatasetDialogState} from "./containers/OpenDatasetDialog";
+import {OpenDatasetDialog} from "./containers/OpenDatasetDialog";
 import {NumberRange} from "@blueprintjs/core";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 
