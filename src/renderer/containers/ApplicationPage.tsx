@@ -10,7 +10,6 @@ import WorkspacePanel from "./WorkspacePanel";
 import VariablePanel from "./VariablesPanel";
 import TaskPanel from "./TasksPanel";
 import LayersPanel from "./LayersPanel";
-import ColorBarsPanel from "./ColorBarsPanel";
 
 /*
  * IMPORTANT NODE: This is still prototype code!!!
@@ -128,7 +127,6 @@ export function ApplicationPage(props) {
                     <TabPanel>
                         <div style={rightStyle}>
                             <LayersPanel/>
-                            <ColorBarsPanel/>
                             <AnalysisWindow/>
                         </div>
                     </TabPanel>
