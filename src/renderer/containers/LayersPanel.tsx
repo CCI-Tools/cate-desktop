@@ -6,7 +6,7 @@ import {
     VariableImageLayerState, VariableState, ResourceState, ColorMapState
 } from "../state";
 import {
-    Button, Checkbox, Slider, Popover, Position, PopoverInteractionKind, Switch,
+    Button, Slider, Popover, Position, PopoverInteractionKind, Switch,
     RangeSlider, NumberRange, Tooltip
 } from "@blueprintjs/core";
 import FormEvent = React.FormEvent;
@@ -15,6 +15,7 @@ import {Card} from "../components/Card";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
+import {NumericRangeField} from "../components/NumericRangeField";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -199,10 +200,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         }
 
         return (
-            <table className="pt-condensed pt-bordered">
+            <table className="pt-table pt-condensed pt-bordered" cellPadding={4}>
                 <tbody>
                 {this.renderFormDisplayMinMax()}
-                {this.renderFormDisplayRange()}
                 {this.renderFormDisplayColorBar()}
                 {this.renderFormAlphaBlending()}
                 {this.renderFormVarIndex()}
@@ -240,13 +240,13 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
 
         return (
             <tr key="colorMapName">
-                <td>Color bar</td>
+                <td>Colour bar</td>
                 <td style={{width: "100%"}}>{colorBarButton}</td>
             </tr>
         );
     }
 
-    private renderFormDisplayRange() {
+    private renderFormDisplayMinMax() {
         const layer = this.props.selectedVariableImageLayer;
         if (!layer) {
             return null;
@@ -261,112 +261,42 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             }
             this.props.dispatch(actions.getWorkspaceVariableStatistics(resource.name, variable.name, layer.varIndex,
                 (statistics) => {
-                    return actions.updateLayer(layer, {statistics})
+                    return actions.updateLayer(layer, {
+                        displayMin: statistics.min,
+                        displayMax: statistics.max,
+                        statistics
+                    });
                 }
             ));
         }
 
-        const statistics = layer.statistics;
-        let rangeSlider;
-        if (statistics) {
-
-            function handleChangedDisplayRange(dispatch, displayRange: NumberRange) {
-                dispatch(actions.updateLayer(layer, {
-                    displayMin: displayRange[0],
-                    displayMax: displayRange[1]
-                }));
-            }
-
-            let min = statistics.min;
-            let max = statistics.max;
-            const fractionDigits = getDisplayFractionDigits(min, max);
-
-            rangeSlider = (
-                <RangeSlider
-                    min={min}
-                    max={max}
-                    stepSize={(max - min) / 100.}
-                    labelStepSize={max - min}
-                    renderLabel={(x: number) => formatNumber(x, fractionDigits)}
-                    onChange={(displayRange: NumberRange) => handleChangedDisplayRange(this.props.dispatch, displayRange)}
-                    value={[layer.displayMin, layer.displayMax]}
-                />
-            );
-        } else {
-            rangeSlider = (
-                <RangeSlider
-                    min={0}
-                    max={1}
-                    stepSize={0.1}
-                    labelStepSize={1}
-                    disabled={true}
-                />
-            );
+        function handleChangedDisplayMinMax(dispatch, displayMin: number, displayMax: number) {
+            dispatch(actions.updateLayer(layer, {displayMin, displayMax}));
         }
 
-        return (
-            <tr key="displayRange">
-                <td/>
-                <td>
-                    <div>
-                        {rangeSlider}
-                        <Tooltip content="Compute valid min/max">
-                            <Button iconName="arrows-horizontal"
-                                    onClick={handleUpdateDisplayStatistics.bind(this)}/>
-                        </Tooltip>
-                    </div>
-                </td>
-            </tr>
-        );
-    }
-
-    private renderFormDisplayMinMax() {
-        const layer = this.props.selectedVariableImageLayer;
-        if (!layer) {
-            return null;
-        }
-
-        function handleChangedDisplayMin(dispatch, displayMinText: string) {
-            let displayMin;
-            try {
-                displayMin = parseFloat(displayMinText);
-            } catch (e) {
-                // Do not change
-                return;
-            }
-            dispatch(actions.updateLayer(layer, {displayMin}));
-        }
-
-        function handleChangedDisplayMax(dispatch, displayMaxText: string) {
-            let displayMax;
-            try {
-                displayMax = parseFloat(displayMaxText);
-            } catch (e) {
-                // Do not change
-                return;
-            }
-            dispatch(actions.updateLayer(layer, {displayMax}));
-        }
-
-        let fractionDigits = 1;
+        let fractionDigits = 2;
         if (layer.statistics) {
             fractionDigits = getDisplayFractionDigits(layer.statistics.min, layer.statistics.max);
         }
-        // TODO (nf): use onKeyDown  handler
-        // TODO (nf): use onFocusOut handler, http://stackoverflow.com/questions/155188/trigger-a-button-click-with-javascript-on-the-enter-key-in-a-text-box
+
         return (
             <tr key="displayMinMax">
-                <td>Value range</td>
+                <td>Display range</td>
                 <td>
-                    <input className="pt-input" type="text" style={{width: "6em", textAlign: "right"}}
-                           value={formatNumber(layer.displayMin, fractionDigits)}
-                           onChange={(ev: any) => handleChangedDisplayMin(this.props.dispatch, ev.target.value)}
-                           placeholder="From"/>
-                    <span style={{width: "0.5em"}}/>
-                    <input className="pt-input" type="text" style={{width: "6em", textAlign: "right"}}
-                           value={formatNumber(layer.displayMax, fractionDigits)}
-                           onChange={(ev: any) => handleChangedDisplayMax(this.props.dispatch, ev.target.value)}
-                           placeholder="To"/>
+                    <div className="pt-control-group">
+                        <NumericRangeField value={[layer.displayMin, layer.displayMax]}
+                                           onChange={(value: [number, number]) => handleChangedDisplayMinMax(this.props.dispatch, value[0], value[1])}
+                                           exponential={fractionDigits > 3}
+                                           fractionDigits={fractionDigits > 3 ? 2 : fractionDigits}
+                        />
+                        <Tooltip content="Compute valid min/max">
+                            <Button className="pt-intent-primary" iconName="arrows-horizontal"
+                                    onClick={handleUpdateDisplayStatistics.bind(this)}/>
+                        </Tooltip>
+                    </div>
+                    <div>
+                        {this.renderDisplayRangeSlider()}
+                    </div>
                 </td>
             </tr>
         );
@@ -455,6 +385,41 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     }
 
 
+    private renderDisplayRangeSlider() {
+        const layer = this.props.selectedVariableImageLayer;
+        if (!layer) {
+            return null;
+        }
+
+        const statistics = layer.statistics;
+        if (!statistics) {
+            return null;
+        }
+
+        function handleChangedDisplayRange(dispatch, displayRange: NumberRange) {
+            dispatch(actions.updateLayer(layer, {
+                displayMin: displayRange[0],
+                displayMax: displayRange[1]
+            }));
+        }
+
+        let min = statistics.min;
+        let max = statistics.max;
+        const fractionDigits = getDisplayFractionDigits(min, max);
+
+        return (
+            <RangeSlider
+                min={min}
+                max={max}
+                stepSize={(max - min) / 100.}
+                labelStepSize={max - min}
+                renderLabel={(x: number) => formatNumber(x, fractionDigits)}
+                onChange={(displayRange: NumberRange) => handleChangedDisplayRange(this.props.dispatch, displayRange)}
+                value={[layer.displayMin, layer.displayMax]}
+            />
+        );
+    }
+
     private renderColorBarButton(layer: VariableImageLayerState, disabled: boolean) {
         const selectedColorMapName = layer.colorMapName;
         const selectedColorMapImage = this.renderColorMapImage(this.props.selectedColorMap);
@@ -512,3 +477,4 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
 }
 
 export default connect(mapStateToProps)(LayersPanel);
+
