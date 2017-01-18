@@ -144,7 +144,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                 openDatasetDialog = (
                     <OpenDatasetDialog
                         dataSource={dataSource}
-                        availableTimeRange={dataSource.temporalCoverage}
+                        coveredTimeRange={dataSource.temporalCoverage}
                         onConfirm={this.props.confirmDialogOpenDataset}
                         onCancel={this.props.cancelDialogOpenDataset}/>
                 );

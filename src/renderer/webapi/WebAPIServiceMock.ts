@@ -179,12 +179,18 @@ export class WebAPIServiceMock implements IServiceObject {
     }
 
     get_ds_temporal_coverage(dataStoreId: string, dataSourceId: string) {
-        if (dataStoreId.endsWith("1")) {
+        if (dataSourceId.endsWith("0")) {
             return {
                 temporal_coverage_start: "2010-01-01",
                 temporal_coverage_end: "2014-12-31"
             };
-        } else {
+        } else if (dataSourceId.endsWith("1")) {
+            return {};
+        } else if (dataSourceId.endsWith("2")) {
+            return {
+                temporal_coverage_start: "abc",
+                temporal_coverage_end: "2014-12-31"
+            };        } else {
             return {
                 temporal_coverage_start: "2010-01-01",
                 temporal_coverage_end: "2010-12-31"

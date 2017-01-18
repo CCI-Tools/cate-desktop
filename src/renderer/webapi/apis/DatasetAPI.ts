@@ -2,13 +2,23 @@ import {WebAPIClient} from "../WebAPIClient";
 import {JobPromise, JobProgress, JobResponse} from "../Job";
 import {NumberRange} from "@blueprintjs/core";
 
+function stringToMillis(dateString: string): number {
+    if (dateString) {
+        const dateInMillis = Date.parse(dateString);
+        if (dateInMillis) {
+            // can be NaN
+            return dateInMillis;
+        }
+    }
+    return null;
+}
 function responseToTemporalCoverage(temporalCoverageResponse: JobResponse): NumberRange {
     if (!temporalCoverageResponse) {
         return null;
     }
-    const start = temporalCoverageResponse.temporal_coverage_start;
-    const end = temporalCoverageResponse.temporal_coverage_end;
-    return [Date.parse(start), Date.parse(end)];
+    const startDateMillis= stringToMillis(temporalCoverageResponse.temporal_coverage_start);
+    const endDateMillis= stringToMillis(temporalCoverageResponse.temporal_coverage_end);
+    return [startDateMillis, endDateMillis];
 }
 
 export class DatasetAPI {

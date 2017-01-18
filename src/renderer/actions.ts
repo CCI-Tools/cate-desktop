@@ -189,12 +189,20 @@ export function confirmDialogOpenDataset(dataSourceId: string, timeRange: Number
 
         const resName = 'ds_' + (OpenDatasetDialog.resourceId++);
         const opName = 'open_dataset';
-        const opArgs = {
-            ds_name: dataSourceId,
-            start_date: `${timeRange[0]}`,
-            end_date: `${timeRange[1]}`,
-            sync: true
-        };
+        let opArgs;
+        if (timeRange) {
+            opArgs = {
+                ds_name: dataSourceId,
+                start_date: `${new Date(timeRange[0]).toISOString().slice(0, 10)}`,
+                end_date: `${new Date(timeRange[1]).toISOString().slice(0, 10)}`,
+                sync: true
+            };
+        } else {
+            opArgs = {
+                ds_name: dataSourceId,
+                sync: true
+            };
+        }
         const title = "Opening Dataset";
         dispatch(setWorkspaceResource(resName, opName, opArgs, title));
     }
@@ -303,6 +311,7 @@ function workspaceAPI(state: State): WorkspaceAPI {
 }
 
 export function setWorkspaceResource(resName: string, opName: string, opArgs: any, title: string) {
+    console.log("setWorkspaceResource: ",resName,opName,opArgs, title);
     return (dispatch, getState) => {
         const baseDir = getState().data.workspace.baseDir;
 

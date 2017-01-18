@@ -4,8 +4,7 @@ import {DataSourceState, DialogState} from "../state";
 
 interface IOpenDatasetDialogProps {
     dataSource: DataSourceState;
-    availableTimeRange: NumberRange|null;
-    // timeInfoLoading: boolean;
+    coveredTimeRange: NumberRange|null;
     onConfirm: (dataSourceId: string, timeRange: NumberRange) => void;
     onCancel: () => void;
 }
@@ -17,79 +16,82 @@ export interface IOpenDatasetDialogState extends DialogState {
 export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDatasetDialogState> {
     static resourceId = 0;
     static readonly DIALOG_ID = 'openDataset';
+    readonly MILLIS_A_DAY = 1000 * 60 * 60 * 24;
 
     constructor(props: IOpenDatasetDialogProps) {
         super(props);
         this.state = {
             isOpen: true,
-            timeRange: [NaN, NaN]
+            timeRange: this.props.coveredTimeRange
         };
         this.handleConfirm = this.handleConfirm.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
-        this.handleRangeSelected = this.handleRangeSelected.bind(this);
+        this.updateRange = this.updateRange.bind(this);
+    }
+
+    componentWillReceiveProps(nextProps: IOpenDatasetDialogProps, nextContext: any) {
+        this.updateRange(nextProps.coveredTimeRange);
     }
 
     private handleConfirm() {
-        this.props.onConfirm(this.props.dataSource.id, this.state.timeRange);
+        if (this.state.timeRange[0] && this.state.timeRange[1]) {
+            this.props.onConfirm(this.props.dataSource.id, this.state.timeRange);
+        } else {
+            this.props.onConfirm(this.props.dataSource.id, null);
+        }
     }
 
     private handleCancel() {
         this.props.onCancel();
     }
 
-    private handleRangeSelected(timeRange: NumberRange) {
+    private updateRange(timeRange: NumberRange) {
         this.setState({timeRange} as IOpenDatasetDialogState);
     }
 
+    private static renderLabelAsDates(value) {
+        const date = new Date(value);
+        return date.getUTCFullYear() +
+            '-' + (date.getUTCMonth() + 1) +
+            '-' + date.getUTCDate();
+    }
+    ;
+
     render() {
-        const millisInDay = 1000 * 60 * 60 * 24;
-        const disabled = !this.props.availableTimeRange;
-        let timeLineSlider;
-        if (!disabled) {
-            const d1 = new Date(this.props.availableTimeRange[0]);
-            const d2 = new Date(this.props.availableTimeRange[1]);
-            const startYear = d1.getUTCFullYear();
-            const endYear = d2.getUTCFullYear();
-            let rangeStart, rangeEnd, stepDays;
-            if (startYear === endYear) {
-                // same year
-                rangeStart = new Date(startYear, 1, 1).valueOf();
-                rangeEnd = new Date(startYear + 1, 1, 1).valueOf();
-                stepDays = 90;
-                // y -> y+1
-                // quarterly ticks
+        let timeSelector = null;
+        if (this.props.coveredTimeRange) {
+            const startMillis = this.props.coveredTimeRange[0];
+            const endMillis = this.props.coveredTimeRange[1];
+            if (startMillis && endMillis) {
+                const stepSize = (endMillis - startMillis) / 4;
+                // onChange={this.handleRangeSelected}
+                timeSelector = (
+                    <div>
+                        <p>Select a time range:</p>
+                        <div style={{ width: "100%", padding: 10}}>
+                            <RangeSlider
+                                min={startMillis}
+                                max={endMillis}
+                                stepSize={this.MILLIS_A_DAY}
+                                labelStepSize={stepSize}
+                                onChange={this.updateRange}
+                                value={this.state.timeRange}
+                                renderLabel={OpenDatasetDialog.renderLabelAsDates}
+                            />
+                        </div>
+                    </div>
+                );
             } else {
-                // multiple years
-                rangeStart = new Date(startYear, 1, 1).valueOf();
-                rangeEnd = new Date(endYear + 1, 1, 1).valueOf();
-                stepDays = 365;
+                timeSelector = (
+                    <div style={{ width: "100%", padding: 10}}>
+                        No time information available.
+                    </div>
+                );
             }
-
-            console.log(this.props.availableTimeRange, d1, d2, startYear, endYear);
-            const renderLabelAsDates = value =>{
-                const date = new Date(value);
-                return date.getUTCFullYear() +
-                    '-' + (date.getUTCMonth() + 1) +
-                    '-' + date.getUTCDate();
-            };
-            // onChange={this.handleRangeSelected}
-            timeLineSlider = (
-                <div style={{ width: "100%", padding: 10}}>
-                    <RangeSlider
-                        min={rangeStart}
-                        max={rangeEnd}
-                        stepSize={millisInDay}
-                        labelStepSize={millisInDay*stepDays}
-
-                        value={[rangeStart, rangeEnd]}
-                        renderLabel={renderLabelAsDates}
-                    />
-                </div>
-            );
         } else {
-            timeLineSlider = (
+            timeSelector = (
                 <div style={{ width: "100%", padding: 10}}>
-                    Loading time coverage
+                    Loading time coverage...
                 </div>
             );
         }
@@ -108,8 +110,7 @@ export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, 
                 <div className={Classes.DIALOG_BODY}>
                     <p>You are about to open a dataset from data source</p>
                     <p><strong>{this.props.dataSource.name}</strong>.</p>
-                    <p>Select a time range:</p>
-                    {timeLineSlider}
+                    {timeSelector}
                 </div>
                 <div className={Classes.DIALOG_FOOTER}>
                     <div className={Classes.DIALOG_FOOTER_ACTIONS}>
@@ -118,7 +119,7 @@ export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, 
                             <Button className="pt-intent-primary"
                                     onClick={this.handleConfirm}
                                     iconName="folder-shared-open"
-                                    disabled={disabled}
+                                    disabled={!this.props.coveredTimeRange}
                             >Open</Button>
                         </Tooltip>
                     </div>
