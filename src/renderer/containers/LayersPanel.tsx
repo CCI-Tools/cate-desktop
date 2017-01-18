@@ -200,7 +200,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         }
 
         return (
-            <table className="pt-table pt-condensed pt-bordered" cellPadding={4}>
+            <table cellPadding={4}>
                 <tbody>
                 {this.renderFormDisplayMinMax()}
                 {this.renderFormDisplayColorBar()}
