@@ -192,26 +192,17 @@ function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: str
     return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
 }
 
-export function confirmDialogOpenDataset(dataSourceId: string, timeRange: NumberRange) {
+export function confirmDialogOpenDataset(dataSourceId: string, args: any) {
     return (dispatch) => {
         dispatch(setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: false}));
 
         const resName = 'ds_' + (OpenDatasetDialog.resourceId++);
         const opName = 'open_dataset';
-        let opArgs;
-        if (timeRange) {
-            opArgs = {
-                ds_name: dataSourceId,
-                start_date: `${new Date(timeRange[0]).toISOString().slice(0, 10)}`,
-                end_date: `${new Date(timeRange[1]).toISOString().slice(0, 10)}`,
-                sync: true
-            };
-        } else {
-            opArgs = {
-                ds_name: dataSourceId,
-                sync: true
-            };
-        }
+        const opArgs = {
+            ds_name: dataSourceId,
+            sync: true,
+            ...args
+        };
         const title = "Opening Dataset";
         dispatch(setWorkspaceResource(resName, opName, opArgs, title));
     }
