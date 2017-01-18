@@ -30,6 +30,8 @@ export interface DataState {
     operations: Array<OperationState> | null;
     workspace: WorkspaceState | null;
     layers: Array<LayerState>;
+    savedLayers: {[varName: string]: LayerState};
+    colorMaps: Array<ColorMapCategoryState> | null;
 }
 
 export interface AppConfigState {
@@ -234,7 +236,7 @@ export interface LayerState {
     /**
      * Layer type
      */
-    type: 'VariableImage'|'Shape';
+    type: 'VariableImage'|'Image'|'Shape';
 
     /**
      * Layer name.
@@ -285,11 +287,40 @@ export interface ImageEnhancementState {
     gamma: number;
 }
 
+export interface ImageStatisticsState {
+    /**
+     * The true minimum value in the current data subset.
+     */
+    min: number;
+
+    /**
+     * The true maximum value in the current data subset.
+     */
+    max: number;
+}
+
+/**
+ * State of a layer.
+ */
+export interface ImageLayerState extends LayerState {
+    /**
+     * The image type ID.
+     */
+    type: 'Image';
+    /**
+     * Image enhancement attributes.
+     */
+    imageEnhancement: ImageEnhancementState;
+}
 
 /**
  * State of an image layer that displays a variable.
  */
 export interface VariableImageLayerState extends LayerState {
+    /**
+     * The image type ID.
+     */
+    type: 'VariableImage';
     /**
      * The name of the resource that contains the variable.
      */
@@ -299,9 +330,9 @@ export interface VariableImageLayerState extends LayerState {
      */
     varName: string;
     /**
-     * Image layer color map. The color bar is CBARS[variableColorMap].
+     * The current index into the variable that results in a 2D-subset (i.e. with dims ['lat', 'lon']).
      */
-    colorMapName: string;
+    varIndex: Array<number>;
     /**
      * Image layer minimum display value.
      */
@@ -311,14 +342,38 @@ export interface VariableImageLayerState extends LayerState {
      */
     displayMax: number;
     /**
+     * Image layer color map. The color bar is CBARS[variableColorMap].
+     */
+    colorMapName: string;
+    /**
      * Whether to blend alpha 0...1 at bottom value range.
      */
-    displayAlpha: boolean;
+    alphaBlending: boolean;
     /**
      * Image enhancement attributes.
      */
-    imageEnhancement?: ImageEnhancementState;
+    statistics?: ImageStatisticsState;
+    /**
+     * Image enhancement attributes.
+     */
+    imageEnhancement: ImageEnhancementState;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ColorMapState
+
+
+export interface ColorMapState {
+    name: string;
+    imageData: string;
+}
+
+export interface ColorMapCategoryState {
+    name: string;
+    description: string;
+    colorMaps: Array<ColorMapState>;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CommunicationState
@@ -371,6 +426,9 @@ export interface ControlState {
     // LayersPanel
     selectedLayerId: string|null;
     showLayerDetails: boolean;
+
+    // ColorBarsPanel
+    selectedColorMapName: string|null;
 
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState;};

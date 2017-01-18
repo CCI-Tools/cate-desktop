@@ -21,7 +21,7 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         workspace: state.data.workspace,
         selectedVariableName: state.control.selectedVariableName,
         selectedWorkspaceResourceId: state.control.selectedWorkspaceResourceId,
-        showVariableDetails : state.control.showVariableDetails,
+        showVariableDetails: state.control.showVariableDetails,
     }
 }
 
@@ -45,22 +45,6 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
 
     private handleShowDetailsChanged(value: boolean) {
         this.props.dispatch(actions.setControlState('showVariableDetails', value));
-    }
-
-    //noinspection JSMethodCanBeStatic
-    private numberArrayToString(numbers: number[], defaultValue: string) {
-        if (numbers)
-            return "[" + numbers.join(",") + "]";
-        else
-            return defaultValue;
-    }
-
-    //noinspection JSMethodCanBeStatic
-    private stringArrayToString(numbers: string[], defaultValue: string) {
-        if (numbers)
-            return numbers.join("\n");
-        else
-            return defaultValue;
     }
 
     render() {
@@ -89,24 +73,48 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         if (variables && this.props.selectedVariableName) {
             const selectedVariable = variables.find(v => v.name === this.props.selectedVariableName);
             if (selectedVariable) {
-                const entries = [];
-                entries.push(<tr key='dataType'><td>Datatype</td><td>{selectedVariable.dataType || '-'}</td></tr>);
-
-                entries.push(<tr key='ndim'><td>Num dims</td><td>{selectedVariable.ndim || '-'}</td></tr>);
-                entries.push(<tr key='shape'><td>Shape</td><td>{this.numberArrayToString(selectedVariable.shape, '-')}</td></tr>);
-                // chunk  TODO
-                entries.push(<tr key='dimensions'><td>Dimensions</td><td>{this.stringArrayToString(selectedVariable.dimensions, '-')}</td></tr>);
-
-                entries.push(<tr key='valid_min'><td>Valid min</td><td>{selectedVariable.valid_min || '-'}</td></tr>);
-                entries.push(<tr key='valid_max'><td>Valid max</td><td>{selectedVariable.valid_max || '-'}</td></tr>);
-                entries.push(<tr key='add_offset'><td>Add offset</td><td>{selectedVariable.add_offset || '-'}</td></tr>);
-                entries.push(<tr key='scale_factor'><td>Scale Factor</td><td>{selectedVariable.scale_factor || '-'}</td></tr>);
-
-                entries.push(<tr key='standard_name'><td>Standard Name</td><td>{selectedVariable.standard_name || '-'}</td></tr>);
-                entries.push(<tr key='long_name'><td>Long name</td><td>{selectedVariable.long_name || '-'}</td></tr>);
-                entries.push(<tr key='units'><td>Units</td><td>{selectedVariable.units || '-'}</td></tr>);
-                entries.push(<tr key='comment'><td>Comment</td><td>{selectedVariable.comment || '-'}</td></tr>);
-
+                const entries = [
+                    <tr key='dataType'>
+                        <td>Data type</td>
+                        <td>{selectedVariable.dataType || '-'}</td>
+                    </tr>,
+                    <tr key='units'>
+                        <td>Units</td>
+                        <td>{selectedVariable.units || '-'}</td>
+                    </tr>,
+                    <tr key='ndim'>
+                        <td>#Dimensions</td>
+                        <td>{selectedVariable.ndim || '-'}</td>
+                    </tr>,
+                    <tr key='shape'>
+                        <td>Shape</td>
+                        <td>{selectedVariable.shape ? selectedVariable.shape.join(', ') : '-'}</td>
+                    </tr>,
+                    <tr key='dimensions'>
+                        <td>Dimensions</td>
+                        <td>{selectedVariable.dimensions ? selectedVariable.dimensions.join(', ') : '-'}</td>
+                    </tr>,
+                    <tr key='valid_min'>
+                        <td>Valid min.</td>
+                        <td>{selectedVariable.valid_min || '-'}</td>
+                    </tr>,
+                    <tr key='valid_max'>
+                        <td>Valid max.</td>
+                        <td>{selectedVariable.valid_max || '-'}</td>
+                    </tr>,
+                    <tr key='add_offset'>
+                        <td>Add offset</td>
+                        <td>{selectedVariable.add_offset || '-'}</td>
+                    </tr>,
+                    <tr key='scale_factor'>
+                        <td>Scale factor</td>
+                        <td>{selectedVariable.scale_factor || '-'}</td>
+                    </tr>,
+                    <tr key='comment'>
+                        <td>Comment</td>
+                        <td>{selectedVariable.comment || '-'}</td>
+                    </tr>,
+                ];
                 detailPanel = (
                     <Card>
                         <table className="pt-table pt-condensed pt-striped">
@@ -132,9 +140,9 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
             return (
                 <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
                     <Card>
-                        <p><strong>No variables available!</strong></p>
+                        <p><strong>No variables</strong></p>
                         <p>
-                            The currently selected resource in the workspace contains no variables.
+                            The currently selected resource in the workspace does not contain any variables.
                         </p>
                     </Card>
                 </ExpansionPanel>

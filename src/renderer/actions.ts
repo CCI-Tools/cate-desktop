@@ -1,17 +1,25 @@
 import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState, VariableImageLayerState,
-    LayerState
+    LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, VariableState
 } from "./state";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
 import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 import {OpenDatasetDialog, IOpenDatasetDialogState} from "./containers/OpenDatasetDialog";
 import {NumberRange} from "@blueprintjs/core";
+import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 
 // TODO write tests for actions
 
 
 const CANCELLED_CODE = 999;
+
+function assert(condition: any, message: string) {
+    if (!condition) {
+        throw new Error(`assertion failed: ${message}`);
+    }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application-level actions
@@ -84,6 +92,7 @@ export const UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE = 'UPDATE_DATA_SOURCE_TEMPORAL
 
 /**
  * Asynchronously load the available Cate data stores.
+ * Called only a single time on app initialisation.
  *
  * @returns {(dispatch:any, getState:any)=>undefined}
  */
@@ -248,11 +257,12 @@ export const SET_SELECTED_WORKSPACE_RESOURCE_ID = 'SET_SELECTED_WORKSPACE_RESOUR
 export const SET_SELECTED_WORKFLOW_STEP_ID = 'SET_SELECTED_WORKFLOW_STEP_ID';
 
 /**
- * Asynchronously load the available Cate data stores.
+ * Asynchronously load the initial workspace.
+ * Called only a single time on app initialisation.
  *
  * @returns {(dispatch:any, getState:any)=>undefined}
  */
-export function loadWorkspace() {
+export function loadInitialWorkspace() {
     return (dispatch, getState) => {
         const openLastWorkspace = getState().session.openLastWorkspace;
         const lastWorkspacePath = getState().session.lastWorkspacePath;
@@ -330,6 +340,24 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: an
     }
 }
 
+export function getWorkspaceVariableStatistics(resName: string,
+                                               varName: string,
+                                               varIndex: Array<number>,
+                                               action: (statistics: ImageStatisticsState) => any) {
+    return (dispatch, getState) => {
+        const baseDir = getState().data.workspace.baseDir;
+
+        const jobPromise = workspaceAPI(getState()).getWorkspaceVariableStatistics(baseDir, resName, varName, varIndex);
+        dispatch(jobSubmitted(jobPromise.getJobId(), `Computing statistics for variable "${varName}"`));
+        jobPromise.then(statistics => {
+            dispatch(jobDone(jobPromise.getJobId()));
+            dispatch(action(statistics));
+        }).catch(failure => {
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
+        });
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Variable actions
 
@@ -338,44 +366,70 @@ export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
 export function setSelectedVariableName(selectedVariableName: string|null) {
     return (dispatch, getState) => {
         dispatch(setSelectedVariableNameImpl(selectedVariableName));
-        const selectedWorkspaceResourceId = getState().control.selectedWorkspaceResourceId;
-        // TODO: get default value from some mapping varName => {colorMapName, displayMin?, displayMax?, displayAlpha?}
-        // TODO: get actual selected variable so we can test if this variable is displayable as imagery layer
-        //       get additional variable info from WebAPI:
-        //       class VariableInterpretation {
-        //          spaceXDim?: number;
-        //          spaceYDim?: number;
-        //          timeDim?: number;
-        //          layerDim?: number;
-        //          colorMapName?: string;
-        //          displayMin?: number;
-        //          displayMax?: number;
-        //          displayAlpha:? boolean;
-        //       }
-        if (selectedWorkspaceResourceId && selectedVariableName) {
-            const variableImageLayerState = {
-                id: 'selectedVariable',
+        // TODO (nf): use "reselect" JS library here and use selectors from selectors.ts
+        const selectedResourceName = getState().control.selectedWorkspaceResourceId;
+        if (selectedResourceName && selectedVariableName) {
+            const resource = getState().data.workspace.resources.find((resource: ResourceState) => resource.name == selectedResourceName);
+            assert(resource, selectedResourceName);
+            assert(resource.variables, selectedResourceName);
+
+            const variable = resource.variables.find((variable: VariableState) => variable.name == selectedVariableName);
+            assert(variable, selectedVariableName);
+
+            // We need at least 2 dimensions
+            if (!variable.ndim || variable.ndim < 2) {
+                return;
+            }
+
+            const lastSelectedVariableLayer = getState().data.layers.find((layer: LayerState) => layer.id == SELECTED_VARIABLE_LAYER_ID);
+            const restoredLayer = getState().data.savedLayers[selectedVariableName];
+
+            let layerDisplayProperties = {};
+            let varIndex;
+            if (restoredLayer) {
+                varIndex = restoredLayer.varIndex;
+                layerDisplayProperties = null;
+            } else {
+                varIndex = null;
+                layerDisplayProperties = {
+                    colorMapName: 'jet',
+                    displayMin: 0.,
+                    displayMax: 1.,
+                    alphaBlending: false,
+                    imageEnhancement: {
+                        alpha: 1.0,
+                        brightness: 1.0,
+                        contrast: 1.0,
+                        hue: 0.0,
+                        saturation: 1.0,
+                        gamma: 1.0,
+                    },
+                };
+            }
+
+            if (!varIndex || varIndex.length != variable.ndim - 2) {
+                varIndex = Array(variable.ndim - 2).fill(0);
+            }
+
+            const currentSelectedVariableLayer = Object.assign({}, restoredLayer, {
+                id: SELECTED_VARIABLE_LAYER_ID,
                 type: 'VariableImage' as any,
-                name: selectedWorkspaceResourceId + '.' + selectedVariableName,
+                name: selectedResourceName + '.' + selectedVariableName,
                 show: true,
-                resName: selectedWorkspaceResourceId,
+                resName: selectedResourceName,
                 varName: selectedVariableName,
-                colorMapName: 'jet',
-                displayMin: 0,
-                displayMax: 1000,
-                displayAlpha: false,
-                imageEnhancement: {
-                    alpha: 1.0,
-                    brightness: 1.0,
-                    contrast: 1.0,
-                    hue: 0.0,
-                    saturation: 1.0,
-                    gamma: 1.0,
-                },
-            };
-            dispatch(updateLayer(variableImageLayerState));
-            // TODO: replace this by a the ID of the layer that represents this variable
-            dispatch(setSelectedLayerId('selectedVariable'));
+                varIndex,
+            }, layerDisplayProperties);
+
+            if (lastSelectedVariableLayer) {
+                dispatch(saveLayer(selectedVariableName, lastSelectedVariableLayer));
+            } else {
+                // TODO (nf): add layer ID SELECTED_VARIABLE_LAYER_ID
+                // dispatch(addLayer(currentSelectedVariableLayer));
+            }
+
+            dispatch(updateLayer(currentSelectedVariableLayer));
+            dispatch(setSelectedLayerId(currentSelectedVariableLayer.id));
         }
     }
 }
@@ -390,12 +444,66 @@ function setSelectedVariableNameImpl(selectedVariableName: string|null) {
 
 export const SET_SELECTED_LAYER_ID = 'SET_SELECTED_LAYER_ID';
 export const UPDATE_LAYER = 'UPDATE_LAYER';
+export const SAVE_LAYER = 'SAVE_LAYER';
+
+export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 
 export function setSelectedLayerId(selectedLayerId: string|null) {
     return {type: SET_SELECTED_LAYER_ID, payload: {selectedLayerId}};
 }
 
-export function updateLayer(layer: LayerState) {
+export function updateLayer(layer: LayerState, ...layerSources) {
+    if (layerSources.length) {
+        layer = Object.assign({}, layer, ...layerSources);
+    }
     return {type: UPDATE_LAYER, payload: {layer}};
+}
+
+export function updateLayerImageEnhancement(layer: ImageLayerState, name: string, value: number) {
+    const imageEnhancement = Object.assign({}, layer.imageEnhancement, {[name]: value});
+    return updateLayer(layer, {imageEnhancement});
+}
+
+export function saveLayer(key: string, layer: LayerState) {
+    return {type: SAVE_LAYER, payload: {key, layer}};
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ColorMap actions
+
+export const UPDATE_COLOR_MAPS = 'UPDATE_COLOR_MAPS';
+export const SET_SELECTED_COLOR_MAP_NAME = 'SET_SELECTED_COLOR_MAP_NAME';
+
+
+function colorMapsAPI(state: State): ColorMapsAPI {
+    return new ColorMapsAPI(state.data.appConfig.webAPIClient);
+}
+
+/**
+ * Asynchronously load the initial workspace.
+ * Called only a single time on app initialisation.
+ *
+ * @returns {(dispatch:any, getState:any)=>undefined}
+ */
+export function loadColorMaps() {
+    return (dispatch, getState: () => State) => {
+        let jobPromise = colorMapsAPI(getState()).getColorMaps();
+        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading color maps"));
+        jobPromise.then((colorMaps: Array<ColorMapCategoryState>) => {
+            dispatch(jobDone(jobPromise.getJobId()));
+            dispatch(updateColorMaps(colorMaps));
+        }).catch(failure => {
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
+        });
+    }
+}
+
+function updateColorMaps(colorMaps: Array<ColorMapCategoryState>) {
+    return {type: UPDATE_COLOR_MAPS, payload: {colorMaps}};
+}
+
+function setSelectedColorMapNameImpl(selectedColorMapName: string|null) {
+    return {type: SET_SELECTED_COLOR_MAP_NAME, payload: {selectedColorMapName}};
 }
 

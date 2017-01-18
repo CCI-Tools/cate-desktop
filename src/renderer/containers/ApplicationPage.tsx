@@ -4,12 +4,12 @@ import {ExpansionPanel} from '../components/ExpansionPanel';
 import GlobeView from './GlobeView'
 import {OpenLayersMap} from '../components/openlayers/OpenLayersMap';
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "../components/hgl";
-import LayersPanel from "./LayersPanel";
-import DatasetsPanel from "./DataSourcesPanel";
-import TaskPanel from "./TasksPanel";
-import VariablePanel from "./VariablesPanel";
+import DataSourcesPanel from "./DataSourcesPanel";
 import OperationsPanel from "./OperationsPanel";
 import WorkspacePanel from "./WorkspacePanel";
+import VariablePanel from "./VariablesPanel";
+import TaskPanel from "./TasksPanel";
+import LayersPanel from "./LayersPanel";
 
 /*
  * IMPORTANT NODE: This is still prototype code!!!
@@ -47,7 +47,7 @@ export function ApplicationPage(props) {
                     </TabList>
                     <TabPanel>
                         <div style={leftStyle}>
-                            <DatasetsPanel/>
+                            <DataSourcesPanel/>
                             <OperationsPanel/>
                         </div>
                     </TabPanel>

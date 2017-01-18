@@ -5,6 +5,12 @@ import {
 import * as actions from './actions';
 import {combineReducers} from 'redux';
 
+function assert(condition: any, message: string) {
+    if (!condition) {
+        throw new Error(`assertion failed: ${message}`);
+    }
+}
+
 // TODO write tests for reducers
 
 
@@ -47,7 +53,9 @@ const initialDataState: DataState = {
             name: null,
             show: true
         }
-    ]
+    ],
+    savedLayers: {},
+    colorMaps: null
 };
 
 const dataReducer = (state: DataState = initialDataState, action) => {
@@ -126,9 +134,18 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             const layer = action.payload.layer;
             const layers = state.layers.slice();
             const layerIndex = layers.findIndex(l => l.id === layer.id);
-            // assert layerIndex >= 0
+            assert(layerIndex >= 0, "layerIndex >= 0");
             layers[layerIndex] = updateObject(layers[layerIndex], layer);
             return updateObject(state, {layers});
+        }
+        case actions.UPDATE_COLOR_MAPS: {
+            return updateObject(state, action.payload);
+        }
+        case actions.SAVE_LAYER: {
+            const key = action.payload.key;
+            const layer = action.payload.layer;
+            const savedLayers = updateObject(state.savedLayers, {[key]: updateObject(layer, {})});
+            return updateObject(state, {savedLayers});
         }
     }
     return state;
@@ -150,6 +167,7 @@ const initialControlState: ControlState = {
     selectedWorkflowStepId: null,
     selectedWorkspaceResourceId: null,
     selectedVariableName: null,
+    selectedColorMapName: null,
     showVariableDetails: true,
     selectedLayerId: null,
     showLayerDetails: true,
@@ -180,6 +198,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         case actions.SET_SELECTED_WORKSPACE_RESOURCE_ID:
         case actions.SET_SELECTED_WORKFLOW_STEP_ID:
         case actions.SET_SELECTED_LAYER_ID:
+        case actions.SET_SELECTED_COLOR_MAP_NAME:
         case actions.SET_CONTROL_STATE:
             return updateObject(state, action.payload);
         case actions.SET_DIALOG_STATE:
