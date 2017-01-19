@@ -90,6 +90,10 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
                         <td>Shape</td>
                         <td>{selectedVariable.shape ? selectedVariable.shape.join(', ') : '-'}</td>
                     </tr>,
+                    <tr key='chunks'>
+                        <td>Chunks</td>
+                        <td>{selectedVariable.chunks ? selectedVariable.chunks.join(', ') : '-'}</td>
+                    </tr>,
                     <tr key='dimensions'>
                         <td>Dimensions</td>
                         <td>{selectedVariable.dimensions ? selectedVariable.dimensions.join(', ') : '-'}</td>

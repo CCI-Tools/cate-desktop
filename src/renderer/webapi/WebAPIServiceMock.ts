@@ -83,30 +83,37 @@ export class WebAPIServiceMock implements IServiceObject {
 
         this.operations.push({
             name: 'open_dataset',
+            qualifiedName: 'open_dataset',
+            hasMonitor: true,
             description: 'Open a dataset',
             tags: ['input'],
             inputs: [
                 {
                     name: 'ds_name',
                     dataType: 'str',
+                    description: null,
                 },
                 {
                     name: 'start_date',
                     dataType: 'str',
+                    description: null,
                 },
                 {
                     name: 'end_date',
                     dataType: 'str',
+                    description: null,
                 },
                 {
                     name: 'sync',
                     dataType: 'bool',
+                    description: null,
                 }
             ],
             outputs: [
                 {
                     name: 'return',
                     dataType: 'Dataset',
+                    description: null,
                 }
             ],
         });
@@ -120,7 +127,9 @@ export class WebAPIServiceMock implements IServiceObject {
             // See Python cate.core.op.OpMetaInfo
             let opMetaInfo: State.OperationState = {
                 name: `operation_${i}`,
+                qualifiedName: `cate.ops.operation_${i}`,
                 description: descriptions[i % descriptions.length],
+                hasMonitor: false,
                 tags: [],
                 inputs: [],
                 outputs: [],

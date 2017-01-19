@@ -322,8 +322,11 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                     outputs = (<p><b>Returns:</b> {`: (${output.dataType}) `}{output.description}</p>);
                 } else {
                     const outputElems = operation.outputs.map(output => (
-                        <li key={output.name}><i>{output.name}</i>{`: (${output.dataType}) `}{output.description}
-                        </li>));
+                        <li key={output.name}>
+                            <i>{output.name}</i>{`: (${output.dataType}) `}
+                            {output.description}
+                        </li>
+                    ));
                     outputs = (
                         <div><p><b>Outputs:</b></p>
                             <ul>{outputElems}</ul>
@@ -333,8 +336,14 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             }
 
             if (operation.inputs) {
-                const inputElems = operation.inputs.map(input =>
-                    <li key={input.name}><i>{input.name}</i>{`: (${input.dataType}) `}{input.description}</li>);
+                const inputElems = operation.inputs.map(input => (
+                    <li key={input.name}>
+                        <i>{input.name}</i>
+                        {`: (${input.dataType}) `}
+                        {input.description}
+                        {input.defaultValue !== 'undefined' ? ` Default value is "${input.defaultValue}".` : null}
+                    </li>
+                ));
                 inputs = (
                     <div><p><b>Parameter(s):</b></p>
                         <ul>{inputElems}</ul>

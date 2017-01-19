@@ -299,7 +299,7 @@ export function setSelectedWorkspaceResourceId(selectedWorkspaceResourceId: stri
             const resources: Array<ResourceState> = getState().data.workspace.resources;
             if (resources) {
                 const resource = resources.find(res => res.name === selectedWorkspaceResourceId);
-                if (resource && resource.variables) {
+                if (resource && resource.variables && resource.variables.length) {
                     dispatch(setSelectedVariableName(resource.variables[0].name));
                 }
             }
@@ -320,7 +320,7 @@ function workspaceAPI(state: State): WorkspaceAPI {
     return new WorkspaceAPI(state.data.appConfig.webAPIClient);
 }
 
-export function setWorkspaceResource(resName: string, opName: string, opArgs: any, title: string) {
+export function setWorkspaceResource(resName: string, opName: string, opArgs: {[name: string]: any}, title: string) {
     console.log("setWorkspaceResource: ",resName,opName,opArgs, title);
     return (dispatch, getState) => {
         const baseDir = getState().data.workspace.baseDir;

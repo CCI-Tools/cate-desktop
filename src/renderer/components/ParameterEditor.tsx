@@ -39,11 +39,17 @@ export class ParameterEditor extends React.PureComponent<IParameterEditorProps, 
             editor = this.props.valueEditor;
         } else {
             const firstResourceOption = (<option key='__first__' value=''>Select resource...</option>);
-            const otherResourceOptions = (this.props.resources || []).map(resource => (
-                <option key={resource.name} value={resource.name}>
-                    <LabelWithType label={resource.name} dataType={resource.dataType}/>
-                </option>)
-            );
+            const otherResourceOptions = (this.props.resources || []).map(resource => {
+                if (this.isDataTypeCompatible(resource)) {
+                    return (
+                        <option key={resource.name} value={resource.name}>
+                            {resource.name}
+                        </option>
+                    );
+                } else {
+                    return null;
+                }
+            });
             const resourceOptions = [firstResourceOption].concat(otherResourceOptions);
             editor = (
                 <div className="pt-select pt-intent-primary">
@@ -69,6 +75,15 @@ export class ParameterEditor extends React.PureComponent<IParameterEditorProps, 
                 {editorSwitch}
             </div>
         );
+    }
+
+    /**
+     * Naive test if a resource's dataType is compatible with the one this editor is dedicated to.
+     */
+    private isDataTypeCompatible(resource) {
+        // type 'object' matches any other type
+        return this.props.dataType === 'object'
+            || this.props.dataType === resource.dataType;
     }
 }
 

@@ -71,8 +71,10 @@ export interface DataSourceState {
 
 export interface OperationState {
     name: string;
-    description?: string|null;
-    tags?: Array<string>|null;
+    qualifiedName: string;
+    hasMonitor: boolean;
+    description: string|null;
+    tags: Array<string>;
     inputs: Array<OperationInputState>;
     outputs: Array<OperationOutputState>;
 }
@@ -80,8 +82,10 @@ export interface OperationState {
 export interface OperationInputState {
     name: string;
     dataType: string;
+    description: string|null;
+    /* optional properties used mainly for validation */
     defaultValue?: any;
-    description?: string|null;
+    nullable?: boolean,
     valueSet?: Array<any>;
     valueRange?: Array<any>;
 }
@@ -89,7 +93,7 @@ export interface OperationInputState {
 export interface OperationOutputState {
     name: string;
     dataType: string;
-    description?: string|null;
+    description: string|null;
 }
 
 export interface WorkspaceState {
