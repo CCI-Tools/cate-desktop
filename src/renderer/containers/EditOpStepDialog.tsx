@@ -94,7 +94,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
         const mandatoryDatasetInputs = [];
         for (let input of this.props.operation.inputs) {
             const hasDefaultValue = input.defaultValue || input.defaultValue === null;
-            if (input.dataType === 'Dataset' && !hasDefaultValue) {
+            if (input.dataType.endsWith('Dataset') && !hasDefaultValue) {
                 mandatoryDatasetInputs.push(input);
             }
         }
@@ -240,6 +240,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                                      resources={resources}
                                      name={input.name}
                                      dataType={input.dataType}
+                                     tooltipText={input.description}
                                      onChange={(resourceName, isValueUsed) => changeParameterResourceName(index, resourceName, isValueUsed)}
                                      isValueEditorShown={parameterValue.isValueUsed}
                                      resourceName={parameterValue.resourceName}

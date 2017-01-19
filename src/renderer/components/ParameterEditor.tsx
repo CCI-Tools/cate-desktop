@@ -7,8 +7,8 @@ export interface IParameterEditorProps {
     name: string;
     dataType: string;
     valueEditor?: JSX.Element;
-    tooltipText?: string; // todo: use me!
-    units?: string; // todo: use me! add me as a tag label into each text field
+    tooltipText?: string;
+    units?: string; // todo: use me!
     resources: Array<ResourceState>;
     resourceName?: string|null;
     isValueEditorShown?: boolean;
@@ -70,7 +70,10 @@ export class ParameterEditor extends React.PureComponent<IParameterEditorProps, 
 
         return (
             <div key={this.props.name} style={{display: 'flex', alignItems: 'center', padding: '0.2em'}}>
-                <LabelWithType style={{flex: 'auto'}} label={this.props.name} dataType={this.props.dataType}/>
+                <LabelWithType style={{flex: 'auto'}}
+                               label={this.props.name}
+                               dataType={this.props.dataType}
+                               tooltipText={this.props.tooltipText}/>
                 {editor}
                 {editorSwitch}
             </div>
