@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Switch} from "@blueprintjs/core";
+import {Tooltip, Switch} from "@blueprintjs/core";
 import {LabelWithType} from "./LabelWithType";
 import {ResourceState} from "../state";
 
@@ -8,7 +8,7 @@ export interface IParameterEditorProps {
     dataType: string;
     valueEditor?: JSX.Element;
     tooltipText?: string;
-    units?: string; // todo: use me!
+    units?: string;
     resources: Array<ResourceState>;
     resourceName?: string|null;
     isValueEditorShown?: boolean;
@@ -32,10 +32,10 @@ export class ParameterEditor extends React.PureComponent<IParameterEditorProps, 
     }
 
     render() {
-        const isValueEditorUsable:boolean = !!(this.props.isValueEditorShown && this.props.valueEditor);
+        const isValueEditorShown: boolean = !!(this.props.isValueEditorShown && this.props.valueEditor);
 
         let editor;
-        if (isValueEditorUsable) {
+        if (isValueEditorShown) {
             editor = this.props.valueEditor;
         } else {
             const firstResourceOption = (<option key='__first__' value=''>Select resource...</option>);
@@ -54,6 +54,7 @@ export class ParameterEditor extends React.PureComponent<IParameterEditorProps, 
             editor = (
                 <div className="pt-select pt-intent-primary">
                     <select value={this.props.resourceName || ''}
+                            disabled={otherResourceOptions.length == 0}
                             onChange={(event:any) => this.handleChange(event.target.value, this.props.isValueEditorShown)}>
                         {resourceOptions}
                     </select>
@@ -61,17 +62,23 @@ export class ParameterEditor extends React.PureComponent<IParameterEditorProps, 
             );
         }
 
+        let isValueEditorDisabled = !this.props.valueEditor;
         const editorSwitch = (
-            <Switch checked={isValueEditorUsable}
-                    disabled={!this.props.valueEditor}
-                    style={{marginLeft: '1em', marginBottom: 0}}
-                    onChange={(event:any) => this.handleChange(this.props.resourceName, event.target.checked)}/>
+            <div>
+                <Tooltip content={(isValueEditorShown ? "Switch to resource selection" : "Switch to value entry") + (isValueEditorDisabled ? ' (disabled)' : '')}>
+                    <Switch checked={isValueEditorShown}
+                            disabled={isValueEditorDisabled}
+                            style={{marginLeft: '1em', marginBottom: 0}}
+                            onChange={(event:any) => this.handleChange(this.props.resourceName, event.target.checked)}/>
+                </Tooltip>
+            </div>
         );
 
         return (
             <div key={this.props.name} style={{display: 'flex', alignItems: 'center', padding: '0.2em'}}>
                 <LabelWithType style={{flex: 'auto'}}
                                label={this.props.name}
+                               units={this.props.units}
                                dataType={this.props.dataType}
                                tooltipText={this.props.tooltipText}/>
                 {editor}

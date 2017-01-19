@@ -83,11 +83,12 @@ export interface OperationInputState {
     name: string;
     dataType: string;
     description: string|null;
+    units?: string|null;
     /* optional properties used mainly for validation */
     defaultValue?: any;
-    nullable?: boolean,
+    nullable?: boolean;
     valueSet?: Array<any>;
-    valueRange?: Array<any>;
+    valueRange?: [number, number];
 }
 
 export interface OperationOutputState {

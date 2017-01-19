@@ -240,6 +240,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                                      resources={resources}
                                      name={input.name}
                                      dataType={input.dataType}
+                                     units={input.units}
                                      tooltipText={input.description}
                                      onChange={(resourceName, isValueUsed) => changeParameterResourceName(index, resourceName, isValueUsed)}
                                      isValueEditorShown={parameterValue.isValueUsed}
