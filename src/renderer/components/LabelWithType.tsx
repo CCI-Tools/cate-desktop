@@ -20,14 +20,14 @@ export function LabelWithType(props: ILabelWithTypeProps) {
     const dataTypeText = props.dataType;
     const unitsText = props.units && props.units !== '' ? ` (${props.units})` : '';
 
-    const content = (
-        <span style={props.style}>{labelText} {unitsText}<span style={{color: 'rgba(0,255,0,0.8)', fontSize: '0.8em'}}> {dataTypeText} </span></span>
+    let content = (
+        <span>{labelText} {unitsText} <span style={{color: 'rgba(0,255,0,0.8)', fontSize: '0.8em'}}>{dataTypeText} </span></span>
     );
 
     if (props.tooltipText && props.tooltipText !== '') {
-        return (<Tooltip content={props.tooltipText}>{content}</Tooltip>);
+        content = (<Tooltip content={props.tooltipText}>{content}</Tooltip>);
     }
 
-    return content;
+    return <div style={props.style}>{content}</div>;
 }
 
