@@ -11,7 +11,10 @@ interface ParameterValueState {
     isValueUsed: boolean;
 }
 
-interface IEditOpStepDialogProps {
+type EditorCallback = (input: OperationInputState, index: number, value: any) => any;
+
+
+export interface IEditOpStepDialogProps {
     onClose: (actionId: string, dialogState: IEditOpStepDialogState) => void;
     workspace: WorkspaceState;
     operation: OperationState;
@@ -180,29 +183,53 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             return null;
         }
 
-        const resources = this.props.workspace.resources;
-
-        const changeParameterConstantValue = (index: number, constantValue: any) => {
+        const changeParameterConstantValue = (input: OperationInputState, index: number, value: any) => {
+            if (value === '' && input.nullable) {
+                value = null;
+            }
             const parameterValues = this.state.parameterValues.slice();
-            parameterValues[index] = Object.assign({}, parameterValues[index], {constantValue, isValueUsed: true});
+            parameterValues[index] = Object.assign({}, parameterValues[index], {
+                constantValue: value,
+                isValueUsed: true
+            });
             this.setState({parameterValues});
         };
 
-        const changeParameterIntValue = (index: number, textValue: string) => {
-            try {
-                const value = parseInt(textValue);
-                changeParameterConstantValue(index, value);
-            } catch (e) {
-                // inform user
+        const changeParameterIntValue = (input: OperationInputState, index: number, textValue: string) => {
+            if (!textValue || textValue.trim() === '') {
+                if (input.nullable) {
+                    changeParameterConstantValue(input, index, null);
+                } else {
+                    // inform user
+                    console.error('EditOpStepDialog: empty value for non-nullable integer input');
+                }
+            } else {
+                try {
+                    const intValue = parseInt(textValue);
+                    changeParameterConstantValue(input, index, intValue);
+                } catch (e) {
+                    // inform user
+                    console.error('EditOpStepDialog: invalid value for integer input', e);
+                }
             }
         };
 
-        const changeParameterFloatValue = (index: number, textValue: string) => {
-            try {
-                const value = parseFloat(textValue);
-                changeParameterConstantValue(index, value);
-            } catch (e) {
-                // inform user
+        const changeParameterFloatValue = (input: OperationInputState, index: number, textValue: string) => {
+            if (!textValue || textValue.trim() === '') {
+                if (input.nullable) {
+                    changeParameterConstantValue(input, index, null);
+                } else {
+                    // inform user
+                    console.error('EditOpStepDialog: empty value for non-nullable float input');
+                }
+            } else {
+                try {
+                    const floatValue = parseFloat(textValue);
+                    changeParameterConstantValue(input, index, floatValue);
+                } catch (e) {
+                    // inform user
+                    console.error('EditOpStepDialog: invalid value for float input', e);
+                }
             }
         };
 
@@ -212,7 +239,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             this.setState({parameterValues});
         };
 
-        const inputElems = operation.inputs.map((input: OperationInputState, index: number) => {
+        const inputEditors = operation.inputs.map((input: OperationInputState, index: number) => {
             const parameterValue = this.state.parameterValues[index];
             const constantValue = parameterValue.constantValue;
             let valueEditor = null;
@@ -228,6 +255,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                     break;
                 }
                 case 'str': {
+                    // Note the following is a naive decision making, because we are lacking a real file/path type :(
                     if (input.name.toLowerCase().endsWith('file')) {
                         valueEditor = EditOpStepDialog.renderFileInputEditor(input, index, constantValue, changeParameterConstantValue);
                     } else {
@@ -237,7 +265,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                 }
             }
             return (<ParameterEditor key={index}
-                                     resources={resources}
+                                     resources={this.props.workspace.resources}
                                      name={input.name}
                                      dataType={input.dataType}
                                      units={input.units}
@@ -248,23 +276,23 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                                      valueEditor={valueEditor}/>
             );
         });
-        return (<div>{inputElems}</div>);
+        return (<div>{inputEditors}</div>);
     }
 
     private static renderBoolInputEditor(input: OperationInputState,
                                          index: number,
                                          value: boolean,
-                                         onChange: (index: number, value: boolean) => any) {
+                                         onChange: EditorCallback) {
         return (
             <Checkbox checked={value || false}
-                      onChange={(event:any) => onChange(index, event.target.checked)}/>
+                      onChange={(event:any) => onChange(input, index, event.target.checked)}/>
         );
     }
 
     private static renderIntInputEditor(input: OperationInputState,
                                         index: number,
-                                        value: number,
-                                        onChange: (index: number, value: string) => any) {
+                                        value: number|null,
+                                        onChange: EditorCallback) {
         const valueSetEditor = this.renderValueSetEditor(input, index, value, onChange);
         if (valueSetEditor) {
             return valueSetEditor;
@@ -274,15 +302,15 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                    type="text"
                    style={{textAlign: "right"}}
                    value={value || 0}
-                   onChange={(event:any) => onChange(index, event.target.value)}
+                   onChange={(event:any) => onChange(input, index, event.target.value)}
             />
         );
     }
 
     private static renderFloatInputEditor(input: OperationInputState,
                                           index: number,
-                                          value: number,
-                                          onChange: (index: number, value: string) => any) {
+                                          value: number|null,
+                                          onChange: EditorCallback) {
         const valueSetEditor = this.renderValueSetEditor(input, index, value, onChange);
         if (valueSetEditor) {
             return valueSetEditor;
@@ -291,8 +319,8 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             <input className="pt-input"
                    type="text"
                    style={{textAlign: "right"}}
-                   value={value || 0.0}
-                   onChange={(event:any) => onChange(index, event.target.value)}
+                   value={value === null ? '' : (value || 0.0)}
+                   onChange={(event:any) => onChange(input, index, event.target.value)}
             />
         );
     }
@@ -300,7 +328,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
     private static renderStringInputEditor(input: OperationInputState,
                                            index: number,
                                            value: string|null,
-                                           onChange: (index: number, value: string) => any) {
+                                           onChange: EditorCallback) {
         const valueSetEditor = this.renderValueSetEditor(input, index, value, onChange);
         if (valueSetEditor) {
             return valueSetEditor;
@@ -309,7 +337,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             <input className="pt-input"
                    type="text"
                    value={value || ''}
-                   onChange={(event:any) => onChange(index, event.target.value)}
+                   onChange={(event:any) => onChange(input, index, event.target.value)}
             />
         );
     }
@@ -317,15 +345,19 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
     private static renderValueSetEditor(input: OperationInputState,
                                         index: number,
                                         value: string|any,
-                                        onChange: (index: number, value: any) => any) {
+                                        onChange: EditorCallback) {
         if (input.valueSet && input.valueSet.length) {
-            const options = input.valueSet.map((v, i) => (
+            let options = input.valueSet.map((v, i) => (
                 <option key={i} value={v}>{v}</option>
             ));
+            const NULL_VALUE = '__null__';
+            if (input.nullable) {
+                options = [<option key={-1} value={NULL_VALUE}/>].concat(...options);
+            }
             return (
                 <div className="pt-select">
-                    <select value={value || ''}
-                            onChange={(event:any) => onChange(index, event.target.value)}>
+                    <select value={value || NULL_VALUE}
+                            onChange={(event:any) => onChange(input, index, event.target.value === NULL_VALUE ? null : event.target.value)}>
                         {options}
                     </select>
                 </div>
@@ -337,7 +369,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
     private static renderFileInputEditor(input: OperationInputState,
                                          index: number,
                                          value: string|null,
-                                         onChange: (index: number, value: any) => any) {
+                                         onChange: EditorCallback) {
         const browseFile = () => {
             const electron = require('electron');
             console.log('EditOpStepDialog: contacting main process...', electron);
@@ -352,7 +384,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             electron.ipcRenderer.on('show-open-dialog-reply', (event, filePaths: Array<string>) => {
                 console.log('EditOpStepDialog: received reply from main process:', filePaths);
                 if (filePaths && filePaths.length) {
-                    onChange(index, filePaths[0]);
+                    onChange(input, index, filePaths[0]);
                 }
             });
         };
@@ -364,7 +396,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                        style={{flexGrow: 1}}
                        value={value || ''}
                        placeholder="Enter local file path"
-                       onChange={(event:any) => onChange(index, event.target.value)}
+                       onChange={(event:any) => onChange(input, index, event.target.value)}
                 />
                 <Button className="pt-intent-primary" style={{flex: 'none'}} onClick={browseFile}>...</Button>
             </div>

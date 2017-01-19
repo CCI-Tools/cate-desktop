@@ -26,7 +26,7 @@ function responseInputToOperationInput(input: any): OperationInputState {
         units: input.units,
         /* optional properties used mainly for validation */
         defaultValue: input.default_value,
-        nullable: input.nullable,
+        nullable: (input.nullable || input.default_value === null),
         valueSet: input.value_set,
         valueRange: input.value_range,
     };
