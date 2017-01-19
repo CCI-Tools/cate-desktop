@@ -176,7 +176,9 @@ export function openDialogOpenDataset(dataStoreId: string, dataSourceId: string,
     return (dispatch, getState) => {
         dispatch(setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: true, timeInfoLoading: loadTimeInfo}));
         if (loadTimeInfo) {
-            const jobPromise = datasetAPI(getState()).getTemporalCoverage(dataStoreId, dataSourceId);
+            const jobPromise = datasetAPI(getState()).getTemporalCoverage(dataStoreId, dataSourceId, (progress: JobProgress) => {
+                dispatch(jobProgress(progress));
+            });
             dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Temporal Coverage: " + dataSourceId));
             jobPromise.then(temporalCoverage => {
                 dispatch(updateDataSourceTemporalCoverage(dataStoreId, dataSourceId, temporalCoverage));

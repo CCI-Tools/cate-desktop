@@ -36,7 +36,7 @@ export class DatasetAPI {
         return this.webAPIClient.call('get_data_sources', [dataStoreId], onProgress);
     }
 
-    getTemporalCoverage(dataStoreId: string, dataSourceId: string): JobPromise {
-        return this.webAPIClient.call('get_ds_temporal_coverage', [dataStoreId, dataSourceId], null, responseToTemporalCoverage);
+    getTemporalCoverage(dataStoreId: string, dataSourceId: string, onProgress: (progress: JobProgress) => void): JobPromise {
+        return this.webAPIClient.call('get_ds_temporal_coverage', [dataStoreId, dataSourceId], onProgress, responseToTemporalCoverage);
     }
 }
