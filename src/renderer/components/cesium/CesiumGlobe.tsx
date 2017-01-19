@@ -131,7 +131,6 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
                 maximumLevel: 2,
                 credit: 'Natural Earth II: Tileset Copyright © 2012-2014 Analytical Graphics, Inc. (AGI). Original data courtesy Natural Earth and in the public domain.'
             };
-            console.log('imageryProviderOptions: ', imageryProviderOptions);
             baseLayerImageryProvider = new Cesium.UrlTemplateImageryProvider(imageryProviderOptions);
         } else {
             baseLayerImageryProvider = new Cesium.BingMapsImageryProvider({
@@ -211,7 +210,7 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
                 throw Error('!imageryLayer');
             }
             if (!nextLayerIdSet.has(currentLayer.id)) {
-                console.log(`Destroying imagery layer #${i + 1}: ${imageryLayer.name}`);
+                console.log(`CesiumGlobe: destroying imagery layer #${i + 1}: ${imageryLayer.name}`);
                 this.viewer.imageryLayers.remove(imageryLayer, true);
             } else {
                 cesiumImageryLayers.set(currentLayer.id, imageryLayer);

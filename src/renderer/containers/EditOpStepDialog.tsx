@@ -82,7 +82,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
 
     //noinspection JSMethodCanBeStatic
     private handleValidate() {
-        console.log('EditOpStepDialog: Validating...');
+        console.log('EditOpStepDialog: validating inputs (TODO!)');
     }
 
     private handleDefaults() {
@@ -183,7 +183,6 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
         const resources = this.props.workspace.resources;
 
         const changeParameterConstantValue = (index: number, constantValue: any) => {
-            console.log('changeParameterConstantValue: ', this, index, constantValue);
             const parameterValues = this.state.parameterValues.slice();
             parameterValues[index] = Object.assign({}, parameterValues[index], {constantValue, isValueUsed: true});
             this.setState({parameterValues});
@@ -208,14 +207,12 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
         };
 
         const changeParameterResourceName = (index: number, resourceName: string, isValueUsed: boolean) => {
-            console.log('changeParameterResourceName: ', this, index, resourceName, isValueUsed);
             const parameterValues = this.state.parameterValues.slice();
             parameterValues[index] = Object.assign({}, parameterValues[index], {resourceName, isValueUsed});
             this.setState({parameterValues});
         };
 
         const inputElems = operation.inputs.map((input: OperationInputState, index: number) => {
-            console.log("################# INPUT:", input);
             const parameterValue = this.state.parameterValues[index];
             const constantValue = parameterValue.constantValue;
             let valueEditor = null;
@@ -236,10 +233,6 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                     } else {
                         valueEditor = EditOpStepDialog.renderStringInputEditor(input, index, constantValue, changeParameterConstantValue);
                     }
-                    break;
-                }
-                case 'Dataset': {
-                    valueEditor = null;
                     break;
                 }
             }
@@ -345,7 +338,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                                          onChange: (index: number, value: any) => any) {
         const browseFile = () => {
             const electron = require('electron');
-            console.log('contacting main process...', electron);
+            console.log('EditOpStepDialog: contacting main process...', electron);
             // see https://github.com/electron/electron/blob/master/docs/api/dialog.md
             const openDialogOptions = {
                 title: "Select File Path",
@@ -355,7 +348,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             };
             electron.ipcRenderer.send('show-open-dialog', openDialogOptions);
             electron.ipcRenderer.on('show-open-dialog-reply', (event, filePaths: Array<string>) => {
-                console.log('received...', filePaths);
+                console.log('EditOpStepDialog: received reply from main process:', filePaths);
                 if (filePaths && filePaths.length) {
                     onChange(index, filePaths[0]);
                 }

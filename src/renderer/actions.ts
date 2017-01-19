@@ -321,10 +321,8 @@ function workspaceAPI(state: State): WorkspaceAPI {
 }
 
 export function setWorkspaceResource(resName: string, opName: string, opArgs: {[name: string]: any}, title: string) {
-    console.log("setWorkspaceResource: ",resName,opName,opArgs, title);
     return (dispatch, getState) => {
         const baseDir = getState().data.workspace.baseDir;
-
         const jobPromise = workspaceAPI(getState()).setWorkspaceResource(baseDir, resName, opName, opArgs,
             (progress: JobProgress) => {
                 dispatch(jobProgress(progress));

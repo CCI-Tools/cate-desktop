@@ -85,14 +85,22 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
 
     //noinspection JSMethodCanBeStatic
     private handleAddLayerButtonClicked() {
-        // TODO
-        console.log('handleAddLayerButtonClicked');
+        console.log('LayersPanel: add layer (TODO!)');
     }
 
     //noinspection JSMethodCanBeStatic
     private handleRemoveLayerButtonClicked() {
-        // TODO
-        console.log('handleAddLayerButtonClicked');
+        console.log('LayersPanel: remove layer (TODO!)');
+    }
+
+    //noinspection JSMethodCanBeStatic
+    private handleMoveLayerUpButtonClicked() {
+        console.log('LayersPanel: move layer up (TODO!)');
+    }
+
+    //noinspection JSMethodCanBeStatic
+    private handleMoveLayerDownButtonClicked() {
+        console.log('LayersPanel: move layer down (TODO!)');
     }
 
     render() {
@@ -124,11 +132,11 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                         iconName="remove"/>
                 <Button style={{marginRight: '0.1em'}}
                         disabled={!selectedLayer}
-                        onClick={this.handleRemoveLayerButtonClicked.bind(this)}
+                        onClick={this.handleMoveLayerUpButtonClicked.bind(this)}
                         iconName="arrow-up"/>
                 <Button disabled={!selectedLayer}
-                        onClick={this.handleRemoveLayerButtonClicked.bind(this)}
-                        iconName="pt-icon-arrow-down"/>
+                        onClick={this.handleMoveLayerDownButtonClicked.bind(this)}
+                        iconName="arrow-down"/>
             </div>
         );
     }

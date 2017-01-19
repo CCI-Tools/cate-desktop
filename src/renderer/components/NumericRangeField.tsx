@@ -91,7 +91,7 @@ export class NumericRangeField extends React.Component<INumericRangeFieldProps, 
                 this.setState({value, inputValue: this.formatValue(value)}, this.notify.bind(this));
                 return true;
             } catch (e) {
-                console.log(e);
+                console.warn(`NumericRangeField: ignoring invalid user input "${this.state.inputValue}":`, e);
             }
         }
         if (onFailure) {

@@ -109,9 +109,8 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                 }
                 opArgs[input.name] = opArg;
             });
-            const title = `Performing '${opName}'`;
-            console.log(title, opArgs);
-            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, title));
+            console.log("OperationsPanel:", opName, opArgs);
+            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, `Performing operation '${opName}'`));
         }
     }
 
