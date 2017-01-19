@@ -7,6 +7,7 @@ import * as actions from '../actions'
 import {ListBox} from "../components/ListBox";
 import {Card} from "../components/Card";
 import * as assert from "assert";
+import {LabelWithType} from "../components/LabelWithType";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
@@ -61,6 +62,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
             assert.ok(workspace.workflow);
             const steps = workspace.workflow.steps;
             assert.ok(steps);
+            const resources = workspace.resources;
+            assert.ok(resources);
 
             const selectedWorkspaceResourceId = this.props.selectedWorkspaceResourceId;
             const selectedWorkflowStepId = this.props.selectedWorkflowStepId;
@@ -89,9 +92,9 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                         </Tab>
                     </TabList>
                     <TabPanel>
-                        <ListBox numItems={steps.length}
-                                 getItemKey={i => steps[i].id}
-                                 renderItem={i => <span>{steps[i].id}</span>}
+                        <ListBox numItems={resources.length}
+                                 getItemKey={i => resources[i].name}
+                                 renderItem={i => <LabelWithType label={resources[i].name} dataType={resources[i].dataType}/>}
                                  selection={selectedWorkspaceResourceId ? [selectedWorkspaceResourceId] : null}
                                  onSelection={this.handleWorkspaceResourceIdSelected.bind(this)}/>
                         <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
