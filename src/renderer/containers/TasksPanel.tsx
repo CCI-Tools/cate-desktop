@@ -6,6 +6,7 @@ import {Button, ProgressBar, Intent} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {JobStatusEnum} from "../webapi/Job";
 import * as actions from "../actions";
+import {Card} from "../components/Card";
 
 interface ITaskPanelProps {
     tasks: {[jobId: number]: TaskState};
@@ -95,17 +96,30 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
             const title = taskState.title || visibleTaskIds[itemIndex];
             return (<div>{title}{activity}{msg}{error}</div>);
         };
-        return (
-            <ExpansionPanel icon="pt-icon-play" text="Tasks" isExpanded={true} defaultHeight={400}>
+
+        let panelContents;
+        if (visibleTaskIds.length) {
+            panelContents = (
                 <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
                     <ListBox numItems={visibleTaskIds.length}
                              getItemKey={index => visibleTaskIds[index]}
                              renderItem={renderItem}
                              selectionMode={ListBoxSelectionMode.SINGLE}/>
                 </div>
+            );
+        } else {
+            panelContents = (
+                <Card>
+                    <p><strong>No tasks</strong></p>
+                </Card>
+            );
+        }
+
+        return (
+            <ExpansionPanel icon="pt-icon-play" text="Tasks" isExpanded={true} defaultHeight={100}>
+                {panelContents}
             </ExpansionPanel>
         );
-
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(TasksPanel);
