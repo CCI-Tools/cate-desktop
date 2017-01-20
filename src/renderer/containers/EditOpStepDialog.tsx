@@ -3,6 +3,9 @@ import {Dialog, Classes, Button, Tooltip, Checkbox} from "@blueprintjs/core";
 import {DialogState, OperationState, WorkspaceState, OperationInputState} from "../state";
 import FormEvent = React.FormEvent;
 import {ParameterEditor} from "../components/ParameterEditor";
+import {FloatField} from "../components/FloatField";
+import {IntField} from "../components/IntField";
+import {TextField} from "../components/TextField";
 
 
 interface ParameterValueState {
@@ -12,7 +15,6 @@ interface ParameterValueState {
 }
 
 type EditorCallback = (input: OperationInputState, index: number, value: any) => any;
-
 
 export interface IEditOpStepDialogProps {
     onClose: (actionId: string, dialogState: IEditOpStepDialogState) => void;
@@ -195,27 +197,21 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             this.setState({parameterValues});
         };
 
-        const changeParameterIntValue = (input: OperationInputState, index: number, textValue: string) => {
-            if (!textValue || textValue.trim() === '') {
+        const changeParameterIntValue = (input: OperationInputState, index: number, value: number|null) => {
+            if (value === null) {
                 if (input.nullable) {
                     changeParameterConstantValue(input, index, null);
                 } else {
                     // inform user
-                    console.error('EditOpStepDialog: empty value for non-nullable integer input');
+                    console.error('EditOpStepDialog: empty value for non-nullable int input');
                 }
             } else {
-                try {
-                    const intValue = parseInt(textValue);
-                    changeParameterConstantValue(input, index, intValue);
-                } catch (e) {
-                    // inform user
-                    console.error('EditOpStepDialog: invalid value for integer input', e);
-                }
+                changeParameterConstantValue(input, index, value);
             }
         };
 
-        const changeParameterFloatValue = (input: OperationInputState, index: number, textValue: string) => {
-            if (!textValue || textValue.trim() === '') {
+        const changeParameterFloatValue = (input: OperationInputState, index: number, value: number|null) => {
+            if (value === null) {
                 if (input.nullable) {
                     changeParameterConstantValue(input, index, null);
                 } else {
@@ -223,13 +219,20 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                     console.error('EditOpStepDialog: empty value for non-nullable float input');
                 }
             } else {
-                try {
-                    const floatValue = parseFloat(textValue);
-                    changeParameterConstantValue(input, index, floatValue);
-                } catch (e) {
+                changeParameterConstantValue(input, index, value);
+            }
+        };
+
+        const changeParameterTextValue = (input: OperationInputState, index: number, value: string|null) => {
+            if (value === null) {
+                if (input.nullable) {
+                    changeParameterConstantValue(input, index, null);
+                } else {
                     // inform user
-                    console.error('EditOpStepDialog: invalid value for float input', e);
+                    console.error('EditOpStepDialog: empty value for non-nullable text input');
                 }
+            } else {
+                changeParameterConstantValue(input, index, value);
             }
         };
 
@@ -257,9 +260,9 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                 case 'str': {
                     // Note the following is a naive decision making, because we are lacking a real file/path type :(
                     if (input.name.toLowerCase().endsWith('file')) {
-                        valueEditor = EditOpStepDialog.renderFileInputEditor(input, index, constantValue, changeParameterConstantValue);
+                        valueEditor = EditOpStepDialog.renderFileInputEditor(input, index, constantValue, changeParameterTextValue);
                     } else {
-                        valueEditor = EditOpStepDialog.renderStringInputEditor(input, index, constantValue, changeParameterConstantValue);
+                        valueEditor = EditOpStepDialog.renderStringInputEditor(input, index, constantValue, changeParameterTextValue);
                     }
                     break;
                 }
@@ -298,11 +301,10 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             return valueSetEditor;
         }
         return (
-            <input className="pt-input"
-                   type="text"
-                   style={{textAlign: "right"}}
-                   value={value || 0}
-                   onChange={(event:any) => onChange(input, index, event.target.value)}
+            <IntField textAlign="right"
+                      columns={8}
+                      value={value}
+                      onChange={(value:number|null) => onChange(input, index, value)}
             />
         );
     }
@@ -316,11 +318,10 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             return valueSetEditor;
         }
         return (
-            <input className="pt-input"
-                   type="text"
-                   style={{textAlign: "right"}}
-                   value={value === null ? '' : (value || 0.0)}
-                   onChange={(event:any) => onChange(input, index, event.target.value)}
+            <FloatField textAlign="right"
+                        columns={8}
+                        value={value}
+                        onChange={(value:number|null) => onChange(input, index, value)}
             />
         );
     }
@@ -334,10 +335,9 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             return valueSetEditor;
         }
         return (
-            <input className="pt-input"
-                   type="text"
-                   value={value || ''}
-                   onChange={(event:any) => onChange(input, index, event.target.value)}
+            <TextField columns={10}
+                       value={value}
+                       onChange={(value:string|null) => onChange(input, index, value)}
             />
         );
     }
