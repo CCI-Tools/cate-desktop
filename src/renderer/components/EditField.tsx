@@ -3,7 +3,7 @@ import * as React from 'react'
 export interface IEditFieldProps<T> {
     value: T | null;
     onChange: (value: T) => void;
-    onFailure?: (value: T) => void;
+    onFailure?: (textValue: string, error: any) => void;
     parseValue?: (textValue: string) => T;
     formatValue?: (value: T) => string;
     textAlign?: string;
@@ -94,7 +94,7 @@ export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.C
             if (onFailure) {
                 onFailure();
             } else if (this.props.onFailure) {
-                this.props.onFailure(e);
+                this.props.onFailure(textValue, e);
             } else {
                 // console.warn(`EditField: ignoring invalid user input "${textValue}":`, e);
             }

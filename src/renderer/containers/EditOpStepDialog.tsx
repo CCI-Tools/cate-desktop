@@ -15,6 +15,7 @@ export interface InputAssignmentState {
 }
 
 type EditorCallback = (input: OperationInputState, index: number, value: any) => any;
+type FailureCallback = (textValue: string, error: any) => any;
 type ShowFileCallback = (input: OperationInputState,
                          index: number,
                          value: string|null,
@@ -189,6 +190,11 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             return null;
         }
 
+        const handleValidationFailure = (textValue: string, error: any) => {
+            // TODO (forman): inform user about input validation failure
+            console.log('EditOpStepDialog: handleValidationFailure', textValue, error);
+        };
+
         const changeInputAssignment = (index: number, inputAssignment: InputAssignmentState) => {
             const inputAssignments = this.state.inputAssignments.slice();
             const newInputAssignment = Object.assign({}, inputAssignments[index], inputAssignment);
@@ -204,52 +210,25 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             changeInputAssignment(index, {resourceName, isValueUsed} as InputAssignmentState);
         };
 
-        const changeInputConstantValue = (input: OperationInputState, index: number, constantValue: any) => {
-            if (constantValue === '' && input.nullable) {
-                constantValue = null;
+        const changeInputConstantValue = (input: OperationInputState, index: number, value: any) => {
+            if (value === '' && input.nullable) {
+                value = null;
             }
-            changeInputAssignment(index, {constantValue, isValueUsed: true} as InputAssignmentState);
+            if (value === null && !input.nullable) {
+                handleValidationFailure(`A value is required for input "${input.name}"`, null);
+                return;
+            }
+            changeInputAssignment(index, {constantValue: value, isValueUsed: true} as InputAssignmentState);
         };
 
         const changeInputIntValue = (input: OperationInputState, index: number, value: number|null) => {
-            if (value === null) {
-                if (input.nullable) {
-                    changeInputConstantValue(input, index, null);
-                } else {
-                    // TODO (forman): inform user about input validation failure
-                    console.error('EditOpStepDialog: empty value for non-nullable int input');
-                }
-            } else {
-                // TODO (forman): perform validation against input.valueRange, if any
-                changeInputConstantValue(input, index, value);
-            }
+            // TODO (forman): perform validation against input.valueRange, if any
+            changeInputConstantValue(input, index, value);
         };
 
         const changeInputFloatValue = (input: OperationInputState, index: number, value: number|null) => {
-            if (value === null) {
-                if (input.nullable) {
-                    changeInputConstantValue(input, index, null);
-                } else {
-                    // TODO (forman): inform user about input validation failure
-                    console.error('EditOpStepDialog: empty value for non-nullable float input');
-                }
-            } else {
-                // TODO (forman): perform validation against input.valueRange, if any
-                changeInputConstantValue(input, index, value);
-            }
-        };
-
-        const changeInputTextValue = (input: OperationInputState, index: number, value: string|null) => {
-            if (value === null) {
-                if (input.nullable) {
-                    changeInputConstantValue(input, index, null);
-                } else {
-                    // TODO (forman): inform user about input validation failure
-                    console.error('EditOpStepDialog: empty value for non-nullable text input');
-                }
-            } else {
-                changeInputConstantValue(input, index, value);
-            }
+            // TODO (forman): perform validation against input.valueRange, if any
+            changeInputConstantValue(input, index, value);
         };
 
         const inputEditors = operation.inputs.map((input: OperationInputState, index: number) => {
@@ -258,10 +237,10 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             let valueEditor = null;
             switch (input.dataType) {
                 case 'int':
-                    valueEditor = EditOpStepDialog.renderIntInputEditor(input, index, constantValue, changeInputIntValue);
+                    valueEditor = EditOpStepDialog.renderIntInputEditor(input, index, constantValue, changeInputIntValue, handleValidationFailure);
                     break;
                 case 'float':
-                    valueEditor = EditOpStepDialog.renderFloatInputEditor(input, index, constantValue, changeInputFloatValue);
+                    valueEditor = EditOpStepDialog.renderFloatInputEditor(input, index, constantValue, changeInputFloatValue, handleValidationFailure);
                     break;
                 case 'bool': {
                     valueEditor = EditOpStepDialog.renderBoolInputEditor(input, index, constantValue, changeInputConstantValue);
@@ -278,9 +257,9 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                         } else {
                             showFileCallback = EditOpStepDialog.showSaveDialog;
                         }
-                        valueEditor = EditOpStepDialog.renderFileInputEditor(input, index, constantValue, changeInputTextValue, showFileCallback);
+                        valueEditor = EditOpStepDialog.renderFileInputEditor(input, index, constantValue, changeInputConstantValue, showFileCallback);
                     } else {
-                        valueEditor = EditOpStepDialog.renderStringInputEditor(input, index, constantValue, changeInputTextValue);
+                        valueEditor = EditOpStepDialog.renderStringInputEditor(input, index, constantValue, changeInputConstantValue, handleValidationFailure);
                     }
                     break;
                 }
@@ -313,7 +292,8 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
     private static renderIntInputEditor(input: OperationInputState,
                                         index: number,
                                         value: number|null,
-                                        onChange: EditorCallback) {
+                                        onChange: EditorCallback,
+                                        onFailure: FailureCallback) {
         const valueSetEditor = this.renderValueSetEditor(input, index, value, onChange);
         if (valueSetEditor) {
             return valueSetEditor;
@@ -323,6 +303,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                       columns={8}
                       value={value}
                       onChange={(value:number|null) => onChange(input, index, value)}
+                      onFailure={onFailure}
             />
         );
     }
@@ -330,7 +311,8 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
     private static renderFloatInputEditor(input: OperationInputState,
                                           index: number,
                                           value: number|null,
-                                          onChange: EditorCallback) {
+                                          onChange: EditorCallback,
+                                          onFailure: FailureCallback) {
         const valueSetEditor = this.renderValueSetEditor(input, index, value, onChange);
         if (valueSetEditor) {
             return valueSetEditor;
@@ -340,6 +322,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                         columns={8}
                         value={value}
                         onChange={(value:number|null) => onChange(input, index, value)}
+                        onFailure={onFailure}
             />
         );
     }
@@ -347,7 +330,8 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
     private static renderStringInputEditor(input: OperationInputState,
                                            index: number,
                                            value: string|null,
-                                           onChange: EditorCallback) {
+                                           onChange: EditorCallback,
+                                           onFailure: FailureCallback) {
         const valueSetEditor = this.renderValueSetEditor(input, index, value, onChange);
         if (valueSetEditor) {
             return valueSetEditor;
@@ -356,6 +340,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             <TextField columns={10}
                        value={value}
                        onChange={(value:string|null) => onChange(input, index, value)}
+                       onFailure={onFailure}
             />
         );
     }
@@ -398,7 +383,8 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                        placeholder="Enter local file path"
                        onChange={(event:any) => onChange(input, index, event.target.value)}
                 />
-                <Button className="pt-intent-primary" style={{flex: 'none'}} onClick={() => showFileDialog(input, index, value || '', onChange)}>...</Button>
+                <Button className="pt-intent-primary" style={{flex: 'none'}}
+                        onClick={() => showFileDialog(input, index, value || '', onChange)}>...</Button>
             </div>
         );
     }
