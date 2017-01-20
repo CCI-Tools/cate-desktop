@@ -2,13 +2,13 @@ import * as React from 'react';
 import {Dialog, Classes, Button, Tooltip, Checkbox} from "@blueprintjs/core";
 import {DialogState, OperationState, WorkspaceState, OperationInputState} from "../state";
 import FormEvent = React.FormEvent;
-import {ParameterEditor} from "../components/ParameterEditor";
+import {InputEditor} from "../components/InputEditor";
 import {FloatField} from "../components/FloatField";
 import {IntField} from "../components/IntField";
 import {TextField} from "../components/TextField";
 
 
-interface ParameterValueState {
+export interface InputAssignmentState {
     constantValue: any;
     resourceName: string;
     isValueUsed: boolean;
@@ -21,11 +21,11 @@ export interface IEditOpStepDialogProps {
     workspace: WorkspaceState;
     operation: OperationState;
     isAddOpStepDialog: boolean;
-    parameterValues: Array<ParameterValueState>;
+    inputAssignments: Array<InputAssignmentState>;
 }
 
 export interface IEditOpStepDialogState extends DialogState {
-    parameterValues: Array<ParameterValueState>;
+    inputAssignments: Array<InputAssignmentState>;
 }
 
 export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IEditOpStepDialogState> {
@@ -33,8 +33,8 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
 
     constructor(props: IEditOpStepDialogProps) {
         super(props);
-        const parameterValues = EditOpStepDialog.getInitialParameterValues(props.operation, props.parameterValues);
-        this.state = {isOpen: true, parameterValues};
+        const inputAssignments = EditOpStepDialog.getInitialInputAssignments(props.operation, props.inputAssignments);
+        this.state = {isOpen: true, inputAssignments};
         this.dialogId = EditOpStepDialog.getDialogId(props.operation.name, props.isAddOpStepDialog);
         this.handleConfirm = this.handleConfirm.bind(this);
         this.handleValidate = this.handleValidate.bind(this);
@@ -49,24 +49,24 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
         return (isAddOpStepDialog ? 'addOpStep_' : 'editOpStep_') + operationName;
     }
 
-    private static getInitialParameterValues(operation: OperationState, parameterValues: Array<ParameterValueState>) {
-        return operation.inputs.map((input, index): ParameterValueState => {
-            const parameterValue = parameterValues && parameterValues[index];
-            if (parameterValue) {
-                return parameterValue;
+    private static getInitialInputAssignments(operation: OperationState, parameterValues: Array<InputAssignmentState>) {
+        return operation.inputs.map((input, index): InputAssignmentState => {
+            const inputAssignment = parameterValues && parameterValues[index];
+            if (inputAssignment) {
+                return inputAssignment;
             } else {
                 return {constantValue: input.defaultValue, isValueUsed: true, resourceName: null};
             }
         });
     }
 
-    private static getDefaultParameterValues(operation: OperationState, parameterValues: Array<ParameterValueState>): Array<ParameterValueState> {
-        return operation.inputs.map((input, index): ParameterValueState => {
-            const parameterValue = parameterValues && parameterValues[index];
+    private static getDefaultInputAssignments(operation: OperationState, lastInputAssignments: Array<InputAssignmentState>): Array<InputAssignmentState> {
+        return operation.inputs.map((input, index): InputAssignmentState => {
+            const lastInputAssignment = lastInputAssignments && lastInputAssignments[index];
             if (typeof input.defaultValue !== 'undefined') {
                 return {constantValue: input.defaultValue, isValueUsed: true, resourceName: null};
             } else {
-                return parameterValue || {constantValue: null, isValueUsed: true, resourceName: null};
+                return lastInputAssignment || {constantValue: null, isValueUsed: true, resourceName: null};
             }
         });
     }
@@ -91,8 +91,8 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
     }
 
     private handleDefaults() {
-        const parameterValues = EditOpStepDialog.getDefaultParameterValues(this.props.operation, this.props.parameterValues);
-        this.setState(Object.assign({}, this.state, {parameterValues}));
+        const inputAssignments = EditOpStepDialog.getDefaultInputAssignments(this.props.operation, this.props.inputAssignments);
+        this.setState(Object.assign({}, this.state, {inputAssignments}));
     }
 
     private getMandatoryDatasetInputs() {
@@ -185,98 +185,104 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             return null;
         }
 
-        const changeParameterConstantValue = (input: OperationInputState, index: number, value: any) => {
-            if (value === '' && input.nullable) {
-                value = null;
-            }
-            const parameterValues = this.state.parameterValues.slice();
-            parameterValues[index] = Object.assign({}, parameterValues[index], {
-                constantValue: value,
-                isValueUsed: true
-            });
-            this.setState({parameterValues});
+        const changeInputAssignment = (index: number, inputAssignment: InputAssignmentState) => {
+            const inputAssignments = this.state.inputAssignments.slice();
+            const newInputAssignment = Object.assign({}, inputAssignments[index], inputAssignment);
+            console.log('EditOpStepDialog: changeInputAssignment', newInputAssignment);
+            inputAssignments[index] = newInputAssignment;
+            this.setState({inputAssignments});
         };
 
-        const changeParameterIntValue = (input: OperationInputState, index: number, value: number|null) => {
+        const changeInputResourceName = (input: OperationInputState, index: number, resourceName: string, isValueUsed: boolean) => {
+            if (resourceName === '' && input.nullable) {
+                resourceName = null;
+            }
+            changeInputAssignment(index, {resourceName, isValueUsed} as InputAssignmentState);
+        };
+
+        const changeInputConstantValue = (input: OperationInputState, index: number, constantValue: any) => {
+            if (constantValue === '' && input.nullable) {
+                constantValue = null;
+            }
+            changeInputAssignment(index, {constantValue, isValueUsed: true} as InputAssignmentState);
+        };
+
+        const changeInputIntValue = (input: OperationInputState, index: number, value: number|null) => {
             if (value === null) {
                 if (input.nullable) {
-                    changeParameterConstantValue(input, index, null);
+                    changeInputConstantValue(input, index, null);
                 } else {
-                    // inform user
+                    // TODO (forman): inform user
                     console.error('EditOpStepDialog: empty value for non-nullable int input');
                 }
             } else {
-                changeParameterConstantValue(input, index, value);
+                // TODO (forman): perform validation against input.valueRange, if any
+                changeInputConstantValue(input, index, value);
             }
         };
 
-        const changeParameterFloatValue = (input: OperationInputState, index: number, value: number|null) => {
+        const changeInputFloatValue = (input: OperationInputState, index: number, value: number|null) => {
             if (value === null) {
                 if (input.nullable) {
-                    changeParameterConstantValue(input, index, null);
+                    changeInputConstantValue(input, index, null);
                 } else {
-                    // inform user
+                    // TODO (forman): inform user
                     console.error('EditOpStepDialog: empty value for non-nullable float input');
                 }
             } else {
-                changeParameterConstantValue(input, index, value);
+                // TODO (forman): perform validation against input.valueRange, if any
+                changeInputConstantValue(input, index, value);
             }
         };
 
-        const changeParameterTextValue = (input: OperationInputState, index: number, value: string|null) => {
+        const changeInputTextValue = (input: OperationInputState, index: number, value: string|null) => {
             if (value === null) {
                 if (input.nullable) {
-                    changeParameterConstantValue(input, index, null);
+                    changeInputConstantValue(input, index, null);
                 } else {
-                    // inform user
+                    // TODO (forman): inform user
                     console.error('EditOpStepDialog: empty value for non-nullable text input');
                 }
             } else {
-                changeParameterConstantValue(input, index, value);
+                changeInputConstantValue(input, index, value);
             }
         };
 
-        const changeParameterResourceName = (index: number, resourceName: string, isValueUsed: boolean) => {
-            const parameterValues = this.state.parameterValues.slice();
-            parameterValues[index] = Object.assign({}, parameterValues[index], {resourceName, isValueUsed});
-            this.setState({parameterValues});
-        };
-
         const inputEditors = operation.inputs.map((input: OperationInputState, index: number) => {
-            const parameterValue = this.state.parameterValues[index];
+            const parameterValue = this.state.inputAssignments[index];
             const constantValue = parameterValue.constantValue;
             let valueEditor = null;
             switch (input.dataType) {
                 case 'int':
-                    valueEditor = EditOpStepDialog.renderIntInputEditor(input, index, constantValue, changeParameterIntValue);
+                    valueEditor = EditOpStepDialog.renderIntInputEditor(input, index, constantValue, changeInputIntValue);
                     break;
                 case 'float':
-                    valueEditor = EditOpStepDialog.renderFloatInputEditor(input, index, constantValue, changeParameterFloatValue);
+                    valueEditor = EditOpStepDialog.renderFloatInputEditor(input, index, constantValue, changeInputFloatValue);
                     break;
                 case 'bool': {
-                    valueEditor = EditOpStepDialog.renderBoolInputEditor(input, index, constantValue, changeParameterConstantValue);
+                    valueEditor = EditOpStepDialog.renderBoolInputEditor(input, index, constantValue, changeInputConstantValue);
                     break;
                 }
                 case 'str': {
                     // Note the following is a naive decision making, because we are lacking a real file/path type :(
                     if (input.name.toLowerCase().endsWith('file')) {
-                        valueEditor = EditOpStepDialog.renderFileInputEditor(input, index, constantValue, changeParameterTextValue);
+                        valueEditor = EditOpStepDialog.renderFileInputEditor(input, index, constantValue, changeInputTextValue);
                     } else {
-                        valueEditor = EditOpStepDialog.renderStringInputEditor(input, index, constantValue, changeParameterTextValue);
+                        valueEditor = EditOpStepDialog.renderStringInputEditor(input, index, constantValue, changeInputTextValue);
                     }
                     break;
                 }
             }
-            return (<ParameterEditor key={index}
-                                     resources={this.props.workspace.resources}
-                                     name={input.name}
-                                     dataType={input.dataType}
-                                     units={input.units}
-                                     tooltipText={input.description}
-                                     onChange={(resourceName, isValueUsed) => changeParameterResourceName(index, resourceName, isValueUsed)}
-                                     isValueEditorShown={parameterValue.isValueUsed}
-                                     resourceName={parameterValue.resourceName}
-                                     valueEditor={valueEditor}/>
+            return (<InputEditor key={index}
+                                 resources={this.props.workspace.resources}
+                                 name={input.name}
+                                 dataType={input.dataType}
+                                 units={input.units}
+                                 tooltipText={input.description}
+                                 onChange={(resourceName, isValueUsed) => changeInputResourceName(input, index, resourceName, isValueUsed)}
+                                 isValueEditorShown={parameterValue.isValueUsed}
+                                 resourceName={parameterValue.resourceName}
+                                 valueEditor={valueEditor}/>
             );
         });
         return (<div>{inputEditors}</div>);

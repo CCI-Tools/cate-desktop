@@ -94,22 +94,24 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         const dialogId = EditOpStepDialog.getDialogId(this.props.selectedOperationName, true);
         this.props.dispatch(actions.setDialogState(dialogId, dialogState));
 
+        console.log("OperationsPanel: handleAddOpStepDialogClosed", actionId, dialogState.inputAssignments);
+
         // Perform the action
         if (actionId) {
             const resName = 'res_' + (++OperationsPanel.resourceId);
             const opName = selectedOperation.name;
             const opArgs = {};
             selectedOperation.inputs.forEach((input, index) => {
-                const parameterValue = dialogState.parameterValues[index];
+                const inputAssignment = dialogState.inputAssignments[index];
                 let opArg;
-                if (parameterValue.isValueUsed) {
-                    opArg = {value: parameterValue.constantValue};
+                if (inputAssignment.isValueUsed) {
+                    opArg = {value: inputAssignment.constantValue};
                 } else {
-                    opArg = {source: parameterValue.resourceName};
+                    opArg = {source: inputAssignment.resourceName};
                 }
                 opArgs[input.name] = opArg;
             });
-            console.log("OperationsPanel:", opName, opArgs);
+            console.log("OperationsPanel: handleAddOpStepDialogClosed", opName, opArgs);
             this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, `Performing operation '${opName}'`));
         }
     }
