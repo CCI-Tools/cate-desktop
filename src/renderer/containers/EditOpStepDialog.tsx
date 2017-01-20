@@ -15,6 +15,10 @@ export interface InputAssignmentState {
 }
 
 type EditorCallback = (input: OperationInputState, index: number, value: any) => any;
+type ShowFileCallback = (input: OperationInputState,
+                         index: number,
+                         value: string|null,
+                         onChange: EditorCallback) => any;
 
 export interface IEditOpStepDialogProps {
     onClose: (actionId: string, dialogState: IEditOpStepDialogState) => void;
@@ -264,9 +268,18 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                     break;
                 }
                 case 'str': {
-                    // Note the following is a naive decision making, because we are lacking a real file/path type :(
+                    // TODO (forman): Note the following is a naive decision making, because we are lacking a real file/path type :(
                     if (input.name.toLowerCase().endsWith('file')) {
-                        valueEditor = EditOpStepDialog.renderFileInputEditor(input, index, constantValue, changeInputTextValue);
+                        // TODO (forman): Note the following is a naive decision making, because we don't know if we read or write a file/dir :(
+                        let showFileCallback: ShowFileCallback;
+                        if (operation.name.toLowerCase().startsWith('read')
+                            || operation.name.toLowerCase().startsWith('open')
+                            || operation.name.toLowerCase().startsWith('load')) {
+                            showFileCallback = EditOpStepDialog.showOpenDialog;
+                        } else {
+                            showFileCallback = EditOpStepDialog.showSaveDialog;
+                        }
+                        valueEditor = EditOpStepDialog.renderFileInputEditor(input, index, constantValue, changeInputTextValue, showFileCallback);
                     } else {
                         valueEditor = EditOpStepDialog.renderStringInputEditor(input, index, constantValue, changeInputTextValue);
                     }
@@ -375,26 +388,8 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
     private static renderFileInputEditor(input: OperationInputState,
                                          index: number,
                                          value: string|null,
-                                         onChange: EditorCallback) {
-        const browseFile = () => {
-            const electron = require('electron');
-            console.log('EditOpStepDialog: contacting main process...', electron);
-            // see https://github.com/electron/electron/blob/master/docs/api/dialog.md
-            const openDialogOptions = {
-                title: "Select File Path",
-                defaultPath: value,
-                buttonLabel: "Select File",
-                properties: ["openFile"],
-            };
-            electron.ipcRenderer.send('show-open-dialog', openDialogOptions);
-            electron.ipcRenderer.on('show-open-dialog-reply', (event, filePaths: Array<string>) => {
-                console.log('EditOpStepDialog: received reply from main process:', filePaths);
-                if (filePaths && filePaths.length) {
-                    onChange(input, index, filePaths[0]);
-                }
-            });
-        };
-
+                                         onChange: EditorCallback,
+                                         showFileDialog: ShowFileCallback) {
         return (
             <div className="pt-control-group" style={{width: '20em', display: 'flex'}}>
                 <input className="pt-input"
@@ -404,8 +399,54 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                        placeholder="Enter local file path"
                        onChange={(event:any) => onChange(input, index, event.target.value)}
                 />
-                <Button className="pt-intent-primary" style={{flex: 'none'}} onClick={browseFile}>...</Button>
+                <Button className="pt-intent-primary" style={{flex: 'none'}} onClick={() => showFileDialog(input, index, value || '', onChange)}>...</Button>
             </div>
         );
     }
+
+    private static showOpenDialog(input: OperationInputState,
+                                  index: number,
+                                  value: string|null,
+                                  onChange: EditorCallback) {
+        const electron = require('electron');
+        console.log('EditOpStepDialog: contacting main process...', electron);
+        // see https://github.com/electron/electron/blob/master/docs/api/dialog.md
+        const openDialogOptions = {
+            title: "Open File",
+            defaultPath: value,
+            buttonLabel: "Open",
+            properties: ["openFile"],
+            filter: input.fileFilters,
+        };
+        electron.ipcRenderer.send('show-open-dialog', openDialogOptions);
+        electron.ipcRenderer.on('show-open-dialog-reply', (event, filePaths: Array<string>) => {
+            console.log('EditOpStepDialog: received reply from main process:', filePaths);
+            if (filePaths && filePaths.length) {
+                onChange(input, index, filePaths[0]);
+            }
+        });
+    }
+
+    private static showSaveDialog(input: OperationInputState,
+                                  index: number,
+                                  value: string|null,
+                                  onChange: EditorCallback) {
+        const electron = require('electron');
+        console.log('EditOpStepDialog: contacting main process...', electron);
+        // see https://github.com/electron/electron/blob/master/docs/api/dialog.md
+        const openDialogOptions = {
+            title: "Save File",
+            defaultPath: value,
+            buttonLabel: "Save",
+            filter: input.fileFilters,
+        };
+        electron.ipcRenderer.send('show-save-dialog', openDialogOptions);
+        electron.ipcRenderer.on('show-save-dialog-reply', (event, filePath: string) => {
+            console.log('EditOpStepDialog: received reply from main process:', filePath);
+            if (filePath) {
+                onChange(input, index, filePath);
+            }
+        });
+    }
+
 }

@@ -35,7 +35,6 @@ export interface DataState {
 }
 
 export interface AppConfigState {
-    // TODO (nf): I don't like the webAPIClient here in the state object.
     // Maybe put it into the communication state, see http://jamesknelson.com/5-types-react-application-state/
     // and see https://github.com/trbngr/react-example-pusher
     webAPIClient: WebAPIClient | null;
@@ -79,6 +78,13 @@ export interface OperationState {
     outputs: Array<OperationOutputState>;
 }
 
+// see https://github.com/electron/electron/blob/master/docs/api/dialog.md
+// see https://github.com/electron/electron/blob/master/docs/api/structures/file-filter.md
+export interface FileFilterState {
+    name: string;
+    extensions: string[];
+}
+
 export interface OperationInputState {
     name: string;
     dataType: string;
@@ -89,6 +95,8 @@ export interface OperationInputState {
     nullable?: boolean;
     valueSet?: Array<any>;
     valueRange?: [number, number];
+    // TODO (forman): male 'file_filters' a possible input property in Python backend
+    fileFilters?: FileFilterState[];
 }
 
 export interface OperationOutputState {

@@ -385,7 +385,13 @@ function createMainWindow() {
 
     ipcMain.on('show-open-dialog', (event, openDialogOptions) => {
         dialog.showOpenDialog(_mainWindow, openDialogOptions, (filePaths: Array<string>) => {
-            event.sender.send('show-open-dialog-reply', filePaths || []);
+            event.sender.send('show-open-dialog-reply', filePaths);
+        });
+    });
+
+    ipcMain.on('show-save-dialog', (event, openDialogOptions) => {
+        dialog.showSaveDialog(_mainWindow, openDialogOptions, (filePath: string) => {
+            event.sender.send('show-save-dialog-reply', filePath);
         });
     });
 }
