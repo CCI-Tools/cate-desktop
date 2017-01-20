@@ -13,7 +13,7 @@ export interface IListBoxProps {
     getItemKey?: (itemIndex: number) => React.Key;
     onItemClick?: (key: React.Key, itemIndex: number) => void;
     onItemDoubleClick?: (key: React.Key, itemIndex: number) => void;
-    // TODO (nf): change param order, so users can drop oldSelection in their impl.
+    // TODO (forman): change param order, so we can drop 2nd oldSelection arg in our callback impl.
     onSelection?: (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => void;
     selectionMode?: ListBoxSelectionMode;
     selection?: Array<React.Key>;

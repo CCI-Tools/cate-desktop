@@ -300,7 +300,7 @@ export class WebAPIServiceMock implements IServiceObject {
         const inputs = [] as Array<State.WorkflowPortState>;
         for (let input of op.inputs) {
             if (input.name in opArgs) {
-                // TODO (nf/mz): check if opArgs[input.name] is a sourceRef or a constant value. We use just value here.
+                // Note: check if opArgs[input.name] is a "sourceRef" or a constant "value". We use just "value" here.
                 inputs.push({
                     name: input.name,
                     value: opArgs[input.name],

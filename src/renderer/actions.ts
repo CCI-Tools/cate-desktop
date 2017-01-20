@@ -9,7 +9,7 @@ import {OpenDatasetDialog} from "./containers/OpenDatasetDialog";
 import {NumberRange} from "@blueprintjs/core";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 
-// TODO write tests for actions
+// TODO (forman/marcoz): write unit tests for actions
 
 
 const CANCELLED_CODE = 999;
@@ -55,7 +55,6 @@ export function setControlState(propertyName: string, value: any) {
 export function cancelJob(jobId: number) {
     return (dispatch, getState) => {
         const state: State = getState();
-        // TODO jobSubmitted, jobDone ???
         state.data.appConfig.webAPIClient.cancel(jobId);
     }
 }
@@ -364,7 +363,7 @@ export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
 export function setSelectedVariableName(selectedVariableName: string|null) {
     return (dispatch, getState) => {
         dispatch(setSelectedVariableNameImpl(selectedVariableName));
-        // TODO (nf): use "reselect" JS library here and use selectors from selectors.ts
+        // TODO (forman): use "reselect" JS library here and use selectors from selectors.ts
         const selectedResourceName = getState().control.selectedWorkspaceResourceId;
         if (selectedResourceName && selectedVariableName) {
             const resource = getState().data.workspace.resources.find((resource: ResourceState) => resource.name == selectedResourceName);
@@ -422,7 +421,7 @@ export function setSelectedVariableName(selectedVariableName: string|null) {
             if (lastSelectedVariableLayer) {
                 dispatch(saveLayer(selectedVariableName, lastSelectedVariableLayer));
             } else {
-                // TODO (nf): add layer ID SELECTED_VARIABLE_LAYER_ID
+                // TODO (forman): add layer ID SELECTED_VARIABLE_LAYER_ID
                 // dispatch(addLayer(currentSelectedVariableLayer));
             }
 

@@ -67,7 +67,7 @@ export class GlobeView extends React.Component<IGlobeViewProps, null> {
                         imageryProvider: GlobeView.createImageryProvider,
                         imageryProviderOptions: {
                             url: url,
-                            // TODO - use imageConfig.sector to specify 'rectangle' option. See backend todo.
+                            // TODO (forman): use imageConfig.sector to specify 'rectangle' option. Required for subsets! See backend TODO.
                             // rectangle: imageLayout.sector,
                             minimumLevel: 0,
                             maximumLevel: imageLayout.numLevels - 1,

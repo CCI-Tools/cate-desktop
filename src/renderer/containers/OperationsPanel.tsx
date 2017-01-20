@@ -64,11 +64,11 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     }
 
     private updateOperations() {
-        // TODO: show in the UI that we are in the process of getting operations
+        // TODO (forman): show in the UI that we are in the process of getting operations
         this.getOperationAPI().getOperations().then(operations => {
             this.props.dispatch(actions.updateOperations(operations));
         }).catch(error => {
-            // TODO: handle error
+            // TODO (forman): show in the UI that we are unable to get operations
             console.error(error);
         });
     }

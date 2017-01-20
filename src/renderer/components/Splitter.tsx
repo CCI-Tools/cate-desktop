@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-// TODO: add splitter width, color, etc. style props
+// TODO (forman): add splitter width, color, handleIcon, etc. style props
 interface ISplitterProps {
     direction?: "hor" | "ver";
     onChange: (delta: number) => any;

@@ -179,7 +179,7 @@ class WebAPIClientImpl implements WebAPIClient {
             this.warn(`Job with "id"=${jobId} does not exist`);
             return;
         } else {
-            job.cancel(); //TODO what to do with the promise ???
+            job.cancel();
         }
     }
 

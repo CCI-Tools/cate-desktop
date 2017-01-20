@@ -3,6 +3,9 @@ import {
     ColorMapCategoryState
 } from "./state";
 
+// TODO (forman/marcoz): write unit tests for actions
+// TODO (forman/marcoz): use reselect JS library
+
 export const resourcesSelector = (state: State): Array<ResourceState> => state.data.workspace.resources;
 export const selectedResourceIdSelector = (state: State): string|null => state.control.selectedWorkspaceResourceId;
 export const selectedVariableNameSelector = (state: State): string|null => state.control.selectedVariableName;

@@ -72,7 +72,7 @@ export function ApplicationPage(props) {
                 </Tabs>
                 <Tabs>
                     <TabList>
-                        {/* TODO: create component CloseableTab */}
+                        {/* TODO (forman): implement a component "CloseableTab" which we will use here */}
                         <Tab>
                             <TabHeader icon="pt-icon-globe" text="3D Globe"/>
                         </Tab>

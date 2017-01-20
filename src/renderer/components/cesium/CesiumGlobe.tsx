@@ -226,13 +226,14 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
             if (currentImageLayers.has(nextLayer.id)) {
                 // change or exchange nextLayer
                 const currentLayer = currentImageLayers.get(nextLayer.id);
-                // todo: perform a shallow comparison between imageryProviderOptions of nextLayer and currentLayer
+                // TODO (forman): perform a shallow comparison between imageryProviderOptions of nextLayer and currentLayer
                 if (nextLayer.imageryProviderOptions.url !== currentLayer.imageryProviderOptions.url) {
                     // save oldImageryLayer
                     const oldImageryLayer = cesiumImageryLayers.get(nextLayer.id);
                     // add nextLayer
                     const imageryProvider = CesiumGlobe.getImageryProvider(nextLayer);
                     imageryLayer = this.viewer.imageryLayers.addImageryProvider(imageryProvider, i + 1); // +1 because of baseLayer, which is always available
+                    // TODO (forman): removing an old layer produces flickering. Try to avoid it by decreasing alpha value in an animation sequence.
                     // remove oldImageryLayer
                     this.viewer.imageryLayers.remove(oldImageryLayer, true);
                 } else {
@@ -244,7 +245,7 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
                 imageryLayer = this.viewer.imageryLayers.addImageryProvider(imageryProvider, i + 1); // +1 because of baseLayer, which is always available
             }
 
-            // todo: bring layers into desired order
+            // TODO (forman): now bring layers into desired order
 
             // update imageryLayer
             imageryLayer.name = nextLayer.name;

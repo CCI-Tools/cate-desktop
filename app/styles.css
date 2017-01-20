@@ -197,18 +197,18 @@ ul.cate-list-box li.cate-selected {
     margin-right: 0.1em;
 }
 
-/* TODO: Apply to elements within a div with class .cate-panel-header */
+/* TODO (forman): Apply to elements within a div with class .cate-panel-header */
 .cate-panel-selected {
     /* blueprint's color @blue4 */
     color: #2B95D6;
 }
 
-/* TODO: Apply to elements within a div with class .cate-panel-header */
+/* TODO (forman): Apply to elements within a div with class .cate-panel-header */
 .cate-panel-icon {
     flex: 1 1 auto;
 }
 
-/* TODO: Apply to elements within a div with class .cate-panel-header */
+/* TODO (forman): Apply to elements within a div with class .cate-panel-header */
 .cate-panel-text {
     flex: 1 0 auto;
     text-align: left;
@@ -216,7 +216,7 @@ ul.cate-list-box li.cate-selected {
     margin-right: 0.5em;
 }
 
-/* TODO: Apply to right buttons (spans) within a div with class .cate-panel-header */
+/* TODO (forman): Apply to right buttons (spans) within a div with class .cate-panel-header */
 span.cate-icon-small {
     font-size: 12px;
     font-weight: lighter;
@@ -226,7 +226,7 @@ span.cate-icon-small {
     color: rgba(43, 149, 214, 0.1);
 }
 
-/* TODO: Apply to right buttons (spans) within a div with class .cate-panel-header */
+/* TODO (forman): Apply to right buttons (spans) within a div with class .cate-panel-header */
 span.cate-icon-small:hover {
     /* blueprint's @blue4 used for selection in pt-dark */
     color: rgba(43, 149, 214, 1.0);

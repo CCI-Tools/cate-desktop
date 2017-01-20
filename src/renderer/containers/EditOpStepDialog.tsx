@@ -216,7 +216,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                 if (input.nullable) {
                     changeInputConstantValue(input, index, null);
                 } else {
-                    // TODO (forman): inform user
+                    // TODO (forman): inform user about input validation failure
                     console.error('EditOpStepDialog: empty value for non-nullable int input');
                 }
             } else {
@@ -230,7 +230,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                 if (input.nullable) {
                     changeInputConstantValue(input, index, null);
                 } else {
-                    // TODO (forman): inform user
+                    // TODO (forman): inform user about input validation failure
                     console.error('EditOpStepDialog: empty value for non-nullable float input');
                 }
             } else {
@@ -244,7 +244,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                 if (input.nullable) {
                     changeInputConstantValue(input, index, null);
                 } else {
-                    // TODO (forman): inform user
+                    // TODO (forman): inform user about input validation failure
                     console.error('EditOpStepDialog: empty value for non-nullable text input');
                 }
             } else {
@@ -268,9 +268,8 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                     break;
                 }
                 case 'str': {
-                    // TODO (forman): Note the following is a naive decision making, because we are lacking a real file/path type :(
+                    // TODO (forman): note the following is a naive decision making, because we don't use input.fileMode yet
                     if (input.name.toLowerCase().endsWith('file')) {
-                        // TODO (forman): Note the following is a naive decision making, because we don't know if we read or write a file/dir :(
                         let showFileCallback: ShowFileCallback;
                         if (operation.name.toLowerCase().startsWith('read')
                             || operation.name.toLowerCase().startsWith('open')

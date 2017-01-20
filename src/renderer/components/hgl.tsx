@@ -1,6 +1,9 @@
 import * as React from 'react'
 import {Splitter} from "./Splitter";
 
+// TODO (forman): extract reusable components, then remove hgl.tsx! This is old stinky code.
+
+
 export class HGLContainer extends React.Component<any, any> {
     render() {
         return (
@@ -63,7 +66,7 @@ export class HGLCenter extends React.Component<any, any> {
     }
 }
 
-// TODO: support the leftHidden, rightHidden props
+// TODO (forman): support the leftHidden, rightHidden props
 
 export interface HGLMidsectionProps {
     leftWidth: number;

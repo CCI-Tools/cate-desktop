@@ -72,7 +72,7 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
                     progress = <div style={{padding: '0.5em'}}><ProgressBar intent={Intent.SUCCESS}/></div>;
                 }
 
-                // TODO: place cancel button right to progress bar
+                // TODO (marcoz): styling issue: place cancel button right to, or right to and below progress bar
                 const cancelJob = () => this.props.cancelJob(jobId);
                 const cancelButton = <Button type="button"
                                              className="pt-intent-primary"

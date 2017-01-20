@@ -273,7 +273,7 @@ class DataSourcesList extends React.Component<IDataSourcesListProps, null> {
 
     private renderItem(itemIndex: number) {
         const dataSource = this.props.dataSources[itemIndex];
-        // TODO: compute icon size based on screen resolution
+        // TODO (forman): compute icon size based on screen resolution
         const imageSize = 32;
         const iconName = ((dataSource.meta_info && dataSource.meta_info.cci_project) || 'cci').toLowerCase();
         const displayName = dataSource.name.replace('esacci', '').replace(/\./g, ' ');

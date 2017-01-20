@@ -5,16 +5,17 @@ import {
 import * as actions from './actions';
 import {combineReducers} from 'redux';
 
+// TODO (forman): move assert() into assert.ts
 function assert(condition: any, message: string) {
     if (!condition) {
         throw new Error(`assertion failed: ${message}`);
     }
 }
 
-// TODO write tests for reducers
+// TODO (forman/marcoz): write unit tests for reducers
 
 
-// TODO move updateObject() into obj.ts, see also src/common/assign.ts
+// TODO (forman): move updateObject() into obj.ts, see also src/common/assign.ts
 /**
  * Encapsulate the idea of passing a new object as the first parameter
  * to Object.assign to ensure we correctly copy data instead of mutating.
@@ -23,7 +24,7 @@ export function updateObject(oldObject, newValues) {
     return Object.assign({}, oldObject, newValues);
 }
 
-// TODO move updateProperty() into obj.ts, see also src/common/assign.ts
+// TODO (forman): move updateProperty() into obj.ts, see also src/common/assign.ts
 export function updateProperty(oldObject: Object, key: string, value: any) {
     const newValues = {};
     newValues[key] = updateObject(oldObject[key], value);
@@ -92,7 +93,7 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             });
         }
         case actions.UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE: {
-            // TODO mz use combineReducers()
+            // TODO: (marcoz) use combineReducers()
             const dataStoreId = action.payload.dataStoreId;
             const dataSourceId = action.payload.dataSourceId;
             const temporalCoverage = action.payload.temporalCoverage;
