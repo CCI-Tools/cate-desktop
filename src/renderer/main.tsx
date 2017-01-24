@@ -25,6 +25,26 @@ export function main() {
         store.dispatch(actions.applyInitialState(initialState));
         connectWebAPIClient(store);
     });
+
+    ipcRenderer.on('new-workspace', (event) => {
+        store.dispatch(actions.newWorkspace())
+    });
+
+    ipcRenderer.on('open-workspace', (event) => {
+        store.dispatch(actions.openWorkspace())
+    });
+
+    ipcRenderer.on('close-workspace', (event) => {
+        store.dispatch(actions.closeWorkspace())
+    });
+
+    ipcRenderer.on('save-workspace', (event) => {
+        store.dispatch(actions.saveWorkspace())
+    });
+
+    ipcRenderer.on('save-workspace-as', (event) => {
+        store.dispatch(actions.saveWorkspaceAs())
+    });
 }
 
 function connectWebAPIClient(store: Store<State>) {

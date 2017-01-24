@@ -251,6 +251,11 @@ export function setOperationFilterExpr(operationFilterExpr: Array<string>) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Workspace actions
 
+export const NEW_WORKSPACE = 'NEW_WORKSPACE';
+export const OPEN_WORKSPACE = 'OPEN_WORKSPACE';
+export const CLOSE_WORKSPACE = 'CLOSE_WORKSPACE';
+export const SAVE_WORKSPACE = 'SAVE_WORKSPACE';
+export const SAVE_WORKSPACE_AS = 'SAVE_WORKSPACE_AS';
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
 export const SET_SELECTED_WORKSPACE_RESOURCE_ID = 'SET_SELECTED_WORKSPACE_RESOURCE_ID';
 export const SET_SELECTED_WORKFLOW_STEP_ID = 'SET_SELECTED_WORKFLOW_STEP_ID';
@@ -265,14 +270,105 @@ export function loadInitialWorkspace() {
     return (dispatch, getState) => {
         const openLastWorkspace = getState().session.openLastWorkspace;
         const lastWorkspacePath = getState().session.lastWorkspacePath;
-
-        let jobPromise;
         if (openLastWorkspace && lastWorkspacePath) {
-            jobPromise = workspaceAPI(getState()).openWorkspace(lastWorkspacePath);
+            newOrOpenWorkspace(dispatch, getState, lastWorkspacePath, 'Open Workspace');
+        } else {
+            newOrOpenWorkspace(dispatch, getState, null, 'New Workspace');
+        }
+    }
+}
+
+/**
+ * Asynchronously create a new workspace.
+ *
+ * @returns {(dispatch:any, getState:any)=>undefined}
+ */
+export function newWorkspace() {
+    return (dispatch, getState) => {
+        newOrOpenWorkspace(dispatch, getState, null, 'New Workspace');
+    }
+}
+
+/**
+ * Asynchronously open the a workspace.
+ *
+ * @returns {(dispatch:any, getState:any)=>undefined}
+ */
+export function openWorkspace(workspacePath?: string|null) {
+    return (dispatch, getState) => {
+        if (!workspacePath) {
+            // TODO (forman): send sync 'show-open-dialog' action
+        }
+        newOrOpenWorkspace(dispatch, getState, workspacePath, 'Open Workspace');
+    }
+}
+
+/**
+ * Asynchronously close the current workspace.
+ *
+ * @returns {(dispatch:any, getState:any)=>undefined}
+ */
+export function closeWorkspace() {
+    return (dispatch, getState: () => State) => {
+        let jobPromise = workspaceAPI(getState()).closeWorkspace(getState().data.workspace.baseDir);
+        dispatch(jobSubmitted(jobPromise.getJobId(), 'Close Workspace'));
+        jobPromise.then((workspace: WorkspaceState) => {
+            dispatch(newWorkspace());
+        }).catch(failure => {
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
+        });
+    }
+}
+
+/**
+ * Asynchronously close the current workspace.
+ *
+ * @returns {(dispatch:any, getState:any)=>undefined}
+ */
+export function saveWorkspace() {
+    return (dispatch, getState: () => State) => {
+        let jobPromise = workspaceAPI(getState()).saveWorkspace(getState().data.workspace.baseDir);
+        dispatch(jobSubmitted(jobPromise.getJobId(), 'Save Workspace'));
+        jobPromise.then((workspace: WorkspaceState) => {
+            dispatch(newWorkspace());
+        }).catch(failure => {
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
+        });
+    }
+}
+
+/**
+ * Asynchronously close the current workspace.
+ *
+ * @returns {(dispatch:any, getState:any)=>undefined}
+ */
+export function saveWorkspaceAs(workspacePath: string) {
+    return (dispatch, getState: () => State) => {
+        let jobPromise = workspaceAPI(getState()).moveWorkspace(getState().data.workspace.baseDir, workspacePath);
+        dispatch(jobSubmitted(jobPromise.getJobId(), 'Save Workspace As'));
+        jobPromise.then((workspace: WorkspaceState) => {
+            dispatch(newWorkspace());
+        }).catch(failure => {
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
+        });
+    }
+}
+
+/**
+ * Asynchronously load the initial workspace.
+ * Called only a single time on app initialisation.
+ *
+ * @returns {(dispatch:any, getState:any)=>undefined}
+ */
+function newOrOpenWorkspace(dispatch, getState, workspacePath: string, jobTitle: string) {
+    return (dispatch, getState) => {
+        let jobPromise;
+        if (workspacePath) {
+            jobPromise = workspaceAPI(getState()).openWorkspace(workspacePath);
         } else {
             jobPromise = workspaceAPI(getState()).newWorkspace();
         }
-        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Workspace"));
+        dispatch(jobSubmitted(jobPromise.getJobId(), jobTitle));
         jobPromise.then((workspace: WorkspaceState) => {
             dispatch(setCurrentWorkspace(workspace));
             dispatch(jobDone(jobPromise.getJobId()));

@@ -9,6 +9,12 @@ function ifDarwinOrElse(darwinValue, elseValue) {
         return elseValue;
 }
 
+function performRendererAction(focusedWindow, action, ...args) {
+    if (focusedWindow) {
+        focusedWindow.webContents.send(action, ...args);
+    }
+}
+
 //noinspection JSUnusedLocalSymbols
 export const actions = {
 
@@ -54,26 +60,31 @@ export const actions = {
     newWorkspace: {
         label: 'New Workspace',
         category: "file",
+        click: (item, focusedWindow) => performRendererAction(focusedWindow, 'new-workspace'),
     },
 
     openWorkspace: {
         label: 'Open Workspace',
         category: "file",
+        click: (item, focusedWindow) => performRendererAction(focusedWindow, 'open-workspace'),
     },
 
     closeWorkspace: {
         label: 'Close Workspace',
         category: "file",
+        click: (item, focusedWindow) => performRendererAction(focusedWindow, 'close-workspace'),
     },
 
     saveWorkspace: {
         label: 'Save Workspace',
         category: "file",
+        click: (item, focusedWindow) => performRendererAction(focusedWindow, 'save-workspace'),
     },
 
     saveWorkspaceAs: {
         label: 'Save Workspace As...',
         category: "file",
+        click: (item, focusedWindow) => performRendererAction(focusedWindow, 'save-workspace-as'),
     },
 
     /* ---------------------------------- */
@@ -82,6 +93,7 @@ export const actions = {
         label: 'Preferences...',
         accelerator: ifDarwinOrElse('Command+,', null),
         category: 'file',
+        click: (item, focusedWindow) => performRendererAction(focusedWindow, 'show-preferences'),
     },
 
     /* ---------------------------------- */
