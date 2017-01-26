@@ -7,6 +7,7 @@ import {request} from './request';
 import {assignConditionally} from '../common/assign';
 import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
+import {error} from "util";
 
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
@@ -131,13 +132,14 @@ function getWebAPIStopArgs(webAPIConfig) {
 }
 
 function getWebAPIRestUrl(webAPIConfig) {
-    return `http://${webAPIConfig.serviceAddress || 'localhost'}:${webAPIConfig.servicePort}/`;
+    return `http://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/`;
 }
 
 function getWebAPIWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || 'localhost'}:${webAPIConfig.servicePort}/app`;
+    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/app`;
 }
 
+//noinspection JSUnusedGlobalSymbols
 export function init() {
 
     _config = loadAppConfig();
@@ -190,7 +192,7 @@ export function init() {
             app.exit(1);
         });
         webAPIProcess.on('close', (code: number) => {
-            let message = `Cate WebAPI service exited with error code ${code}.`;
+            let message = `Cate WebAPI service process exited with code ${code}.`;
             console.log(CATE_WEBAPI_PREFIX, message);
             if (code != 0) {
                 if (!webAPIError) {
@@ -215,19 +217,23 @@ export function init() {
     }
 
     function startUpWithWebapiService() {
-        const msTimeout = 5000; // ms
+        const msServiceAccessTimeout = 1000; // ms
+        const msServiceStartTimeout = 5000; // ms
         const msDelay = 500; // ms
         let msSpend = 0; // ms
-        request(getWebAPIRestUrl(_config.data.webAPIConfig))
+        let webAPIRestUrl = getWebAPIRestUrl(_config.data.webAPIConfig);
+        console.log(CATE_DESKTOP_PREFIX, `Waiting for response from ${webAPIRestUrl}`);
+        request(webAPIRestUrl, msServiceAccessTimeout)
             .then((response: string) => {
-                console.log(CATE_WEBAPI_PREFIX, `response: ${response}`);
+                console.log(CATE_WEBAPI_PREFIX, `Response: ${response}`);
                 createMainWindow();
             })
             .catch((err) => {
+                console.log(CATE_DESKTOP_PREFIX, `No response within ${msServiceAccessTimeout} ms. Error: `, err);
                 if (!webAPIStarted) {
                     webAPIProcess = startWebapiService();
                 }
-                if (msSpend > msTimeout) {
+                if (msSpend > msServiceStartTimeout) {
                     let message = `Failed to start Cate WebAPI service within ${msSpend} ms.`;
                     console.error(CATE_WEBAPI_PREFIX, message, err);
                     if (!webAPIError) {
@@ -312,6 +318,7 @@ function createSplashWindow(parent) {
 
 
 function createMainWindow() {
+    console.log(CATE_DESKTOP_PREFIX, 'Creating main window...');
 
     if (_config.data.devToolsExtensions) {
         for (let path of _config.data.devToolsExtensions) {
@@ -383,15 +390,25 @@ function createMainWindow() {
         _mainWindow = null;
     });
 
-    ipcMain.on('show-open-dialog', (event, openDialogOptions) => {
+    ipcMain.on('show-open-dialog', (event, synchronous: boolean, openDialogOptions) => {
         dialog.showOpenDialog(_mainWindow, openDialogOptions, (filePaths: Array<string>) => {
-            event.sender.send('show-open-dialog-reply', filePaths);
+            console.log('show-open-dialog: filePaths =', filePaths);
+            if (synchronous) {
+                event.returnValue = filePaths && filePaths.length ? filePaths : null;
+            } else {
+                event.sender.send('show-open-dialog-reply', filePaths);
+            }
         });
     });
 
-    ipcMain.on('show-save-dialog', (event, openDialogOptions) => {
-        dialog.showSaveDialog(_mainWindow, openDialogOptions, (filePath: string) => {
-            event.sender.send('show-save-dialog-reply', filePath);
+    ipcMain.on('show-save-dialog', (event, synchronous: boolean, saveDialogOptions) => {
+        dialog.showSaveDialog(_mainWindow, saveDialogOptions, (filePath: string) => {
+            console.log('show-save-dialog: filePath =', filePath);
+            if (synchronous) {
+                event.returnValue = filePath ? filePath : null;
+            } else {
+                event.sender.send('show-save-dialog-reply', filePath);
+            }
         });
     });
 }
