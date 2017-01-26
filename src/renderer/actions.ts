@@ -271,9 +271,9 @@ export function loadInitialWorkspace() {
         const openLastWorkspace = getState().session.openLastWorkspace;
         const lastWorkspacePath = getState().session.lastWorkspacePath;
         if (openLastWorkspace && lastWorkspacePath) {
-            newOrOpenWorkspace(dispatch, getState, lastWorkspacePath, 'Open Workspace');
+            dispatch(openWorkspace(lastWorkspacePath));
         } else {
-            newOrOpenWorkspace(dispatch, getState, null, 'New Workspace');
+            dispatch(newWorkspace(null));
         }
     }
 }
@@ -281,11 +281,24 @@ export function loadInitialWorkspace() {
 /**
  * Asynchronously create a new workspace.
  *
+ * @param workspacePath workspace path, if null, a new scratch workspace will be created
  * @returns {(dispatch:any, getState:any)=>undefined}
  */
-export function newWorkspace() {
+export function newWorkspace(workspacePath: string|null) {
     return (dispatch, getState) => {
-        newOrOpenWorkspace(dispatch, getState, null, 'New Workspace');
+        const jobPromise = workspaceAPI(getState()).newWorkspace(workspacePath);
+        dispatch(jobSubmitted(jobPromise.getJobId(), "New workspace" + (workspacePath ? ` "${workspacePath}"` : '')));
+        jobPromise.then((workspace: WorkspaceState) => {
+            dispatch(setCurrentWorkspace(workspace));
+            dispatch(jobDone(jobPromise.getJobId()));
+            if (workspace && workspace.workflow.steps.length > 0) {
+                dispatch(setSelectedWorkspaceResourceId(workspace.workflow.steps[0].id));
+            } else {
+                dispatch(setSelectedWorkspaceResourceId(null));
+            }
+        }).catch(failure => {
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
+        });
     }
 }
 
@@ -296,10 +309,19 @@ export function newWorkspace() {
  */
 export function openWorkspace(workspacePath?: string|null) {
     return (dispatch, getState) => {
-        if (!workspacePath) {
-            // TODO (forman): send sync 'show-open-dialog' action
-        }
-        newOrOpenWorkspace(dispatch, getState, workspacePath, 'Open Workspace');
+        const jobPromise = workspaceAPI(getState()).openWorkspace(workspacePath);
+        dispatch(jobSubmitted(jobPromise.getJobId(), `Open workspace "${workspacePath}"`));
+        jobPromise.then((workspace: WorkspaceState) => {
+            dispatch(jobDone(jobPromise.getJobId()));
+            dispatch(setCurrentWorkspace(workspace));
+            if (workspace && workspace.workflow.steps.length > 0) {
+                dispatch(setSelectedWorkspaceResourceId(workspace.workflow.steps[0].id));
+            } else {
+                dispatch(setSelectedWorkspaceResourceId(null));
+            }
+        }).catch(failure => {
+            dispatch(jobFailed(jobPromise.getJobId(), failure));
+        });
     }
 }
 
@@ -311,9 +333,13 @@ export function openWorkspace(workspacePath?: string|null) {
 export function closeWorkspace() {
     return (dispatch, getState: () => State) => {
         let jobPromise = workspaceAPI(getState()).closeWorkspace(getState().data.workspace.baseDir);
-        dispatch(jobSubmitted(jobPromise.getJobId(), 'Close Workspace'));
+        dispatch(jobSubmitted(jobPromise.getJobId(), 'Close workspace'));
         jobPromise.then((workspace: WorkspaceState) => {
-            dispatch(newWorkspace());
+            dispatch(jobDone(jobPromise.getJobId()));
+            dispatch(setSelectedColorMapNameImpl(null));
+            dispatch(setSelectedVariableNameImpl(null));
+            dispatch(setSelectedWorkspaceResourceId(null));
+            dispatch(setCurrentWorkspace(workspace));
         }).catch(failure => {
             dispatch(jobFailed(jobPromise.getJobId(), failure));
         });
@@ -327,10 +353,14 @@ export function closeWorkspace() {
  */
 export function saveWorkspace() {
     return (dispatch, getState: () => State) => {
+        if (getState().data.workspace.isScratch) {
+            return saveWorkspaceAs
+        }
         let jobPromise = workspaceAPI(getState()).saveWorkspace(getState().data.workspace.baseDir);
-        dispatch(jobSubmitted(jobPromise.getJobId(), 'Save Workspace'));
+        dispatch(jobSubmitted(jobPromise.getJobId(), 'Save workspace'));
         jobPromise.then((workspace: WorkspaceState) => {
-            dispatch(newWorkspace());
+            dispatch(jobDone(jobPromise.getJobId()));
+            dispatch(setCurrentWorkspace(workspace));
         }).catch(failure => {
             dispatch(jobFailed(jobPromise.getJobId(), failure));
         });
@@ -344,39 +374,11 @@ export function saveWorkspace() {
  */
 export function saveWorkspaceAs(workspacePath: string) {
     return (dispatch, getState: () => State) => {
-        let jobPromise = workspaceAPI(getState()).moveWorkspace(getState().data.workspace.baseDir, workspacePath);
-        dispatch(jobSubmitted(jobPromise.getJobId(), 'Save Workspace As'));
+        let jobPromise = workspaceAPI(getState()).saveWorkspaceAs(getState().data.workspace.baseDir, workspacePath);
+        dispatch(jobSubmitted(jobPromise.getJobId(), `Save workspace as "${workspacePath}"`));
         jobPromise.then((workspace: WorkspaceState) => {
-            dispatch(newWorkspace());
-        }).catch(failure => {
-            dispatch(jobFailed(jobPromise.getJobId(), failure));
-        });
-    }
-}
-
-/**
- * Asynchronously load the initial workspace.
- * Called only a single time on app initialisation.
- *
- * @returns {(dispatch:any, getState:any)=>undefined}
- */
-function newOrOpenWorkspace(dispatch, getState, workspacePath: string, jobTitle: string) {
-    return (dispatch, getState) => {
-        let jobPromise;
-        if (workspacePath) {
-            jobPromise = workspaceAPI(getState()).openWorkspace(workspacePath);
-        } else {
-            jobPromise = workspaceAPI(getState()).newWorkspace();
-        }
-        dispatch(jobSubmitted(jobPromise.getJobId(), jobTitle));
-        jobPromise.then((workspace: WorkspaceState) => {
-            dispatch(setCurrentWorkspace(workspace));
             dispatch(jobDone(jobPromise.getJobId()));
-            if (workspace && workspace.workflow.steps.length > 0) {
-                dispatch(setSelectedWorkspaceResourceId(workspace.workflow.steps[0].id));
-            } else {
-                dispatch(setSelectedWorkspaceResourceId(null));
-            }
+            dispatch(setCurrentWorkspace(workspace));
         }).catch(failure => {
             dispatch(jobFailed(jobPromise.getJobId(), failure));
         });
