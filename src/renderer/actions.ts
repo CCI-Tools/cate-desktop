@@ -251,11 +251,6 @@ export function setOperationFilterExpr(operationFilterExpr: Array<string>) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Workspace actions
 
-export const NEW_WORKSPACE = 'NEW_WORKSPACE';
-export const OPEN_WORKSPACE = 'OPEN_WORKSPACE';
-export const CLOSE_WORKSPACE = 'CLOSE_WORKSPACE';
-export const SAVE_WORKSPACE = 'SAVE_WORKSPACE';
-export const SAVE_WORKSPACE_AS = 'SAVE_WORKSPACE_AS';
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
 export const SET_SELECTED_WORKSPACE_RESOURCE_ID = 'SET_SELECTED_WORKSPACE_RESOURCE_ID';
 export const SET_SELECTED_WORKFLOW_STEP_ID = 'SET_SELECTED_WORKFLOW_STEP_ID';
@@ -305,11 +300,15 @@ export function newWorkspace(workspacePath: string|null) {
 /**
  * Asynchronously open the a workspace.
  *
+ * @param workspacePath workspace path
  * @returns {(dispatch:any, getState:any)=>undefined}
  */
 export function openWorkspace(workspacePath?: string|null) {
     return (dispatch, getState) => {
-        const jobPromise = workspaceAPI(getState()).openWorkspace(workspacePath);
+        const jobPromise = workspaceAPI(getState()).openWorkspace(workspacePath,
+            (progress: JobProgress) => {
+                dispatch(jobProgress(progress));
+            });
         dispatch(jobSubmitted(jobPromise.getJobId(), `Open workspace "${workspacePath}"`));
         jobPromise.then((workspace: WorkspaceState) => {
             dispatch(jobDone(jobPromise.getJobId()));
@@ -334,12 +333,9 @@ export function closeWorkspace() {
     return (dispatch, getState: () => State) => {
         let jobPromise = workspaceAPI(getState()).closeWorkspace(getState().data.workspace.baseDir);
         dispatch(jobSubmitted(jobPromise.getJobId(), 'Close workspace'));
-        jobPromise.then((workspace: WorkspaceState) => {
+        jobPromise.then(() => {
             dispatch(jobDone(jobPromise.getJobId()));
-            dispatch(setSelectedColorMapNameImpl(null));
-            dispatch(setSelectedVariableNameImpl(null));
-            dispatch(setSelectedWorkspaceResourceId(null));
-            dispatch(setCurrentWorkspace(workspace));
+            dispatch(newWorkspace(null));
         }).catch(failure => {
             dispatch(jobFailed(jobPromise.getJobId(), failure));
         });
@@ -374,7 +370,10 @@ export function saveWorkspace() {
  */
 export function saveWorkspaceAs(workspacePath: string) {
     return (dispatch, getState: () => State) => {
-        let jobPromise = workspaceAPI(getState()).saveWorkspaceAs(getState().data.workspace.baseDir, workspacePath);
+        let jobPromise = workspaceAPI(getState()).saveWorkspaceAs(getState().data.workspace.baseDir, workspacePath,
+            (progress: JobProgress) => {
+                dispatch(jobProgress(progress));
+            });
         dispatch(jobSubmitted(jobPromise.getJobId(), `Save workspace as "${workspacePath}"`));
         jobPromise.then((workspace: WorkspaceState) => {
             dispatch(jobDone(jobPromise.getJobId()));
