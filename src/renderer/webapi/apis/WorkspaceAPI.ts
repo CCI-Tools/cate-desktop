@@ -28,8 +28,8 @@ export class WorkspaceAPI {
         return this.webAPIClient.call('new_workspace', [baseDir], null, responseToWorkspace);
     }
 
-    openWorkspace(baseDir: string): JobPromise {
-        return this.webAPIClient.call('open_workspace', [baseDir], null, responseToWorkspace);
+    openWorkspace(baseDir: string, onProgress: (progress: JobProgress) => void): JobPromise {
+        return this.webAPIClient.call('open_workspace', [baseDir], onProgress, responseToWorkspace);
     }
 
     closeWorkspace(baseDir: string): JobPromise {
@@ -40,8 +40,8 @@ export class WorkspaceAPI {
         return this.webAPIClient.call('save_workspace', [baseDir], null, responseToWorkspace);
     }
 
-    saveWorkspaceAs(baseDir: string, toDir: string): JobPromise {
-        return this.webAPIClient.call('save_workspace_as', [baseDir, toDir], null, responseToWorkspace);
+    saveWorkspaceAs(baseDir: string, toDir: string, onProgress: (progress: JobProgress) => void): JobPromise {
+        return this.webAPIClient.call('save_workspace_as', [baseDir, toDir], onProgress, responseToWorkspace);
     }
 
     setWorkspaceResource(baseDir: string, resName: string, opName: string, opArgs: {[name: string]: any},
