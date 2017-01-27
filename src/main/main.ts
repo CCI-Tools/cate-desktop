@@ -147,7 +147,7 @@ export function init() {
 
     let webAPIConfig = _config.get('webAPIConfig', {});
     webAPIConfig = assignConditionally(webAPIConfig, {
-        command: path.join(app.getAppPath(), process.platform == 'windows' ? 'python/Scripts/cate-webapi.exe' : 'python/bin/cate-webapi'),
+        command: path.join(app.getAppPath(), process.platform === 'win32' ? 'python/Scripts/cate-webapi.exe' : 'python/bin/cate-webapi'),
         servicePort: 9090,
         serviceAddress: '',
         serviceFile: 'cate-webapi.json',
@@ -390,7 +390,7 @@ function createMainWindow() {
         _mainWindow = null;
     });
 
-    ipcMain.on('show-open-dialog', (event, synchronous: boolean, openDialogOptions) => {
+    ipcMain.on('show-open-dialog', (event, openDialogOptions, synchronous?: boolean) => {
         dialog.showOpenDialog(_mainWindow, openDialogOptions, (filePaths: Array<string>) => {
             console.log('show-open-dialog: filePaths =', filePaths);
             if (synchronous) {
@@ -401,13 +401,24 @@ function createMainWindow() {
         });
     });
 
-    ipcMain.on('show-save-dialog', (event, synchronous: boolean, saveDialogOptions) => {
+    ipcMain.on('show-save-dialog', (event, saveDialogOptions, synchronous?: boolean) => {
         dialog.showSaveDialog(_mainWindow, saveDialogOptions, (filePath: string) => {
             console.log('show-save-dialog: filePath =', filePath);
             if (synchronous) {
                 event.returnValue = filePath ? filePath : null;
             } else {
                 event.sender.send('show-save-dialog-reply', filePath);
+            }
+        });
+    });
+
+    ipcMain.on('show-message-box', (event, messageBoxOptions, synchronous?: boolean) => {
+        dialog.showMessageBox(_mainWindow, messageBoxOptions, (index: number) => {
+            console.log('show-message-box: index =', index);
+            if (synchronous) {
+                event.returnValue = index;
+            } else {
+                event.sender.send('show-message-box-reply', index);
             }
         });
     });
