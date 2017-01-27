@@ -403,7 +403,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             properties: ["openFile"],
             filter: input.fileFilters,
         };
-        electron.ipcRenderer.send('show-open-dialog', false, openDialogOptions);
+        electron.ipcRenderer.send('show-open-dialog', openDialogOptions);
         electron.ipcRenderer.on('show-open-dialog-reply', (event, filePaths: Array<string>) => {
             console.log('EditOpStepDialog: received reply from main process:', filePaths);
             if (filePaths && filePaths.length) {
