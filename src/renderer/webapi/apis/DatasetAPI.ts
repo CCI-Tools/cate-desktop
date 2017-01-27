@@ -1,6 +1,7 @@
 import {WebAPIClient} from "../WebAPIClient";
-import {JobPromise, JobProgress, JobResponse} from "../Job";
+import {JobPromise, JobProgress} from "../Job";
 import {NumberRange} from "@blueprintjs/core";
+import {DataStoreState, DataSourceState} from "../../state";
 
 function stringToMillis(dateString: string): number {
     if (dateString) {
@@ -12,12 +13,13 @@ function stringToMillis(dateString: string): number {
     }
     return null;
 }
-function responseToTemporalCoverage(temporalCoverageResponse: JobResponse): NumberRange {
+
+function responseToTemporalCoverage(temporalCoverageResponse: any): NumberRange {
     if (!temporalCoverageResponse) {
         return null;
     }
-    const startDateMillis= stringToMillis(temporalCoverageResponse.temporal_coverage_start);
-    const endDateMillis= stringToMillis(temporalCoverageResponse.temporal_coverage_end);
+    const startDateMillis = stringToMillis(temporalCoverageResponse.temporal_coverage_start);
+    const endDateMillis = stringToMillis(temporalCoverageResponse.temporal_coverage_end);
     return [startDateMillis, endDateMillis];
 }
 
@@ -28,15 +30,20 @@ export class DatasetAPI {
         this.webAPIClient = webAPIClient;
     }
 
-    getDataStores(): JobPromise {
+    getDataStores(): JobPromise<DataStoreState[]> {
         return this.webAPIClient.call('get_data_stores', []);
     }
 
-    getDataSources(dataStoreId: string, onProgress: (progress: JobProgress) => void): JobPromise {
+    getDataSources(dataStoreId: string,
+                   onProgress: (progress: JobProgress) => void): JobPromise<DataSourceState[]> {
         return this.webAPIClient.call('get_data_sources', [dataStoreId], onProgress);
     }
 
-    getTemporalCoverage(dataStoreId: string, dataSourceId: string, onProgress: (progress: JobProgress) => void): JobPromise {
-        return this.webAPIClient.call('get_ds_temporal_coverage', [dataStoreId, dataSourceId], onProgress, responseToTemporalCoverage);
+    getTemporalCoverage(dataStoreId: string, dataSourceId: string,
+                        onProgress: (progress: JobProgress) => void): JobPromise<NumberRange> {
+        return this.webAPIClient.call('get_ds_temporal_coverage',
+            [dataStoreId, dataSourceId],
+            onProgress, responseToTemporalCoverage
+        );
     }
 }

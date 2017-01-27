@@ -29,7 +29,6 @@ import {
     Job,
     JobPromise,
     JobRequest,
-    JobResponse,
     JobProgress,
     JobFailure,
     JobStatus,
@@ -41,7 +40,7 @@ import {
 const CANCEL_METHOD = '__cancelJob__';
 const CANCELLED_CODE = 999;
 
-export type JobResponseTransformer = (JobResponse) => any;
+export type JobResponseTransformer<JobResponse> = (any) => JobResponse;
 
 /**
  * A client for Cate's WebAPI.
@@ -86,10 +85,10 @@ export interface WebAPIClient {
      *        Note that not all server-side methods provide progress notifications.
      * @param transformer Optional transformer for the returned responses
      */
-    call(method: string,
+    call<JobResponse>(method: string,
          params: Array<any>|Object,
          onProgress?: (progress: JobProgress) => void,
-         transformer?: JobResponseTransformer): JobPromise;
+         transformer?: JobResponseTransformer<JobResponse>): JobPromise<JobResponse>;
 
     /**
      * Cancels the job with the given ID.
@@ -129,7 +128,7 @@ class WebAPIClientImpl implements WebAPIClient {
 
     readonly socket: WebSocketMin;
     private currentMessageId = 0;
-    private activeJobs: JobImpl[];
+    private activeJobs: JobImpl<any>[];
     private isOpen: boolean;
 
     constructor(url: string, firstMessageId = 0, socket?: WebSocketMin) {
@@ -159,10 +158,10 @@ class WebAPIClientImpl implements WebAPIClient {
         }
     }
 
-    call(method: string,
+    call<JobResponse>(method: string,
          params: Array<any>|Object,
          onProgress?: (progress: JobProgress) => void,
-         transformer?: JobResponseTransformer): JobPromise {
+         transformer?: JobResponseTransformer<JobResponse>): JobPromise<JobResponse>  {
         const request = {
             "id": this.newId(),
             "method": method,
@@ -173,7 +172,7 @@ class WebAPIClientImpl implements WebAPIClient {
         return job.invoke(onProgress);
     }
 
-    cancel(jobId: number) {
+    cancel(jobId: number): void {
         const job = this.activeJobs[jobId];
         if (!job) {
             this.warn(`Job with "id"=${jobId} does not exist`);
@@ -246,17 +245,17 @@ class WebAPIClientImpl implements WebAPIClient {
     }
 }
 
-class JobImpl implements Job {
+class JobImpl<JobResponse> implements Job {
 
     private webAPIClient: WebAPIClientImpl;
     private request: JobRequest;
     private status: JobStatus;
     private onProgress: JobProgressHandler;
-    private onResolve: JobResponseHandler;
+    private onResolve: JobResponseHandler<JobResponse>;
     private onReject: JobFailureHandler;
-    private transformer: JobResponseTransformer;
+    private transformer: JobResponseTransformer<JobResponse>;
 
-    constructor(webAPIClient: WebAPIClientImpl, request: JobRequest, transformer: JobResponseTransformer) {
+    constructor(webAPIClient: WebAPIClientImpl, request: JobRequest, transformer: JobResponseTransformer<JobResponse>) {
         this.webAPIClient = webAPIClient;
         this.request = request;
         this.status = JobStatusEnum.NEW;
@@ -275,9 +274,9 @@ class JobImpl implements Job {
         return this.status === JobStatusEnum.CANCELLED;
     }
 
-    cancel(onResolve?: JobResponseHandler,
-           onReject?: JobFailureHandler): Promise<JobResponse> {
-        return this.webAPIClient.call(CANCEL_METHOD, {jobId: this.request.id})
+    cancel(onResolve?: JobResponseHandler<void>,
+           onReject?: JobFailureHandler): void {
+        this.webAPIClient.call<void>(CANCEL_METHOD, {jobId: this.request.id})
             .then(onResolve || (() => {
                 }), onReject || (() => {
                 }));
@@ -286,9 +285,9 @@ class JobImpl implements Job {
     ////////////////////////////////////////////////////////////
     // Implementation details
 
-    invoke(onProgress?: JobProgressHandler): JobPromise {
+    invoke(onProgress?: JobProgressHandler): JobPromise<JobResponse> {
 
-        const executor = (onResolve: JobResponseHandler, onReject: JobFailureHandler) => {
+        const executor = (onResolve: JobResponseHandler<JobResponse>, onReject: JobFailureHandler) => {
             this.setHandlers(onProgress, onResolve, onReject);
             this.sendMessage();
             this.setStatus(JobStatusEnum.SUBMITTED);
@@ -297,7 +296,7 @@ class JobImpl implements Job {
         const promise = new Promise<JobResponse>(executor.bind(this));
         promise['getJob'] = this.getJob.bind(this);
         promise['getJobId'] = this.getJobId.bind(this);
-        return promise as JobPromise;
+        return promise as JobPromise<JobResponse>;
     }
 
     private getJob(): Job {

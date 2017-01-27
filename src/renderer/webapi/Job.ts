@@ -5,10 +5,10 @@ export interface Job {
     getRequest(): JobRequest;
     getStatus(): JobStatus;
     isCancelled(): boolean;
-    cancel(): Promise<JobResponse>;
+    cancel(): void;
 }
 
-export interface JobPromise extends Promise<JobResponse> {
+export interface JobPromise<JobResponse> extends Promise<JobResponse> {
     getJob(): Job;
     getJobId(): number;
 }
@@ -29,8 +29,6 @@ export interface JobRequest {
     readonly method: string;
     readonly params: Array<any>|Object;
 }
-
-export type JobResponse = any;
 
 /**
  * Progress info, this is a Cate-specific extension to JSON-RCP.
@@ -64,6 +62,6 @@ export interface JobFailure {
 }
 
 export type JobProgressHandler = (progress: JobProgress) => void;
-export type JobResponseHandler = (response: JobResponse) => void;
+export type JobResponseHandler<JobResponse> = (response: JobResponse) => void;
 export type JobFailureHandler = (failure: JobFailure) => void;
 

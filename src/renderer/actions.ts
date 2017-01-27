@@ -1,6 +1,6 @@
 import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState,
-    LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, VariableState
+    LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, VariableState, DataSourceState
 } from "./state";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
@@ -99,7 +99,7 @@ export function loadDataStores() {
     return (dispatch, getState) => {
         const jobPromise = datasetAPI(getState()).getDataStores();
         dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Data Stores"));
-        jobPromise.then((dataStores: Array<DataStoreState>) => {
+        jobPromise.then((dataStores: DataStoreState[]) => {
             dispatch(updateDataStores(dataStores));
             dispatch(jobDone(jobPromise.getJobId()));
             if (dataStores && dataStores.length) {
@@ -130,7 +130,7 @@ export function loadDataSources(dataStoreId: string) {
             dispatch(jobProgress(progress));
         });
         dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Data Sources: " + dataStore.name));
-        jobPromise.then(dataSources => {
+        jobPromise.then((dataSources: DataSourceState[]) => {
             dispatch(updateDataSources(dataStoreId, dataSources));
             dispatch(jobDone(jobPromise.getJobId()));
             if (dataSources && dataSources.length) {
@@ -443,7 +443,7 @@ export function getWorkspaceVariableStatistics(resName: string,
 
         const jobPromise = workspaceAPI(getState()).getWorkspaceVariableStatistics(baseDir, resName, varName, varIndex);
         dispatch(jobSubmitted(jobPromise.getJobId(), `Computing statistics for variable "${varName}"`));
-        jobPromise.then(statistics => {
+        jobPromise.then((statistics: ImageStatisticsState) => {
             dispatch(jobDone(jobPromise.getJobId()));
             dispatch(action(statistics));
         }).catch(failure => {

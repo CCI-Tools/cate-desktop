@@ -3,11 +3,11 @@ import {JobPromise} from "../Job";
 import {ColorMapCategoryState} from "../../state";
 
 
-function responseToColorMaps(colorMapsResponse: Array<Array<any>>): Array<ColorMapCategoryState> {
+function responseToColorMaps(colorMapsResponse: any[][]): ColorMapCategoryState[] {
     if (!colorMapsResponse) {
         return null;
     }
-    return colorMapsResponse.map((v1: Array<any>) => {
+    return colorMapsResponse.map((v1: any[]) => {
         return {
             name: v1[0],
             description: v1[1],
@@ -28,7 +28,7 @@ export class ColorMapsAPI {
         this.webAPIClient = webAPIClient;
     }
 
-    getColorMaps(): JobPromise {
+    getColorMaps(): JobPromise<ColorMapCategoryState[]> {
         return this.webAPIClient.call('get_color_maps', [], null, responseToColorMaps);
     }
 }

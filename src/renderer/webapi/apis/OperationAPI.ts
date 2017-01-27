@@ -1,8 +1,8 @@
 import {WebAPIClient} from "../WebAPIClient";
-import {JobPromise, JobProgress, JobResponse} from "../Job";
+import {JobPromise} from "../Job";
 import {OperationState, OperationInputState, OperationOutputState} from "../../state";
 
-function responseToOperation(operationsResponse: JobResponse): OperationState[] {
+function responseToOperation(operationsResponse: any): OperationState[] {
     return operationsResponse ? operationsResponse.map(responseOperationToOperation) : null;
 }
 
@@ -47,11 +47,13 @@ export class OperationAPI {
         this.webAPIClient = webAPI;
     }
 
-    getOperations(): JobPromise {
+    getOperations(): JobPromise<OperationState[]> {
         return this.webAPIClient.call('get_operations', [], null, responseToOperation);
     }
 
-    callOperation(opName: string, opParams: any, onProgress: (progress: JobProgress) => void): JobPromise {
+    /*
+    callOperation(opName: string, opParams: any, onProgress: (progress: JobProgress) => void): JobPromise<any> {
         return this.webAPIClient.call('call_operation', [opName, opParams], onProgress);
     }
+    */
 }
