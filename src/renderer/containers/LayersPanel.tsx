@@ -349,19 +349,23 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         for (let i = 0; i < n; i++) {
             const dimension = variable.dimensions[i];
             const max = variable.shape[i] - 1;
-            const value = layer.varIndex[i];
-            dimensionRows.push(<tr key={dimension + "_index"}>
-                <td>{"Index into " + dimension}</td>
-                <td>
-                    <Slider min={0}
-                            max={max}
-                            stepSize={1}
-                            labelStepSize={max}
-                            value={value}
-                            onChange={(value: number) => handleChangedLayerVarIndex(this.props.dispatch, i, value)}
-                    />
-                </td>
-            </tr>);
+            if (max > 0) {
+                const value = layer.varIndex[i];
+                dimensionRows.push(
+                    <tr key={dimension + "_index"}>
+                        <td>{"Index into " + dimension}</td>
+                        <td>
+                            <Slider min={0}
+                                    max={max}
+                                    stepSize={1}
+                                    labelStepSize={max}
+                                    value={value}
+                                    onChange={(value: number) => handleChangedLayerVarIndex(this.props.dispatch, i, value)}
+                            />
+                        </td>
+                    </tr>
+                );
+            }
         }
         return dimensionRows;
     }
