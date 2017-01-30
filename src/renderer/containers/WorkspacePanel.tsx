@@ -81,7 +81,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                         <Tab>
                             <span className="pt-icon-database" style={{marginRight: 4}}/>
                             <Tooltip content={resourcesTooltip}>
-                                <span>{`Resources (${steps.length})`}</span>
+                                <span>{`Resources (${resources.length})`}</span>
                             </Tooltip>
                         </Tab>
                         <Tab>
