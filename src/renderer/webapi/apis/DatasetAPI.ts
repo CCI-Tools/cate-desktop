@@ -1,7 +1,8 @@
 import {WebAPIClient} from "../WebAPIClient";
 import {JobPromise, JobProgress} from "../Job";
-import {NumberRange} from "@blueprintjs/core";
 import {DataStoreState, DataSourceState} from "../../state";
+
+type NumberRange = [number, number];
 
 function stringToMillis(dateString: string): number {
     if (dateString) {
