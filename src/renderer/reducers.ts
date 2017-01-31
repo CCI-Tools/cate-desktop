@@ -216,6 +216,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
 const initialSessionState: SessionState = {
     openLastWorkspace: false,
     lastWorkspacePath: null,
+    resourceNamePrefix: 'res_'
 };
 
 const sessionReducer = (state: SessionState = initialSessionState, action) => {

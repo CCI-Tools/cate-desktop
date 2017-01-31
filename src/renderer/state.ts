@@ -466,6 +466,7 @@ export interface SessionState {
     devToolsOpened?: boolean;
     lastWorkspacePath?: string,
     openLastWorkspace?: boolean,
+    resourceNamePrefix: string,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
