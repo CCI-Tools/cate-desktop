@@ -307,12 +307,12 @@ export class WebAPIServiceMock implements IServiceObject {
                     sourceRef: null,
                 });
             }
-            console.log('WebAPIServiceMock: input', input);
+            // console.log('WebAPIServiceMock: input', input);
         }
 
         const outputs = [] as Array<State.WorkflowPortState>;
         for (let output of op.outputs) {
-            console.log('WebAPIServiceMock: output', output);
+            // console.log('WebAPIServiceMock: output', output);
         }
 
         const oldWorkflow = workspace.workflow;
