@@ -38,9 +38,9 @@ interface IDataSourcesPanelDispatch {
     setSelectedDataSourceId(selectedDataSourceId: string): void;
     setDataSourceFilterExpr(dataSourceFilterExpr: string): void;
     setControlState(propertyName: string, value: any): void;
-    openDialogOpenDataset(dataStoreId: string, dataSourceId: string, loadTimeInfo: boolean): void;
-    confirmDialogOpenDataset(dataSourceId: string, timeRange: NumberRange): void;
-    cancelDialogOpenDataset(): void;
+    showOpenDatasetDialog(dataStoreId: string, dataSourceId: string, loadTimeInfo: boolean): void;
+    confirmOpenDatasetDialog(dataSourceId: string, timeRange: NumberRange): void;
+    cancelOpenDatasetDialog(): void;
 }
 
 const mapDispatchToProps = {
@@ -48,9 +48,9 @@ const mapDispatchToProps = {
     setSelectedDataSourceId: actions.setSelectedDataSourceId,
     setDataSourceFilterExpr: actions.setDataSourceFilterExpr,
     setControlState: actions.setControlState,
-    openDialogOpenDataset: actions.openDialogOpenDataset,
-    confirmDialogOpenDataset: actions.confirmDialogOpenDataset,
-    cancelDialogOpenDataset: actions.cancelDialogOpenDataset,
+    showOpenDatasetDialog: actions.showOpenDatasetDialog,
+    confirmOpenDatasetDialog: actions.confirmOpenDatasetDialog,
+    cancelOpenDatasetDialog: actions.cancelOpenDatasetDialog,
 };
 
 /**
@@ -64,9 +64,9 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         super(props);
     }
 
-    private handleOpenDialogOpenDataset() {
+    private handleShowOpenDatasetDialog() {
         const selectedDataSource = this.getSelectedDataSource();
-        this.props.openDialogOpenDataset(
+        this.props.showOpenDatasetDialog(
             this.props.selectedDataStoreId,
             this.props.selectedDataSourceId,
             !selectedDataSource.temporalCoverage
@@ -145,15 +145,15 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                     <OpenDatasetDialog
                         dataSource={dataSource}
                         coveredTimeRange={dataSource.temporalCoverage}
-                        onConfirm={this.props.confirmDialogOpenDataset}
-                        onCancel={this.props.cancelDialogOpenDataset}/>
+                        onConfirm={this.props.confirmOpenDatasetDialog}
+                        onCancel={this.props.cancelOpenDatasetDialog}/>
                 );
             }
 
             const actionComponent = (
                 <div>
                     <Button className="pt-intent-primary"
-                            onClick={this.handleOpenDialogOpenDataset.bind(this)}
+                            onClick={this.handleShowOpenDatasetDialog.bind(this)}
                             disabled={!this.props.selectedDataSourceId || !this.props.workspace}
                             iconName="folder-shared-open">Open...</Button>
                     {openDatasetDialog}

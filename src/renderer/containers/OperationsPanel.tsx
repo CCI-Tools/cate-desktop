@@ -4,7 +4,6 @@ import {
     Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
     PopoverInteractionKind, Button
 } from "@blueprintjs/core";
-import FormEvent = React.FormEvent;
 import {ExpansionPanel} from '../components/ExpansionPanel';
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
@@ -14,6 +13,8 @@ import {OperationAPI} from "../webapi/apis/OperationAPI";
 import {EditOpStepDialog, IEditOpStepDialogState} from "./EditOpStepDialog";
 import {State, OperationState, WorkspaceState} from "../state";
 import * as actions from "../actions";
+import * as selectors from "../selectors";
+
 
 interface IOperationsPanelProps {
     dispatch?: Dispatch<State>;
@@ -25,10 +26,14 @@ interface IOperationsPanelProps {
     operationFilterExpr: string|null;
     showOperationDetails: boolean;
     editOpStepDialogState: IEditOpStepDialogState;
+    newResourceName: string;
 }
 
 
 function mapStateToProps(state: State): IOperationsPanelProps {
+    const resources = selectors.resourcesSelector(state);
+    const resourceNamePrefix = selectors.resourceNamePrefixSelector(state);
+    const newResourceName = selectors.newResourceNameSelector(resources, resourceNamePrefix);
     const dialogId = EditOpStepDialog.getDialogId(state.control.selectedOperationName, true);
     return {
         webAPIClient: state.data.appConfig.webAPIClient,
@@ -38,7 +43,10 @@ function mapStateToProps(state: State): IOperationsPanelProps {
         operationFilterTags: state.control.operationFilterTags,
         operationFilterExpr: state.control.operationFilterExpr,
         showOperationDetails: state.control.showOperationDetails,
-        editOpStepDialogState: ((dialogId && state.control.dialogs[dialogId]) || {}) as IEditOpStepDialogState
+        editOpStepDialogState: ((dialogId && state.control.dialogs[dialogId]) || {}) as IEditOpStepDialogState,
+        // TODO (forman): Handle case where action is called twice without completing the first.
+        //                In this case the same resource name will be generated :(
+        newResourceName: newResourceName
     };
 }
 
@@ -49,7 +57,9 @@ function mapStateToProps(state: State): IOperationsPanelProps {
  */
 class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
-    private static resourceId = 0;
+    componentWillReceiveProps(nextProps: IOperationsPanelProps, nextContext: any) {
+        console.log("componentWillReceiveProps", nextProps);
+    }
 
     componentDidMount() {
         if (!this.props.operations) {
@@ -98,7 +108,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
         // Perform the action
         if (actionId) {
-            const resName = 'res_' + (++OperationsPanel.resourceId);
+            const resName = this.props.newResourceName;
             const opName = selectedOperation.name;
             const opArgs = {};
             selectedOperation.inputs.forEach((input, index) => {
@@ -111,12 +121,15 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                 }
                 opArgs[input.name] = opArg;
             });
-            console.log("OperationsPanel: handleAddOpStepDialogClosed", opName, opArgs);
-            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, `Performing operation '${opName}'`));
+            // console.log("OperationsPanel: handleAddOpStepDialogClosed", opName, opArgs);
+            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, `Applying operation "${opName}"`));
         }
     }
 
+
+
     render() {
+        console.log("render()", this.props.newResourceName);
         const allOperations = this.props.operations || [];
         const operationFilterTags = this.props.operationFilterTags || [];
         const operationFilterExpr = this.props.operationFilterExpr;

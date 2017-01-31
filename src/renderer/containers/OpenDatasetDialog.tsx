@@ -15,7 +15,6 @@ export interface IOpenDatasetDialogState extends DialogState {
 }
 
 export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDatasetDialogState> {
-    static resourceId = 0;
     static readonly DIALOG_ID = 'openDataset';
     readonly MILLIS_A_DAY = 1000 * 60 * 60 * 24;
 

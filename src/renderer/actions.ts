@@ -5,12 +5,12 @@ import {
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
 import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
-import {OpenDatasetDialog} from "./containers/OpenDatasetDialog";
-import {NumberRange} from "@blueprintjs/core";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
+import * as selectors from "./selectors";
 
 // TODO (forman/marcoz): write unit tests for actions
 
+type NumberRange = [number, number];
 
 const CANCELLED_CODE = 999;
 
@@ -98,7 +98,7 @@ export const UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE = 'UPDATE_DATA_SOURCE_TEMPORAL
 export function loadDataStores() {
     return (dispatch, getState) => {
         const jobPromise = datasetAPI(getState()).getDataStores();
-        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Data Stores"));
+        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading data stores"));
         jobPromise.then((dataStores: DataStoreState[]) => {
             dispatch(updateDataStores(dataStores));
             dispatch(jobDone(jobPromise.getJobId()));
@@ -129,7 +129,7 @@ export function loadDataSources(dataStoreId: string) {
         const jobPromise = datasetAPI(getState()).getDataSources(dataStoreId, (progress: JobProgress) => {
             dispatch(jobProgress(progress));
         });
-        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Data Sources: " + dataStore.name));
+        dispatch(jobSubmitted(jobPromise.getJobId(), `Loading data sources for store "${dataStore.name}"`));
         jobPromise.then((dataSources: DataSourceState[]) => {
             dispatch(updateDataSources(dataStoreId, dataSources));
             dispatch(jobDone(jobPromise.getJobId()));
@@ -171,14 +171,14 @@ export function setDataSourceFilterExpr(dataSourceFilterExpr: string) {
     return {type: SET_DATA_SOURCE_FILTER_EXPR, payload: {dataSourceFilterExpr}};
 }
 
-export function openDialogOpenDataset(dataStoreId: string, dataSourceId: string, loadTimeInfo: boolean) {
+export function showOpenDatasetDialog(dataStoreId: string, dataSourceId: string, loadTimeInfo: boolean) {
     return (dispatch, getState) => {
-        dispatch(setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: true, timeInfoLoading: loadTimeInfo}));
+        dispatch(setDialogState('openDataset', {isOpen: true, timeInfoLoading: loadTimeInfo}));
         if (loadTimeInfo) {
             const jobPromise = datasetAPI(getState()).getTemporalCoverage(dataStoreId, dataSourceId, (progress: JobProgress) => {
                 dispatch(jobProgress(progress));
             });
-            dispatch(jobSubmitted(jobPromise.getJobId(), "Loading Temporal Coverage: " + dataSourceId));
+            dispatch(jobSubmitted(jobPromise.getJobId(), `Loading temporal coverage for ${dataSourceId}`));
             jobPromise.then(temporalCoverage => {
                 dispatch(updateDataSourceTemporalCoverage(dataStoreId, dataSourceId, temporalCoverage));
                 dispatch(jobDone(jobPromise.getJobId()));
@@ -193,10 +193,16 @@ function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: str
     return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
 }
 
-export function confirmDialogOpenDataset(dataSourceId: string, args: any) {
-    return (dispatch) => {
-        dispatch(setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: false}));
-        const resName = 'ds_' + (OpenDatasetDialog.resourceId++);
+
+export function confirmOpenDatasetDialog(dataSourceId: string, args: any) {
+    return (dispatch, getState: () => State) => {
+
+        dispatch(setDialogState('openDataset', {isOpen: false}));
+
+        // TODO (forman): Handle case where action is called twice without completing the first.
+        //                In this case the same resource name will be generated :(
+        const resName = selectors.newResourceNameSelector(getState().data.workspace.resources,
+                                                          getState().session.resourceNamePrefix);
         const opName = 'open_dataset';
         const opArgs = {
             ds_name: dataSourceId,
@@ -211,13 +217,14 @@ export function confirmDialogOpenDataset(dataSourceId: string, args: any) {
         Object.keys(opArgs).forEach(name => {
             wrappedOpArgs[name] = {value: opArgs[name]};
         });
-        const title = "Opening Dataset";
-        dispatch(setWorkspaceResource(resName, opName, wrappedOpArgs, title));
+
+        dispatch(setWorkspaceResource(resName, opName, wrappedOpArgs,
+                 `Opening dataset "${resName}" from "${dataSourceId}"`));
     }
 }
 
-export function cancelDialogOpenDataset() {
-    return setDialogState(OpenDatasetDialog.DIALOG_ID, {isOpen: false});
+export function cancelOpenDatasetDialog() {
+    return setDialogState('openDataset', {isOpen: false});
 }
 
 function datasetAPI(state: State) {

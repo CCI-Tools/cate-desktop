@@ -464,9 +464,9 @@ export interface SessionState {
     lastDir?: string;
     mainWindowBounds?: {x: number; y: number; width: number; height: number};
     devToolsOpened?: boolean;
-    lastWorkspacePath?: string,
-    openLastWorkspace?: boolean,
-    resourceNamePrefix: string,
+    lastWorkspacePath?: string;
+    openLastWorkspace?: boolean;
+    resourceNamePrefix: string;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

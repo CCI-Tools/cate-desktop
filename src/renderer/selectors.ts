@@ -6,12 +6,13 @@ import {
 // TODO (forman/marcoz): write unit tests for actions
 // TODO (forman/marcoz): use reselect JS library
 
-export const resourcesSelector = (state: State): Array<ResourceState> => state.data.workspace.resources;
+export const resourcesSelector = (state: State): Array<ResourceState> => state.data.workspace ? state.data.workspace.resources : [];
 export const selectedResourceIdSelector = (state: State): string|null => state.control.selectedWorkspaceResourceId;
 export const selectedVariableNameSelector = (state: State): string|null => state.control.selectedVariableName;
 export const layersSelector = (state: State): Array<LayerState> => state.data.layers;
 export const selectedLayerIdSelector = (state: State): string|null => state.control.selectedLayerId;
 export const colorMapCategoriesSelector = (state: State): Array<ColorMapCategoryState> => state.data.colorMaps;
+export const resourceNamePrefixSelector = (state: State): string => state.session.resourceNamePrefix;
 
 // Note this is composite selector, with reselect use:
 //    selectedResourceSelector = createSelector(resourcesSelector, selectedResourceIdSelector, (resources, selectedResourceId) => {...})
@@ -21,6 +22,38 @@ export const selectedResourceSelector = (state: State): ResourceState|null => {
     const selectedResourceId = selectedResourceIdSelector(state);
     return resources.find(r => r.name === selectedResourceId);
 };
+
+// Note this is composite selector, with reselect use:
+//    newResourceSelector = createSelector(resourcesSelector, resourceNamePrefixSelector, (resources, namePrefix) => {...})
+//
+
+/**
+ * Generate a new resource name based on resourceNamePrefix and the largest resource index used so far
+ * in the given resources.
+ * @param namePrefix the prefix for the resource name
+ * @param resources the used resources
+ * @returns {string} a new resource name
+ */
+export const newResourceNameSelector = (resources: ResourceState[], namePrefix: string): string => {
+    if (!resources || !namePrefix) {
+        return "";
+    }
+    let maxNameIndex = 0;
+    for (let resource of resources) {
+        const resourceName = resource.name;
+        if (resourceName.startsWith(namePrefix)) {
+            try {
+                const nameIndex = parseInt(resourceName.substr(namePrefix.length));
+                maxNameIndex = Math.max(nameIndex, maxNameIndex);
+            } catch (e) {
+                // ok
+            }
+        }
+    }
+    console.log("newResourceNameSelector", namePrefix, maxNameIndex);
+    return `${namePrefix}${maxNameIndex + 1}`;
+};
+
 
 // Note this is composite selector, with reselect use:
 //    selectedVariablesSelector = createSelector(selectedResourceSelector, resource => {...})
