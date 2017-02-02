@@ -608,3 +608,17 @@ function setSelectedColorMapNameImpl(selectedColorMapName: string|null) {
     return {type: SET_SELECTED_COLOR_MAP_NAME, payload: {selectedColorMapName}};
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// (User) Preferences actions
+
+export function showPreferencesDialog() {
+    return (dispatch, getState) => {
+        dispatch(setDialogState('preferencesDialog', {isOpen: true}));
+    };
+}
+
+export function hidePreferencesDialog() {
+    return setDialogState('preferencesDialog', {isOpen: false});
+}
+
+

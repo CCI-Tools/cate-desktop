@@ -93,7 +93,7 @@ export const actions = {
         label: 'Preferences...',
         accelerator: ifDarwinOrElse('Command+,', null),
         category: 'file',
-        click: (item, focusedWindow) => performRendererAction(focusedWindow, 'show-preferences'),
+        click: (item, focusedWindow) => performRendererAction(focusedWindow, 'show-preferences-dialog'),
     },
 
     /* ---------------------------------- */

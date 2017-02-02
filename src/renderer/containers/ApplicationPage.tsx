@@ -10,10 +10,9 @@ import WorkspacePanel from "./WorkspacePanel";
 import VariablePanel from "./VariablesPanel";
 import TaskPanel from "./TasksPanel";
 import LayersPanel from "./LayersPanel";
+import PreferencesDialog from "./PreferencesDialog";
 
-/*
- * IMPORTANT NODE: This is still prototype code!!!
- */
+// TODO (forman): refactor this class, it is still prototype code!
 
 //noinspection JSUnusedLocalSymbols
 export function ApplicationPage(props) {
@@ -135,6 +134,7 @@ export function ApplicationPage(props) {
             <HGLFooter>
                 Ready.
             </HGLFooter>
+            <PreferencesDialog/>
         </HGLContainer>
     );
 }

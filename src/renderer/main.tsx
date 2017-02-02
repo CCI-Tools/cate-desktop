@@ -220,6 +220,10 @@ export function main() {
     });
 
     ipcRenderer.on('save-workspace-as', saveWorkspaceAs);
+
+    ipcRenderer.on('show-preferences-dialog', () => {
+        store.dispatch(actions.showPreferencesDialog());
+    });
 }
 
 function connectWebAPIClient(store: Store<State>) {

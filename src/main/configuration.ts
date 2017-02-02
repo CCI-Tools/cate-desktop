@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 export class Configuration {
-    private _data: Object = {};
+    private _data: any = {};
 
     constructor(data?: Object) {
         if (data) {
@@ -10,7 +10,7 @@ export class Configuration {
         }
     }
 
-    get data(): Object {
+    get data(): any {
         return this._data;
     }
 
@@ -23,6 +23,13 @@ export class Configuration {
 
     set(name: string, value: any): Configuration {
         this._data[name] = value;
+        return this;
+    }
+
+    setAll(obj: any): Configuration {
+        for (let name of Object.getOwnPropertyNames(obj)) {
+            this.set(name, obj[name])
+        }
         return this;
     }
 

@@ -28,8 +28,8 @@ const dialog = electron.dialog;
 // be closed automatically when the JavaScript object is garbage collected.
 let _mainWindow;
 let _splashWindow;
-let _prefs;
-let _config;
+let _prefs: Configuration;
+let _config: Configuration;
 
 function getAppIconPath() {
     let icon_file = "cate-icon.png";
@@ -421,6 +421,11 @@ function createMainWindow() {
                 event.sender.send('show-message-box-reply', index);
             }
         });
+    });
+
+    ipcMain.on('store-preferences', (event, preferences) => {
+        _prefs.setAll(preferences);
+        storeUserPrefs(_prefs);
     });
 }
 
