@@ -1,5 +1,11 @@
 /**
+ * Job-related interfaces and type definitions.
+ *
  * @author Norman Fomferra
+ */
+
+/**
+ * A job represents the execution of a remote method.
  */
 export interface Job {
     getRequest(): JobRequest;
@@ -8,11 +14,17 @@ export interface Job {
     cancel(): void;
 }
 
+/**
+ * A promise representing a remote method call.
+ */
 export interface JobPromise<JobResponse> extends Promise<JobResponse> {
     getJob(): Job;
     getJobId(): number;
 }
 
+/**
+ * All the possible job statuses.
+ */
 export type JobStatus = 'NEW'|'SUBMITTED'|'IN_PROGRESS'|'FAILED'|'CANCELLED'|'DONE';
 
 export class JobStatusEnum {
@@ -24,18 +36,22 @@ export class JobStatusEnum {
     static readonly CANCELLED = 'CANCELLED';
 }
 
+/**
+ * Represents a job request using the JSON-RCP 2.0 style.
+ */
 export interface JobRequest {
+    /** The JSON-RCP message identifier. */
     readonly id: number;
     readonly method: string;
     readonly params: Array<any>|Object;
 }
 
 /**
- * Progress info, this is a Cate-specific extension to JSON-RCP.
+ * Job progress information, this is a Cate-specific extension to JSON-RCP 2.0.
  */
 export interface JobProgress {
-    /** The ID of the job request. */
-    readonly id?: number;
+    /** The JSON-RCP message identifier. */
+    readonly id: number;
     readonly label?: string;
     readonly message?: string;
     readonly total?: number;
@@ -43,7 +59,7 @@ export interface JobProgress {
 }
 
 /**
- * JSON-RCP error value.
+ * Represents a job failure using the JSON-RCP 2.0 style.
  */
 export interface JobFailure {
 
@@ -61,7 +77,18 @@ export interface JobFailure {
     readonly data?: any;
 }
 
+/**
+ * A callback listening for job progress messages.
+ */
 export type JobProgressHandler = (progress: JobProgress) => void;
+
+/**
+ * A callback listening for job responses.
+ */
 export type JobResponseHandler<JobResponse> = (response: JobResponse) => void;
+
+/**
+ * A callback listening for job failures.
+ */
 export type JobFailureHandler = (failure: JobFailure) => void;
 

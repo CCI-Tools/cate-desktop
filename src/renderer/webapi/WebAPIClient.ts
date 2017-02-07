@@ -1,17 +1,17 @@
 /**
- * Cate's WebAPI.
+ * A web API client and related type definitions.
  *
- * Implementation is based on WebSockets with a JSON-RPC-based protocol.
+ * The implementation is based on WebSockets with a JSON-RPC-based protocol.
  * For JSON-RPC details see http://www.jsonrpc.org/specification.
  *
- * A Cate WebAPI server must implement a general method "__cancelJob__(jobId: number): void"
+ * A WebAPI server must implement a general method "__cancelJob__(jobId: number): void"
  * which cancels the job with given *jobId*. The method call must either succeed with any "response" value
  * or fail by returning an "error" object.
  *
- * If the Cate WebAPI server has successfully cancelled a running job, an "error" object with code 999
+ * If the WebAPI server has successfully cancelled a running job, an "error" object with code 999
  * must be returned.
  *
- * To report progress, the Cate WebAPI server can send "progress" objects:
+ * To report progress, the WebAPI server can send "progress" objects:
  *
  *   {
  *      work?: number,
@@ -43,30 +43,29 @@ const CANCELLED_CODE = 999;
 export type JobResponseTransformer<JobResponse> = (any) => JobResponse;
 
 /**
- * A client for Cate's WebAPI.
+ * The web API's call interface.
  *
- * The WebAPIClient class is used to perform remote calls to server-side Cate methods and to observe
+ * The WebAPIClient class is used to perform remote calls to server-side methods and to observe
  * their progress, success, failure, or cancellation in an asynchronous fashion.
  *
- * The Cate WebAPI service must implement a general method "__cancelJob__(jobId: number): void"
+ * The WebAPI interface must implement a general method "__cancelJob__(jobId: number): void"
  * which cancels the job with given *jobId*. The method call must either succeed with any "response" value
  * or fail by returning an "error" object.
  *
- * If the Cate WebAPIClient server has successfully cancelled a running job, an "error" object with the code
+ * If the WebAPIClient server has successfully cancelled a running job, an "error" object with the code
  * given by the CANCELLED_CODE constant (999) must be returned.
  *
- * To report progress, the Cate WebAPIClient server can send "progress" objects:
+ * To report progress, the WebAPIClient server can send "progress" objects:
  *
  *   {
- *      label?: string
- *      message?: string
- *      worked?: number
- *      total?: number
+ *      id: number;
+ *      label?: string;
+ *      message?: string;
+ *      worked?: number;
+ *      total?: number;
  *   }
  *
  * This is non JSON-RCP, which only allows for either the "response" or an "error" object.
- *
- * @author Norman Fomferra
  */
 export interface WebAPIClient {
     readonly url: string;
@@ -153,7 +152,7 @@ class WebAPIClientImpl implements WebAPIClient {
             }
         };
         this.socket.onmessage = (event) => {
-            // this.dispatchEvent('debug', `Cate WebAPIClient message received: ${event.data}`);
+            // this.dispatchEvent('debug', `WebAPIClient message received: ${event.data}`);
             this.processMessage(event.data);
         }
     }
@@ -229,7 +228,7 @@ class WebAPIClientImpl implements WebAPIClient {
 
     private warnInvalidJsonRcpMessage(detailsMessage: string, jsonRcpMessage: string) {
         if (this.onWarning) {
-            const message = `Received invalid JSON-RCP message from Cate WebAPI. ${detailsMessage}. Ignoring it.\n--------------------\n${jsonRcpMessage}\n--------------------`;
+            const message = `Received invalid JSON-RCP message from WebAPI. ${detailsMessage}. Ignoring it.\n--------------------\n${jsonRcpMessage}\n--------------------`;
             this.onWarning({type: 'warning', message});
         }
     }
@@ -245,6 +244,9 @@ class WebAPIClientImpl implements WebAPIClient {
     }
 }
 
+/**
+ * Default implementation of the Job interface which uses the default WebAPI implementation.
+ */
 class JobImpl<JobResponse> implements Job {
 
     private webAPIClient: WebAPIClientImpl;
@@ -294,6 +296,7 @@ class JobImpl<JobResponse> implements Job {
         };
 
         const promise = new Promise<JobResponse>(executor.bind(this));
+        // Convert the plain promise into a JobPromise
         promise['getJob'] = this.getJob.bind(this);
         promise['getJobId'] = this.getJobId.bind(this);
         return promise as JobPromise<JobResponse>;

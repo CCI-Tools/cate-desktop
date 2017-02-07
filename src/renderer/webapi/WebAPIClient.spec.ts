@@ -242,7 +242,7 @@ describe('WebAPIClient', function () {
             webSocket.emulateIncomingRawMessages('this is no valid JSON');
             expect(actualWarningEvent).to.deep.equal({
                 type: 'warning',
-                message: 'Received invalid JSON-RCP message from Cate WebAPI. Message is no valid JSON. Ignoring it.\n' +
+                message: 'Received invalid JSON-RCP message from WebAPI. Message is no valid JSON. Ignoring it.\n' +
                 '--------------------\n' +
                 'this is no valid JSON\n' +
                 '--------------------',
@@ -251,7 +251,7 @@ describe('WebAPIClient', function () {
             webSocket.emulateIncomingMessages({id: 0, response: 42});
             expect(actualWarningEvent).to.deep.equal({
                 type: 'warning',
-                message: 'Received invalid JSON-RCP message from Cate WebAPI. Message is not JSON-RCP 2.0 compliant. Ignoring it.\n' +
+                message: 'Received invalid JSON-RCP message from WebAPI. Message is not JSON-RCP 2.0 compliant. Ignoring it.\n' +
                 '--------------------\n' +
                 '{"id":0,"response":42}\n' +
                 '--------------------'
@@ -260,7 +260,7 @@ describe('WebAPIClient', function () {
             webSocket.emulateIncomingMessages({jsonrcp: "2.0", response: 42});
             expect(actualWarningEvent).to.deep.equal({
                 type: 'warning',
-                message: 'Received invalid JSON-RCP message from Cate WebAPI. Message is not JSON-RCP 2.0 compliant. Ignoring it.\n' +
+                message: 'Received invalid JSON-RCP message from WebAPI. Message is not JSON-RCP 2.0 compliant. Ignoring it.\n' +
                 '--------------------\n' +
                 '{"jsonrcp":"2.0","response":42}\n' +
                 '--------------------'
@@ -269,7 +269,7 @@ describe('WebAPIClient', function () {
             webSocket.emulateIncomingMessages({jsonrcp: "2.0", id: 2, response: 42});
             expect(actualWarningEvent).to.deep.equal({
                 type: 'warning',
-                message: 'Received invalid JSON-RCP message from Cate WebAPI. Method with "id"=2 has no associated job. Ignoring it.\n' +
+                message: 'Received invalid JSON-RCP message from WebAPI. Method with "id"=2 has no associated job. Ignoring it.\n' +
                 '--------------------\n' +
                 '{"jsonrcp":"2.0","id":2,"response":42}\n' +
                 '--------------------'
