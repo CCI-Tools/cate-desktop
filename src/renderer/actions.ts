@@ -1,12 +1,14 @@
 import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState,
-    LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, VariableState, DataSourceState
+    LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, VariableState, DataSourceState,
+    OperationState
 } from "./state";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
-import {JobProgress, JobFailure, JobStatusEnum} from "./webapi/Job";
+import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 import * as selectors from "./selectors";
+import {OperationAPI} from "./webapi/apis/OperationAPI";
 
 // TODO (forman/marcoz): write unit tests for actions
 
@@ -79,6 +81,41 @@ function jobFailed(jobId: number, failure: JobFailure) {
     });
 }
 
+export type JobPromiseFactory<T> = (jobProgressHandler: JobProgressHandler) => JobPromise<T>;
+export type JobPromiseAction<T> = (jobResult: T) => void;
+
+/**
+ * Call some (remote) API asynchronously.
+ *
+ * @param dispatch Redux' dispatch() function.
+ * @param title A human-readable title for the job that is being created
+ * @param call The API call which must produce a JobPromise
+ * @param action The action to be performed when the call succeeds.
+ */
+export function callAPI<T>(dispatch,
+                           title: string,
+                           call: JobPromiseFactory<T>,
+                           action?: JobPromiseAction<T>): void {
+    const onProgress = (progress: JobProgress) => {
+        dispatch(jobProgress(progress));
+    };
+
+    const jobPromise = call(onProgress);
+    dispatch(jobSubmitted(jobPromise.getJobId(), title));
+
+    const onDone = (jobResult: T) => {
+        dispatch(jobDone(jobPromise.getJobId()));
+        if (action) {
+            action(jobResult);
+        }
+    };
+    const onFailure = jobFailure => {
+        dispatch(jobFailed(jobPromise.getJobId(), jobFailure));
+    };
+
+    jobPromise.then(onDone, onFailure);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data stores / data sources actions
 
@@ -97,21 +134,23 @@ export const UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE = 'UPDATE_DATA_SOURCE_TEMPORAL
  */
 export function loadDataStores() {
     return (dispatch, getState) => {
-        const jobPromise = datasetAPI(getState()).getDataStores();
-        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading data stores"));
-        jobPromise.then((dataStores: DataStoreState[]) => {
+        function call() {
+            return datasetAPI(getState()).getDataStores();
+        }
+
+        function action(dataStores: DataStoreState[]) {
             dispatch(updateDataStores(dataStores));
-            dispatch(jobDone(jobPromise.getJobId()));
             if (dataStores && dataStores.length) {
                 dispatch(setSelectedDataStoreId(dataStores[0].id));
             } else {
                 dispatch(setSelectedDataStoreId(null));
             }
-        }).catch(failure => {
-            dispatch(jobFailed(jobPromise.getJobId(), failure));
-        });
+        }
+
+        callAPI(dispatch, 'Loading data stores', call, action);
     }
 }
+
 
 function updateDataStores(dataStores: Array<DataStoreState>) {
     return {type: UPDATE_DATA_STORES, payload: {dataStores}};
@@ -125,22 +164,21 @@ function updateDataStores(dataStores: Array<DataStoreState>) {
  */
 export function loadDataSources(dataStoreId: string) {
     return (dispatch, getState) => {
-        const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === dataStoreId);
-        const jobPromise = datasetAPI(getState()).getDataSources(dataStoreId, (progress: JobProgress) => {
-            dispatch(jobProgress(progress));
-        });
-        dispatch(jobSubmitted(jobPromise.getJobId(), `Loading data sources for store "${dataStore.name}"`));
-        jobPromise.then((dataSources: DataSourceState[]) => {
+        function call(onProgress) {
+            return datasetAPI(getState()).getDataSources(dataStoreId, onProgress);
+        }
+
+        function action(dataSources: DataSourceState[]) {
             dispatch(updateDataSources(dataStoreId, dataSources));
-            dispatch(jobDone(jobPromise.getJobId()));
             if (dataSources && dataSources.length) {
                 dispatch(setSelectedDataSourceId(dataSources[0].id));
             } else {
                 dispatch(setSelectedDataSourceId(null));
             }
-        }).catch(failure => {
-            dispatch(jobFailed(jobPromise.getJobId(), failure));
-        });
+        }
+
+        const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === dataStoreId);
+        callAPI(dispatch, `Loading data sources for store "${dataStore ? dataStore.name : '?'}"`, call, action);
     }
 }
 
@@ -175,16 +213,16 @@ export function showOpenDatasetDialog(dataStoreId: string, dataSourceId: string,
     return (dispatch, getState) => {
         dispatch(setDialogState('openDataset', {isOpen: true, timeInfoLoading: loadTimeInfo}));
         if (loadTimeInfo) {
-            const jobPromise = datasetAPI(getState()).getTemporalCoverage(dataStoreId, dataSourceId, (progress: JobProgress) => {
-                dispatch(jobProgress(progress));
-            });
-            dispatch(jobSubmitted(jobPromise.getJobId(), `Loading temporal coverage for ${dataSourceId}`));
-            jobPromise.then(temporalCoverage => {
+
+            function call(onProgress) {
+                return datasetAPI(getState()).getTemporalCoverage(dataStoreId, dataSourceId, onProgress);
+            }
+
+            function action(temporalCoverage) {
                 dispatch(updateDataSourceTemporalCoverage(dataStoreId, dataSourceId, temporalCoverage));
-                dispatch(jobDone(jobPromise.getJobId()));
-            }).catch(failure => {
-                dispatch(jobFailed(jobPromise.getJobId(), failure));
-            });
+            }
+
+            callAPI(dispatch, `Loading temporal coverage for ${dataSourceId}`, call, action);
         }
     };
 }
@@ -202,7 +240,7 @@ export function confirmOpenDatasetDialog(dataSourceId: string, args: any) {
         // TODO (forman): Handle case where action is called twice without completing the first.
         //                In this case the same resource name will be generated :(
         const resName = selectors.newResourceNameSelector(getState().data.workspace.resources,
-                                                          getState().session.resourceNamePrefix);
+            getState().session.resourceNamePrefix);
         const opName = 'open_dataset';
         const opArgs = {
             ds_name: dataSourceId,
@@ -219,7 +257,7 @@ export function confirmOpenDatasetDialog(dataSourceId: string, args: any) {
         });
 
         dispatch(setWorkspaceResource(resName, opName, wrappedOpArgs,
-                 `Opening dataset "${resName}" from "${dataSourceId}"`));
+            `Opening dataset "${resName}" from "${dataSourceId}"`));
     }
 }
 
@@ -239,7 +277,27 @@ export const SET_SELECTED_OPERATION_NAME = 'SET_SELECTED_OPERATION_NAME';
 export const SET_OPERATION_FILTER_TAGS = 'SET_OPERATION_FILTER_TAGS';
 export const SET_OPERATION_FILTER_EXPR = 'SET_OPERATION_FILTER_EXPR';
 
-export function updateOperations(operations) {
+
+export function updateOperations() {
+    return (dispatch, getState: () => State) => {
+
+        function call() {
+            return getOperationAPI(getState()).getOperations();
+        }
+
+        function action(operations: OperationState[]) {
+            dispatch(updateOperationsImpl(operations));
+        }
+
+        callAPI(dispatch, 'Loading operations', call, action);
+    };
+}
+
+function getOperationAPI(state: State): OperationAPI {
+    return new OperationAPI(state.data.appConfig.webAPIClient);
+}
+
+function updateOperationsImpl(operations) {
     return {type: UPDATE_OPERATIONS, payload: {operations}};
 }
 
@@ -288,19 +346,20 @@ export function loadInitialWorkspace() {
  */
 export function newWorkspace(workspacePath: string|null) {
     return (dispatch, getState) => {
-        const jobPromise = workspaceAPI(getState()).newWorkspace(workspacePath);
-        dispatch(jobSubmitted(jobPromise.getJobId(), "New workspace" + (workspacePath ? ` "${workspacePath}"` : '')));
-        jobPromise.then((workspace: WorkspaceState) => {
+        function call() {
+            return workspaceAPI(getState()).newWorkspace(workspacePath);
+        }
+
+        function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
-            dispatch(jobDone(jobPromise.getJobId()));
             if (workspace && workspace.workflow.steps.length > 0) {
                 dispatch(setSelectedWorkspaceResourceId(workspace.workflow.steps[0].id));
             } else {
                 dispatch(setSelectedWorkspaceResourceId(null));
             }
-        }).catch(failure => {
-            dispatch(jobFailed(jobPromise.getJobId(), failure));
-        });
+        }
+
+        callAPI(dispatch, 'New workspace' + (workspacePath ? ` "${workspacePath}"` : ''), call, action);
     }
 }
 
@@ -312,22 +371,20 @@ export function newWorkspace(workspacePath: string|null) {
  */
 export function openWorkspace(workspacePath?: string|null) {
     return (dispatch, getState) => {
-        const jobPromise = workspaceAPI(getState()).openWorkspace(workspacePath,
-            (progress: JobProgress) => {
-                dispatch(jobProgress(progress));
-            });
-        dispatch(jobSubmitted(jobPromise.getJobId(), `Open workspace "${workspacePath}"`));
-        jobPromise.then((workspace: WorkspaceState) => {
-            dispatch(jobDone(jobPromise.getJobId()));
+        function call(onProgress) {
+            return workspaceAPI(getState()).openWorkspace(workspacePath, onProgress);
+        }
+
+        function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
             if (workspace && workspace.workflow.steps.length > 0) {
                 dispatch(setSelectedWorkspaceResourceId(workspace.workflow.steps[0].id));
             } else {
                 dispatch(setSelectedWorkspaceResourceId(null));
             }
-        }).catch(failure => {
-            dispatch(jobFailed(jobPromise.getJobId(), failure));
-        });
+        }
+
+        callAPI(dispatch, `Open workspace "${workspacePath}"`, call, action);
     }
 }
 
@@ -338,14 +395,17 @@ export function openWorkspace(workspacePath?: string|null) {
  */
 export function closeWorkspace() {
     return (dispatch, getState: () => State) => {
-        let jobPromise = workspaceAPI(getState()).closeWorkspace(getState().data.workspace.baseDir);
-        dispatch(jobSubmitted(jobPromise.getJobId(), 'Close workspace'));
-        jobPromise.then(() => {
-            dispatch(jobDone(jobPromise.getJobId()));
+        const baseDir = getState().data.workspace.baseDir;
+
+        function call(onProgress) {
+            return workspaceAPI(getState()).closeWorkspace(baseDir);
+        }
+
+        function action() {
             dispatch(newWorkspace(null));
-        }).catch(failure => {
-            dispatch(jobFailed(jobPromise.getJobId(), failure));
-        });
+        }
+
+        callAPI(dispatch, 'Close workspace', call, action);
     }
 }
 
@@ -359,14 +419,18 @@ export function saveWorkspace() {
         if (getState().data.workspace.isScratch) {
             return saveWorkspaceAs
         }
-        let jobPromise = workspaceAPI(getState()).saveWorkspace(getState().data.workspace.baseDir);
-        dispatch(jobSubmitted(jobPromise.getJobId(), 'Save workspace'));
-        jobPromise.then((workspace: WorkspaceState) => {
-            dispatch(jobDone(jobPromise.getJobId()));
+
+        const baseDir = getState().data.workspace.baseDir;
+
+        function call() {
+            return workspaceAPI(getState()).saveWorkspace(baseDir);
+        }
+
+        function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
-        }).catch(failure => {
-            dispatch(jobFailed(jobPromise.getJobId(), failure));
-        });
+        }
+
+        callAPI(dispatch, 'Save workspace', call, action);
     }
 }
 
@@ -377,17 +441,17 @@ export function saveWorkspace() {
  */
 export function saveWorkspaceAs(workspacePath: string) {
     return (dispatch, getState: () => State) => {
-        let jobPromise = workspaceAPI(getState()).saveWorkspaceAs(getState().data.workspace.baseDir, workspacePath,
-            (progress: JobProgress) => {
-                dispatch(jobProgress(progress));
-            });
-        dispatch(jobSubmitted(jobPromise.getJobId(), `Save workspace as "${workspacePath}"`));
-        jobPromise.then((workspace: WorkspaceState) => {
-            dispatch(jobDone(jobPromise.getJobId()));
+        const baseDir = getState().data.workspace.baseDir;
+
+        function call(onProgress) {
+            return workspaceAPI(getState()).saveWorkspaceAs(baseDir, workspacePath, onProgress);
+        }
+
+        function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
-        }).catch(failure => {
-            dispatch(jobFailed(jobPromise.getJobId(), failure));
-        });
+        }
+
+        callAPI(dispatch, `Save workspace as "${workspacePath}"`, call, action);
     }
 }
 
@@ -426,18 +490,17 @@ function workspaceAPI(state: State): WorkspaceAPI {
 export function setWorkspaceResource(resName: string, opName: string, opArgs: {[name: string]: any}, title: string) {
     return (dispatch, getState) => {
         const baseDir = getState().data.workspace.baseDir;
-        const jobPromise = workspaceAPI(getState()).setWorkspaceResource(baseDir, resName, opName, opArgs,
-            (progress: JobProgress) => {
-                dispatch(jobProgress(progress));
-            });
-        dispatch(jobSubmitted(jobPromise.getJobId(), title));
-        jobPromise.then(workspace => {
-            dispatch(jobDone(jobPromise.getJobId()));
+
+        function call(onProgress) {
+            return workspaceAPI(getState()).setWorkspaceResource(baseDir, resName, opName, opArgs, onProgress);
+        }
+
+        function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
             dispatch(setSelectedWorkspaceResourceId(resName));
-        }).catch(failure => {
-            dispatch(jobFailed(jobPromise.getJobId(), failure));
-        });
+        }
+
+        callAPI(dispatch, title, call, action);
     }
 }
 
@@ -448,14 +511,15 @@ export function getWorkspaceVariableStatistics(resName: string,
     return (dispatch, getState) => {
         const baseDir = getState().data.workspace.baseDir;
 
-        const jobPromise = workspaceAPI(getState()).getWorkspaceVariableStatistics(baseDir, resName, varName, varIndex);
-        dispatch(jobSubmitted(jobPromise.getJobId(), `Computing statistics for variable "${varName}"`));
-        jobPromise.then((statistics: ImageStatisticsState) => {
-            dispatch(jobDone(jobPromise.getJobId()));
+        function call() {
+            return workspaceAPI(getState()).getWorkspaceVariableStatistics(baseDir, resName, varName, varIndex);
+        }
+
+        function action2(statistics: ImageStatisticsState) {
             dispatch(action(statistics));
-        }).catch(failure => {
-            dispatch(jobFailed(jobPromise.getJobId(), failure));
-        });
+        }
+
+        callAPI(dispatch, `Computing statistics for variable "${varName}"`, call, action2);
     }
 }
 
@@ -589,14 +653,15 @@ function colorMapsAPI(state: State): ColorMapsAPI {
  */
 export function loadColorMaps() {
     return (dispatch, getState: () => State) => {
-        let jobPromise = colorMapsAPI(getState()).getColorMaps();
-        dispatch(jobSubmitted(jobPromise.getJobId(), "Loading color maps"));
-        jobPromise.then((colorMaps: Array<ColorMapCategoryState>) => {
-            dispatch(jobDone(jobPromise.getJobId()));
+        function call() {
+            return colorMapsAPI(getState()).getColorMaps();
+        }
+
+        function action(colorMaps: Array<ColorMapCategoryState>) {
             dispatch(updateColorMaps(colorMaps));
-        }).catch(failure => {
-            dispatch(jobFailed(jobPromise.getJobId(), failure));
-        });
+        }
+
+        callAPI(dispatch, 'Loading color maps', call, action);
     }
 }
 

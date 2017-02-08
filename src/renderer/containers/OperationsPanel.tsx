@@ -9,7 +9,6 @@ import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
-import {OperationAPI} from "../webapi/apis/OperationAPI";
 import {EditOpStepDialog, IEditOpStepDialogState} from "./EditOpStepDialog";
 import {State, OperationState, WorkspaceState} from "../state";
 import * as actions from "../actions";
@@ -57,13 +56,9 @@ function mapStateToProps(state: State): IOperationsPanelProps {
  */
 class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
-    componentWillReceiveProps(nextProps: IOperationsPanelProps, nextContext: any) {
-        console.log("componentWillReceiveProps", nextProps);
-    }
-
     componentDidMount() {
         if (!this.props.operations) {
-            this.updateOperations();
+            this.props.dispatch(actions.updateOperations());
         }
     }
 
@@ -71,20 +66,6 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         return this.props.selectedOperationName
             ? (this.props.operations || []).find(op => op.name === this.props.selectedOperationName)
             : null;
-    }
-
-    private updateOperations() {
-        // TODO (forman): show in the UI that we are in the process of getting operations
-        this.getOperationAPI().getOperations().then(operations => {
-            this.props.dispatch(actions.updateOperations(operations));
-        }).catch(error => {
-            // TODO (forman): show in the UI that we are unable to get operations
-            console.error(error);
-        });
-    }
-
-    private getOperationAPI(): OperationAPI {
-        return new OperationAPI(this.props.webAPIClient);
     }
 
     private handleShowDetailsChanged(value: boolean) {
