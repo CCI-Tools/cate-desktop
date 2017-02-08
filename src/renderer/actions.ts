@@ -74,11 +74,18 @@ function jobDone(jobId: number) {
 }
 
 function jobFailed(jobId: number, failure: JobFailure) {
-    console.error(failure);
-    return setTaskState(jobId, {
-        status: failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED,
-        failure
-    });
+    const status = failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED;
+    if (status === JobStatusEnum.FAILED) {
+        console.error(failure);
+    }
+    showMessageBox({
+        type: "error",
+        title: "Cate - Error",
+        message: failure.message,
+        detail: `An error (code ${failure.code}) occurred while executing a background process:\n\n${failure.data}`,
+        buttons: [],
+    }, MESSAGE_BOX_NO_REPLY);
+    return setTaskState(jobId, {status, failure});
 }
 
 export type JobPromiseFactory<T> = (jobProgressHandler: JobProgressHandler) => JobPromise<T>;
@@ -397,7 +404,7 @@ export function closeWorkspace() {
     return (dispatch, getState: () => State) => {
         const baseDir = getState().data.workspace.baseDir;
 
-        function call(onProgress) {
+        function call() {
             return workspaceAPI(getState()).closeWorkspace(baseDir);
         }
 
@@ -669,15 +676,11 @@ function updateColorMaps(colorMaps: Array<ColorMapCategoryState>) {
     return {type: UPDATE_COLOR_MAPS, payload: {colorMaps}};
 }
 
-function setSelectedColorMapNameImpl(selectedColorMapName: string|null) {
-    return {type: SET_SELECTED_COLOR_MAP_NAME, payload: {selectedColorMapName}};
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // (User) Preferences actions
 
 export function showPreferencesDialog() {
-    return (dispatch, getState) => {
+    return (dispatch) => {
         dispatch(setDialogState('preferencesDialog', {isOpen: true}));
     };
 }
@@ -731,24 +734,26 @@ export function showFileSaveDialog(saveDialogOptions, callback?: (filePath: stri
     }
 }
 
+export const MESSAGE_BOX_NO_REPLY = () => {};
+
 /**
- * Shows a native message dialog.
+ * Shows a native message box.
  *
- * @param messageDialogOptions the message dialog options, see https://github.com/electron/electron/blob/master/docs/api/dialog.md
+ * @param messageBoxOptions the message dialog options, see https://github.com/electron/electron/blob/master/docs/api/dialog.md
  * @param callback an optional function which is called with the selected button index
  * @returns the selected button index or null, if no button was selected or the callback function is defined
  */
-export function showMessageDialog(messageDialogOptions, callback?: (index: number) => void): number|null {
+export function showMessageBox(messageBoxOptions, callback?: (index: number) => void): number|null {
     const electron = require('electron');
-    const actionName = 'show-message-dialog';
+    const actionName = 'show-message-box';
     if (callback) {
-        electron.ipcRenderer.send(actionName, messageDialogOptions, false);
+        electron.ipcRenderer.send(actionName, messageBoxOptions, false);
         electron.ipcRenderer.once(actionName + '-reply', (event, index: number) => {
             callback(index);
         });
         return null;
     } else {
-        return electron.ipcRenderer.sendSync(actionName, messageDialogOptions, true);
+        return electron.ipcRenderer.sendSync(actionName, messageBoxOptions, true);
     }
 }
 
