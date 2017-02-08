@@ -686,4 +686,70 @@ export function hidePreferencesDialog() {
     return setDialogState('preferencesDialog', {isOpen: false});
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// General purpose, Electron-based actions
+
+/**
+ * Shows a native file-open dialog.
+ *
+ * @param openDialogOptions the file-open dialog options, see https://github.com/electron/electron/blob/master/docs/api/dialog.md
+ * @param callback an optional function which is called with an array of the selected file paths
+ * @returns the array of selected file paths or null, if no file path was selected or the callback function is defined
+ */
+export function showFileOpenDialog(openDialogOptions, callback?: (filePaths: string[]) => void): string[]|null {
+    const electron = require('electron');
+    const actionName = 'show-open-dialog';
+    if (callback) {
+        electron.ipcRenderer.send(actionName, openDialogOptions, false);
+        electron.ipcRenderer.once(actionName + '-reply', (event, filePaths: string[]) => {
+            callback(filePaths);
+        });
+        return null;
+    } else {
+        return electron.ipcRenderer.sendSync(actionName, openDialogOptions, true);
+    }
+}
+
+/**
+ * Shows a native file-save dialog.
+ *
+ * @param saveDialogOptions the file-save dialog options, see https://github.com/electron/electron/blob/master/docs/api/dialog.md
+ * @param callback an optional function which is called with the selected file path
+ * @returns the selected filePath or null, if no file path was selected or the callback function is defined
+ */
+export function showFileSaveDialog(saveDialogOptions, callback?: (filePath: string) => void): string|null {
+    const electron = require('electron');
+    const actionName = 'show-save-dialog';
+    if (callback) {
+        electron.ipcRenderer.send(actionName, saveDialogOptions, false);
+        electron.ipcRenderer.once(actionName + '-reply', (event, filePath: string) => {
+            callback(filePath);
+        });
+        return null;
+    } else {
+        return electron.ipcRenderer.sendSync(actionName, saveDialogOptions, true);
+    }
+}
+
+/**
+ * Shows a native message dialog.
+ *
+ * @param messageDialogOptions the message dialog options, see https://github.com/electron/electron/blob/master/docs/api/dialog.md
+ * @param callback an optional function which is called with the selected button index
+ * @returns the selected button index or null, if no button was selected or the callback function is defined
+ */
+export function showMessageDialog(messageDialogOptions, callback?: (index: number) => void): number|null {
+    const electron = require('electron');
+    const actionName = 'show-message-dialog';
+    if (callback) {
+        electron.ipcRenderer.send(actionName, messageDialogOptions, false);
+        electron.ipcRenderer.once(actionName + '-reply', (event, index: number) => {
+            callback(index);
+        });
+        return null;
+    } else {
+        return electron.ipcRenderer.sendSync(actionName, messageDialogOptions, true);
+    }
+}
+
 

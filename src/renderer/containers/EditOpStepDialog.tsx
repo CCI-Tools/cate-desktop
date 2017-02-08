@@ -6,6 +6,7 @@ import {InputEditor} from "../components/InputEditor";
 import {FloatField} from "../components/FloatField";
 import {IntField} from "../components/IntField";
 import {TextField} from "../components/TextField";
+import * as actions from "../actions";
 
 
 export interface InputAssignmentState {
@@ -393,9 +394,6 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                                   index: number,
                                   value: string|null,
                                   onChange: EditorCallback) {
-        const electron = require('electron');
-        console.log('EditOpStepDialog: contacting main process...', electron);
-        // see https://github.com/electron/electron/blob/master/docs/api/dialog.md
         const openDialogOptions = {
             title: "Open File",
             defaultPath: value,
@@ -403,9 +401,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             properties: ["openFile"],
             filter: input.fileFilters,
         };
-        electron.ipcRenderer.send('show-open-dialog', openDialogOptions);
-        electron.ipcRenderer.on('show-open-dialog-reply', (event, filePaths: Array<string>) => {
-            console.log('EditOpStepDialog: received reply from main process:', filePaths);
+        actions.showFileOpenDialog(openDialogOptions, (filePaths: string[]) => {
             if (filePaths && filePaths.length) {
                 onChange(input, index, filePaths[0]);
             }
@@ -416,18 +412,13 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                                   index: number,
                                   value: string|null,
                                   onChange: EditorCallback) {
-        const electron = require('electron');
-        console.log('EditOpStepDialog: contacting main process...', electron);
-        // see https://github.com/electron/electron/blob/master/docs/api/dialog.md
-        const openDialogOptions = {
+        const saveDialogOptions = {
             title: "Save File",
             defaultPath: value,
             buttonLabel: "Save",
             filter: input.fileFilters,
         };
-        electron.ipcRenderer.send('show-save-dialog', openDialogOptions);
-        electron.ipcRenderer.on('show-save-dialog-reply', (event, filePath: string) => {
-            console.log('EditOpStepDialog: received reply from main process:', filePath);
+        actions.showFileSaveDialog(saveDialogOptions, (filePath: string) => {
             if (filePath) {
                 onChange(input, index, filePath);
             }
