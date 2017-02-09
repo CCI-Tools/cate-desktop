@@ -6,6 +6,7 @@ export interface IEditFieldProps<T> {
     onFailure?: (textValue: string, error: any) => void;
     parseValue?: (textValue: string) => T;
     formatValue?: (value: T) => string;
+    placeholder?: string;
     textAlign?: string;
     columns?: number;
     className?: string;
@@ -59,6 +60,7 @@ export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.C
                    type="text"
                    style={style}
                    value={this.state.inputValue}
+                   placeholder={this.props.placeholder}
                    onChange={(ev: any) => this.handleChange(ev.target.value)}
                    onKeyUp={(ev: any) => this.handleKeyUp(ev.keyCode)}
                    onBlur={(ev: any) => this.handleFocusOut()}

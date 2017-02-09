@@ -455,6 +455,14 @@ export interface DialogState {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SessionState
 
+
+/**
+ * Backend-configuration settings.
+ */
+export interface BackendConfigState {
+    dataStoresPath: string;
+}
+
 /**
  * Session state contains information about the human being which is currently using Cate.
  * Session state is only ever read when a component is mounted.
@@ -467,6 +475,7 @@ export interface SessionState {
     lastWorkspacePath?: string;
     openLastWorkspace?: boolean;
     resourceNamePrefix: string;
+    backendConfig: BackendConfigState;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
