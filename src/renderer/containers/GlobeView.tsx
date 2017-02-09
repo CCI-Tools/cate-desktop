@@ -107,7 +107,11 @@ export class GlobeView extends React.Component<IGlobeViewProps, null> {
      * @returns {Cesium.UrlTemplateImageryProvider}
      */
     private static createImageryProvider(imageryProviderOptions): ImageryProvider {
-        return new Cesium.UrlTemplateImageryProvider(imageryProviderOptions);
+        const imageryProvider = new Cesium.UrlTemplateImageryProvider(imageryProviderOptions);
+        imageryProvider.errorEvent.addEventListener((event) => {
+            console.error('GlobeView:', event);
+        });
+        return imageryProvider;
     }
 }
 
