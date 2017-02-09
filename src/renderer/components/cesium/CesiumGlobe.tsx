@@ -202,15 +202,15 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         const currentImageLayers = new Map();
         const cesiumImageryLayers = new Map();
         const nextLayerIdSet = new Set<string>(nextLayers.map(l => l.id));
-        for (let i = 0; i < currentLayers.length; i++) {
-            const currentLayer = currentLayers[i];
-            const imageryLayer = this.viewer.imageryLayers.get(i + 1); // +1 because of baseLayer, which is always available
+        for (let layerIndex = 0; layerIndex < currentLayers.length; layerIndex++) {
+            const currentLayer = currentLayers[layerIndex];
+            const imageryLayer = this.viewer.imageryLayers.get(layerIndex + 1); // +1 because of baseLayer, which is always available
             // assert !!imageryLayer
             if (!imageryLayer) {
                 throw Error('!imageryLayer');
             }
             if (!nextLayerIdSet.has(currentLayer.id)) {
-                console.log(`CesiumGlobe: destroying imagery layer #${i + 1}: ${imageryLayer.name}`);
+                console.log(`CesiumGlobe: removed imagery layer #${layerIndex + 1}: ${imageryLayer.name}`);
                 this.viewer.imageryLayers.remove(imageryLayer, true);
             } else {
                 cesiumImageryLayers.set(currentLayer.id, imageryLayer);
@@ -220,8 +220,8 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
 
         // add layers of nextLayers which are not currentLayers or
         // change layers of nextLayers which are in currentLayers
-        for (let i = 0; i < nextLayers.length; i++) {
-            const nextLayer = nextLayers[i];
+        for (let layerIndex = 0; layerIndex < nextLayers.length; layerIndex++) {
+            const nextLayer = nextLayers[layerIndex];
             let imageryLayer;
             if (currentImageLayers.has(nextLayer.id)) {
                 // change or exchange nextLayer
@@ -231,8 +231,8 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
                     // save oldImageryLayer
                     const oldImageryLayer = cesiumImageryLayers.get(nextLayer.id);
                     // add nextLayer
-                    const imageryProvider = CesiumGlobe.getImageryProvider(nextLayer);
-                    imageryLayer = this.viewer.imageryLayers.addImageryProvider(imageryProvider, i + 1); // +1 because of baseLayer, which is always available
+                    // layerIndex + 1, because of baseLayer, which is always available at index 0
+                    imageryLayer = this.addImageryLayer(nextLayer, layerIndex + 1);
                     // TODO (forman): removing an old layer produces flickering. Try to avoid it by decreasing alpha value in an animation sequence.
                     // remove oldImageryLayer
                     this.viewer.imageryLayers.remove(oldImageryLayer, true);
@@ -241,8 +241,8 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
                 }
             } else {
                 // add nextLayer
-                const imageryProvider = CesiumGlobe.getImageryProvider(nextLayer);
-                imageryLayer = this.viewer.imageryLayers.addImageryProvider(imageryProvider, i + 1); // +1 because of baseLayer, which is always available
+                // layerIndex + 1, because of baseLayer, which is always available at index 0
+                imageryLayer = this.addImageryLayer(nextLayer, layerIndex + 1);
             }
 
             // TODO (forman): now bring layers into desired order
@@ -257,5 +257,12 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
             imageryLayer.saturation = nextLayer.imageEnhancement.saturation;
             imageryLayer.gamma = nextLayer.imageEnhancement.gamma;
         }
+    }
+
+    private addImageryLayer(nextLayer: any, layerIndex: number) {
+        const imageryProvider = CesiumGlobe.getImageryProvider(nextLayer);
+        const imageryLayer = this.viewer.imageryLayers.addImageryProvider(imageryProvider, layerIndex);
+        console.log(`CesiumGlobe: added imagery layer #${layerIndex}: ${imageryLayer.name}`);
+        return imageryLayer;
     }
 }
