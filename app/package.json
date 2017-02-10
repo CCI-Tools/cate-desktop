@@ -12,6 +12,7 @@
     "@blueprintjs/table": "^1.1.0",
     "cesium": "^1.27.0",
     "classnames": "^2.2.5",
+    "deep-equal": "^1.0.1",
     "openlayers": "^3.19.1",
     "react": "^15.4.0",
     "react-addons-css-transition-group": "^15.4.0",

@@ -461,6 +461,7 @@ export interface DialogState {
  */
 export interface BackendConfigState {
     dataStoresPath: string;
+    useWorkspaceImageryCache: boolean;
 }
 
 /**

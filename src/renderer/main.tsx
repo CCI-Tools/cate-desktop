@@ -67,6 +67,7 @@ function connectWebAPIClient(store: Store<State>) {
     //                we urgently need to display some progress indicator beforehand.
     webAPIClient.onOpen = () => {
         store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
+        store.dispatch(actions.loadBackendConfig());
         store.dispatch(actions.loadInitialWorkspace());
         store.dispatch(actions.loadDataStores());
         // TODO (forman): store.dispatch(actions.loadOperations());

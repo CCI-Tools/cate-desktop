@@ -1,10 +1,11 @@
 import * as React from 'react';
-import {Dialog, Classes, Button} from "@blueprintjs/core";
+import {Dialog, Classes, Button, TabPanel, Tab, TabList, Tabs, Switch} from "@blueprintjs/core";
 import {State, SessionState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
 import {TextField} from "../components/TextField";
 import {OpenDialogProperty} from "../actions";
+import * as deepEqual from 'deep-equal';
 
 interface IPreferencesDialogProps {
     dispatch?: any;
@@ -22,6 +23,7 @@ function mapStateToProps(state: State): IPreferencesDialogProps {
 
 class PreferencesDialog extends React.Component<IPreferencesDialogProps, SessionState> {
     static readonly DIALOG_ID = 'preferencesDialog';
+    static readonly DIALOG_TITLE = 'Preferences';
 
     constructor(props: IPreferencesDialogProps) {
         super(props);
@@ -30,17 +32,33 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
         this.state = props.preferences;
     }
 
+    componentWillReceiveProps(nextProps: IPreferencesDialogProps) {
+        this.setState(nextProps.preferences);
+    }
+
     private handleConfirm() {
         this.props.dispatch(actions.hidePreferencesDialog());
+        if (!deepEqual(this.props.preferences, this.state)) {
+            const backendConfig = this.state.backendConfig;
+            const backendChangesDetected = !deepEqual(this.props.preferences.backendConfig, backendConfig);
+            this.props.dispatch(actions.applyPreferences(this.state));
+            if (backendChangesDetected) {
+                this.props.dispatch(actions.storeBackendConfig(backendConfig));
+                this.props.dispatch(actions.showMessageBox({
+                    title: PreferencesDialog.DIALOG_TITLE,
+                    message: "Some changes will be effective only after restart."
+                }));
+            }
+        } else {
+            this.props.dispatch(actions.showMessageBox({
+                title: PreferencesDialog.DIALOG_TITLE,
+                message: "No changes detected."
+            }));
+        }
     }
 
     private handleCancel() {
         this.props.dispatch(actions.hidePreferencesDialog());
-    }
-
-    //noinspection JSMethodCanBeStatic
-    shouldComponentUpdate(nextProps: IPreferencesDialogProps, nextState: SessionState) {
-        return this.props.isOpen !== nextProps.isOpen || this.state !== nextState;
     }
 
     render() {
@@ -49,7 +67,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
                 isOpen={this.props.isOpen}
                 iconName="confirm"
                 onClose={this.handleCancel}
-                title="Preferences"
+                title={PreferencesDialog.DIALOG_TITLE}
                 autoFocus={true}
                 canEscapeKeyClose={true}
                 canOutsideClickClose={true}
@@ -83,7 +101,70 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
         }
         return (
             <div className={Classes.DIALOG_BODY}>
+                <Tabs>
+                    <TabList>
+                        <Tab>Data Management</Tab>
+                        <Tab>Miscellaneous</Tab>
+                    </TabList>
+                    <TabPanel>
+                        {this.renderDataManagementPanel()}
+                    </TabPanel>
+                    <TabPanel>
+                        {this.renderMiscellaneousPanel()}
+                    </TabPanel>
+                </Tabs>
+            </div>
+        );
+    }
+
+    private renderDataManagementPanel() {
+        return (
+            <div style={{width: '100%', marginTop:'1em'}}>
                 {this.renderDataStoresPath()}
+                {this.renderCacheWorkspaceImagery()}
+            </div>
+        );
+    }
+
+    private renderDataStoresPath() {
+        const onChange = (dataStoresPath: string) => {
+            this.setBackendConfig({dataStoresPath});
+        };
+        const dataStoresPath = this.state.backendConfig.dataStoresPath || '';
+        return (
+            <div style={{width: '100%', marginBottom:'1em'}}>
+                <p>Data stores synchronisation directory:</p>
+                <div className="pt-control-group" style={{display: 'flex', alignItems: 'center'}}>
+                    <TextField className="pt-input"
+                               style={{flexGrow: 1}}
+                               value={dataStoresPath}
+                               placeholder="Enter local directory path"
+                               onChange={onChange}
+                    />
+                    <Button className="pt-intent-primary" style={{flex: 'none'}}
+                            onClick={() => PreferencesDialog.showOpenDirectoryDialog(dataStoresPath, onChange)}>...</Button>
+                </div>
+            </div>
+        );
+    }
+
+    private renderCacheWorkspaceImagery() {
+        const onChange = (useWorkspaceImageryCache: boolean) => {
+            this.setBackendConfig({useWorkspaceImageryCache});
+        };
+        const useWorkspaceImageryCache = this.state.backendConfig.useWorkspaceImageryCache;
+        return (
+            <div style={{width: '100%', marginBottom:'1em'}}>
+                <Switch checked={useWorkspaceImageryCache}
+                        label="Cache workspace imagery for faster image display"
+                        onChange={(event: any) => onChange(event.target.checked)} />
+            </div>
+        );
+    }
+
+    private renderMiscellaneousPanel() {
+        return (
+            <div style={{width: '100%', marginTop:'1em'}}>
                 {this.renderResourceNamePrefix()}
             </div>
         );
@@ -106,30 +187,6 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
         );
     }
 
-    private renderDataStoresPath() {
-        const onChange = (dataStoresPath: string) => {
-            const backendConfig = {dataStoresPath};
-            console.log(backendConfig);
-            this.setState({backendConfig} as SessionState);
-        };
-        const dirPath = this.state.backendConfig.dataStoresPath || '';
-        return (
-            <div style={{width: '100%', marginBottom:'1em'}}>
-                <p>Data stores synchronisation directory:</p>
-                <div className="pt-control-group" style={{display: 'flex', alignItems: 'center'}}>
-                    <TextField className="pt-input"
-                               style={{flexGrow: 1}}
-                               value={dirPath}
-                               placeholder="Enter local directory path"
-                               onChange={onChange}
-                    />
-                    <Button className="pt-intent-primary" style={{flex: 'none'}}
-                            onClick={() => PreferencesDialog.showOpenDirectoryDialog(dirPath, onChange)}>...</Button>
-                </div>
-            </div>
-        );
-    }
-
     private static showOpenDirectoryDialog(defaultPath: string, onChange: (value) => void) {
         const openDialogOptions = {
             title: "Select Directory",
@@ -148,6 +205,14 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
             }
         });
     }
+
+    private setBackendConfig(backendConfigDelta: any) {
+        const backendConfig = Object.assign({}, this.state.backendConfig, backendConfigDelta);
+        this.setState({backendConfig} as SessionState);
+    }
 }
 
 export default connect(mapStateToProps)(PreferencesDialog);
+
+
+

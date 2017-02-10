@@ -219,6 +219,7 @@ const initialSessionState: SessionState = {
     resourceNamePrefix: 'res_',
     backendConfig: {
         dataStoresPath: null,
+        useWorkspaceImageryCache: false,
     }
 };
 
@@ -226,6 +227,10 @@ const sessionReducer = (state: SessionState = initialSessionState, action) => {
     switch (action.type) {
         case actions.APPLY_INITIAL_STATE:
             return updateObject(state, action.payload.session);
+        case actions.APPLY_PREFERENCES:
+            return updateObject(state, action.payload.session);
+        case actions.UPDATE_BACKEND_CONFIG:
+            return updateObject(state, {backendConfig: updateObject(state.backendConfig, action.payload.backendConfig)});
         case actions.SET_CURRENT_WORKSPACE:
             if (!action.payload.workspace.isScratch) {
                 return updateObject(state, {

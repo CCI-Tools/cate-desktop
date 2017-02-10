@@ -392,7 +392,7 @@ function createMainWindow() {
 
     ipcMain.on('show-open-dialog', (event, openDialogOptions, synchronous?: boolean) => {
         dialog.showOpenDialog(_mainWindow, openDialogOptions, (filePaths: Array<string>) => {
-            console.log('show-open-dialog: filePaths =', filePaths);
+            // console.log('show-open-dialog: filePaths =', filePaths);
             if (synchronous) {
                 event.returnValue = filePaths && filePaths.length ? filePaths : null;
             } else {
@@ -403,7 +403,7 @@ function createMainWindow() {
 
     ipcMain.on('show-save-dialog', (event, saveDialogOptions, synchronous?: boolean) => {
         dialog.showSaveDialog(_mainWindow, saveDialogOptions, (filePath: string) => {
-            console.log('show-save-dialog: filePath =', filePath);
+            // console.log('show-save-dialog: filePath =', filePath);
             if (synchronous) {
                 event.returnValue = filePath ? filePath : null;
             } else {
@@ -414,7 +414,7 @@ function createMainWindow() {
 
     ipcMain.on('show-message-box', (event, messageBoxOptions, synchronous?: boolean) => {
         dialog.showMessageBox(_mainWindow, messageBoxOptions, (index: number) => {
-            console.log('show-message-box: index =', index);
+            // console.log('show-message-box: index =', index);
             if (synchronous) {
                 event.returnValue = index;
             } else {

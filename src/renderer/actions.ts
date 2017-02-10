@@ -1,7 +1,7 @@
 import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState,
     LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, VariableState, DataSourceState,
-    OperationState
+    OperationState, SessionState, BackendConfigState
 } from "./state";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
@@ -9,6 +9,7 @@ import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 import * as selectors from "./selectors";
 import {OperationAPI} from "./webapi/apis/OperationAPI";
+import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 
 // TODO (forman/marcoz): write unit tests for actions
 
@@ -121,6 +122,49 @@ export function callAPI<T>(dispatch,
     };
 
     jobPromise.then(onDone, onFailure);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Preferences actions
+
+export const APPLY_PREFERENCES = 'APPLY_PREFERENCES';
+export const UPDATE_BACKEND_CONFIG = 'UPDATE_BACKEND_CONFIG';
+export const SAVE_BACKEND_CONFIG = 'SAVE_BACKEND_CONFIG';
+
+export function applyPreferences(session: SessionState) {
+    return {type: APPLY_PREFERENCES, payload: {session}};
+}
+
+export function loadBackendConfig() {
+    return (dispatch, getState) => {
+        function call() {
+            return backendConfigAPI(getState()).getBackendConfig();
+        }
+
+        function action(backendConfig: BackendConfigState) {
+            dispatch(updateBackendConfig(backendConfig));
+        }
+
+        callAPI(dispatch, 'Loading backend configuration', call, action);
+    }
+}
+
+export function storeBackendConfig(backendConfig: BackendConfigState) {
+    return (dispatch, getState) => {
+        function call() {
+            return backendConfigAPI(getState()).setBackendConfig(backendConfig);
+        }
+
+        callAPI(dispatch, 'Storing backend configuration', call);
+    }
+}
+
+export function updateBackendConfig(backendConfig: BackendConfigState) {
+    return {type: UPDATE_BACKEND_CONFIG, payload: {backendConfig}};
+}
+
+function backendConfigAPI(state: State) {
+    return new BackendConfigAPI(state.data.appConfig.webAPIClient);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -883,7 +927,7 @@ export interface MessageBoxOptions {
     /**
      * Can be "none", "info", "error", "question" or "warning". On Windows, "question" displays the same icon as "info", unless you set an icon using the "icon" option.
      */
-    type?: string;
+        type?: string;
 
     /**
      * Array of texts for buttons. On Windows, an empty array will result in one button labeled "OK".
@@ -1012,7 +1056,8 @@ export function showFileSaveDialog(saveDialogOptions: SaveDialogOptions, callbac
 }
 
 
-export const MESSAGE_BOX_NO_REPLY = () => {};
+export const MESSAGE_BOX_NO_REPLY = () => {
+};
 
 /**
  * Shows a native message box.
