@@ -47,7 +47,7 @@ To get rid of all outputs since cloning the repo:
 
     npm run clean:all
 
-## Frameworks and Libraries used by Cate 
+## Frameworks and Libraries in use
 
 The following frameworks and libraries are currently used in Cate's production code: 
 
@@ -62,12 +62,12 @@ The following frameworks and libraries are currently used in Cate's production c
 * [Cesium](https://cesiumjs.org/), an open-source JavaScript library for world-class 3D globes and maps.
 * [OpenLayers](https://openlayers.org/), the high-performance, feature-packed library for all your mapping needs.
 
-For Redux, we use the following [middleware](http://redux.js.org/docs/advanced/Middleware.html):
+Utilities:
+
+* [deep-equal](https://www.npmjs.com/package/deep-equal), Node's `assert.deepEqual()` algorithm as a standalone module.
 
 
-
-
-## Development Tools and Libraries
+## Development Tools and Libraries in use
 
 For building:
 
