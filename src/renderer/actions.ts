@@ -137,7 +137,7 @@ export const UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE = 'UPDATE_DATA_SOURCE_TEMPORAL
  * Asynchronously load the available Cate data stores.
  * Called only a single time on app initialisation.
  *
- * @returns {(dispatch:any, getState:any)=>undefined}
+ * @returns a Redux thunk action
  */
 export function loadDataStores() {
     return (dispatch, getState) => {
@@ -167,7 +167,7 @@ function updateDataStores(dataStores: Array<DataStoreState>) {
  * Asynchronously load data sources for given data store ID.
  *
  * @param dataStoreId
- * @returns {(dispatch:any, getState:any)=>undefined}
+ * @returns a Redux thunk action
  */
 export function loadDataSources(dataStoreId: string) {
     return (dispatch, getState) => {
@@ -331,7 +331,7 @@ export const SET_SELECTED_WORKFLOW_STEP_ID = 'SET_SELECTED_WORKFLOW_STEP_ID';
  * Asynchronously load the initial workspace.
  * Called only a single time on app initialisation.
  *
- * @returns {(dispatch:any, getState:any)=>undefined}
+ * @returns a Redux thunk action
  */
 export function loadInitialWorkspace() {
     return (dispatch, getState) => {
@@ -349,7 +349,7 @@ export function loadInitialWorkspace() {
  * Asynchronously create a new workspace.
  *
  * @param workspacePath workspace path, if null, a new scratch workspace will be created
- * @returns {(dispatch:any, getState:any)=>undefined}
+ * @returns a Redux thunk action
  */
 export function newWorkspace(workspacePath: string|null) {
     return (dispatch, getState) => {
@@ -374,7 +374,7 @@ export function newWorkspace(workspacePath: string|null) {
  * Asynchronously open the a workspace.
  *
  * @param workspacePath workspace path
- * @returns {(dispatch:any, getState:any)=>undefined}
+ * @returns a Redux thunk action
  */
 export function openWorkspace(workspacePath?: string|null) {
     return (dispatch, getState) => {
@@ -398,7 +398,7 @@ export function openWorkspace(workspacePath?: string|null) {
 /**
  * Asynchronously close the current workspace.
  *
- * @returns {(dispatch:any, getState:any)=>undefined}
+ * @returns a Redux thunk action
  */
 export function closeWorkspace() {
     return (dispatch, getState: () => State) => {
@@ -419,7 +419,7 @@ export function closeWorkspace() {
 /**
  * Asynchronously close the current workspace.
  *
- * @returns {(dispatch:any, getState:any)=>undefined}
+ * @returns a Redux thunk action
  */
 export function saveWorkspace() {
     return (dispatch, getState: () => State) => {
@@ -444,7 +444,7 @@ export function saveWorkspace() {
 /**
  * Asynchronously close the current workspace.
  *
- * @returns {(dispatch:any, getState:any)=>undefined}
+ * @returns a Redux thunk action
  */
 export function saveWorkspaceAs(workspacePath: string) {
     return (dispatch, getState: () => State) => {
@@ -461,6 +461,145 @@ export function saveWorkspaceAs(workspacePath: string) {
         callAPI(dispatch, `Save workspace as "${workspacePath}"`, call, action);
     }
 }
+
+/**
+ * Asynchronously close the current workspace.
+ *
+ * @returns a Redux thunk action
+ */
+export function newWorkspaceInteractive() {
+    return (dispatch, getState: () => State) => {
+        const workspacePath = showSingleFileOpenDialog({
+            title: "New Workspace - Select Directory",
+            buttonLabel: "Select",
+            properties: ['openDirectory', 'createDirectory'],
+        });
+        if (workspacePath) {
+            const ok = maybeSaveWorkspace(dispatch, getState,
+                "New Workspace",
+                "Would you like to save the current workspace before creating a new one?",
+                "Press \"Cancel\" to cancel creating a new workspace."
+            );
+            if (ok) {
+                dispatch(newWorkspace(workspacePath));
+            }
+        }
+    };
+}
+
+/**
+ * Let user select a workspace directory, then ask whether to save the existing workspace, then open new one.
+ *
+ * @returns a Redux thunk action
+ */
+export function openWorkspaceInteractive() {
+    return (dispatch, getState: () => State) => {
+        const workspacePath = showSingleFileOpenDialog({
+            title: "Open Workspace - Select Directory",
+            buttonLabel: "Open",
+            properties: ['openDirectory'],
+        });
+        if (workspacePath) {
+            const workspace = getState().data.workspace;
+            if (workspace.baseDir === workspacePath) {
+                showMessageBox({title: 'Open Workspace', message: 'Workspace is already open.'}, MESSAGE_BOX_NO_REPLY);
+                return;
+            }
+
+            const ok = maybeSaveWorkspace(dispatch, getState,
+                "Open Workspace",
+                "Would you like to save the current workspace before opening the new one?",
+                "Press \"Cancel\" to cancel opening a new workspace."
+            );
+            if (ok) {
+                dispatch(openWorkspace(workspacePath));
+            }
+        }
+    };
+}
+
+/**
+ * Ask user to whether to save workspace, then close it.
+ *
+ * @returns a Redux thunk action
+ */
+export function closeWorkspaceInteractive() {
+    return (dispatch, getState: () => State) => {
+        const ok = maybeSaveWorkspace(dispatch, getState,
+            "Close Workspace",
+            "Would you like to save the current workspace before closing it?",
+            "Press \"Cancel\" to cancel closing the workspace."
+        );
+        if (ok) {
+            dispatch(closeWorkspace())
+        }
+    };
+}
+
+/**
+ * If current workspace is scratch workspace, delegate to "save as" action" otherwise save it.
+ *
+ * @returns a Redux thunk action
+ */
+export function saveWorkspaceInteractive() {
+    return (dispatch, getState: () => State) => {
+        const workspace = getState().data.workspace;
+        if (workspace.isScratch) {
+            saveWorkspaceAsInteractive();
+        } else {
+            dispatch(saveWorkspace())
+        }
+    };
+}
+
+/**
+ * Let user select a workspace directory, then save it.
+ *
+ * @returns a Redux thunk action
+ */
+export function saveWorkspaceAsInteractive() {
+    return (dispatch) => {
+        const workspacePath = showSingleFileOpenDialog({
+            title: "Save Workspace As - Select Directory",
+            buttonLabel: "Select",
+            properties: ['openDirectory', 'createDirectory', 'promptToCreate'] as OpenDialogProperty[],
+        });
+        if (workspacePath) {
+            dispatch(saveWorkspaceAs(workspacePath))
+        }
+    };
+}
+
+/**
+ * Show a question box asking whether to save current workspace.
+ *
+ * @returns a Redux thunk action
+ */
+const maybeSaveWorkspace = function (dispatch, getState: () => State, title: string, message: string, detail?: string): boolean {
+    const workspace = getState().data.workspace;
+    const maySave = workspace.workflow.steps.length && (workspace.isModified || !workspace.isSaved);
+    if (maySave) {
+        const answer = showMessageBox({
+            title,
+            message,
+            detail,
+            buttons: ["Yes", "No", "Cancel"],
+            defaultId: 0,
+            cancelId: 2,
+        });
+        if (answer == 0) {
+            if (workspace.isScratch) {
+                dispatch(saveWorkspaceAsInteractive());
+            } else {
+                dispatch(saveWorkspace());
+            }
+        } else if (answer === 2) {
+            return false;
+        }
+    }
+    return true;
+};
+
 
 export function setCurrentWorkspace(workspace: WorkspaceState) {
     return {type: SET_CURRENT_WORKSPACE, payload: {workspace}};
@@ -656,7 +795,7 @@ function colorMapsAPI(state: State): ColorMapsAPI {
  * Asynchronously load the initial workspace.
  * Called only a single time on app initialisation.
  *
- * @returns {(dispatch:any, getState:any)=>undefined}
+ * @returns a Redux thunk action
  */
 export function loadColorMaps() {
     return (dispatch, getState: () => State) => {
@@ -690,7 +829,144 @@ export function hidePreferencesDialog() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// General purpose, Electron-based actions
+// Native, Electron-based dialogs, file choosers and message boxes
+
+export interface FileFilter {
+    name: string;
+    extensions: string[];
+}
+
+export type OpenDialogProperty = 'openFile'|'openDirectory'|'multiSelections'|'createDirectory'|'showHiddenFiles';
+
+/**
+ * See dialog.showSaveDialog() in https://github.com/electron/electron/blob/master/docs/api/dialog.md
+ */
+export interface FileDialogOptions {
+    title?: string;
+    defaultPath?: string;
+    /**
+     * Custom label for the confirmation button, when left empty the default label will be used.
+     */
+    buttonLabel?: string;
+    filters?: FileFilter[];
+}
+
+/**
+ * See dialog.showSaveDialog() in https://github.com/electron/electron/blob/master/docs/api/dialog.md
+ */
+export interface SaveDialogOptions extends FileDialogOptions {
+}
+
+/**
+ * See dialog.showOpenDialog() in https://github.com/electron/electron/blob/master/docs/api/dialog.md
+ */
+export interface OpenDialogOptions extends FileDialogOptions {
+    /**
+     * Contains which features the open dialog should use.
+     */
+    properties?: OpenDialogProperty[];
+    /**
+     * Normalize the keyboard access keys across platforms.
+     * Default is false. Enabling this assumes & is used in the button labels for the placement of the
+     * keyboard shortcut access key and labels will be converted so they work correctly on each platform,
+     * & characters are removed on macOS, converted to _ on Linux, and left untouched on Windows.
+     * For example, a button label of Vie&w will be converted to Vie_w on Linux and View on macOS and can
+     * be selected via Alt-W on Windows and Linux.
+     */
+    normalizeAccessKeys?: boolean;
+}
+
+/**
+ * See dialog.showMessageBox() in https://github.com/electron/electron/blob/master/docs/api/dialog.md
+ */
+export interface MessageBoxOptions {
+    /**
+     * Can be "none", "info", "error", "question" or "warning". On Windows, "question" displays the same icon as "info", unless you set an icon using the "icon" option.
+     */
+    type?: string;
+
+    /**
+     * Array of texts for buttons. On Windows, an empty array will result in one button labeled "OK".
+     */
+    buttons?: string[];
+
+    /**
+     * Title of the message box, some platforms will not show it.
+     */
+    title?: string;
+
+    /**
+     * Content of the message box.
+     */
+    message: string;
+
+    /**
+     * Extra information of the message.
+     */
+    detail?: string;
+
+    /**
+     *  NativeImage: https://github.com/electron/electron/blob/master/docs/api/native-image.md
+     */
+    icon?: any;
+
+    /**
+     * Index of the button in the buttons array which will be selected by default when the message box opens.
+     */
+    defaultId?: number;
+
+    /**
+     * The value will be returned when user cancels the dialog instead of clicking the buttons of the dialog.
+     * By default it is the index of the buttons that have "cancel" or "no" as label, or 0 if there is no such buttons.
+     * On macOS and Windows the index of the "Cancel" button will always be used as cancelId even if it is specified.
+     */
+    cancelId?: number;
+
+    /**
+     * On Windows Electron will try to figure out which one of the buttons are common buttons (like "Cancel" or "Yes"),
+     * and show the others as command links in the dialog. This can make the dialog appear in the style of modern
+     * Windows apps. If you don't like this behavior, you can set noLink to true.
+     */
+    noLink?: boolean;
+}
+
+/**
+ * Shows a native file-open dialog.
+ * Similar to "showFileOpenDialog" but will always return a single path or null.
+ *
+ * @param openDialogOptions the file-open dialog options, see https://github.com/electron/electron/blob/master/docs/api/dialog.md
+ * @param callback an optional function which is called with the selected file path
+ * @returns the selected file path or null, if no file path was selected or the callback function is defined
+ */
+export function showSingleFileOpenDialog(openDialogOptions: OpenDialogOptions,
+                                         callback?: (filePath: string) => void): string|null {
+    const getFirstFile = (filePaths: string[]) => (filePaths && filePaths.length) ? filePaths[0] : null;
+    let callbackThunk;
+    if (callback) {
+        callbackThunk = (filePaths: string[]) => {
+            return callback(getFirstFile(filePaths));
+        };
+    }
+    return getFirstFile(showFileOpenDialog(openDialogOptions, callbackThunk));
+}
+
+/**
+ * Shows a native file-open dialog.
+ * Similar to "showFileOpenDialog" but will always return a single path or null.
+ *
+ * @param openDialogOptions the file-open dialog options, see https://github.com/electron/electron/blob/master/docs/api/dialog.md
+ * @param callback an optional function which is called with the selected file path
+ * @returns the selected file path or null, if no file path was selected or the callback function is defined
+ */
+export function showMultiFileOpenDialog(openDialogOptions: OpenDialogOptions,
+                                        callback?: (filePaths: string[]) => void): string[]|null {
+    if (openDialogOptions.properties && !openDialogOptions.properties.find((p) => p === 'multiSelections')) {
+        const properties = openDialogOptions.properties.slice();
+        properties.push('multiSelections');
+        openDialogOptions = Object.assign({}, openDialogOptions, {properties});
+    }
+    return showFileOpenDialog(openDialogOptions, callback);
+}
 
 /**
  * Shows a native file-open dialog.
@@ -699,7 +975,8 @@ export function hidePreferencesDialog() {
  * @param callback an optional function which is called with an array of the selected file paths
  * @returns the array of selected file paths or null, if no file path was selected or the callback function is defined
  */
-export function showFileOpenDialog(openDialogOptions, callback?: (filePaths: string[]) => void): string[]|null {
+export function showFileOpenDialog(openDialogOptions: OpenDialogOptions,
+                                   callback?: (filePaths: string[]) => void): string[]|null {
     const electron = require('electron');
     const actionName = 'show-open-dialog';
     if (callback) {
@@ -720,7 +997,7 @@ export function showFileOpenDialog(openDialogOptions, callback?: (filePaths: str
  * @param callback an optional function which is called with the selected file path
  * @returns the selected filePath or null, if no file path was selected or the callback function is defined
  */
-export function showFileSaveDialog(saveDialogOptions, callback?: (filePath: string) => void): string|null {
+export function showFileSaveDialog(saveDialogOptions: SaveDialogOptions, callback?: (filePath: string) => void): string|null {
     const electron = require('electron');
     const actionName = 'show-save-dialog';
     if (callback) {
@@ -734,6 +1011,7 @@ export function showFileSaveDialog(saveDialogOptions, callback?: (filePath: stri
     }
 }
 
+
 export const MESSAGE_BOX_NO_REPLY = () => {};
 
 /**
@@ -743,9 +1021,12 @@ export const MESSAGE_BOX_NO_REPLY = () => {};
  * @param callback an optional function which is called with the selected button index
  * @returns the selected button index or null, if no button was selected or the callback function is defined
  */
-export function showMessageBox(messageBoxOptions, callback?: (index: number) => void): number|null {
+export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: (index: number) => void): number|null {
     const electron = require('electron');
     const actionName = 'show-message-box';
+    if (!messageBoxOptions.buttons) {
+        messageBoxOptions = Object.assign({}, messageBoxOptions, {buttons: ['OK']});
+    }
     if (callback) {
         electron.ipcRenderer.send(actionName, messageBoxOptions, false);
         electron.ipcRenderer.once(actionName + '-reply', (event, index: number) => {
@@ -756,5 +1037,7 @@ export function showMessageBox(messageBoxOptions, callback?: (index: number) => 
         return electron.ipcRenderer.sendSync(actionName, messageBoxOptions, true);
     }
 }
+
+
 
 

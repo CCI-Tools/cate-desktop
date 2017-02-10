@@ -4,6 +4,7 @@ import {State, SessionState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
 import {TextField} from "../components/TextField";
+import {OpenDialogProperty} from "../actions";
 
 interface IPreferencesDialogProps {
     dispatch?: any;
@@ -129,18 +130,21 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
         );
     }
 
-
-    private static showOpenDirectoryDialog(value: string, onChange: (value) => void) {
+    private static showOpenDirectoryDialog(defaultPath: string, onChange: (value) => void) {
         const openDialogOptions = {
             title: "Select Directory",
-            defaultPath: value,
+            defaultPath: defaultPath,
             buttonLabel: "Select",
-            properties: ["openDirectory"],
+            properties: [
+                'openDirectory' as OpenDialogProperty,
+                'createDirectory' as OpenDialogProperty,
+                'promptToCreate' as OpenDialogProperty,
+            ],
             filter: [],
         };
-        actions.showFileOpenDialog(openDialogOptions, (filePaths: string[]) => {
-            if (filePaths && filePaths.length) {
-                onChange(filePaths[0]);
+        actions.showSingleFileOpenDialog(openDialogOptions, (dirPath: string) => {
+            if (dirPath) {
+                onChange(dirPath);
             }
         });
     }

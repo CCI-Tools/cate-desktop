@@ -398,12 +398,12 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
             title: "Open File",
             defaultPath: value,
             buttonLabel: "Open",
-            properties: ["openFile"],
+            properties: ["openFile" as actions.OpenDialogProperty],
             filter: input.fileFilters,
         };
-        actions.showFileOpenDialog(openDialogOptions, (filePaths: string[]) => {
-            if (filePaths && filePaths.length) {
-                onChange(input, index, filePaths[0]);
+        actions.showSingleFileOpenDialog(openDialogOptions, (filePath: string) => {
+            if (filePath) {
+                onChange(input, index, filePath);
             }
         });
     }
