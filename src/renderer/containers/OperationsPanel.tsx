@@ -85,8 +85,6 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         const dialogId = EditOpStepDialog.getDialogId(this.props.selectedOperationName, true);
         this.props.dispatch(actions.setDialogState(dialogId, dialogState));
 
-        console.log("OperationsPanel: handleAddOpStepDialogClosed", actionId, dialogState.inputAssignments);
-
         // Perform the action
         if (actionId) {
             const resName = this.props.newResourceName;
@@ -110,7 +108,6 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
 
     render() {
-        console.log("render()", this.props.newResourceName);
         const allOperations = this.props.operations || [];
         const operationFilterTags = this.props.operationFilterTags || [];
         const operationFilterExpr = this.props.operationFilterExpr;
