@@ -473,9 +473,15 @@ export interface SessionState {
     lastDir?: string;
     mainWindowBounds?: {x: number; y: number; width: number; height: number};
     devToolsOpened?: boolean;
+    /**
+     * lastWorkspacePath != null, only if it is not a scratch-workspace
+     */
     lastWorkspacePath?: string;
-    openLastWorkspace?: boolean;
+    reopenLastWorkspace?: boolean;
     resourceNamePrefix: string;
+    /**
+     * backendConfig settings are applied on restart (of the WebAPI) only.
+     */
     backendConfig: BackendConfigState;
 }
 

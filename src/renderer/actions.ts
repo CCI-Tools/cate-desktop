@@ -132,6 +132,15 @@ export const UPDATE_BACKEND_CONFIG = 'UPDATE_BACKEND_CONFIG';
 export const SAVE_BACKEND_CONFIG = 'SAVE_BACKEND_CONFIG';
 
 export function applyPreferences(session: SessionState) {
+    return (dispatch, getState) => {
+        // Apply changes to the state object, in the renderer process
+        dispatch(applyPreferencesImpl(session));
+        // Apply changes to the Electron host, in the main process
+        applyPreferencesMain(session);
+    };
+}
+
+export function applyPreferencesImpl(session: SessionState) {
     return {type: APPLY_PREFERENCES, payload: {session}};
 }
 
@@ -146,7 +155,7 @@ export function loadBackendConfig() {
         }
 
         callAPI(dispatch, 'Loading backend configuration', call, action);
-    }
+    };
 }
 
 export function storeBackendConfig(backendConfig: BackendConfigState) {
@@ -156,7 +165,7 @@ export function storeBackendConfig(backendConfig: BackendConfigState) {
         }
 
         callAPI(dispatch, 'Storing backend configuration', call);
-    }
+    };
 }
 
 export function updateBackendConfig(backendConfig: BackendConfigState) {
@@ -379,9 +388,9 @@ export const SET_SELECTED_WORKFLOW_STEP_ID = 'SET_SELECTED_WORKFLOW_STEP_ID';
  */
 export function loadInitialWorkspace() {
     return (dispatch, getState) => {
-        const openLastWorkspace = getState().session.openLastWorkspace;
+        const reopenLastWorkspace = getState().session.reopenLastWorkspace;
         const lastWorkspacePath = getState().session.lastWorkspacePath;
-        if (openLastWorkspace && lastWorkspacePath) {
+        if (reopenLastWorkspace && lastWorkspacePath) {
             dispatch(openWorkspace(lastWorkspacePath));
         } else {
             dispatch(newWorkspace(null));
@@ -1083,6 +1092,27 @@ export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: 
     }
 }
 
+/**
+ * Store frontend preferences (but not backend configuration).
+ *
+ * @param session the session state to be stored
+ * @param callback an optional function which is called with the selected button index
+ * @returns the selected button index or null, if no button was selected or the callback function is defined
+ */
+export function applyPreferencesMain(session: SessionState, callback?: (error: any) => void): void {
+    const electron = require('electron');
+    const preferences = Object.assign({}, session);
+    if (preferences.hasOwnProperty('backendConfig')) {
+        delete preferences.backendConfig;
+    }
+    const actionName = 'apply-preferences';
+    electron.ipcRenderer.send(actionName, preferences);
+    if (callback) {
+        electron.ipcRenderer.once(actionName + '-reply', (event, error: any) => {
+            callback(error);
+        });
+    }
+}
 
 
 

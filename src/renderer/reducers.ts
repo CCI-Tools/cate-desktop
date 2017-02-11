@@ -214,7 +214,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
 // state.session initial state and reducers
 
 const initialSessionState: SessionState = {
-    openLastWorkspace: false,
+    reopenLastWorkspace: false,
     lastWorkspacePath: null,
     resourceNamePrefix: 'res_',
     backendConfig: {

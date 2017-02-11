@@ -101,7 +101,7 @@ function getDefaultUserPrefsFile() {
     if (_config.data.prefsFile) {
         return _config.data.prefsFile;
     }
-    return path.join(getAppDataDir(), 'cate-prefs.json');
+    return path.join(getAppDataDir(), 'preferences.json');
 }
 
 function storeUserPrefs(prefs: Configuration) {
@@ -423,9 +423,16 @@ function createMainWindow() {
         });
     });
 
-    ipcMain.on('store-preferences', (event, preferences) => {
+    ipcMain.on('apply-preferences', (event, preferences) => {
         _prefs.setAll(preferences);
-        storeUserPrefs(_prefs);
+        let error;
+        try {
+            storeUserPrefs(_prefs);
+            error = null;
+        } catch (e) {
+            error = e;
+        }
+        event.sender.send('apply-preferences-reply', error);
     });
 }
 

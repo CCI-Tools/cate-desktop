@@ -21,6 +21,8 @@ function mapStateToProps(state: State): IPreferencesDialogProps {
     };
 }
 
+// TODO (forman): add validation of preferences changes
+
 class PreferencesDialog extends React.Component<IPreferencesDialogProps, SessionState> {
     static readonly DIALOG_ID = 'preferencesDialog';
     static readonly DIALOG_TITLE = 'Preferences';
@@ -44,16 +46,16 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
             this.props.dispatch(actions.applyPreferences(this.state));
             if (backendChangesDetected) {
                 this.props.dispatch(actions.storeBackendConfig(backendConfig));
-                this.props.dispatch(actions.showMessageBox({
+                actions.showMessageBox({
                     title: PreferencesDialog.DIALOG_TITLE,
                     message: "Some changes will be effective only after restart."
-                }));
+                });
             }
         } else {
-            this.props.dispatch(actions.showMessageBox({
+            actions.showMessageBox({
                 title: PreferencesDialog.DIALOG_TITLE,
                 message: "No changes detected."
-            }));
+            });
         }
     }
 
@@ -103,16 +105,25 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
             <div className={Classes.DIALOG_BODY}>
                 <Tabs>
                     <TabList>
+                        <Tab>General</Tab>
                         <Tab>Data Management</Tab>
-                        <Tab>Miscellaneous</Tab>
                     </TabList>
+                    <TabPanel>
+                        {this.renderGeneralPanel()}
+                    </TabPanel>
                     <TabPanel>
                         {this.renderDataManagementPanel()}
                     </TabPanel>
-                    <TabPanel>
-                        {this.renderMiscellaneousPanel()}
-                    </TabPanel>
                 </Tabs>
+            </div>
+        );
+    }
+
+    private renderGeneralPanel() {
+        return (
+            <div style={{width: '100%', marginTop:'1em'}}>
+                {this.renderReopenLastWorkspace()}
+                {this.renderResourceNamePrefix()}
             </div>
         );
     }
@@ -126,65 +137,110 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
         );
     }
 
+    private renderReopenLastWorkspace() {
+        return this.renderBooleanValue(
+            'reopenLastWorkspace',
+            false,
+            "Reopen last workspace on startup"
+        );
+    }
+
+    private renderResourceNamePrefix() {
+        return this.renderStringValue(
+            'resourceNamePrefix',
+            false,
+            'Resource name prefix'
+        );
+    }
+
     private renderDataStoresPath() {
-        const onChange = (dataStoresPath: string) => {
-            this.setBackendConfig({dataStoresPath});
-        };
-        const dataStoresPath = this.state.backendConfig.dataStoresPath || '';
+        return this.renderDirectoryPath(
+            'dataStoresPath',
+            true,
+            'Synchronisation directory for remote data store files'
+        );
+    }
+
+    private renderCacheWorkspaceImagery() {
+        return this.renderBooleanValue(
+            'useWorkspaceImageryCache',
+            true,
+            "Use per-workspace imagery cache (may accelerate image display)"
+        );
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Components
+    // Note (forman): could make this React component later
+
+    private renderDirectoryPath(propertyName, isBackend: boolean, label: string) {
+        const initialValue = this.getStateValue(propertyName, isBackend);
+        const onChange = this.getChangeHandler(propertyName, isBackend);
         return (
             <div style={{width: '100%', marginBottom:'1em'}}>
-                <p>Data stores synchronisation directory:</p>
+                <p>{label}:</p>
                 <div className="pt-control-group" style={{display: 'flex', alignItems: 'center'}}>
                     <TextField className="pt-input"
                                style={{flexGrow: 1}}
-                               value={dataStoresPath}
+                               value={initialValue}
                                placeholder="Enter local directory path"
                                onChange={onChange}
                     />
                     <Button className="pt-intent-primary" style={{flex: 'none'}}
-                            onClick={() => PreferencesDialog.showOpenDirectoryDialog(dataStoresPath, onChange)}>...</Button>
+                            onClick={() => PreferencesDialog.showOpenDirectoryDialog(initialValue, onChange)}>...</Button>
                 </div>
             </div>
         );
     }
 
-    private renderCacheWorkspaceImagery() {
-        const onChange = (useWorkspaceImageryCache: boolean) => {
-            this.setBackendConfig({useWorkspaceImageryCache});
-        };
-        const useWorkspaceImageryCache = this.state.backendConfig.useWorkspaceImageryCache;
+    private renderStringValue(propertyName: string, isBackend: boolean, label: string) {
+        const initialValue = this.getStateValue(propertyName, isBackend);
+        const onChange = this.getChangeHandler(propertyName, isBackend);
         return (
-            <div style={{width: '100%', marginBottom:'1em'}}>
-                <Switch checked={useWorkspaceImageryCache}
-                        label="Cache workspace imagery for faster image display"
-                        onChange={(event: any) => onChange(event.target.checked)} />
-            </div>
-        );
-    }
-
-    private renderMiscellaneousPanel() {
-        return (
-            <div style={{width: '100%', marginTop:'1em'}}>
-                {this.renderResourceNamePrefix()}
-            </div>
-        );
-    }
-
-    private renderResourceNamePrefix() {
-        const onChange = (resourceNamePrefix: string) => {
-            this.setState({resourceNamePrefix} as SessionState);
-        };
-        const resourceNamePrefix = this.state.resourceNamePrefix;
-        return (
-            <div className="pt-control-group" style={{width: '100%', marginBottom:'1em', display: 'flex', alignItems: 'center'}}>
-                <span style={{flexGrow: 0.8}}>Resource name prefix:</span>
+            <div className="pt-control-group"
+                 style={{width: '100%', marginBottom:'1em', display: 'flex', alignItems: 'center'}}>
+                <span style={{flexGrow: 0.8}}>{label}:</span>
                 <TextField className="pt-input"
                            style={{flexGrow: 0.2}}
-                           value={resourceNamePrefix}
+                           value={initialValue}
                            onChange={onChange}
                 />
             </div>
         );
+    }
+
+    private renderBooleanValue(propertyName: string, isBackend: boolean, label: string) {
+        const initialValue = this.getStateValue(propertyName, isBackend);
+        const onChange = this.getChangeHandler(propertyName, isBackend);
+        return (
+            <div style={{width: '100%', marginBottom:'1em'}}>
+                <Switch checked={initialValue}
+                        label={label}
+                        onChange={(event: any) => onChange(event.target.checked)}/>
+            </div>
+        );
+    }
+
+    private getChangeHandler(propertyName: string, isBackend: boolean) {
+        return (value: any) => {
+            const change = {};
+            change[propertyName] = value;
+            console.log('getChangeHandler', propertyName, isBackend, change);
+            if (isBackend) {
+                this.setBackendConfig(change);
+            } else {
+                this.setState(change as SessionState);
+            }
+        };
+    }
+
+    private getStateValue(propertyName: string, isBackend: boolean) {
+        return isBackend ? this.state.backendConfig[propertyName] : this.state[propertyName];
+    }
+
+    private setBackendConfig(backendConfigDelta: any) {
+        const backendConfig = Object.assign({}, this.state.backendConfig, backendConfigDelta);
+        this.setState({backendConfig} as SessionState);
     }
 
     private static showOpenDirectoryDialog(defaultPath: string, onChange: (value) => void) {
@@ -204,11 +260,6 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
                 onChange(dirPath);
             }
         });
-    }
-
-    private setBackendConfig(backendConfigDelta: any) {
-        const backendConfig = Object.assign({}, this.state.backendConfig, backendConfigDelta);
-        this.setState({backendConfig} as SessionState);
     }
 }
 
