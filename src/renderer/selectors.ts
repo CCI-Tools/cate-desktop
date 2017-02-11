@@ -50,7 +50,6 @@ export const newResourceNameSelector = (resources: ResourceState[], namePrefix: 
             }
         }
     }
-    console.log("newResourceNameSelector", namePrefix, maxNameIndex);
     return `${namePrefix}${maxNameIndex + 1}`;
 };
 
