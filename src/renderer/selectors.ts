@@ -99,7 +99,10 @@ export const filteredDataSourcesSelector = createSelector<State, DataSourceState
         const hasFilterExpr = dataSourceFilterExpr && dataSourceFilterExpr !== '';
         if (hasDataSources && hasFilterExpr) {
             const dataSourceFilterExprLC = dataSourceFilterExpr.toLowerCase();
-            const nameMatches = ds => ds.name.toLowerCase().includes(dataSourceFilterExprLC);
+            const parts = dataSourceFilterExprLC.split(" ")
+            const nameMatches = ds => {
+                return parts.every(part => ds.name.toLowerCase().includes(part));
+            };
             return selectedDataSources.filter(ds => nameMatches(ds));
         }
         return selectedDataSources;

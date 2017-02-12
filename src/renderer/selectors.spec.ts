@@ -83,8 +83,8 @@ describe('DataStore/DataSource selectors', function () {
         expect(selectors.filteredDataSourcesSelector(getState(dataStores, 'local2', null, '2') as State)
         ).to.deep.equal([{id: 'ds2', name: 'B2'}]);
 
-        expect(selectors.filteredDataSourcesSelector(getState(dataStores, 'local2', null, '2 3') as State)
-        ).to.deep.equal([]);
+        expect(selectors.filteredDataSourcesSelector(getState(dataStores, 'local2', null, '3 B') as State)
+        ).to.deep.equal([{id: 'ds3', name: 'B3'}]);
     });
 
     it('selectedDataSourceSelector', function () {
