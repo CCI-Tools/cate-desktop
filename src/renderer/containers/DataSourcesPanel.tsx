@@ -1,21 +1,25 @@
 import * as React from "react";
-import {connect, Dispatch} from "react-redux";
+import {connect} from "react-redux";
 import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, DataStoreState, WorkspaceState, DataSourceState} from "../state";
 import {Tabs, TabList, Tab, TabPanel, Button, InputGroup, Classes, Tag, NumberRange} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
 import {OpenDatasetDialog, IOpenDatasetDialogState} from "./OpenDatasetDialog";
-import * as actions from "../actions";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
+import * as actions from "../actions";
+import * as selectors from "../selectors";
+
 
 interface IDataSourcesPanelProps {
     webAPIClient: any;
     workspace: WorkspaceState;
     dataStores: Array<DataStoreState>;
-    selectedDataStoreId: string|null;
-    selectedDataSourceId: string|null;
     dataSourceFilterExpr: string;
+    selectedDataStore: DataStoreState|null;
+    selectedDataSource: DataSourceState|null;
+    selectedDataSources: DataSourceState[]|null;
+    filteredDataSources: DataSourceState[]|null;
     showDataSourceDetails: boolean;
     openDatasetDialogState: IOpenDatasetDialogState;
 }
@@ -23,12 +27,14 @@ interface IDataSourcesPanelProps {
 function mapStateToProps(state: State): IDataSourcesPanelProps {
     return {
         webAPIClient: state.data.appConfig.webAPIClient,
-        workspace: state.data.workspace,
-        dataStores: state.data.dataStores,
-        selectedDataStoreId: state.control.selectedDataStoreId,
-        selectedDataSourceId: state.control.selectedDataSourceId,
-        dataSourceFilterExpr: state.control.dataSourceFilterExpr,
-        showDataSourceDetails: state.control.showDataSourceDetails,
+        workspace: selectors.workspaceSelector(state),
+        dataStores: selectors.dataStoresSelector(state),
+        dataSourceFilterExpr: selectors.dataSourceFilterExprSelector(state),
+        selectedDataStore: selectors.selectedDataStoreSelector(state),
+        selectedDataSource: selectors.selectedDataSourceSelector(state),
+        selectedDataSources: selectors.selectedDataSourcesSelector(state),
+        filteredDataSources: selectors.filteredDataSourcesSelector(state),
+        showDataSourceDetails: selectors.showDataSourceDetailsSelector(state),
         openDatasetDialogState: (state.control.dialogs[OpenDatasetDialog.DIALOG_ID] || {}) as IOpenDatasetDialogState
     };
 }
@@ -65,10 +71,10 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
     }
 
     private handleShowOpenDatasetDialog() {
-        const selectedDataSource = this.getSelectedDataSource();
+        const selectedDataSource = this.props.selectedDataSource;
         this.props.showOpenDatasetDialog(
-            this.props.selectedDataStoreId,
-            this.props.selectedDataSourceId,
+            this.props.selectedDataStore.id,
+            this.props.selectedDataSource.id,
             !selectedDataSource.temporalCoverage
         );
     }
@@ -82,49 +88,13 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         this.props.setControlState('showDataSourceDetails', value);
     }
 
-    // TODO (forman): reselect: use selectors.selectedDataStoreSelector() instead
-    private getSelectedDataStore(): DataStoreState|null {
-        if (!this.props.dataStores || !this.props.selectedDataStoreId) {
-            return null;
-        }
-        return this.props.dataStores.find(dataStore => dataStore.id === this.props.selectedDataStoreId);
-    }
-
-    // TODO (forman): reselect: use selectors.selectedDataSourcesSelector() instead
-    private getDataSourcesOfSelectedDataStore(): Array<DataSourceState>|null {
-        const selectedDataStore = this.getSelectedDataStore();
-        return (selectedDataStore && selectedDataStore.dataSources) || null;
-    }
-
-    // TODO (forman): reselect: use selectors.selectedDataSourceSelector() instead
-    private getSelectedDataSource(): DataSourceState|null {
-        if (!this.props.selectedDataSourceId) {
-            return null;
-        }
-        const dataSources = this.getDataSourcesOfSelectedDataStore();
-        if (!dataSources) {
-            return null;
-        }
-        return dataSources.find(dataSource => dataSource.id === this.props.selectedDataSourceId);
-    }
-
     render() {
-        const allDataStores = this.props.dataStores;
-        const hasDataStores = allDataStores && allDataStores.length;
-
-        const allDataSources = this.getDataSourcesOfSelectedDataStore();
-        const hasDataSources = allDataSources && allDataSources.length;
-
+        const hasDataStores = this.props.dataStores && this.props.dataStores.length;
+        const hasDataSources = this.props.selectedDataSources && this.props.selectedDataSources.length;
         if (hasDataStores && hasDataSources) {
 
             const dataSourceFilterExpr = this.props.dataSourceFilterExpr;
-            const dataSourceFilterExprLC = dataSourceFilterExpr ? dataSourceFilterExpr.toLowerCase() : null;
-
-            // TODO (forman): reselect: use selectors.filteredDataSourcesSelector() instead
-            const nameMatches = ds => !dataSourceFilterExprLC || ds.name.toLowerCase().includes(dataSourceFilterExprLC);
-            const filteredDataSources = !dataSourceFilterExpr
-                ? allDataSources
-                : allDataSources.filter(ds => nameMatches(ds));
+            const filteredDataSources = this.props.filteredDataSources;
 
             const resultsTag = (
                 <Tag className={Classes.MINIMAL}>
@@ -143,7 +113,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             // {...this.props.openDatasetDialogState}
             let openDatasetDialog = null;
             if (this.props.openDatasetDialogState.isOpen) {
-                const dataSource = this.getSelectedDataSource();
+                const dataSource = this.props.selectedDataSource;
 
                 openDatasetDialog = (
                     <OpenDatasetDialog
@@ -158,7 +128,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                 <div>
                     <Button className="pt-intent-primary"
                             onClick={this.handleShowOpenDatasetDialog.bind(this)}
-                            disabled={!this.props.selectedDataSourceId || !this.props.workspace}
+                            disabled={!this.props.selectedDataSource || !this.props.workspace}
                             iconName="folder-shared-open">Open...</Button>
                     {openDatasetDialog}
                 </div>
@@ -174,9 +144,9 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                                              initialContentHeight={200}
                                              actionComponent={actionComponent}>
                         <DataSourcesList dataSources={filteredDataSources}
-                                         selectedDataSourceId={this.props.selectedDataSourceId}
+                                         selectedDataSourceId={this.props.selectedDataSource ? this.props.selectedDataSource.id : null}
                                          setSelectedDataSourceId={this.props.setSelectedDataSourceId}/>
-                        <DataSourceDetails dataSource={this.getSelectedDataSource()}/>
+                        <DataSourceDetails dataSource={this.props.selectedDataSource}/>
                     </ContentWithDetailsPanel>
                 </ExpansionPanel>
             );
@@ -210,7 +180,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             <label className="pt-label pt-inline">
                 Data store:
                 <div className="pt-select" style={{padding: '0.2em'}}>
-                    <select value={this.props.selectedDataStoreId || ''}
+                    <select value={this.props.selectedDataStore ? this.props.selectedDataStore.id : ''}
                             onChange={this.handleDataStoreSelected.bind(this)}>
                         {dataStoreOptions}
                     </select>

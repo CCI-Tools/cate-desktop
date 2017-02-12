@@ -1,24 +1,18 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
-    ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState
+    ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState
 } from "./state";
 import {createSelector} from 'reselect';
 
-// TODO (forman/marcoz): write unit tests for selectors
+// TODO (forman/marcoz): write more unit tests for selectors
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Operation selectors
 
 export const operationsSelector = (state: State): OperationState[]|null => state.data.operations;
 export const operationFilterTagsSelector = (state: State): string[]|null => state.control.operationFilterTags;
 export const operationFilterExprSelector = (state: State): string|null => state.control.operationFilterExpr;
 export const selectedOperationNameSelector = (state: State): string|null => state.control.selectedOperationName;
-export const workspaceSelector = (state: State): WorkspaceState|null => state.data.workspace;
-export const resourcesSelector = (state: State): Array<ResourceState> => state.data.workspace ? state.data.workspace.resources : [];
-export const selectedResourceIdSelector = (state: State): string|null => state.control.selectedWorkspaceResourceId;
-export const selectedVariableNameSelector = (state: State): string|null => state.control.selectedVariableName;
-export const layersSelector = (state: State): Array<LayerState> => state.data.layers;
-export const selectedLayerIdSelector = (state: State): string|null => state.control.selectedLayerId;
-export const colorMapCategoriesSelector = (state: State): Array<ColorMapCategoryState> => state.data.colorMaps;
-export const resourceNamePrefixSelector = (state: State): string => state.session.resourceNamePrefix;
-
 
 export const selectedOperationSelector = createSelector<State, OperationState|null, OperationState[]|null, string|null>(
     operationsSelector,
@@ -69,6 +63,68 @@ export const operationsTagCountsSelector = createSelector<State, Map<string, num
         return tagCounts;
     }
 );
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Data store and data source selectors
+
+export const dataStoresSelector = (state: State) => state.data.dataStores;
+export const selectedDataStoreIdSelector = (state: State) => state.control.selectedDataStoreId;
+export const selectedDataSourceIdSelector = (state: State) => state.control.selectedDataSourceId;
+export const dataSourceFilterExprSelector = (state: State) => state.control.dataSourceFilterExpr;
+export const showDataSourceDetailsSelector = (state: State) => state.control.showDataSourceDetails;
+
+export const selectedDataStoreSelector = createSelector<State, DataStoreState|null, DataStoreState[]|null, string|null>(
+    dataStoresSelector,
+    selectedDataStoreIdSelector,
+    (dataStores, selectedDataStoreId) => {
+        if (!dataStores || !dataStores.length || !selectedDataStoreId) {
+            return null;
+        }
+        return dataStores.find(dataStore => dataStore.id === selectedDataStoreId);
+    }
+);
+
+export const selectedDataSourcesSelector = createSelector<State, DataSourceState[]|null, DataStoreState|null>(
+    selectedDataStoreSelector,
+    (selectedDataStore) => {
+        return (selectedDataStore && selectedDataStore.dataSources) || null;
+    }
+);
+
+export const filteredDataSourcesSelector = createSelector<State, DataSourceState[]|null, DataSourceState[]|null, string|null>(
+    selectedDataSourcesSelector,
+    dataSourceFilterExprSelector,
+    (selectedDataSources, dataSourceFilterExpr) => {
+        const hasDataSources = selectedDataSources && selectedDataSources.length;
+        const hasFilterExpr = dataSourceFilterExpr && dataSourceFilterExpr !== '';
+        if (hasDataSources && hasFilterExpr) {
+            const dataSourceFilterExprLC = dataSourceFilterExpr.toLowerCase();
+            const nameMatches = ds => ds.name.toLowerCase().includes(dataSourceFilterExprLC);
+            return selectedDataSources.filter(ds => nameMatches(ds));
+        }
+        return selectedDataSources;
+    }
+);
+
+export const selectedDataSourceSelector = createSelector<State, DataSourceState|null, DataSourceState[]|null,  string|null>(
+    selectedDataSourcesSelector,
+    selectedDataSourceIdSelector,
+    (selectedDataSources, selectedDataSourceId) => {
+        if (!selectedDataSources || !selectedDataSourceId) {
+            return null;
+        }
+        return selectedDataSources.find(dataSource => dataSource.id === selectedDataSourceId);
+    }
+);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Workspace, resource, step, and variable selectors
+
+export const workspaceSelector = (state: State): WorkspaceState|null => state.data.workspace;
+export const resourcesSelector = (state: State): Array<ResourceState> => state.data.workspace ? state.data.workspace.resources : [];
+export const selectedResourceIdSelector = (state: State): string|null => state.control.selectedWorkspaceResourceId;
+export const selectedVariableNameSelector = (state: State): string|null => state.control.selectedVariableName;
+export const resourceNamePrefixSelector = (state: State): string => state.session.resourceNamePrefix;
 
 export const selectedResourceSelector = createSelector<State, ResourceState|null, ResourceState[], string>(
     resourcesSelector,
@@ -125,6 +181,12 @@ export const selectedVariableSelector = createSelector<State, VariableState|null
     }
 );
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Layer selectors
+
+export const layersSelector = (state: State): Array<LayerState> => state.data.layers;
+export const selectedLayerIdSelector = (state: State): string|null => state.control.selectedLayerId;
+
 export const selectedLayerSelector = createSelector<State, LayerState|null, LayerState[], string>(
     layersSelector,
     selectedLayerIdSelector,
@@ -152,6 +214,11 @@ export const selectedVariableImageLayerSelector = createSelector<State, Variable
         return null;
     }
 );
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Color map selectors
+
+export const colorMapCategoriesSelector = (state: State): Array<ColorMapCategoryState> => state.data.colorMaps;
 
 export const selectedColorMapSelector = createSelector<State, ColorMapState, ColorMapCategoryState[]|null, VariableImageLayerState|null>(
     colorMapCategoriesSelector,
