@@ -283,8 +283,8 @@ export function init() {
         // On OS X it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
         if (_mainWindow === null) {
-            // TODO (forman): must find out what Mac OS expects am app to do once it becomes deactivated
-            //   - is it a complete reatrt or should it remain in its previous state?
+            // TODO (forman): must find out what Mac OS expects an app to do, once it becomes deactivated
+            //   - is it a complete restart or should it remain in its previous state?
             //   - must we stop the webapi on "deactivate" and start on "activate"?
             createMainWindow();
         }

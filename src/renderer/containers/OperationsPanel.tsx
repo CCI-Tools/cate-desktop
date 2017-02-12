@@ -19,10 +19,13 @@ interface IOperationsPanelProps {
     dispatch?: Dispatch<State>;
     webAPIClient: any;
     workspace: WorkspaceState;
-    operations: Array<OperationState>;
+    operations: OperationState[]|null;
     selectedOperationName: string|null;
-    operationFilterTags: Array<string>|null;
+    selectedOperation: OperationState|null;
+    filteredOperations: OperationState[];
+    operationFilterTags: string[]|null;
     operationFilterExpr: string|null;
+    operationsTagCounts: Map<string, number>,
     showOperationDetails: boolean;
     editOpStepDialogState: IEditOpStepDialogState;
     newResourceName: string;
@@ -30,22 +33,22 @@ interface IOperationsPanelProps {
 
 
 function mapStateToProps(state: State): IOperationsPanelProps {
-    const resources = selectors.resourcesSelector(state);
-    const resourceNamePrefix = selectors.resourceNamePrefixSelector(state);
-    const newResourceName = selectors.newResourceNameSelector(resources, resourceNamePrefix);
     const dialogId = EditOpStepDialog.getDialogId(state.control.selectedOperationName, true);
     return {
         webAPIClient: state.data.appConfig.webAPIClient,
         workspace: state.data.workspace,
-        operations: state.data.operations,
-        selectedOperationName: state.control.selectedOperationName,
-        operationFilterTags: state.control.operationFilterTags,
-        operationFilterExpr: state.control.operationFilterExpr,
+        operations: selectors.operationsSelector(state),
+        selectedOperation: selectors.selectedOperationSelector(state),
+        filteredOperations: selectors.filteredOperationsSelector(state),
+        selectedOperationName: selectors.selectedOperationNameSelector(state),
+        operationFilterTags: selectors.operationFilterTagsSelector(state) || [],
+        operationFilterExpr: selectors.operationFilterExprSelector(state),
+        operationsTagCounts: selectors.operationsTagCountsSelector(state),
         showOperationDetails: state.control.showOperationDetails,
         editOpStepDialogState: ((dialogId && state.control.dialogs[dialogId]) || {}) as IEditOpStepDialogState,
         // TODO (forman): Handle case where action is called twice without completing the first.
         //                In this case the same resource name will be generated :(
-        newResourceName: newResourceName
+        newResourceName: selectors.newResourceNameSelector(state)
     };
 }
 
@@ -62,12 +65,6 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         }
     }
 
-    private getSelectedOperation(): OperationState {
-        return this.props.selectedOperationName
-            ? (this.props.operations || []).find(op => op.name === this.props.selectedOperationName)
-            : null;
-    }
-
     private handleShowDetailsChanged(value: boolean) {
         this.props.dispatch(actions.setControlState('showOperationDetails', value));
     }
@@ -79,7 +76,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     }
 
     private handleAddOpStepDialogClosed(actionId: string, dialogState: IEditOpStepDialogState) {
-        const selectedOperation = this.getSelectedOperation();
+        const selectedOperation = this.props.selectedOperation;
 
         // Close "addOpStep_X" dialog and save state
         const dialogId = EditOpStepDialog.getDialogId(this.props.selectedOperationName, true);
@@ -105,40 +102,29 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         }
     }
 
-
-
     render() {
-        const allOperations = this.props.operations || [];
-        const operationFilterTags = this.props.operationFilterTags || [];
-        const operationFilterExpr = this.props.operationFilterExpr;
-        const selectedOperation = this.getSelectedOperation();
+        const operations = this.props.operations;
+        if (operations && operations.length) {
+            const selectedOperation = this.props.selectedOperation;
+            const operationFilterExpr = this.props.operationFilterExpr;
+            const operationTagFilterPanel = this.renderOperationTagFilterPanel();
+            const operationsList = this.renderOperationsList();
+            const operationDetailsCard = this.renderOperationDetailsCard();
 
-        let nameMatches = op => !operationFilterExpr || op.name.includes(operationFilterExpr);
-        let hasTag = op => !operationFilterTags.length || operationFilterTags.every(tag => new Set(op.tags).has(tag));
-        const filteredOperations = !operationFilterExpr && !operationFilterTags.length
-            ? allOperations
-            : allOperations.filter(op => nameMatches(op) && hasTag(op));
+            const resultsTag = (
+                <Tag className={Classes.MINIMAL}>
+                    {this.props.filteredOperations.length}
+                </Tag>
+            );
 
-        const resultsTag = (
-            <Tag className={Classes.MINIMAL}>
-                {filteredOperations.length}
-            </Tag>
-        );
-        const operationFilterExprInput = (<InputGroup
-            disabled={false}
-            leftIconName="filter"
-            onChange={this.handleOperationFilterExprChange.bind(this)}
-            placeholder="Find operation"
-            rightElement={resultsTag}
-            value={operationFilterExpr}
-        />);
-
-        if (allOperations.length > 0) {
-            const selectedOperationName = this.props.selectedOperationName;
-
-            const operationTagFilterPanel = this.renderOperationTagFilterPanel(allOperations, new Set(operationFilterTags));
-            const operationsList = this.renderOperationsList(filteredOperations, selectedOperationName);
-            const operationDetailsCard = this.renderOperationDetailsCard(selectedOperation);
+            const operationFilterExprInput = (<InputGroup
+                disabled={false}
+                leftIconName="filter"
+                onChange={this.handleOperationFilterExprChange.bind(this)}
+                placeholder="Find operation"
+                rightElement={resultsTag}
+                value={operationFilterExpr}
+            />);
 
             let addOpStepDialog = null;
             if (this.props.editOpStepDialogState.isOpen) {
@@ -186,7 +172,10 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         }
     }
 
-    private renderOperationsList(operations: Array<OperationState>, selectedOperationName: string) {
+    private renderOperationsList() {
+        const operations = this.props.filteredOperations;
+        const selectedOperationName = this.props.selectedOperationName;
+
         const renderItem = (itemIndex: number) => {
             const operation: OperationState = operations[itemIndex];
 
@@ -229,13 +218,9 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     }
 
     //noinspection JSMethodCanBeStatic
-    private renderOperationTagFilterPanel(operations: Array<OperationState>, selectedOperationTags: Set<string>) {
-
-        // Note: since our list of operations remains constant, we should compute tagCounts beforehand
-        let tagCounts = new Map<string, number>();
-        operations.forEach((op: OperationState) => (op.tags || []).forEach((tag: string) => {
-            tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
-        }));
+    private renderOperationTagFilterPanel() {
+        const selectedOperationTags = new Set(this.props.operationFilterTags);
+        const tagCounts = this.props.operationsTagCounts;
 
         const tagContainerStyle = {padding: '0.2em'};
         const tagStyle = {marginRight: '0.2em'};
@@ -290,8 +275,8 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         this.props.dispatch(actions.setOperationFilterTags(Array.from(tags)));
     }
 
-    //noinspection JSMethodCanBeStatic
-    private renderOperationDetailsCard(operation: OperationState) {
+    private renderOperationDetailsCard() {
+        const operation = this.props.selectedOperation;
         let title = "No selection";
         let description = null;
         let tags = null;

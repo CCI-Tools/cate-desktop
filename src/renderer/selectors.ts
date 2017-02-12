@@ -1,11 +1,16 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
-    ColorMapCategoryState
+    ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState
 } from "./state";
+import {createSelector} from 'reselect';
 
-// TODO (forman/marcoz): write unit tests for actions
-// TODO (forman/marcoz): use reselect JS library
+// TODO (forman/marcoz): write unit tests for selectors
 
+export const operationsSelector = (state: State): OperationState[]|null => state.data.operations;
+export const operationFilterTagsSelector = (state: State): string[]|null => state.control.operationFilterTags;
+export const operationFilterExprSelector = (state: State): string|null => state.control.operationFilterExpr;
+export const selectedOperationNameSelector = (state: State): string|null => state.control.selectedOperationName;
+export const workspaceSelector = (state: State): WorkspaceState|null => state.data.workspace;
 export const resourcesSelector = (state: State): Array<ResourceState> => state.data.workspace ? state.data.workspace.resources : [];
 export const selectedResourceIdSelector = (state: State): string|null => state.control.selectedWorkspaceResourceId;
 export const selectedVariableNameSelector = (state: State): string|null => state.control.selectedVariableName;
@@ -14,18 +19,64 @@ export const selectedLayerIdSelector = (state: State): string|null => state.cont
 export const colorMapCategoriesSelector = (state: State): Array<ColorMapCategoryState> => state.data.colorMaps;
 export const resourceNamePrefixSelector = (state: State): string => state.session.resourceNamePrefix;
 
-// Note this is composite selector, with reselect use:
-//    selectedResourceSelector = createSelector(resourcesSelector, selectedResourceIdSelector, (resources, selectedResourceId) => {...})
-//
-export const selectedResourceSelector = (state: State): ResourceState|null => {
-    const resources = resourcesSelector(state);
-    const selectedResourceId = selectedResourceIdSelector(state);
-    return resources.find(r => r.name === selectedResourceId);
-};
 
-// Note this is composite selector, with reselect use:
-//    newResourceSelector = createSelector(resourcesSelector, resourceNamePrefixSelector, (resources, namePrefix) => {...})
-//
+export const selectedOperationSelector = createSelector<State, OperationState|null, OperationState[]|null, string|null>(
+    operationsSelector,
+    selectedOperationNameSelector,
+    (operations, selectedOperationName) => {
+        if (selectedOperationName === null) {
+            return null;
+        }
+        return (operations || []).find(op => op.name === selectedOperationName);
+    }
+);
+
+
+export const filteredOperationsSelector = createSelector<State, OperationState[], OperationState[]|null, string[]|null, string|null>(
+    operationsSelector,
+    operationFilterTagsSelector,
+    operationFilterExprSelector,
+    (operations, operationFilterTags, operationFilterExpr) => {
+        const hasOperations = operations && operations.length;
+        const hasFilterExpr = operationFilterExpr && operationFilterExpr !== '';
+        const hasFilterTags = operationFilterTags && operationFilterTags.length;
+        if (hasOperations && (hasFilterExpr || hasFilterTags)) {
+            let nameMatches;
+            if (hasFilterExpr) {
+                nameMatches = op => !operationFilterExpr || op.name.includes(operationFilterExpr);
+            } else {
+                nameMatches = op => true;
+            }
+            let hasTag;
+            if (hasFilterTags) {
+                hasTag = op => !operationFilterTags.length || operationFilterTags.every(tag => new Set(op.tags).has(tag));
+            } else {
+                hasTag = op => true;
+            }
+            return operations.filter(op => nameMatches(op) && hasTag(op));
+        }
+        return operations || [];
+    }
+);
+
+export const operationsTagCountsSelector = createSelector<State, Map<string, number>, OperationState[]|null>(
+    operationsSelector,
+    (operations) => {
+        let tagCounts = new Map<string, number>();
+        (operations || []).forEach((op: OperationState) => (op.tags || []).forEach((tag: string) => {
+            tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+        }));
+        return tagCounts;
+    }
+);
+
+export const selectedResourceSelector = createSelector<State, ResourceState|null, ResourceState[], string>(
+    resourcesSelector,
+    selectedResourceIdSelector,
+    (resources: ResourceState[], selectedResourceId: string) => {
+        return resources.find(r => r.name === selectedResourceId);
+    }
+);
 
 /**
  * Generate a new resource name based on resourceNamePrefix and the largest resource index used so far
@@ -34,89 +85,90 @@ export const selectedResourceSelector = (state: State): ResourceState|null => {
  * @param resources the used resources
  * @returns {string} a new resource name
  */
-export const newResourceNameSelector = (resources: ResourceState[], namePrefix: string): string => {
-    if (!resources || !namePrefix) {
-        return "";
-    }
-    let maxNameIndex = 0;
-    for (let resource of resources) {
-        const resourceName = resource.name;
-        if (resourceName.startsWith(namePrefix)) {
-            try {
-                const nameIndex = parseInt(resourceName.substr(namePrefix.length));
-                maxNameIndex = Math.max(nameIndex, maxNameIndex);
-            } catch (e) {
-                // ok
+export const newResourceNameSelector = createSelector<State, string, ResourceState[], string>(
+    resourcesSelector,
+    resourceNamePrefixSelector,
+    (resources: ResourceState[], namePrefix: string): string => {
+        if (!resources || !namePrefix) {
+            return "";
+        }
+        let maxNameIndex = 0;
+        for (let resource of resources) {
+            const resourceName = resource.name;
+            if (resourceName.startsWith(namePrefix)) {
+                try {
+                    const nameIndex = parseInt(resourceName.substr(namePrefix.length));
+                    maxNameIndex = Math.max(nameIndex, maxNameIndex);
+                } catch (e) {
+                    // ok
+                }
             }
         }
+        return `${namePrefix}${maxNameIndex + 1}`;
     }
-    return `${namePrefix}${maxNameIndex + 1}`;
-};
+);
 
 
-// Note this is composite selector, with reselect use:
-//    selectedVariablesSelector = createSelector(selectedResourceSelector, resource => {...})
-//
-export const selectedVariablesSelector = (state: State): Array<VariableState>|null  => {
-    const resource = selectedResourceSelector(state);
-    return resource ? resource.variables : null;
-};
-
-// Note this is composite selector, with reselect use:
-//    selectedVariableSelector = createSelector(selectedVariableNameSelector, selectedVariablesSelector, (variables, selectedVariableName) => {...})
-//
-export const selectedVariableSelector = (state: State): VariableState|null => {
-    const variables = selectedVariablesSelector(state);
-    const selectedVariableName = selectedVariableNameSelector(state);
-    return (variables || []).find(v => v.name === selectedVariableName);
-};
-
-// Note this is composite selector, with reselect use:
-//    selectedLayerSelector = createSelector(layersSelector, (layers, selectedLayerId) => {...})
-//
-export const selectedLayerSelector = (state: State): LayerState|null => {
-    const layers = layersSelector(state);
-    const selectedLayerId = selectedLayerIdSelector(state);
-    return layers.find(l => l.id === selectedLayerId);
-};
-
-// Note this is composite selector, with reselect use:
-//    selectedImageLayerSelector = createSelector(selectedLayerSelector, layer => {...})
-//
-export const selectedImageLayerSelector = (state: State): ImageLayerState|null => {
-    const layer = selectedLayerSelector(state);
-    if (layer && (layer.type === 'Image' || layer.type === 'VariableImage')) {
-        return layer as ImageLayerState;
+export const selectedVariablesSelector = createSelector<State, VariableState[]|null, ResourceState|null>(
+    selectedResourceSelector,
+    (selectedResource: ResourceState|null) => {
+        return selectedResource ? selectedResource.variables : null;
     }
-    return null;
-};
+);
 
-// Note this is composite selector, with reselect use:
-//    selectedVariableImageLayerSelector = createSelector(selectedLayerSelector, layer => {...})
-//
-export const selectedVariableImageLayerSelector = (state: State): VariableImageLayerState|null => {
-    const layer = selectedLayerSelector(state);
-    if (layer && layer.type === 'VariableImage') {
-        return layer as VariableImageLayerState;
+
+export const selectedVariableSelector = createSelector<State, VariableState|null, VariableState[]|null, string|null>(
+    selectedVariablesSelector,
+    selectedVariableNameSelector,
+    (selectedVariables: VariableState[]|null, selectedVariableName: string|null) => {
+        return (selectedVariables || []).find(v => v.name === selectedVariableName);
     }
-    return null;
-};
+);
 
-// Note this is composite selector, with reselect use:
-//    selectedColorMapSelector = createSelector(colorMapCategoriesSelector, selectedImageLayerSelector, (colorMapCategories, selectedLayer) => {...})
-//
-export const selectedColorMapSelector = (colorMapCategories: Array<ColorMapCategoryState>|null, selectedLayer: VariableImageLayerState|null) => {
-    if (!colorMapCategories || !selectedLayer || !selectedLayer.colorMapName) {
+export const selectedLayerSelector = createSelector<State, LayerState|null, LayerState[], string>(
+    layersSelector,
+    selectedLayerIdSelector,
+    (layers: LayerState[], selectedLayerId: string|null) => {
+        return layers.find(l => l.id === selectedLayerId);
+    }
+);
+
+export const selectedImageLayerSelector = createSelector<State, ImageLayerState|null,LayerState|null>(
+    selectedLayerSelector,
+    (selectedLayer: LayerState|null) => {
+        if (selectedLayer && (selectedLayer.type === 'Image' || selectedLayer.type === 'VariableImage')) {
+            return selectedLayer as ImageLayerState;
+        }
         return null;
     }
-    for (let cat of colorMapCategories) {
-        const selectedColorMap = cat.colorMaps.find(cm => cm.name === selectedLayer.colorMapName);
-        if (selectedColorMap) {
-            return selectedColorMap;
+);
+
+export const selectedVariableImageLayerSelector = createSelector<State, VariableImageLayerState|null,LayerState|null>(
+    selectedLayerSelector,
+    (selectedLayer: LayerState|null) => {
+        if (selectedLayer && selectedLayer.type === 'VariableImage') {
+            return selectedLayer as VariableImageLayerState;
         }
+        return null;
     }
-    return null;
-};
+);
+
+export const selectedColorMapSelector = createSelector<State, ColorMapState, ColorMapCategoryState[]|null, VariableImageLayerState|null>(
+    colorMapCategoriesSelector,
+    selectedVariableImageLayerSelector,
+    (colorMapCategories: ColorMapCategoryState[]|null, selectedImageLayer: VariableImageLayerState|null) => {
+        if (!colorMapCategories || !selectedImageLayer || !selectedImageLayer.colorMapName) {
+            return null;
+        }
+        for (let cat of colorMapCategories) {
+            const selectedColorMap = cat.colorMaps.find(cm => cm.name === selectedImageLayer.colorMapName);
+            if (selectedColorMap) {
+                return selectedColorMap;
+            }
+        }
+        return null;
+    }
+);
 
 
 

@@ -64,6 +64,7 @@ The following frameworks and libraries are currently used in Cate's production c
 
 Utilities:
 
+* [reselect](https://github.com/reactjs/reselect), Selector library for Redux.
 * [deep-equal](https://www.npmjs.com/package/deep-equal), Node's `assert.deepEqual()` algorithm as a standalone module.
 
 
@@ -85,6 +86,8 @@ For testing:
   See script `test:e2e` in `package.json`.
 * [enzyme](http://airbnb.io/enzyme/) is a JavaScript Testing utility for React that makes it easier to assert, 
   manipulate, and traverse React Components' output.
+* [react-addons-test-utils](https://facebook.github.io/react/docs/test-utils.html) makes it easy to test React 
+  components in any testing framework.  
 
 Other tools:
 

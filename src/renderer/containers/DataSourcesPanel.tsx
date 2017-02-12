@@ -82,6 +82,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         this.props.setControlState('showDataSourceDetails', value);
     }
 
+    // TODO (forman): reselect: use selectors.selectedDataStoreSelector() instead
     private getSelectedDataStore(): DataStoreState|null {
         if (!this.props.dataStores || !this.props.selectedDataStoreId) {
             return null;
@@ -89,11 +90,13 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         return this.props.dataStores.find(dataStore => dataStore.id === this.props.selectedDataStoreId);
     }
 
+    // TODO (forman): reselect: use selectors.selectedDataSourcesSelector() instead
     private getDataSourcesOfSelectedDataStore(): Array<DataSourceState>|null {
         const selectedDataStore = this.getSelectedDataStore();
         return (selectedDataStore && selectedDataStore.dataSources) || null;
     }
 
+    // TODO (forman): reselect: use selectors.selectedDataSourceSelector() instead
     private getSelectedDataSource(): DataSourceState|null {
         if (!this.props.selectedDataSourceId) {
             return null;
@@ -117,6 +120,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             const dataSourceFilterExpr = this.props.dataSourceFilterExpr;
             const dataSourceFilterExprLC = dataSourceFilterExpr ? dataSourceFilterExpr.toLowerCase() : null;
 
+            // TODO (forman): reselect: use selectors.filteredDataSourcesSelector() instead
             const nameMatches = ds => !dataSourceFilterExprLC || ds.name.toLowerCase().includes(dataSourceFilterExprLC);
             const filteredDataSources = !dataSourceFilterExpr
                 ? allDataSources

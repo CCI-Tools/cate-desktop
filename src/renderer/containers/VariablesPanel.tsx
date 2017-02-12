@@ -1,8 +1,9 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {ExpansionPanel} from "../components/ExpansionPanel";
-import {State, WorkspaceState, ResourceState, VariableState} from "../state";
+import {State, WorkspaceState, VariableState} from "../state";
 import * as actions from "../actions";
+import * as selectors from "../selectors";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {Card} from "../components/Card";
@@ -10,18 +11,20 @@ import {LabelWithType} from "../components/LabelWithType";
 
 interface IVariablesPanelProps {
     dispatch?: any;
-    workspace: WorkspaceState;
-    selectedVariableName: string;
-    selectedWorkspaceResourceId: string;
+    workspace: WorkspaceState|null;
+    selectedVariableName: string|null;
+    selectedWorkspaceResourceId: string|null;
+    selectedVariables: VariableState[];
     showVariableDetails: boolean;
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
     return {
-        workspace: state.data.workspace,
-        selectedVariableName: state.control.selectedVariableName,
-        selectedWorkspaceResourceId: state.control.selectedWorkspaceResourceId,
-        showVariableDetails: state.control.showVariableDetails,
+        workspace: selectors.workspaceSelector(state),
+        selectedVariableName: selectors.selectedVariableNameSelector(state),
+        selectedWorkspaceResourceId: selectors.selectedResourceIdSelector(state),
+        selectedVariables: selectors.selectedVariablesSelector(state) || [],
+        showVariableDetails: state.control.showVariableDetails
     }
 }
 
@@ -48,16 +51,8 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     }
 
     render() {
-        let variables: VariableState[] = [];
-        if (this.props.workspace && this.props.selectedWorkspaceResourceId) {
-            const resources: Array<ResourceState> = this.props.workspace.resources;
-            if (resources) {
-                const selectedResource = resources.find(res => res.name === this.props.selectedWorkspaceResourceId);
-                if (selectedResource && selectedResource.variables) {
-                    variables = selectedResource.variables;
-                }
-            }
-        }
+        const variables = this.props.selectedVariables;
+
         const renderItem = (itemIndex: number) => {
             const variable = variables[itemIndex];
             return <LabelWithType label={variable.name} dataType={variable.dataType}/>;

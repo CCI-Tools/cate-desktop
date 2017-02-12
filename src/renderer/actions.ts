@@ -299,8 +299,7 @@ export function confirmOpenDatasetDialog(dataSourceId: string, args: any) {
 
         // TODO (forman): Handle case where action is called twice without completing the first.
         //                In this case the same resource name will be generated :(
-        const resName = selectors.newResourceNameSelector(getState().data.workspace.resources,
-            getState().session.resourceNamePrefix);
+        const resName = selectors.newResourceNameSelector(getState());
         const opName = 'open_dataset';
         const opArgs = {
             ds_name: dataSourceId,
@@ -730,15 +729,10 @@ export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
 export function setSelectedVariableName(selectedVariableName: string|null) {
     return (dispatch, getState) => {
         dispatch(setSelectedVariableNameImpl(selectedVariableName));
-        // TODO (forman): use "reselect" JS library here and use selectors from selectors.ts
-        const selectedResourceName = getState().control.selectedWorkspaceResourceId;
-        if (selectedResourceName && selectedVariableName) {
-            const resource = getState().data.workspace.resources.find((resource: ResourceState) => resource.name == selectedResourceName);
-            assert(resource, selectedResourceName);
-            assert(resource.variables, selectedResourceName);
-
-            const variable = resource.variables.find((variable: VariableState) => variable.name == selectedVariableName);
-            assert(variable, selectedVariableName);
+        const resource = selectors.selectedResourceSelector(getState());
+        const variable = selectors.selectedVariableSelector(getState());
+        if (resource && variable) {
+            assert(resource.variables, resource.name);
 
             // We need at least 2 dimensions
             if (!variable.ndim || variable.ndim < 2) {
@@ -746,7 +740,7 @@ export function setSelectedVariableName(selectedVariableName: string|null) {
             }
 
             const lastSelectedVariableLayer = getState().data.layers.find((layer: LayerState) => layer.id == SELECTED_VARIABLE_LAYER_ID);
-            const restoredLayer = getState().data.savedLayers[selectedVariableName];
+            const restoredLayer = getState().data.savedLayers[variable.name];
 
             let layerDisplayProperties = {};
             let varIndex;
@@ -778,15 +772,15 @@ export function setSelectedVariableName(selectedVariableName: string|null) {
             const currentSelectedVariableLayer = Object.assign({}, restoredLayer, {
                 id: SELECTED_VARIABLE_LAYER_ID,
                 type: 'VariableImage' as any,
-                name: selectedResourceName + '.' + selectedVariableName,
+                name: resource.name + '.' + variable.name,
                 show: true,
-                resName: selectedResourceName,
-                varName: selectedVariableName,
+                resName: resource.name,
+                varName: variable.name,
                 varIndex,
             }, layerDisplayProperties);
 
             if (lastSelectedVariableLayer) {
-                dispatch(saveLayer(selectedVariableName, lastSelectedVariableLayer));
+                dispatch(saveLayer(variable.name, lastSelectedVariableLayer));
             } else {
                 // TODO (forman): add layer ID SELECTED_VARIABLE_LAYER_ID
                 // dispatch(addLayer(currentSelectedVariableLayer));
@@ -828,6 +822,13 @@ export function updateLayerImageEnhancement(layer: ImageLayerState, name: string
     return updateLayer(layer, {imageEnhancement});
 }
 
+/**
+ * Save layer (in state.control), so it can later be restored.
+ *
+ * @param key
+ * @param layer
+ * @returns {{type: string, payload: {key: string, layer: LayerState}}}
+ */
 export function saveLayer(key: string, layer: LayerState) {
     return {type: SAVE_LAYER, payload: {key, layer}};
 }

@@ -51,18 +51,16 @@ interface ILayersPanelProps {
 }
 
 function mapStateToProps(state: State): ILayersPanelProps {
-    const selectedVariableImageLayer = selectors.selectedVariableImageLayerSelector(state);
-    const colorMapCategories = selectors.colorMapCategoriesSelector(state);
     return {
         selectedResource: selectors.selectedResourceSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
         layers: selectors.layersSelector(state),
         selectedLayer: selectors.selectedLayerSelector(state),
         selectedImageLayer: selectors.selectedImageLayerSelector(state),
-        selectedVariableImageLayer: selectedVariableImageLayer,
+        selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
         showLayerDetails: state.control.showLayerDetails,
-        colorMapCategories: colorMapCategories,
-        selectedColorMap: selectors.selectedColorMapSelector(colorMapCategories, selectedVariableImageLayer)
+        colorMapCategories: selectors.colorMapCategoriesSelector(state),
+        selectedColorMap: selectors.selectedColorMapSelector(state)
     };
 }
 
