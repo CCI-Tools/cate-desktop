@@ -2,7 +2,6 @@ import * as React from 'react';
 import {CesiumGlobe, CesiumPin} from './CesiumGlobe';
 
 // TODO (forman): this is an example file only, remove CesiumGlobeExample.tsx asap
-// TODO (forman): 'electron' only used to get electron.app.getAppPath
 const {app} = require('electron').remote;
 
 interface ICesiumViewProps {
