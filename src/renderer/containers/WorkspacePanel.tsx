@@ -36,7 +36,7 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
 class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
     //noinspection JSUnusedLocalSymbols
-    private handleWorkspaceResourceIdSelected(oldSelection: Array<React.Key>, newSelection: Array<React.Key>) {
+    private handleWorkspaceResourceIdSelected(newSelection: Array<React.Key>) {
         if (newSelection && newSelection.length) {
             this.props.dispatch(actions.setSelectedWorkspaceResourceId(newSelection[0] as string));
         } else {
@@ -45,7 +45,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     //noinspection JSUnusedLocalSymbols
-    private handleWorkflowStepIdSelected(oldSelection: Array<React.Key>, newSelection: Array<React.Key>) {
+    private handleWorkflowStepIdSelected(newSelection: Array<React.Key>) {
         if (newSelection && newSelection.length) {
             this.props.dispatch(actions.setSelectedWorkflowStepId(newSelection[0] as string));
         } else {

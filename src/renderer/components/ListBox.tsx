@@ -13,8 +13,7 @@ export interface IListBoxProps {
     getItemKey?: (itemIndex: number) => React.Key;
     onItemClick?: (key: React.Key, itemIndex: number) => void;
     onItemDoubleClick?: (key: React.Key, itemIndex: number) => void;
-    // TODO (forman): change param order, so we can drop 2nd oldSelection arg in our callback impl.
-    onSelection?: (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => void;
+    onSelection?: (newSelection: Array<React.Key>, oldSelection?: Array<React.Key>) => void;
     selectionMode?: ListBoxSelectionMode;
     selection?: Array<React.Key>;
     style?: Object;
@@ -45,7 +44,7 @@ export class ListBox extends React.Component<IListBoxProps, any> {
                 } else {
                     if (selectionMode === ListBoxSelectionMode.SINGLE) {
                         newSelection = [key];
-                    } else {
+                    } else if (selectionMode === ListBoxSelectionMode.MULTIPLE) {
                         newSelection = this.props.selection.slice();
                         newSelection.push(key);
                     }
@@ -53,7 +52,7 @@ export class ListBox extends React.Component<IListBoxProps, any> {
             } else {
                 newSelection = [key];
             }
-            this.props.onSelection(this.props.selection, newSelection);
+            this.props.onSelection(newSelection, this.props.selection);
         }
         if (this.props.onItemClick) {
             this.props.onItemClick(key, itemIndex);
@@ -68,7 +67,7 @@ export class ListBox extends React.Component<IListBoxProps, any> {
 
     render() {
         // see http://www.w3schools.com/css/tryit.asp?filename=trycss_list-style-border
-        const border = '1px solid #ddd';
+        // const border = '1px solid #ddd';
         const listStyle = Object.assign({
             //listStyleType: 'none',
             //padding: 0,
@@ -83,6 +82,7 @@ export class ListBox extends React.Component<IListBoxProps, any> {
         const selection = new Set<any>(this.props.selection || []);
         const getItemKey = this.props.getItemKey || (itemIndex => itemIndex);
         const renderItem = this.props.renderItem;
+        //noinspection JSMismatchedCollectionQueryUpdate
         let items: Array<JSX.Element> = [];
         for (let itemIndex = 0; itemIndex < this.props.numItems; itemIndex++) {
             const key = getItemKey(itemIndex);

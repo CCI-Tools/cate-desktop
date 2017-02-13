@@ -232,7 +232,7 @@ class DataSourcesList extends React.Component<IDataSourcesListProps, null> {
         this.handleIconLoadError = this.handleIconLoadError.bind(this);
     }
 
-    private handleDataSourceSelected(oldSelection: Array<React.Key>, newSelection: Array<React.Key>) {
+    private handleDataSourceSelected(newSelection: Array<React.Key>) {
         if (newSelection.length > 0) {
             this.props.setSelectedDataSourceId(newSelection[0] as string);
         } else {

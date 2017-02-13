@@ -38,7 +38,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         super(props);
     }
 
-    private handleSelected(oldSelection: Array<React.Key>, newSelection: Array<React.Key>) {
+    private handleSelected(newSelection: Array<React.Key>) {
         if (newSelection && newSelection.length) {
             this.props.dispatch(actions.setSelectedVariableName(newSelection[0] as string));
         } else {

@@ -187,7 +187,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             return <LabelWithType label={name} dataType={dataType}/>
         };
 
-        const handleOperationSelection = (oldSelection: Array<React.Key>, newSelection: Array<React.Key>) => {
+        const handleOperationSelection = (newSelection: Array<React.Key>) => {
             if (newSelection.length > 0) {
                 this.props.dispatch(actions.setSelectedOperationName(newSelection[0] as string));
             } else {

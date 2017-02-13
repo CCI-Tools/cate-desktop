@@ -177,7 +177,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                          renderItem={renderItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={this.props.selectedLayer ? [this.props.selectedLayer.id] : []}
-                         onSelection={(oldSelection, newSelection) => handleChangedLayerSelection(this.props.dispatch, newSelection.length ? newSelection[0] as string : null)}/>
+                         onSelection={(newSelection) => handleChangedLayerSelection(this.props.dispatch, newSelection.length ? newSelection[0] as string : null)}/>
             </div>
         );
     }
@@ -459,7 +459,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                          renderItem={(i) => this.renderColorMapImage(colorMaps[i])}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={layer.colorMapName ? [layer.colorMapName] : []}
-                         onSelection={(oldSelection, newSelection) => {
+                         onSelection={(newSelection) => {
                             if (newSelection.length > 0) {
                                 handleChangedColorMapName(this.props.dispatch, newSelection[0] as string);
                             }
