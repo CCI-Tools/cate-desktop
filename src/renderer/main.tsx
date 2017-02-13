@@ -63,14 +63,12 @@ function connectWebAPIClient(store: Store<State>) {
         webAPIClient = newWebAPIClient('ws://mock', 0, new WebSocketMock(100, new WebAPIServiceMock(), true));
     }
 
-    // TODO (forman): this code can take considerable time and is executed BEFORE the window UI shows up
-    //                we urgently need to display some progress indicator beforehand.
     webAPIClient.onOpen = () => {
         store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
         store.dispatch(actions.loadBackendConfig());
         store.dispatch(actions.loadInitialWorkspace());
         store.dispatch(actions.loadDataStores());
-        // TODO (forman): store.dispatch(actions.loadOperations());
+        store.dispatch(actions.loadOperations());
 
 
         // This is a test, we keep it as a test an a code template for code that need to run later

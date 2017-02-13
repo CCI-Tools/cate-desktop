@@ -59,12 +59,6 @@ function mapStateToProps(state: State): IOperationsPanelProps {
  */
 class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
-    componentDidMount() {
-        if (!this.props.operations) {
-            this.props.dispatch(actions.updateOperations());
-        }
-    }
-
     private handleShowDetailsChanged(value: boolean) {
         this.props.dispatch(actions.setControlState('showOperationDetails', value));
     }
