@@ -36,7 +36,11 @@ export const filteredOperationsSelector = createSelector<State, OperationState[]
         if (hasOperations && (hasFilterExpr || hasFilterTags)) {
             let nameMatches;
             if (hasFilterExpr) {
-                nameMatches = op => !operationFilterExpr || op.name.includes(operationFilterExpr);
+                const filterExprLC = operationFilterExpr.toLowerCase();
+                const parts = filterExprLC.split(" ");
+                nameMatches = ds => {
+                    return parts.every(part => ds.name.toLowerCase().includes(part));
+                };
             } else {
                 nameMatches = op => true;
             }

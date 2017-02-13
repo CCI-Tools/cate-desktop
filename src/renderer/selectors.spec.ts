@@ -129,6 +129,9 @@ describe('Operation selectors', function () {
 
         expect(selectors.filteredOperationsSelector(getState(operations, undefined, ['x'], 'b') as State)
         ).to.deep.equal([op2]);
+
+        expect(selectors.filteredOperationsSelector(getState(operations, undefined, [], 'C Op') as State)
+        ).to.deep.equal([op3]);
     });
 
     it('operationsTagCountsSelector', function () {
