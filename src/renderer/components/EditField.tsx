@@ -1,9 +1,11 @@
 import * as React from 'react'
 
+type ErrorHandler = (textValue: string, error: any) => void;
+
 export interface IEditFieldProps<T> {
     value: T | null;
     onChange: (value: T) => void;
-    onFailure?: (textValue: string, error: any) => void;
+    onFailure?: ErrorHandler;
     parseValue?: (textValue: string) => T;
     formatValue?: (value: T) => string;
     placeholder?: string;
@@ -34,11 +36,17 @@ export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.C
         this.initialState = this.state;
         this.notifyStateChange = this.notifyStateChange.bind(this);
         this.rejectInputValue = this.rejectInputValue.bind(this);
+        this.onFailure = this.onFailure.bind(this);
+        this.handleFocusOut = this.handleFocusOut.bind(this);
     }
 
     protected abstract parseValue(textValue: string): T;
 
     protected abstract formatValue(value: T): string;
+
+    //noinspection JSUnusedLocalSymbols
+    protected validateValue(value: T): void {
+    }
 
     componentWillReceiveProps(nextProps: IEditFieldProps<T>): void {
         const state = this.propsToState(nextProps);
@@ -55,6 +63,10 @@ export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.C
         if (this.props.textAlign) {
             style['textAlign'] = this.props.textAlign;
         }
+        // TODO (forman): got this onBlur problem here: http://stackoverflow.com/questions/5614773/javascript-newbie-seems-that-onblur-of-one-element-is-overriding-the-onclick
+        //   onBlur={(ev: any) => this.handleFocusOut()}
+        //   onBlur={(ev: any) => setTimeout(this.handleFocusOut, 100)}
+
         return (
             <input className={className}
                    type="text"
@@ -63,7 +75,6 @@ export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.C
                    placeholder={this.props.placeholder}
                    onChange={(ev: any) => this.handleChange(ev.target.value)}
                    onKeyUp={(ev: any) => this.handleKeyUp(ev.keyCode)}
-                   onBlur={(ev: any) => this.handleFocusOut()}
             />
         );
     }
@@ -84,26 +95,34 @@ export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.C
 
     private handleFocusOut() {
         // accept current value, but set initial value if input is invalid
-        this.acceptInputValue(this.rejectInputValue.bind(this));
+        this.acceptInputValue(this.onFailure);
     }
 
-    private acceptInputValue(onFailure?: () => void): boolean {
+    private acceptInputValue(onFailure?: ErrorHandler): boolean {
         let textValue = this.state.inputValue;
         let value: T;
         try {
             value = this.parseValue(textValue);
+            this.validateValue(value);
         } catch (e) {
             if (onFailure) {
-                onFailure();
+                onFailure(textValue, e);
             } else if (this.props.onFailure) {
                 this.props.onFailure(textValue, e);
             } else {
-                // console.warn(`EditField: ignoring invalid user input "${textValue}":`, e);
+                console.warn(`EditField: no error handler given, ignoring invalid user input "${textValue}":`, e);
             }
             return false;
         }
         this.setState({value, inputValue: this.formatValue(value)}, this.notifyStateChange);
         return true;
+    }
+
+    private onFailure(textValue: string, error: any) {
+        if (this.props.onFailure) {
+            this.props.onFailure(textValue, error);
+        }
+        this.rejectInputValue();
     }
 
     private rejectInputValue() {

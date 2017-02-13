@@ -19,7 +19,11 @@ export class IntField extends EditField<IntOrNull, IIntFieldProps> {
         if (textValue === null || textValue.trim() === '') {
             return null;
         }
-        return parseInt(textValue);
+        const value = parseInt(textValue);
+        if (isNaN(value)) {
+            throw new Error('Please enter a valid integer number.');
+        }
+        return value;
     }
 
     protected formatValue(value: IntOrNull): string {

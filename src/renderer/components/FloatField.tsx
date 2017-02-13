@@ -18,10 +18,14 @@ export interface IFloatFieldProps extends IEditFieldProps<FloatOrNull> {
 export class FloatField extends EditField<FloatOrNull, IFloatFieldProps> {
 
     protected parseValue(textValue: string): FloatOrNull {
-        if (textValue === null || textValue.trim() === '') {
+        if (!textValue || textValue.trim() === '') {
             return null;
         }
-        return parseFloat(textValue);
+        const value = parseFloat(textValue);
+        if (isNaN(value) && textValue.toLowerCase() !== 'nan') {
+            throw new Error('Please enter a valid number.');
+        }
+        return value;
     }
 
     protected formatValue(value: FloatOrNull): string {

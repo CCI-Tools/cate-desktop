@@ -192,8 +192,8 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
         }
 
         const handleValidationFailure = (textValue: string, error: any) => {
-            // TODO (forman): inform user about input validation failure
             console.log('EditOpStepDialog: handleValidationFailure', textValue, error);
+            actions.showMessageBox({title: 'Input Error', message: error + ''}, actions.MESSAGE_BOX_NO_REPLY);
         };
 
         const changeInputAssignment = (index: number, inputAssignment: InputAssignmentState) => {
@@ -216,7 +216,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
                 value = null;
             }
             if (value === null && !input.nullable) {
-                handleValidationFailure(`A value is required for input "${input.name}"`, null);
+                handleValidationFailure(null, `A value is required for input "${input.name}"`);
                 return;
             }
             changeInputAssignment(index, {constantValue: value, isValueUsed: true} as InputAssignmentState);
