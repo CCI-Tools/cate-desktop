@@ -4,7 +4,6 @@ import {
 } from "./state";
 import {createSelector} from 'reselect';
 
-// TODO (forman/marcoz): write more unit tests for selectors
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation selectors
@@ -18,10 +17,10 @@ export const selectedOperationSelector = createSelector<State, OperationState|nu
     operationsSelector,
     selectedOperationNameSelector,
     (operations, selectedOperationName) => {
-        if (selectedOperationName === null) {
-            return null;
+        if (operations && operations.length && selectedOperationName) {
+            return operations.find(op => op.name === selectedOperationName);
         }
-        return (operations || []).find(op => op.name === selectedOperationName);
+        return null;
     }
 );
 
@@ -77,10 +76,10 @@ export const selectedDataStoreSelector = createSelector<State, DataStoreState|nu
     dataStoresSelector,
     selectedDataStoreIdSelector,
     (dataStores, selectedDataStoreId) => {
-        if (!dataStores || !dataStores.length || !selectedDataStoreId) {
-            return null;
+        if (canFind(dataStores, selectedDataStoreId)) {
+            return dataStores.find(dataStore => dataStore.id === selectedDataStoreId);
         }
-        return dataStores.find(dataStore => dataStore.id === selectedDataStoreId);
+        return null;
     }
 );
 
@@ -99,7 +98,7 @@ export const filteredDataSourcesSelector = createSelector<State, DataSourceState
         const hasFilterExpr = dataSourceFilterExpr && dataSourceFilterExpr !== '';
         if (hasDataSources && hasFilterExpr) {
             const dataSourceFilterExprLC = dataSourceFilterExpr.toLowerCase();
-            const parts = dataSourceFilterExprLC.split(" ")
+            const parts = dataSourceFilterExprLC.split(" ");
             const nameMatches = ds => {
                 return parts.every(part => ds.name.toLowerCase().includes(part));
             };
@@ -113,10 +112,10 @@ export const selectedDataSourceSelector = createSelector<State, DataSourceState|
     selectedDataSourcesSelector,
     selectedDataSourceIdSelector,
     (selectedDataSources, selectedDataSourceId) => {
-        if (!selectedDataSources || !selectedDataSourceId) {
-            return null;
+        if (canFind(selectedDataSources, selectedDataSourceId)) {
+            return selectedDataSources.find(dataSource => dataSource.id === selectedDataSourceId);
         }
-        return selectedDataSources.find(dataSource => dataSource.id === selectedDataSourceId);
+        return null;
     }
 );
 
@@ -133,7 +132,10 @@ export const selectedResourceSelector = createSelector<State, ResourceState|null
     resourcesSelector,
     selectedResourceIdSelector,
     (resources: ResourceState[], selectedResourceId: string) => {
-        return resources.find(r => r.name === selectedResourceId);
+        if (canFind(resources , selectedResourceId)) {
+            return resources.find(r => r.name === selectedResourceId);
+        }
+        return null;
     }
 );
 
@@ -180,7 +182,10 @@ export const selectedVariableSelector = createSelector<State, VariableState|null
     selectedVariablesSelector,
     selectedVariableNameSelector,
     (selectedVariables: VariableState[]|null, selectedVariableName: string|null) => {
-        return (selectedVariables || []).find(v => v.name === selectedVariableName);
+        if (canFind(selectedVariables, selectedVariableName)) {
+            return (selectedVariables || []).find(v => v.name === selectedVariableName);
+        }
+        return null;
     }
 );
 
@@ -194,7 +199,10 @@ export const selectedLayerSelector = createSelector<State, LayerState|null, Laye
     layersSelector,
     selectedLayerIdSelector,
     (layers: LayerState[], selectedLayerId: string|null) => {
-        return layers.find(l => l.id === selectedLayerId);
+        if (canFind(layers, selectedLayerId)) {
+            return layers.find(l => l.id === selectedLayerId);
+        }
+        return null;
     }
 );
 
@@ -227,19 +235,25 @@ export const selectedColorMapSelector = createSelector<State, ColorMapState, Col
     colorMapCategoriesSelector,
     selectedVariableImageLayerSelector,
     (colorMapCategories: ColorMapCategoryState[]|null, selectedImageLayer: VariableImageLayerState|null) => {
-        if (!colorMapCategories || !selectedImageLayer || !selectedImageLayer.colorMapName) {
-            return null;
-        }
-        for (let cat of colorMapCategories) {
-            const selectedColorMap = cat.colorMaps.find(cm => cm.name === selectedImageLayer.colorMapName);
-            if (selectedColorMap) {
-                return selectedColorMap;
+        const selectedColorMapName = selectedImageLayer ? selectedImageLayer.colorMapName : null;
+        if (canFind(colorMapCategories, selectedColorMapName)) {
+            for (let cat of colorMapCategories) {
+                const selectedColorMap = cat.colorMaps.find(cm => cm.name === selectedColorMapName);
+                if (selectedColorMap) {
+                    return selectedColorMap;
+                }
             }
         }
         return null;
     }
 );
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utilities
+
+function canFind(array: any[], id: any): boolean {
+    return array && array.length && id;
+}
 
 
 
