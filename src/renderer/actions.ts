@@ -337,7 +337,7 @@ export const SET_OPERATION_FILTER_TAGS = 'SET_OPERATION_FILTER_TAGS';
 export const SET_OPERATION_FILTER_EXPR = 'SET_OPERATION_FILTER_EXPR';
 
 
-export function updateOperations() {
+export function loadOperations() {
     return (dispatch, getState: () => State) => {
 
         function call() {
@@ -345,7 +345,7 @@ export function updateOperations() {
         }
 
         function action(operations: OperationState[]) {
-            dispatch(updateOperationsImpl(operations));
+            dispatch(updateOperations(operations));
         }
 
         callAPI(dispatch, 'Loading operations', call, action);
@@ -356,7 +356,7 @@ function getOperationAPI(state: State): OperationAPI {
     return new OperationAPI(state.data.appConfig.webAPIClient);
 }
 
-function updateOperationsImpl(operations) {
+function updateOperations(operations) {
     return {type: UPDATE_OPERATIONS, payload: {operations}};
 }
 
