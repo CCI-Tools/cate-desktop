@@ -217,6 +217,7 @@ const initialSessionState: SessionState = {
     reopenLastWorkspace: false,
     lastWorkspacePath: null,
     resourceNamePrefix: 'res_',
+    offlineMode: false,
     backendConfig: {
         dataStoresPath: null,
         useWorkspaceImageryCache: false,

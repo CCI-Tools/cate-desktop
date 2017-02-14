@@ -479,6 +479,7 @@ export interface SessionState {
     lastWorkspacePath?: string;
     reopenLastWorkspace?: boolean;
     resourceNamePrefix: string;
+    offlineMode: boolean;
     /**
      * backendConfig settings are applied on restart (of the WebAPI) only.
      */

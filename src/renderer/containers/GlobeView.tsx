@@ -7,12 +7,14 @@ const Cesium: any = require('cesium');
 interface IGlobeViewProps {
     baseUrl: string;
     workspace: WorkspaceState | null;
+    offlineMode: boolean;
     layers: Array<LayerState>;
 }
 
 function mapStateToProps(state: State): IGlobeViewProps {
     return {
         workspace: state.data.workspace,
+        offlineMode: state.session.offlineMode,
         layers: state.data.layers,
         baseUrl: state.data.appConfig.webAPIConfig.restUrl,
     };
@@ -46,7 +48,7 @@ export class GlobeView extends React.Component<IGlobeViewProps, null> {
                 <CesiumGlobe id="defaultGlobeView"
                              debug={true}
                              imageLayers={cesiumImageLayers}
-                             offlineMode={false}
+                             offlineMode={this.props.offlineMode}
                              style={{width:"100%", height:"100%"}}/>
                 {/*<CesiumCityList pins={this.state.pins} onChange={this.handleCheckboxChange.bind(this)}/>*/}
                 <div id="creditContainer" style={{display:"none"}}></div>

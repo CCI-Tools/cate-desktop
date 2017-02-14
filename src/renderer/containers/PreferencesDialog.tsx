@@ -124,6 +124,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
             <div style={{width: '100%', marginTop:'1em'}}>
                 {this.renderReopenLastWorkspace()}
                 {this.renderResourceNamePrefix()}
+                {this.renderOfflineMode()}
             </div>
         );
     }
@@ -150,6 +151,14 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
             'resourceNamePrefix',
             false,
             'Resource name prefix'
+        );
+    }
+
+    private renderOfflineMode() {
+        return this.renderBooleanValue(
+            'offlineMode',
+            false,
+            "Force offline mode (requires restart)"
         );
     }
 
