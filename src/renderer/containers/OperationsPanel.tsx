@@ -17,7 +17,6 @@ import * as selectors from "../selectors";
 
 interface IOperationsPanelProps {
     dispatch?: Dispatch<State>;
-    webAPIClient: any;
     workspace: WorkspaceState;
     operations: OperationState[]|null;
     selectedOperationName: string|null;
@@ -35,7 +34,6 @@ interface IOperationsPanelProps {
 function mapStateToProps(state: State): IOperationsPanelProps {
     const dialogId = EditOpStepDialog.getDialogId(state.control.selectedOperationName, true);
     return {
-        webAPIClient: state.data.appConfig.webAPIClient,
         workspace: state.data.workspace,
         operations: selectors.operationsSelector(state),
         selectedOperation: selectors.selectedOperationSelector(state),

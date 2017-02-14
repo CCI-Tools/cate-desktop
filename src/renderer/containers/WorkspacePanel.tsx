@@ -4,6 +4,7 @@ import {State, WorkspaceState, WorkflowStepState} from "../state";
 import {Tooltip, Tab, Tabs, TabList, TabPanel, Button} from "@blueprintjs/core";
 import {ExpansionPanel} from "../components/ExpansionPanel";
 import * as actions from '../actions'
+import * as selectors from '../selectors'
 import {ListBox} from "../components/ListBox";
 import {Card} from "../components/Card";
 import * as assert from "assert";
@@ -11,18 +12,16 @@ import {LabelWithType} from "../components/LabelWithType";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
-    webAPIClient: any;
     workspace: WorkspaceState;
-    selectedWorkspaceResourceId: string|null;
+    selectedResourceId: string|null;
     selectedWorkflowStepId: string|null;
 }
 
 function mapStateToProps(state: State): IWorkspacePanelProps {
     return {
-        webAPIClient: state.data.appConfig.webAPIClient,
-        workspace: state.data.workspace,
-        selectedWorkspaceResourceId: state.control.selectedWorkspaceResourceId,
-        selectedWorkflowStepId: state.control.selectedWorkflowStepId,
+        workspace: selectors.workspaceSelector(state),
+        selectedResourceId: selectors.selectedResourceIdSelector(state),
+        selectedWorkflowStepId: selectors.selectedStepIdSelector(state),
     };
 }
 
@@ -65,7 +64,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
             const resources = workspace.resources;
             assert.ok(resources);
 
-            const selectedWorkspaceResourceId = this.props.selectedWorkspaceResourceId;
+            const selectedResourceId = this.props.selectedResourceId;
             const selectedWorkflowStepId = this.props.selectedWorkflowStepId;
 
             const resourcesTooltip = "Workspace resources that result from workflow steps";
@@ -95,10 +94,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                         <ListBox numItems={resources.length}
                                  getItemKey={i => resources[i].name}
                                  renderItem={i => <LabelWithType label={resources[i].name} dataType={resources[i].dataType}/>}
-                                 selection={selectedWorkspaceResourceId ? [selectedWorkspaceResourceId] : null}
+                                 selection={selectedResourceId ? [selectedResourceId] : null}
                                  onSelection={this.handleWorkspaceResourceIdSelected.bind(this)}/>
                         <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
-                            <Button disabled={!steps.length} iconName="label"/>
+                            <Button disabled={!resources.length} iconName="label"/>
                         </div>
                     </TabPanel>
                     <TabPanel>
@@ -132,6 +131,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         );
     }
 
+    //noinspection JSMethodCanBeStatic
     private getStepLabel(step: WorkflowStepState) {
         if (step["op"]) {
             return step["op"];

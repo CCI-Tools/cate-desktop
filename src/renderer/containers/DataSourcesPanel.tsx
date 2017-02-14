@@ -12,7 +12,6 @@ import * as selectors from "../selectors";
 
 
 interface IDataSourcesPanelProps {
-    webAPIClient: any;
     workspace: WorkspaceState;
     dataStores: Array<DataStoreState>;
     dataSourceFilterExpr: string;
@@ -26,7 +25,6 @@ interface IDataSourcesPanelProps {
 
 function mapStateToProps(state: State): IDataSourcesPanelProps {
     return {
-        webAPIClient: state.data.appConfig.webAPIClient,
         workspace: selectors.workspaceSelector(state),
         dataStores: selectors.dataStoresSelector(state),
         dataSourceFilterExpr: selectors.dataSourceFilterExprSelector(state),

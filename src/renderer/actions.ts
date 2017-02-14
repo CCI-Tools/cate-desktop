@@ -3,13 +3,9 @@ import {
     LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, VariableState, DataSourceState,
     OperationState, SessionState, BackendConfigState
 } from "./state";
-import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
-import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
-import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
-import * as selectors from "./selectors";
-import {OperationAPI} from "./webapi/apis/OperationAPI";
 import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
+import * as selectors from "./selectors";
 
 // TODO (forman/marcoz): write unit tests for actions
 
@@ -132,7 +128,7 @@ export const UPDATE_BACKEND_CONFIG = 'UPDATE_BACKEND_CONFIG';
 export const SAVE_BACKEND_CONFIG = 'SAVE_BACKEND_CONFIG';
 
 export function applyPreferences(session: SessionState) {
-    return (dispatch, getState) => {
+    return (dispatch) => {
         // Apply changes to the state object, in the renderer process
         dispatch(applyPreferencesImpl(session));
         // Apply changes to the Electron host, in the main process
@@ -195,7 +191,7 @@ export const UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE = 'UPDATE_DATA_SOURCE_TEMPORAL
 export function loadDataStores() {
     return (dispatch, getState) => {
         function call() {
-            return datasetAPI(getState()).getDataStores();
+            return selectors.datasetAPISelector(getState()).getDataStores();
         }
 
         function action(dataStores: DataStoreState[]) {
@@ -225,7 +221,7 @@ function updateDataStores(dataStores: Array<DataStoreState>) {
 export function loadDataSources(dataStoreId: string) {
     return (dispatch, getState) => {
         function call(onProgress) {
-            return datasetAPI(getState()).getDataSources(dataStoreId, onProgress);
+            return selectors.datasetAPISelector(getState()).getDataSources(dataStoreId, onProgress);
         }
 
         function action(dataSources: DataSourceState[]) {
@@ -275,7 +271,7 @@ export function showOpenDatasetDialog(dataStoreId: string, dataSourceId: string,
         if (loadTimeInfo) {
 
             function call(onProgress) {
-                return datasetAPI(getState()).getTemporalCoverage(dataStoreId, dataSourceId, onProgress);
+                return selectors.datasetAPISelector(getState()).getTemporalCoverage(dataStoreId, dataSourceId, onProgress);
             }
 
             function action(temporalCoverage) {
@@ -324,10 +320,6 @@ export function cancelOpenDatasetDialog() {
     return setDialogState('openDataset', {isOpen: false});
 }
 
-function datasetAPI(state: State) {
-    return new DatasetAPI(state.data.appConfig.webAPIClient);
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation actions
 
@@ -341,7 +333,7 @@ export function loadOperations() {
     return (dispatch, getState: () => State) => {
 
         function call() {
-            return getOperationAPI(getState()).getOperations();
+            return selectors.operationAPISelector(getState()).getOperations();
         }
 
         function action(operations: OperationState[]) {
@@ -350,10 +342,6 @@ export function loadOperations() {
 
         callAPI(dispatch, 'Loading operations', call, action);
     };
-}
-
-function getOperationAPI(state: State): OperationAPI {
-    return new OperationAPI(state.data.appConfig.webAPIClient);
 }
 
 function updateOperations(operations) {
@@ -406,7 +394,7 @@ export function loadInitialWorkspace() {
 export function newWorkspace(workspacePath: string|null) {
     return (dispatch, getState) => {
         function call() {
-            return workspaceAPI(getState()).newWorkspace(workspacePath);
+            return selectors.workspaceAPISelector(getState()).newWorkspace(workspacePath);
         }
 
         function action(workspace: WorkspaceState) {
@@ -431,7 +419,7 @@ export function newWorkspace(workspacePath: string|null) {
 export function openWorkspace(workspacePath?: string|null) {
     return (dispatch, getState) => {
         function call(onProgress) {
-            return workspaceAPI(getState()).openWorkspace(workspacePath, onProgress);
+            return selectors.workspaceAPISelector(getState()).openWorkspace(workspacePath, onProgress);
         }
 
         function action(workspace: WorkspaceState) {
@@ -457,7 +445,7 @@ export function closeWorkspace() {
         const baseDir = getState().data.workspace.baseDir;
 
         function call() {
-            return workspaceAPI(getState()).closeWorkspace(baseDir);
+            return selectors.workspaceAPISelector(getState()).closeWorkspace(baseDir);
         }
 
         function action() {
@@ -482,7 +470,7 @@ export function saveWorkspace() {
         const baseDir = getState().data.workspace.baseDir;
 
         function call() {
-            return workspaceAPI(getState()).saveWorkspace(baseDir);
+            return selectors.workspaceAPISelector(getState()).saveWorkspace(baseDir);
         }
 
         function action(workspace: WorkspaceState) {
@@ -503,7 +491,7 @@ export function saveWorkspaceAs(workspacePath: string) {
         const baseDir = getState().data.workspace.baseDir;
 
         function call(onProgress) {
-            return workspaceAPI(getState()).saveWorkspaceAs(baseDir, workspacePath, onProgress);
+            return selectors.workspaceAPISelector(getState()).saveWorkspaceAs(baseDir, workspacePath, onProgress);
         }
 
         function action(workspace: WorkspaceState) {
@@ -681,16 +669,12 @@ export function setSelectedWorkflowStepId(selectedWorkflowStepId: string) {
     return {type: SET_SELECTED_WORKFLOW_STEP_ID, payload: {selectedWorkflowStepId}};
 }
 
-function workspaceAPI(state: State): WorkspaceAPI {
-    return new WorkspaceAPI(state.data.appConfig.webAPIClient);
-}
-
 export function setWorkspaceResource(resName: string, opName: string, opArgs: {[name: string]: any}, title: string) {
     return (dispatch, getState) => {
         const baseDir = getState().data.workspace.baseDir;
 
         function call(onProgress) {
-            return workspaceAPI(getState()).setWorkspaceResource(baseDir, resName, opName, opArgs, onProgress);
+            return selectors.workspaceAPISelector(getState()).setWorkspaceResource(baseDir, resName, opName, opArgs, onProgress);
         }
 
         function action(workspace: WorkspaceState) {
@@ -710,7 +694,7 @@ export function getWorkspaceVariableStatistics(resName: string,
         const baseDir = getState().data.workspace.baseDir;
 
         function call() {
-            return workspaceAPI(getState()).getWorkspaceVariableStatistics(baseDir, resName, varName, varIndex);
+            return selectors.workspaceAPISelector(getState()).getWorkspaceVariableStatistics(baseDir, resName, varName, varIndex);
         }
 
         function action2(statistics: ImageStatisticsState) {
@@ -841,10 +825,6 @@ export const UPDATE_COLOR_MAPS = 'UPDATE_COLOR_MAPS';
 export const SET_SELECTED_COLOR_MAP_NAME = 'SET_SELECTED_COLOR_MAP_NAME';
 
 
-function colorMapsAPI(state: State): ColorMapsAPI {
-    return new ColorMapsAPI(state.data.appConfig.webAPIClient);
-}
-
 /**
  * Asynchronously load the initial workspace.
  * Called only a single time on app initialisation.
@@ -854,7 +834,7 @@ function colorMapsAPI(state: State): ColorMapsAPI {
 export function loadColorMaps() {
     return (dispatch, getState: () => State) => {
         function call() {
-            return colorMapsAPI(getState()).getColorMaps();
+            return selectors.colorMapsAPISelector(getState()).getColorMaps();
         }
 
         function action(colorMaps: Array<ColorMapCategoryState>) {

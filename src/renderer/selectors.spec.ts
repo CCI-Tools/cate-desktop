@@ -4,6 +4,31 @@ import * as fs from 'fs';
 import * as selectors from './selectors';
 import {State, ResourceState, DataState, ControlState} from "./state";
 
+describe('API selectors', function () {
+    const getState = () => {
+        return {
+            data: {appConfig: {webAPIClient: {}}},
+        };
+    };
+
+    it('webAPISelector', function () {
+        expect(selectors.webAPIClientSelector(getState() as State)
+        ).not.to.be.null;
+
+        expect(selectors.datasetAPISelector(getState() as State)
+        ).not.to.be.null;
+
+        expect(selectors.operationAPISelector(getState() as State)
+        ).not.to.be.null;
+
+        expect(selectors.workspaceAPISelector(getState() as State)
+        ).not.to.be.null;
+
+        expect(selectors.colorMapsAPISelector(getState() as State)
+        ).not.to.be.null;
+    });
+});
+
 describe('DataStore/DataSource selectors', function () {
     const getState = (dataStores, selectedDataStoreId?, selectedDataSourceId?, dataSourceFilterExpr?) => {
         return {

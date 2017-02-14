@@ -3,7 +3,44 @@ import {
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState
 } from "./state";
 import {createSelector} from 'reselect';
+import {WebAPIClient} from "./webapi/WebAPIClient";
+import {DatasetAPI} from "./webapi/apis/DatasetAPI";
+import {OperationAPI} from "./webapi/apis/OperationAPI";
+import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
+import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Remote API selectors
+
+export const webAPIClientSelector = (state: State): WebAPIClient => state.data.appConfig.webAPIClient;
+
+export const datasetAPISelector = createSelector(
+    webAPIClientSelector,
+    (webAPIClient) => {
+        return new DatasetAPI(webAPIClient);
+    }
+);
+
+export const operationAPISelector = createSelector(
+    webAPIClientSelector,
+    (webAPIClient) => {
+        return new OperationAPI(webAPIClient);
+    }
+);
+
+export const workspaceAPISelector = createSelector(
+    webAPIClientSelector,
+    (webAPIClient) => {
+        return new WorkspaceAPI(webAPIClient);
+    }
+);
+
+export const colorMapsAPISelector = createSelector(
+    webAPIClientSelector,
+    (webAPIClient) => {
+        return new ColorMapsAPI(webAPIClient);
+    }
+);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation selectors
@@ -129,6 +166,7 @@ export const selectedDataSourceSelector = createSelector<State, DataSourceState|
 export const workspaceSelector = (state: State): WorkspaceState|null => state.data.workspace;
 export const resourcesSelector = (state: State): Array<ResourceState> => state.data.workspace ? state.data.workspace.resources : [];
 export const selectedResourceIdSelector = (state: State): string|null => state.control.selectedWorkspaceResourceId;
+export const selectedStepIdSelector = (state: State): string|null => state.control.selectedWorkflowStepId;
 export const selectedVariableNameSelector = (state: State): string|null => state.control.selectedVariableName;
 export const resourceNamePrefixSelector = (state: State): string => state.session.resourceNamePrefix;
 
@@ -136,7 +174,7 @@ export const selectedResourceSelector = createSelector<State, ResourceState|null
     resourcesSelector,
     selectedResourceIdSelector,
     (resources: ResourceState[], selectedResourceId: string) => {
-        if (canFind(resources , selectedResourceId)) {
+        if (canFind(resources, selectedResourceId)) {
             return resources.find(r => r.name === selectedResourceId);
         }
         return null;
