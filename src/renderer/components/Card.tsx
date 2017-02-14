@@ -14,7 +14,7 @@ export class Card extends React.Component<any, any> {
 
     render() {
         return (
-            <div style={{padding: 6, overflowY: 'auto', flex: 'auto', maxHeight: '100%'}}>
+            <div style={{overflowY: 'auto', flex: 'auto', maxHeight: '100%'}}>
                 <div className="pt-card pt-elevation-2">
                     {this.props.children}
                 </div>
