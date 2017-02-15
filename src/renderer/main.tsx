@@ -22,7 +22,7 @@ export function main() {
     const store = createStore(stateReducer, middleware);
 
     ipcRenderer.on('apply-initial-state', (event, initialState) => {
-        store.dispatch(actions.applyInitialState(initialState));
+        store.dispatch(actions.updateInitialState(initialState));
         connectWebAPIClient(store);
     });
 
@@ -65,7 +65,7 @@ function connectWebAPIClient(store: Store<State>) {
 
     webAPIClient.onOpen = () => {
         store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
-        store.dispatch(actions.loadBackendConfig());
+        store.dispatch(actions.loadSessionBackendConfig());
         store.dispatch(actions.loadInitialWorkspace());
         store.dispatch(actions.loadDataStores());
         store.dispatch(actions.loadOperations());

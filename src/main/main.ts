@@ -4,7 +4,7 @@ import * as url from 'url';
 import * as fs from 'fs';
 import * as child_process from 'child_process'
 import {request} from './request';
-import {assignConditionally} from '../common/assign';
+import {updateConditionally} from '../common/objutil';
 import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
 import {error} from "util";
@@ -146,7 +146,7 @@ export function init() {
     _prefs = loadUserPrefs();
 
     let webAPIConfig = _config.get('webAPIConfig', {});
-    webAPIConfig = assignConditionally(webAPIConfig, {
+    webAPIConfig = updateConditionally(webAPIConfig, {
         command: path.join(app.getAppPath(), process.platform === 'win32' ? 'python/Scripts/cate-webapi.exe' : 'python/bin/cate-webapi'),
         servicePort: 9090,
         serviceAddress: '',
@@ -155,7 +155,6 @@ export function init() {
         processOptions: {},
         useMockService: false,
     });
-
     _config.set('webAPIConfig', webAPIConfig);
 
     console.log(CATE_DESKTOP_PREFIX, 'appConfig:', _config.data);
@@ -423,16 +422,16 @@ function createMainWindow() {
         });
     });
 
-    ipcMain.on('apply-preferences', (event, preferences) => {
+    ipcMain.on('set-preferences', (event, preferences) => {
         _prefs.setAll(preferences);
-        let error;
-        try {
-            storeUserPrefs(_prefs);
-            error = null;
-        } catch (e) {
-            error = e;
-        }
-        event.sender.send('apply-preferences-reply', error);
+        // let error;
+        // try {
+        //     storeUserPrefs(_prefs);
+        //     error = null;
+        // } catch (e) {
+        //     error = e;
+        // }
+        event.sender.send('set-preferences-reply', error);
     });
 }
 

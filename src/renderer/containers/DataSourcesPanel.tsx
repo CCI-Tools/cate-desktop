@@ -51,7 +51,7 @@ const mapDispatchToProps = {
     setSelectedDataStoreId: actions.setSelectedDataStoreId,
     setSelectedDataSourceId: actions.setSelectedDataSourceId,
     setDataSourceFilterExpr: actions.setDataSourceFilterExpr,
-    setControlState: actions.setControlState,
+    setControlState: actions.setControlProperty,
     showOpenDatasetDialog: actions.showOpenDatasetDialog,
     confirmOpenDatasetDialog: actions.confirmOpenDatasetDialog,
     cancelOpenDatasetDialog: actions.cancelOpenDatasetDialog,

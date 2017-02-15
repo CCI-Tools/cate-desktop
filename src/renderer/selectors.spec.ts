@@ -15,6 +15,9 @@ describe('API selectors', function () {
         expect(selectors.webAPIClientSelector(getState() as State)
         ).not.to.be.null;
 
+        expect(selectors.backendConfigAPISelector(getState() as State)
+        ).not.to.be.null;
+
         expect(selectors.datasetAPISelector(getState() as State)
         ).not.to.be.null;
 

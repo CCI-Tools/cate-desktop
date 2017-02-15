@@ -78,7 +78,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     }
 
     private handleShowDetailsChanged(value: boolean) {
-        this.props.dispatch(actions.setControlState('showLayerDetails', value));
+        this.props.dispatch(actions.setControlProperty('showLayerDetails', value));
     }
 
     //noinspection JSMethodCanBeStatic

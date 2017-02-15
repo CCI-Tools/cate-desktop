@@ -1,35 +1,13 @@
 import {
-    State, DataState, LocationState, SessionState, CommunicationState, ControlState,
-    DataSourceState
+    State, DataState, LocationState, SessionState, CommunicationState, ControlState
 } from './state';
 import * as actions from './actions';
+import * as assert from "../common/assert";
 import {combineReducers} from 'redux';
+import {updateObject, updatePropertyObject} from "../common/objutil";
 
-// TODO (forman): move assert() into assert.ts
-function assert(condition: any, message: string) {
-    if (!condition) {
-        throw new Error(`assertion failed: ${message}`);
-    }
-}
 
 // TODO (forman/marcoz): write unit tests for reducers
-
-
-// TODO (forman): move updateObject() into obj.ts, see also src/common/assign.ts
-/**
- * Encapsulate the idea of passing a new object as the first parameter
- * to Object.assign to ensure we correctly copy data instead of mutating.
- */
-export function updateObject(oldObject, newValues) {
-    return Object.assign({}, oldObject, newValues);
-}
-
-// TODO (forman): move updateProperty() into obj.ts, see also src/common/assign.ts
-export function updateProperty(oldObject: Object, key: string, value: any) {
-    const newValues = {};
-    newValues[key] = updateObject(oldObject[key], value);
-    return updateObject(oldObject, newValues);
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // state.data initial state and reducers
@@ -61,7 +39,7 @@ const initialDataState: DataState = {
 
 const dataReducer = (state: DataState = initialDataState, action) => {
     switch (action.type) {
-        case actions.APPLY_INITIAL_STATE:
+        case actions.UPDATE_INITIAL_STATE:
             return updateObject(state, {
                 appConfig: updateObject(state.appConfig, action.payload.appConfig)
             });
@@ -135,7 +113,7 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             const layer = action.payload.layer;
             const layers = state.layers.slice();
             const layerIndex = layers.findIndex(l => l.id === layer.id);
-            assert(layerIndex >= 0, "layerIndex >= 0");
+            assert.ok(layerIndex >= 0, "layerIndex >= 0");
             layers[layerIndex] = updateObject(layers[layerIndex], layer);
             return updateObject(state, {layers});
         }
@@ -204,7 +182,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             return updateObject(state, action.payload);
         case actions.SET_DIALOG_STATE:
             return updateObject(state, {
-                dialogs: updateProperty(state.dialogs, action.payload.dialogId, action.payload.dialogState)
+                dialogs: updatePropertyObject(state.dialogs, action.payload.dialogId, action.payload.dialogState)
             });
     }
     return state;
@@ -227,18 +205,10 @@ const initialSessionState: SessionState = {
 
 const sessionReducer = (state: SessionState = initialSessionState, action) => {
     switch (action.type) {
-        case actions.APPLY_INITIAL_STATE:
+        case actions.UPDATE_INITIAL_STATE:
             return updateObject(state, action.payload.session);
-        case actions.APPLY_PREFERENCES:
-            return updateObject(state, action.payload.session);
-        case actions.UPDATE_BACKEND_CONFIG:
-            return updateObject(state, {backendConfig: updateObject(state.backendConfig, action.payload.backendConfig)});
-        case actions.SET_CURRENT_WORKSPACE:
-            if (!action.payload.workspace.isScratch) {
-                return updateObject(state, {
-                    lastWorkspacePath: action.payload.workspace.isScratch ? null : action.payload.workspace.path,
-                });
-            }
+        case actions.UPDATE_SESSION_STATE:
+            return updateObject(state, action.payload);
     }
     return state;
 };
@@ -257,7 +227,7 @@ const communicationReducer = (state: CommunicationState = initialCommunicationSt
             return updateObject(state, {webAPIStatus: action.payload.webAPIStatus});
         case actions.SET_TASK_STATE:
             return updateObject(state, {
-                tasks: updateProperty(state.tasks, action.payload.jobId, action.payload.taskState)
+                tasks: updatePropertyObject(state.tasks, action.payload.jobId, action.payload.taskState)
             });
     }
     return state;

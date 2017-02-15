@@ -5,9 +5,9 @@ import {Tooltip, Tab, Tabs, TabList, TabPanel, Button} from "@blueprintjs/core";
 import {ExpansionPanel} from "../components/ExpansionPanel";
 import * as actions from '../actions'
 import * as selectors from '../selectors'
+import * as assert from "../../common/assert";
 import {ListBox} from "../components/ListBox";
 import {Card} from "../components/Card";
-import * as assert from "assert";
 import {LabelWithType} from "../components/LabelWithType";
 
 interface IWorkspacePanelProps {

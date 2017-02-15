@@ -37,11 +37,12 @@ function mapStateToProps(state: State): IVariablesPanelProps {
 class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     constructor(props: IVariablesPanelProps) {
         super(props);
+        this.handleSelectedVariableName = this.handleSelectedVariableName.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleShowSelectedVariableLayer = this.handleShowSelectedVariableLayer.bind(this);
     }
 
-    private handleSelected(newSelection: Array<React.Key>) {
+    private handleSelectedVariableName(newSelection: Array<React.Key>) {
         if (newSelection && newSelection.length) {
             this.props.dispatch(actions.setSelectedVariableName(newSelection[0] as string));
         } else {
@@ -50,11 +51,12 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     }
 
     private handleShowDetailsChanged(value: boolean) {
-        this.props.dispatch(actions.setControlState('showVariableDetails', value));
+        this.props.dispatch(actions.setControlProperty('showVariableDetails', value));
     }
 
     private handleShowSelectedVariableLayer() {
-        this.props.dispatch(actions.setSessionState('showSelectedVariableLayer', !this.props.showSelectedVariableLayer));
+        const showSelectedVariableLayer = this.props.showSelectedVariableLayer;
+        this.props.dispatch(actions.setSessionProperty('showSelectedVariableLayer', !showSelectedVariableLayer));
     }
 
     render() {
@@ -65,11 +67,9 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
                     <ContentWithDetailsPanel showDetails={this.props.showVariableDetails}
                                              onShowDetailsChange={this.handleShowDetailsChanged}
                                              isSplitPanel={true}
-                                             initialContentHeight={200}>
-                        <div>
-                            {this.renderVariablesList()}
-                            {this.renderVariableActionRow()}
-                        </div>
+                                             initialContentHeight={200}
+                                             actionComponent={this.renderVariableActionRow()}>
+                        {this.renderVariablesList()}
                         {this.renderVariableDetails()}
                     </ContentWithDetailsPanel>
                 </ExpansionPanel>
@@ -92,11 +92,15 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         const selectedVariable = this.props.selectedVariable;
         const isSpatialLayer = selectedVariable && selectedVariable.ndim >= 2;
         return (
-            <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
+            <div style={{display: 'flex'}}>
+                <span style={{flex: 'auto'}}/>
                 <Button disabled={false}
                         iconName={this.props.showSelectedVariableLayer ? "eye-open" : "eye-off"}
-                        onClick={this.handleShowSelectedVariableLayer}/>
-                <Button disabled={!isSpatialLayer} iconName="layer"/>
+                        onClick={this.handleShowSelectedVariableLayer}
+                />
+                <Button disabled={!isSpatialLayer}
+                        iconName="layer"
+                />
             </div>
         );
     }
@@ -163,6 +167,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
 
     private renderVariablesList() {
         const variables = this.props.variables;
+        const selection = this.props.selectedVariableName ? [this.props.selectedVariableName] : null;
         const renderItem = (itemIndex: number) => {
             const variable = variables[itemIndex];
             return <LabelWithType label={variable.name} dataType={variable.dataType}/>;
@@ -171,9 +176,9 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
             <ListBox numItems={variables.length}
                      getItemKey={index => variables[index].name}
                      renderItem={renderItem}
-                     selection={this.props.selectedVariableName ? [this.props.selectedVariableName] : null}
+                     selection={selection}
                      selectionMode={ListBoxSelectionMode.SINGLE}
-                     onSelection={this.handleSelected.bind(this)}/>
+                     onSelection={this.handleSelectedVariableName}/>
         );
     }
 }

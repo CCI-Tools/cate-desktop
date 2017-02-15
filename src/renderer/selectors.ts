@@ -8,11 +8,21 @@ import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {OperationAPI} from "./webapi/apis/OperationAPI";
 import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
+import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remote API selectors
 
 export const webAPIClientSelector = (state: State): WebAPIClient => state.data.appConfig.webAPIClient;
+
+
+export const backendConfigAPISelector = createSelector(
+    webAPIClientSelector,
+    (webAPIClient) => {
+        return new BackendConfigAPI(webAPIClient);
+    }
+);
+
 
 export const datasetAPISelector = createSelector(
     webAPIClientSelector,

@@ -1,11 +1,11 @@
 import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState,
-    LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, VariableState, DataSourceState,
+    LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, DataSourceState,
     OperationState, SessionState, BackendConfigState
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
-import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import * as selectors from "./selectors";
+import * as assert from "../common/assert";
 
 // TODO (forman/marcoz): write unit tests for actions
 
@@ -13,25 +13,18 @@ type NumberRange = [number, number];
 
 const CANCELLED_CODE = 999;
 
-function assert(condition: any, message: string) {
-    if (!condition) {
-        throw new Error(`assertion failed: ${message}`);
-    }
-}
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application-level actions
 
-export const APPLY_INITIAL_STATE = 'APPLY_INITIAL_STATE';
+export const UPDATE_INITIAL_STATE = 'UPDATE_INITIAL_STATE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const SET_DIALOG_STATE = 'SET_DIALOG_STATE';
 export const SET_TASK_STATE = 'SET_TASK_STATE';
 export const SET_CONTROL_STATE = 'SET_CONTROL_STATE';
-export const SET_SESSION_STATE = 'SET_SESSION_STATE';
+export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 
-export function applyInitialState(initialState: Object) {
-    return {type: APPLY_INITIAL_STATE, payload: initialState};
+export function updateInitialState(initialState: Object) {
+    return {type: UPDATE_INITIAL_STATE, payload: initialState};
 }
 
 export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting'|'open'|'error'|'closed') {
@@ -46,16 +39,53 @@ export function setTaskState(jobId: number, taskState: TaskState) {
     return {type: SET_TASK_STATE, payload: {jobId, taskState}};
 }
 
-export function setControlState(propertyName: string, value: any) {
-    const payload = {};
-    payload[propertyName] = value;
-    return {type: SET_CONTROL_STATE, payload};
+export function setControlProperty(propertyName: string, value: any) {
+    return {type: SET_CONTROL_STATE, payload: {[propertyName]: value}};
 }
 
-export function setSessionState(propertyName: string, value: any) {
-    const payload = {};
-    payload[propertyName] = value;
-    return {type: SET_SESSION_STATE, payload};
+export function setSessionProperty(propertyName: string, value: any) {
+    return updateSessionState({[propertyName]: value} as SessionState);
+}
+
+export function updateSessionState(session: SessionState) {
+    return (dispatch) => {
+        dispatch(updateSessionStateImpl(session));
+        dispatch(updateSessionPreferences(session));
+    };
+}
+
+function updateSessionStateImpl(session: SessionState) {
+    return {type: UPDATE_SESSION_STATE, payload: session};
+}
+
+function updateBackendConfigImpl(backendConfig: BackendConfigState) {
+    return {type: UPDATE_SESSION_STATE, payload: {backendConfig}};
+}
+
+export function loadSessionBackendConfig() {
+    return (dispatch, getState) => {
+        function call() {
+            // Get state from the Python back-end
+            return selectors.backendConfigAPISelector(getState()).getBackendConfig();
+        }
+
+        function action(backendConfig: BackendConfigState) {
+            dispatch(updateBackendConfigImpl(backendConfig));
+        }
+
+        callAPI(dispatch, 'Loading backend configuration', call, action);
+    };
+}
+
+export function storeSessionBackendConfig(backendConfig: BackendConfigState) {
+    return (dispatch, getState) => {
+        function call() {
+            // Store state changes to the Python back-end
+            return selectors.backendConfigAPISelector(getState()).setBackendConfig(backendConfig);
+        }
+
+        callAPI(dispatch, 'Storing backend configuration', call);
+    };
 }
 
 export function cancelJob(jobId: number) {
@@ -127,57 +157,6 @@ export function callAPI<T>(dispatch,
     jobPromise.then(onDone, onFailure);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Preferences actions
-
-export const APPLY_PREFERENCES = 'APPLY_PREFERENCES';
-export const UPDATE_BACKEND_CONFIG = 'UPDATE_BACKEND_CONFIG';
-export const SAVE_BACKEND_CONFIG = 'SAVE_BACKEND_CONFIG';
-
-export function applyPreferences(session: SessionState) {
-    return (dispatch) => {
-        // Apply changes to the state object, in the renderer process
-        dispatch(applyPreferencesImpl(session));
-        // Apply changes to the Electron host, in the main process
-        applyPreferencesMain(session);
-    };
-}
-
-export function applyPreferencesImpl(session: SessionState) {
-    return {type: APPLY_PREFERENCES, payload: {session}};
-}
-
-export function loadBackendConfig() {
-    return (dispatch, getState) => {
-        function call() {
-            return backendConfigAPI(getState()).getBackendConfig();
-        }
-
-        function action(backendConfig: BackendConfigState) {
-            dispatch(updateBackendConfig(backendConfig));
-        }
-
-        callAPI(dispatch, 'Loading backend configuration', call, action);
-    };
-}
-
-export function storeBackendConfig(backendConfig: BackendConfigState) {
-    return (dispatch, getState) => {
-        function call() {
-            return backendConfigAPI(getState()).setBackendConfig(backendConfig);
-        }
-
-        callAPI(dispatch, 'Storing backend configuration', call);
-    };
-}
-
-export function updateBackendConfig(backendConfig: BackendConfigState) {
-    return {type: UPDATE_BACKEND_CONFIG, payload: {backendConfig}};
-}
-
-function backendConfigAPI(state: State) {
-    return new BackendConfigAPI(state.data.appConfig.webAPIClient);
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data stores / data sources actions
@@ -647,8 +626,18 @@ const maybeSaveWorkspace = function (dispatch, getState: () => State, title: str
     return true;
 };
 
+// setSessionProperty(
 
 export function setCurrentWorkspace(workspace: WorkspaceState) {
+    return (dispatch) => {
+        dispatch(setCurrentWorkspaceImpl(workspace));
+        if (!workspace.isScratch) {
+            dispatch(setSessionProperty('lastWorkspacePath', workspace.baseDir));
+        }
+    }
+}
+
+function setCurrentWorkspaceImpl(workspace: WorkspaceState) {
     return {type: SET_CURRENT_WORKSPACE, payload: {workspace}};
 }
 
@@ -723,7 +712,7 @@ export function setSelectedVariableName(selectedVariableName: string|null) {
         const resource = selectors.selectedResourceSelector(getState());
         const variable = selectors.selectedVariableSelector(getState());
         if (resource && variable && getState().session.showSelectedVariableLayer) {
-            assert(resource.variables, resource.name);
+            assert.ok(resource.variables, resource.name);
 
             // We need at least 2 dimensions
             if (!variable.ndim || variable.ndim < 2) {
@@ -822,15 +811,6 @@ export function updateLayerImageEnhancement(layer: ImageLayerState, name: string
  */
 export function saveLayer(key: string, layer: LayerState) {
     return {type: SAVE_LAYER, payload: {key, layer}};
-}
-
-export function setShowSelectedVariableImageLayer(showSelectedVariableImageLayer: boolean) {
-    return (dispatch, getState) => {
-        if (!showSelectedVariableImageLayer) {
-
-        }
-        dispatch(setSessionState('showSelectedVariableImageLayer', showSelectedVariableImageLayer));
-    };
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1089,25 +1069,27 @@ export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: 
 }
 
 /**
- * Store frontend preferences (but not backend configuration).
+ * Update frontend preferences (but not backend configuration).
  *
  * @param session the session state to be stored
  * @param callback an optional function which is called with the selected button index
  * @returns the selected button index or null, if no button was selected or the callback function is defined
  */
-export function applyPreferencesMain(session: SessionState, callback?: (error: any) => void): void {
-    const electron = require('electron');
-    const preferences = Object.assign({}, session);
-    if (preferences.hasOwnProperty('backendConfig')) {
-        delete preferences.backendConfig;
-    }
-    const actionName = 'apply-preferences';
-    electron.ipcRenderer.send(actionName, preferences);
-    if (callback) {
-        electron.ipcRenderer.once(actionName + '-reply', (event, error: any) => {
-            callback(error);
-        });
-    }
+export function updateSessionPreferences(session: SessionState, callback?: (error: any) => void) {
+    return () => {
+        const electron = require('electron');
+        const preferences = Object.assign({}, session);
+        if (preferences.hasOwnProperty('backendConfig')) {
+            delete preferences.backendConfig;
+        }
+        const actionName = 'set-preferences';
+        electron.ipcRenderer.send(actionName, preferences);
+        if (callback) {
+            electron.ipcRenderer.once(actionName + '-reply', (event, error: any) => {
+                callback(error);
+            });
+        }
+    };
 }
 
 
