@@ -480,6 +480,7 @@ export interface SessionState {
     reopenLastWorkspace?: boolean;
     resourceNamePrefix: string;
     offlineMode: boolean;
+    showSelectedVariableLayer: boolean;
     /**
      * backendConfig settings are applied on restart (of the WebAPI) only.
      */

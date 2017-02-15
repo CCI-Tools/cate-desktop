@@ -212,7 +212,7 @@ export const newResourceNameSelector = createSelector<State, string, ResourceSta
 );
 
 
-export const selectedVariablesSelector = createSelector<State, VariableState[]|null, ResourceState|null>(
+export const variablesSelector = createSelector<State, VariableState[]|null, ResourceState|null>(
     selectedResourceSelector,
     (selectedResource: ResourceState|null) => {
         return selectedResource ? selectedResource.variables : null;
@@ -221,7 +221,7 @@ export const selectedVariablesSelector = createSelector<State, VariableState[]|n
 
 
 export const selectedVariableSelector = createSelector<State, VariableState|null, VariableState[]|null, string|null>(
-    selectedVariablesSelector,
+    variablesSelector,
     selectedVariableNameSelector,
     (selectedVariables: VariableState[]|null, selectedVariableName: string|null) => {
         if (canFind(selectedVariables, selectedVariableName)) {

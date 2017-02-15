@@ -218,6 +218,7 @@ const initialSessionState: SessionState = {
     lastWorkspacePath: null,
     resourceNamePrefix: 'res_',
     offlineMode: false,
+    showSelectedVariableLayer: true,
     backendConfig: {
         dataStoresPath: null,
         useWorkspaceImageryCache: false,

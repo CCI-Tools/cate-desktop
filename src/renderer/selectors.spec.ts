@@ -201,11 +201,11 @@ describe('Variable selectors', function () {
         ).to.deep.equal(res2);
     });
 
-    it('selectedVariablesSelector', function () {
-        expect(selectors.selectedVariablesSelector(getState(resources, 'res1') as any)
+    it('variablesSelector', function () {
+        expect(selectors.variablesSelector(getState(resources, 'res1') as any)
         ).to.be.null;
 
-        expect(selectors.selectedVariablesSelector(getState(resources, 'res2') as any)
+        expect(selectors.variablesSelector(getState(resources, 'res2') as any)
         ).to.deep.equal([{name: 'var1'}, {name: 'var2'}]);
     });
 

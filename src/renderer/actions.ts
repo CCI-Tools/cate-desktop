@@ -28,6 +28,7 @@ export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const SET_DIALOG_STATE = 'SET_DIALOG_STATE';
 export const SET_TASK_STATE = 'SET_TASK_STATE';
 export const SET_CONTROL_STATE = 'SET_CONTROL_STATE';
+export const SET_SESSION_STATE = 'SET_SESSION_STATE';
 
 export function applyInitialState(initialState: Object) {
     return {type: APPLY_INITIAL_STATE, payload: initialState};
@@ -49,6 +50,12 @@ export function setControlState(propertyName: string, value: any) {
     const payload = {};
     payload[propertyName] = value;
     return {type: SET_CONTROL_STATE, payload};
+}
+
+export function setSessionState(propertyName: string, value: any) {
+    const payload = {};
+    payload[propertyName] = value;
+    return {type: SET_SESSION_STATE, payload};
 }
 
 export function cancelJob(jobId: number) {
@@ -715,7 +722,7 @@ export function setSelectedVariableName(selectedVariableName: string|null) {
         dispatch(setSelectedVariableNameImpl(selectedVariableName));
         const resource = selectors.selectedResourceSelector(getState());
         const variable = selectors.selectedVariableSelector(getState());
-        if (resource && variable) {
+        if (resource && variable && getState().session.showSelectedVariableLayer) {
             assert(resource.variables, resource.name);
 
             // We need at least 2 dimensions
@@ -817,6 +824,14 @@ export function saveLayer(key: string, layer: LayerState) {
     return {type: SAVE_LAYER, payload: {key, layer}};
 }
 
+export function setShowSelectedVariableImageLayer(showSelectedVariableImageLayer: boolean) {
+    return (dispatch, getState) => {
+        if (!showSelectedVariableImageLayer) {
+
+        }
+        dispatch(setSessionState('showSelectedVariableImageLayer', showSelectedVariableImageLayer));
+    };
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ColorMap actions
