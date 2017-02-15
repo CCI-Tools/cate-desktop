@@ -1,41 +1,44 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {ExpansionPanel} from "../components/ExpansionPanel";
-import {State, WorkspaceState, VariableState} from "../state";
+import {State, VariableState} from "../state";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {Card} from "../components/Card";
 import {LabelWithType} from "../components/LabelWithType";
+import {Button} from "@blueprintjs/core";
 
 interface IVariablesPanelProps {
     dispatch?: any;
-    workspace: WorkspaceState|null;
+    variables: VariableState[];
     selectedVariableName: string|null;
-    selectedWorkspaceResourceId: string|null;
-    selectedVariables: VariableState[];
+    selectedVariable: VariableState|null;
     showVariableDetails: boolean;
+    showSelectedVariableLayer: boolean;
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
     return {
-        workspace: selectors.workspaceSelector(state),
+        variables: selectors.variablesSelector(state) || [],
         selectedVariableName: selectors.selectedVariableNameSelector(state),
-        selectedWorkspaceResourceId: selectors.selectedResourceIdSelector(state),
-        selectedVariables: selectors.selectedVariablesSelector(state) || [],
-        showVariableDetails: state.control.showVariableDetails
+        selectedVariable: selectors.selectedVariableSelector(state),
+        showVariableDetails: state.control.showVariableDetails,
+        showSelectedVariableLayer: state.session.showSelectedVariableLayer
     }
 }
 
 /**
  * The VariablesPanel list all variables of the selected workspace resource.
  *
- * @author Marco Zuehlke
+ * @author Marco Zuehlke, Norman Fomferra
  */
 class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     constructor(props: IVariablesPanelProps) {
         super(props);
+        this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
+        this.handleShowSelectedVariableLayer = this.handleShowSelectedVariableLayer.bind(this);
     }
 
     private handleSelected(newSelection: Array<React.Key>) {
@@ -50,88 +53,24 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         this.props.dispatch(actions.setControlState('showVariableDetails', value));
     }
 
+    private handleShowSelectedVariableLayer() {
+        this.props.dispatch(actions.setSessionState('showSelectedVariableLayer', !this.props.showSelectedVariableLayer));
+    }
+
     render() {
-        const variables = this.props.selectedVariables;
-
-        const renderItem = (itemIndex: number) => {
-            const variable = variables[itemIndex];
-            return <LabelWithType label={variable.name} dataType={variable.dataType}/>;
-        };
-        const varListComponent = <ListBox numItems={variables.length}
-                                          getItemKey={index => variables[index].name}
-                                          renderItem={renderItem}
-                                          selection={this.props.selectedVariableName ? [this.props.selectedVariableName] : null}
-                                          selectionMode={ListBoxSelectionMode.SINGLE}
-                                          onSelection={this.handleSelected.bind(this)}/>;
-
-        let detailPanel = null;
-        if (variables && this.props.selectedVariableName) {
-            const selectedVariable = variables.find(v => v.name === this.props.selectedVariableName);
-            if (selectedVariable) {
-                const entries = [
-                    <tr key='dataType'>
-                        <td>Data type</td>
-                        <td>{selectedVariable.dataType || '-'}</td>
-                    </tr>,
-                    <tr key='units'>
-                        <td>Units</td>
-                        <td>{selectedVariable.units || '-'}</td>
-                    </tr>,
-                    <tr key='ndim'>
-                        <td>#Dimensions</td>
-                        <td>{selectedVariable.ndim || '-'}</td>
-                    </tr>,
-                    <tr key='shape'>
-                        <td>Shape</td>
-                        <td>{selectedVariable.shape ? selectedVariable.shape.join(', ') : '-'}</td>
-                    </tr>,
-                    <tr key='chunks'>
-                        <td>Chunks</td>
-                        <td>{selectedVariable.chunks ? selectedVariable.chunks.join(', ') : '-'}</td>
-                    </tr>,
-                    <tr key='dimensions'>
-                        <td>Dimensions</td>
-                        <td>{selectedVariable.dimensions ? selectedVariable.dimensions.join(', ') : '-'}</td>
-                    </tr>,
-                    <tr key='valid_min'>
-                        <td>Valid min.</td>
-                        <td>{selectedVariable.valid_min || '-'}</td>
-                    </tr>,
-                    <tr key='valid_max'>
-                        <td>Valid max.</td>
-                        <td>{selectedVariable.valid_max || '-'}</td>
-                    </tr>,
-                    <tr key='add_offset'>
-                        <td>Add offset</td>
-                        <td>{selectedVariable.add_offset || '-'}</td>
-                    </tr>,
-                    <tr key='scale_factor'>
-                        <td>Scale factor</td>
-                        <td>{selectedVariable.scale_factor || '-'}</td>
-                    </tr>,
-                    <tr key='comment'>
-                        <td>Comment</td>
-                        <td>{selectedVariable.comment || '-'}</td>
-                    </tr>,
-                ];
-                detailPanel = (
-                    <Card>
-                        <table className="pt-table pt-condensed pt-striped">
-                            <tbody>{entries}</tbody>
-                        </table>
-                    </Card>
-                );
-            }
-        }
-        if (variables.length) {
+        const variables = this.props.variables;
+        if (variables && variables.length) {
             return (
                 <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
                     <ContentWithDetailsPanel showDetails={this.props.showVariableDetails}
-                                             onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
+                                             onShowDetailsChange={this.handleShowDetailsChanged}
                                              isSplitPanel={true}
                                              initialContentHeight={200}>
-                        {varListComponent}
-                        {detailPanel}
+                        <div>
+                            {this.renderVariablesList()}
+                            {this.renderVariableActionRow()}
+                        </div>
+                        {this.renderVariableDetails()}
                     </ContentWithDetailsPanel>
                 </ExpansionPanel>
             );
@@ -148,5 +87,95 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
             );
         }
     }
+
+    private renderVariableActionRow() {
+        const selectedVariable = this.props.selectedVariable;
+        const isSpatialLayer = selectedVariable && selectedVariable.ndim >= 2;
+        return (
+            <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
+                <Button disabled={false}
+                        iconName={this.props.showSelectedVariableLayer ? "eye-open" : "eye-off"}
+                        onClick={this.handleShowSelectedVariableLayer}/>
+                <Button disabled={!isSpatialLayer} iconName="layer"/>
+            </div>
+        );
+    }
+
+    private renderVariableDetails() {
+        const selectedVariable = this.props.selectedVariable;
+        if (!selectedVariable) {
+            return null;
+        }
+        const entries = [
+            <tr key='dataType'>
+                <td>Data type</td>
+                <td>{selectedVariable.dataType || '-'}</td>
+            </tr>,
+            <tr key='units'>
+                <td>Units</td>
+                <td>{selectedVariable.units || '-'}</td>
+            </tr>,
+            <tr key='ndim'>
+                <td>#Dimensions</td>
+                <td>{selectedVariable.ndim || '-'}</td>
+            </tr>,
+            <tr key='shape'>
+                <td>Shape</td>
+                <td>{selectedVariable.shape ? selectedVariable.shape.join(', ') : '-'}</td>
+            </tr>,
+            <tr key='chunks'>
+                <td>Chunks</td>
+                <td>{selectedVariable.chunks ? selectedVariable.chunks.join(', ') : '-'}</td>
+            </tr>,
+            <tr key='dimensions'>
+                <td>Dimensions</td>
+                <td>{selectedVariable.dimensions ? selectedVariable.dimensions.join(', ') : '-'}</td>
+            </tr>,
+            <tr key='valid_min'>
+                <td>Valid min.</td>
+                <td>{selectedVariable.valid_min || '-'}</td>
+            </tr>,
+            <tr key='valid_max'>
+                <td>Valid max.</td>
+                <td>{selectedVariable.valid_max || '-'}</td>
+            </tr>,
+            <tr key='add_offset'>
+                <td>Add offset</td>
+                <td>{selectedVariable.add_offset || '-'}</td>
+            </tr>,
+            <tr key='scale_factor'>
+                <td>Scale factor</td>
+                <td>{selectedVariable.scale_factor || '-'}</td>
+            </tr>,
+            <tr key='comment'>
+                <td>Comment</td>
+                <td>{selectedVariable.comment || '-'}</td>
+            </tr>,
+        ];
+        return (
+            <Card>
+                <table className="pt-table pt-condensed pt-striped">
+                    <tbody>{entries}</tbody>
+                </table>
+            </Card>
+        );
+    }
+
+    private renderVariablesList() {
+        const variables = this.props.variables;
+        const renderItem = (itemIndex: number) => {
+            const variable = variables[itemIndex];
+            return <LabelWithType label={variable.name} dataType={variable.dataType}/>;
+        };
+        return (
+            <ListBox numItems={variables.length}
+                     getItemKey={index => variables[index].name}
+                     renderItem={renderItem}
+                     selection={this.props.selectedVariableName ? [this.props.selectedVariableName] : null}
+                     selectionMode={ListBoxSelectionMode.SINGLE}
+                     onSelection={this.handleSelected.bind(this)}/>
+        );
+    }
 }
+
 export default connect(mapStateToProps)(VariablesPanel);
