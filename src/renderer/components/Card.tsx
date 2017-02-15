@@ -13,11 +13,13 @@ export class Card extends React.Component<any, any> {
     }
 
     render() {
+        const cardStyle = {
+            overflowY: 'auto', flex: 'auto', maxHeight: '100%',
+            padding: '0.4em', margin: '4px'
+        };
         return (
-            <div style={{overflowY: 'auto', flex: 'auto', maxHeight: '100%'}}>
-                <div className="pt-card pt-elevation-2">
-                    {this.props.children}
-                </div>
+            <div className="pt-elevation-2" style={cardStyle}>
+                {this.props.children}
             </div>
         );
     }
