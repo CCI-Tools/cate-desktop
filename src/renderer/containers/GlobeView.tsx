@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {LayerState, State, WorkspaceState, VariableImageLayerState} from "../state";
-import {CesiumGlobe, CesiumImageLayer, ImageryProvider} from "../components/cesium/CesiumGlobe";
+import {CesiumGlobe, ImageLayerDescriptor, ImageryProvider} from "../components/cesium/CesiumGlobe";
 import {connect} from "react-redux";
 const Cesium: any = require('cesium');
 
@@ -56,7 +56,7 @@ export class GlobeView extends React.Component<IGlobeViewProps, null> {
         );
     }
 
-    private convertVariableImageLayerToCesiumImageLayer(layer: VariableImageLayerState): CesiumImageLayer|null {
+    private convertVariableImageLayerToCesiumImageLayer(layer: VariableImageLayerState): ImageLayerDescriptor|null {
         const resource = this.props.workspace.resources.find(r => r.name === layer.resName);
         if (resource) {
             const variable = resource.variables.find(v => v.name === layer.varName);

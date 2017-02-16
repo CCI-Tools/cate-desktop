@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {CesiumGlobe, CesiumPin} from './CesiumGlobe';
+import {CesiumGlobe, PinDescriptor} from './CesiumGlobe';
 
 // TODO (forman): this is an example file only, remove CesiumGlobeExample.tsx asap
 const {app} = require('electron').remote;
@@ -9,7 +9,7 @@ interface ICesiumViewProps {
 }
 
 interface ICesiumViewState {
-    pins: Array<CesiumPin>;
+    pins: Array<PinDescriptor>;
 }
 
 /**
