@@ -42,6 +42,7 @@ interface ILayersPanelProps {
     selectedResource: ResourceState|null;
     selectedVariable: VariableState|null,
     layers: Array<LayerState>;
+    selectedLayerId: string|null;
     selectedLayer: LayerState|null;
     selectedImageLayer: ImageLayerState|null;
     selectedVariableImageLayer: VariableImageLayerState|null;
@@ -55,6 +56,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedResource: selectors.selectedResourceSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
         layers: selectors.layersSelector(state),
+        selectedLayerId: selectors.selectedLayerIdSelector(state),
         selectedLayer: selectors.selectedLayerSelector(state),
         selectedImageLayer: selectors.selectedImageLayerSelector(state),
         selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
@@ -70,6 +72,21 @@ function mapStateToProps(state: State): ILayersPanelProps {
  * @author Norman Fomferra
  */
 class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispatch, any> {
+
+    constructor(props: ILayersPanelProps&ILayersPanelDispatch, context: any) {
+        super(props, context);
+        this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
+        this.handleAddLayerButtonClicked = this.handleAddLayerButtonClicked.bind(this);
+        this.handleRemoveLayerButtonClicked = this.handleRemoveLayerButtonClicked.bind(this);
+        this.handleMoveLayerUpButtonClicked = this.handleMoveLayerUpButtonClicked.bind(this);
+        this.handleMoveLayerDownButtonClicked = this.handleMoveLayerDownButtonClicked.bind(this);
+        this.handleChangedLayerVisibility = this.handleChangedLayerVisibility.bind(this);
+        this.handleChangedLayerSelection = this.handleChangedLayerSelection.bind(this);
+        this.handleUpdateDisplayStatistics = this.handleUpdateDisplayStatistics.bind(this);
+        this.handleChangedDisplayMinMax = this.handleChangedDisplayMinMax.bind(this);
+        this.getLayerItemKey = this.getLayerItemKey.bind(this);
+        this.renderLayerItem = this.renderLayerItem.bind(this);
+    }
 
     componentDidMount() {
         if (!this.props.colorMapCategories) {
@@ -101,6 +118,58 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         console.log('LayersPanel: move layer down (TODO!)');
     }
 
+    private handleChangedLayerVisibility(layer: LayerState, show:boolean) {
+        this.props.dispatch(actions.updateLayer(layer, {show}));
+    }
+
+    private handleChangedLayerSelection(newSelection: string[]) {
+        const selectedLayerId = newSelection.length ? newSelection[0] : null;
+        this.props.dispatch(actions.setSelectedLayerId(selectedLayerId));
+    }
+
+    private handleUpdateDisplayStatistics() {
+        const resource = this.props.selectedResource;
+        const variable = this.props.selectedVariable;
+        const layer = this.props.selectedVariableImageLayer;
+        if (!resource || !variable || !layer) {
+            return;
+        }
+        this.props.dispatch(actions.getWorkspaceVariableStatistics(resource.name, variable.name, layer.varIndex,
+            (statistics) => {
+                return actions.updateLayer(layer, {
+                    displayMin: statistics.min,
+                    displayMax: statistics.max,
+                    statistics
+                });
+            }
+        ));
+    }
+
+    private handleChangedDisplayMinMax(value: [number, number]) {
+        const layer = this.props.selectedVariableImageLayer;
+        const displayMin = value[0];
+        const displayMax = value[1];
+        this.props.dispatch(actions.updateLayer(layer, {displayMin, displayMax}));
+    }
+
+    private getLayerItemKey(itemIndex: number) {
+        return this.props.layers[itemIndex].id;
+    }
+
+    private renderLayerItem(itemIndex: number) {
+        const layer = this.props.layers[itemIndex];
+        return (
+            <div>
+                <input type="checkbox"
+                       checked={layer.show}
+                       onChange={(event:any) => this.handleChangedLayerVisibility(layer, event.target.checked)}
+                />
+                <span style={{marginLeft: "0.5em"}} className="pt-icon-layout-grid"/>
+                <span style={{marginLeft: "0.5em"}}>{layer.name}</span>
+            </div>
+        );
+    }
+
     render() {
         return (
             <ExpansionPanel icon="pt-icon-layers" text="Layers" isExpanded={true} defaultHeight={300}>
@@ -122,18 +191,18 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             <div style={{display: 'inline', padding: '0.2em'}}>
                 <Button className="pt-intent-primary"
                         style={{marginRight: '0.1em'}}
-                        onClick={this.handleAddLayerButtonClicked.bind(this)}
+                        onClick={this.handleAddLayerButtonClicked}
                         iconName="add"/>
                 <Button style={{marginRight: '0.1em'}}
                         disabled={!selectedLayer}
-                        onClick={this.handleRemoveLayerButtonClicked.bind(this)}
+                        onClick={this.handleRemoveLayerButtonClicked}
                         iconName="remove"/>
                 <Button style={{marginRight: '0.1em'}}
                         disabled={!selectedLayer}
-                        onClick={this.handleMoveLayerUpButtonClicked.bind(this)}
+                        onClick={this.handleMoveLayerUpButtonClicked}
                         iconName="arrow-up"/>
                 <Button disabled={!selectedLayer}
-                        onClick={this.handleMoveLayerDownButtonClicked.bind(this)}
+                        onClick={this.handleMoveLayerDownButtonClicked}
                         iconName="arrow-down"/>
             </div>
         );
@@ -145,39 +214,14 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             return null;
         }
 
-        function handleChangedLayerVisibility(dispatch, layer: LayerState, show: boolean) {
-            dispatch(actions.updateLayer(layer, {show}));
-        }
-
-        function handleChangedLayerSelection(dispatch, selectedLayerId: string|null) {
-            dispatch(actions.setSelectedLayerId(selectedLayerId));
-        }
-
-        const renderItem = (itemIndex: number) => {
-            const layer = layers[itemIndex];
-            return (
-                <div>
-                    <input type="checkbox"
-                           checked={layer.show}
-                           onChange={(ev: any) => {
-                                    handleChangedLayerVisibility(this.props.dispatch, layer, ev.target.checked);
-                                    ev.stopPropagation();
-                            }}
-                    />
-                    <span style={{marginLeft: "0.5em"}} className="pt-icon-layout-grid"/>
-                    <span style={{marginLeft: "0.5em"}}>{layer.name}</span>
-                </div>
-            );
-        };
-
         return (
             <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
                 <ListBox numItems={layers.length}
-                         getItemKey={index => layers[index].id}
-                         renderItem={renderItem}
+                         getItemKey={this.getLayerItemKey}
+                         renderItem={this.renderLayerItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
-                         selection={this.props.selectedLayer ? [this.props.selectedLayer.id] : []}
-                         onSelection={(newSelection) => handleChangedLayerSelection(this.props.dispatch, newSelection.length ? newSelection[0] as string : null)}/>
+                         selection={this.props.selectedLayerId}
+                         onSelection={this.handleChangedLayerSelection}/>
             </div>
         );
     }
@@ -258,28 +302,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             return null;
         }
 
-        function handleUpdateDisplayStatistics() {
-            const resource = this.props.selectedResource;
-            const variable = this.props.selectedVariable;
-            const layer = this.props.selectedVariableImageLayer;
-            if (!resource || !variable || !layer) {
-                return;
-            }
-            this.props.dispatch(actions.getWorkspaceVariableStatistics(resource.name, variable.name, layer.varIndex,
-                (statistics) => {
-                    return actions.updateLayer(layer, {
-                        displayMin: statistics.min,
-                        displayMax: statistics.max,
-                        statistics
-                    });
-                }
-            ));
-        }
-
-        function handleChangedDisplayMinMax(dispatch, displayMin: number, displayMax: number) {
-            dispatch(actions.updateLayer(layer, {displayMin, displayMax}));
-        }
-
         let fractionDigits = 2;
         if (layer.statistics) {
             fractionDigits = getDisplayFractionDigits(layer.statistics.min, layer.statistics.max);
@@ -291,13 +313,13 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                 <td>
                     <div className="pt-control-group">
                         <NumericRangeField value={[layer.displayMin, layer.displayMax]}
-                                           onChange={(value: [number, number]) => handleChangedDisplayMinMax(this.props.dispatch, value[0], value[1])}
+                                           onChange={this.handleChangedDisplayMinMax}
                                            exponential={fractionDigits > 3}
                                            fractionDigits={fractionDigits > 3 ? 2 : fractionDigits}
                         />
                         <Tooltip content="Compute valid min/max">
                             <Button className="pt-intent-primary" iconName="arrows-horizontal"
-                                    onClick={handleUpdateDisplayStatistics.bind(this)}/>
+                                    onClick={this.handleUpdateDisplayStatistics}/>
                         </Tooltip>
                     </div>
                     <div>

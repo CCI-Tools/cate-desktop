@@ -40,6 +40,8 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         this.handleSelectedVariableName = this.handleSelectedVariableName.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleShowSelectedVariableLayer = this.handleShowSelectedVariableLayer.bind(this);
+        this.getItemKey = this.getItemKey.bind(this);
+        this.renderItem = this.renderItem.bind(this);
     }
 
     private handleSelectedVariableName(newSelection: Array<React.Key>) {
@@ -165,18 +167,22 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         );
     }
 
+    private getItemKey(itemIndex: number) {
+        return this.props.variables[itemIndex].name;
+    }
+
+    private renderItem(itemIndex: number) {
+        const variable = this.props.variables[itemIndex];
+        return <LabelWithType label={variable.name} dataType={variable.dataType}/>;
+    }
+
     private renderVariablesList() {
         const variables = this.props.variables;
-        const selection = this.props.selectedVariableName ? [this.props.selectedVariableName] : null;
-        const renderItem = (itemIndex: number) => {
-            const variable = variables[itemIndex];
-            return <LabelWithType label={variable.name} dataType={variable.dataType}/>;
-        };
         return (
             <ListBox numItems={variables.length}
-                     getItemKey={index => variables[index].name}
-                     renderItem={renderItem}
-                     selection={selection}
+                     getItemKey={this.getItemKey}
+                     renderItem={this.renderItem}
+                     selection={this.props.selectedVariableName}
                      selectionMode={ListBoxSelectionMode.SINGLE}
                      onSelection={this.handleSelectedVariableName}/>
         );

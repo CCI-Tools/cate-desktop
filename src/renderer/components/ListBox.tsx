@@ -15,7 +15,7 @@ export interface IListBoxProps {
     onItemDoubleClick?: (key: React.Key, itemIndex: number) => void;
     onSelection?: (newSelection: Array<React.Key>, oldSelection?: Array<React.Key>) => void;
     selectionMode?: ListBoxSelectionMode;
-    selection?: Array<React.Key>;
+    selection?: Array<React.Key>|React.Key|null;
     style?: Object;
     itemStyle?: Object;
 }
@@ -25,7 +25,7 @@ export interface IListBoxProps {
  *
  * @author Norman Fomferra
  */
-export class ListBox extends React.Component<IListBoxProps, any> {
+export class ListBox extends React.PureComponent<IListBoxProps, any> {
     constructor(props: IListBoxProps) {
         super(props);
         this.handleClick = this.handleClick.bind(this);
@@ -34,25 +34,26 @@ export class ListBox extends React.Component<IListBoxProps, any> {
 
     handleClick(itemIndex, key: string|number) {
         if (this.props.onSelection) {
-            const selectionMode = this.props.selectionMode || ListBoxSelectionMode.SINGLE;
+            const selection = toSelectionArray(this.props.selection);
             let newSelection;
             if (this.props.selection) {
-                const itemIndex = this.props.selection.findIndex(k => k === key);
+                const selectionMode = this.props.selectionMode || ListBoxSelectionMode.SINGLE;
+                const itemIndex = selection.findIndex(k => k === key);
                 if (itemIndex >= 0) {
-                    newSelection = this.props.selection.slice();
+                    newSelection = selection.slice();
                     delete newSelection[itemIndex];
                 } else {
                     if (selectionMode === ListBoxSelectionMode.SINGLE) {
                         newSelection = [key];
                     } else if (selectionMode === ListBoxSelectionMode.MULTIPLE) {
-                        newSelection = this.props.selection.slice();
+                        newSelection = selection.slice();
                         newSelection.push(key);
                     }
                 }
             } else {
                 newSelection = [key];
             }
-            this.props.onSelection(newSelection, this.props.selection);
+            this.props.onSelection(newSelection, selection);
         }
         if (this.props.onItemClick) {
             this.props.onItemClick(key, itemIndex);
@@ -79,7 +80,7 @@ export class ListBox extends React.Component<IListBoxProps, any> {
         }, this.props.itemStyle || {});
         const selectedItemStyle = Object.assign({}, normalItemStyle, {});
 
-        const selection = new Set<any>(this.props.selection || []);
+        const selection = new Set<any>(toSelectionArray(this.props.selection));
         const getItemKey = this.props.getItemKey || (itemIndex => itemIndex);
         const renderItem = this.props.renderItem;
         //noinspection JSMismatchedCollectionQueryUpdate
@@ -87,12 +88,14 @@ export class ListBox extends React.Component<IListBoxProps, any> {
         for (let itemIndex = 0; itemIndex < this.props.numItems; itemIndex++) {
             const key = getItemKey(itemIndex);
             const item = renderItem(itemIndex);
-            const itemStyle = selection.has(key) ? selectedItemStyle : normalItemStyle;
+            const selected = selection.has(key);
+            const itemStyle = selected ? selectedItemStyle : normalItemStyle;
+            const className = selected ? 'cate-selected' : null;
             items.push(
                 <li key={key}
                     onClick={() => this.handleClick(itemIndex, key)}
                     onDoubleClick={() => this.handleDoubleClick(itemIndex, key)}
-                    className={selection.has(key) ? 'cate-selected' : null}
+                    className={className}
                     style={itemStyle}>
                     {item}
                 </li>
@@ -107,3 +110,14 @@ export class ListBox extends React.Component<IListBoxProps, any> {
     }
 }
 
+const EMPTY_ARRAY = [];
+
+function toSelectionArray(obj): any[] {
+    if (obj === null || typeof obj === 'undefined') {
+        return EMPTY_ARRAY;
+    }
+    if (obj.constructor === Array) {
+        return obj;
+    }
+    return [obj];
+}

@@ -34,7 +34,16 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
  */
 class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
-    //noinspection JSUnusedLocalSymbols
+    constructor(props, context) {
+        super(props, context);
+        this.handleWorkspaceResourceIdSelected = this.handleWorkspaceResourceIdSelected.bind(this);
+        this.handleWorkflowStepIdSelected = this.handleWorkflowStepIdSelected.bind(this);
+        this.getResourceItemKey = this.getResourceItemKey.bind(this);
+        this.renderResourceItem = this.renderResourceItem.bind(this);
+        this.getStepItemKey = this.getStepItemKey.bind(this);
+        this.renderStepItem = this.renderStepItem.bind(this);
+    }
+
     private handleWorkspaceResourceIdSelected(newSelection: Array<React.Key>) {
         if (newSelection && newSelection.length) {
             this.props.dispatch(actions.setSelectedWorkspaceResourceId(newSelection[0] as string));
@@ -43,13 +52,30 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         }
     }
 
-    //noinspection JSUnusedLocalSymbols
     private handleWorkflowStepIdSelected(newSelection: Array<React.Key>) {
         if (newSelection && newSelection.length) {
             this.props.dispatch(actions.setSelectedWorkflowStepId(newSelection[0] as string));
         } else {
             this.props.dispatch(actions.setSelectedWorkflowStepId(null));
         }
+    }
+
+    private getResourceItemKey(i) {
+        return this.props.workspace.resources[i].name;
+    }
+
+    private renderResourceItem(i) {
+        let resources = this.props.workspace.resources;
+        return (<LabelWithType label={resources[i].name}
+                               dataType={resources[i].dataType}/>);
+    }
+
+    private getStepItemKey(i) {
+        return this.props.workspace.workflow.steps[i].id;
+    }
+
+    private renderStepItem(i) {
+        return ( <span>{this.getStepLabel(this.props.workspace.workflow.steps[i])}</span>);
     }
 
     render() {
@@ -63,9 +89,6 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
             assert.ok(steps);
             const resources = workspace.resources;
             assert.ok(resources);
-
-            const selectedResourceId = this.props.selectedResourceId;
-            const selectedWorkflowStepId = this.props.selectedWorkflowStepId;
 
             const resourcesTooltip = "Workspace resources that result from workflow steps";
             const workflowTooltip = "Workflow steps that generate workspace resources";
@@ -92,20 +115,20 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                     </TabList>
                     <TabPanel>
                         <ListBox numItems={resources.length}
-                                 getItemKey={i => resources[i].name}
-                                 renderItem={i => <LabelWithType label={resources[i].name} dataType={resources[i].dataType}/>}
-                                 selection={selectedResourceId ? [selectedResourceId] : null}
-                                 onSelection={this.handleWorkspaceResourceIdSelected.bind(this)}/>
+                                 getItemKey={this.getResourceItemKey}
+                                 renderItem={this.renderResourceItem}
+                                 selection={this.props.selectedResourceId}
+                                 onSelection={this.handleWorkspaceResourceIdSelected}/>
                         <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
                             <Button disabled={!resources.length} iconName="label"/>
                         </div>
                     </TabPanel>
                     <TabPanel>
                         <ListBox numItems={steps.length}
-                                 getItemKey={i => steps[i].id}
-                                 renderItem={i => <span>{this.getStepLabel(steps[i])}</span>}
-                                 selection={selectedWorkflowStepId ? [selectedWorkflowStepId] : null}
-                                 onSelection={this.handleWorkflowStepIdSelected.bind(this)}/>
+                                 getItemKey={this.getStepItemKey}
+                                 renderItem={this.renderStepItem}
+                                 selection={this.props.selectedWorkflowStepId}
+                                 onSelection={this.handleWorkflowStepIdSelected}/>
                         <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
                             <Button disabled={!steps.length} style={{marginRight: '0.2em'}} iconName="duplicate"/>
                             <Button disabled={!steps.length} style={{marginRight: '0.2em'}} iconName="edit"/>

@@ -57,8 +57,31 @@ function mapStateToProps(state: State): IOperationsPanelProps {
  */
 class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
+    constructor(props: IOperationsPanelProps, context: any) {
+        super(props, context);
+        this.handleOperationSelection = this.handleOperationSelection.bind(this);
+        this.handleOperationFilterExprChange = this.handleOperationFilterExprChange.bind(this);
+        this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
+        this.handleAddOpStepButtonClicked = this.handleAddOpStepButtonClicked.bind(this);
+        this.handleAddOpStepDialogClosed = this.handleAddOpStepDialogClosed.bind(this);
+        this.getItemKey = this.getItemKey.bind(this);
+        this.renderItem = this.renderItem.bind(this);
+    }
+
     private handleShowDetailsChanged(value: boolean) {
         this.props.dispatch(actions.setControlProperty('showOperationDetails', value));
+    }
+
+    private handleOperationSelection(newSelection: Array<React.Key>) {
+        if (newSelection.length > 0) {
+            this.props.dispatch(actions.setSelectedOperationName(newSelection[0] as string));
+        } else {
+            this.props.dispatch(actions.setSelectedOperationName(null));
+        }
+    }
+
+    private handleOperationFilterExprChange(event) {
+        this.props.dispatch(actions.setOperationFilterExpr(event.target.value));
     }
 
     private handleAddOpStepButtonClicked() {
@@ -94,6 +117,24 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         }
     }
 
+    private getItemKey(itemIndex: number) {
+        return this.props.filteredOperations[itemIndex].name;
+    }
+
+    private renderItem(itemIndex: number) {
+        const operation = this.props.filteredOperations[itemIndex];
+        const name = operation.name;
+        let dataType;
+        if (!operation.outputs.length) {
+            dataType = '';
+        } else if (operation.outputs.length === 1) {
+            dataType = operation.outputs[0].dataType;
+        } else {
+            dataType = `${operation.outputs.length} types`;
+        }
+        return <LabelWithType label={name} dataType={dataType}/>
+    }
+
     render() {
         const operations = this.props.operations;
         if (operations && operations.length) {
@@ -112,7 +153,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             const operationFilterExprInput = (<InputGroup
                 disabled={false}
                 leftIconName="filter"
-                onChange={this.handleOperationFilterExprChange.bind(this)}
+                onChange={this.handleOperationFilterExprChange}
                 placeholder="Find operation"
                 rightElement={resultsTag}
                 value={operationFilterExpr}
@@ -126,14 +167,14 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                         operation={selectedOperation}
                         isAddOpStepDialog={true}
                         {...this.props.editOpStepDialogState}
-                        onClose={this.handleAddOpStepDialogClosed.bind(this)}/>
+                        onClose={this.handleAddOpStepDialogClosed}/>
                 );
             }
 
             const actionComponent = (
                 <div>
                     <Button className="pt-intent-primary"
-                            onClick={this.handleAddOpStepButtonClicked.bind(this)}
+                            onClick={this.handleAddOpStepButtonClicked}
                             disabled={!this.props.selectedOperationName || !this.props.workspace}
                             iconName="play">Apply...</Button>
                     {addOpStepDialog}
@@ -145,7 +186,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                     {operationFilterExprInput}
                     {operationTagFilterPanel}
                     <ContentWithDetailsPanel showDetails={this.props.showOperationDetails}
-                                             onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
+                                             onShowDetailsChange={this.handleShowDetailsChanged}
                                              isSplitPanel={true}
                                              initialContentHeight={200}
                                              actionComponent={actionComponent}>
@@ -165,48 +206,16 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     }
 
     private renderOperationsList() {
-        const operations = this.props.filteredOperations;
-        const selectedOperationName = this.props.selectedOperationName;
-
-        const renderItem = (itemIndex: number) => {
-            const operation: OperationState = operations[itemIndex];
-
-            const name = operation.name;
-
-            let dataType;
-            if (!operation.outputs.length) {
-                dataType = '';
-            } else if (operation.outputs.length === 1) {
-                dataType = operation.outputs[0].dataType;
-            } else {
-                dataType = `${operation.outputs.length} types`;
-            }
-
-            return <LabelWithType label={name} dataType={dataType}/>
-        };
-
-        const handleOperationSelection = (newSelection: Array<React.Key>) => {
-            if (newSelection.length > 0) {
-                this.props.dispatch(actions.setSelectedOperationName(newSelection[0] as string));
-            } else {
-                this.props.dispatch(actions.setSelectedOperationName(null));
-            }
-        };
-
         return (
             <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
-                <ListBox numItems={operations.length}
-                         getItemKey={index => operations[index].name}
-                         renderItem={renderItem}
+                <ListBox numItems={this.props.filteredOperations.length}
+                         getItemKey={this.getItemKey}
+                         renderItem={this.renderItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
-                         selection={selectedOperationName ? [selectedOperationName] : []}
-                         onSelection={handleOperationSelection.bind(this)}/>
+                         selection={this.props.selectedOperationName}
+                         onSelection={this.handleOperationSelection}/>
             </div>
         );
-    }
-
-    private handleOperationFilterExprChange(event) {
-        this.props.dispatch(actions.setOperationFilterExpr(event.target.value));
     }
 
     //noinspection JSMethodCanBeStatic
@@ -222,7 +231,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             selectedTagItems.push(
                 <Tag intent={Intent.PRIMARY}
                      style={tagStyle}
-                     onRemove={() => this.removeTagName.bind(this)(tagName)}>
+                     onRemove={() => this.removeTagName(tagName)}>
                     {`${tagName}`}
                 </Tag>);
         });
@@ -232,7 +241,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             if (!selectedOperationTags.has(tagName)) {
                 tagMenuItems.push(
                     <MenuItem key={tagName} text={`${tagName} (${tagCount})`}
-                              onClick={() => this.addTagName.bind(this)(tagName)}/>);
+                              onClick={() => this.addTagName(tagName)}/>);
             }
         });
 

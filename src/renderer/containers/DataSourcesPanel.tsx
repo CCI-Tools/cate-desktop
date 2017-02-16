@@ -62,7 +62,7 @@ const mapDispatchToProps = {
  *
  * @author Norman Fomferra
  */
-class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSourcesPanelDispatch, null> {
+class DataSourcesPanel extends React.PureComponent<IDataSourcesPanelProps & IDataSourcesPanelDispatch, null> {
 
     constructor(props: IDataSourcesPanelProps) {
         super(props);
@@ -226,6 +226,7 @@ class DataSourcesList extends React.Component<IDataSourcesListProps, null> {
     constructor(props: IDataSourcesListProps) {
         super(props);
         this.renderItem = this.renderItem.bind(this);
+        this.getItemKey = this.getItemKey.bind(this);
         this.handleDataSourceSelected = this.handleDataSourceSelected.bind(this);
         this.handleIconLoadError = this.handleIconLoadError.bind(this);
     }
@@ -241,6 +242,10 @@ class DataSourcesList extends React.Component<IDataSourcesListProps, null> {
     private handleIconLoadError(img) {
         img.onError = null;
         img.src = `resources/images/data-sources/esacci/${this.defaultIconName}.png`;
+    }
+
+    private getItemKey(itemIndex: number) {
+        return this.props.dataSources[itemIndex].id;
     }
 
     private renderItem(itemIndex: number) {
@@ -263,10 +268,10 @@ class DataSourcesList extends React.Component<IDataSourcesListProps, null> {
         return (
             <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
                 <ListBox numItems={this.props.dataSources.length}
-                         getItemKey={index => this.props.dataSources[index].id}
+                         getItemKey={this.getItemKey}
                          renderItem={this.renderItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
-                         selection={this.props.selectedDataSourceId ? [this.props.selectedDataSourceId] : []}
+                         selection={this.props.selectedDataSourceId}
                          onSelection={this.handleDataSourceSelected}/>
             </div>
         );

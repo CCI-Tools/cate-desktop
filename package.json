@@ -70,6 +70,7 @@
     "openlayers": "^3.19.1",
     "react": "^15.4.1",
     "react-addons-css-transition-group": "^15.4.1",
+    "react-addons-perf": "^15.4.2",
     "react-addons-test-utils": "^15.4.2",
     "react-dom": "^15.4.1",
     "react-redux": "^4.4.5",
