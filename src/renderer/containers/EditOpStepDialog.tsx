@@ -101,20 +101,19 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
         this.setState(Object.assign({}, this.state, {inputAssignments}));
     }
 
-    private getMandatoryDatasetInputs() {
-        const mandatoryDatasetInputs = [];
-        for (let input of this.props.operation.inputs) {
+    private requiresDatasetResources() {
+        return this.props.operation.inputs.some(input => {
             const hasDefaultValue = input.defaultValue || input.defaultValue === null;
-            if (input.dataType.endsWith('Dataset') && !hasDefaultValue) {
-                mandatoryDatasetInputs.push(input);
-            }
-        }
-        return mandatoryDatasetInputs;
+            return !hasDefaultValue && EditOpStepDialog.isDatasetDataType(input.dataType)
+        });
     }
 
-    private getAvailableDatasetResources() {
-        const steps = this.props.workspace.workflow.steps;
-        return steps.map(step => step.id);
+    private hasDatasetResources() {
+        return this.props.workspace.resources.some(resource => EditOpStepDialog.isDatasetDataType(resource.dataType));
+    }
+
+    private static isDatasetDataType(dataType: string): boolean {
+        return dataType && dataType.endsWith('Dataset');
     }
 
     render() {
@@ -124,9 +123,6 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
         const dialogTitle = this.props.isAddOpStepDialog ? "Add Workflow Step" : "Change Workflow Step";
         const tooltipText = this.props.isAddOpStepDialog ? 'Add a new step to the workflow' : 'Change the step parameters.';
 
-        const mandatoryDatasetInputs = this.getMandatoryDatasetInputs();
-        const hasAvailableDatasetResources = this.getAvailableDatasetResources().length > 0;
-
         const bodyHeaderText = (
             <p style={{marginBottom: '1em'}}>
                 Adjustable parameter(s) for operation <code>{operation.name}</code>:
@@ -135,7 +131,7 @@ export class EditOpStepDialog extends React.Component<IEditOpStepDialogProps, IE
 
         let validationFailed = false;
         let bodyFooterText;
-        if (mandatoryDatasetInputs.length && !hasAvailableDatasetResources) {
+        if (this.requiresDatasetResources() && !this.hasDatasetResources()) {
             validationFailed = true;
             bodyFooterText = (
                 <p style={{marginTop: '1em'}}>
