@@ -1,14 +1,17 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
-    ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState
+    ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState
 } from "./state";
-import {createSelector} from 'reselect';
+import {createSelector, Selector} from 'reselect';
 import {WebAPIClient} from "./webapi/WebAPIClient";
 import {DatasetAPI} from "./webapi/apis/DatasetAPI";
 import {OperationAPI} from "./webapi/apis/OperationAPI";
 import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
+
+const EMPTY_OBJECT = {};
+const EMPTY_ARRAY = [];
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remote API selectors
@@ -52,7 +55,22 @@ export const colorMapsAPISelector = createSelector(
     }
 );
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Dialog state selectors
+
+const DIALOG_STATE_SELECTORS: {[dialogId: string]: Selector<State, DialogState>} = {};
+const dialogStatesSelector = (state: State): {[dialogId: string]: DialogState} => state.control.dialogs;
+export const dialogStateSelector = (dialogId: string) => {
+    if (!DIALOG_STATE_SELECTORS[dialogId]) {
+        DIALOG_STATE_SELECTORS[dialogId] = createSelector<State, DialogState, {[dialogId: string]: DialogState}>(
+            dialogStatesSelector,
+            (dialogStates: {[dialogId: string]: DialogState}) => dialogStates[dialogId] || EMPTY_OBJECT
+        );
+    }
+    return DIALOG_STATE_SELECTORS[dialogId];
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation selectors
 
 export const operationsSelector = (state: State): OperationState[]|null => state.data.operations;
@@ -99,7 +117,7 @@ export const filteredOperationsSelector = createSelector<State, OperationState[]
             }
             return operations.filter(op => nameMatches(op) && hasTag(op));
         }
-        return operations || [];
+        return operations || EMPTY_ARRAY;
     }
 );
 
@@ -107,7 +125,7 @@ export const operationsTagCountsSelector = createSelector<State, Map<string, num
     operationsSelector,
     (operations) => {
         let tagCounts = new Map<string, number>();
-        (operations || []).forEach((op: OperationState) => (op.tags || []).forEach((tag: string) => {
+        (operations || EMPTY_ARRAY).forEach((op: OperationState) => (op.tags || EMPTY_ARRAY).forEach((tag: string) => {
             tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
         }));
         return tagCounts;
@@ -235,7 +253,7 @@ export const selectedVariableSelector = createSelector<State, VariableState|null
     selectedVariableNameSelector,
     (selectedVariables: VariableState[]|null, selectedVariableName: string|null) => {
         if (canFind(selectedVariables, selectedVariableName)) {
-            return (selectedVariables || []).find(v => v.name === selectedVariableName);
+            return (selectedVariables || EMPTY_ARRAY).find(v => v.name === selectedVariableName);
         }
         return null;
     }

@@ -33,7 +33,7 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         selectedDataSources: selectors.selectedDataSourcesSelector(state),
         filteredDataSources: selectors.filteredDataSourcesSelector(state),
         showDataSourceDetails: selectors.showDataSourceDetailsSelector(state),
-        openDatasetDialogState: (state.control.dialogs[OpenDatasetDialog.DIALOG_ID] || {}) as IOpenDatasetDialogState
+        openDatasetDialogState: selectors.dialogStateSelector(OpenDatasetDialog.DIALOG_ID)(state) as IOpenDatasetDialogState
     };
 }
 

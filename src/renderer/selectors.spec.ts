@@ -251,3 +251,28 @@ describe('Layer selectors', function () {
 describe('ColorMap selectors', function () {
     // TODO (forman/marcoz): write unit tests for ColorMap selectors
 });
+
+describe('Dialog state selector', function () {
+    const getState = () => {
+        return {
+            control: {
+                dialogs: {
+                    bertDialog: {isOpen: true}
+                }
+            },
+        };
+    };
+
+    it('always returns valid state', function () {
+        expect(selectors.dialogStateSelector('bertDialog')(getState() as any)
+        ).to.deep.equal({isOpen: true});
+
+        expect(selectors.dialogStateSelector('biboDialog')(getState() as any)
+        ).to.deep.equal({});
+    });
+
+    it('is same instance', function () {
+        selectors.dialogStateSelector('bertDialog').should.equal(selectors.dialogStateSelector('bertDialog'));
+        selectors.dialogStateSelector('biboDialog').should.equal(selectors.dialogStateSelector('biboDialog'));
+    });
+});

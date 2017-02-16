@@ -43,7 +43,7 @@ function mapStateToProps(state: State): IOperationsPanelProps {
         operationFilterExpr: selectors.operationFilterExprSelector(state),
         operationsTagCounts: selectors.operationsTagCountsSelector(state),
         showOperationDetails: state.control.showOperationDetails,
-        editOpStepDialogState: ((dialogId && state.control.dialogs[dialogId]) || {}) as IEditOpStepDialogState,
+        editOpStepDialogState: selectors.dialogStateSelector(dialogId)(state) as IEditOpStepDialogState,
         // TODO (forman): Handle case where action is called twice without completing the first.
         //                In this case the same resource name will be generated :(
         newResourceName: selectors.newResourceNameSelector(state)

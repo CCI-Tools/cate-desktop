@@ -3,6 +3,7 @@ import {Dialog, Classes, Button, TabPanel, Tab, TabList, Tabs, Switch} from "@bl
 import {State, SessionState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
+import * as selectors from "../selectors";
 import {TextField} from "../components/TextField";
 import {OpenDialogProperty} from "../actions";
 import * as deepEqual from 'deep-equal';
@@ -14,9 +15,8 @@ interface IPreferencesDialogProps {
 }
 
 function mapStateToProps(state: State): IPreferencesDialogProps {
-    let dialogState = state.control.dialogs[PreferencesDialog.DIALOG_ID];
     return {
-        isOpen: dialogState && dialogState.isOpen,
+        isOpen: selectors.dialogStateSelector(PreferencesDialog.DIALOG_ID)(state).isOpen,
         preferences: state.session,
     };
 }
