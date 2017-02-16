@@ -7,7 +7,7 @@ import * as React from 'react';
  *
  * @author Norman Fomferra
  */
-export class Card extends React.Component<any, any> {
+export class Card extends React.PureComponent<any, any> {
     constructor(props) {
         super(props);
     }

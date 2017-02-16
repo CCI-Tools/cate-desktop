@@ -4,7 +4,7 @@ import {Splitter} from "./Splitter";
 // TODO (forman): extract reusable components, then remove hgl.tsx! This is old stinky code.
 
 
-export class HGLContainer extends React.Component<any, any> {
+export class HGLContainer extends React.PureComponent<any, any> {
     render() {
         return (
             <div className="hgl-container">
@@ -14,7 +14,7 @@ export class HGLContainer extends React.Component<any, any> {
     }
 }
 
-export class HGLHeader extends React.Component<any, any> {
+export class HGLHeader extends React.PureComponent<any, any> {
     render() {
         return (
             <div className="hgl-header">
@@ -24,7 +24,7 @@ export class HGLHeader extends React.Component<any, any> {
     }
 }
 
-export class HGLFooter extends React.Component<any, any> {
+export class HGLFooter extends React.PureComponent<any, any> {
     render() {
         return (
             <div className="hgl-footer">
@@ -35,7 +35,7 @@ export class HGLFooter extends React.Component<any, any> {
 }
 
 
-export class HGLLeft extends React.Component<any, any> {
+export class HGLLeft extends React.PureComponent<any, any> {
     render() {
         return (
             <div className="hgl-left" style={this.props.style}>
@@ -45,7 +45,7 @@ export class HGLLeft extends React.Component<any, any> {
     }
 }
 
-export class HGLRight extends React.Component<any, any> {
+export class HGLRight extends React.PureComponent<any, any> {
     render() {
         return (
             <div className="hgl-right" style={this.props.style}>
@@ -56,7 +56,7 @@ export class HGLRight extends React.Component<any, any> {
 }
 
 
-export class HGLCenter extends React.Component<any, any> {
+export class HGLCenter extends React.PureComponent<any, any> {
     render() {
         return (
             <div className="hgl-center">
@@ -81,7 +81,7 @@ export interface HGLMidsectionState {
 }
 
 
-export class HGLMidsection extends React.Component<HGLMidsectionProps, HGLMidsectionState> {
+export class HGLMidsection extends React.PureComponent<HGLMidsectionProps, HGLMidsectionState> {
 
     constructor(props: HGLMidsectionProps) {
         super(props);

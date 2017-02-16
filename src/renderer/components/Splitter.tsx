@@ -27,7 +27,7 @@ type EventListenerItem = [string, (any) => any];
  *
  * @author Norman Fomferra
  */
-export class Splitter extends React.Component<ISplitterProps, any> {
+export class Splitter extends React.PureComponent<ISplitterProps, any> {
     private lastPosition: null | number = null;
     private bodyEventListeners: Array<EventListenerItem>;
 

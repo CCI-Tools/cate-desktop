@@ -42,7 +42,7 @@ interface IExpansionPanelState {
  *
  * @author Norman Fomferra
  */
-export class ExpansionPanel extends React.Component<IExpansionPanelProps,IExpansionPanelState> {
+export class ExpansionPanel extends React.PureComponent<IExpansionPanelProps,IExpansionPanelState> {
     constructor(props: IExpansionPanelProps) {
         super(props);
         this.state = {

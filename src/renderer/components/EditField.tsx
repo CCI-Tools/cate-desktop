@@ -26,7 +26,7 @@ export interface IEditFieldState<T> {
  *
  * @author Norman Fomferra
  */
-export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.Component<P, IEditFieldState<T>> {
+export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.PureComponent<P, IEditFieldState<T>> {
 
     private initialState: IEditFieldState<T>;
 

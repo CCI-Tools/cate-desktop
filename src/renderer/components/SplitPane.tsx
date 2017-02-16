@@ -21,7 +21,7 @@ export interface ISplitPaneState {
  *
  * @author Norman Fomferra
  */
-export class SplitPane extends React.Component<ISplitPaneProps, ISplitPaneState> {
+export class SplitPane extends React.PureComponent<ISplitPaneProps, ISplitPaneState> {
 
     constructor(props: ISplitPaneProps) {
         super(props);
