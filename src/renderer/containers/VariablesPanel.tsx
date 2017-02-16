@@ -56,7 +56,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
 
     private handleShowSelectedVariableLayer() {
         const showSelectedVariableLayer = this.props.showSelectedVariableLayer;
-        this.props.dispatch(actions.setSessionProperty('showSelectedVariableLayer', !showSelectedVariableLayer));
+        this.props.dispatch(actions.setShowSelectedVariableLayer(!showSelectedVariableLayer));
     }
 
     render() {

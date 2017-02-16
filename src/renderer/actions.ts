@@ -7,7 +7,7 @@ import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} 
 import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 
-// TODO (forman/marcoz): write unit tests for actions
+// TODO (forman/marcoz): write more unit tests for actions
 
 type NumberRange = [number, number];
 
@@ -706,6 +706,17 @@ export function getWorkspaceVariableStatistics(resName: string,
 
 export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
 
+
+export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean) {
+    return (dispatch, getState) => {
+        const layers = selectors.layersSelector(getState());
+        const layer = layers.find(l => l.id === SELECTED_VARIABLE_LAYER_ID);
+        assert.ok(layer);
+        dispatch(updateLayer(layer, {show: showSelectedVariableLayer}));
+        dispatch(setSessionProperty('showSelectedVariableLayer', showSelectedVariableLayer));
+    };
+}
+
 export function setSelectedVariableName(selectedVariableName: string|null) {
     return (dispatch, getState) => {
         dispatch(setSelectedVariableNameImpl(selectedVariableName));
@@ -781,6 +792,8 @@ function setSelectedVariableNameImpl(selectedVariableName: string|null) {
 // Layer actions
 
 export const SET_SELECTED_LAYER_ID = 'SET_SELECTED_LAYER_ID';
+export const ADD_LAYER = 'ADD_LAYER';
+export const REMOVE_LAYER = 'REMOVE_LAYER';
 export const UPDATE_LAYER = 'UPDATE_LAYER';
 export const SAVE_LAYER = 'SAVE_LAYER';
 
@@ -788,6 +801,14 @@ export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 
 export function setSelectedLayerId(selectedLayerId: string|null) {
     return {type: SET_SELECTED_LAYER_ID, payload: {selectedLayerId}};
+}
+
+export function addLayer(layer: LayerState) {
+    return {type: ADD_LAYER, payload: {layer}};
+}
+
+export function removeLayer(id: string) {
+    return {type: REMOVE_LAYER, payload: {id}};
 }
 
 export function updateLayer(layer: LayerState, ...layerSources) {
@@ -1007,6 +1028,10 @@ export function showMultiFileOpenDialog(openDialogOptions: OpenDialogOptions,
 export function showFileOpenDialog(openDialogOptions: OpenDialogOptions,
                                    callback?: (filePaths: string[]) => void): string[]|null {
     const electron = require('electron');
+    if (!electron) {
+        console.warn('showFileOpenDialog() cannot be executed, electron not available from renderer process');
+        return;
+    }
     const actionName = 'show-open-dialog';
     if (callback) {
         electron.ipcRenderer.send(actionName, openDialogOptions, false);
@@ -1028,6 +1053,10 @@ export function showFileOpenDialog(openDialogOptions: OpenDialogOptions,
  */
 export function showFileSaveDialog(saveDialogOptions: SaveDialogOptions, callback?: (filePath: string) => void): string|null {
     const electron = require('electron');
+    if (!electron) {
+        console.warn('showFileSaveDialog() cannot be executed, electron not available from renderer process');
+        return;
+    }
     const actionName = 'show-save-dialog';
     if (callback) {
         electron.ipcRenderer.send(actionName, saveDialogOptions, false);
@@ -1053,6 +1082,10 @@ export const MESSAGE_BOX_NO_REPLY = () => {
  */
 export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: (index: number) => void): number|null {
     const electron = require('electron');
+    if (!electron) {
+        console.warn('showMessageBox() cannot be executed, electron not available from renderer process');
+        return;
+    }
     const actionName = 'show-message-box';
     if (!messageBoxOptions.buttons) {
         messageBoxOptions = Object.assign({}, messageBoxOptions, {buttons: ['OK']});
@@ -1078,6 +1111,10 @@ export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: 
 export function updateSessionPreferences(session: SessionState, callback?: (error: any) => void) {
     return () => {
         const electron = require('electron');
+        if (!electron || !electron.ipcRenderer) {
+            console.warn('updateSessionPreferences() cannot be executed, electron/electron.ipcRenderer not available from renderer process');
+            return;
+        }
         const preferences = Object.assign({}, session);
         if (preferences.hasOwnProperty('backendConfig')) {
             delete preferences.backendConfig;
