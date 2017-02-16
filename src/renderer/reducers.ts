@@ -194,9 +194,9 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         case actions.SET_SELECTED_WORKFLOW_STEP_ID:
         case actions.SET_SELECTED_LAYER_ID:
         case actions.SET_SELECTED_COLOR_MAP_NAME:
-        case actions.SET_CONTROL_STATE:
+        case actions.UPDATE_CONTROL_STATE:
             return updateObject(state, action.payload);
-        case actions.SET_DIALOG_STATE:
+        case actions.UPDATE_DIALOG_STATE:
             return updateObject(state, {
                 dialogs: updatePropertyObject(state.dialogs, action.payload.dialogId, action.payload.dialogState)
             });

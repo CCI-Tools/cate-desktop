@@ -37,6 +37,8 @@ export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.P
         this.notifyStateChange = this.notifyStateChange.bind(this);
         this.rejectInputValue = this.rejectInputValue.bind(this);
         this.onFailure = this.onFailure.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.handleKeyUp = this.handleKeyUp.bind(this);
         this.handleFocusOut = this.handleFocusOut.bind(this);
     }
 
@@ -52,6 +54,26 @@ export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.P
         const state = this.propsToState(nextProps);
         this.setState(state);
         this.initialState = state;
+    }
+
+    private handleChange(event: any) {
+        this.setState({inputValue: event.target.value} as IEditFieldState<T>)
+    }
+
+    private handleKeyUp(event: any) {
+        const keyCode = event.keyCode;
+        if (keyCode == 13) {
+            // RETURN pressed
+            this.acceptInputValue();
+        } else if (keyCode == 27) {
+            // ESCAPE pressed
+            this.rejectInputValue();
+        }
+    }
+
+    private handleFocusOut(event: any) {
+        // accept current value, but set initial value if input is invalid
+        this.acceptInputValue(this.onFailure);
     }
 
     render() {
@@ -73,29 +95,11 @@ export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.P
                    style={style}
                    value={this.state.inputValue}
                    placeholder={this.props.placeholder}
-                   onChange={(ev: any) => this.handleChange(ev.target.value)}
-                   onKeyUp={(ev: any) => this.handleKeyUp(ev.keyCode)}
+                   onChange={this.handleChange}
+                   onKeyUp={this.handleKeyUp}
+                   onBlur={this.handleFocusOut}
             />
         );
-    }
-
-    private handleChange(inputValue: string) {
-        this.setState({inputValue} as IEditFieldState<T>)
-    }
-
-    private handleKeyUp(keyCode: number) {
-        if (keyCode == 13) {
-            // RETURN pressed
-            this.acceptInputValue();
-        } else if (keyCode == 27) {
-            // ESCAPE pressed
-            this.rejectInputValue();
-        }
-    }
-
-    private handleFocusOut() {
-        // accept current value, but set initial value if input is invalid
-        this.acceptInputValue(this.onFailure);
     }
 
     private acceptInputValue(onFailure?: ErrorHandler): boolean {

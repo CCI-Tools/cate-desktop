@@ -9,7 +9,7 @@ import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
-import {EditOpStepDialog, IEditOpStepDialogState} from "./EditOpStepDialog";
+import OperationStepDialog from "./OperationStepDialog";
 import {State, OperationState, WorkspaceState} from "../state";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -26,13 +26,10 @@ interface IOperationsPanelProps {
     operationFilterExpr: string|null;
     operationsTagCounts: Map<string, number>,
     showOperationDetails: boolean;
-    editOpStepDialogState: IEditOpStepDialogState;
-    newResourceName: string;
 }
 
 
 function mapStateToProps(state: State): IOperationsPanelProps {
-    const dialogId = EditOpStepDialog.getDialogId(state.control.selectedOperationName, true);
     return {
         workspace: state.data.workspace,
         operations: selectors.operationsSelector(state),
@@ -43,10 +40,6 @@ function mapStateToProps(state: State): IOperationsPanelProps {
         operationFilterExpr: selectors.operationFilterExprSelector(state),
         operationsTagCounts: selectors.operationsTagCountsSelector(state),
         showOperationDetails: state.control.showOperationDetails,
-        editOpStepDialogState: selectors.dialogStateSelector(dialogId)(state) as IEditOpStepDialogState,
-        // TODO (forman): Handle case where action is called twice without completing the first.
-        //                In this case the same resource name will be generated :(
-        newResourceName: selectors.newResourceNameSelector(state)
     };
 }
 
@@ -62,8 +55,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         this.handleOperationSelection = this.handleOperationSelection.bind(this);
         this.handleOperationFilterExprChange = this.handleOperationFilterExprChange.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
-        this.handleAddOpStepButtonClicked = this.handleAddOpStepButtonClicked.bind(this);
-        this.handleAddOpStepDialogClosed = this.handleAddOpStepDialogClosed.bind(this);
+        this.handleAddOperationStepButtonClicked = this.handleAddOperationStepButtonClicked.bind(this);
         this.getItemKey = this.getItemKey.bind(this);
         this.renderItem = this.renderItem.bind(this);
     }
@@ -84,37 +76,8 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         this.props.dispatch(actions.setOperationFilterExpr(event.target.value));
     }
 
-    private handleAddOpStepButtonClicked() {
-        // Open "addOpStep_X" dialog
-        const dialogId = EditOpStepDialog.getDialogId(this.props.selectedOperationName, true);
-        this.props.dispatch(actions.setDialogState(dialogId, {isOpen: true}));
-    }
-
-    private handleAddOpStepDialogClosed(actionId: string, dialogState: IEditOpStepDialogState) {
-        const selectedOperation = this.props.selectedOperation;
-
-        // Close "addOpStep_X" dialog and save state
-        const dialogId = EditOpStepDialog.getDialogId(this.props.selectedOperationName, true);
-        this.props.dispatch(actions.setDialogState(dialogId, dialogState));
-
-        // Perform the action
-        if (actionId) {
-            const resName = this.props.newResourceName;
-            const opName = selectedOperation.name;
-            const opArgs = {};
-            selectedOperation.inputs.forEach((input, index) => {
-                const inputAssignment = dialogState.inputAssignments[index];
-                let opArg;
-                if (inputAssignment.isValueUsed) {
-                    opArg = {value: inputAssignment.constantValue};
-                } else {
-                    opArg = {source: inputAssignment.resourceName};
-                }
-                opArgs[input.name] = opArg;
-            });
-            // console.log("OperationsPanel: handleAddOpStepDialogClosed", opName, opArgs);
-            this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, `Applying operation "${opName}"`));
-        }
+    private handleAddOperationStepButtonClicked() {
+        this.props.dispatch(actions.showOperationStepDialog());
     }
 
     private getItemKey(itemIndex: number) {
@@ -159,25 +122,13 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                 value={operationFilterExpr}
             />);
 
-            let addOpStepDialog = null;
-            if (this.props.editOpStepDialogState.isOpen) {
-                addOpStepDialog = (
-                    <EditOpStepDialog
-                        workspace={this.props.workspace}
-                        operation={selectedOperation}
-                        isAddOpStepDialog={true}
-                        {...this.props.editOpStepDialogState}
-                        onClose={this.handleAddOpStepDialogClosed}/>
-                );
-            }
-
             const actionComponent = (
                 <div>
                     <Button className="pt-intent-primary"
-                            onClick={this.handleAddOpStepButtonClicked}
+                            onClick={this.handleAddOperationStepButtonClicked}
                             disabled={!this.props.selectedOperationName || !this.props.workspace}
                             iconName="play">Apply...</Button>
-                    {addOpStepDialog}
+                    <OperationStepDialog isAddDialog={true}/>
                 </div>
             );
 

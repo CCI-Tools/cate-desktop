@@ -10,6 +10,11 @@ describe('updateObject()', function () {
             .should.deep.equal({});
         updateObject({}, {a: 2, b: 'Hi'})
             .should.deep.equal({a: 2, b: 'Hi'});
+        let b;
+        updateObject({}, {a: 2, b: 'Hi'}, {b})
+            .should.deep.equal({a: 2, b});
+        updateObject({}, {a: 2, b}, {b: 'Hi'})
+            .should.deep.equal({a: 2, b: 'Hi'});
     });
 });
 

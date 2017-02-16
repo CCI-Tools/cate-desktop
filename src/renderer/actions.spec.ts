@@ -7,6 +7,42 @@ import {should, expect} from 'chai';
 
 should();
 
+describe('OperationStepDialog actions', () => {
+    let store = null;
+
+    beforeEach(function () {
+        const middleware = applyMiddleware(thunk);
+        store = createStore(stateReducer, middleware);
+    });
+
+    it('show/hideOperationStepDialog', () => {
+        let inputAssignments;
+        store.dispatch(actions.showOperationStepDialog());
+        expect(store.getState().control.dialogs['operationStepDialog']).to.deep.equal({
+            isOpen: true
+        });
+        store.dispatch(actions.hideOperationStepDialog());
+        expect(store.getState().control.dialogs['operationStepDialog']).to.deep.equal({
+            isOpen: false,
+            inputAssignments
+        });
+        store.dispatch(actions.hideOperationStepDialog({op1: {a: 3, b: 8}}));
+        expect(store.getState().control.dialogs['operationStepDialog']).to.deep.equal({
+            isOpen: false,
+            inputAssignments: {
+                op1: {a: 3, b: 8}
+            }
+        });
+        store.dispatch(actions.hideOperationStepDialog({op2: {x: 2, y: 1}}));
+        expect(store.getState().control.dialogs['operationStepDialog']).to.deep.equal({
+            isOpen: false,
+            inputAssignments: {
+                op1: {a: 3, b: 8},
+                op2: {x: 2, y: 1}
+            }
+        });
+    });
+});
 
 describe('Layer actions', () => {
 

@@ -18,9 +18,9 @@ const CANCELLED_CODE = 999;
 
 export const UPDATE_INITIAL_STATE = 'UPDATE_INITIAL_STATE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
-export const SET_DIALOG_STATE = 'SET_DIALOG_STATE';
+export const UPDATE_DIALOG_STATE = 'UPDATE_DIALOG_STATE';
 export const SET_TASK_STATE = 'SET_TASK_STATE';
-export const SET_CONTROL_STATE = 'SET_CONTROL_STATE';
+export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 
 export function updateInitialState(initialState: Object) {
@@ -31,8 +31,8 @@ export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting'|'open'|
     return {type: SET_WEBAPI_STATUS, payload: {webAPIClient, webAPIStatus}};
 }
 
-export function setDialogState(dialogId: string, dialogState: any) {
-    return {type: SET_DIALOG_STATE, payload: {dialogId, dialogState}};
+export function updateDialogState(dialogId: string, dialogState: any) {
+    return {type: UPDATE_DIALOG_STATE, payload: {dialogId, dialogState}};
 }
 
 export function setTaskState(jobId: number, taskState: TaskState) {
@@ -40,7 +40,7 @@ export function setTaskState(jobId: number, taskState: TaskState) {
 }
 
 export function setControlProperty(propertyName: string, value: any) {
-    return {type: SET_CONTROL_STATE, payload: {[propertyName]: value}};
+    return {type: UPDATE_CONTROL_STATE, payload: {[propertyName]: value}};
 }
 
 export function setSessionProperty(propertyName: string, value: any) {
@@ -253,7 +253,7 @@ export function setDataSourceFilterExpr(dataSourceFilterExpr: string) {
 
 export function showOpenDatasetDialog(dataStoreId: string, dataSourceId: string, loadTimeInfo: boolean) {
     return (dispatch, getState) => {
-        dispatch(setDialogState('openDataset', {isOpen: true, timeInfoLoading: loadTimeInfo}));
+        dispatch(updateDialogState('openDataset', {isOpen: true, timeInfoLoading: loadTimeInfo}));
         if (loadTimeInfo) {
 
             function call(onProgress) {
@@ -277,7 +277,7 @@ function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: str
 export function confirmOpenDatasetDialog(dataSourceId: string, args: any) {
     return (dispatch, getState: () => State) => {
 
-        dispatch(setDialogState('openDataset', {isOpen: false}));
+        dispatch(updateDialogState('openDataset', {isOpen: false}));
 
         // TODO (forman): Handle case where action is called twice without completing the first.
         //                In this case the same resource name will be generated :(
@@ -303,7 +303,7 @@ export function confirmOpenDatasetDialog(dataSourceId: string, args: any) {
 }
 
 export function cancelOpenDatasetDialog() {
-    return setDialogState('openDataset', {isOpen: false});
+    return updateDialogState('openDataset', {isOpen: false});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -344,6 +344,22 @@ export function setOperationFilterTags(operationFilterTags: Array<string>) {
 
 export function setOperationFilterExpr(operationFilterExpr: Array<string>) {
     return {type: SET_OPERATION_FILTER_EXPR, payload: {operationFilterExpr}};
+}
+
+export function showOperationStepDialog() {
+    return (dispatch) => {
+        dispatch(updateDialogState('operationStepDialog', {isOpen: true}));
+    };
+}
+
+export function hideOperationStepDialog(inputAssignments?) {
+    return (dispatch, getState) => {
+        if (inputAssignments) {
+            const dialogState = getState().control.dialogs['operationStepDialog'];
+            inputAssignments = Object.assign({}, dialogState.inputAssignments, inputAssignments)
+        }
+        dispatch(updateDialogState('operationStepDialog', {isOpen: false, inputAssignments}));
+    };
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -870,12 +886,12 @@ function updateColorMaps(colorMaps: Array<ColorMapCategoryState>) {
 
 export function showPreferencesDialog() {
     return (dispatch) => {
-        dispatch(setDialogState('preferencesDialog', {isOpen: true}));
+        dispatch(updateDialogState('preferencesDialog', {isOpen: true}));
     };
 }
 
 export function hidePreferencesDialog() {
-    return setDialogState('preferencesDialog', {isOpen: false});
+    return updateDialogState('preferencesDialog', {isOpen: false});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

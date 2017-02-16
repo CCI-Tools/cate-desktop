@@ -219,26 +219,27 @@ export const selectedResourceSelector = createSelector<State, ResourceState|null
 export const newResourceNameSelector = createSelector<State, string, ResourceState[], string>(
     resourcesSelector,
     resourceNamePrefixSelector,
-    (resources: ResourceState[], namePrefix: string): string => {
-        if (!resources || !namePrefix) {
-            return "";
-        }
-        let maxNameIndex = 0;
-        for (let resource of resources) {
-            const resourceName = resource.name;
-            if (resourceName.startsWith(namePrefix)) {
-                try {
-                    const nameIndex = parseInt(resourceName.substr(namePrefix.length));
-                    maxNameIndex = Math.max(nameIndex, maxNameIndex);
-                } catch (e) {
-                    // ok
-                }
-            }
-        }
-        return `${namePrefix}${maxNameIndex + 1}`;
-    }
+    newResourceName
 );
 
+export function newResourceName(resources: ResourceState[], namePrefix: string): string {
+    if (!resources || !namePrefix) {
+        return "";
+    }
+    let maxNameIndex = 0;
+    for (let resource of resources) {
+        const resourceName = resource.name;
+        if (resourceName.startsWith(namePrefix)) {
+            try {
+                const nameIndex = parseInt(resourceName.substr(namePrefix.length));
+                maxNameIndex = Math.max(nameIndex, maxNameIndex);
+            } catch (e) {
+                // ok
+            }
+        }
+    }
+    return `${namePrefix}${maxNameIndex + 1}`;
+}
 
 export const variablesSelector = createSelector<State, VariableState[]|null, ResourceState|null>(
     selectedResourceSelector,
