@@ -1,7 +1,7 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {ExpansionPanel} from "../components/ExpansionPanel";
-import {State, DataStoreState, WorkspaceState, DataSourceState} from "../state";
+import {State, DataStoreState, DataSourceState} from "../state";
 import {Tabs, TabList, Tab, TabPanel, Button, InputGroup, Classes, Tag, NumberRange} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
@@ -12,7 +12,7 @@ import * as selectors from "../selectors";
 
 
 interface IDataSourcesPanelProps {
-    workspace: WorkspaceState;
+    hasWorkspace: boolean;
     dataStores: Array<DataStoreState>;
     dataSourceFilterExpr: string;
     selectedDataStore: DataStoreState|null;
@@ -25,7 +25,7 @@ interface IDataSourcesPanelProps {
 
 function mapStateToProps(state: State): IDataSourcesPanelProps {
     return {
-        workspace: selectors.workspaceSelector(state),
+        hasWorkspace: !!selectors.workspaceSelector(state),
         dataStores: selectors.dataStoresSelector(state),
         dataSourceFilterExpr: selectors.dataSourceFilterExprSelector(state),
         selectedDataStore: selectors.selectedDataStoreSelector(state),
@@ -62,7 +62,7 @@ const mapDispatchToProps = {
  *
  * @author Norman Fomferra
  */
-class DataSourcesPanel extends React.PureComponent<IDataSourcesPanelProps & IDataSourcesPanelDispatch, null> {
+class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSourcesPanelDispatch, null> {
 
     constructor(props: IDataSourcesPanelProps) {
         super(props);
@@ -126,7 +126,7 @@ class DataSourcesPanel extends React.PureComponent<IDataSourcesPanelProps & IDat
                 <div>
                     <Button className="pt-intent-primary"
                             onClick={this.handleShowOpenDatasetDialog.bind(this)}
-                            disabled={!this.props.selectedDataSource || !this.props.workspace}
+                            disabled={!this.props.selectedDataSource || !this.props.hasWorkspace}
                             iconName="folder-shared-open">Open...</Button>
                     {openDatasetDialog}
                 </div>
@@ -219,7 +219,7 @@ interface IDataSourcesListProps {
     selectedDataSourceId: string|null;
     setSelectedDataSourceId: (selectedDataSourceId: string) => void;
 }
-class DataSourcesList extends React.Component<IDataSourcesListProps, null> {
+class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
 
     readonly defaultIconName = 'cci';
 
@@ -281,7 +281,7 @@ class DataSourcesList extends React.Component<IDataSourcesListProps, null> {
 interface IDataSourceDetailsProps {
     dataSource: DataSourceState
 }
-class DataSourceDetails extends React.Component<IDataSourceDetailsProps, null> {
+class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, null> {
 
     render() {
         const dataSource = this.props.dataSource;
