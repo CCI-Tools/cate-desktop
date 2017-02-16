@@ -109,6 +109,22 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             return updateObject(state, {
                 workspace: action.payload.workspace,
             });
+        case actions.ADD_LAYER: {
+            const layer = action.payload.layer;
+            const layers = state.layers.slice();
+            layers.push(updateObject(layer));
+            return updateObject(state, {layers});
+        }
+        case actions.REMOVE_LAYER: {
+            const layerId = action.payload.id;
+            const layers = state.layers.slice();
+            const layerIndex = layers.findIndex(l => l.id === layerId);
+            if (layerIndex >= 0) {
+                layers.splice(layerIndex, 1);
+                return updateObject(state, {layers});
+            }
+            return state;
+        }
         case actions.UPDATE_LAYER: {
             const layer = action.payload.layer;
             const layers = state.layers.slice();
