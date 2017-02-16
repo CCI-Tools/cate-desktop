@@ -65,17 +65,22 @@ export class GlobeView extends React.Component<IGlobeViewProps, null> {
                 if (variable.imageLayout) {
                     const baseDir = this.props.workspace.baseDir;
                     const url = this.createVariableImageryProviderUrl(baseDir, layer);
+                    let rectangle = Cesium.Rectangle.MAX_VALUE;
+                    if (imageLayout.sector) {
+                        const sector = imageLayout.sector;
+                        rectangle = Cesium.Rectangle.fromDegrees(sector.west, sector.south, sector.east, sector.north);
+                    }
                     return Object.assign({}, layer, {
                         imageryProvider: GlobeView.createImageryProvider,
                         imageryProviderOptions: {
-                            url: url,
-                            // TODO (forman): use imageConfig.sector to specify 'rectangle' option. Required for subsets! See backend TODO.
-                            // rectangle: imageLayout.sector,
+                            url,
+                            rectangle,
                             minimumLevel: 0,
                             maximumLevel: imageLayout.numLevels - 1,
                             tileWidth: imageLayout.tileWidth,
                             tileHeight: imageLayout.tileHeight,
                             tilingScheme: new Cesium.GeographicTilingScheme({
+                                rectangle,
                                 numberOfLevelZeroTilesX: imageLayout.numLevelZeroTilesX,
                                 numberOfLevelZeroTilesY: imageLayout.numLevelZeroTilesY
                             }),
