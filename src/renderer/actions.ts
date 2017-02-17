@@ -163,10 +163,10 @@ export function callAPI<T>(dispatch,
 
 export const UPDATE_DATA_STORES = 'UPDATE_DATA_STORES';
 export const UPDATE_DATA_SOURCES = 'UPDATE_DATA_SOURCES';
+export const UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE = 'UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE';
 export const SET_SELECTED_DATA_STORE_ID = 'SET_SELECTED_DATA_STORE_ID';
 export const SET_SELECTED_DATA_SOURCE_ID = 'SET_SELECTED_DATA_SOURCE_ID';
 export const SET_DATA_SOURCE_FILTER_EXPR = 'SET_DATA_SOURCE_FILTER_EXPR';
-export const UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE = 'UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE';
 
 /**
  * Asynchronously load the available Cate data stores.
@@ -194,7 +194,7 @@ export function loadDataStores() {
 }
 
 
-function updateDataStores(dataStores: Array<DataStoreState>) {
+export function updateDataStores(dataStores: Array<DataStoreState>) {
     return {type: UPDATE_DATA_STORES, payload: {dataStores}};
 }
 
@@ -224,7 +224,7 @@ export function loadDataSources(dataStoreId: string) {
     }
 }
 
-function updateDataSources(dataStoreId: string, dataSources) {
+export function updateDataSources(dataStoreId: string, dataSources) {
     return {type: UPDATE_DATA_SOURCES, payload: {dataStoreId, dataSources}};
 }
 
@@ -269,7 +269,7 @@ export function showOpenDatasetDialog(dataStoreId: string, dataSourceId: string,
     };
 }
 
-function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: string, temporalCoverage: NumberRange) {
+export function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: string, temporalCoverage: NumberRange) {
     return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
 }
 
