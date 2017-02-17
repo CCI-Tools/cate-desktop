@@ -223,13 +223,6 @@ describe('Actions', () => {
 
     describe('Layer actions', () => {
 
-        it('setSelectedLayerId', () => {
-            store.dispatch(actions.setSelectedLayerId('var2'));
-            expect(store.getState().control.selectedLayerId).to.equal('var2');
-            store.dispatch(actions.setSelectedLayerId(null));
-            expect(store.getState().control.selectedLayerId).to.be.null;
-        });
-
         it('addLayer', () => {
             store.dispatch(actions.addLayer({id: 'layer-2', name: 'L2', show: true} as LayerState));
             expect(store.getState().data.layers).to.deep.equal([
@@ -268,19 +261,35 @@ describe('Actions', () => {
             ]);
         });
 
-        // setShowSelectedVariableLayer
         it('setShowSelectedVariableLayer', () => {
             store.dispatch(actions.setShowSelectedVariableLayer(true));
             expect(store.getState().session.showSelectedVariableLayer).to.equal(true);
             expect(store.getState().data.layers).to.deep.equal([
-                {id: 'selectedVariable', name: null, show: true, type: 'VariableImage'},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, name: null, show: true, type: 'VariableImage'},
             ]);
 
             store.dispatch(actions.setShowSelectedVariableLayer(false));
             expect(store.getState().session.showSelectedVariableLayer).to.equal(false);
             expect(store.getState().data.layers).to.deep.equal([
-                {id: 'selectedVariable', name: null, show: false, type: 'VariableImage'},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, name: null, show: false, type: 'VariableImage'},
             ]);
+        });
+
+        it('setShowSelectedVariableLayer - setSelectedLayerId', () => {
+            store.dispatch(actions.setSelectedLayerId(actions.SELECTED_VARIABLE_LAYER_ID));
+
+            store.dispatch(actions.setShowSelectedVariableLayer(true));
+            expect(store.getState().control.selectedLayerId).to.be.equal(actions.SELECTED_VARIABLE_LAYER_ID);
+
+            store.dispatch(actions.setShowSelectedVariableLayer(false));
+            expect(store.getState().control.selectedLayerId).to.be.null;
+        });
+
+        it('setSelectedLayerId', () => {
+            store.dispatch(actions.setSelectedLayerId('var2'));
+            expect(store.getState().control.selectedLayerId).to.equal('var2');
+            store.dispatch(actions.setSelectedLayerId(null));
+            expect(store.getState().control.selectedLayerId).to.be.null;
         });
     });
 

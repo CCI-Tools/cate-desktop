@@ -726,6 +726,11 @@ export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean)
         assert.ok(layer);
         dispatch(updateLayer(layer, {show: showSelectedVariableLayer}));
         dispatch(setPreferencesProperty('showSelectedVariableLayer', showSelectedVariableLayer));
+        // if we don't show layer for selected variable and selected layer is SELECTED_VARIABLE_LAYER_ID
+        if (!showSelectedVariableLayer && getState().control.selectedLayerId === SELECTED_VARIABLE_LAYER_ID) {
+            // deselect layer
+            dispatch(setSelectedLayerId(null));
+        }
     };
 }
 
