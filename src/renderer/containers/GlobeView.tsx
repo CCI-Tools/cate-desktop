@@ -8,7 +8,7 @@ interface IGlobeViewProps {
     baseUrl: string;
     workspace: WorkspaceState | null;
     offlineMode: boolean;
-    layers: Array<LayerState>;
+    layers: LayerState[];
 }
 
 function mapStateToProps(state: State): IGlobeViewProps {
