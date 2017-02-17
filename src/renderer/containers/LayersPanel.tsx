@@ -43,6 +43,7 @@ interface ILayersPanelProps {
     selectedVariable: VariableState|null,
     layers: Array<LayerState>;
     selectedLayerId: string|null;
+    selectedLayerIndex: number;
     selectedLayer: LayerState|null;
     selectedImageLayer: ImageLayerState|null;
     selectedVariableImageLayer: VariableImageLayerState|null;
@@ -57,6 +58,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedVariable: selectors.selectedVariableSelector(state),
         layers: selectors.layersSelector(state),
         selectedLayerId: selectors.selectedLayerIdSelector(state),
+        selectedLayerIndex: selectors.selectedLayerIndexSelector(state),
         selectedLayer: selectors.selectedLayerSelector(state),
         selectedImageLayer: selectors.selectedImageLayerSelector(state),
         selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
@@ -105,7 +107,16 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
 
     //noinspection JSMethodCanBeStatic
     private handleRemoveLayerButtonClicked() {
-        console.log('LayersPanel: remove layer (TODO!)');
+        if (this.props.selectedLayerId === actions.SELECTED_VARIABLE_LAYER_ID) {
+            actions.showMessageBox({
+                    title: 'Remove Layer',
+                    message: 'This layer cannot be removed.'
+                },
+                actions.MESSAGE_BOX_NO_REPLY
+            );
+            return;
+        }
+        this.props.dispatch(actions.removeLayer(this.props.selectedLayerId));
     }
 
     //noinspection JSMethodCanBeStatic
@@ -118,7 +129,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         console.log('LayersPanel: move layer down (TODO!)');
     }
 
-    private handleChangedLayerVisibility(layer: LayerState, show:boolean) {
+    private handleChangedLayerVisibility(layer: LayerState, show: boolean) {
         this.props.dispatch(actions.updateLayer(layer, {show}));
     }
 
@@ -186,7 +197,12 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     }
 
     private renderActionButtonRow() {
+        const layerCount = this.props.layers ? this.props.layers.length : 0;
+        const selectedLayerIndex = this.props.selectedLayerIndex;
         const selectedLayer = this.props.selectedLayer;
+        const canRemoveLayer = selectedLayer && selectedLayer.id !== actions.SELECTED_VARIABLE_LAYER_ID;
+        const canMoveLayerUp = selectedLayerIndex > 0;
+        const canMoveLayerDown = selectedLayerIndex >= 0 && selectedLayerIndex < layerCount - 1;
         return (
             <div style={{display: 'inline', padding: '0.2em'}}>
                 <Button className="pt-intent-primary"
@@ -194,14 +210,14 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                         onClick={this.handleAddLayerButtonClicked}
                         iconName="add"/>
                 <Button style={{marginRight: '0.1em'}}
-                        disabled={!selectedLayer}
+                        disabled={!canRemoveLayer}
                         onClick={this.handleRemoveLayerButtonClicked}
                         iconName="remove"/>
                 <Button style={{marginRight: '0.1em'}}
-                        disabled={!selectedLayer}
+                        disabled={!canMoveLayerUp}
                         onClick={this.handleMoveLayerUpButtonClicked}
                         iconName="arrow-up"/>
-                <Button disabled={!selectedLayer}
+                <Button disabled={!canMoveLayerDown}
                         onClick={this.handleMoveLayerDownButtonClicked}
                         iconName="arrow-down"/>
             </div>

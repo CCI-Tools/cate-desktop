@@ -277,6 +277,17 @@ export const selectedLayerSelector = createSelector<State, LayerState|null, Laye
     }
 );
 
+export const selectedLayerIndexSelector = createSelector<State, number, LayerState[], string>(
+    layersSelector,
+    selectedLayerIdSelector,
+    (layers: LayerState[], selectedLayerId: string|null) => {
+        if (canFind(layers, selectedLayerId)) {
+            return layers.findIndex(l => l.id === selectedLayerId);
+        }
+        return -1;
+    }
+);
+
 export const selectedImageLayerSelector = createSelector<State, ImageLayerState|null,LayerState|null>(
     selectedLayerSelector,
     (selectedLayer: LayerState|null) => {
