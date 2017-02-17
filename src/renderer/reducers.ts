@@ -1,5 +1,5 @@
 import {
-    State, DataState, LocationState, SessionState, CommunicationState, ControlState
+    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataSourceState, DataStoreState
 } from './state';
 import * as actions from './actions';
 import * as assert from "../common/assert";
@@ -37,6 +37,20 @@ const initialDataState: DataState = {
     colorMaps: null
 };
 
+const updateDataStores = (state: DataState, action, createDataSources: (dataStore: DataStoreState) => void): DataStoreState[] => {
+    const dataStoreId = action.payload.dataStoreId;
+    const dataStoreIndex = state.dataStores.findIndex(dataStore => dataStore.id === dataStoreId);
+    if (dataStoreIndex < 0) {
+        throw Error('illegal data store ID: ' + dataStoreId);
+    }
+    const oldDataStore = state.dataStores[dataStoreIndex];
+    const newDataSources = createDataSources(oldDataStore);
+    const newDataStore = updateObject(oldDataStore, {dataSources: newDataSources});
+    const newDataStores = state.dataStores.slice();
+    newDataStores[dataStoreIndex] = newDataStore;
+    return updateObject(state, {dataStores: newDataStores});
+};
+
 const dataReducer = (state: DataState = initialDataState, action) => {
     switch (action.type) {
         case actions.UPDATE_INITIAL_STATE:
@@ -54,51 +68,22 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             return updateObject(state, {dataStores});
         }
         case actions.UPDATE_DATA_SOURCES: {
-            const dataStoreId = action.payload.dataStoreId;
-            const dataStoreIndex = state.dataStores.findIndex(dataStore => dataStore.id === dataStoreId);
-            if (dataStoreIndex < 0) {
-                throw Error('illegal data store ID: ' + dataStoreId);
-            }
-            const oldDataStore = state.dataStores[dataStoreIndex];
-            const newDataSources = action.payload.dataSources.slice();
-            const newDataStore = updateObject(oldDataStore, {
-                dataSources: newDataSources,
-            });
-            const newDataStores = state.dataStores.slice();
-            newDataStores[dataStoreIndex] = newDataStore;
-            return updateObject(state, {
-                dataStores: newDataStores
+            return updateDataStores(state, action, dataStore => {
+                return action.payload.dataSources.slice();
             });
         }
         case actions.UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE: {
-            // TODO: (marcoz) use combineReducers()
-            const dataStoreId = action.payload.dataStoreId;
-            const dataSourceId = action.payload.dataSourceId;
-            const temporalCoverage = action.payload.temporalCoverage;
-
-            const dataStoreIndex = state.dataStores.findIndex(dataStore => dataStore.id === dataStoreId);
-            if (dataStoreIndex < 0) {
-                throw Error('illegal data store ID: ' + dataStoreId);
-            }
-            const oldDataStore = state.dataStores[dataStoreIndex];
-
-            const dataSourceIndex = oldDataStore.dataSources.findIndex(dataSource => dataSource.id === dataSourceId);
-            if (dataSourceIndex < 0) {
-                throw Error('illegal data source ID: ' + dataSourceId);
-            }
-            const oldDataSource = oldDataStore.dataSources[dataSourceIndex];
-
-            const newDataSource = Object.assign({}, oldDataSource, {temporalCoverage});
-            const newDataSources = oldDataStore.dataSources.slice();
-            newDataSources[dataSourceIndex] = newDataSource;
-
-            const newDataStore = updateObject(oldDataStore, {
-                dataSources: newDataSources,
-            });
-            const newDataStores = state.dataStores.slice();
-            newDataStores[dataStoreIndex] = newDataStore;
-            return updateObject(state, {
-                dataStores: newDataStores
+            return updateDataStores(state, action, dataStore => {
+                const newDataSources = dataStore.dataSources.slice();
+                const dataSourceId = action.payload.dataSourceId;
+                const temporalCoverage = action.payload.temporalCoverage;
+                const dataSourceIndex = newDataSources.findIndex(dataSource => dataSource.id === dataSourceId);
+                if (dataSourceIndex < 0) {
+                    throw Error('illegal data source ID: ' + dataSourceId);
+                }
+                const oldDataSource = newDataSources[dataSourceIndex];
+                newDataSources[dataSourceIndex] = updateObject({}, oldDataSource, {temporalCoverage});
+                return newDataSources;
             });
         }
         case actions.UPDATE_OPERATIONS:
