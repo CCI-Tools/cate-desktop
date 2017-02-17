@@ -43,9 +43,9 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
         if (!deepEqual(this.props.preferences, this.state)) {
             const backendConfig = this.state.backendConfig;
             const backendChangesDetected = !deepEqual(this.props.preferences.backendConfig, backendConfig);
-            this.props.dispatch(actions.updateSessionState(this.state));
+            this.props.dispatch(actions.updatePreferences(this.state));
             if (backendChangesDetected) {
-                this.props.dispatch(actions.storeSessionBackendConfig(backendConfig));
+                this.props.dispatch(actions.storeBackendConfig(backendConfig));
                 actions.showMessageBox({
                     title: PreferencesDialog.DIALOG_TITLE,
                     message: "Some changes will be effective only after restart."

@@ -441,9 +441,6 @@ export interface ControlState {
     selectedLayerId: string|null;
     showLayerDetails: boolean;
 
-    // ColorBarsPanel
-    selectedColorMapName: string|null;
-
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState;};
 }

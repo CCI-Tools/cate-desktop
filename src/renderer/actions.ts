@@ -7,7 +7,7 @@ import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} 
 import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 
-// TODO (forman/marcoz): write more unit tests for actions
+// TODO (forman/marcoz): find easy way to unit-test our async actions calling remote API (WebAPIServiceMock?)
 
 type NumberRange = [number, number];
 
@@ -19,7 +19,7 @@ const CANCELLED_CODE = 999;
 export const UPDATE_INITIAL_STATE = 'UPDATE_INITIAL_STATE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const UPDATE_DIALOG_STATE = 'UPDATE_DIALOG_STATE';
-export const SET_TASK_STATE = 'SET_TASK_STATE';
+export const UPDATE_TASK_STATE = 'UPDATE_TASK_STATE';
 export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 
@@ -35,34 +35,34 @@ export function updateDialogState(dialogId: string, dialogState: any) {
     return {type: UPDATE_DIALOG_STATE, payload: {dialogId, dialogState}};
 }
 
-export function setTaskState(jobId: number, taskState: TaskState) {
-    return {type: SET_TASK_STATE, payload: {jobId, taskState}};
+export function updateTaskState(jobId: number, taskState: TaskState) {
+    return {type: UPDATE_TASK_STATE, payload: {jobId, taskState}};
 }
 
 export function setControlProperty(propertyName: string, value: any) {
-    return {type: UPDATE_CONTROL_STATE, payload: {[propertyName]: value}};
+    return updateControlState({[propertyName]: value});
 }
 
-export function setSessionProperty(propertyName: string, value: any) {
-    return updateSessionState({[propertyName]: value} as SessionState);
+export function updateControlState(controlState: any) {
+    return {type: UPDATE_CONTROL_STATE, payload: controlState};
 }
 
-export function updateSessionState(session: SessionState) {
+export function setPreferencesProperty(propertyName: string, value: any) {
+    return updatePreferences({[propertyName]: value});
+}
+
+export function updatePreferences(session: any) {
     return (dispatch) => {
-        dispatch(updateSessionStateImpl(session));
-        dispatch(updateSessionPreferences(session));
+        dispatch(updateSessionState(session));
+        dispatch(sendPreferencesToMain(session));
     };
 }
 
-function updateSessionStateImpl(session: SessionState) {
+export function updateSessionState(session: any) {
     return {type: UPDATE_SESSION_STATE, payload: session};
 }
 
-function updateBackendConfigImpl(backendConfig: BackendConfigState) {
-    return {type: UPDATE_SESSION_STATE, payload: {backendConfig}};
-}
-
-export function loadSessionBackendConfig() {
+export function loadBackendConfig() {
     return (dispatch, getState) => {
         function call() {
             // Get state from the Python back-end
@@ -70,14 +70,18 @@ export function loadSessionBackendConfig() {
         }
 
         function action(backendConfig: BackendConfigState) {
-            dispatch(updateBackendConfigImpl(backendConfig));
+            dispatch(updateBackendConfig(backendConfig));
         }
 
         callAPI(dispatch, 'Loading backend configuration', call, action);
     };
 }
 
-export function storeSessionBackendConfig(backendConfig: BackendConfigState) {
+export function updateBackendConfig(backendConfig: BackendConfigState) {
+    return updateSessionState({backendConfig});
+}
+
+export function storeBackendConfig(backendConfig: BackendConfigState) {
     return (dispatch, getState) => {
         function call() {
             // Store state changes to the Python back-end
@@ -96,15 +100,15 @@ export function cancelJob(jobId: number) {
 }
 
 function jobSubmitted(jobId: number, title: string) {
-    return setTaskState(jobId, {status: JobStatusEnum.SUBMITTED, title: title});
+    return updateTaskState(jobId, {status: JobStatusEnum.SUBMITTED, title: title});
 }
 
 function jobProgress(progress: JobProgress) {
-    return setTaskState(progress.id, {status: JobStatusEnum.IN_PROGRESS, progress});
+    return updateTaskState(progress.id, {status: JobStatusEnum.IN_PROGRESS, progress});
 }
 
 function jobDone(jobId: number) {
-    return setTaskState(jobId, {status: JobStatusEnum.DONE});
+    return updateTaskState(jobId, {status: JobStatusEnum.DONE});
 }
 
 function jobFailed(jobId: number, failure: JobFailure) {
@@ -119,7 +123,7 @@ function jobFailed(jobId: number, failure: JobFailure) {
         detail: `An error (code ${failure.code}) occurred while executing a background process:\n\n${failure.data}`,
         buttons: [],
     }, MESSAGE_BOX_NO_REPLY);
-    return setTaskState(jobId, {status, failure});
+    return updateTaskState(jobId, {status, failure});
 }
 
 export type JobPromiseFactory<T> = (jobProgressHandler: JobProgressHandler) => JobPromise<T>;
@@ -164,9 +168,6 @@ export function callAPI<T>(dispatch,
 export const UPDATE_DATA_STORES = 'UPDATE_DATA_STORES';
 export const UPDATE_DATA_SOURCES = 'UPDATE_DATA_SOURCES';
 export const UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE = 'UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE';
-export const SET_SELECTED_DATA_STORE_ID = 'SET_SELECTED_DATA_STORE_ID';
-export const SET_SELECTED_DATA_SOURCE_ID = 'SET_SELECTED_DATA_SOURCE_ID';
-export const SET_DATA_SOURCE_FILTER_EXPR = 'SET_DATA_SOURCE_FILTER_EXPR';
 
 /**
  * Asynchronously load the available Cate data stores.
@@ -233,7 +234,7 @@ export function setSelectedDataStoreId(selectedDataStoreId: string|null) {
         if (getState().control.selectedDataStoreId === selectedDataStoreId) {
             return;
         }
-        dispatch({type: SET_SELECTED_DATA_STORE_ID, payload: {selectedDataStoreId: selectedDataStoreId}});
+        dispatch(setSelectedDataStoreIdImpl(selectedDataStoreId));
         if (selectedDataStoreId !== null) {
             const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === selectedDataStoreId);
             if (!dataStore.dataSources) {
@@ -243,12 +244,16 @@ export function setSelectedDataStoreId(selectedDataStoreId: string|null) {
     }
 }
 
+export function setSelectedDataStoreIdImpl(selectedDataStoreId: string|null) {
+    return updateControlState({selectedDataStoreId});
+}
+
 export function setSelectedDataSourceId(selectedDataSourceId: string|null) {
-    return {type: SET_SELECTED_DATA_SOURCE_ID, payload: {selectedDataSourceId}};
+    return updateControlState({selectedDataSourceId});
 }
 
 export function setDataSourceFilterExpr(dataSourceFilterExpr: string) {
-    return {type: SET_DATA_SOURCE_FILTER_EXPR, payload: {dataSourceFilterExpr}};
+    return updateControlState({dataSourceFilterExpr});
 }
 
 export function showOpenDatasetDialog(dataStoreId: string, dataSourceId: string, loadTimeInfo: boolean) {
@@ -310,10 +315,6 @@ export function cancelOpenDatasetDialog() {
 // Operation actions
 
 export const UPDATE_OPERATIONS = 'UPDATE_OPERATIONS';
-export const SET_SELECTED_OPERATION_NAME = 'SET_SELECTED_OPERATION_NAME';
-export const SET_OPERATION_FILTER_TAGS = 'SET_OPERATION_FILTER_TAGS';
-export const SET_OPERATION_FILTER_EXPR = 'SET_OPERATION_FILTER_EXPR';
-
 
 export function loadOperations() {
     return (dispatch, getState: () => State) => {
@@ -330,20 +331,20 @@ export function loadOperations() {
     };
 }
 
-function updateOperations(operations) {
+export function updateOperations(operations) {
     return {type: UPDATE_OPERATIONS, payload: {operations}};
 }
 
 export function setSelectedOperationName(selectedOperationName: string|null) {
-    return {type: SET_SELECTED_OPERATION_NAME, payload: {selectedOperationName}};
+    return updateControlState({selectedOperationName});
 }
 
-export function setOperationFilterTags(operationFilterTags: Array<string>) {
-    return {type: SET_OPERATION_FILTER_TAGS, payload: {operationFilterTags}};
+export function setOperationFilterTags(operationFilterTags: string[]) {
+    return updateControlState({operationFilterTags});
 }
 
-export function setOperationFilterExpr(operationFilterExpr: Array<string>) {
-    return {type: SET_OPERATION_FILTER_EXPR, payload: {operationFilterExpr}};
+export function setOperationFilterExpr(operationFilterExpr: string) {
+    return updateControlState({operationFilterExpr});
 }
 
 export function showOperationStepDialog() {
@@ -366,8 +367,6 @@ export function hideOperationStepDialog(inputAssignments?) {
 // Workspace actions
 
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
-export const SET_SELECTED_WORKSPACE_RESOURCE_ID = 'SET_SELECTED_WORKSPACE_RESOURCE_ID';
-export const SET_SELECTED_WORKFLOW_STEP_ID = 'SET_SELECTED_WORKFLOW_STEP_ID';
 
 /**
  * Asynchronously load the initial workspace.
@@ -642,13 +641,13 @@ const maybeSaveWorkspace = function (dispatch, getState: () => State, title: str
     return true;
 };
 
-// setSessionProperty(
+// setPreferencesProperty(
 
 export function setCurrentWorkspace(workspace: WorkspaceState) {
     return (dispatch) => {
         dispatch(setCurrentWorkspaceImpl(workspace));
         if (!workspace.isScratch) {
-            dispatch(setSessionProperty('lastWorkspacePath', workspace.baseDir));
+            dispatch(updatePreferences({lastWorkspacePath: workspace.baseDir} as any));
         }
     }
 }
@@ -673,12 +672,12 @@ export function setSelectedWorkspaceResourceId(selectedWorkspaceResourceId: stri
 }
 
 function setSelectedWorkspaceResourceIdImpl(selectedWorkspaceResourceId: string) {
-    return {type: SET_SELECTED_WORKSPACE_RESOURCE_ID, payload: {selectedWorkspaceResourceId}};
+    return updateControlState({selectedWorkspaceResourceId});
 }
 
 //noinspection JSUnusedGlobalSymbols
 export function setSelectedWorkflowStepId(selectedWorkflowStepId: string) {
-    return {type: SET_SELECTED_WORKFLOW_STEP_ID, payload: {selectedWorkflowStepId}};
+    return updateControlState({selectedWorkflowStepId});
 }
 
 export function setWorkspaceResource(resName: string, opName: string, opArgs: {[name: string]: any}, title: string) {
@@ -720,16 +719,13 @@ export function getWorkspaceVariableStatistics(resName: string,
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Variable actions
 
-export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
-
-
 export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean) {
     return (dispatch, getState) => {
         const layers = selectors.layersSelector(getState());
         const layer = layers.find(l => l.id === SELECTED_VARIABLE_LAYER_ID);
         assert.ok(layer);
         dispatch(updateLayer(layer, {show: showSelectedVariableLayer}));
-        dispatch(setSessionProperty('showSelectedVariableLayer', showSelectedVariableLayer));
+        dispatch(setPreferencesProperty('showSelectedVariableLayer', showSelectedVariableLayer));
     };
 }
 
@@ -800,14 +796,13 @@ export function setSelectedVariableName(selectedVariableName: string|null) {
 }
 
 function setSelectedVariableNameImpl(selectedVariableName: string|null) {
-    return {type: SET_SELECTED_VARIABLE_NAME, payload: {selectedVariableName}};
+    return updateControlState({selectedVariableName});
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer actions
 
-export const SET_SELECTED_LAYER_ID = 'SET_SELECTED_LAYER_ID';
 export const ADD_LAYER = 'ADD_LAYER';
 export const REMOVE_LAYER = 'REMOVE_LAYER';
 export const UPDATE_LAYER = 'UPDATE_LAYER';
@@ -816,7 +811,7 @@ export const SAVE_LAYER = 'SAVE_LAYER';
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 
 export function setSelectedLayerId(selectedLayerId: string|null) {
-    return {type: SET_SELECTED_LAYER_ID, payload: {selectedLayerId}};
+    return updateControlState({selectedLayerId});
 }
 
 export function addLayer(layer: LayerState) {
@@ -854,8 +849,6 @@ export function saveLayer(key: string, layer: LayerState) {
 // ColorMap actions
 
 export const UPDATE_COLOR_MAPS = 'UPDATE_COLOR_MAPS';
-export const SET_SELECTED_COLOR_MAP_NAME = 'SET_SELECTED_COLOR_MAP_NAME';
-
 
 /**
  * Asynchronously load the initial workspace.
@@ -1016,6 +1009,7 @@ export function showSingleFileOpenDialog(openDialogOptions: OpenDialogOptions,
     return getFirstFile(showFileOpenDialog(openDialogOptions, callbackThunk));
 }
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Shows a native file-open dialog.
  * Similar to "showFileOpenDialog" but will always return a single path or null.
@@ -1124,11 +1118,11 @@ export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: 
  * @param callback an optional function which is called with the selected button index
  * @returns the selected button index or null, if no button was selected or the callback function is defined
  */
-export function updateSessionPreferences(session: SessionState, callback?: (error: any) => void) {
+export function sendPreferencesToMain(session: SessionState, callback?: (error: any) => void) {
     return () => {
         const electron = require('electron');
         if (!electron || !electron.ipcRenderer) {
-            console.warn('updateSessionPreferences() cannot be executed, electron/electron.ipcRenderer not available from renderer process');
+            console.warn('sendPreferencesToMain() cannot be executed, electron/electron.ipcRenderer not available from renderer process');
             return;
         }
         const preferences = Object.assign({}, session);

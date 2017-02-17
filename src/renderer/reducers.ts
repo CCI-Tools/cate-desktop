@@ -6,8 +6,7 @@ import * as assert from "../common/assert";
 import {combineReducers} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
 
-
-// TODO (forman/marcoz): write unit tests for reducers
+// Note: reducers are unit-tested through actions.spec.ts
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // state.data initial state and reducers
@@ -147,7 +146,6 @@ const initialControlState: ControlState = {
     selectedWorkflowStepId: null,
     selectedWorkspaceResourceId: null,
     selectedVariableName: null,
-    selectedColorMapName: null,
     showVariableDetails: true,
     selectedLayerId: null,
     showLayerDetails: true,
@@ -168,17 +166,6 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
                 selectedOperationName: (operations && operations.length) ? operations[0].name : null
             });
         }
-        case actions.SET_SELECTED_DATA_STORE_ID:
-        case actions.SET_SELECTED_DATA_SOURCE_ID:
-        case actions.SET_DATA_SOURCE_FILTER_EXPR:
-        case actions.SET_SELECTED_OPERATION_NAME:
-        case actions.SET_OPERATION_FILTER_TAGS:
-        case actions.SET_OPERATION_FILTER_EXPR:
-        case actions.SET_SELECTED_VARIABLE_NAME:
-        case actions.SET_SELECTED_WORKSPACE_RESOURCE_ID:
-        case actions.SET_SELECTED_WORKFLOW_STEP_ID:
-        case actions.SET_SELECTED_LAYER_ID:
-        case actions.SET_SELECTED_COLOR_MAP_NAME:
         case actions.UPDATE_CONTROL_STATE:
             return updateObject(state, action.payload);
         case actions.UPDATE_DIALOG_STATE:
@@ -226,7 +213,7 @@ const communicationReducer = (state: CommunicationState = initialCommunicationSt
     switch (action.type) {
         case actions.SET_WEBAPI_STATUS:
             return updateObject(state, {webAPIStatus: action.payload.webAPIStatus});
-        case actions.SET_TASK_STATE:
+        case actions.UPDATE_TASK_STATE:
             return updateObject(state, {
                 tasks: updatePropertyObject(state.tasks, action.payload.jobId, action.payload.taskState)
             });

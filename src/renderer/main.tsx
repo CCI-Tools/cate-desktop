@@ -65,18 +65,10 @@ function connectWebAPIClient(store: Store<State>) {
 
     webAPIClient.onOpen = () => {
         store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
-        store.dispatch(actions.loadSessionBackendConfig());
-        store.dispatch(actions.loadInitialWorkspace());
+        store.dispatch(actions.loadBackendConfig());
         store.dispatch(actions.loadDataStores());
         store.dispatch(actions.loadOperations());
-
-
-        // This is a test, we keep it as a test an a code template for code that need to run later
-        store.dispatch(dispatch => {
-            setTimeout(() => {
-                dispatch({type: 'BRING_KINDERSCHOKOLADE', payload: 'Here are 5kg Kinderschokolade'});
-            }, 5000);
-        });
+        store.dispatch(actions.loadInitialWorkspace());
 
         ReactDOM.render(
             <Provider store={store}>
