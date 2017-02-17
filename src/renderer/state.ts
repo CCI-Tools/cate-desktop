@@ -26,12 +26,12 @@ export interface State {
  */
 export interface DataState {
     appConfig: AppConfigState; // TBD: move this to session?
-    dataStores: Array<DataStoreState> | null;
-    operations: Array<OperationState> | null;
+    dataStores: DataStoreState[] | null;
+    operations: OperationState[] | null;
     workspace: WorkspaceState | null;
-    layers: Array<LayerState>;
+    layers: LayerState[];
     savedLayers: {[varName: string]: LayerState};
-    colorMaps: Array<ColorMapCategoryState> | null;
+    colorMaps: ColorMapCategoryState[] | null;
 }
 
 export interface AppConfigState {
@@ -58,7 +58,7 @@ export interface DataStoreState {
     id: string;
     name: string;
     description: string;
-    dataSources?: Array<DataSourceState> | null;
+    dataSources?: DataSourceState[] | null;
 }
 
 export interface DataSourceState {
@@ -74,8 +74,8 @@ export interface OperationState {
     hasMonitor: boolean;
     description: string|null;
     tags: Array<string>;
-    inputs: Array<OperationInputState>;
-    outputs: Array<OperationOutputState>;
+    inputs: OperationInputState[];
+    outputs: OperationOutputState[];
 }
 
 // see https://github.com/electron/electron/blob/master/docs/api/dialog.md
@@ -93,7 +93,7 @@ export interface OperationInputState {
     /* optional properties used mainly for validation */
     defaultValue?: any;
     nullable?: boolean;
-    valueSet?: Array<any>;
+    valueSet?: any[];
     valueRange?: [number, number];
     // TODO: (forman): make 'file_mode' a possible input property in Python backend, values "rw", "wr", "r", "w"
     // TODO: (forman): make 'file_filters' a possible input property in Python backend
@@ -134,11 +134,11 @@ export interface WorkspaceState {
     /**
      * Information about the resources
      */
-    resources: Array<ResourceState>;
+    resources: ResourceState[];
 }
 
 export interface WorkflowState {
-    steps: Array<WorkflowStepState>;
+    steps: WorkflowStepState[];
 }
 
 export interface WorkflowStepState {
@@ -150,8 +150,8 @@ export interface WorkflowStepState {
      * Step type.
      */
     type: 'operation'|'workflow'|'python-expression'|'python-script'|'executable';
-    inputs: Array<WorkflowPortState>;
-    outputs: Array<WorkflowPortState>;
+    inputs: WorkflowPortState[];
+    outputs: WorkflowPortState[];
 }
 
 export interface WorkflowOperationStepState extends WorkflowStepState {
@@ -346,7 +346,7 @@ export interface VariableImageLayerState extends LayerState {
     /**
      * The current index into the variable that results in a 2D-subset (i.e. with dims ['lat', 'lon']).
      */
-    varIndex: Array<number>;
+    varIndex: number[];
     /**
      * Image layer minimum display value.
      */
@@ -385,7 +385,7 @@ export interface ColorMapState {
 export interface ColorMapCategoryState {
     name: string;
     description: string;
-    colorMaps: Array<ColorMapState>;
+    colorMaps: ColorMapState[];
 }
 
 
@@ -425,7 +425,7 @@ export interface ControlState {
 
     // OperationsPanel
     selectedOperationName: string|null;
-    operationFilterTags: Array<string>;
+    operationFilterTags: string[];
     operationFilterExpr: string;
     showOperationDetails: boolean;
 
