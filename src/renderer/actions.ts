@@ -850,6 +850,8 @@ export const ADD_LAYER = 'ADD_LAYER';
 export const REMOVE_LAYER = 'REMOVE_LAYER';
 export const UPDATE_LAYER = 'UPDATE_LAYER';
 export const REPLACE_LAYER = 'REPLACE_LAYER';
+export const MOVE_LAYER_UP = 'MOVE_LAYER_UP';
+export const MOVE_LAYER_DOWN = 'MOVE_LAYER_DOWN';
 export const SAVE_LAYER = 'SAVE_LAYER';
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
@@ -864,6 +866,14 @@ export function addLayer(layer: LayerState) {
 
 export function removeLayer(id: string) {
     return {type: REMOVE_LAYER, payload: {id}};
+}
+
+export function moveLayerUp(id: string) {
+    return {type: MOVE_LAYER_UP, payload: {id}};
+}
+
+export function moveLayerDown(id: string) {
+    return {type: MOVE_LAYER_DOWN, payload: {id}};
 }
 
 export function updateLayer(layer: LayerState, ...layerSources) {

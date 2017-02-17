@@ -105,28 +105,16 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         console.log('LayersPanel: add layer (TODO!)');
     }
 
-    //noinspection JSMethodCanBeStatic
     private handleRemoveLayerButtonClicked() {
-        if (this.props.selectedLayerId === actions.SELECTED_VARIABLE_LAYER_ID) {
-            actions.showMessageBox({
-                    title: 'Remove Layer',
-                    message: 'This layer cannot be removed.'
-                },
-                actions.MESSAGE_BOX_NO_REPLY
-            );
-            return;
-        }
         this.props.dispatch(actions.removeLayer(this.props.selectedLayerId));
     }
 
-    //noinspection JSMethodCanBeStatic
     private handleMoveLayerUpButtonClicked() {
-        console.log('LayersPanel: move layer up (TODO!)');
+        this.props.dispatch(actions.moveLayerUp(this.props.selectedLayerId));
     }
 
-    //noinspection JSMethodCanBeStatic
     private handleMoveLayerDownButtonClicked() {
-        console.log('LayersPanel: move layer down (TODO!)');
+        this.props.dispatch(actions.moveLayerDown(this.props.selectedLayerId));
     }
 
     private handleChangedLayerVisibility(layer: LayerState, show: boolean) {

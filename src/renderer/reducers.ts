@@ -108,6 +108,32 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             }
             return state;
         }
+        case actions.MOVE_LAYER_UP: {
+            const layerId = action.payload.id;
+            const layers = state.layers.slice();
+            const layerIndex = layers.findIndex(l => l.id === layerId);
+            assert.ok(layerIndex >= 0, "layerIndex >= 0");
+            if (layerIndex > 0) {
+                const temp = layers[layerIndex - 1];
+                layers[layerIndex - 1] = layers[layerIndex];
+                layers[layerIndex] = temp;
+                return updateObject(state, {layers});
+            }
+            return state;
+        }
+        case actions.MOVE_LAYER_DOWN: {
+            const layerId = action.payload.id;
+            const layers = state.layers.slice();
+            const layerIndex = layers.findIndex(l => l.id === layerId);
+            assert.ok(layerIndex >= 0, "layerIndex >= 0");
+            if (layerIndex >= 0 && layerIndex < layers.length - 1) {
+                const temp = layers[layerIndex + 1];
+                layers[layerIndex + 1] = layers[layerIndex];
+                layers[layerIndex] = temp;
+                return updateObject(state, {layers});
+            }
+            return state;
+        }
         case actions.UPDATE_LAYER: {
             const layer = action.payload.layer;
             const layers = state.layers.slice();
