@@ -1,7 +1,7 @@
 import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState,
     LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, DataSourceState,
-    OperationState, SessionState, BackendConfigState
+    OperationState, SessionState, BackendConfigState, VariableState
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
@@ -94,8 +94,8 @@ export function storeBackendConfig(backendConfig: BackendConfigState) {
 
 export function cancelJob(jobId: number) {
     return (dispatch, getState) => {
-        const state: State = getState();
-        state.data.appConfig.webAPIClient.cancel(jobId);
+        const webAPIClient = selectors.webAPIClientSelector(getState());
+        webAPIClient.cancel(jobId);
     }
 }
 
@@ -586,7 +586,7 @@ export function saveWorkspaceInteractive() {
     return (dispatch, getState: () => State) => {
         const workspace = getState().data.workspace;
         if (workspace.isScratch) {
-            saveWorkspaceAsInteractive();
+            dispatch(saveWorkspaceAsInteractive());
         } else {
             dispatch(saveWorkspace())
         }
@@ -722,9 +722,9 @@ export function getWorkspaceVariableStatistics(resName: string,
 export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean) {
     return (dispatch, getState) => {
         const layers = selectors.layersSelector(getState());
-        const layer = layers.find(l => l.id === SELECTED_VARIABLE_LAYER_ID);
-        assert.ok(layer);
-        dispatch(updateLayer(layer, {show: showSelectedVariableLayer}));
+        const selectedVariableLayer = layers.find(l => l.id === SELECTED_VARIABLE_LAYER_ID);
+        assert.ok(selectedVariableLayer);
+        dispatch(updateLayer(selectedVariableLayer, {show: showSelectedVariableLayer}));
         dispatch(setPreferencesProperty('showSelectedVariableLayer', showSelectedVariableLayer));
         // if we don't show layer for selected variable and selected layer is SELECTED_VARIABLE_LAYER_ID
         if (!showSelectedVariableLayer && getState().control.selectedLayerId === SELECTED_VARIABLE_LAYER_ID) {
@@ -737,67 +737,101 @@ export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean)
 export function setSelectedVariableName(selectedVariableName: string|null) {
     return (dispatch, getState) => {
         dispatch(setSelectedVariableNameImpl(selectedVariableName));
-        const resource = selectors.selectedResourceSelector(getState());
-        const variable = selectors.selectedVariableSelector(getState());
-        if (resource && variable && getState().session.showSelectedVariableLayer) {
-            assert.ok(resource.variables, resource.name);
+        if (getState().session.showSelectedVariableLayer) {
+            dispatch(updateSelectedVariableLayer());
+        }
+    }
+}
 
-            // We need at least 2 dimensions
-            if (!variable.ndim || variable.ndim < 2) {
-                return;
-            }
+export function updateSelectedVariableLayer() {
+    return updateOrAddVariableLayer(SELECTED_VARIABLE_LAYER_ID);
+}
 
-            const lastSelectedVariableLayer = getState().data.layers.find((layer: LayerState) => layer.id == SELECTED_VARIABLE_LAYER_ID);
-            const restoredLayer = getState().data.savedLayers[variable.name];
+export function addVariableLayer(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
+    return updateOrAddVariableLayer(layerId, resource, variable);
+}
 
-            let layerDisplayProperties = {};
+export function isSpatialVariable(variable: VariableState): boolean {
+    return variable.ndim && variable.ndim >= 2 && !!variable.imageLayout;
+}
+
+function createLayerId() {
+    return Math.floor((1 + Math.random()) * 0x10000000).toString(16) + '-' + Math.floor(Date.now()).toString(16);
+}
+
+export function updateOrAddVariableLayer(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
+    return (dispatch, getState) => {
+        layerId = layerId || createLayerId();
+        resource = resource || selectors.selectedResourceSelector(getState());
+        variable = variable || selectors.selectedVariableSelector(getState());
+        const existingVariableLayer = getState().data.layers.find(layer => layer.id == layerId);
+        if (resource && variable && isSpatialVariable(variable)) {
+            const savedLayers = getState().data.savedLayers;
+            const restoredLayer = savedLayers[variable.name];
+
+            let layerDisplayProperties;
             let varIndex;
             if (restoredLayer) {
-                varIndex = restoredLayer.varIndex;
-                layerDisplayProperties = null;
+                varIndex = restoredLayer.varIndex && restoredLayer.varIndex.slice();
             } else {
-                varIndex = null;
-                layerDisplayProperties = {
-                    colorMapName: 'jet',
-                    displayMin: 0.,
-                    displayMax: 1.,
-                    alphaBlending: false,
-                    imageEnhancement: {
-                        alpha: 1.0,
-                        brightness: 1.0,
-                        contrast: 1.0,
-                        hue: 0.0,
-                        saturation: 1.0,
-                        gamma: 1.0,
-                    },
-                };
+                layerDisplayProperties = createVariableLayerDisplayProperties(variable);
             }
 
             if (!varIndex || varIndex.length != variable.ndim - 2) {
                 varIndex = Array(variable.ndim - 2).fill(0);
             }
 
-            const currentSelectedVariableLayer = Object.assign({}, restoredLayer, {
-                id: SELECTED_VARIABLE_LAYER_ID,
+            const currentVariableLayer = Object.assign({}, restoredLayer, {
+                id: layerId,
                 type: 'VariableImage' as any,
-                name: resource.name + '.' + variable.name,
+                name: `${variable.name} of ${resource.name}`,
                 show: true,
                 resName: resource.name,
                 varName: variable.name,
                 varIndex,
             }, layerDisplayProperties);
 
-            if (lastSelectedVariableLayer) {
-                dispatch(saveLayer(variable.name, lastSelectedVariableLayer));
+            if (existingVariableLayer) {
+                dispatch(updateLayer(currentVariableLayer));
+                dispatch(saveLayer(variable.name, existingVariableLayer));
             } else {
-                // TODO (forman): add layer ID SELECTED_VARIABLE_LAYER_ID
-                // dispatch(addLayer(currentSelectedVariableLayer));
+                dispatch(addLayer(currentVariableLayer));
             }
-
-            dispatch(updateLayer(currentSelectedVariableLayer));
-            dispatch(setSelectedLayerId(currentSelectedVariableLayer.id));
+            dispatch(setSelectedLayerId(currentVariableLayer.id));
+        } else {
+            const currentVariableLayer = Object.assign({}, {
+                id: layerId,
+                type: 'Unknown' as any,
+                name: (resource && variable) ? `${variable.name} of ${resource.name}` : null,
+                show: true,
+            });
+            if (existingVariableLayer) {
+                // instead of removing it, we replace the existing layer with an 'Unknown' one
+                dispatch(replaceLayer(currentVariableLayer));
+            }
         }
-    }
+    };
+}
+
+function isNumber(x) {
+    return typeof x === 'number';
+}
+
+function createVariableLayerDisplayProperties(variable: VariableState) {
+    return {
+        colorMapName: 'jet',
+        displayMin: isNumber(variable.valid_min) ? variable.valid_min : 0.,
+        displayMax: isNumber(variable.valid_max) ? variable.valid_max : 1.,
+        alphaBlending: false,
+        imageEnhancement: {
+            alpha: 1.0,
+            brightness: 1.0,
+            contrast: 1.0,
+            hue: 0.0,
+            saturation: 1.0,
+            gamma: 1.0,
+        },
+    };
 }
 
 function setSelectedVariableNameImpl(selectedVariableName: string|null) {
@@ -811,6 +845,7 @@ function setSelectedVariableNameImpl(selectedVariableName: string|null) {
 export const ADD_LAYER = 'ADD_LAYER';
 export const REMOVE_LAYER = 'REMOVE_LAYER';
 export const UPDATE_LAYER = 'UPDATE_LAYER';
+export const REPLACE_LAYER = 'REPLACE_LAYER';
 export const SAVE_LAYER = 'SAVE_LAYER';
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
@@ -832,6 +867,10 @@ export function updateLayer(layer: LayerState, ...layerSources) {
         layer = Object.assign({}, layer, ...layerSources);
     }
     return {type: UPDATE_LAYER, payload: {layer}};
+}
+
+export function replaceLayer(layer: LayerState) {
+    return {type: REPLACE_LAYER, payload: {layer}};
 }
 
 export function updateLayerImageEnhancement(layer: ImageLayerState, name: string, value: number) {
@@ -883,9 +922,7 @@ function updateColorMaps(colorMaps: Array<ColorMapCategoryState>) {
 // (User) Preferences actions
 
 export function showPreferencesDialog() {
-    return (dispatch) => {
-        dispatch(updateDialogState('preferencesDialog', {isOpen: true}));
-    };
+    return updateDialogState('preferencesDialog', {isOpen: true});
 }
 
 export function hidePreferencesDialog() {

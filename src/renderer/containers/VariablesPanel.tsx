@@ -1,7 +1,8 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {ExpansionPanel} from "../components/ExpansionPanel";
-import {State, VariableState} from "../state";
+import {State, VariableState, ResourceState} from "../state";
+import * as assert from "../../common/assert";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
@@ -13,6 +14,7 @@ import {Button} from "@blueprintjs/core";
 interface IVariablesPanelProps {
     dispatch?: any;
     variables: VariableState[];
+    selectedResource: ResourceState|null;
     selectedVariableName: string|null;
     selectedVariable: VariableState|null;
     showVariableDetails: boolean;
@@ -22,6 +24,7 @@ interface IVariablesPanelProps {
 function mapStateToProps(state: State): IVariablesPanelProps {
     return {
         variables: selectors.variablesSelector(state) || [],
+        selectedResource: selectors.selectedResourceSelector(state),
         selectedVariableName: selectors.selectedVariableNameSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
         showVariableDetails: state.control.showVariableDetails,
@@ -40,6 +43,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         this.handleSelectedVariableName = this.handleSelectedVariableName.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleShowSelectedVariableLayer = this.handleShowSelectedVariableLayer.bind(this);
+        this.handleAddVariableLayer = this.handleAddVariableLayer.bind(this);
         this.getItemKey = this.getItemKey.bind(this);
         this.renderItem = this.renderItem.bind(this);
     }
@@ -59,6 +63,14 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     private handleShowSelectedVariableLayer() {
         const showSelectedVariableLayer = this.props.showSelectedVariableLayer;
         this.props.dispatch(actions.setShowSelectedVariableLayer(!showSelectedVariableLayer));
+    }
+
+    private handleAddVariableLayer() {
+        const resource = this.props.selectedResource;
+        const variable = this.props.selectedVariable;
+        assert.ok(resource);
+        assert.ok(variable && variable.imageLayout);
+        this.props.dispatch(actions.addVariableLayer(null, resource, variable));
     }
 
     render() {
@@ -92,7 +104,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
 
     private renderVariableActionRow() {
         const selectedVariable = this.props.selectedVariable;
-        const isSpatialLayer = selectedVariable && selectedVariable.ndim >= 2;
+        const isSpatialVariable = selectedVariable && selectedVariable.ndim >= 2 && selectedVariable.imageLayout;
         return (
             <div style={{display: 'flex'}}>
                 <span style={{flex: 'auto'}}/>
@@ -100,8 +112,9 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
                         iconName={this.props.showSelectedVariableLayer ? "eye-open" : "eye-off"}
                         onClick={this.handleShowSelectedVariableLayer}
                 />
-                <Button disabled={!isSpatialLayer}
+                <Button disabled={!isSpatialVariable}
                         iconName="layer"
+                        onClick={this.handleAddVariableLayer}
                 />
             </div>
         );

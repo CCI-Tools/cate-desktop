@@ -250,7 +250,7 @@ export interface LayerState {
     /**
      * Layer type
      */
-    type: 'VariableImage'|'Image'|'Shape';
+    type: 'VariableImage'|'Image'|'Shape'|'Unknown';
 
     /**
      * Layer name.

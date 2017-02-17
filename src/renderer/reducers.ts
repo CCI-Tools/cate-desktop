@@ -26,8 +26,8 @@ const initialDataState: DataState = {
     workspace: null,
     layers: [
         {
-            id: 'selectedVariable',
-            type: 'VariableImage',
+            id: actions.SELECTED_VARIABLE_LAYER_ID,
+            type: 'Unknown',
             name: null,
             show: true
         }
@@ -115,6 +115,14 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             const layerIndex = layers.findIndex(l => l.id === layer.id);
             assert.ok(layerIndex >= 0, "layerIndex >= 0");
             layers[layerIndex] = updateObject(layers[layerIndex], layer);
+            return updateObject(state, {layers});
+        }
+        case actions.REPLACE_LAYER: {
+            const layer = action.payload.layer;
+            const layers = state.layers.slice();
+            const layerIndex = layers.findIndex(l => l.id === layer.id);
+            assert.ok(layerIndex >= 0, "layerIndex >= 0");
+            layers[layerIndex] = updateObject(layer);
             return updateObject(state, {layers});
         }
         case actions.UPDATE_COLOR_MAPS: {
