@@ -32,7 +32,6 @@ const initialDataState: DataState = {
             show: true
         }
     ],
-    savedLayers: {},
     colorMaps: null
 };
 
@@ -128,12 +127,6 @@ const dataReducer = (state: DataState = initialDataState, action) => {
         case actions.UPDATE_COLOR_MAPS: {
             return updateObject(state, action.payload);
         }
-        case actions.SAVE_LAYER: {
-            const key = action.payload.key;
-            const layer = action.payload.layer;
-            const savedLayers = updateObject(state.savedLayers, {[key]: updateObject(layer, {})});
-            return updateObject(state, {savedLayers});
-        }
     }
     return state;
 };
@@ -157,6 +150,7 @@ const initialControlState: ControlState = {
     showVariableDetails: true,
     selectedLayerId: null,
     showLayerDetails: true,
+    savedLayers: {},
     dialogs: {}
 };
 
@@ -173,6 +167,12 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             return updateObject(state, {
                 selectedOperationName: (operations && operations.length) ? operations[0].name : null
             });
+        }
+        case actions.SAVE_LAYER: {
+            const key = action.payload.key;
+            const layer = action.payload.layer;
+            const savedLayers = updateObject(state.savedLayers, {[key]: updateObject(layer, {})});
+            return updateObject(state, {savedLayers});
         }
         case actions.UPDATE_CONTROL_STATE:
             return updateObject(state, action.payload);

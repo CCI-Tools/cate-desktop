@@ -30,7 +30,6 @@ export interface DataState {
     operations: OperationState[] | null;
     workspace: WorkspaceState | null;
     layers: LayerState[];
-    savedLayers: {[varName: string]: LayerState};
     colorMaps: ColorMapCategoryState[] | null;
 }
 
@@ -440,6 +439,7 @@ export interface ControlState {
     // LayersPanel
     selectedLayerId: string|null;
     showLayerDetails: boolean;
+    savedLayers: {[key: string]: LayerState};
 
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState;};

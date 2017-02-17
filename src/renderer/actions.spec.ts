@@ -231,7 +231,19 @@ describe('Actions', () => {
                     name: 'res_1',
                     variables: [
                         {
-                            name: 'sst', dataType: 'float', ndim: 3, dimensions: ['time', 'lat', 'lon'],
+                            name: 'analysed_sst', dataType: 'float', ndim: 3, dimensions: ['time', 'lat', 'lon'],
+                            valid_min: 270,
+                            valid_max: 310,
+                            imageLayout: {
+                                numLevels: 1,
+                                numLevelZeroTilesX: 1,
+                                numLevelZeroTilesY: 1,
+                                tileWidth: 200,
+                                tileHeight: 100,
+                            }
+                        },
+                        {
+                            name: 'sst_error', dataType: 'float', ndim: 3, dimensions: ['time', 'lat', 'lon'],
                             valid_min: null,
                             valid_max: null,
                             imageLayout: {
@@ -250,6 +262,105 @@ describe('Actions', () => {
             ]
         };
 
+
+        it('setSelectedVariableName - with image variable', () => {
+            store.dispatch(actions.setCurrentWorkspace(workspace as any));
+            store.dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+            store.dispatch(actions.setSelectedVariableName('analysed_sst'));
+            expect(store.getState().data.layers).to.deep.equal([
+                {
+                    id: actions.SELECTED_VARIABLE_LAYER_ID,
+                    type: "VariableImage",
+                    name: "analysed_sst of res_1",
+                    show: true,
+                    resName: "res_1",
+                    varName: "analysed_sst",
+                    varIndex: [0],
+                    colorMapName: "jet",
+                    alphaBlending: false,
+                    displayMin: 270,
+                    displayMax: 310,
+                    imageEnhancement: {
+                        alpha: 1,
+                        brightness: 1,
+                        contrast: 1,
+                        gamma: 1,
+                        hue: 0,
+                        saturation: 1,
+                    },
+                }
+            ]);
+        });
+
+        it('setSelectedVariableName - with non-image variable selection', () => {
+            store.dispatch(actions.setCurrentWorkspace(workspace as any));
+            store.dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+            store.dispatch(actions.setSelectedVariableName('profile'));
+            expect(store.getState().data.layers).to.deep.equal([
+                {
+                    id: actions.SELECTED_VARIABLE_LAYER_ID,
+                    type: "Unknown",
+                    name: "profile of res_1",
+                    show: true,
+                }
+            ]);
+        });
+
+        it('setSelectedVariableName - can restore previous layer state', () => {
+            const selectedVariableLayerOld = {
+                id: actions.SELECTED_VARIABLE_LAYER_ID,
+                    type: "VariableImage",
+                name: "analysed_sst of res_1",
+                show: true,
+                resName: "res_1",
+                varName: "analysed_sst",
+                varIndex: [139],
+                colorMapName: "jet",
+                alphaBlending: false,
+                displayMin: 270,
+                displayMax: 300,
+                imageEnhancement: {
+                    alpha: 1,
+                    brightness: 1,
+                    contrast: 1,
+                    gamma: 1,
+                    hue: 0,
+                    saturation: 1,
+                }
+            };
+            const selectedVariableLayerNew = {
+                id: actions.SELECTED_VARIABLE_LAYER_ID,
+                type: "VariableImage",
+                name: "sst_error of res_1",
+                show: true,
+                resName: "res_1",
+                varName: "sst_error",
+                varIndex: [0],
+                colorMapName: "jet",
+                alphaBlending: false,
+                displayMin: 0,
+                displayMax: 1,
+                imageEnhancement: {
+                    alpha: 1,
+                    brightness: 1,
+                    contrast: 1,
+                    gamma: 1,
+                    hue: 0,
+                    saturation: 1,
+                }
+            };
+
+            store.dispatch(actions.setCurrentWorkspace(workspace as any));
+            store.dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+            store.dispatch(actions.setSelectedVariableName('analysed_sst'));
+            store.dispatch(actions.updateLayer({id: actions.SELECTED_VARIABLE_LAYER_ID, varIndex: [139], displayMax: 300} as any));
+            expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerOld]);
+            store.dispatch(actions.setSelectedVariableName('sst_error'));
+            expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerNew]);
+            store.dispatch(actions.setSelectedVariableName('analysed_sst'));
+            expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerOld]);
+        });
+
         it('addVariableLayer - w/o variable selection', () => {
             store.dispatch(actions.setCurrentWorkspace(workspace as any));
             store.dispatch(actions.addVariableLayer('ID756473'));
@@ -266,21 +377,21 @@ describe('Actions', () => {
         it('addVariableLayer - with image variable selection', () => {
             store.dispatch(actions.setCurrentWorkspace(workspace as any));
             store.dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
-            store.dispatch(actions.setSelectedVariableName('sst'));
+            store.dispatch(actions.setSelectedVariableName('analysed_sst'));
             store.dispatch(actions.addVariableLayer('ID756473'));
             expect(store.getState().data.layers).to.deep.equal([
                 {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: "VariableImage",
-                    name: "sst of res_1",
+                    name: "analysed_sst of res_1",
                     show: true,
                     resName: "res_1",
-                    varName: "sst",
+                    varName: "analysed_sst",
                     varIndex: [0],
                     colorMapName: "jet",
                     alphaBlending: false,
-                    displayMin: 0,
-                    displayMax: 1,
+                    displayMin: 270,
+                    displayMax: 310,
                     imageEnhancement: {
                         alpha: 1,
                         brightness: 1,
@@ -293,15 +404,15 @@ describe('Actions', () => {
                 {
                     id: "ID756473",
                     type: "VariableImage",
-                    name: "sst of res_1",
+                    name: "analysed_sst of res_1",
                     show: true,
                     resName: "res_1",
-                    varName: "sst",
+                    varName: "analysed_sst",
                     varIndex: [0],
                     colorMapName: "jet",
                     alphaBlending: false,
-                    displayMin: 0,
-                    displayMax: 1,
+                    displayMin: 270,
+                    displayMax: 310,
                     imageEnhancement: {
                         alpha: 1,
                         brightness: 1,

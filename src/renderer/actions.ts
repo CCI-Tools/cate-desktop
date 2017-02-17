@@ -766,7 +766,7 @@ export function updateOrAddVariableLayer(layerId?: string|null, resource?: Resou
         variable = variable || selectors.selectedVariableSelector(getState());
         const existingVariableLayer = getState().data.layers.find(layer => layer.id == layerId);
         if (resource && variable && isSpatialVariable(variable)) {
-            const savedLayers = getState().data.savedLayers;
+            const savedLayers = getState().control.savedLayers;
             const restoredLayer = savedLayers[variable.name];
 
             let layerDisplayProperties;
@@ -793,7 +793,11 @@ export function updateOrAddVariableLayer(layerId?: string|null, resource?: Resou
 
             if (existingVariableLayer) {
                 dispatch(updateLayer(currentVariableLayer));
-                dispatch(saveLayer(variable.name, existingVariableLayer));
+                if (existingVariableLayer.type === 'VariableImage'
+                    && existingVariableLayer.varName
+                    && existingVariableLayer.varName !== currentVariableLayer.varName) {
+                    dispatch(saveVariableLayer(existingVariableLayer.varName, existingVariableLayer));
+                }
             } else {
                 dispatch(addLayer(currentVariableLayer));
             }
@@ -885,7 +889,7 @@ export function updateLayerImageEnhancement(layer: ImageLayerState, name: string
  * @param layer
  * @returns {{type: string, payload: {key: string, layer: LayerState}}}
  */
-export function saveLayer(key: string, layer: LayerState) {
+export function saveVariableLayer(key: string, layer: LayerState) {
     return {type: SAVE_LAYER, payload: {key, layer}};
 }
 
