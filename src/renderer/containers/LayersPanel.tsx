@@ -9,13 +9,13 @@ import {
     Button, Slider, Popover, Position, PopoverInteractionKind, Switch,
     RangeSlider, NumberRange, Tooltip
 } from "@blueprintjs/core";
-import FormEvent = React.FormEvent;
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {NumericRangeField} from "../components/NumericRangeField";
+import LayerSourcesDialog from "./LayerSourcesDialog";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -99,9 +99,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         this.props.dispatch(actions.setControlProperty('showLayerDetails', value));
     }
 
-    //noinspection JSMethodCanBeStatic
     private handleAddLayerButtonClicked() {
-        console.log('LayersPanel: add layer (TODO!)');
+        this.props.dispatch(actions.updateDialogState('layerSourcesDialog', {isOpen: true}));
     }
 
     private handleRemoveLayerButtonClicked() {
@@ -206,6 +205,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                 <Button disabled={!canMoveLayerDown}
                         onClick={this.handleMoveLayerDownButtonClicked}
                         iconName="arrow-down"/>
+                <LayerSourcesDialog/>
             </div>
         );
     }
