@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
-import {State, WorkspaceState, WorkflowStepState} from "../state";
+import {State, WorkspaceState, WorkflowStepState, ResourceState} from "../state";
 import {Tooltip, Tab, Tabs, TabList, TabPanel, Button} from "@blueprintjs/core";
 import {ExpansionPanel} from "../components/ExpansionPanel";
 import * as actions from '../actions'
@@ -38,9 +38,6 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         super(props, context);
         this.handleWorkspaceResourceIdSelected = this.handleWorkspaceResourceIdSelected.bind(this);
         this.handleWorkflowStepIdSelected = this.handleWorkflowStepIdSelected.bind(this);
-        this.getResourceItemKey = this.getResourceItemKey.bind(this);
-        this.renderResourceItem = this.renderResourceItem.bind(this);
-        this.getStepItemKey = this.getStepItemKey.bind(this);
         this.renderStepItem = this.renderStepItem.bind(this);
     }
 
@@ -60,22 +57,21 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         }
     }
 
-    private getResourceItemKey(i) {
-        return this.props.workspace.resources[i].name;
+    private static getResourceItemKey(resource: ResourceState) {
+        return resource.name;
     }
 
-    private renderResourceItem(i) {
-        let resources = this.props.workspace.resources;
-        return (<LabelWithType label={resources[i].name}
-                               dataType={resources[i].dataType}/>);
+    private static renderResourceItem(resource: ResourceState) {
+        return (<LabelWithType label={resource.name}
+                               dataType={resource.dataType}/>);
     }
 
-    private getStepItemKey(i) {
-        return this.props.workspace.workflow.steps[i].id;
+    private static getStepItemKey(step: WorkflowStepState) {
+        return step.id;
     }
 
-    private renderStepItem(i) {
-        return ( <span>{this.getStepLabel(this.props.workspace.workflow.steps[i])}</span>);
+    private renderStepItem(step: WorkflowStepState) {
+        return ( <span>{this.getStepLabel(step)}</span>);
     }
 
     render() {
@@ -114,9 +110,9 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                         </Tab>
                     </TabList>
                     <TabPanel>
-                        <ListBox numItems={resources.length}
-                                 getItemKey={this.getResourceItemKey}
-                                 renderItem={this.renderResourceItem}
+                        <ListBox items={resources}
+                                 getItemKey={WorkspacePanel.getResourceItemKey}
+                                 renderItem={WorkspacePanel.renderResourceItem}
                                  selection={this.props.selectedResourceId}
                                  onSelection={this.handleWorkspaceResourceIdSelected}/>
                         <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
@@ -124,8 +120,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                         </div>
                     </TabPanel>
                     <TabPanel>
-                        <ListBox numItems={steps.length}
-                                 getItemKey={this.getStepItemKey}
+                        <ListBox items={steps}
+                                 getItemKey={WorkspacePanel.getStepItemKey}
                                  renderItem={this.renderStepItem}
                                  selection={this.props.selectedWorkflowStepId}
                                  onSelection={this.handleWorkflowStepIdSelected}/>

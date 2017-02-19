@@ -215,7 +215,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
 }
 
 interface IDataSourcesListProps {
-    dataSources: Array<DataSourceState>;
+    dataSources: DataSourceState[];
     selectedDataSourceId: string|null;
     setSelectedDataSourceId: (selectedDataSourceId: string) => void;
 }
@@ -226,7 +226,6 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
     constructor(props: IDataSourcesListProps) {
         super(props);
         this.renderItem = this.renderItem.bind(this);
-        this.getItemKey = this.getItemKey.bind(this);
         this.handleDataSourceSelected = this.handleDataSourceSelected.bind(this);
         this.handleIconLoadError = this.handleIconLoadError.bind(this);
     }
@@ -244,12 +243,11 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
         img.src = `resources/images/data-sources/esacci/${this.defaultIconName}.png`;
     }
 
-    private getItemKey(itemIndex: number) {
-        return this.props.dataSources[itemIndex].id;
+    private static getItemKey(dataSource: DataSourceState) {
+        return dataSource.id;
     }
 
-    private renderItem(itemIndex: number) {
-        const dataSource = this.props.dataSources[itemIndex];
+    private renderItem(dataSource: DataSourceState) {
         // TODO (forman): compute icon size based on screen resolution
         const imageSize = 32;
         const iconName = ((dataSource.meta_info && dataSource.meta_info.cci_project) || 'cci').toLowerCase();
@@ -267,8 +265,8 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
     render() {
         return (
             <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
-                <ListBox numItems={this.props.dataSources.length}
-                         getItemKey={this.getItemKey}
+                <ListBox items={this.props.dataSources}
+                         getItemKey={DataSourcesList.getItemKey}
                          renderItem={this.renderItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={this.props.selectedDataSourceId}

@@ -86,7 +86,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         this.handleChangedLayerSelection = this.handleChangedLayerSelection.bind(this);
         this.handleUpdateDisplayStatistics = this.handleUpdateDisplayStatistics.bind(this);
         this.handleChangedDisplayMinMax = this.handleChangedDisplayMinMax.bind(this);
-        this.getLayerItemKey = this.getLayerItemKey.bind(this);
         this.renderLayerItem = this.renderLayerItem.bind(this);
     }
 
@@ -151,12 +150,11 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         this.props.dispatch(actions.updateLayer(layer, {displayMin, displayMax}));
     }
 
-    private getLayerItemKey(itemIndex: number) {
-        return this.props.layers[itemIndex].id;
+    private static getLayerItemKey(layer: LayerState) {
+        return layer.id;
     }
 
-    private renderLayerItem(itemIndex: number) {
-        const layer = this.props.layers[itemIndex];
+    private renderLayerItem(layer: LayerState) {
         return (
             <div>
                 <input type="checkbox"
@@ -220,8 +218,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
 
         return (
             <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
-                <ListBox numItems={layers.length}
-                         getItemKey={this.getLayerItemKey}
+                <ListBox items={layers}
+                         getItemKey={LayersPanel.getLayerItemKey}
                          renderItem={this.renderLayerItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={this.props.selectedLayerId}
@@ -480,9 +478,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             );
             children.push(
                 <ListBox key={cat.name + "_list"}
-                         numItems={colorMaps.length}
-                         getItemKey={(i) => colorMaps[i].name}
-                         renderItem={(i) => this.renderColorMapImage(colorMaps[i])}
+                         items={colorMaps}
+                         getItemKey={(item: ColorMapState) => item.name}
+                         renderItem={(item: ColorMapState) => this.renderColorMapImage(item)}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={layer.colorMapName ? [layer.colorMapName] : []}
                          onSelection={(newSelection) => {

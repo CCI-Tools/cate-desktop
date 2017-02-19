@@ -8,14 +8,14 @@ export enum ListBoxSelectionMode {
 
 
 export interface IListBoxProps {
-    numItems: number;
-    renderItem: (itemIndex: number) => JSX.Element;
-    getItemKey?: (itemIndex: number) => React.Key;
-    onItemClick?: (key: React.Key, itemIndex: number) => void;
-    onItemDoubleClick?: (key: React.Key, itemIndex: number) => void;
-    onSelection?: (newSelection: Array<React.Key>, oldSelection?: Array<React.Key>) => void;
+    items: any[];
+    renderItem: (item: any, itemIndex: number) => JSX.Element;
+    getItemKey?: (item: any, itemIndex: number) => React.Key;
+    onItemClick?: (key: React.Key, item: any, itemIndex: number) => void;
+    onItemDoubleClick?: (key: React.Key, item: any, itemIndex: number) => void;
+    onSelection?: (newSelection: React.Key[], oldSelection: React.Key[]) => void;
     selectionMode?: ListBoxSelectionMode;
-    selection?: Array<React.Key>|React.Key|null;
+    selection?: React.Key[]|React.Key|null;
     style?: Object;
     itemStyle?: Object;
 }
@@ -56,17 +56,22 @@ export class ListBox extends React.PureComponent<IListBoxProps, any> {
             this.props.onSelection(newSelection, selection);
         }
         if (this.props.onItemClick) {
-            this.props.onItemClick(key, itemIndex);
+            this.props.onItemClick(key, this.props.items[itemIndex], itemIndex);
         }
     }
 
     handleDoubleClick(itemIndex, key: string|number) {
         if (this.props.onItemDoubleClick) {
-            this.props.onItemDoubleClick(key, itemIndex);
+            this.props.onItemDoubleClick(key, this.props.items[itemIndex], itemIndex);
         }
     }
 
     render() {
+        const items = this.props.items;
+        if (!items) {
+            return null;
+        }
+
         // see http://www.w3schools.com/css/tryit.asp?filename=trycss_list-style-border
         // const border = '1px solid #ddd';
         const listStyle = Object.assign({
@@ -84,27 +89,28 @@ export class ListBox extends React.PureComponent<IListBoxProps, any> {
         const getItemKey = this.props.getItemKey || (itemIndex => itemIndex);
         const renderItem = this.props.renderItem;
         //noinspection JSMismatchedCollectionQueryUpdate
-        let items: Array<JSX.Element> = [];
-        for (let itemIndex = 0; itemIndex < this.props.numItems; itemIndex++) {
-            const key = getItemKey(itemIndex);
-            const item = renderItem(itemIndex);
+        let renderedItems: Array<JSX.Element> = [];
+        for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
+            const item = items[itemIndex];
+            const key = getItemKey(item, itemIndex);
+            const renderedItem = renderItem(item, itemIndex);
             const selected = selection.has(key);
             const itemStyle = selected ? selectedItemStyle : normalItemStyle;
             const className = selected ? 'cate-selected' : null;
-            items.push(
+            renderedItems.push(
                 <li key={key}
                     onClick={() => this.handleClick(itemIndex, key)}
                     onDoubleClick={() => this.handleDoubleClick(itemIndex, key)}
                     className={className}
                     style={itemStyle}>
-                    {item}
+                    {renderedItem}
                 </li>
             );
         }
 
         return (
             <ul className="cate-list-box" style={listStyle}>
-                {items}
+                {renderedItems}
             </ul>
         );
     }

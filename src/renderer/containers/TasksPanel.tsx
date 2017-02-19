@@ -48,6 +48,10 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
             tastState.progress.total > 0;
     }
 
+    private static getItemKey(jobId: number) {
+        return jobId;
+    }
+
     render() {
         const visibleTaskIds: string[] = [];
         const taskStateList: TaskState[] = [];
@@ -58,9 +62,8 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
                 taskStateList.push(task);
             }
         }
-        const renderItem = (itemIndex: number) => {
+        const renderItem = (jobId: number, itemIndex: number) => {
             const taskState = taskStateList[itemIndex];
-            const jobId = visibleTaskIds[itemIndex];
             let activity = null;
             if (TasksPanel.isActive(taskState)) {
                 let progress = null;
@@ -101,8 +104,8 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
         if (visibleTaskIds.length) {
             panelContents = (
                 <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
-                    <ListBox numItems={visibleTaskIds.length}
-                             getItemKey={index => visibleTaskIds[index]}
+                    <ListBox items={visibleTaskIds}
+                             getItemKey={TasksPanel.getItemKey}
                              renderItem={renderItem}
                              selectionMode={ListBoxSelectionMode.SINGLE}/>
                 </div>

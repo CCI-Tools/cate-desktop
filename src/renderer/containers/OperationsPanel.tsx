@@ -56,8 +56,6 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         this.handleOperationFilterExprChange = this.handleOperationFilterExprChange.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleAddOperationStepButtonClicked = this.handleAddOperationStepButtonClicked.bind(this);
-        this.getItemKey = this.getItemKey.bind(this);
-        this.renderItem = this.renderItem.bind(this);
     }
 
     private handleShowDetailsChanged(value: boolean) {
@@ -80,12 +78,11 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         this.props.dispatch(actions.showOperationStepDialog());
     }
 
-    private getItemKey(itemIndex: number) {
-        return this.props.filteredOperations[itemIndex].name;
+    private static getItemKey(operation: OperationState) {
+        return operation.name;
     }
 
-    private renderItem(itemIndex: number) {
-        const operation = this.props.filteredOperations[itemIndex];
+    private static renderItem(operation: OperationState) {
         const name = operation.name;
         let dataType;
         if (!operation.outputs.length) {
@@ -95,7 +92,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         } else {
             dataType = `${operation.outputs.length} types`;
         }
-        return <LabelWithType label={name} dataType={dataType}/>
+        return (<LabelWithType label={name} dataType={dataType}/>);
     }
 
     render() {
@@ -159,9 +156,9 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     private renderOperationsList() {
         return (
             <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
-                <ListBox numItems={this.props.filteredOperations.length}
-                         getItemKey={this.getItemKey}
-                         renderItem={this.renderItem}
+                <ListBox items={this.props.filteredOperations}
+                         getItemKey={OperationsPanel.getItemKey}
+                         renderItem={OperationsPanel.renderItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={this.props.selectedOperationName}
                          onSelection={this.handleOperationSelection}/>
