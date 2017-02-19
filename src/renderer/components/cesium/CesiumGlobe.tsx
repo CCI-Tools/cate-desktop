@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {IPermanentComponentProps, PermanentComponent} from '../PermanentComponent'
+import {getLayerDiff} from "../Layer";
 
 const Cesium: any = require('cesium');
 // console.log(Cesium);
@@ -18,6 +19,8 @@ export type ImageryLayerCollection = {
     get: (index: number) => ImageryLayer;
     indexOf: (layer: ImageryLayer) => number;
     remove: (layer: ImageryLayer, destroy?: boolean) => void;
+    raise: (layer: ImageryLayer) => void;
+    lower: (layer: ImageryLayer) => void;
 };
 
 export type  CesiumViewer = {
@@ -181,11 +184,55 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         return viewer;
     }
 
-    private createContainer(): HTMLElement {
-        const div = document.createElement("div");
-        div.setAttribute("id", "cesium-container-" + this.props.id);
-        div.setAttribute("class", "cesium-container");
-        return div;
+    componentWillReceiveProps(nextProps: ICesiumGlobeProps) {
+        const currentLayers = this.props.imageLayers || [];
+        const nextLayers = nextProps.imageLayers || [];
+
+        const actions = getLayerDiff<ImageLayerDescriptor>(currentLayers, nextLayers);
+        let imageryLayer: ImageryLayer;
+        let newLayer: ImageLayerDescriptor;
+        let oldLayer: ImageLayerDescriptor;
+        for (let action of actions) {
+            // cesiumIndex is +1 because of its base layer at cesiumIndex=0
+            const cesiumIndex = action.index + 1;
+            switch (action.type) {
+                case 'ADD':
+                    this.addImageryLayer(action.newLayer, cesiumIndex);
+                    break;
+                case 'REMOVE':
+                    imageryLayer = this.viewer.imageryLayers.get(cesiumIndex);
+                    this.removeImageryLayer(imageryLayer, cesiumIndex);
+                    break;
+                case 'UPDATE':
+                    imageryLayer = this.viewer.imageryLayers.get(cesiumIndex);
+                    oldLayer = action.oldLayer;
+                    newLayer = action.newLayer;
+                    if (oldLayer.imageryProviderOptions.url !== newLayer.imageryProviderOptions.url) {
+                        // It is a pitty that Cesium API does not allow for chaning the
+                        // URL in place. The current approach, namely remove/add, causes flickering.
+                        this.removeImageryLayer(imageryLayer, cesiumIndex);
+                        imageryLayer = this.addImageryLayer(newLayer, cesiumIndex);
+                    }
+                    // update imageryLayer
+                    imageryLayer.name = newLayer.name;
+                    imageryLayer.show = newLayer.show;
+                    imageryLayer.alpha = newLayer.imageEnhancement.alpha;
+                    imageryLayer.brightness = newLayer.imageEnhancement.brightness;
+                    imageryLayer.contrast = newLayer.imageEnhancement.contrast;
+                    imageryLayer.hue = newLayer.imageEnhancement.hue;
+                    imageryLayer.saturation = newLayer.imageEnhancement.saturation;
+                    imageryLayer.gamma = newLayer.imageEnhancement.gamma;
+                    break;
+                case 'MOVE_DOWN':
+                    imageryLayer = this.viewer.imageryLayers.get(cesiumIndex);
+                    for (let i = 0; i < action.numSteps; i++) {
+                        this.viewer.imageryLayers.lower(imageryLayer);
+                    }
+                    break;
+                default:
+                    console.error(`CesiumGlobe: unhandled layer action type "${action.type}"`);
+            }
+        }
     }
 
     private static getImageryProvider(layer: ImageLayerDescriptor) {
@@ -193,70 +240,6 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
             return layer.imageryProvider(layer.imageryProvider(layer.imageryProviderOptions));
         } else {
             return layer.imageryProvider;
-        }
-    }
-
-    componentWillReceiveProps(nextProps: ICesiumGlobeProps) {
-        const currentLayers = this.props.imageLayers || [];
-        const nextLayers = nextProps.imageLayers || [];
-
-        // remove layers of currentLayers which are not in nextLayers
-        // also, remember layers from Cesium
-        const currentImageLayers = new Map<string, ImageLayerDescriptor>();
-        const cesiumImageryLayers = new Map<string, ImageryLayer>();
-        const nextLayerIdSet = new Set<string>(nextLayers.map(l => l.id));
-        for (let layerIndex = 0; layerIndex < currentLayers.length; layerIndex++) {
-            const currentLayer = currentLayers[layerIndex];
-            const imageryLayer = this.viewer.imageryLayers.get(layerIndex + 1); // +1 because of baseLayer, which is always available
-            // assert !!imageryLayer
-            if (!imageryLayer) {
-                throw Error('!imageryLayer');
-            }
-            if (!nextLayerIdSet.has(currentLayer.id)) {
-                this.removeImageryLayer(imageryLayer, layerIndex + 1);
-            } else {
-                cesiumImageryLayers.set(currentLayer.id, imageryLayer);
-                currentImageLayers.set(currentLayer.id, currentLayer);
-            }
-        }
-
-        // add layers of nextLayers which are not currentLayers or
-        // change layers of nextLayers which are in currentLayers
-        for (let layerIndex = 0; layerIndex < nextLayers.length; layerIndex++) {
-            const nextLayer = nextLayers[layerIndex];
-            let imageryLayer;
-            if (currentImageLayers.has(nextLayer.id)) {
-                // change or exchange nextLayer
-                const currentLayer = currentImageLayers.get(nextLayer.id);
-                // TODO (forman): perform a shallow comparison between imageryProviderOptions of nextLayer and currentLayer
-                if (nextLayer.imageryProviderOptions.url !== currentLayer.imageryProviderOptions.url) {
-                    // save oldImageryLayer
-                    const oldImageryLayer = cesiumImageryLayers.get(nextLayer.id);
-                    // TODO (forman): removing an old layer produces flickering. Try to avoid it by decreasing alpha value in an animation sequence.
-                    this.removeImageryLayer(oldImageryLayer, layerIndex + 1);
-                    // add nextLayer
-                    // layerIndex + 1, because of baseLayer, which is always available at index 0
-                    imageryLayer = this.addImageryLayer(nextLayer, layerIndex + 1);
-                } else {
-                    imageryLayer = cesiumImageryLayers.get(nextLayer.id);
-                }
-            } else {
-                // add nextLayer
-                // layerIndex + 1, because of baseLayer, which is always available at index 0
-                imageryLayer = this.addImageryLayer(nextLayer, layerIndex + 1);
-            }
-
-            // TODO (forman): now bring layers into desired order
-
-            // update imageryLayer
-            imageryLayer.name = nextLayer.name;
-            imageryLayer.show = nextLayer.show;
-            imageryLayer.alpha = nextLayer.imageEnhancement.alpha;
-            imageryLayer.brightness = nextLayer.imageEnhancement.brightness;
-            imageryLayer.contrast = nextLayer.imageEnhancement.contrast;
-            imageryLayer.hue = nextLayer.imageEnhancement.hue;
-            imageryLayer.saturation = nextLayer.imageEnhancement.saturation;
-            imageryLayer.gamma = nextLayer.imageEnhancement.gamma;
         }
     }
 
@@ -271,4 +254,12 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         this.viewer.imageryLayers.remove(imageryLayer, true);
         console.log(`CesiumGlobe: removed imagery layer #${layerIndex}`);
     }
+
+    private createContainer(): HTMLElement {
+        const div = document.createElement("div");
+        div.setAttribute("id", "cesium-container-" + this.props.id);
+        div.setAttribute("class", "cesium-container");
+        return div;
+    }
+
 }
