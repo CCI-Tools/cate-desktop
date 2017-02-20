@@ -8,18 +8,18 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@blueprintjs/core": "^1.1.0",
-    "@blueprintjs/table": "^1.1.0",
-    "cesium": "^1.27.0",
-    "classnames": "^2.2.5",
-    "deep-equal": "^1.0.1",
-    "openlayers": "^3.19.1",
-    "react": "^15.4.0",
-    "react-addons-css-transition-group": "^15.4.0",
-    "react-dom": "^15.4.0",
-    "react-redux": "^4.4.5",
-    "redux": "^3.6.0",
-    "redux-logger": "^2.7.4",
-    "redux-thunk": "^2.1.0"
+    "@blueprintjs/core": "^1.9",
+    "@blueprintjs/table": "^1.6",
+    "cesium": "^1.30",
+    "classnames": "^2.2",
+    "deep-equal": "^1.0",
+    "openlayers": "^4.0",
+    "react": "^15.4",
+    "react-addons-css-transition-group": "^15.4",
+    "react-dom": "^15.4",
+    "react-redux": "^4.4",
+    "redux": "^3.6",
+    "redux-logger": "^2.7",
+    "redux-thunk": "^2.1"
   }
 }
