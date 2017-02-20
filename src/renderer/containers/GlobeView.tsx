@@ -1,7 +1,8 @@
 import * as React from 'react';
 import {LayerState, State, WorkspaceState, VariableImageLayerState} from "../state";
-import {CesiumGlobe, ImageLayerDescriptor, ImageryProvider} from "../components/cesium/CesiumGlobe";
+import {CesiumGlobe, LayerDescriptor, ImageryProvider} from "../components/cesium/CesiumGlobe";
 import {connect} from "react-redux";
+import {getTileUrl} from "../actions";
 const Cesium: any = require('cesium');
 
 interface IGlobeViewProps {
@@ -13,30 +14,29 @@ interface IGlobeViewProps {
 
 function mapStateToProps(state: State): IGlobeViewProps {
     return {
+        baseUrl: state.data.appConfig.webAPIConfig.restUrl,
         workspace: state.data.workspace,
         offlineMode: state.session.offlineMode,
         layers: state.data.layers,
-        baseUrl: state.data.appConfig.webAPIConfig.restUrl,
     };
 }
 
-
 /**
- * An example of CesiumGlobe that displays some pins.
+ * This component displays a 3D globe with a number of layers.
  */
-export class GlobeView extends React.Component<IGlobeViewProps, null> {
+class GlobeView extends React.Component<IGlobeViewProps, null> {
 
     render() {
-        const cesiumImageLayers = [];
+        const globeLayers = [];
         if (this.props.workspace && this.props.workspace.resources && this.props.layers) {
             for (let layer of this.props.layers) {
-                let cesiumImageLayer;
+                let globeLayer;
                 switch (layer.type) {
                     case 'VariableImage':
-                        cesiumImageLayer = this.convertVariableImageLayerToCesiumImageLayer(layer as VariableImageLayerState);
+                        globeLayer = this.convertVariableImageLayerToGlobeLayer(layer as VariableImageLayerState);
                 }
-                if (cesiumImageLayer) {
-                    cesiumImageLayers.push(cesiumImageLayer);
+                if (globeLayer) {
+                    globeLayers.push(globeLayer);
                 } else {
                     console.warn(`GlobeView: layer with ID "${layer.id}" will not be rendered`);
                 }
@@ -47,16 +47,15 @@ export class GlobeView extends React.Component<IGlobeViewProps, null> {
             <div style={{width:"100%", height:"100%"}}>
                 <CesiumGlobe id="defaultGlobeView"
                              debug={true}
-                             imageLayers={cesiumImageLayers}
+                             layers={globeLayers}
                              offlineMode={this.props.offlineMode}
                              style={{width:"100%", height:"100%"}}/>
-                {/*<CesiumCityList pins={this.state.pins} onChange={this.handleCheckboxChange.bind(this)}/>*/}
                 <div id="creditContainer" style={{display:"none"}}></div>
             </div>
         );
     }
 
-    private convertVariableImageLayerToCesiumImageLayer(layer: VariableImageLayerState): ImageLayerDescriptor|null {
+    private convertVariableImageLayerToGlobeLayer(layer: VariableImageLayerState): LayerDescriptor|null {
         const resource = this.props.workspace.resources.find(r => r.name === layer.resName);
         if (resource) {
             const variable = resource.variables.find(v => v.name === layer.varName);
@@ -64,7 +63,7 @@ export class GlobeView extends React.Component<IGlobeViewProps, null> {
                 const imageLayout = variable.imageLayout;
                 if (variable.imageLayout) {
                     const baseDir = this.props.workspace.baseDir;
-                    const url = this.createVariableImageryProviderUrl(baseDir, layer);
+                    const url = getTileUrl(this.props.baseUrl, baseDir, layer);
                     let rectangle = Cesium.Rectangle.MAX_VALUE;
                     if (imageLayout.sector) {
                         const sector = imageLayout.sector;
@@ -98,20 +97,10 @@ export class GlobeView extends React.Component<IGlobeViewProps, null> {
         return null;
     }
 
-    private createVariableImageryProviderUrl(baseDir: string, layer: VariableImageLayerState): string {
-        return this.props.baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/{z}/{y}/{x}.png?`
-            + `&var=${encodeURIComponent(layer.varName)}`
-            + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
-            + `&cmap=${encodeURIComponent(layer.colorMapName) + (layer.alphaBlending ? '_alpha' : '')}`
-            + `&min=${encodeURIComponent(layer.displayMin + '')}`
-            + `&max=${encodeURIComponent(layer.displayMax + '')}`;
-    }
-
     /**
      * Creates a Cesium.UrlTemplateImageryProvider instance.
      *
      * @param imageryProviderOptions see https://cesiumjs.org/Cesium/Build/Documentation/UrlTemplateImageryProvider.html
-     * @returns {Cesium.UrlTemplateImageryProvider}
      */
     private static createImageryProvider(imageryProviderOptions): ImageryProvider {
         const imageryProvider = new Cesium.UrlTemplateImageryProvider(imageryProviderOptions);

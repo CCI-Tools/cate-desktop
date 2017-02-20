@@ -1,7 +1,7 @@
 import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState,
     LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, DataSourceState,
-    OperationState, SessionState, BackendConfigState, VariableState
+    OperationState, SessionState, BackendConfigState, VariableState, VariableImageLayerState
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
@@ -749,6 +749,15 @@ export function updateSelectedVariableLayer() {
 
 export function addVariableLayer(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
     return updateOrAddVariableLayer(layerId, resource, variable);
+}
+
+export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImageLayerState): string {
+    return baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/{z}/{y}/{x}.png?`
+        + `&var=${encodeURIComponent(layer.varName)}`
+        + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
+        + `&cmap=${encodeURIComponent(layer.colorMapName) + (layer.alphaBlending ? '_alpha' : '')}`
+        + `&min=${encodeURIComponent(layer.displayMin + '')}`
+        + `&max=${encodeURIComponent(layer.displayMax + '')}`;
 }
 
 export function isSpatialVariable(variable: VariableState): boolean {

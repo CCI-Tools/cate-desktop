@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Classes, ITreeNode, Tooltip, Tree, Tab, TabList, TabPanel, Tabs} from "@blueprintjs/core";
 import {ExpansionPanel} from '../components/ExpansionPanel';
 import GlobeView from './GlobeView'
-import {OpenLayersMap} from '../components/openlayers/OpenLayersMap';
+import MapView from "./MapView";
 import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "../components/hgl";
 import DataSourcesPanel from "./DataSourcesPanel";
 import OperationsPanel from "./OperationsPanel";
@@ -91,7 +91,7 @@ export function ApplicationPage(props) {
                     </TabPanel>
 
                     <TabPanel>
-                        <OpenLayersMap id="openlayers-viewer" style={{width:"100%", height:"100%"}} debug={true}/>
+                        <MapView/>
                     </TabPanel>
 
                     <TabPanel>

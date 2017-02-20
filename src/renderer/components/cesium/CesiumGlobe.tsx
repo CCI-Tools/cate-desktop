@@ -7,11 +7,10 @@ const Cesium: any = require('cesium');
 const BuildModuleUrl: any = Cesium.buildModuleUrl;
 BuildModuleUrl.setBaseUrl('./');
 
-/**
- * As long as we don't have a @types/Cesium dependnency, we provide Cesium dummy types here:
- * - ImageryProvider
- * - CesiumViewer
- */
+////////////////////////////////////////////////////////////////////////////////////////////////
+// As long as we don't have a @types/Cesium dependency, we provide Cesium dummy types here:
+//
+// << begin @types/Cesium
 export type ImageryProvider = any;
 export type ImageryLayer = any;
 export type ImageryLayerCollection = {
@@ -23,11 +22,13 @@ export type ImageryLayerCollection = {
     lower: (layer: ImageryLayer) => void;
 };
 
-export type  CesiumViewer = {
+export type CesiumViewer = {
     container: HTMLElement;
     entities: any;
     imageryLayers: ImageryLayerCollection;
 };
+// >> end @types/Cesium
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 /**
@@ -81,7 +82,7 @@ export interface ImageEnhancement {
 /**
  * Describes an image layer to be displayed on the Cesium globe.
  */
-export interface ImageLayerDescriptor {
+export interface LayerDescriptor {
     id: string;
     name: string;
     show: boolean;
@@ -99,10 +100,9 @@ Cesium.BingMapsApi.defaultKey = 'AnCcpOxnAAgq-KyFcczSZYZ_iFvCOmWl0Mx-6QzQ_rzMtpg
 
 
 export interface ICesiumGlobeProps extends IPermanentComponentProps {
-    id: string;
     offlineMode?: boolean;
     pins?: PinDescriptor[];
-    imageLayers?: ImageLayerDescriptor[];
+    layers?: LayerDescriptor[];
 }
 
 const CENTRAL_EUROPE_BOX = Cesium.Rectangle.fromDegrees(-30, 20, 40, 80);
@@ -116,8 +116,11 @@ Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
  */
 export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobeProps, any> {
 
+    private lastLayers: LayerDescriptor[];
+
     constructor(props: ICesiumGlobeProps) {
         super(props);
+        this.lastLayers = null;
     }
 
     get viewer(): CesiumViewer {
@@ -184,24 +187,37 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         return viewer;
     }
 
-    componentWillReceiveProps(nextProps: ICesiumGlobeProps) {
-        const currentLayers = this.props.imageLayers || [];
-        const nextLayers = nextProps.imageLayers || [];
+    permanentObjectMounted(permanentObject: CesiumViewer): void {
+        this.updateGlobeLayers(this.lastLayers || [], this.props.layers || []);
+    }
 
-        const actions = getLayerDiff<ImageLayerDescriptor>(currentLayers, nextLayers);
+    permanentObjectUnmounted(permanentObject: CesiumViewer): void {
+        this.lastLayers = this.props.layers;
+    }
+
+    componentWillReceiveProps(nextProps: ICesiumGlobeProps) {
+        this.updateGlobeLayers(this.props.layers || [], nextProps.layers || []);
+    }
+
+    private updateGlobeLayers(currentLayers: LayerDescriptor[], nextLayers: LayerDescriptor[]) {
+        const actions = getLayerDiff<LayerDescriptor>(currentLayers, nextLayers);
         let imageryLayer: ImageryLayer;
-        let newLayer: ImageLayerDescriptor;
-        let oldLayer: ImageLayerDescriptor;
+        let newLayer: LayerDescriptor;
+        let oldLayer: LayerDescriptor;
         for (let action of actions) {
+            if (this.props.debug) {
+                console.log('CesiumGlobe: next layer action', action);
+            }
             // cesiumIndex is +1 because of its base layer at cesiumIndex=0
             const cesiumIndex = action.index + 1;
             switch (action.type) {
                 case 'ADD':
-                    this.addImageryLayer(action.newLayer, cesiumIndex);
+                    imageryLayer = this.addLayer(action.newLayer, cesiumIndex);
+                    CesiumGlobe.setLayerProps(imageryLayer, action.newLayer);
                     break;
                 case 'REMOVE':
                     imageryLayer = this.viewer.imageryLayers.get(cesiumIndex);
-                    this.removeImageryLayer(imageryLayer, cesiumIndex);
+                    this.removeLayer(imageryLayer, cesiumIndex);
                     break;
                 case 'UPDATE':
                     imageryLayer = this.viewer.imageryLayers.get(cesiumIndex);
@@ -210,18 +226,11 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
                     if (oldLayer.imageryProviderOptions.url !== newLayer.imageryProviderOptions.url) {
                         // It is a pitty that Cesium API does not allow for chaning the
                         // URL in place. The current approach, namely remove/add, causes flickering.
-                        this.removeImageryLayer(imageryLayer, cesiumIndex);
-                        imageryLayer = this.addImageryLayer(newLayer, cesiumIndex);
+                        this.removeLayer(imageryLayer, cesiumIndex);
+                        imageryLayer = this.addLayer(newLayer, cesiumIndex);
                     }
                     // update imageryLayer
-                    imageryLayer.name = newLayer.name;
-                    imageryLayer.show = newLayer.show;
-                    imageryLayer.alpha = newLayer.imageEnhancement.alpha;
-                    imageryLayer.brightness = newLayer.imageEnhancement.brightness;
-                    imageryLayer.contrast = newLayer.imageEnhancement.contrast;
-                    imageryLayer.hue = newLayer.imageEnhancement.hue;
-                    imageryLayer.saturation = newLayer.imageEnhancement.saturation;
-                    imageryLayer.gamma = newLayer.imageEnhancement.gamma;
+                    CesiumGlobe.setLayerProps(imageryLayer, newLayer);
                     break;
                 case 'MOVE_DOWN':
                     imageryLayer = this.viewer.imageryLayers.get(cesiumIndex);
@@ -235,24 +244,42 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         }
     }
 
-    private static getImageryProvider(layer: ImageLayerDescriptor) {
-        if (typeof layer.imageryProvider === 'function') {
-            return layer.imageryProvider(layer.imageryProvider(layer.imageryProviderOptions));
+    private static getLayerSource(layerDescriptor: LayerDescriptor) {
+        if (typeof layerDescriptor.imageryProvider === 'function') {
+            return layerDescriptor.imageryProvider(layerDescriptor.imageryProviderOptions);
         } else {
-            return layer.imageryProvider;
+            return layerDescriptor.imageryProvider;
         }
     }
 
-    private addImageryLayer(imageLayer: ImageLayerDescriptor, layerIndex: number): ImageryLayer {
-        const imageryProvider = CesiumGlobe.getImageryProvider(imageLayer);
+    private addLayer(imageLayer: LayerDescriptor, layerIndex: number): ImageryLayer {
+        const imageryProvider = CesiumGlobe.getLayerSource(imageLayer);
         const imageryLayer = this.viewer.imageryLayers.addImageryProvider(imageryProvider, layerIndex);
-        console.log(`CesiumGlobe: added imagery layer #${layerIndex}: ${imageLayer.name}`);
+        if (this.props.debug) {
+            console.log(`CesiumGlobe: added imagery layer #${layerIndex}: ${imageLayer.name}`);
+        }
         return imageryLayer;
     }
 
-    private removeImageryLayer(imageryLayer: ImageryLayer, layerIndex: number): void {
+    private removeLayer(imageryLayer: ImageryLayer, layerIndex: number): void {
         this.viewer.imageryLayers.remove(imageryLayer, true);
-        console.log(`CesiumGlobe: removed imagery layer #${layerIndex}`);
+        if (this.props.debug) {
+            console.log(`CesiumGlobe: removed imagery layer #${layerIndex}`);
+        }
+    }
+
+    private static setLayerProps(imageryLayer: ImageryLayer, layerDescriptor: LayerDescriptor) {
+        imageryLayer.name = layerDescriptor.name;
+        imageryLayer.show = layerDescriptor.show;
+        const imageEnhancement = layerDescriptor.imageEnhancement;
+        if (imageEnhancement) {
+            imageryLayer.alpha = imageEnhancement.alpha;
+            imageryLayer.brightness = imageEnhancement.brightness;
+            imageryLayer.contrast = imageEnhancement.contrast;
+            imageryLayer.hue = imageEnhancement.hue;
+            imageryLayer.saturation = imageEnhancement.saturation;
+            imageryLayer.gamma = imageEnhancement.gamma;
+        }
     }
 
     private createContainer(): HTMLElement {
