@@ -1,6 +1,7 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
-    ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState
+    ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
+    WorkflowStepState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient} from "./webapi/WebAPIClient";
@@ -192,9 +193,10 @@ export const selectedDataSourceSelector = createSelector<State, DataSourceState|
 // Workspace, resource, step, and variable selectors
 
 export const workspaceSelector = (state: State): WorkspaceState|null => state.data.workspace;
-export const resourcesSelector = (state: State): Array<ResourceState> => state.data.workspace ? state.data.workspace.resources : [];
+export const resourcesSelector = (state: State): ResourceState[] => state.data.workspace ? state.data.workspace.resources : [];
+export const workflowStepsSelector = (state: State): WorkflowStepState[] => state.data.workspace ? state.data.workspace.workflow.steps : [];
 export const selectedResourceIdSelector = (state: State): string|null => state.control.selectedWorkspaceResourceId;
-export const selectedStepIdSelector = (state: State): string|null => state.control.selectedWorkflowStepId;
+export const selectedWorkflowStepIdSelector = (state: State): string|null => state.control.selectedWorkflowStepId;
 export const selectedVariableNameSelector = (state: State): string|null => state.control.selectedVariableName;
 export const resourceNamePrefixSelector = (state: State): string => state.session.resourceNamePrefix;
 
@@ -204,6 +206,17 @@ export const selectedResourceSelector = createSelector<State, ResourceState|null
     (resources: ResourceState[], selectedResourceId: string) => {
         if (canFind(resources, selectedResourceId)) {
             return resources.find(r => r.name === selectedResourceId);
+        }
+        return null;
+    }
+);
+
+export const selectedWorkflowStepSelector = createSelector<State, WorkflowStepState|null, WorkflowStepState[], string>(
+    workflowStepsSelector,
+    selectedWorkflowStepIdSelector,
+    (workflowSteps: WorkflowStepState[], selectedWorkflowStepId: string) => {
+        if (canFind(workflowSteps, selectedWorkflowStepId)) {
+            return workflowSteps.find(r => r.id === selectedWorkflowStepId);
         }
         return null;
     }

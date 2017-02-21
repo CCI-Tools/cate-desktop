@@ -9,19 +9,24 @@ import * as assert from "../../common/assert";
 import {ListBox} from "../components/ListBox";
 import {Card} from "../components/Card";
 import {LabelWithType} from "../components/LabelWithType";
+import ResourceRenameDialog from "./ResourceRenameDialog";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
     workspace: WorkspaceState;
+    selectedResource: ResourceState|null;
     selectedResourceId: string|null;
+    selectedWorkflowStep: WorkflowStepState|null;
     selectedWorkflowStepId: string|null;
 }
 
 function mapStateToProps(state: State): IWorkspacePanelProps {
     return {
         workspace: selectors.workspaceSelector(state),
+        selectedResource: selectors.selectedResourceSelector(state),
         selectedResourceId: selectors.selectedResourceIdSelector(state),
-        selectedWorkflowStepId: selectors.selectedStepIdSelector(state),
+        selectedWorkflowStep: selectors.selectedWorkflowStepSelector(state),
+        selectedWorkflowStepId: selectors.selectedWorkflowStepIdSelector(state),
     };
 }
 
@@ -38,6 +43,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         super(props, context);
         this.handleWorkspaceResourceIdSelected = this.handleWorkspaceResourceIdSelected.bind(this);
         this.handleWorkflowStepIdSelected = this.handleWorkflowStepIdSelected.bind(this);
+        this.handleResourceRenameButtonClicked = this.handleResourceRenameButtonClicked.bind(this);
         this.renderStepItem = this.renderStepItem.bind(this);
     }
 
@@ -55,6 +61,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         } else {
             this.props.dispatch(actions.setSelectedWorkflowStepId(null));
         }
+    }
+
+    private handleResourceRenameButtonClicked() {
+        this.props.dispatch(actions.updateDialogState('resourceRenameDialog', {isOpen: true}));
     }
 
     private static getResourceItemKey(resource: ResourceState) {
@@ -109,28 +119,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                             </Tooltip>
                         </Tab>
                     </TabList>
-                    <TabPanel>
-                        <ListBox items={resources}
-                                 getItemKey={WorkspacePanel.getResourceItemKey}
-                                 renderItem={WorkspacePanel.renderResourceItem}
-                                 selection={this.props.selectedResourceId}
-                                 onSelection={this.handleWorkspaceResourceIdSelected}/>
-                        <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
-                            <Button disabled={!resources.length} iconName="label"/>
-                        </div>
-                    </TabPanel>
-                    <TabPanel>
-                        <ListBox items={steps}
-                                 getItemKey={WorkspacePanel.getStepItemKey}
-                                 renderItem={this.renderStepItem}
-                                 selection={this.props.selectedWorkflowStepId}
-                                 onSelection={this.handleWorkflowStepIdSelected}/>
-                        <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
-                            <Button disabled={!steps.length} style={{marginRight: '0.2em'}} iconName="duplicate"/>
-                            <Button disabled={!steps.length} style={{marginRight: '0.2em'}} iconName="edit"/>
-                            <Button disabled={!steps.length} iconName="delete"/>
-                        </div>
-                    </TabPanel>
+                    {this.renderResourcesPanel()}
+                    {this.renderStepsPanel()}
                 </Tabs>
             );
         } else {
@@ -147,6 +137,43 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                 {workspaceInfo}
                 {workspacePane}
             </ExpansionPanel>
+        );
+    }
+
+    private renderResourcesPanel() {
+        const resources = this.props.workspace.resources;
+        const selectedResource = this.props.selectedResource;
+        return (
+            <TabPanel>
+                <ListBox items={resources}
+                         getItemKey={WorkspacePanel.getResourceItemKey}
+                         renderItem={WorkspacePanel.renderResourceItem}
+                         selection={this.props.selectedResourceId}
+                         onSelection={this.handleWorkspaceResourceIdSelected}/>
+                <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
+                    <Button disabled={!selectedResource} iconName="label" onClick={this.handleResourceRenameButtonClicked}/>
+                </div>
+                <ResourceRenameDialog/>
+            </TabPanel>
+        );
+    }
+
+    private renderStepsPanel() {
+        const workflowSteps = this.props.workspace.workflow.steps;
+        const selectedWorkflowStep = this.props.selectedWorkflowStep;
+        return (
+            <TabPanel>
+                <ListBox items={workflowSteps}
+                         getItemKey={WorkspacePanel.getStepItemKey}
+                         renderItem={this.renderStepItem}
+                         selection={this.props.selectedWorkflowStepId}
+                         onSelection={this.handleWorkflowStepIdSelected}/>
+                <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
+                    <Button disabled={!selectedWorkflowStep} style={{marginRight: '0.2em'}} iconName="duplicate"/>
+                    <Button disabled={!selectedWorkflowStep} style={{marginRight: '0.2em'}} iconName="edit"/>
+                    <Button disabled={!selectedWorkflowStep} iconName="delete"/>
+                </div>
+            </TabPanel>
         );
     }
 

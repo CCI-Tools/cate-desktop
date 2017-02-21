@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Dialog, Classes, Button} from "@blueprintjs/core";
-import {State, VariableState, ResourceState, LayerState} from "../state";
+import {State, VariableState, ResourceState, LayerState, DialogState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -12,9 +12,8 @@ class LayerVariable {
     variable: VariableState;
 }
 
-interface ILayerSourcesDialogProps {
+interface ILayerSourcesDialogProps extends DialogState {
     dispatch?: any;
-    isOpen: boolean;
     resources: ResourceState[];
     layers: LayerState[];
     layerVariables: LayerVariable[];

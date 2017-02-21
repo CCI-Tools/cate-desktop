@@ -30,9 +30,8 @@ interface IOperationStepDialogOwnProps {
     isAddDialog?: boolean;
 }
 
-interface IOperationStepDialogProps extends IOperationStepDialogOwnProps {
+interface IOperationStepDialogProps extends DialogState, IOperationStepDialogOwnProps {
     dispatch?: any;
-    isOpen: boolean,
     inputAssignments: {[opName: string]: InputAssignmentMap};
     workspace: WorkspaceState;
     operation: OperationState;
