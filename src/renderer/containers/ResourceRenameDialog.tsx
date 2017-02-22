@@ -31,13 +31,20 @@ class ResourceRenameDialog extends React.Component<IResourceRenameDialogProps, I
         super(props);
         this.handleConfirm = this.handleConfirm.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
-        this.state = {newName: props.selectedResource ? props.selectedResource.name : ''};
+        this.state = ResourceRenameDialog.getStateFromProps(props);
+    }
+
+    private static getStateFromProps(props: IResourceRenameDialogProps) {
+        return {newName: props.selectedResource ? props.selectedResource.name : ''};
+    }
+
+    componentWillReceiveProps(nextProps: IResourceRenameDialogProps): void {
+        this.setState(ResourceRenameDialog.getStateFromProps(nextProps));
     }
 
     private handleConfirm() {
         this.props.dispatch(actions.updateDialogState(ResourceRenameDialog.DIALOG_ID, {isOpen: false}));
-        // this.props.dispatch();
-        console.log('ResourceRenameDialog: ', this.state.newName);
+        this.props.dispatch(actions.renameWorkspaceResource(this.props.selectedResource.name, this.state.newName));
     }
 
     private handleCancel() {
@@ -105,12 +112,12 @@ class ResourceRenameDialog extends React.Component<IResourceRenameDialogProps, I
 
     private renderDialogContents() {
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
-                <label className="pt-label .modifier">
+            <div style={{width: '100%', height: '100%', overflow: 'auto', padding: '1em'}}>
+                <label className="pt-label">
                     New resource name
-                    <span className="pt-text-muted">(must be unique within the workspace)</span>
+                    <span className="pt-text-muted"> (must be unique within the workspace)</span>
                     <input className="pt-input"
-                           style={{width: '20em;'}}
+                           style={{width: '100%'}}
                            type="text"
                            value={this.state.newName}
                            onChange={(ev: any) => this.setState({newName: ev.target.value})}/>

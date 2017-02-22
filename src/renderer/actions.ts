@@ -367,6 +367,7 @@ export function hideOperationStepDialog(inputAssignments?) {
 // Workspace actions
 
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
+export const RENAME_RESOURCE = 'RENAME_RESOURCE';
 
 /**
  * Asynchronously load the initial workspace.
@@ -697,6 +698,27 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: {[
     }
 }
 
+export function renameWorkspaceResource(resName: string, newResName: string) {
+    return (dispatch, getState) => {
+        const baseDir = getState().data.workspace.baseDir;
+
+        function call(onProgress) {
+            return selectors.workspaceAPISelector(getState()).renameWorkspaceResource(baseDir, resName, newResName);
+        }
+
+        function action(workspace: WorkspaceState) {
+            dispatch(setCurrentWorkspace(workspace));
+            dispatch(renameWorkspaceResourceImpl(resName, newResName));
+        }
+
+        callAPI(dispatch, 'Renaming resource', call, action);
+    }
+}
+
+export function renameWorkspaceResourceImpl(resName: string, newResName: string) {
+    return { type: RENAME_RESOURCE, payload: {resName, newResName}};
+}
+
 export function getWorkspaceVariableStatistics(resName: string,
                                                varName: string,
                                                varIndex: Array<number>,
@@ -768,6 +790,19 @@ function createLayerId() {
     return Math.floor((1 + Math.random()) * 0x10000000).toString(16) + '-' + Math.floor(Date.now()).toString(16);
 }
 
+export function getLayerName(layer: LayerState): string {
+    if (layer.name) {
+        return layer.name;
+    }
+    const varName = (layer as any).varName;
+    const resName = (layer as any).resName;
+    if (resName && varName) {
+        return `${varName} (${resName})`;
+    }
+    return layer.id;
+}
+
+
 export function updateOrAddVariableLayer(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
     return (dispatch, getState) => {
         layerId = layerId || createLayerId();
@@ -793,7 +828,6 @@ export function updateOrAddVariableLayer(layerId?: string|null, resource?: Resou
             const currentVariableLayer = Object.assign({}, restoredLayer, {
                 id: layerId,
                 type: 'VariableImage' as any,
-                name: `${variable.name} of ${resource.name}`,
                 show: true,
                 resName: resource.name,
                 varName: variable.name,

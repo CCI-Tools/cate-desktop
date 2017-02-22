@@ -161,7 +161,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                        onChange={(event:any) => this.handleChangedLayerVisibility(layer, event.target.checked)}
                 />
                 <span style={{marginLeft: "0.5em"}} className="pt-icon-layout-grid"/>
-                <span style={{marginLeft: "0.5em"}}>{layer.name}</span>
+                <span style={{marginLeft: "0.5em"}}>{actions.getLayerName(layer)}</span>
             </div>
         );
     }

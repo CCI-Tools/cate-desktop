@@ -14,7 +14,7 @@ type OpenLayersObject = {
  */
 export interface PinDescriptor {
     id: string;
-    name: string;
+    name?: string|null;
     visible: boolean;
     image: string;
     state: string;
@@ -27,7 +27,7 @@ export interface PinDescriptor {
  */
 export interface LayerDescriptor {
     id: string;
-    name: string;
+    name?: string|null;
     visible: boolean;
     opacity?: number;
     layerSource: (options: any) => ol.source.Tile | ol.source.Tile;

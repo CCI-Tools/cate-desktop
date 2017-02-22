@@ -254,7 +254,7 @@ export interface LayerState {
     /**
      * Layer name.
      */
-    name: string;
+    name?: string|null;
 
     /**
      * True if the layer is shown; otherwise, false.

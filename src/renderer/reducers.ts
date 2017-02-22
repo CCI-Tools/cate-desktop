@@ -1,5 +1,5 @@
 import {
-    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataSourceState, DataStoreState
+    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState
 } from './state';
 import * as actions from './actions';
 import * as assert from "../common/assert";
@@ -28,7 +28,6 @@ const initialDataState: DataState = {
         {
             id: actions.SELECTED_VARIABLE_LAYER_ID,
             type: 'Unknown',
-            name: null,
             show: true
         }
     ],
@@ -66,7 +65,7 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             return updateObject(state, {dataStores});
         }
         case actions.UPDATE_DATA_SOURCES: {
-            return updateDataStores(state, action, dataStore => {
+            return updateDataStores(state, action, () => {
                 return action.payload.dataSources.slice();
             });
         }
@@ -150,6 +149,24 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             layers[layerIndex] = updateObject(layer);
             return updateObject(state, {layers});
         }
+        case actions.RENAME_RESOURCE: {
+            const resName = action.payload.resName;
+            const newResName = action.payload.newResName;
+            let layers;
+            for (let i = 0; i < state.layers.length; i++) {
+                const layer = state.layers[i];
+                if ((layer as any).resName == resName) {
+                    if (!layers) {
+                        layers = state.layers.slice();
+                    }
+                    layers[i] = updateObject(layer, {resName: newResName});
+                }
+            }
+            if (layers) {
+                return updateObject(state, {layers});
+            }
+            return state;
+        }
         case actions.UPDATE_COLOR_MAPS: {
             return updateObject(state, action.payload);
         }
@@ -206,6 +223,13 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             return updateObject(state, {
                 dialogs: updatePropertyObject(state.dialogs, action.payload.dialogId, action.payload.dialogState)
             });
+        case actions.RENAME_RESOURCE: {
+            const resName = action.payload.resName;
+            const newResName = action.payload.newResName;
+            if (state.selectedWorkspaceResourceId == resName) {
+                return updateObject(state, {selectedWorkspaceResourceId: newResName});
+            }
+        }
     }
     return state;
 };

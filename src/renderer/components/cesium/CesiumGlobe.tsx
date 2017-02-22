@@ -36,7 +36,7 @@ export type CesiumViewer = {
  */
 export interface PinDescriptor {
     id: string;
-    name: string;
+    name?: string|null;
     show: boolean;
     image: string;
     state: string;
@@ -84,7 +84,7 @@ export interface ImageEnhancement {
  */
 export interface LayerDescriptor {
     id: string;
-    name: string;
+    name?: string|null;
     show: boolean;
     imageryProvider: (options: any) => ImageryProvider | ImageryProvider;
     imageryProviderOptions?: any;

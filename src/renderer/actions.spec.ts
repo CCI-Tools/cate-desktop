@@ -271,7 +271,6 @@ describe('Actions', () => {
                 {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: "VariableImage",
-                    name: "analysed_sst of res_1",
                     show: true,
                     resName: "res_1",
                     varName: "analysed_sst",
@@ -309,8 +308,7 @@ describe('Actions', () => {
         it('setSelectedVariableName - can restore previous layer state', () => {
             const selectedVariableLayerOld = {
                 id: actions.SELECTED_VARIABLE_LAYER_ID,
-                    type: "VariableImage",
-                name: "analysed_sst of res_1",
+                type: "VariableImage",
                 show: true,
                 resName: "res_1",
                 varName: "analysed_sst",
@@ -331,7 +329,6 @@ describe('Actions', () => {
             const selectedVariableLayerNew = {
                 id: actions.SELECTED_VARIABLE_LAYER_ID,
                 type: "VariableImage",
-                name: "sst_error of res_1",
                 show: true,
                 resName: "res_1",
                 varName: "sst_error",
@@ -353,7 +350,11 @@ describe('Actions', () => {
             store.dispatch(actions.setCurrentWorkspace(workspace as any));
             store.dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
             store.dispatch(actions.setSelectedVariableName('analysed_sst'));
-            store.dispatch(actions.updateLayer({id: actions.SELECTED_VARIABLE_LAYER_ID, varIndex: [139], displayMax: 300} as any));
+            store.dispatch(actions.updateLayer({
+                id: actions.SELECTED_VARIABLE_LAYER_ID,
+                varIndex: [139],
+                displayMax: 300
+            } as any));
             expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerOld]);
             store.dispatch(actions.setSelectedVariableName('sst_error'));
             expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerNew]);
@@ -368,7 +369,6 @@ describe('Actions', () => {
                 {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: 'Unknown',
-                    name: null,
                     show: true,
                 }
             ]);
@@ -383,7 +383,6 @@ describe('Actions', () => {
                 {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: "VariableImage",
-                    name: "analysed_sst of res_1",
                     show: true,
                     resName: "res_1",
                     varName: "analysed_sst",
@@ -404,7 +403,6 @@ describe('Actions', () => {
                 {
                     id: "ID756473",
                     type: "VariableImage",
-                    name: "analysed_sst of res_1",
                     show: true,
                     resName: "res_1",
                     varName: "analysed_sst",
@@ -441,40 +439,40 @@ describe('Actions', () => {
         });
 
         it('addLayer', () => {
-            store.dispatch(actions.addLayer({id: 'layer-2', name: 'L2', show: true} as LayerState));
+            store.dispatch(actions.addLayer({id: 'layer-2', show: true} as LayerState));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, name: null, show: true, type: 'Unknown'},
-                {id: 'layer-2', name: 'L2', show: true},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, show: true, type: 'Unknown'},
+                {id: 'layer-2', show: true},
             ]);
         });
 
         it('removeLayer', () => {
-            store.dispatch(actions.addLayer({id: 'layer-1', name: 'L1', show: true} as LayerState));
-            store.dispatch(actions.addLayer({id: 'layer-2', name: 'L2', show: true} as LayerState));
+            store.dispatch(actions.addLayer({id: 'layer-1', show: true} as LayerState));
+            store.dispatch(actions.addLayer({id: 'layer-2', show: true} as LayerState));
             store.dispatch(actions.removeLayer('layer-2'));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, name: null, show: true, type: 'Unknown'},
-                {id: 'layer-1', name: 'L1', show: true},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, show: true, type: 'Unknown'},
+                {id: 'layer-1', show: true},
             ]);
         });
 
         it('updateLayer', () => {
-            store.dispatch(actions.addLayer({id: 'layer-1', name: 'L1', show: true} as LayerState));
-            store.dispatch(actions.addLayer({id: 'layer-2', name: 'L2', show: true} as LayerState));
-            store.dispatch(actions.addLayer({id: 'layer-3', name: 'L3', show: true} as LayerState));
+            store.dispatch(actions.addLayer({id: 'layer-1', show: true} as LayerState));
+            store.dispatch(actions.addLayer({id: 'layer-2',  show: true} as LayerState));
+            store.dispatch(actions.addLayer({id: 'layer-3',  show: true} as LayerState));
             store.dispatch(actions.updateLayer({id: 'layer-2', show: false} as LayerState));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, name: null, show: true, type: 'Unknown'},
-                {id: 'layer-1', name: 'L1', show: true},
-                {id: 'layer-2', name: 'L2', show: false},
-                {id: 'layer-3', name: 'L3', show: true},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID,  show: true, type: 'Unknown'},
+                {id: 'layer-1', show: true},
+                {id: 'layer-2', show: false},
+                {id: 'layer-3', show: true},
             ]);
             store.dispatch(actions.updateLayer({id: 'layer-1', name: 'LX'} as LayerState));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, name: null, show: true, type: 'Unknown'},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, show: true, type: 'Unknown'},
                 {id: 'layer-1', name: 'LX', show: true},
-                {id: 'layer-2', name: 'L2', show: false},
-                {id: 'layer-3', name: 'L3', show: true},
+                {id: 'layer-2', show: false},
+                {id: 'layer-3', show: true},
             ]);
         });
 
@@ -482,13 +480,13 @@ describe('Actions', () => {
             store.dispatch(actions.setShowSelectedVariableLayer(true));
             expect(store.getState().session.showSelectedVariableLayer).to.equal(true);
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, name: null, show: true, type: 'Unknown'},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, show: true, type: 'Unknown'},
             ]);
 
             store.dispatch(actions.setShowSelectedVariableLayer(false));
             expect(store.getState().session.showSelectedVariableLayer).to.equal(false);
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, name: null, show: false, type: 'Unknown'},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, show: false, type: 'Unknown'},
             ]);
         });
 
@@ -508,6 +506,46 @@ describe('Actions', () => {
             store.dispatch(actions.setSelectedLayerId(null));
             expect(store.getState().control.selectedLayerId).to.be.null;
         });
+    });
+
+    describe('Workspace actions', () => {
+
+        const layers = [
+            {
+                id: 'L1', resName: 'res_1', varName: 'X'
+            },
+            {
+                id: 'L2', resName: 'res_2', varName: 'X'
+            }
+        ];
+
+        const workspace = {
+            baseDir: 'a/b/c',
+            workflow: {steps: []},
+            resources: [
+                {
+                    name: 'res_1',
+                },
+                {
+                    name: 'res_2',
+                }
+            ]
+        };
+
+        it('renameWorkspaceResourceImpl', () => {
+            store.dispatch(actions.setCurrentWorkspace(workspace as any));
+            store.dispatch(actions.addLayer({id: 'L1', resName: 'res_1', varName: 'X'} as any));
+            store.dispatch(actions.addLayer({id: 'L2', resName: 'res_2', varName: 'X'} as any));
+            store.dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
+            store.dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
+            expect(store.getState().data.layers).to.deep.equal([
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, show: true, type: "Unknown"},
+                {id: 'L1', resName: 'res_1', varName: 'X'},
+                {id: 'L2', resName: 'bert', varName: 'X'},
+            ]);
+            expect(store.getState().control.selectedWorkspaceResourceId).to.equal('bert');
+        });
+
     });
 
     describe('OperationStepDialog actions', () => {
