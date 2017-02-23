@@ -508,7 +508,7 @@ describe('Actions', () => {
         });
     });
 
-    describe('Workspace actions', () => {
+    describe('Workspace actions involving layers', () => {
 
         const layers = [
             {
