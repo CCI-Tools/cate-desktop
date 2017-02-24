@@ -43,8 +43,18 @@ module.exports = {
     devToolsOpened: true,
 
     /**
-     * List of DevTools extensions. Add any of your DevTools extensions paths to this list.
-     * For details refer to http://electron.atom.io/docs/tutorial/devtools-extension/
+     * List of Chrome DevTools extensions. See
+     * - https://developer.chrome.com/devtools
+     * - https://github.com/MarshallOfSound/electron-devtools-installer
      */
-    devToolsExtensions: [],
+    devToolsExtensions: [
+        // "EMBER_INSPECTOR",
+        // "REACT_DEVELOPER_TOOLS",
+        // "BACKBONE_DEBUGGER",
+        // "JQUERY_DEBUGGER",
+        // "ANGULARJS_BATARANG",
+        // "VUEJS_DEVTOOLS",
+        // "REDUX_DEVTOOLS",
+        // "REACT_PERF",
+    ],
 };

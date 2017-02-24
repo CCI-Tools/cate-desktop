@@ -66,6 +66,8 @@ Utilities:
 
 * [reselect](https://github.com/reactjs/reselect), Selector library for Redux.
 * [deep-equal](https://www.npmjs.com/package/deep-equal), Node's `assert.deepEqual()` algorithm as a standalone module.
+* [electron-devtools-installer](https://github.com/MarshallOfSound/electron-devtools-installer) is and 
+  easy way to install Chrome's DevTool extensions into Electron. 
 
 
 ## Development Tools and Libraries in use

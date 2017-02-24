@@ -1,4 +1,6 @@
 import * as electron from 'electron';
+import installDevToolsExtension from 'electron-devtools-installer';
+import * as devTools from 'electron-devtools-installer';
 import * as path from 'path';
 import * as url from 'url';
 import * as fs from 'fs';
@@ -8,7 +10,6 @@ import {updateConditionally} from '../common/objutil';
 import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
 import {error} from "util";
-
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -315,14 +316,17 @@ function createSplashWindow(parent) {
     });
 }
 
-
 function createMainWindow() {
     console.log(CATE_DESKTOP_PREFIX, 'Creating main window...');
 
     if (_config.data.devToolsExtensions) {
-        for (let path of _config.data.devToolsExtensions) {
-            BrowserWindow.addDevToolsExtension(path);
-            console.log(CATE_DESKTOP_PREFIX, `Added DevTools extension "${path}"`);
+        for (let devToolsExtensionName of _config.data.devToolsExtensions) {
+            const devToolExtension = devTools[devToolsExtensionName];
+            if (devToolExtension) {
+                installDevToolsExtension(devToolExtension)
+                    .then((name) => console.log(CATE_DESKTOP_PREFIX, `Added DevTools extension "${devToolsExtensionName}"`))
+                    .catch((err) => console.error(CATE_DESKTOP_PREFIX, 'Failed to add DevTools extension: ', err));
+            }
         }
     }
 
