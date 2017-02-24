@@ -24,6 +24,13 @@ const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
 const dialog = electron.dialog;
 
+const WEBAPI_INSTALLER_CANCELLED = 1;
+const WEBAPI_INSTALLER_ERROR = 2;
+const WEBAPI_INSTALLER_MISSING = 3;
+const WEBAPI_INSTALLER_BAD_EXIT = 4;
+const WEBAPI_ERROR = 5;
+const WEBAPI_BAD_EXIT = 6;
+const WEBAPI_TIMEOUT = 7;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -140,7 +147,7 @@ function getWebAPIWebSocketsUrl(webAPIConfig) {
     return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/app`;
 }
 
-//noinspection JSUnusedGlobalSymbols
+
 export function init() {
 
     _config = loadAppConfig();
@@ -167,9 +174,6 @@ export function init() {
 
     let webAPIProcess = null;
 
-    // This method will be called when Electron has finished
-    // initialization and is ready to create browser windows.
-    // Some APIs can only be used after this event occurs.
     function startWebapiService(): child_process.ChildProcess {
         const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
         console.log(CATE_WEBAPI_PREFIX, `starting Cate WebAPI service using arguments: ${webAPIStartArgs}`);
@@ -188,8 +192,7 @@ export function init() {
                 electron.dialog.showErrorBox('Internal Error', message);
             }
             webAPIError = err;
-            // exit immediately
-            app.exit(1);
+            app.exit(WEBAPI_ERROR); // exit immediately
         });
         webAPIProcess.on('close', (code: number) => {
             let message = `Cate WebAPI service process exited with code ${code}.`;
@@ -199,8 +202,7 @@ export function init() {
                     electron.dialog.showErrorBox('Internal Error', message);
                 }
                 webAPIError = new Error(message);
-                // exit immediately
-                app.exit(2);
+                app.exit(WEBAPI_BAD_EXIT); // exit immediately
             }
         });
         return webAPIProcess;
@@ -223,24 +225,23 @@ export function init() {
         let msSpend = 0; // ms
         let webAPIRestUrl = getWebAPIRestUrl(_config.data.webAPIConfig);
         console.log(CATE_DESKTOP_PREFIX, `Waiting for response from ${webAPIRestUrl}`);
+        showSplashMessage('Starting back-end...');
         request(webAPIRestUrl, msServiceAccessTimeout)
             .then((response: string) => {
                 console.log(CATE_WEBAPI_PREFIX, `Response: ${response}`);
                 createMainWindow();
             })
             .catch((err) => {
-                console.log(CATE_DESKTOP_PREFIX, `No response within ${msServiceAccessTimeout} ms. Error: `, err);
+                console.log(`Waiting for Cate WebAPI service to respond after ${msSpend} ms`);
                 if (!webAPIStarted) {
                     webAPIProcess = startWebapiService();
                 }
                 if (msSpend > msServiceStartTimeout) {
-                    let message = `Failed to start Cate WebAPI service within ${msSpend} ms.`;
-                    console.error(CATE_WEBAPI_PREFIX, message, err);
+                    console.error(CATE_WEBAPI_PREFIX, `Failed to start Cate WebAPI service within ${msSpend} ms.`, err);
                     if (!webAPIError) {
-                        electron.dialog.showErrorBox("Internal Error", message);
+                        electron.dialog.showErrorBox("Internal Error", `Failed to start back-end within ${msSpend} ms.`);
                     }
-                    webAPIError = new Error(message);
-                    app.exit(2);
+                    app.exit(WEBAPI_TIMEOUT);
                 } else {
                     setTimeout(startUpWithWebapiService, msDelay);
                     msSpend += msDelay;
@@ -248,16 +249,21 @@ export function init() {
             });
     }
 
+    // Emitted when Electron has finished initializing.
     app.on('ready', (): void => {
-        createSplashWindow(null);
-
-        console.log(CATE_DESKTOP_PREFIX, 'Ready.');
-        if (!webAPIConfig.useMockService) {
-            console.log(CATE_DESKTOP_PREFIX, 'Using Cate WebAPI service...');
-            startUpWithWebapiService();
-        } else {
-            createMainWindow();
-        }
+        checkWebapiServiceExecutable((installerPath: string) => {
+            createSplashWindow(() => {
+                installWebapiServiceExecutable(installerPath, () => {
+                    console.log(CATE_DESKTOP_PREFIX, 'Ready.');
+                    if (!webAPIConfig.useMockService) {
+                        console.log(CATE_DESKTOP_PREFIX, 'Using Cate WebAPI service...');
+                        startUpWithWebapiService();
+                    } else {
+                        createMainWindow();
+                    }
+                });
+            });
+        });
     });
 
     // Emitted when all windows have been closed and the application will quit.
@@ -294,16 +300,14 @@ export function init() {
     // code. You can also put them in separate files and require them here.
 }
 
-
-function createSplashWindow(parent) {
+function createSplashWindow(callback: () => void) {
     _splashWindow = new BrowserWindow({
         width: 256,
-        height: 256,
+        height: 512,
         center: true,
         useContentSize: true,
         frame: false,
         alwaysOnTop: true,
-        parent: parent,
         transparent: true,
     });
     _splashWindow.loadURL(url.format({
@@ -312,14 +316,24 @@ function createSplashWindow(parent) {
         slashes: true
     }));
     _splashWindow.on('closed', () => {
-        _splashWindow = null
+        _splashWindow = null;
     });
+    _splashWindow.webContents.on('did-finish-load', callback);
+}
+
+function showSplashMessage(message: string) {
+    console.log(CATE_DESKTOP_PREFIX, message);
+    if (_splashWindow && _splashWindow.isVisible()) {
+        _splashWindow.webContents.send('update-splash-message', message);
+    } else {
+        console.warn(CATE_DESKTOP_PREFIX, 'showSplashMessage: splash not visible', message);
+    }
 }
 
 function createMainWindow() {
-    console.log(CATE_DESKTOP_PREFIX, 'Creating main window...');
 
     if (_config.data.devToolsExtensions) {
+        showSplashMessage('Installing developer tools...');
         for (let devToolsExtensionName of _config.data.devToolsExtensions) {
             const devToolExtension = devTools[devToolsExtensionName];
             if (devToolExtension) {
@@ -330,15 +344,15 @@ function createMainWindow() {
         }
     }
 
+    showSplashMessage('Loading user interface...');
+
     const mainWindowBounds = _prefs.data.mainWindowBounds || {width: 800, height: 600};
 
     _mainWindow = new BrowserWindow(Object.assign({icon: getAppIconPath(), webPreferences: {}}, mainWindowBounds));
 
-    console.log(CATE_DESKTOP_PREFIX, 'Loading app menu...');
     const menu = electron.Menu.buildFromTemplate(menuTemplate);
     electron.Menu.setApplicationMenu(menu);
 
-    console.log(CATE_DESKTOP_PREFIX, 'Loading main window UI...');
     _mainWindow.loadURL(url.format({
         pathname: path.join(app.getAppPath(), 'index.html'),
         protocol: 'file:',
@@ -346,7 +360,7 @@ function createMainWindow() {
     }));
 
     _mainWindow.webContents.on('did-finish-load', () => {
-        console.log(CATE_DESKTOP_PREFIX, 'Main window UI loaded.');
+        showSplashMessage('Done.');
         if (_splashWindow) {
             _splashWindow.close();
 
@@ -439,6 +453,96 @@ function createMainWindow() {
     });
 }
 
+function checkWebapiServiceExecutable(callback: (installerPath?: string) => void): boolean {
+    const webAPIConfig = _config.data.webAPIConfig;
+    if (fs.existsSync(webAPIConfig.command)) {
+        callback();
+        return true;
+    }
 
+    const fileNames = fs.readdirSync(app.getAppPath());
+    // console.log('fileNames =', fileNames);
+    const isWin = process.platform === 'win32';
+    const finder = n => n.startsWith('cate-') && (isWin ? (n.endsWith('.exe') || n.endsWith('.bat')) : n.endsWith('.sh'));
+    const installerExeName = fileNames.find(finder);
+    if (installerExeName) {
+        const installerPath = path.join(app.getAppPath(), installerExeName);
+        const response = electron.dialog.showMessageBox({
+            type: 'info',
+            title: 'Cate - Information',
+            buttons: ['Cancel', 'OK'],
+            cancelId: 0,
+            message: 'About to install missing Cate back-end.',
+            detail: 'It seems that Cate is run for the first time from this installation.\n' +
+            'Cate will now install a local (Python) back-end which may take\n' +
+            'some minutes. This is a one-time job and only applies to this\n' +
+            'Cate installation, no other computer settings will be changed.',
+        });
+        if (response == 0) {
+            electron.app.exit(WEBAPI_INSTALLER_CANCELLED);
+            return false;
+        } else {
+            callback(installerPath);
+            return true;
+        }
+    } else {
+        electron.dialog.showMessageBox({
+            type: 'error',
+            title: 'Cate - Fatal Error',
+            message: 'Can neither find required Cate backend service\n"' +
+            webAPIConfig.command + '"\n' +
+            'nor a bundled Cate Python installer. Application will exit now.',
+        });
+        electron.app.exit(WEBAPI_INSTALLER_MISSING);
+        return false;
+    }
+}
 
+function installWebapiServiceExecutable(installerCommand: string, callback: () => void) {
 
+    if (!installerCommand) {
+        callback();
+        return;
+    }
+
+    const isWin = process.platform === 'win32';
+    const installDir = path.join(app.getAppPath(), 'python');
+    const installerArgs = isWin
+        ? ['/S', '/InstallationType=JustMe', '/AddToPath=0', '/RegisterPython=0', `/D=${installDir}`]
+        : ['-b', '-f', '-p', installDir];
+
+    console.log(CATE_DESKTOP_PREFIX, `running WebAPI service installer "${installerCommand}" with arguments ${installerArgs}`);
+    showSplashMessage('Running back-end installer, please wait...');
+    const installerProcess = child_process.spawn(installerCommand, installerArgs);
+
+    installerProcess.stdout.on('data', (data: any) => {
+        console.log(CATE_DESKTOP_PREFIX, `${data}`);
+    });
+    installerProcess.stderr.on('data', (data: any) => {
+        console.error(CATE_DESKTOP_PREFIX, `${data}`);
+    });
+    installerProcess.on('error', (err: Error) => {
+        console.log(CATE_DESKTOP_PREFIX, 'Cate WebAPI service installation failed', err);
+        electron.dialog.showMessageBox({
+            type: 'error',
+            title: 'Cate - Fatal Error',
+            message: 'Cate back-end installation failed.',
+            detail: `${err}`
+        });
+        app.exit(WEBAPI_INSTALLER_ERROR); // exit immediately
+    });
+    installerProcess.on('close', (code: number) => {
+        console.log(CATE_DESKTOP_PREFIX, `Cate WebAPI service installation closed with exit code ${code}`);
+        if (code == 0) {
+            callback();
+            return;
+        }
+        electron.dialog.showMessageBox({
+            type: 'error',
+            title: 'Cate - Fatal Error',
+            message: `Cate back-end installation failed with exit code ${code}.`,
+        });
+        app.exit(WEBAPI_INSTALLER_BAD_EXIT); // exit immediately
+    });
+    return installerProcess;
+}
