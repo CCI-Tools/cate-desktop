@@ -96,6 +96,7 @@ export interface OperationInputState {
     valueRange?: [number, number];
     // TODO: (forman): make 'file_mode' a possible input property in Python backend, values "rw", "wr", "r", "w"
     // TODO: (forman): make 'file_filters' a possible input property in Python backend
+    fileOpenMode?: 'w' | 'r' | 'rw';
     fileFilters?: FileFilterState[];
 }
 
@@ -193,9 +194,9 @@ export interface ResourceState {
 export interface VariableState {
     name : string;
     dataType: string;
-    ndim: number;
-    shape: number[];
-    dimensions: string[];
+    ndim?: number;
+    shape?: number[];
+    dimensions?: string[];
     chunks?: number[];
     valid_min?: number;
     valid_max?: number;
@@ -205,7 +206,8 @@ export interface VariableState {
     long_name?: string;
     units?: string;
     comment?: string;
-    imageLayout: ImageLayout;
+    imageLayout?: ImageLayout;
+    isFeatureAttribute?: boolean;
 }
 
 /**
@@ -249,7 +251,7 @@ export interface LayerState {
     /**
      * Layer type
      */
-    type: 'VariableImage'|'Image'|'Shape'|'Unknown';
+    type: 'VariableImage'|'VariableVector'|'Image'|'Vector'|'Unknown';
 
     /**
      * Layer name.
@@ -257,20 +259,32 @@ export interface LayerState {
     name?: string|null;
 
     /**
-     * True if the layer is shown; otherwise, false.
+     * True if the layer is visible and shown; otherwise, false.
      */
-    show: boolean;
+    visible: boolean;
+
+    /**
+     * The layer's opacity.
+     */
+    opacity?: number;
+}
+
+export interface ImageStatisticsState {
+    /**
+     * The true minimum value in the current data subset.
+     */
+    min: number;
+
+    /**
+     * The true maximum value in the current data subset.
+     */
+    max: number;
 }
 
 /**
- * Possible image enhancement attributes.
+ * Base of image layers.
  */
-export interface ImageEnhancementState {
-    /**
-     * The alpha blending value of this layer, from 0.0 to 1.0.
-     */
-    alpha: number;
-
+export interface ImageLayerBase extends LayerState {
     /**
      * The brightness of this layer. 1.0 uses the unmodified imagery color.
      * Less than 1.0 makes the imagery darker while greater than 1.0 makes it brighter.
@@ -300,40 +314,20 @@ export interface ImageEnhancementState {
     gamma: number;
 }
 
-export interface ImageStatisticsState {
-    /**
-     * The true minimum value in the current data subset.
-     */
-    min: number;
-
-    /**
-     * The true maximum value in the current data subset.
-     */
-    max: number;
-}
-
 /**
  * State of a layer.
  */
-export interface ImageLayerState extends LayerState {
+export interface ImageLayerState extends ImageLayerBase {
     /**
      * The image type ID.
      */
     type: 'Image';
-    /**
-     * Image enhancement attributes.
-     */
-    imageEnhancement: ImageEnhancementState;
 }
 
 /**
- * State of an image layer that displays a variable.
+ * Variable reference
  */
-export interface VariableImageLayerState extends LayerState {
-    /**
-     * The image type ID.
-     */
-    type: 'VariableImage';
+export interface VariableRefState extends LayerState {
     /**
      * The name of the resource that contains the variable.
      */
@@ -346,6 +340,12 @@ export interface VariableImageLayerState extends LayerState {
      * The current index into the variable that results in a 2D-subset (i.e. with dims ['lat', 'lon']).
      */
     varIndex: number[];
+}
+
+/**
+ * State of an image layer that displays a variable.
+ */
+export interface VariableLayerBase extends VariableRefState {
     /**
      * Image layer minimum display value.
      */
@@ -355,7 +355,7 @@ export interface VariableImageLayerState extends LayerState {
      */
     displayMax: number;
     /**
-     * Image layer color map. The color bar is CBARS[variableColorMap].
+     * Image layer color map name.
      */
     colorMapName: string;
     /**
@@ -366,11 +366,28 @@ export interface VariableImageLayerState extends LayerState {
      * Image enhancement attributes.
      */
     statistics?: ImageStatisticsState;
-    /**
-     * Image enhancement attributes.
-     */
-    imageEnhancement: ImageEnhancementState;
 }
+
+/**
+ * State of an image layer that displays a variable.
+ */
+export interface VariableImageLayerState extends ImageLayerBase, VariableLayerBase {
+    /**
+     * The image type ID.
+     */
+    type: 'VariableImage';
+}
+
+/**
+ * State of an image layer that displays a variable.
+ */
+export interface VariableVectorLayerState extends VariableLayerBase {
+    /**
+     * The image type ID.
+     */
+    type: 'VariableVector';
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ColorMapState

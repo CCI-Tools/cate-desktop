@@ -1,11 +1,12 @@
 import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState,
     LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, DataSourceState,
-    OperationState, SessionState, BackendConfigState, VariableState, VariableImageLayerState
+    OperationState, SessionState, BackendConfigState, VariableState, VariableImageLayerState, VariableVectorLayerState
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
 import * as assert from "../common/assert";
+import {actions} from "../main/actions";
 
 // TODO (forman/marcoz): find easy way to unit-test our async actions calling remote API (WebAPIServiceMock?)
 
@@ -716,7 +717,7 @@ export function renameWorkspaceResource(resName: string, newResName: string) {
 }
 
 export function renameWorkspaceResourceImpl(resName: string, newResName: string) {
-    return { type: RENAME_RESOURCE, payload: {resName, newResName}};
+    return {type: RENAME_RESOURCE, payload: {resName, newResName}};
 }
 
 export function getWorkspaceVariableStatistics(resName: string,
@@ -746,7 +747,7 @@ export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean)
         const layers = selectors.layersSelector(getState());
         const selectedVariableLayer = layers.find(l => l.id === SELECTED_VARIABLE_LAYER_ID);
         assert.ok(selectedVariableLayer);
-        dispatch(updateLayer(selectedVariableLayer, {show: showSelectedVariableLayer}));
+        dispatch(updateLayer(selectedVariableLayer, {visible: showSelectedVariableLayer}));
         dispatch(setPreferencesProperty('showSelectedVariableLayer', showSelectedVariableLayer));
         // if we don't show layer for selected variable and selected layer is SELECTED_VARIABLE_LAYER_ID
         if (!showSelectedVariableLayer && getState().control.selectedLayerId === SELECTED_VARIABLE_LAYER_ID) {
@@ -782,8 +783,21 @@ export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImag
         + `&max=${encodeURIComponent(layer.displayMax + '')}`;
 }
 
-export function isSpatialVariable(variable: VariableState): boolean {
+export function getGeoJSONUrl(baseUrl: string, baseDir: string, layer: VariableVectorLayerState): string {
+    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}?`
+        + `&var=${encodeURIComponent(layer.varName)}`
+        + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
+        + `&cmap=${encodeURIComponent(layer.colorMapName)}`
+        + `&min=${encodeURIComponent(layer.displayMin + '')}`
+        + `&max=${encodeURIComponent(layer.displayMax + '')}`;
+}
+
+export function isSpatialImageVariable(variable: VariableState): boolean {
     return variable.ndim && variable.ndim >= 2 && !!variable.imageLayout;
+}
+
+export function isSpatialVectorVariable(variable: VariableState): boolean {
+    return variable.isFeatureAttribute;
 }
 
 function createLayerId() {
@@ -805,11 +819,24 @@ export function getLayerName(layer: LayerState): string {
 
 export function updateOrAddVariableLayer(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
     return (dispatch, getState) => {
-        layerId = layerId || createLayerId();
         resource = resource || selectors.selectedResourceSelector(getState());
         variable = variable || selectors.selectedVariableSelector(getState());
-        const existingVariableLayer = getState().data.layers.find(layer => layer.id == layerId);
-        if (resource && variable && isSpatialVariable(variable)) {
+        if (!resource || !variable) {
+            return;
+        }
+        let existingVariableLayer = null;
+        if (layerId) {
+            existingVariableLayer = getState().data.layers.find(layer => layer.id == layerId);
+        } else {
+            layerId = createLayerId();
+        }
+        let layerType;
+        if (isSpatialImageVariable(variable)) {
+            layerType = 'VariableImage';
+        } else if (isSpatialVectorVariable(variable)) {
+            layerType = 'VariableVector';
+        }
+        if (layerType) {
             const savedLayers = getState().control.savedLayers;
             const restoredLayer = savedLayers[variable.name];
 
@@ -821,14 +848,14 @@ export function updateOrAddVariableLayer(layerId?: string|null, resource?: Resou
                 layerDisplayProperties = createVariableLayerDisplayProperties(variable);
             }
 
-            if (!varIndex || varIndex.length != variable.ndim - 2) {
+            if (variable.ndim >= 2 && (!varIndex || varIndex.length != variable.ndim - 2)) {
                 varIndex = Array(variable.ndim - 2).fill(0);
             }
 
             const currentVariableLayer = Object.assign({}, restoredLayer, {
                 id: layerId,
-                type: 'VariableImage' as any,
-                show: true,
+                type: layerType,
+                visible: true,
                 resName: resource.name,
                 varName: variable.name,
                 varIndex,
@@ -836,7 +863,7 @@ export function updateOrAddVariableLayer(layerId?: string|null, resource?: Resou
 
             if (existingVariableLayer) {
                 dispatch(updateLayer(currentVariableLayer));
-                if (existingVariableLayer.type === 'VariableImage'
+                if (existingVariableLayer.type === layerType
                     && existingVariableLayer.varName
                     && existingVariableLayer.varName !== currentVariableLayer.varName) {
                     dispatch(saveVariableLayer(existingVariableLayer.varName, existingVariableLayer));
@@ -845,17 +872,15 @@ export function updateOrAddVariableLayer(layerId?: string|null, resource?: Resou
                 dispatch(addLayer(currentVariableLayer));
             }
             dispatch(setSelectedLayerId(currentVariableLayer.id));
-        } else {
-            const currentVariableLayer = Object.assign({}, {
+        } else if (existingVariableLayer) {
+            // instead of removing existingVariableLayer, we set its type to 'Unknown'
+            const currentVariableLayer = {
                 id: layerId,
                 type: 'Unknown' as any,
                 name: (resource && variable) ? `${variable.name} of ${resource.name}` : null,
-                show: true,
-            });
-            if (existingVariableLayer) {
-                // instead of removing it, we replace the existing layer with an 'Unknown' one
-                dispatch(replaceLayer(currentVariableLayer));
-            }
+                visible: true,
+            };
+            dispatch(replaceLayer(currentVariableLayer));
         }
     };
 }
@@ -870,14 +895,12 @@ function createVariableLayerDisplayProperties(variable: VariableState) {
         displayMin: isNumber(variable.valid_min) ? variable.valid_min : 0.,
         displayMax: isNumber(variable.valid_max) ? variable.valid_max : 1.,
         alphaBlending: false,
-        imageEnhancement: {
-            alpha: 1.0,
-            brightness: 1.0,
-            contrast: 1.0,
-            hue: 0.0,
-            saturation: 1.0,
-            gamma: 1.0,
-        },
+        opacity: 1.0,
+        brightness: 1.0,
+        contrast: 1.0,
+        hue: 0.0,
+        saturation: 1.0,
+        gamma: 1.0,
     };
 }
 
@@ -930,10 +953,6 @@ export function replaceLayer(layer: LayerState) {
     return {type: REPLACE_LAYER, payload: {layer}};
 }
 
-export function updateLayerImageEnhancement(layer: ImageLayerState, name: string, value: number) {
-    const imageEnhancement = Object.assign({}, layer.imageEnhancement, {[name]: value});
-    return updateLayer(layer, {imageEnhancement});
-}
 
 /**
  * Save layer (in state.control), so it can later be restored.

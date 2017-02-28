@@ -30,7 +30,7 @@ export interface LayerDescriptor {
     name?: string|null;
     visible: boolean;
     opacity?: number;
-    layerSource: (options: any) => ol.source.Tile | ol.source.Tile;
+    layerFactory: (layerSourceOptions: any) => ol.layer.Layer;
     layerSourceOptions: any;
 }
 
@@ -126,7 +126,7 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
                     oldLayer = action.oldLayer;
                     newLayer = action.newLayer;
                     if (oldLayer.layerSourceOptions.url !== newLayer.layerSourceOptions.url) {
-                        if (oldLayer.name === newLayer.name) {
+                        if (oldLayer.name === newLayer.name && typeof((olLayer.getSource() as any).setUrl) === 'function') {
                             if (this.props.debug) {
                                 console.log('OpenLayersMap: reusing layer source');
                             }
@@ -154,18 +154,8 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
         }
     }
 
-    private static getLayerSource(layerDescriptor: LayerDescriptor) {
-        if (typeof layerDescriptor.layerSource === 'function') {
-            return layerDescriptor.layerSource(layerDescriptor.layerSourceOptions);
-        } else {
-            return layerDescriptor.layerSource;
-        }
-    }
-
-    private addLayer(layerDescriptor: LayerDescriptor, layerIndex: number): ol.layer.Tile {
-        const layerSource = OpenLayersMap.getLayerSource(layerDescriptor);
-        // see https://openlayers.org/en/latest/apidoc/ol.layer.Tile.html
-        const olLayer = new ol.layer.Tile({source: layerSource});
+    private addLayer(layerDescriptor: LayerDescriptor, layerIndex: number): ol.layer.Layer {
+        const olLayer = layerDescriptor.layerFactory(layerDescriptor.layerSourceOptions);
         this.map.getLayers().insertAt(layerIndex, olLayer);
         if (this.props.debug) {
             console.log(`OpenLayersMap: added tile layer #${layerIndex}: ${layerDescriptor.name}`);

@@ -37,46 +37,11 @@ export type CesiumViewer = {
 export interface PinDescriptor {
     id: string;
     name?: string|null;
-    show: boolean;
+    visible: boolean;
     image: string;
     state: string;
     latitude: number;
     longitude: number;
-}
-
-export interface ImageEnhancement {
-    /**
-     * The alpha blending value of this layer, from 0.0 to 1.0.
-     */
-    alpha: number;
-
-    /**
-     * The brightness of this layer. 1.0 uses the unmodified imagery color.
-     * Less than 1.0 makes the imagery darker while greater than 1.0 makes it brighter.
-     */
-    brightness: number;
-
-    /**
-     * The contrast of this layer. 1.0 uses the unmodified imagery color.
-     * Less than 1.0 reduces the contrast while greater than 1.0 increases it.
-     */
-    contrast: number;
-
-    /**
-     * The hue of this layer. 0.0 uses the unmodified imagery color.
-     */
-    hue: number;
-
-    /**
-     * The saturation of this layer. 1.0 uses the unmodified imagery color.
-     * Less than 1.0 reduces the saturation while greater than 1.0 increases it.
-     */
-    saturation: number;
-
-    /**
-     * The gamma correction to apply to this layer. 1.0 uses the unmodified imagery color.
-     */
-    gamma: number;
 }
 
 /**
@@ -85,10 +50,16 @@ export interface ImageEnhancement {
 export interface LayerDescriptor {
     id: string;
     name?: string|null;
-    show: boolean;
+    visible: boolean;
+    opacity?: number;
+    brightness?: number;
+    contrast?: number;
+    hue?: number;
+    saturation?: number;
+    gamma?: number;
+
     imageryProvider: (options: any) => ImageryProvider | ImageryProvider;
     imageryProviderOptions?: any;
-    imageEnhancement?: ImageEnhancement;
 }
 
 // Bing Maps Key associated with Account Id 1441410 (= norman.fomferra@brockmann-consult.de)
@@ -178,7 +149,7 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
             };
             viewer.entities.add(new Cesium.Entity({
                 id: pin.id,
-                show: pin.show,
+                show: pin.visible,
                 position: new Cesium.Cartesian3.fromDegrees(pin.longitude, pin.latitude),
                 billboard: billboard
             }));
@@ -270,16 +241,13 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
 
     private static setLayerProps(imageryLayer: ImageryLayer, layerDescriptor: LayerDescriptor) {
         imageryLayer.name = layerDescriptor.name;
-        imageryLayer.show = layerDescriptor.show;
-        const imageEnhancement = layerDescriptor.imageEnhancement;
-        if (imageEnhancement) {
-            imageryLayer.alpha = imageEnhancement.alpha;
-            imageryLayer.brightness = imageEnhancement.brightness;
-            imageryLayer.contrast = imageEnhancement.contrast;
-            imageryLayer.hue = imageEnhancement.hue;
-            imageryLayer.saturation = imageEnhancement.saturation;
-            imageryLayer.gamma = imageEnhancement.gamma;
-        }
+        imageryLayer.show = layerDescriptor.visible;
+        imageryLayer.alpha = layerDescriptor.opacity;
+        imageryLayer.brightness = layerDescriptor.brightness;
+        imageryLayer.contrast = layerDescriptor.contrast;
+        imageryLayer.hue = layerDescriptor.hue;
+        imageryLayer.saturation = layerDescriptor.saturation;
+        imageryLayer.gamma = layerDescriptor.gamma;
     }
 
     private createContainer(): HTMLElement {

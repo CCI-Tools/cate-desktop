@@ -1,8 +1,11 @@
 import * as React from 'react';
-import {LayerState, State, WorkspaceState, VariableImageLayerState} from "../state";
+import {
+    LayerState, State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
+    VariableRefState, VariableState
+} from "../state";
 import {OpenLayersMap, LayerDescriptor} from "../components/openlayers/OpenLayersMap";
 import {connect} from "react-redux";
-import {getTileUrl} from "../actions";
+import * as actions from "../actions";
 import * as ol from 'openlayers'
 
 interface IMapViewProps {
@@ -34,6 +37,10 @@ class MapView extends React.Component<IMapViewProps, null> {
                 switch (layer.type) {
                     case 'VariableImage':
                         mapLayer = this.convertVariableImageLayerToMapLayer(layer as VariableImageLayerState);
+                        break;
+                    case 'VariableVector':
+                        mapLayer = this.convertVariableVectorLayerToMapLayer(layer as VariableVectorLayerState);
+                        break;
                 }
                 if (mapLayer) {
                     mapLayers.push(mapLayer);
@@ -55,72 +62,97 @@ class MapView extends React.Component<IMapViewProps, null> {
         );
     }
 
-    private convertVariableImageLayerToMapLayer(layer: VariableImageLayerState): LayerDescriptor|null {
-        const resource = this.props.workspace.resources.find(r => r.name === layer.resName);
-        if (resource) {
-            const variable = resource.variables.find(v => v.name === layer.varName);
-            if (variable) {
-                const imageLayout = variable.imageLayout;
-                if (variable.imageLayout) {
-                    const baseDir = this.props.workspace.baseDir;
-                    const url = getTileUrl(this.props.baseUrl, baseDir, layer);
-                    let extent: ol.Extent = [-180, -90, 180, 90];
-                    if (imageLayout.sector) {
-                        const sector = imageLayout.sector;
-                        extent = [sector.west, sector.south, sector.east, sector.north];
-                    }
-                    const startResolution = 360. / (imageLayout.numLevelZeroTilesX * imageLayout.tileWidth);
-                    const resolutions = new Array<number>(imageLayout.numLevels);
-                    for (let i = 0; i < resolutions.length; i++) {
-                        resolutions[i] = startResolution / Math.pow(2, i);
-                    }
-                    const origin: ol.Coordinate = [-180, 90];
-                    const tileSize: [number, number] = [imageLayout.tileWidth, imageLayout.tileHeight];
-                    // see https://openlayers.org/en/latest/apidoc/ol.source.XYZ.html
-                    return {
-                        id: layer.id,
-                        name: layer.name,
-                        visible: layer.show,
-                        opacity: layer.imageEnhancement.alpha,
-                        layerSource: MapView.createXYZSource,
-                        layerSourceOptions: {
-                            url,
-                            projection: ol.proj.get('EPSG:4326'),
-                            minZoom: 0,
-                            maxZoom: imageLayout.numLevels - 1,
-                            tileGrid: new ol.tilegrid.TileGrid({
-                                extent,
-                                origin,
-                                resolutions,
-                                tileSize,
-                            }),
-                        },
-                    };
-                } else {
-                    console.warn(`MapView: variable "${layer.varName}" of resource "${layer.resName}" has no imageLayout`);
-                }
-            } else {
-                console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
-            }
-        } else {
-            console.warn(`MapView: resource "${layer.resName}" not found`);
-        }
-        return null;
+    private getVariable(ref: VariableRefState): VariableState {
+        const resource = this.props.workspace.resources.find(r => r.name === ref.resName);
+        return resource && resource.variables.find(v => v.name === ref.varName);
     }
 
-    /**
-     * Creates a Cesium.UrlTemplateImageryProvider instance.
-     *
-     * @param tileSourceOptions see https://cesiumjs.org/Cesium/Build/Documentation/UrlTemplateImageryProvider.html
-     * @returns {ol.source.XYZ}
-     */
-    private static createXYZSource(tileSourceOptions: olx.source.XYZOptions): ol.source.XYZ {
-        const tileSource = new ol.source.XYZ(tileSourceOptions);
-        tileSource.on("loaderror", (event) => {
-            console.error('MapView:', event);
-        }, this);
-        return tileSource;
+    private convertVariableImageLayerToMapLayer(layer: VariableImageLayerState): LayerDescriptor|null {
+        const variable = this.getVariable(layer);
+        if (!variable) {
+            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
+            return null;
+        }
+        const imageLayout = variable.imageLayout;
+        if (!variable.imageLayout) {
+            console.warn(`MapView: variable "${layer.varName}" of resource "${layer.resName}" has no imageLayout`);
+            return null;
+        }
+        const baseDir = this.props.workspace.baseDir;
+        const url = actions.getTileUrl(this.props.baseUrl, baseDir, layer);
+        let extent: ol.Extent = [-180, -90, 180, 90];
+        if (imageLayout.sector) {
+            const sector = imageLayout.sector;
+            extent = [sector.west, sector.south, sector.east, sector.north];
+        }
+        const startResolution = 360. / (imageLayout.numLevelZeroTilesX * imageLayout.tileWidth);
+        const resolutions = new Array<number>(imageLayout.numLevels);
+        for (let i = 0; i < resolutions.length; i++) {
+            resolutions[i] = startResolution / Math.pow(2, i);
+        }
+        const origin: ol.Coordinate = [-180, 90];
+        const tileSize: [number, number] = [imageLayout.tileWidth, imageLayout.tileHeight];
+        // see https://openlayers.org/en/latest/apidoc/ol.source.XYZ.html
+        return {
+            id: layer.id,
+            name: layer.name,
+            visible: layer.visible,
+            opacity: layer.opacity,
+            layerFactory: createTileLayer,
+            layerSourceOptions: {
+                url,
+                projection: ol.proj.get('EPSG:4326'),
+                minZoom: 0,
+                maxZoom: imageLayout.numLevels - 1,
+                tileGrid: new ol.tilegrid.TileGrid({
+                    extent,
+                    origin,
+                    resolutions,
+                    tileSize,
+                }),
+            },
+        };
+    }
+
+    private convertVariableVectorLayerToMapLayer(layer: VariableVectorLayerState): LayerDescriptor|null {
+        const variable = this.getVariable(layer);
+        if (!variable) {
+            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
+            return null;
+        }
+        const baseDir = this.props.workspace.baseDir;
+        const url = actions.getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
+        return {
+            id: layer.id,
+            name: layer.name,
+            visible: layer.visible,
+            opacity: layer.opacity,
+            layerFactory: createGeoJSONLayer,
+            layerSourceOptions: {url},
+        };
     }
 }
 
 export default connect(mapStateToProps)(MapView);
+
+
+function createTileLayer(sourceOptions: olx.source.XYZOptions) {
+    const tileSource = new ol.source.XYZ(sourceOptions);
+    tileSource.on("loaderror", (event) => {
+        console.error('MapView:', event);
+    }, this);
+    // see https://openlayers.org/en/latest/apidoc/ol.layer.Tile.html
+    return new ol.layer.Tile({source: tileSource});
+}
+
+function createGeoJSONLayer(sourceOptions: olx.source.VectorOptions) {
+    // See also http://openlayers.org/en/master/examples/geojson.html
+    const vectorSource = new ol.source.Vector(Object.assign({}, sourceOptions, {format: new ol.format.GeoJSON({defaultDataProjection: 'EPSG:4326', featureProjection: 'EPSG:4326'})}));
+    return new ol.layer.Vector({source: vectorSource});
+}
+
+function styleFunction(feature: ol.Feature) {
+    //noinspection UnnecessaryLocalVariableJS
+    let undef;
+    return undef;
+}

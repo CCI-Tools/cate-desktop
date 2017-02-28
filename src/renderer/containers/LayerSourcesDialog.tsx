@@ -162,7 +162,7 @@ function getLayerVariables(resources: ResourceState[]) {
     const layerVariables = [];
     for (let resource of resources) {
         for (let variable of resource.variables) {
-            if (actions.isSpatialVariable(variable)) {
+            if (actions.isSpatialImageVariable(variable) || actions.isSpatialVectorVariable(variable)) {
                 layerVariables.push({resource, variable});
             }
         }

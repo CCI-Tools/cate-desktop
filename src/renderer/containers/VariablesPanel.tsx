@@ -124,50 +124,17 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
             return null;
         }
         const entries = [
-            <tr key='dataType'>
-                <td>Data type</td>
-                <td>{selectedVariable.dataType || '-'}</td>
-            </tr>,
-            <tr key='units'>
-                <td>Units</td>
-                <td>{selectedVariable.units || '-'}</td>
-            </tr>,
-            <tr key='ndim'>
-                <td>#Dimensions</td>
-                <td>{selectedVariable.ndim || '-'}</td>
-            </tr>,
-            <tr key='shape'>
-                <td>Shape</td>
-                <td>{selectedVariable.shape ? selectedVariable.shape.join(', ') : '-'}</td>
-            </tr>,
-            <tr key='chunks'>
-                <td>Chunks</td>
-                <td>{selectedVariable.chunks ? selectedVariable.chunks.join(', ') : '-'}</td>
-            </tr>,
-            <tr key='dimensions'>
-                <td>Dimensions</td>
-                <td>{selectedVariable.dimensions ? selectedVariable.dimensions.join(', ') : '-'}</td>
-            </tr>,
-            <tr key='valid_min'>
-                <td>Valid min.</td>
-                <td>{selectedVariable.valid_min || '-'}</td>
-            </tr>,
-            <tr key='valid_max'>
-                <td>Valid max.</td>
-                <td>{selectedVariable.valid_max || '-'}</td>
-            </tr>,
-            <tr key='add_offset'>
-                <td>Add offset</td>
-                <td>{selectedVariable.add_offset || '-'}</td>
-            </tr>,
-            <tr key='scale_factor'>
-                <td>Scale factor</td>
-                <td>{selectedVariable.scale_factor || '-'}</td>
-            </tr>,
-            <tr key='comment'>
-                <td>Comment</td>
-                <td>{selectedVariable.comment || '-'}</td>
-            </tr>,
+            VariablesPanel.renderDetailRow('Data type', selectedVariable.dataType),
+            VariablesPanel.renderDetailRow('Units', selectedVariable.units),
+            VariablesPanel.renderDetailRow('#Dimensions', selectedVariable.ndim),
+            VariablesPanel.renderDetailRow('Dimensions', selectedVariable.dimensions && selectedVariable.dimensions.join(', ')),
+            VariablesPanel.renderDetailRow('Shape', selectedVariable.shape && selectedVariable.shape.join(', ')),
+            VariablesPanel.renderDetailRow('Chunks', selectedVariable.chunks && selectedVariable.chunks.join(', ')),
+            VariablesPanel.renderDetailRow('Valid min.', selectedVariable.valid_min),
+            VariablesPanel.renderDetailRow('Valid max.', selectedVariable.valid_max),
+            VariablesPanel.renderDetailRow('Add offset', selectedVariable.add_offset),
+            VariablesPanel.renderDetailRow('Scale factor', selectedVariable.scale_factor),
+            VariablesPanel.renderDetailRow('Comment', selectedVariable.comment),
         ];
         return (
             <Card>
@@ -175,6 +142,17 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
                     <tbody>{entries}</tbody>
                 </table>
             </Card>
+        );
+    }
+
+    private static renderDetailRow(label: string, value: any) {
+        if (typeof(value) === 'undefined')
+            return null;
+        return (
+            <tr key={label}>
+                <td>{label}</td>
+                <td>{value !== null ? value : '-'}</td>
+            </tr>
         );
     }
 

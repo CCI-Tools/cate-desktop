@@ -3,7 +3,7 @@ import {connect, Dispatch} from 'react-redux';
 import {ExpansionPanel} from '../components/ExpansionPanel';
 import {
     State, LayerState, ColorMapCategoryState, ImageLayerState,
-    VariableImageLayerState, VariableState, ResourceState, ColorMapState
+    VariableImageLayerState, VariableState, ResourceState, ColorMapState, VariableVectorLayerState
 } from "../state";
 import {
     Button, Slider, Popover, Position, PopoverInteractionKind, Switch,
@@ -47,6 +47,7 @@ interface ILayersPanelProps {
     selectedLayer: LayerState|null;
     selectedImageLayer: ImageLayerState|null;
     selectedVariableImageLayer: VariableImageLayerState|null;
+    selectedVariableVectorLayer: VariableVectorLayerState|null;
     showLayerDetails: boolean;
     colorMapCategories: Array<ColorMapCategoryState>;
     selectedColorMap: ColorMapState|null;
@@ -62,6 +63,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedLayer: selectors.selectedLayerSelector(state),
         selectedImageLayer: selectors.selectedImageLayerSelector(state),
         selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
+        selectedVariableVectorLayer: selectors.selectedVariableVectorLayerSelector(state),
         showLayerDetails: state.control.showLayerDetails,
         colorMapCategories: selectors.colorMapCategoriesSelector(state),
         selectedColorMap: selectors.selectedColorMapSelector(state)
@@ -82,10 +84,14 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         this.handleRemoveLayerButtonClicked = this.handleRemoveLayerButtonClicked.bind(this);
         this.handleMoveLayerUpButtonClicked = this.handleMoveLayerUpButtonClicked.bind(this);
         this.handleMoveLayerDownButtonClicked = this.handleMoveLayerDownButtonClicked.bind(this);
-        this.handleChangedLayerVisibility = this.handleChangedLayerVisibility.bind(this);
         this.handleChangedLayerSelection = this.handleChangedLayerSelection.bind(this);
+        this.handleChangedLayerVisibility = this.handleChangedLayerVisibility.bind(this);
+        this.handleChangedLayerOpacity = this.handleChangedLayerOpacity.bind(this);
         this.handleUpdateDisplayStatistics = this.handleUpdateDisplayStatistics.bind(this);
         this.handleChangedDisplayMinMax = this.handleChangedDisplayMinMax.bind(this);
+        this.handleChangedDisplayRange = this.handleChangedDisplayRange.bind(this);
+        this.handleChangedDisplayAlphaBlend = this.handleChangedDisplayAlphaBlend.bind(this);
+        this.handleChangedColorMapName = this.handleChangedColorMapName.bind(this);
         this.renderLayerItem = this.renderLayerItem.bind(this);
     }
 
@@ -115,8 +121,13 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         this.props.dispatch(actions.moveLayerDown(this.props.selectedLayerId));
     }
 
-    private handleChangedLayerVisibility(layer: LayerState, show: boolean) {
-        this.props.dispatch(actions.updateLayer(layer, {show}));
+    private handleChangedLayerVisibility(layer: LayerState, visible: boolean) {
+        this.props.dispatch(actions.updateLayer(layer, {visible}));
+    }
+
+    private handleChangedLayerOpacity(opacity: number) {
+        const layer = this.props.selectedLayer;
+        this.props.dispatch(actions.updateLayer(layer, {opacity}));
     }
 
     private handleChangedLayerSelection(newSelection: string[]) {
@@ -124,10 +135,41 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         this.props.dispatch(actions.setSelectedLayerId(selectedLayerId));
     }
 
+    private handleChangedColorMapName(newSelection: string[]) {
+        const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
+        const colorMapName = newSelection && newSelection.length && newSelection[0];
+        if (colorMapName) {
+            this.props.dispatch(actions.updateLayer(layer, {colorMapName}));
+        }
+    }
+
+    private handleChangedDisplayRange(displayRange: NumberRange) {
+        const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
+        this.props.dispatch(actions.updateLayer(layer, {
+            displayMin: displayRange[0],
+            displayMax: displayRange[1]
+        }));
+    }
+
+
+    private handleChangedDisplayMinMax(value: [number, number]) {
+        const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
+        const displayMin = value[0];
+        const displayMax = value[1];
+        this.props.dispatch(actions.updateLayer(layer, {displayMin, displayMax}));
+    }
+
+    private handleChangedDisplayAlphaBlend(event: any) {
+        const alphaBlending = event.target.checked;
+        const layer = this.props.selectedVariableImageLayer;
+        this.props.dispatch(actions.updateLayer(layer, {alphaBlending}));
+    }
+
+
     private handleUpdateDisplayStatistics() {
         const resource = this.props.selectedResource;
         const variable = this.props.selectedVariable;
-        const layer = this.props.selectedVariableImageLayer;
+        const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
         if (!resource || !variable || !layer) {
             return;
         }
@@ -142,13 +184,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         ));
     }
 
-    private handleChangedDisplayMinMax(value: [number, number]) {
-        const layer = this.props.selectedVariableImageLayer;
-        const displayMin = value[0];
-        const displayMax = value[1];
-        this.props.dispatch(actions.updateLayer(layer, {displayMin, displayMax}));
-    }
-
     private static getLayerItemKey(layer: LayerState) {
         return layer.id;
     }
@@ -157,7 +192,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         return (
             <div>
                 <input type="checkbox"
-                       checked={layer.show}
+                       checked={layer.visible}
                        onChange={(event:any) => this.handleChangedLayerVisibility(layer, event.target.checked)}
                 />
                 <span style={{marginLeft: "0.5em"}} className="pt-icon-layout-grid"/>
@@ -170,7 +205,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         return (
             <ExpansionPanel icon="pt-icon-layers" text="Layers" isExpanded={true} defaultHeight={300}>
                 <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
-                                         onShowDetailsChange={this.handleShowDetailsChanged.bind(this)}
+                                         onShowDetailsChange={this.handleShowDetailsChanged}
                                          isSplitPanel={true}
                                          initialContentHeight={200}
                                          actionComponent={this.renderActionButtonRow()}>
@@ -258,7 +293,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                 {this.renderFormDisplayColorBar()}
                 {this.renderFormAlphaBlending()}
                 {this.renderFormVarIndex()}
-                {this.renderFormImageEnhancement('alpha', 'Alpha', 0., 1.)}
+                {this.renderFormImageEnhancement('opacity', 'Opacity', 0., 1.)}
                 {this.renderFormImageEnhancement('brightness', 'Brightness', 0., 2.)}
                 {this.renderFormImageEnhancement('contrast', 'Contrast', 0., 2.)}
                 {this.renderFormImageEnhancement('hue', 'Hue', 0., 1.)}
@@ -299,7 +334,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     }
 
     private renderFormDisplayMinMax() {
-        const layer = this.props.selectedVariableImageLayer;
+        const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
         if (!layer) {
             return null;
         }
@@ -338,16 +373,12 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             return null;
         }
 
-        function handleChangedDisplayAlphaBlend(dispatch, alphaBlending: boolean) {
-            dispatch(actions.updateLayer(layer, {alphaBlending}));
-        }
-
         return (
             <tr key="alphaBlending">
                 <td>Alpha blending</td>
                 <td>
                     <Switch checked={layer.alphaBlending}
-                            onChange={(ev: any) => handleChangedDisplayAlphaBlend(this.props.dispatch, ev.target.checked)}/>
+                            onChange={this.handleChangedDisplayAlphaBlend}/>
                 </td>
             </tr>
         );
@@ -393,25 +424,25 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     }
 
     private renderFormImageEnhancement(key: string, label: string, min: number, max: number) {
-        const layer = this.props.selectedImageLayer;
-        if (!layer) {
+        const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
+        if (!layer || (layer === this.props.selectedVariableVectorLayer && key !== 'opacity')) {
             return null;
         }
 
         function handleChangedImageEnhancement(dispatch, name: string, value: number) {
-            dispatch(actions.updateLayerImageEnhancement(layer, name, value));
+            dispatch(actions.updateLayer(layer,  {[name]: value}));
         }
 
         return (
             <tr key={key}>
                 <td>{label}</td>
-                <td>
+                <td style={{padding: 2}}>
                     <Slider min={min}
                             max={max}
                             stepSize={(max - min) / 10.}
                             labelStepSize={max - min}
                             renderLabel={(x) => formatNumber(x, 1)}
-                            value={layer.imageEnhancement[key]}
+                            value={layer[key]}
                             onChange={(value: number) => handleChangedImageEnhancement(this.props.dispatch, key, value)}/>
                 </td>
             </tr>
@@ -430,13 +461,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             return null;
         }
 
-        function handleChangedDisplayRange(dispatch, displayRange: NumberRange) {
-            dispatch(actions.updateLayer(layer, {
-                displayMin: displayRange[0],
-                displayMax: displayRange[1]
-            }));
-        }
-
         let min = statistics.min;
         let max = statistics.max;
         const fractionDigits = getDisplayFractionDigits(min, max);
@@ -448,7 +472,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                 stepSize={(max - min) / 100.}
                 labelStepSize={max - min}
                 renderLabel={(x: number) => formatNumber(x, fractionDigits)}
-                onChange={(displayRange: NumberRange) => handleChangedDisplayRange(this.props.dispatch, displayRange)}
+                onChange={this.handleChangedDisplayRange}
                 value={[layer.displayMin, layer.displayMax]}
             />
         );
@@ -462,10 +486,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     }
 
     private renderColorBarBox(layer: VariableImageLayerState) {
-        function handleChangedColorMapName(dispatch, colorMapName: string) {
-            dispatch(actions.updateLayer(layer, {colorMapName}));
-        }
-
         const children = [];
         for (let cat of this.props.colorMapCategories) {
             const colorMaps = cat.colorMaps;
@@ -483,11 +503,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                          renderItem={(item: ColorMapState) => this.renderColorMapImage(item)}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={layer.colorMapName ? [layer.colorMapName] : []}
-                         onSelection={(newSelection) => {
-                            if (newSelection.length > 0) {
-                                handleChangedColorMapName(this.props.dispatch, newSelection[0] as string);
-                            }
-                         }}
+                         onSelection={this.handleChangedColorMapName}
                 />
             );
         }

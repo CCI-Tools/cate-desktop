@@ -243,12 +243,9 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
                     break;
                 }
                 case 'str': {
-                    // TODO (forman): note the following is a naive decision making, because we don't use input.fileMode yet
-                    if (input.name.toLowerCase().endsWith('file')) {
+                    if (input.fileOpenMode) {
                         let showFileCallback: ShowFileCallback;
-                        if (operation.name.toLowerCase().startsWith('read')
-                            || operation.name.toLowerCase().startsWith('open')
-                            || operation.name.toLowerCase().startsWith('load')) {
+                        if (input.fileOpenMode === 'r') {
                             showFileCallback = OperationStepDialog.showOpenDialog;
                         } else {
                             showFileCallback = OperationStepDialog.showSaveDialog;
@@ -387,7 +384,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
             defaultPath: value,
             buttonLabel: "Open",
             properties: ["openFile" as actions.OpenDialogProperty],
-            filter: input.fileFilters,
+            filters: input.fileFilters,
         };
         actions.showSingleFileOpenDialog(openDialogOptions, (filePath: string) => {
             if (filePath) {
@@ -403,7 +400,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
             title: "Save File",
             defaultPath: value,
             buttonLabel: "Save",
-            filter: input.fileFilters,
+            filters: input.fileFilters,
         };
         actions.showFileSaveDialog(saveDialogOptions, (filePath: string) => {
             if (filePath) {

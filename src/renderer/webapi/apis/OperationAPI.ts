@@ -29,6 +29,8 @@ function responseInputToOperationInput(input: any): OperationInputState {
         nullable: (input.nullable || input.default_value === null),
         valueSet: input.value_set,
         valueRange: input.value_range,
+        fileOpenMode: input.file_open_mode,
+        fileFilters: input.file_filters,
     };
 }
 

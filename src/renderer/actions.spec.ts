@@ -271,7 +271,7 @@ describe('Actions', () => {
                 {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: "VariableImage",
-                    show: true,
+                    visible: true,
                     resName: "res_1",
                     varName: "analysed_sst",
                     varIndex: [0],
@@ -279,14 +279,12 @@ describe('Actions', () => {
                     alphaBlending: false,
                     displayMin: 270,
                     displayMax: 310,
-                    imageEnhancement: {
-                        alpha: 1,
-                        brightness: 1,
-                        contrast: 1,
-                        gamma: 1,
-                        hue: 0,
-                        saturation: 1,
-                    },
+                    opacity: 1,
+                    brightness: 1,
+                    contrast: 1,
+                    gamma: 1,
+                    hue: 0,
+                    saturation: 1,
                 }
             ]);
         });
@@ -300,7 +298,7 @@ describe('Actions', () => {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: "Unknown",
                     name: "profile of res_1",
-                    show: true,
+                    visible: true,
                 }
             ]);
         });
@@ -309,7 +307,7 @@ describe('Actions', () => {
             const selectedVariableLayerOld = {
                 id: actions.SELECTED_VARIABLE_LAYER_ID,
                 type: "VariableImage",
-                show: true,
+                visible: true,
                 resName: "res_1",
                 varName: "analysed_sst",
                 varIndex: [139],
@@ -317,19 +315,17 @@ describe('Actions', () => {
                 alphaBlending: false,
                 displayMin: 270,
                 displayMax: 300,
-                imageEnhancement: {
-                    alpha: 1,
-                    brightness: 1,
-                    contrast: 1,
-                    gamma: 1,
-                    hue: 0,
-                    saturation: 1,
-                }
+                opacity: 1,
+                brightness: 1,
+                contrast: 1,
+                gamma: 1,
+                hue: 0,
+                saturation: 1,
             };
             const selectedVariableLayerNew = {
                 id: actions.SELECTED_VARIABLE_LAYER_ID,
                 type: "VariableImage",
-                show: true,
+                visible: true,
                 resName: "res_1",
                 varName: "sst_error",
                 varIndex: [0],
@@ -337,14 +333,12 @@ describe('Actions', () => {
                 alphaBlending: false,
                 displayMin: 0,
                 displayMax: 1,
-                imageEnhancement: {
-                    alpha: 1,
-                    brightness: 1,
-                    contrast: 1,
-                    gamma: 1,
-                    hue: 0,
-                    saturation: 1,
-                }
+                opacity: 1,
+                brightness: 1,
+                contrast: 1,
+                gamma: 1,
+                hue: 0,
+                saturation: 1,
             };
 
             store.dispatch(actions.setCurrentWorkspace(workspace as any));
@@ -369,7 +363,7 @@ describe('Actions', () => {
                 {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: 'Unknown',
-                    show: true,
+                    visible: true,
                 }
             ]);
         });
@@ -383,7 +377,7 @@ describe('Actions', () => {
                 {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: "VariableImage",
-                    show: true,
+                    visible: true,
                     resName: "res_1",
                     varName: "analysed_sst",
                     varIndex: [0],
@@ -391,19 +385,17 @@ describe('Actions', () => {
                     alphaBlending: false,
                     displayMin: 270,
                     displayMax: 310,
-                    imageEnhancement: {
-                        alpha: 1,
-                        brightness: 1,
-                        contrast: 1,
-                        gamma: 1,
-                        hue: 0,
-                        saturation: 1,
-                    },
+                    opacity: 1,
+                    brightness: 1,
+                    contrast: 1,
+                    gamma: 1,
+                    hue: 0,
+                    saturation: 1,
                 },
                 {
                     id: "ID756473",
                     type: "VariableImage",
-                    show: true,
+                    visible: true,
                     resName: "res_1",
                     varName: "analysed_sst",
                     varIndex: [0],
@@ -411,14 +403,12 @@ describe('Actions', () => {
                     alphaBlending: false,
                     displayMin: 270,
                     displayMax: 310,
-                    imageEnhancement: {
-                        alpha: 1,
-                        brightness: 1,
-                        contrast: 1,
-                        gamma: 1,
-                        hue: 0,
-                        saturation: 1,
-                    },
+                    opacity: 1,
+                    brightness: 1,
+                    contrast: 1,
+                    gamma: 1,
+                    hue: 0,
+                    saturation: 1,
                 }
             ]);
         });
@@ -433,46 +423,46 @@ describe('Actions', () => {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: "Unknown",
                     name: "profile of res_1",
-                    show: true,
+                    visible: true,
                 }
             ]);
         });
 
         it('addLayer', () => {
-            store.dispatch(actions.addLayer({id: 'layer-2', show: true} as LayerState));
+            store.dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, show: true, type: 'Unknown'},
-                {id: 'layer-2', show: true},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: 'Unknown'},
+                {id: 'layer-2', visible: true},
             ]);
         });
 
         it('removeLayer', () => {
-            store.dispatch(actions.addLayer({id: 'layer-1', show: true} as LayerState));
-            store.dispatch(actions.addLayer({id: 'layer-2', show: true} as LayerState));
+            store.dispatch(actions.addLayer({id: 'layer-1', visible: true} as LayerState));
+            store.dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
             store.dispatch(actions.removeLayer('layer-2'));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, show: true, type: 'Unknown'},
-                {id: 'layer-1', show: true},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: 'Unknown'},
+                {id: 'layer-1', visible: true},
             ]);
         });
 
         it('updateLayer', () => {
-            store.dispatch(actions.addLayer({id: 'layer-1', show: true} as LayerState));
-            store.dispatch(actions.addLayer({id: 'layer-2',  show: true} as LayerState));
-            store.dispatch(actions.addLayer({id: 'layer-3',  show: true} as LayerState));
-            store.dispatch(actions.updateLayer({id: 'layer-2', show: false} as LayerState));
+            store.dispatch(actions.addLayer({id: 'layer-1', visible: true} as LayerState));
+            store.dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
+            store.dispatch(actions.addLayer({id: 'layer-3', visible: true} as LayerState));
+            store.dispatch(actions.updateLayer({id: 'layer-2', visible: false} as LayerState));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID,  show: true, type: 'Unknown'},
-                {id: 'layer-1', show: true},
-                {id: 'layer-2', show: false},
-                {id: 'layer-3', show: true},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: 'Unknown'},
+                {id: 'layer-1', visible: true},
+                {id: 'layer-2', visible: false},
+                {id: 'layer-3', visible: true},
             ]);
             store.dispatch(actions.updateLayer({id: 'layer-1', name: 'LX'} as LayerState));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, show: true, type: 'Unknown'},
-                {id: 'layer-1', name: 'LX', show: true},
-                {id: 'layer-2', show: false},
-                {id: 'layer-3', show: true},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: 'Unknown'},
+                {id: 'layer-1', name: 'LX', visible: true},
+                {id: 'layer-2', visible: false},
+                {id: 'layer-3', visible: true},
             ]);
         });
 
@@ -480,13 +470,13 @@ describe('Actions', () => {
             store.dispatch(actions.setShowSelectedVariableLayer(true));
             expect(store.getState().session.showSelectedVariableLayer).to.equal(true);
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, show: true, type: 'Unknown'},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: 'Unknown'},
             ]);
 
             store.dispatch(actions.setShowSelectedVariableLayer(false));
             expect(store.getState().session.showSelectedVariableLayer).to.equal(false);
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, show: false, type: 'Unknown'},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: false, type: 'Unknown'},
             ]);
         });
 
@@ -539,7 +529,7 @@ describe('Actions', () => {
             store.dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
             store.dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, show: true, type: "Unknown"},
+                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: "Unknown"},
                 {id: 'L1', resName: 'res_1', varName: 'X'},
                 {id: 'L2', resName: 'bert', varName: 'X'},
             ]);

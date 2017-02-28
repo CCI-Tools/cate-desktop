@@ -1,7 +1,7 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
-    WorkflowStepState
+    WorkflowStepState, VariableVectorLayerState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient} from "./webapi/WebAPIClient";
@@ -316,6 +316,16 @@ export const selectedVariableImageLayerSelector = createSelector<State, Variable
     (selectedLayer: LayerState|null) => {
         if (selectedLayer && selectedLayer.type === 'VariableImage') {
             return selectedLayer as VariableImageLayerState;
+        }
+        return null;
+    }
+);
+
+export const selectedVariableVectorLayerSelector = createSelector<State, VariableVectorLayerState|null,LayerState|null>(
+    selectedLayerSelector,
+    (selectedLayer: LayerState|null) => {
+        if (selectedLayer && selectedLayer.type === 'VariableVector') {
+            return selectedLayer as VariableVectorLayerState;
         }
         return null;
     }

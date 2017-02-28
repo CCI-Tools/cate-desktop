@@ -28,7 +28,7 @@ const initialDataState: DataState = {
         {
             id: actions.SELECTED_VARIABLE_LAYER_ID,
             type: 'Unknown',
-            show: true
+            visible: true,
         }
     ],
     colorMaps: null
