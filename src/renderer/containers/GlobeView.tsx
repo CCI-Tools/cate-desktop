@@ -1,8 +1,14 @@
 import * as React from 'react';
-import {LayerState, State, WorkspaceState, VariableImageLayerState} from "../state";
-import {CesiumGlobe, LayerDescriptor, ImageryProvider} from "../components/cesium/CesiumGlobe";
+import {
+    LayerState, State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
+    VariableState, VariableRefState
+} from "../state";
+import {
+    CesiumGlobe, LayerDescriptor, ImageryProvider, DataSourceDescriptor,
+    DataSource
+} from "../components/cesium/CesiumGlobe";
 import {connect} from "react-redux";
-import {getTileUrl} from "../actions";
+import * as actions from "../actions";
 const Cesium: any = require('cesium');
 
 interface IGlobeViewProps {
@@ -27,18 +33,23 @@ function mapStateToProps(state: State): IGlobeViewProps {
 class GlobeView extends React.Component<IGlobeViewProps, null> {
 
     render() {
-        const globeLayers = [];
+        const layers = [];
+        const dataSources = [];
         if (this.props.workspace && this.props.workspace.resources && this.props.layers) {
             for (let layer of this.props.layers) {
-                let globeLayer;
                 switch (layer.type) {
-                    case 'VariableImage':
-                        globeLayer = this.convertVariableImageLayerToGlobeLayer(layer as VariableImageLayerState);
-                }
-                if (globeLayer) {
-                    globeLayers.push(globeLayer);
-                } else {
-                    console.warn(`GlobeView: layer with ID "${layer.id}" will not be rendered`);
+                    case 'VariableImage': {
+                        const layerDescriptor = this.convertVariableImageLayerToLayerDescriptor(layer as VariableImageLayerState);
+                        layers.push(layerDescriptor);
+                        break;
+                    }
+                    case 'VariableVector': {
+                        const dataSourceDescriptor = this.convertVariableVectorLayerToDataSourceDescriptor(layer as VariableVectorLayerState);
+                        dataSources.push(dataSourceDescriptor);
+                        break;
+                    }
+                    default:
+                        console.warn(`GlobeView: layer with ID "${layer.id}" will not be rendered`);
                 }
             }
         }
@@ -47,7 +58,8 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
             <div style={{width:"100%", height:"100%"}}>
                 <CesiumGlobe id="defaultGlobeView"
                              debug={true}
-                             layers={globeLayers}
+                             layers={layers}
+                             dataSources={dataSources}
                              offlineMode={this.props.offlineMode}
                              style={{width:"100%", height:"100%"}}/>
                 <div id="creditContainer" style={{display:"none"}}></div>
@@ -55,46 +67,61 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
         );
     }
 
-    private convertVariableImageLayerToGlobeLayer(layer: VariableImageLayerState): LayerDescriptor|null {
-        const resource = this.props.workspace.resources.find(r => r.name === layer.resName);
-        if (resource) {
-            const variable = resource.variables.find(v => v.name === layer.varName);
-            if (variable) {
-                const imageLayout = variable.imageLayout;
-                if (variable.imageLayout) {
-                    const baseDir = this.props.workspace.baseDir;
-                    const url = getTileUrl(this.props.baseUrl, baseDir, layer);
-                    let rectangle = Cesium.Rectangle.MAX_VALUE;
-                    if (imageLayout.sector) {
-                        const sector = imageLayout.sector;
-                        rectangle = Cesium.Rectangle.fromDegrees(sector.west, sector.south, sector.east, sector.north);
-                    }
-                    return Object.assign({}, layer, {
-                        imageryProvider: GlobeView.createImageryProvider,
-                        imageryProviderOptions: {
-                            url,
-                            rectangle,
-                            minimumLevel: 0,
-                            maximumLevel: imageLayout.numLevels - 1,
-                            tileWidth: imageLayout.tileWidth,
-                            tileHeight: imageLayout.tileHeight,
-                            tilingScheme: new Cesium.GeographicTilingScheme({
-                                rectangle,
-                                numberOfLevelZeroTilesX: imageLayout.numLevelZeroTilesX,
-                                numberOfLevelZeroTilesY: imageLayout.numLevelZeroTilesY
-                            }),
-                        },
-                    });
-                } else {
-                    console.warn(`GlobeView: variable "${layer.varName}" of resource "${layer.resName}" has no imageLayout`);
-                }
-            } else {
-                console.warn(`GlobeView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
-            }
-        } else {
-            console.warn(`GlobeView: resource "${layer.resName}" not found`);
+    private getVariable(ref: VariableRefState): VariableState {
+        return actions.findVariable(this.props.workspace.resources, ref);
+    }
+
+    private convertVariableImageLayerToLayerDescriptor(layer: VariableImageLayerState): LayerDescriptor|null {
+        const variable = this.getVariable(layer);
+        if (!variable) {
+            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
+            return null;
         }
-        return null;
+        const imageLayout = variable.imageLayout;
+        if (!variable.imageLayout) {
+            console.warn(`MapView: variable "${layer.varName}" of resource "${layer.resName}" has no imageLayout`);
+            return null;
+        }
+        const baseDir = this.props.workspace.baseDir;
+        const url = actions.getTileUrl(this.props.baseUrl, baseDir, layer);
+        let rectangle = Cesium.Rectangle.MAX_VALUE;
+        if (imageLayout.sector) {
+            const sector = imageLayout.sector;
+            rectangle = Cesium.Rectangle.fromDegrees(sector.west, sector.south, sector.east, sector.north);
+        }
+        return Object.assign({}, layer, {
+            imageryProvider: GlobeView.createImageryProvider,
+            imageryProviderOptions: {
+                url,
+                rectangle,
+                minimumLevel: 0,
+                maximumLevel: imageLayout.numLevels - 1,
+                tileWidth: imageLayout.tileWidth,
+                tileHeight: imageLayout.tileHeight,
+                tilingScheme: new Cesium.GeographicTilingScheme({
+                    rectangle,
+                    numberOfLevelZeroTilesX: imageLayout.numLevelZeroTilesX,
+                    numberOfLevelZeroTilesY: imageLayout.numLevelZeroTilesY
+                }),
+            },
+        });
+    }
+
+    private convertVariableVectorLayerToDataSourceDescriptor(layer: VariableVectorLayerState): DataSourceDescriptor|null {
+        const variable = this.getVariable(layer);
+        if (!variable) {
+            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
+            return null;
+        }
+        const baseDir = this.props.workspace.baseDir;
+        const url = actions.getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
+        return {
+            id: layer.id,
+            name: layer.name,
+            visible: layer.visible,
+            dataSource: GlobeView.createGeoJsonDataSource,
+            dataSourceOptions: {url},
+        };
     }
 
     /**
@@ -109,6 +136,21 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
         });
         return imageryProvider;
     }
+
+    /**
+     * Creates a Cesium.GeoJsonDataSource instance.
+     *
+     * @param dataSourceOptions see https://cesiumjs.org/Cesium/Build/Documentation/GeoJsonDataSource.html
+     */
+    private static createGeoJsonDataSource(dataSourceOptions): DataSource {
+        return Cesium.GeoJsonDataSource.load(dataSourceOptions.url, {
+            stroke: Cesium.Color.HOTPINK,
+            fill: Cesium.Color.PINK,
+            strokeWidth: 3,
+            markerSymbol: '?'
+        });
+    }
+
 }
 
 export default connect(mapStateToProps)(GlobeView);

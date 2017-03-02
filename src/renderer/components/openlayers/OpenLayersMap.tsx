@@ -86,6 +86,10 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
         };
     }
 
+    componentWillReceiveProps(nextProps: IOpenLayersMapProps) {
+        this.updateMapLayers(this.props.layers || [], nextProps.layers || []);
+    }
+
     permanentObjectMounted(permanentObject: OpenLayersObject): void {
         permanentObject.map.updateSize();
         this.updateMapLayers(this.lastLayers || [], this.props.layers || []);
@@ -93,10 +97,6 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
 
     permanentObjectUnmounted(permanentObject: OpenLayersObject): void {
         this.lastLayers = this.props.layers;
-    }
-
-    componentWillReceiveProps(nextProps: IOpenLayersMapProps) {
-        this.updateMapLayers(this.props.layers || [], nextProps.layers || []);
     }
 
     private updateMapLayers(currentLayers: LayerDescriptor[], nextLayers: LayerDescriptor[]) {
@@ -158,7 +158,7 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
         const olLayer = layerDescriptor.layerFactory(layerDescriptor.layerSourceOptions);
         this.map.getLayers().insertAt(layerIndex, olLayer);
         if (this.props.debug) {
-            console.log(`OpenLayersMap: added tile layer #${layerIndex}: ${layerDescriptor.name}`);
+            console.log(`OpenLayersMap: added layer #${layerIndex}: ${layerDescriptor.name}`);
         }
         return olLayer;
     }
@@ -166,7 +166,7 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
     private removeLayer(layerIndex: number): void {
         this.map.getLayers().removeAt(layerIndex);
         if (this.props.debug) {
-            console.log(`OpenLayersMap: removed tile layer #${layerIndex}`);
+            console.log(`OpenLayersMap: removed layer #${layerIndex}`);
         }
     }
 

@@ -1,7 +1,8 @@
 import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState,
     LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, DataSourceState,
-    OperationState, SessionState, BackendConfigState, VariableState, VariableImageLayerState, VariableVectorLayerState
+    OperationState, SessionState, BackendConfigState, VariableState, VariableImageLayerState, VariableVectorLayerState,
+    VariableRefState
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
@@ -814,6 +815,11 @@ export function getLayerName(layer: LayerState): string {
         return `${varName} (${resName})`;
     }
     return layer.id;
+}
+
+export function findVariable(resources: ResourceState[], ref: VariableRefState): VariableState {
+    const resource = resources.find(r => r.name === ref.resName);
+    return resource && resource.variables.find(v => v.name === ref.varName);
 }
 
 

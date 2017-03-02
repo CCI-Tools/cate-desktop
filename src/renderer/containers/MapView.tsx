@@ -63,8 +63,7 @@ class MapView extends React.Component<IMapViewProps, null> {
     }
 
     private getVariable(ref: VariableRefState): VariableState {
-        const resource = this.props.workspace.resources.find(r => r.name === ref.resName);
-        return resource && resource.variables.find(v => v.name === ref.varName);
+        return actions.findVariable(this.props.workspace.resources, ref);
     }
 
     private convertVariableImageLayerToMapLayer(layer: VariableImageLayerState): LayerDescriptor|null {
