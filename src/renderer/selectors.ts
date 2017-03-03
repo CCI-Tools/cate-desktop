@@ -193,6 +193,7 @@ export const selectedDataSourceSelector = createSelector<State, DataSourceState|
 // Workspace, resource, step, and variable selectors
 
 export const workspaceSelector = (state: State): WorkspaceState|null => state.data.workspace;
+export const workspaceBaseDirSelector = (state: State): string|null => state.data.workspace && state.data.workspace.baseDir;
 export const resourcesSelector = (state: State): ResourceState[] => state.data.workspace ? state.data.workspace.resources : [];
 export const workflowStepsSelector = (state: State): WorkflowStepState[] => state.data.workspace ? state.data.workspace.workflow.steps : [];
 export const selectedResourceIdSelector = (state: State): string|null => state.control.selectedWorkspaceResourceId;
