@@ -200,7 +200,7 @@ class WebAPIClientImpl implements WebAPIClient {
             this.warnInvalidJsonRcpMessage('Message is no valid JSON', messageText);
             return;
         }
-        if (message.jsonrcp !== '2.0' || typeof message.id !== 'number') {
+        if (message.jsonrpc !== '2.0' || typeof message.id !== 'number') {
             this.warnInvalidJsonRcpMessage('Message is not JSON-RCP 2.0 compliant', messageText);
             return;
         }

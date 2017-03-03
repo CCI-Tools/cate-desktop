@@ -25,7 +25,7 @@ describe('WebAPIClient', function () {
             const job = webAPI.call('anyMethod', ['A', 2, true]);
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrcp: "2.0",
+                    jsonrpc: "2.0",
                     id: 0,
                     response: 'ok',
                 }
@@ -38,7 +38,7 @@ describe('WebAPIClient', function () {
             const job = webAPI.call('anyMethod', ['A', 2, true]);
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrcp: "2.0",
+                    jsonrpc: "2.0",
                     id: 0,
                     error: {
                         message: 'out of memory',
@@ -60,7 +60,7 @@ describe('WebAPIClient', function () {
             const job = webAPI.call('anyMethod', ['A', 2, true], onProgress);
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrcp: "2.0",
+                    jsonrpc: "2.0",
                     id: 0,
                     progress: {
                         worked: 30,
@@ -68,7 +68,7 @@ describe('WebAPIClient', function () {
                     },
                 },
                 {
-                    jsonrcp: "2.0",
+                    jsonrpc: "2.0",
                     id: 0,
                     progress: {
                         message: 'warning: low memory',
@@ -77,7 +77,7 @@ describe('WebAPIClient', function () {
                     },
                 },
                 {
-                    jsonrcp: "2.0",
+                    jsonrpc: "2.0",
                     id: 0,
                     response: 'that was hard!',
                 }
@@ -107,7 +107,7 @@ describe('WebAPIClient', function () {
             expect(job.getStatus()).to.equal(JobStatusEnum.SUBMITTED);
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrcp: "2.0",
+                    jsonrpc: "2.0",
                     id: 0,
                     response: 'ok',
                 }
@@ -125,7 +125,7 @@ describe('WebAPIClient', function () {
             expect(job.getStatus()).to.equal(JobStatusEnum.SUBMITTED);
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrcp: "2.0",
+                    jsonrpc: "2.0",
                     id: 0,
                     error: {
                         message: 'out of memory',
@@ -146,7 +146,7 @@ describe('WebAPIClient', function () {
             expect(job.getStatus()).to.equal(JobStatusEnum.SUBMITTED);
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrcp: "2.0",
+                    jsonrpc: "2.0",
                     id: 0,
                     error: {
                         message: 'cancelled',
@@ -163,7 +163,7 @@ describe('WebAPIClient', function () {
 
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrcp: "2.0",
+                    jsonrpc: "2.0",
                     id: 0,
                     progress: {
                         worked: 30,
@@ -175,7 +175,7 @@ describe('WebAPIClient', function () {
 
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrcp: "2.0",
+                    jsonrpc: "2.0",
                     id: 0,
                     progress: {
                         message: 'warning: low memory',
@@ -188,7 +188,7 @@ describe('WebAPIClient', function () {
 
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrcp: "2.0",
+                    jsonrpc: "2.0",
                     id: 0,
                     response: 'ok',
                 }
@@ -257,21 +257,21 @@ describe('WebAPIClient', function () {
                 '--------------------'
             });
 
-            webSocket.emulateIncomingMessages({jsonrcp: "2.0", response: 42});
+            webSocket.emulateIncomingMessages({jsonrpc: "2.0", response: 42});
             expect(actualWarningEvent).to.deep.equal({
                 type: 'warning',
                 message: 'Received invalid JSON-RCP message from WebAPI. Message is not JSON-RCP 2.0 compliant. Ignoring it.\n' +
                 '--------------------\n' +
-                '{"jsonrcp":"2.0","response":42}\n' +
+                '{"jsonrpc":"2.0","response":42}\n' +
                 '--------------------'
             });
 
-            webSocket.emulateIncomingMessages({jsonrcp: "2.0", id: 2, response: 42});
+            webSocket.emulateIncomingMessages({jsonrpc: "2.0", id: 2, response: 42});
             expect(actualWarningEvent).to.deep.equal({
                 type: 'warning',
                 message: 'Received invalid JSON-RCP message from WebAPI. Method with "id"=2 has no associated job. Ignoring it.\n' +
                 '--------------------\n' +
-                '{"jsonrcp":"2.0","id":2,"response":42}\n' +
+                '{"jsonrpc":"2.0","id":2,"response":42}\n' +
                 '--------------------'
             });
 
@@ -308,14 +308,14 @@ describe('WebSocketMock', function () {
         };
 
         webSocket.send(JSON.stringify({
-            jsonrcp: "2.0",
+            jsonrpc: "2.0",
             id: 754934,
             method: 'generateSausages',
             params: [350, true]
         }));
 
         expect(JSON.parse(actualMessage)).to.deep.equal({
-            jsonrcp: "2.0",
+            jsonrpc: "2.0",
             id: 754934,
             response: {
                 num: 350,
@@ -333,14 +333,14 @@ describe('WebSocketMock', function () {
         };
 
         webSocket.send(JSON.stringify({
-            jsonrcp: "2.0",
+            jsonrpc: "2.0",
             id: 754934,
             method: 'generateSausages',
             params: [-3, true]
         }));
 
         expect(JSON.parse(actualMessage)).to.deep.equal({
-            jsonrcp: "2.0",
+            jsonrpc: "2.0",
             id: 754934,
             error: {
                 code: 2,
@@ -357,14 +357,14 @@ describe('WebSocketMock', function () {
         };
 
         webSocket.send(JSON.stringify({
-            jsonrcp: "2.0",
+            jsonrpc: "2.0",
             id: 754935,
             method: 'generateSteaks',
             params: [-3, true]
         }));
 
         expect(JSON.parse(actualMessage)).to.deep.equal({
-            jsonrcp: "2.0",
+            jsonrpc: "2.0",
             id: 754935,
             error: {
                 code: 1,

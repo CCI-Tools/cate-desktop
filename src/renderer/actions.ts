@@ -446,7 +446,8 @@ export function openWorkspace(workspacePath?: string|null) {
  */
 export function closeWorkspace() {
     return (dispatch, getState: () => State) => {
-        const baseDir = getState().data.workspace.baseDir;
+        const baseDir = selectors.workspaceBaseDirSelector(getState());
+        assert.ok(baseDir);
 
         function call() {
             return selectors.workspaceAPISelector(getState()).closeWorkspace(baseDir);
@@ -467,11 +468,14 @@ export function closeWorkspace() {
  */
 export function saveWorkspace() {
     return (dispatch, getState: () => State) => {
-        if (getState().data.workspace.isScratch) {
-            return saveWorkspaceAs
+        let workspace = getState().data.workspace;
+        assert.ok(workspace);
+
+        if (workspace.isScratch) {
+            return saveWorkspaceAs;
         }
 
-        const baseDir = getState().data.workspace.baseDir;
+        const baseDir = workspace.baseDir;
 
         function call() {
             return selectors.workspaceAPISelector(getState()).saveWorkspace(baseDir);
@@ -492,7 +496,8 @@ export function saveWorkspace() {
  */
 export function saveWorkspaceAs(workspacePath: string) {
     return (dispatch, getState: () => State) => {
-        const baseDir = getState().data.workspace.baseDir;
+        const baseDir = selectors.workspaceBaseDirSelector(getState());
+        assert.ok(baseDir);
 
         function call(onProgress) {
             return selectors.workspaceAPISelector(getState()).saveWorkspaceAs(baseDir, workspacePath, onProgress);
@@ -545,6 +550,8 @@ export function openWorkspaceInteractive() {
         });
         if (workspacePath) {
             const workspace = getState().data.workspace;
+            assert.ok(workspace);
+
             if (workspace.baseDir === workspacePath) {
                 showMessageBox({title: 'Open Workspace', message: 'Workspace is already open.'}, MESSAGE_BOX_NO_REPLY);
                 return;
@@ -685,7 +692,8 @@ export function setSelectedWorkflowStepId(selectedWorkflowStepId: string) {
 
 export function setWorkspaceResource(resName: string, opName: string, opArgs: {[name: string]: any}, title: string) {
     return (dispatch, getState) => {
-        const baseDir = getState().data.workspace.baseDir;
+        const baseDir = selectors.workspaceBaseDirSelector(getState());
+        assert.ok(baseDir);
 
         function call(onProgress) {
             return selectors.workspaceAPISelector(getState()).setWorkspaceResource(baseDir, resName, opName, opArgs, onProgress);
@@ -702,9 +710,10 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: {[
 
 export function renameWorkspaceResource(resName: string, newResName: string) {
     return (dispatch, getState) => {
-        const baseDir = getState().data.workspace.baseDir;
+        const baseDir = selectors.workspaceBaseDirSelector(getState());
+        assert.ok(baseDir);
 
-        function call(onProgress) {
+        function call() {
             return selectors.workspaceAPISelector(getState()).renameWorkspaceResource(baseDir, resName, newResName);
         }
 
@@ -726,7 +735,8 @@ export function getWorkspaceVariableStatistics(resName: string,
                                                varIndex: Array<number>,
                                                action: (statistics: ImageStatisticsState) => any) {
     return (dispatch, getState) => {
-        const baseDir = getState().data.workspace.baseDir;
+        const baseDir = selectors.workspaceBaseDirSelector(getState());
+        assert.ok(baseDir);
 
         function call() {
             return selectors.workspaceAPISelector(getState()).getWorkspaceVariableStatistics(baseDir, resName, varName, varIndex);

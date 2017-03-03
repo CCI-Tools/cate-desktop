@@ -136,7 +136,7 @@ export class WebSocketMock implements WebSocketMin {
         const method = this.serviceObj[requestMessage.method];
         if (!method) {
             this.emulateIncomingMessages({
-                jsonrcp: "2.0",
+                jsonrpc: "2.0",
                 id: requestMessage.id,
                 error: {
                     code: 1,
@@ -158,7 +158,7 @@ export class WebSocketMock implements WebSocketMin {
                 delay: delayPerStep,
                 perform: () => {
                     this.emulateIncomingMessages({
-                        jsonrcp: "2.0",
+                        jsonrpc: "2.0",
                         id: requestMessage.id,
                         progress: {
                             worked: i + 1,
@@ -175,13 +175,13 @@ export class WebSocketMock implements WebSocketMin {
                 try {
                     const result = method.apply(this.serviceObj, requestMessage.params);
                     this.emulateIncomingMessages({
-                        jsonrcp: "2.0",
+                        jsonrpc: "2.0",
                         id: requestMessage.id,
                         response: result
                     });
                 } catch (e) {
                     this.emulateIncomingMessages({
-                        jsonrcp: "2.0",
+                        jsonrpc: "2.0",
                         id: requestMessage.id,
                         error: {
                             code: 2,
@@ -198,7 +198,7 @@ export class WebSocketMock implements WebSocketMin {
             function performDeferred(i: number, webSocketMock: WebSocketMock) {
                 if (webSocketMock.cancelledJobsIds.has(requestMessage.id)) {
                     webSocketMock.emulateIncomingMessages({
-                        jsonrcp: "2.0",
+                        jsonrpc: "2.0",
                         id: requestMessage.id,
                         error: {
                             code: 999,
