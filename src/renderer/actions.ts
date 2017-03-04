@@ -827,11 +827,14 @@ export function getLayerName(layer: LayerState): string {
     return layer.id;
 }
 
-export function findVariable(resources: ResourceState[], ref: VariableRefState): VariableState {
-    const resource = resources.find(r => r.name === ref.resName);
-    return resource && resource.variables.find(v => v.name === ref.varName);
+export function findResource(resources: ResourceState[], ref: VariableRefState): ResourceState {
+    return resources.find(r => r.name === ref.resName);
 }
 
+export function findVariable(resources: ResourceState[], ref: VariableRefState): VariableState {
+    const resource = findResource(resources, ref);
+    return resource && resource.variables.find(v => v.name === ref.varName);
+}
 
 export function updateOrAddVariableLayer(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
     return (dispatch, getState) => {
