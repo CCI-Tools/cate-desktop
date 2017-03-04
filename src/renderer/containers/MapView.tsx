@@ -1,12 +1,13 @@
 import * as React from 'react';
 import {
     LayerState, State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
-    VariableRefState, VariableState
+    VariableRefState, VariableState, ResourceState
 } from "../state";
 import {OpenLayersMap, LayerDescriptor} from "../components/openlayers/OpenLayersMap";
 import {connect} from "react-redux";
 import * as actions from "../actions";
-import * as ol from 'openlayers'
+import * as ol from 'openlayers';
+import * as oboe from 'oboe';
 
 interface IMapViewProps {
     baseUrl: string;
@@ -62,6 +63,10 @@ class MapView extends React.Component<IMapViewProps, null> {
         );
     }
 
+    private getResource(ref: VariableRefState): ResourceState {
+        return actions.findResource(this.props.workspace.resources, ref);
+    }
+
     private getVariable(ref: VariableRefState): VariableState {
         return actions.findVariable(this.props.workspace.resources, ref);
     }
@@ -114,6 +119,62 @@ class MapView extends React.Component<IMapViewProps, null> {
     }
 
     private convertVariableVectorLayerToMapLayer(layer: VariableVectorLayerState): LayerDescriptor|null {
+        const resource = this.getResource(layer);
+        const variable = this.getVariable(layer);
+        if (!variable) {
+            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
+            return null;
+        }
+        const baseDir = this.props.workspace.baseDir;
+        const url = actions.getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
+
+        const loadFeatures = function(extend: ol.Extent, resolution: number, projection: ol.proj.Projection) {
+            const source = (this as any) as ol.source.Vector;
+            const geoJSONFormat = new ol.format.GeoJSON({
+                defaultDataProjection: 'EPSG:4326',
+                featureProjection: projection
+            });
+            const loadFeaturesAsync = () => {
+                let featureCount = 0;
+                oboe(url)
+                    .node('features.*', function (geoJsonFeature) {
+                        //console.log('Feature:', geoJsonFeature);
+                        featureCount++;
+                        const feature = geoJSONFormat.readFeature(geoJsonFeature);
+                        source.addFeature(feature);
+                        return oboe.drop;
+                    })
+                    .done(function (geoJson) {
+                        console.log(`${featureCount} feature(s) loaded. Remaining:`, geoJson);
+                    });
+            };
+
+            console.log('loadFeatures:', source, extend, resolution, projection);
+            setTimeout(loadFeaturesAsync, 0);
+        };
+
+        const layerSourceOptions = {
+            loader: loadFeatures,
+        };
+
+        const layerFactory = (layerSourceOptions) => {
+            return new ol.layer.Vector({
+                source: new ol.source.Vector(layerSourceOptions)
+            });
+        };
+
+        return {
+            id: layer.id,
+            name: layer.name,
+            visible: layer.visible,
+            opacity: layer.opacity,
+            layerFactory,
+            layerSourceOptions,
+        };
+    }
+
+
+    private convertVariableVectorLayerToMapLayer_old(layer: VariableVectorLayerState): LayerDescriptor|null {
         const variable = this.getVariable(layer);
         if (!variable) {
             console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
@@ -146,7 +207,12 @@ function createTileLayer(sourceOptions: olx.source.XYZOptions) {
 
 function createGeoJSONLayer(sourceOptions: olx.source.VectorOptions) {
     // See also http://openlayers.org/en/master/examples/geojson.html
-    const vectorSource = new ol.source.Vector(Object.assign({}, sourceOptions, {format: new ol.format.GeoJSON({defaultDataProjection: 'EPSG:4326', featureProjection: 'EPSG:4326'})}));
+    const vectorSource = new ol.source.Vector(Object.assign({}, sourceOptions, {
+        format: new ol.format.GeoJSON({
+            defaultDataProjection: 'EPSG:4326',
+            featureProjection: 'EPSG:4326'
+        })
+    }));
     return new ol.layer.Vector({source: vectorSource});
 }
 
