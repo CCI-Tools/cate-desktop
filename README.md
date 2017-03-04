@@ -68,7 +68,7 @@ Utilities:
 * [deep-equal](https://www.npmjs.com/package/deep-equal), Node's `assert.deepEqual()` algorithm as a standalone module.
 * [electron-devtools-installer](https://github.com/MarshallOfSound/electron-devtools-installer) is and 
   easy way to install Chrome's DevTool extensions into Electron. 
-
+* [Oboe.js](http://oboejs.com/) for loading JSON using streaming.
 
 ## Development Tools and Libraries in use
 
