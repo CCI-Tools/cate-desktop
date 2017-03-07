@@ -69,6 +69,7 @@ Utilities:
 * [electron-devtools-installer](https://github.com/MarshallOfSound/electron-devtools-installer) is and 
   easy way to install Chrome's DevTool extensions into Electron. 
 * [Oboe.js](http://oboejs.com/) for loading JSON using streaming.
+* [proj4js](http://proj4js.org/) to transform coordinates from one coordinate system to another.
 
 ## Development Tools and Libraries in use
 
