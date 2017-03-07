@@ -38,7 +38,7 @@ export function ApplicationPage(props) {
             <HGLHeader>
                 {/*<NavBarExample/>*/}
             </HGLHeader>
-            <HGLMidsection leftWidth={220} rightWidth={220}>
+            <HGLMidsection leftWidth={240} rightWidth={300}>
                 <Tabs>
                     <TabList>
                         <Tab>Primary</Tab>
