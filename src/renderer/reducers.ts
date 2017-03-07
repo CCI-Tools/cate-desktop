@@ -29,6 +29,12 @@ const initialDataState: DataState = {
             id: actions.SELECTED_VARIABLE_LAYER_ID,
             type: 'Unknown',
             visible: true,
+        },
+        {
+            id: actions.COUNTRY_BORDERS_LAYER_ID,
+            name: 'Countries',
+            type: 'Vector',
+            visible: false,
         }
     ],
     colorMaps: null

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
     LayerState, State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
-    VariableRefState, VariableState, ResourceState
+    VariableRefState, VariableState, ResourceState, VectorLayerState
 } from "../state";
 import {OpenLayersMap, LayerDescriptor} from "../components/openlayers/OpenLayersMap";
 import {connect} from "react-redux";
@@ -40,6 +40,9 @@ class MapView extends React.Component<IMapViewProps, null> {
                         break;
                     case 'VariableVector':
                         mapLayer = this.convertVariableVectorLayerToMapLayer(layer as VariableVectorLayerState);
+                        break;
+                    case 'Vector':
+                        mapLayer = this.convertVectorLayerToMapLayer(layer as VectorLayerState);
                         break;
                 }
                 if (mapLayer) {
@@ -172,15 +175,11 @@ class MapView extends React.Component<IMapViewProps, null> {
         };
     }
 
-
-    private convertVariableVectorLayerToMapLayer_old(layer: VariableVectorLayerState): LayerDescriptor|null {
-        const variable = this.getVariable(layer);
-        if (!variable) {
-            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
-            return null;
+    private convertVectorLayerToMapLayer(layer: VectorLayerState): LayerDescriptor|null {
+        let url = layer.url;
+        if (layer.id === actions.COUNTRY_BORDERS_LAYER_ID) {
+            url = actions.getGeoJSONCountriesUrl(this.props.baseUrl);
         }
-        const baseDir = this.props.workspace.baseDir;
-        const url = actions.getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
         return {
             id: layer.id,
             name: layer.name,

@@ -315,13 +315,27 @@ export interface ImageLayerBase extends LayerState {
 }
 
 /**
- * State of a layer.
+ * State of an image layer.
  */
 export interface ImageLayerState extends ImageLayerBase {
     /**
      * The image type ID.
      */
     type: 'Image';
+}
+
+/**
+ * State of a vector layer.
+ */
+export interface VectorLayerState extends LayerState {
+    /**
+     * The image type ID.
+     */
+    type: 'Vector';
+    /**
+     * The (GeoJSON-providing) URL.
+     */
+    url?: string;
 }
 
 /**

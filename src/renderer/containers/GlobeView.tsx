@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
     LayerState, State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
-    VariableState, VariableRefState
+    VariableState, VariableRefState, VectorLayerState
 } from "../state";
 import {
     CesiumGlobe, LayerDescriptor, ImageryProvider, DataSourceDescriptor,
@@ -45,6 +45,11 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
                     }
                     case 'VariableVector': {
                         const dataSourceDescriptor = this.convertVariableVectorLayerToDataSourceDescriptor(layer as VariableVectorLayerState);
+                        dataSources.push(dataSourceDescriptor);
+                        break;
+                    }
+                    case 'Vector': {
+                        const dataSourceDescriptor = this.convertVectorLayerToDataSourceDescriptor(layer as VectorLayerState);
                         dataSources.push(dataSourceDescriptor);
                         break;
                     }
@@ -124,6 +129,20 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
         };
     }
 
+    private convertVectorLayerToDataSourceDescriptor(layer: VectorLayerState): DataSourceDescriptor|null {
+        let url = layer.url;
+        if (layer.id === actions.COUNTRY_BORDERS_LAYER_ID) {
+            url = actions.getGeoJSONCountriesUrl(this.props.baseUrl);
+        }
+        return {
+            id: layer.id,
+            name: layer.name,
+            visible: layer.visible,
+            dataSource: GlobeView.createGeoJsonDataSource,
+            dataSourceOptions: {url},
+        };
+    }
+
     /**
      * Creates a Cesium.UrlTemplateImageryProvider instance.
      *
@@ -144,9 +163,9 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
      */
     private static createGeoJsonDataSource(dataSourceOptions): DataSource {
         return Cesium.GeoJsonDataSource.load(dataSourceOptions.url, {
-            stroke: Cesium.Color.HOTPINK,
-            fill: Cesium.Color.PINK,
-            strokeWidth: 3,
+            stroke: Cesium.Color.ORANGE,
+            fill: new Cesium.Color(0, 0, 0, 0),
+            strokeWidth: 5,
             markerSymbol: '?'
         });
     }

@@ -366,9 +366,11 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         imageryLayer.gamma = layerDescriptor.gamma;
     }
 
-    private static setDataSourceProps(dataSource: DataSource, dataSourceDescriptor: DataSourceDescriptor) {
-        dataSource.name = dataSourceDescriptor.name;
-        dataSource.show = dataSourceDescriptor.visible;
+    private static setDataSourceProps(dataSource: DataSource|Promise<DataSource>, dataSourceDescriptor: DataSourceDescriptor) {
+        Promise.resolve(dataSource).then((resolvedDataSource: DataSource) => {
+            //resolvedDataSource.name = dataSourceDescriptor.name;
+            resolvedDataSource.show = dataSourceDescriptor.visible;
+        });
     }
 
     private createContainer(): HTMLElement {

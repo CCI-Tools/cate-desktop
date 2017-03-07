@@ -7,7 +7,6 @@ import {
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
 import * as assert from "../common/assert";
-import {actions} from "../main/actions";
 
 // TODO (forman/marcoz): find easy way to unit-test our async actions calling remote API (WebAPIServiceMock?)
 
@@ -803,6 +802,10 @@ export function getGeoJSONUrl(baseUrl: string, baseDir: string, layer: VariableV
         + `&max=${encodeURIComponent(layer.displayMax + '')}`;
 }
 
+export function getGeoJSONCountriesUrl(baseUrl: string): string {
+    return baseUrl + 'ws/countries';
+}
+
 export function isSpatialImageVariable(variable: VariableState): boolean {
     return variable.ndim && variable.ndim >= 2 && !!variable.imageLayout;
 }
@@ -821,8 +824,15 @@ export function getLayerName(layer: LayerState): string {
     }
     const varName = (layer as any).varName;
     const resName = (layer as any).resName;
-    if (resName && varName) {
-        return `${varName} (${resName})`;
+    if (layer.id === SELECTED_VARIABLE_LAYER_ID) {
+        if (resName && varName) {
+            return `Selected Variable (${resName} / ${varName})`;
+        }
+        return `Selected Variable (none)`;
+    } else {
+        if (resName && varName) {
+            return `${resName} / ${varName}`;
+        }
     }
     return layer.id;
 }
@@ -940,6 +950,7 @@ export const MOVE_LAYER_DOWN = 'MOVE_LAYER_DOWN';
 export const SAVE_LAYER = 'SAVE_LAYER';
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
+export const COUNTRY_BORDERS_LAYER_ID = 'countryBorders';
 
 export function setSelectedLayerId(selectedLayerId: string|null) {
     return updateControlState({selectedLayerId});
