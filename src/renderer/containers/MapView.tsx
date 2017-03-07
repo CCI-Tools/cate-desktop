@@ -7,7 +7,6 @@ import {OpenLayersMap, LayerDescriptor} from "../components/openlayers/OpenLayer
 import {connect} from "react-redux";
 import * as actions from "../actions";
 import * as ol from 'openlayers';
-import * as oboe from 'oboe';
 
 interface IMapViewProps {
     baseUrl: string;
@@ -128,33 +127,33 @@ class MapView extends React.Component<IMapViewProps, null> {
         const baseDir = this.props.workspace.baseDir;
         const url = actions.getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
 
-        const loadFeatures = function(extend: ol.Extent, resolution: number, projection: ol.proj.Projection) {
+        const streamFeatures = function (extend: ol.Extent, resolution: number, projection: ol.proj.Projection) {
             const source = (this as any) as ol.source.Vector;
+            console.log('streamFeatures #1:', source, extend, resolution, projection);
+
             const geoJSONFormat = new ol.format.GeoJSON({
                 defaultDataProjection: 'EPSG:4326',
                 featureProjection: projection
             });
-            const loadFeaturesAsync = () => {
-                let featureCount = 0;
-                oboe(url)
-                    .node('features.*', function (geoJsonFeature) {
-                        //console.log('Feature:', geoJsonFeature);
-                        featureCount++;
-                        const feature = geoJSONFormat.readFeature(geoJsonFeature);
-                        source.addFeature(feature);
-                        return oboe.drop;
-                    })
-                    .done(function (geoJson) {
-                        console.log(`${featureCount} feature(s) loaded. Remaining:`, geoJson);
-                    });
+
+            //let code = FeatureLoader.toString();
+            //code = code.substring(code.indexOf("{") + 1, code.lastIndexOf("}"));
+            //console.log('code:', code);
+            //const codeUrl = URL.createObjectURL(new Blob([code], {type: "application/javascript"}));
+            //const codeUrl = "data:application/javascript;utf8," + code;
+            const codeUrl = "renderer/containers/stream-features.js";
+            const worker = new Worker(codeUrl);
+            worker.postMessage(url);
+            worker.onmessage = function (event: MessageEvent) {
+                const features = geoJSONFormat.readFeatures({type: 'FeatureCollection', features: event.data});
+                source.addFeatures(features);
             };
 
-            console.log('loadFeatures:', source, extend, resolution, projection);
-            setTimeout(loadFeaturesAsync, 0);
+            console.log('streamFeatures #2:', source, extend, resolution, projection);
         };
 
         const layerSourceOptions = {
-            loader: loadFeatures,
+            loader: streamFeatures,
         };
 
         const layerFactory = (layerSourceOptions) => {
@@ -221,3 +220,4 @@ function styleFunction(feature: ol.Feature) {
     let undef;
     return undef;
 }
+
