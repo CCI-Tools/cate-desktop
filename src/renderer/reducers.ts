@@ -199,6 +199,7 @@ const initialControlState: ControlState = {
     showVariableDetails: true,
     selectedLayerId: null,
     showLayerDetails: true,
+    projectionCode: 'EPSG:4326',
     savedLayers: {},
     dialogs: {}
 };

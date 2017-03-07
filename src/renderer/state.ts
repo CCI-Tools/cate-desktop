@@ -472,6 +472,9 @@ export interface ControlState {
     showLayerDetails: boolean;
     savedLayers: {[key: string]: LayerState};
 
+    // Currently only for 2D map
+    projectionCode: string;
+
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState;};
 }
