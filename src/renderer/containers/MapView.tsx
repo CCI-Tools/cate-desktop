@@ -13,6 +13,7 @@ interface IMapViewProps {
     workspace: WorkspaceState | null;
     offlineMode: boolean;
     layers: LayerState[];
+    projectionCode: string;
 }
 
 function mapStateToProps(state: State): IMapViewProps {
@@ -21,6 +22,7 @@ function mapStateToProps(state: State): IMapViewProps {
         workspace: state.data.workspace,
         offlineMode: state.session.offlineMode,
         layers: state.data.layers,
+        projectionCode: state.control.projectionCode,
     };
 }
 
@@ -57,6 +59,7 @@ class MapView extends React.Component<IMapViewProps, null> {
             <div style={{width:"100%", height:"100%"}}>
                 <OpenLayersMap id="defaultMapView"
                                debug={true}
+                               projectionCode={this.props.projectionCode}
                                layers={mapLayers}
                                offlineMode={this.props.offlineMode}
                                style={{width:"100%", height:"100%"}}/>

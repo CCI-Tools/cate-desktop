@@ -1,7 +1,10 @@
 import * as React from 'react';
-import * as ol from 'openlayers'
+import * as ol from 'openlayers';
+import * as proj4 from 'proj4';
 import {IPermanentComponentProps, PermanentComponent} from '../PermanentComponent'
 import {getLayerDiff} from "../Layer";
+
+ol.proj.setProj4(proj4);
 
 
 type OpenLayersObject = {
@@ -38,8 +41,8 @@ export interface IOpenLayersMapProps extends IPermanentComponentProps {
     offlineMode?: boolean;
     pins?: PinDescriptor[];
     layers?: LayerDescriptor[];
+    projectionCode?: string;
 }
-
 
 /**
  * A component that wraps an OpenLayers 4.0 2D Map.
@@ -77,14 +80,23 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
                 createEmptyVectorLayer(),
             ],
             view: new ol.View({
-                projection: 'EPSG:4326',
+                projection: this.props.projectionCode || 'EPSG:4326',
+                // projection: 'Glaciers_CCI_Greenland',
                 center: [0, 0],
                 zoom: 4,
             })
         };
+        const map = new ol.Map(options);
+        //map.addControl(new ol.control.ZoomSlider());
+        //map.addControl(new ol.control.ScaleLine());
+        //map.addControl(new ol.control.OverviewMap());
+        //map.addControl(new ol.control.MousePosition());
+        //map.addControl(new ol.control.Attribution());
+        //map.addControl(new ol.control.Zoom());
+
         return {
             container: divElement,
-            map: new ol.Map(options)
+            map
         };
     }
 
@@ -194,15 +206,15 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
  * Creates an empty Vector layer that demonstrates using a custom loading strategy and loader.
  * This will be the basis for creating our own Vector pyramid for faster display of large Shapefiles.
  *
- * Note that "resolution" is the size of a display pixel in map units.
+ * Note that "resolution" is the number of display pixels per map unit.
  */
 function createEmptyVectorLayer() {
     function loader(extend: ol.Extent, resolution: number, projection: ol.proj.Projection) {
-        console.log('OpenLayersMap: loader:, extend =', extend, ', resolution (degree/pixel) =', resolution, ', projection =', projection);
+        console.log('OpenLayersMap: loader: extend =', extend, ', resolution =', resolution, ', projection =', projection);
     }
 
     function strategy(extend: ol.Extent, resolution: number): ol.Extent[] {
-        console.log('OpenLayersMap: strategy: extend =', extend, ', resolution (degree/pixel) =', resolution);
+        console.log('OpenLayersMap: strategy: extend =', extend, ', resolution =', resolution);
         // [minx, miny, maxx, maxy]
         const minx = extend[0];
         const miny = extend[1];
@@ -220,9 +232,6 @@ function createEmptyVectorLayer() {
     }
 
     return new ol.layer.Vector({
-        source: new ol.source.Vector({
-            loader,
-            strategy,
-        }),
+        source: new ol.source.Vector({loader, strategy}),
     });
 }
