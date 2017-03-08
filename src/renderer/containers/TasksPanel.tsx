@@ -1,5 +1,5 @@
 import * as React from "react";
-import {connect, Dispatch} from "react-redux";
+import {connect} from "react-redux";
 import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, TaskState} from "../state";
 import {Button, ProgressBar, Intent} from "@blueprintjs/core";
@@ -65,39 +65,37 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
         const renderItem = (jobId: number, itemIndex: number) => {
             const taskState = taskStateList[itemIndex];
             let activity = null;
-            if (TasksPanel.isActive(taskState)) {
-                let progress = null;
-                if (TasksPanel.isMakingProgress(taskState)) {
-                    progress = <div style={{padding: '0.5em'}}>
-                        <ProgressBar intent={Intent.SUCCESS}
-                                     value={taskState.progress.worked / taskState.progress.total}/>
-                    </div>;
-                } else {
-                    progress = <div style={{padding: '0.5em'}}><ProgressBar intent={Intent.SUCCESS}/></div>;
-                }
-
-                // TODO (marcoz): styling issue: place cancel button right to, or right to and below progress bar
+            if (TasksPanel.isActive(taskState) && TasksPanel.isMakingProgress(taskState)) {
+                // cancel is only possible, if we have a progress monitor
                 const cancelJob = () => this.props.cancelJob(jobId);
                 const cancelButton = <Button type="button"
                                              className="pt-intent-primary"
                                              onClick={cancelJob}
                                              iconName="pt-icon-cross">Cancel</Button>;
 
+                const progress = <div style={{padding: '0.5em'}}>
+                    <ProgressBar intent={Intent.SUCCESS}
+                                 value={taskState.progress.worked / taskState.progress.total}/>
+                </div>;
+
+                let message = null;
+                if (taskState.progress && taskState.progress.message) {
+                    message = <div style={{fontSize: '0.8em'}}>{taskState.progress.message}</div>;
+                }
+
+                // TODO (marcoz): styling issue: place progress bar and cancel button on a single line
                 activity = <div>
                     {progress}
                     {cancelButton}
+                    {message}
                 </div>
-            }
-            let msg = null;
-            if (taskState.progress && taskState.progress.message) {
-                msg = <div style={{fontSize: '0.8em'}}>{taskState.progress.message}</div>;
             }
             let error = null;
             if (taskState.failure && taskState.failure.message) {
                 error = <div style={{color: 'rgb(255, 0, 0)', fontSize: '0.8em'}}>{taskState.failure.message}</div>;
             }
             const title = taskState.title || visibleTaskIds[itemIndex];
-            return (<div>{title}{activity}{msg}{error}</div>);
+            return (<div>{title}{activity}{error}</div>);
         };
 
         let panelContents;
