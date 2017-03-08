@@ -31,7 +31,7 @@ const initialDataState: DataState = {
             visible: true,
         },
         {
-            id: actions.COUNTRY_BORDERS_LAYER_ID,
+            id: actions.COUNTRIES_LAYER_ID,
             name: 'Countries',
             type: 'Vector',
             visible: false,

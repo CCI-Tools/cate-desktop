@@ -950,7 +950,7 @@ export const MOVE_LAYER_DOWN = 'MOVE_LAYER_DOWN';
 export const SAVE_LAYER = 'SAVE_LAYER';
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
-export const COUNTRY_BORDERS_LAYER_ID = 'countryBorders';
+export const COUNTRIES_LAYER_ID = 'countries';
 
 export function setSelectedLayerId(selectedLayerId: string|null) {
     return updateControlState({selectedLayerId});

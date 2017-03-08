@@ -131,7 +131,7 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
 
     private convertVectorLayerToDataSourceDescriptor(layer: VectorLayerState): DataSourceDescriptor|null {
         let url = layer.url;
-        if (layer.id === actions.COUNTRY_BORDERS_LAYER_ID) {
+        if (layer.id === actions.COUNTRIES_LAYER_ID) {
             url = actions.getGeoJSONCountriesUrl(this.props.baseUrl);
         }
         return {

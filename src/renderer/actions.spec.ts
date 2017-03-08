@@ -10,6 +10,19 @@ should();
 describe('Actions', () => {
     let store = null;
 
+    const defaultSelectedVariableLayer = {
+        id: actions.SELECTED_VARIABLE_LAYER_ID,
+        type: 'Unknown',
+        visible: true,
+    };
+
+    const defaultCountriesLayers = {
+        id: actions.COUNTRIES_LAYER_ID,
+        name: "Countries",
+        type: "Vector",
+        visible: false,
+    };
+
     beforeEach(function () {
         const middleware = applyMiddleware(thunk);
         store = createStore(stateReducer, middleware);
@@ -285,7 +298,8 @@ describe('Actions', () => {
                     gamma: 1,
                     hue: 0,
                     saturation: 1,
-                }
+                },
+                defaultCountriesLayers
             ]);
         });
 
@@ -299,7 +313,8 @@ describe('Actions', () => {
                     type: "Unknown",
                     name: "profile of res_1",
                     visible: true,
-                }
+                },
+                defaultCountriesLayers
             ]);
         });
 
@@ -349,11 +364,11 @@ describe('Actions', () => {
                 varIndex: [139],
                 displayMax: 300
             } as any));
-            expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerOld]);
+            expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
             store.dispatch(actions.setSelectedVariableName('sst_error'));
-            expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerNew]);
+            expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayers]);
             store.dispatch(actions.setSelectedVariableName('analysed_sst'));
-            expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerOld]);
+            expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
         });
 
         it('addVariableLayer - w/o variable selection', () => {
@@ -364,7 +379,8 @@ describe('Actions', () => {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: 'Unknown',
                     visible: true,
-                }
+                },
+                defaultCountriesLayers
             ]);
         });
 
@@ -392,6 +408,7 @@ describe('Actions', () => {
                     hue: 0,
                     saturation: 1,
                 },
+                defaultCountriesLayers,
                 {
                     id: "ID756473",
                     type: "VariableImage",
@@ -424,14 +441,16 @@ describe('Actions', () => {
                     type: "Unknown",
                     name: "profile of res_1",
                     visible: true,
-                }
+                },
+                defaultCountriesLayers
             ]);
         });
 
         it('addLayer', () => {
             store.dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: 'Unknown'},
+                defaultSelectedVariableLayer,
+                defaultCountriesLayers,
                 {id: 'layer-2', visible: true},
             ]);
         });
@@ -441,7 +460,8 @@ describe('Actions', () => {
             store.dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
             store.dispatch(actions.removeLayer('layer-2'));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: 'Unknown'},
+                defaultSelectedVariableLayer,
+                defaultCountriesLayers,
                 {id: 'layer-1', visible: true},
             ]);
         });
@@ -452,14 +472,16 @@ describe('Actions', () => {
             store.dispatch(actions.addLayer({id: 'layer-3', visible: true} as LayerState));
             store.dispatch(actions.updateLayer({id: 'layer-2', visible: false} as LayerState));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: 'Unknown'},
+                defaultSelectedVariableLayer,
+                defaultCountriesLayers,
                 {id: 'layer-1', visible: true},
                 {id: 'layer-2', visible: false},
                 {id: 'layer-3', visible: true},
             ]);
             store.dispatch(actions.updateLayer({id: 'layer-1', name: 'LX'} as LayerState));
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: 'Unknown'},
+                defaultSelectedVariableLayer,
+                defaultCountriesLayers,
                 {id: 'layer-1', name: 'LX', visible: true},
                 {id: 'layer-2', visible: false},
                 {id: 'layer-3', visible: true},
@@ -470,13 +492,15 @@ describe('Actions', () => {
             store.dispatch(actions.setShowSelectedVariableLayer(true));
             expect(store.getState().session.showSelectedVariableLayer).to.equal(true);
             expect(store.getState().data.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: 'Unknown'},
+                defaultSelectedVariableLayer,
+                defaultCountriesLayers,
             ]);
 
             store.dispatch(actions.setShowSelectedVariableLayer(false));
             expect(store.getState().session.showSelectedVariableLayer).to.equal(false);
             expect(store.getState().data.layers).to.deep.equal([
                 {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: false, type: 'Unknown'},
+                defaultCountriesLayers,
             ]);
         });
 
@@ -530,6 +554,7 @@ describe('Actions', () => {
             store.dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
             expect(store.getState().data.layers).to.deep.equal([
                 {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: "Unknown"},
+                {id: actions.COUNTRIES_LAYER_ID, visible: false, type: "Vector", name: 'Countries'},
                 {id: 'L1', resName: 'res_1', varName: 'X'},
                 {id: 'L2', resName: 'bert', varName: 'X'},
             ]);

@@ -180,7 +180,7 @@ class MapView extends React.Component<IMapViewProps, null> {
 
     private convertVectorLayerToMapLayer(layer: VectorLayerState): LayerDescriptor|null {
         let url = layer.url;
-        if (layer.id === actions.COUNTRY_BORDERS_LAYER_ID) {
+        if (layer.id === actions.COUNTRIES_LAYER_ID) {
             url = actions.getGeoJSONCountriesUrl(this.props.baseUrl);
         }
         return {
