@@ -1,5 +1,8 @@
 # cate-desktop
 
+[![Build Status](https://travis-ci.org/CCI-Tools/cate-desktop.svg?branch=master)](https://travis-ci.org/CCI-Tools/cate-desktop)
+[![Build status](https://ci.appveyor.com/api/projects/status/5fxybbffvfjkdtbk?svg=true)](https://ci.appveyor.com/project/ccitools/cate-desktop)
+
 ## Overview
 
 `cate-desktop` provides a desktop GUI for *Cate*, the ESA CCI Toolbox.
