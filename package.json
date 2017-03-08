@@ -8,7 +8,7 @@
     "start": "electron app",
     "test:e2e": "mocha e2e/**/*-test.js",
     "pretest": "npm run compile",
-    "test": "mocha app/main/**/*.spec.js app/renderer/**/*.spec.js app/common/**/*.spec.js",
+    "test": "mocha 'app/main/**/*.spec.js' 'app/renderer/**/*.spec.js' 'app/common/**/*.spec.js'",
     "postinstall": "install-app-deps",
     "compile": "tsc",
     "compile:trace": "tsc --traceResolution",
