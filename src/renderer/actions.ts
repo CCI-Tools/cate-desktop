@@ -794,7 +794,7 @@ export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImag
 }
 
 export function getGeoJSONUrl(baseUrl: string, baseDir: string, layer: VariableVectorLayerState): string {
-    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}?`
+    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/8?`
         + `&var=${encodeURIComponent(layer.varName)}`
         + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
         + `&cmap=${encodeURIComponent(layer.colorMapName)}`
@@ -803,7 +803,7 @@ export function getGeoJSONUrl(baseUrl: string, baseDir: string, layer: VariableV
 }
 
 export function getGeoJSONCountriesUrl(baseUrl: string): string {
-    return baseUrl + 'ws/countries';
+    return baseUrl + 'ws/countries/0';
 }
 
 export function isSpatialImageVariable(variable: VariableState): boolean {

@@ -142,17 +142,19 @@ class MapView extends React.Component<IMapViewProps, null> {
                 featureProjection: projection
             });
 
-            //let code = FeatureLoader.toString();
-            //code = code.substring(code.indexOf("{") + 1, code.lastIndexOf("}"));
-            //console.log('code:', code);
-            //const codeUrl = URL.createObjectURL(new Blob([code], {type: "application/javascript"}));
-            //const codeUrl = "data:application/javascript;utf8," + code;
-            const codeUrl = "renderer/containers/stream-features.js";
-            const worker = new Worker(codeUrl);
+            let numFeatures = 0;
+
+            const worker = new Worker("renderer/containers/stream-features.js");
             worker.postMessage(url);
             worker.onmessage = function (event: MessageEvent) {
-                const features = geoJSONFormat.readFeatures({type: 'FeatureCollection', features: event.data});
+                const geoJsonFeatures = event.data;
+                if (!geoJsonFeatures) {
+                    console.log(`${numFeatures} feature(s) received from ${url}`);
+                    return;
+                }
+                const features = geoJSONFormat.readFeatures({type: 'FeatureCollection', features: geoJsonFeatures});
                 source.addFeatures(features);
+                numFeatures += features.length;
             };
 
             console.log('streamFeatures #2:', source, extend, resolution, projection);

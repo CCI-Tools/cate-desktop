@@ -11,7 +11,7 @@ function sendData(data) {
 }
 
 function streamFeatures(url) {
-    const featurePackCount = 10;
+    const featurePackCount = 25;
     let features = [];
 
     oboe(url)
@@ -28,5 +28,7 @@ function streamFeatures(url) {
             if (features.length) {
                 sendData(features);
             }
+            // Send sentinel
+            sendData(null);
         });
 }

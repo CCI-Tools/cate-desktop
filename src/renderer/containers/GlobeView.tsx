@@ -1,11 +1,11 @@
 import * as React from 'react';
 import {
     LayerState, State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
-    VariableState, VariableRefState, VectorLayerState
+    VariableState, VariableRefState, VectorLayerState, ResourceState
 } from "../state";
 import {
     CesiumGlobe, LayerDescriptor, ImageryProvider, DataSourceDescriptor,
-    DataSource
+    DataSource, GeoJsonDataSource
 } from "../components/cesium/CesiumGlobe";
 import {connect} from "react-redux";
 import * as actions from "../actions";
@@ -72,11 +72,16 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
         );
     }
 
+    private getResource(ref: VariableRefState): ResourceState {
+        return actions.findResource(this.props.workspace.resources, ref);
+    }
+
     private getVariable(ref: VariableRefState): VariableState {
         return actions.findVariable(this.props.workspace.resources, ref);
     }
 
     private convertVariableImageLayerToLayerDescriptor(layer: VariableImageLayerState): LayerDescriptor|null {
+        const resource = this.getResource(layer);
         const variable = this.getVariable(layer);
         if (!variable) {
             console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
@@ -113,19 +118,63 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
     }
 
     private convertVariableVectorLayerToDataSourceDescriptor(layer: VariableVectorLayerState): DataSourceDescriptor|null {
+        const resource = this.getResource(layer);
         const variable = this.getVariable(layer);
         if (!variable) {
             console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
             return null;
         }
+
         const baseDir = this.props.workspace.baseDir;
         const url = actions.getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
+        const dataSourceName = `${resource.name} / ${variable.name}`;
+
+        const dataSource = (dataSourceOptions) => {
+            let numFeatures = 0;
+            const customDataSource: DataSource = new Cesium.CustomDataSource(dataSourceOptions.name);
+            const worker = new Worker("renderer/containers/stream-features.js");
+            worker.postMessage(dataSourceOptions.url);
+            worker.onmessage = function (event: MessageEvent) {
+                const features = event.data;
+                if (!features) {
+                    customDataSource.update(Cesium.JulianDate.now());
+                    console.log(`${numFeatures} feature(s) received from ${url}`);
+                    return;
+                }
+                numFeatures += features.length;
+                for (let feature of features) {
+                    // Add basic styling, see https://github.com/mapbox/simplestyle-spec
+                    feature.properties = Object.assign(feature.properties, {
+                        "stroke": "#555555",
+                        "stroke-opacity": 1.0,
+                        "stroke-width": 2,
+                        "fill": "#555555",
+                        "fill-opacity": 0.5
+                    });
+                }
+                Cesium.GeoJsonDataSource.load({type: 'FeatureCollection', features: features})
+                    .then((geoJsonDataSource: GeoJsonDataSource) => {
+                        geoJsonDataSource.entities.suspendEvents();
+                        customDataSource.entities.suspendEvents();
+                        //console.log('new geoJsonDataSource: ', geoJsonDataSource);
+                        const entities = geoJsonDataSource.entities.values.slice();
+                        for (let entity of entities) {
+                            geoJsonDataSource.entities.remove(entity);
+                            customDataSource.entities.add(entity);
+                        }
+                        customDataSource.entities.resumeEvents();
+                        // customDataSource.update(Cesium.JulianDate.now());
+                    });
+            };
+            return customDataSource;
+        };
+
         return {
             id: layer.id,
             name: layer.name,
             visible: layer.visible,
-            dataSource: GlobeView.createGeoJsonDataSource,
-            dataSourceOptions: {url},
+            dataSource,
+            dataSourceOptions: {url, name: dataSourceName},
         };
     }
 

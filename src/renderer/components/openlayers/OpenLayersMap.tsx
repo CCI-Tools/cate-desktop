@@ -206,15 +206,15 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
  * Creates an empty Vector layer that demonstrates using a custom loading strategy and loader.
  * This will be the basis for creating our own Vector pyramid for faster display of large Shapefiles.
  *
- * Note that "resolution" is the number of display pixels per map unit.
+ * Note that "resolution" is given in map units per display pixel.
  */
 function createEmptyVectorLayer() {
     function loader(extend: ol.Extent, resolution: number, projection: ol.proj.Projection) {
-        console.log('OpenLayersMap: loader: extend =', extend, ', resolution =', resolution, ', projection =', projection);
+        console.log('OpenLayersMap: loader: extend =', extend, ', resolution (deg/pix) =', resolution, ', projection =', projection);
     }
 
     function strategy(extend: ol.Extent, resolution: number): ol.Extent[] {
-        console.log('OpenLayersMap: strategy: extend =', extend, ', resolution =', resolution);
+        console.log('OpenLayersMap: strategy: extend =', extend, ', resolution (deg/pix) =', resolution);
         // [minx, miny, maxx, maxy]
         const minx = extend[0];
         const miny = extend[1];

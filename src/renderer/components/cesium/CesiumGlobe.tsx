@@ -2,8 +2,9 @@ import * as React from 'react';
 import {IPermanentComponentProps, PermanentComponent} from '../PermanentComponent'
 import {getLayerDiff} from "../Layer";
 
-const Cesium: any = require('cesium');
+
 // console.log(Cesium);
+const Cesium: any = require('cesium');
 const BuildModuleUrl: any = Cesium.buildModuleUrl;
 BuildModuleUrl.setBaseUrl('./');
 
@@ -11,6 +12,7 @@ BuildModuleUrl.setBaseUrl('./');
 // As long as we don't have a @types/Cesium dependency, we provide Cesium dummy types here:
 //
 // << begin @types/Cesium
+
 export type ImageryProvider = any;
 export type ImageryLayer = any;
 export type ImageryLayerCollection = {
@@ -23,11 +25,29 @@ export type ImageryLayerCollection = {
     lower: (layer: ImageryLayer) => void;
 };
 
-export type DataSource = {
+export interface Entity {
+}
+
+export interface EntityCollection {
+    readonly id: string;
+    values: Entity[];
+    add(entity: Entity): Entity;
+    remove(entity: Entity): boolean;
+    removeAll(): void;
+    suspendEvents(): void;
+    resumeEvents(): void;
+}
+
+export interface DataSource {
     name: string;
     show: boolean;
-    update: (time: any) => void;
-};
+    entities: EntityCollection;
+    update(time: any): void;
+}
+
+export interface GeoJsonDataSource extends DataSource {
+}
+
 export type DataSourceCollection = {
     readonly length: number;
     add: (dataSource: DataSource) => Promise<DataSource>;
@@ -35,12 +55,14 @@ export type DataSourceCollection = {
     indexOf: (dataSource: DataSource) => number;
     remove: (dataSource: DataSource, destroy?: boolean) => boolean;
 };
+
 export type CesiumViewer = {
     container: HTMLElement;
     entities: any;
     imageryLayers: ImageryLayerCollection;
     dataSources: DataSourceCollection;
 };
+
 // >> end @types/Cesium
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
