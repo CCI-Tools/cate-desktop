@@ -101,11 +101,11 @@
       "installerHeaderIcon": "app/resources/win32/cate-icon.ico"
     },
     "mac": {
-      "icon": "app/resources/darwin/icon.icns",
+      "icon": "app/resources/darwin/cate-icon.icns",
       "category": "app.category.climate-science"
     },
     "dmg": {
-      "icon": "app/resources/darwin/icon.icns",
+      "icon": "app/resources/darwin/cate-icon.icns",
       "background": "resources/darwin/dmg-background.png"
     }
   }
