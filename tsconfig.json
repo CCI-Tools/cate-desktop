@@ -15,6 +15,9 @@
       "node",
       "mocha",
       "chai"
+    ],
+    "typeRoots": [
+      "node_modules/@types"
     ]
   }
 }
