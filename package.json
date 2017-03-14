@@ -65,7 +65,7 @@
     "classnames": "^2.2",
     "deep-equal": "^1.0",
     "electron": "1.4",
-    "electron-builder": "^10.6",
+    "electron-builder": "^15.4",
     "electron-devtools-installer": "^2.1",
     "enzyme": "^2.6",
     "mocha": "^3.2",
@@ -93,20 +93,17 @@
       "target": [
         "nsis",
         "zip"
-      ],
-      "icon": "app/resources/win32/cate-icon.ico"
+      ]
     },
     "nsis": {
-      "oneClick": true,
-      "installerHeaderIcon": "app/resources/win32/cate-icon.ico"
+      "oneClick": true
     },
     "mac": {
-      "icon": "app/resources/darwin/cate-icon.icns",
       "category": "app.category.climate-science"
     },
     "dmg": {
-      "icon": "app/resources/darwin/cate-icon.icns",
-      "background": "resources/darwin/dmg-background.png"
+      "background": "app/resources/darwin/dmg-background.png"
     }
   }
+
 }
