@@ -13,6 +13,7 @@ export interface IEditFieldProps<T> {
     columns?: number;
     className?: string;
     style?: {[key:string]: any};
+    disabled?: boolean;
 }
 
 export interface IEditFieldState<T> {
@@ -98,6 +99,7 @@ export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.P
                    onChange={this.handleChange}
                    onKeyUp={this.handleKeyUp}
                    onBlur={this.handleFocusOut}
+                   disabled={this.props.disabled}
             />
         );
     }

@@ -92,12 +92,12 @@ describe('Actions', () => {
                 {id: 'fileset-1'},
                 {id: 'fileset-2'}
             ] as any));
-            store.dispatch(actions.updateDataSourceTemporalCoverage('local-2', 'fileset-1', [2010, 2015]));
+            store.dispatch(actions.updateDataSourceTemporalCoverage('local-2', 'fileset-1', ['2010-01-01', '2014-12-30']));
             expect(store.getState().data.dataStores).to.deep.equal([
                 {id: 'local-1'},
                 {
                     id: 'local-2', dataSources: [
-                    {id: 'fileset-1', temporalCoverage: [2010, 2015]},
+                    {id: 'fileset-1', temporalCoverage: ['2010-01-01', '2014-12-30']},
                     {id: 'fileset-2'}
                 ]
                 }
@@ -594,4 +594,16 @@ describe('Actions', () => {
         });
     });
 
+    describe('Dialog actions', () => {
+
+        it('show/hideDialog', () => {
+            expect(store.getState().control.dialogs['myDialog']).to.be.undefined;
+
+            store.dispatch(actions.showDialog('myDialog'));
+            expect(store.getState().control.dialogs['myDialog']).to.deep.equal({isOpen: true});
+
+            store.dispatch(actions.hideDialog('myDialog', {a: 4, b: 5}));
+            expect(store.getState().control.dialogs['myDialog']).to.deep.equal({isOpen: false, a: 4, b: 5});
+        });
+    });
 });

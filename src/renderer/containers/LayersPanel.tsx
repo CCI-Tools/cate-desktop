@@ -108,7 +108,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     }
 
     private handleAddLayerButtonClicked() {
-        this.props.dispatch(actions.updateDialogState('layerSourcesDialog', {isOpen: true}));
+        this.props.dispatch(actions.showDialog('layerSourcesDialog'));
     }
 
     private handleRemoveLayerButtonClicked() {
@@ -124,7 +124,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     }
 
     private handleProjectionButtonClicked() {
-        this.props.dispatch(actions.updateDialogState('projectionsDialog', {isOpen: true}));
+        this.props.dispatch(actions.showDialog('projectionsDialog'));
     }
 
     private handleChangedLayerVisibility(layer: LayerState, visible: boolean) {

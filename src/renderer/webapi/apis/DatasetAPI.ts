@@ -2,26 +2,12 @@ import {WebAPIClient} from "../WebAPIClient";
 import {JobPromise, JobProgress} from "../Job";
 import {DataStoreState, DataSourceState} from "../../state";
 
-type NumberRange = [number, number];
 
-function stringToMillis(dateString: string): number {
-    if (dateString) {
-        const dateInMillis = Date.parse(dateString);
-        if (dateInMillis) {
-            // can be NaN
-            return dateInMillis;
-        }
-    }
-    return null;
-}
-
-function responseToTemporalCoverage(temporalCoverageResponse: any): NumberRange {
+function responseToTemporalCoverage(temporalCoverageResponse: any): [string, string]|null {
     if (!temporalCoverageResponse) {
         return null;
     }
-    const startDateMillis = stringToMillis(temporalCoverageResponse.temporal_coverage_start);
-    const endDateMillis = stringToMillis(temporalCoverageResponse.temporal_coverage_end);
-    return [startDateMillis, endDateMillis];
+    return [temporalCoverageResponse.temporal_coverage_start, temporalCoverageResponse.temporal_coverage_end];
 }
 
 export class DatasetAPI {
@@ -41,7 +27,7 @@ export class DatasetAPI {
     }
 
     getTemporalCoverage(dataStoreId: string, dataSourceId: string,
-                        onProgress: (progress: JobProgress) => void): JobPromise<NumberRange> {
+                        onProgress: (progress: JobProgress) => void): JobPromise<[string, string]|null> {
         return this.webAPIClient.call('get_ds_temporal_coverage',
             [dataStoreId, dataSourceId],
             onProgress, responseToTemporalCoverage

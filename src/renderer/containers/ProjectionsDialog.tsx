@@ -1,10 +1,10 @@
 import * as React from 'react';
-import {Dialog, Classes, Button} from "@blueprintjs/core";
 import {State, ResourceState, LayerState, DialogState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ListBoxSelectionMode, ListBox} from "../components/ListBox";
+import {ModalDialog} from "../components/ModalDialog";
 import * as ol from 'openlayers';
 import * as proj4 from 'proj4';
 
@@ -36,76 +36,58 @@ class ProjectionsDialog extends React.Component<IProjectionsDialogProps, IProjec
 
     constructor(props: IProjectionsDialogProps) {
         super(props);
-        this.handleConfirm = this.handleConfirm.bind(this);
-        this.handleCancel = this.handleCancel.bind(this);
+        this.onConfirm = this.onConfirm.bind(this);
+        this.onCancel = this.onCancel.bind(this);
         this.handleChangedProjectionSelection = this.handleChangedProjectionSelection.bind(this);
         this.state = {projectionCode: props.projectionCode};
     }
 
-    private handleConfirm() {
-        this.props.dispatch(actions.updateDialogState(ProjectionsDialog.DIALOG_ID, {isOpen: false}));
+    private onConfirm() {
+        this.props.dispatch(actions.hideDialog(ProjectionsDialog.DIALOG_ID));
         if (this.state.projectionCode) {
             this.props.dispatch(actions.setControlProperty('projectionCode', this.state.projectionCode));
         }
     }
 
-    private handleCancel() {
-        this.props.dispatch(actions.updateDialogState(ProjectionsDialog.DIALOG_ID, {isOpen: false}));
+    private onCancel() {
+        this.props.dispatch(actions.hideDialog(ProjectionsDialog.DIALOG_ID));
+    }
+
+    private handleChangedProjectionSelection(newSelection: string[]) {
+        this.setState({projectionCode: newSelection && newSelection[0]});
+    }
+
+    private canConfirm() {
+        return !!this.state.projectionCode;
     }
 
     render() {
         return (
-            <Dialog
+            <ModalDialog
                 isOpen={this.props.isOpen}
                 iconName="confirm"
-                onClose={this.handleCancel}
                 title={ProjectionsDialog.DIALOG_TITLE}
-                autoFocus={true}
-                canEscapeKeyClose={true}
-                canOutsideClickClose={true}
-                enforceFocus={true}
-            >
-                {this.renderDialogBody()}
-                {this.renderDialogFooter()}
-            </Dialog>
+                onConfirm={this.onConfirm}
+                onCancel={this.onCancel}
+                renderBody={this.renderBody}
+                canConfirm={this.canConfirm}
+            />
         );
     }
 
-    private renderDialogBody() {
-        if (!this.props.isOpen) {
-            return null;
-        }
+    private renderBody() {
         return (
-            <div className={Classes.DIALOG_BODY}>
-                {this.renderDialogContents()}
+            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+                <p>Select the variables to wish to add as a layer:</p>
+                <ListBox items={projections}
+                         getItemKey={ProjectionsDialog.getProjectionKey}
+                         renderItem={ProjectionsDialog.renderProjectionItem}
+                         selectionMode={ListBoxSelectionMode.SINGLE}
+                         selection={this.state.projectionCode}
+                         onSelection={this.handleChangedProjectionSelection}/>
             </div>
         );
     }
-
-
-    private renderDialogFooter() {
-        if (!this.props.isOpen) {
-            return null;
-        }
-        return (
-            <div className={Classes.DIALOG_FOOTER}>
-                <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                    {this.renderDialogFooterActions()}
-                </div>
-            </div>
-        );
-    }
-
-    private renderDialogFooterActions() {
-        const hasSelection = !!this.state.projectionCode;
-        return [
-            <Button key={0} onClick={this.handleCancel}>Cancel</Button>,
-            <Button key={1} onClick={this.handleConfirm}
-                    disabled={!hasSelection}
-                    className="pt-intent-primary">OK</Button>
-        ];
-    }
-
 
     private static renderProjectionItem(projectionCode: string) {
         const projection = proj4.defs[projectionCode];
@@ -121,25 +103,6 @@ class ProjectionsDialog extends React.Component<IProjectionsDialogProps, IProjec
 
     private static getProjectionKey(projectionCode: string) {
         return projectionCode;
-    }
-
-    private handleChangedProjectionSelection(newSelection: string[]) {
-        console.log("newSelection: ", newSelection);
-        this.setState({projectionCode: newSelection && newSelection[0]});
-    }
-
-    private renderDialogContents() {
-        return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
-                <p>Select the variables to wish to add as a layer:</p>
-                <ListBox items={projections}
-                         getItemKey={ProjectionsDialog.getProjectionKey}
-                         renderItem={ProjectionsDialog.renderProjectionItem}
-                         selectionMode={ListBoxSelectionMode.SINGLE}
-                         selection={this.state.projectionCode}
-                         onSelection={this.handleChangedProjectionSelection}/>
-            </div>
-        );
     }
 }
 
@@ -168,5 +131,3 @@ function getProjections() {
 }
 
 const projections = getProjections();
-
-

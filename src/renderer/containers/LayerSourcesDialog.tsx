@@ -1,11 +1,11 @@
 import * as React from 'react';
-import {Dialog, Classes, Button} from "@blueprintjs/core";
 import {State, VariableState, ResourceState, LayerState, DialogState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ListBoxSelectionMode, ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
+import {ModalDialog} from "../components/ModalDialog";
 
 class LayerVariable {
     resource: ResourceState;
@@ -33,84 +33,70 @@ function mapStateToProps(state: State): ILayerSourcesDialogProps {
 }
 
 
-
 class LayerSourcesDialog extends React.Component<ILayerSourcesDialogProps, ILayerSourcesDialogState> {
     static readonly DIALOG_ID = 'layerSourcesDialog';
     static readonly DIALOG_TITLE = 'Add Layer';
 
     constructor(props: ILayerSourcesDialogProps) {
         super(props);
-        this.handleConfirm = this.handleConfirm.bind(this);
-        this.handleCancel = this.handleCancel.bind(this);
+        this.onCancel = this.onCancel.bind(this);
+        this.onConfirm = this.onConfirm.bind(this);
+        this.canConfirm = this.canConfirm.bind(this);
         this.handleChangedVariableSelection = this.handleChangedVariableSelection.bind(this);
+        this.renderBody = this.renderBody.bind(this);
         this.state = {selectedIndices: null};
     }
 
-    private handleConfirm() {
-        this.props.dispatch(actions.updateDialogState(LayerSourcesDialog.DIALOG_ID, {isOpen: false}));
+    private onCancel() {
+        this.props.dispatch(actions.hideDialog(LayerSourcesDialog.DIALOG_ID));
+    }
+
+    private onConfirm() {
+        this.props.dispatch(actions.hideDialog(LayerSourcesDialog.DIALOG_ID));
         for (let index of this.state.selectedIndices) {
             const layerVariable = this.props.layerVariables[index];
             this.props.dispatch(actions.addVariableLayer(null, layerVariable.resource, layerVariable.variable));
         }
     }
 
-    private handleCancel() {
-        this.props.dispatch(actions.updateDialogState(LayerSourcesDialog.DIALOG_ID, {isOpen: false}));
+    private canConfirm(): boolean {
+        return !!this.state.selectedIndices && this.state.selectedIndices.length > 0;
+    }
+
+    private handleChangedVariableSelection(newSelection: number[]) {
+        this.setState({selectedIndices: newSelection.slice()});
     }
 
     render() {
         return (
-            <Dialog
+            <ModalDialog
                 isOpen={this.props.isOpen}
-                iconName="confirm"
-                onClose={this.handleCancel}
                 title={LayerSourcesDialog.DIALOG_TITLE}
-                autoFocus={true}
-                canEscapeKeyClose={true}
-                canOutsideClickClose={true}
-                enforceFocus={true}
-            >
-                {this.renderDialogBody()}
-                {this.renderDialogFooter()}
-            </Dialog>
+                iconName="layers"
+                onCancel={this.onCancel}
+                onConfirm={this.onConfirm}
+                canConfirm={this.canConfirm}
+                renderBody={this.renderBody}
+            />
         );
     }
 
-    private renderDialogBody() {
-        if (!this.props.isOpen) {
-            return null;
+    private renderBody() {
+        if (!this.props.layerVariables.length) {
+            return (<p>There are currently no variables that could be added as layers.</p>);
         }
         return (
-            <div className={Classes.DIALOG_BODY}>
-                {this.renderDialogContents()}
+            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+                <p>Select the variables to wish to add as a layer:</p>
+                <ListBox items={this.props.layerVariables}
+                         getItemKey={LayerSourcesDialog.getVariableItemKey}
+                         renderItem={LayerSourcesDialog.renderVariableItem}
+                         selectionMode={ListBoxSelectionMode.MULTIPLE}
+                         selection={this.state.selectedIndices}
+                         onSelection={this.handleChangedVariableSelection}/>
             </div>
         );
     }
-
-
-    private renderDialogFooter() {
-        if (!this.props.isOpen) {
-            return null;
-        }
-        return (
-            <div className={Classes.DIALOG_FOOTER}>
-                <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                    {this.renderDialogFooterActions()}
-                </div>
-            </div>
-        );
-    }
-
-    private renderDialogFooterActions() {
-        const hasSelection = this.state.selectedIndices && this.state.selectedIndices.length;
-        return [
-            <Button key={0} onClick={this.handleCancel}>Cancel</Button>,
-            <Button key={1} onClick={this.handleConfirm}
-                    disabled={!hasSelection}
-                    className="pt-intent-primary">OK</Button>
-        ];
-    }
-
 
     //noinspection JSUnusedLocalSymbols
     private static getVariableItemKey(variable: LayerVariable, index: number) {
@@ -130,29 +116,6 @@ class LayerSourcesDialog extends React.Component<ILayerSourcesDialogProps, ILaye
             </div>
         );
     }
-
-    private handleChangedVariableSelection(newSelection: number[]) {
-        console.log("newSelection: ", newSelection);
-        this.setState({selectedIndices: newSelection.slice()});
-    }
-
-    private renderDialogContents() {
-        if (!this.props.layerVariables.length) {
-            return (<p>There are currently no variables that could be added as layers.</p>);
-        }
-        return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
-                <p>Select the variables to wish to add as a layer:</p>
-                <ListBox items={this.props.layerVariables}
-                         getItemKey={LayerSourcesDialog.getVariableItemKey}
-                         renderItem={LayerSourcesDialog.renderVariableItem}
-                         selectionMode={ListBoxSelectionMode.MULTIPLE}
-                         selection={this.state.selectedIndices}
-                         onSelection={this.handleChangedVariableSelection}/>
-            </div>
-        );
-    }
-
 }
 
 export default connect(mapStateToProps)(LayerSourcesDialog);

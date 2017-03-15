@@ -1,6 +1,6 @@
 import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState,
-    LayerState, ColorMapCategoryState, ImageLayerState, ImageStatisticsState, DataSourceState,
+    LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, SessionState, BackendConfigState, VariableState, VariableImageLayerState, VariableVectorLayerState,
     VariableRefState
 } from "./state";
@@ -32,8 +32,16 @@ export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting'|'open'|
     return {type: SET_WEBAPI_STATUS, payload: {webAPIClient, webAPIStatus}};
 }
 
-export function updateDialogState(dialogId: string, dialogState: any) {
-    return {type: UPDATE_DIALOG_STATE, payload: {dialogId, dialogState}};
+export function updateDialogState(dialogId: string, ...dialogState) {
+    return {type: UPDATE_DIALOG_STATE, payload: {dialogId, dialogState: Object.assign({}, ...dialogState)}};
+}
+
+export function showDialog(dialogId: string) {
+    return updateDialogState(dialogId, {isOpen: true});
+}
+
+export function hideDialog(dialogId: string, dialogState?: any) {
+    return updateDialogState(dialogId, dialogState, {isOpen: false});
 }
 
 export function updateTaskState(jobId: number, taskState: TaskState) {
@@ -257,33 +265,27 @@ export function setDataSourceFilterExpr(dataSourceFilterExpr: string) {
     return updateControlState({dataSourceFilterExpr});
 }
 
-export function showOpenDatasetDialog(dataStoreId: string, dataSourceId: string, loadTimeInfo: boolean) {
+export function loadTemporalCoverage(dataStoreId: string, dataSourceId: string) {
     return (dispatch, getState) => {
-        dispatch(updateDialogState('openDataset', {isOpen: true, timeInfoLoading: loadTimeInfo}));
-        if (loadTimeInfo) {
 
-            function call(onProgress) {
-                return selectors.datasetAPISelector(getState()).getTemporalCoverage(dataStoreId, dataSourceId, onProgress);
-            }
-
-            function action(temporalCoverage) {
-                dispatch(updateDataSourceTemporalCoverage(dataStoreId, dataSourceId, temporalCoverage));
-            }
-
-            callAPI(dispatch, `Loading temporal coverage for ${dataSourceId}`, call, action);
+        function call(onProgress) {
+            return selectors.datasetAPISelector(getState()).getTemporalCoverage(dataStoreId, dataSourceId, onProgress);
         }
+
+        function action(temporalCoverage) {
+            dispatch(updateDataSourceTemporalCoverage(dataStoreId, dataSourceId, temporalCoverage));
+        }
+
+        callAPI(dispatch, `Loading temporal coverage for ${dataSourceId}`, call, action);
     };
 }
 
-export function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: string, temporalCoverage: NumberRange) {
+export function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: string, temporalCoverage: [string, string]|null) {
     return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
 }
 
-
-export function confirmOpenDatasetDialog(dataSourceId: string, args: any) {
+export function openDataset(dataSourceId: string, args: any) {
     return (dispatch, getState: () => State) => {
-
-        dispatch(updateDialogState('openDataset', {isOpen: false}));
 
         // TODO (forman): Handle case where action is called twice without completing the first.
         //                In this case the same resource name will be generated :(
@@ -306,10 +308,6 @@ export function confirmOpenDatasetDialog(dataSourceId: string, args: any) {
         dispatch(setWorkspaceResource(resName, opName, wrappedOpArgs,
             `Opening dataset "${resName}" from "${dataSourceId}"`));
     }
-}
-
-export function cancelOpenDatasetDialog() {
-    return updateDialogState('openDataset', {isOpen: false});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -349,9 +347,7 @@ export function setOperationFilterExpr(operationFilterExpr: string) {
 }
 
 export function showOperationStepDialog() {
-    return (dispatch) => {
-        dispatch(updateDialogState('operationStepDialog', {isOpen: true}));
-    };
+    return showDialog('operationStepDialog');
 }
 
 export function hideOperationStepDialog(inputAssignments?) {
@@ -360,7 +356,7 @@ export function hideOperationStepDialog(inputAssignments?) {
             const dialogState = getState().control.dialogs['operationStepDialog'];
             inputAssignments = Object.assign({}, dialogState.inputAssignments, inputAssignments)
         }
-        dispatch(updateDialogState('operationStepDialog', {isOpen: false, inputAssignments}));
+        dispatch(hideDialog('operationStepDialog', {inputAssignments}));
     };
 }
 
@@ -1028,11 +1024,11 @@ function updateColorMaps(colorMaps: Array<ColorMapCategoryState>) {
 // (User) Preferences actions
 
 export function showPreferencesDialog() {
-    return updateDialogState('preferencesDialog', {isOpen: true});
+    return showDialog('preferencesDialog');
 }
 
 export function hidePreferencesDialog() {
-    return updateDialogState('preferencesDialog', {isOpen: false});
+    return hideDialog('preferencesDialog');
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -64,7 +64,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     private handleResourceRenameButtonClicked() {
-        this.props.dispatch(actions.updateDialogState('resourceRenameDialog', {isOpen: true}));
+        this.props.dispatch(actions.showDialog('resourceRenameDialog'));
     }
 
     private static getResourceItemKey(resource: ResourceState) {

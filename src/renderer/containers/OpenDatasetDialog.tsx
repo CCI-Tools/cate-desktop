@@ -1,87 +1,139 @@
 import * as React from 'react';
-import {Dialog, Classes, Button, Tooltip, RangeSlider, NumberRange} from "@blueprintjs/core";
-import {DataSourceState, DialogState} from "../state";
+import {NumberRange} from "@blueprintjs/core";
+import {DataSourceState, DialogState, State} from "../state";
+import {TimeRange} from "../components/TimeRange";
+import {ModalDialog} from "../components/ModalDialog";
+import {formatMillisAsISODateString} from "../../common/format";
+import {Dispatch, connect} from "react-redux";
+import * as actions from "../actions";
+import * as selectors from "../selectors";
+
 
 interface IOpenDatasetDialogProps {
+    dispatch?: Dispatch<State>;
+    isOpen: boolean;
     dataSource: DataSourceState;
-    coveredTimeRange: NumberRange|null;
-    onConfirm: (dataSourceId: string, args: any) => void;
-    onCancel: () => void;
+    temporalCoverage: NumberRange|null;
+    timeRange: NumberRange | null;
+    protocolName: string|null;
 }
 
-export interface IOpenDatasetDialogState extends DialogState {
-    timeRange: NumberRange;
+interface IOpenDatasetDialogState extends DialogState {
+    timeRange: NumberRange | null;
     protocolName: string;
 }
 
-export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDatasetDialogState> {
-    static readonly DIALOG_ID = 'openDataset';
-    readonly MILLIS_A_DAY = 1000 * 60 * 60 * 24;
+function mapStateToProps(state: State): IOpenDatasetDialogProps {
+    let dialogState = selectors.dialogStateSelector(OpenDatasetDialog.DIALOG_ID)(state);
+
+    let temporalCoverage: any = selectors.selectedDataSourceTemporalCoverageSelector(state);
+    console.log('temporalCoverage =', temporalCoverage);
+    if (temporalCoverage) {
+        let ms1 = Date.parse(temporalCoverage[0]);
+        let ms2 = Date.parse(temporalCoverage[1]);
+        temporalCoverage = [ms1, ms2];
+    }
+
+    let timeRange: any = (dialogState as any).timeRange;
+    if (!timeRange) {
+        timeRange = temporalCoverage;
+    }
+
+    const dataSource = selectors.selectedDataSourceSelector(state);
+
+    let protocolName = null;
+    if (dataSource.meta_info) {
+        const protocols = dataSource.meta_info.protocols;
+        if (protocols && protocols.length > 1) {
+            protocolName = protocols[0];
+        }
+    }
+
+    return {
+        isOpen: dialogState.isOpen,
+        temporalCoverage,
+        timeRange,
+        dataSource,
+        protocolName,
+    };
+}
+
+class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDatasetDialogState> {
+    static readonly DIALOG_ID = 'openDatasetDialog';
 
     constructor(props: IOpenDatasetDialogProps) {
         super(props);
-        this.state = {
-            isOpen: true,
-            ... OpenDatasetDialog.propsToState(this.props)
-        };
-        this.handleConfirm = this.handleConfirm.bind(this);
-        this.handleCancel = this.handleCancel.bind(this);
-        this.updateRange = this.updateRange.bind(this);
-        this.handleProtocolSelected = this.handleProtocolSelected.bind(this);
+        this.onCancel = this.onCancel.bind(this);
+        this.onConfirm = this.onConfirm.bind(this);
+        this.canConfirm = this.canConfirm.bind(this);
+        this.renderBody = this.renderBody.bind(this);
+        this.onTimeRangeChange = this.onTimeRangeChange.bind(this);
+        this.onProtocolChange = this.onProtocolChange.bind(this);
+        this.state = OpenDatasetDialog.mapPropsToState(this.props);
     }
 
-    componentWillReceiveProps(nextProps: IOpenDatasetDialogProps, nextContext: any) {
-        this.setState(OpenDatasetDialog.propsToState(nextProps));
+    componentWillReceiveProps(nextProps: IOpenDatasetDialogProps) {
+        this.setState(OpenDatasetDialog.mapPropsToState(nextProps));
     }
 
-    private static propsToState(props: IOpenDatasetDialogProps): IOpenDatasetDialogState {
-
-        let protocolName = null;
-        if (props.dataSource.meta_info) {
-            const protocols = props.dataSource.meta_info.protocols;
-            if (protocols && protocols.length > 1) {
-                protocolName = protocols[0];
-            }
-        }
-        return {timeRange: props.coveredTimeRange, protocolName: protocolName};
+    private static mapPropsToState(props: IOpenDatasetDialogProps): IOpenDatasetDialogState {
+        return {timeRange: props.timeRange, protocolName: props.protocolName};
     }
 
-    private handleConfirm() {
-        this.props.onConfirm(this.props.dataSource.id, this.assembleArguments());
+    private onCancel() {
+        this.props.dispatch(actions.hideDialog(OpenDatasetDialog.DIALOG_ID));
     }
 
-    private assembleArguments() {
-        let args = {};
-        if (this.state.timeRange[0] && this.state.timeRange[1]) {
-            args = {
-                start_date: `${OpenDatasetDialog.formatMillisToDate(this.state.timeRange[0])}`,
-                end_date: `${OpenDatasetDialog.formatMillisToDate(this.state.timeRange[1])}`,
-            }
-        }
-        if (this.state.protocolName != null) {
-            args = {
-                protocol: this.state.protocolName,
-                ...args
-            }
-        }
-        return args;
+    private onConfirm() {
+        this.props.dispatch(actions.hideDialog(OpenDatasetDialog.DIALOG_ID, this.state));
+        this.props.dispatch(actions.openDataset(this.props.dataSource.id, this.assembleArguments()));
     }
 
-    private static formatMillisToDate(dateMillis: number) {
-        return new Date(dateMillis).toISOString().slice(0, 10)
+    private canConfirm(): boolean {
+        return true;
     }
 
-    private handleCancel() {
-        this.props.onCancel();
-    }
-
-    private updateRange(timeRange: NumberRange) {
+    private onTimeRangeChange(timeRange: NumberRange) {
         this.setState({timeRange} as IOpenDatasetDialogState);
     }
 
-    private handleProtocolSelected(event) {
+    private onProtocolChange(event) {
         const protocolName = event.target.value;
         this.setState({protocolName} as IOpenDatasetDialogState);
+    }
+
+    render() {
+        let isOpen = this.props.isOpen;
+        if (!isOpen) {
+            return null;
+        }
+        return (
+            <ModalDialog
+                isOpen={isOpen}
+                title="Open Dataset"
+                iconName="database"
+                confirmTitle="Open"
+                confirmIconName="folder-shared-open"
+                confirmTooltip="Opens the dataset."
+                onCancel={this.onCancel}
+                onConfirm={this.onConfirm}
+                canConfirm={this.canConfirm}
+                renderBody={this.renderBody}
+            />);
+    }
+
+    private renderBody() {
+        return (
+            <div>
+                <p>You are about to open a dataset from data source <strong>{this.props.dataSource.name}</strong>.</p>
+
+                <p style={{marginTop: '1em'}}>Time range:</p>
+                <TimeRange coverage={this.props.temporalCoverage}
+                           value={this.state.timeRange}
+                           onChange={this.onTimeRangeChange}/>
+                {this.renderProtocolSelector()}
+            </div>
+        );
     }
 
     private renderProtocolSelector() {
@@ -94,10 +146,10 @@ export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, 
         }
         return (
             <label className="pt-label pt-inline">
-                Protocols:
+                Select a protocol:
                 <div className="pt-select" style={{padding: '0.2em'}}>
                     <select value={this.state.protocolName}
-                            onChange={this.handleProtocolSelected}>
+                            onChange={this.onProtocolChange}>
                         {options}
                     </select>
                 </div>
@@ -105,75 +157,20 @@ export class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, 
         );
     }
 
-    private renderTimeSelector() {
-        if (this.props.coveredTimeRange) {
-            const startMillis = this.props.coveredTimeRange[0];
-            const endMillis = this.props.coveredTimeRange[1];
-            if (startMillis && endMillis) {
-                const stepSize = (endMillis - startMillis) / 4;
-                return (
-                    <div>
-                        <p>Select a time range:</p>
-                        <div style={{ width: "100%", padding: 10}}>
-                            <RangeSlider
-                                min={startMillis}
-                                max={endMillis}
-                                stepSize={this.MILLIS_A_DAY}
-                                labelStepSize={stepSize}
-                                onChange={this.updateRange}
-                                value={this.state.timeRange}
-                                renderLabel={OpenDatasetDialog.formatMillisToDate}
-                            />
-                        </div>
-                    </div>
-                );
-            } else {
-                return (
-                    <div style={{ width: "100%", padding: 10}}>
-                        No time information available.
-                    </div>
-                );
+    private assembleArguments() {
+        let args = {};
+        if (this.state.timeRange[0] && this.state.timeRange[1]) {
+            args = {
+                start_date: formatMillisAsISODateString(this.state.timeRange[0]),
+                end_date: formatMillisAsISODateString(this.state.timeRange[1]),
             }
-        } else {
-            return (
-                <div style={{ width: "100%", padding: 10}}>
-                    Loading time coverage...
-                </div>
-            );
         }
-    }
-
-    render() {
-        return (
-            <Dialog
-                isOpen={this.state.isOpen}
-                iconName="database"
-                onClose={this.handleCancel}
-                title="Open Dataset"
-                autoFocus={true}
-                canEscapeKeyClose={true}
-                canOutsideClickClose={true}
-                enforceFocus={true}
-            >
-                <div className={Classes.DIALOG_BODY}>
-                    <p>You are about to open a dataset from data source</p>
-                    <p><strong>{this.props.dataSource.name}</strong>.</p>
-                    {this.renderTimeSelector()}
-                    {this.renderProtocolSelector()}
-                </div>
-                <div className={Classes.DIALOG_FOOTER}>
-                    <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                        <Button onClick={this.handleCancel}>Cancel</Button>
-                        <Tooltip content="Opens the dataset." inline>
-                            <Button className="pt-intent-primary"
-                                    onClick={this.handleConfirm}
-                                    iconName="folder-shared-open"
-                                    disabled={!this.props.coveredTimeRange}
-                            >Open</Button>
-                        </Tooltip>
-                    </div>
-                </div>
-            </Dialog>
-        );
+        if (this.state.protocolName != null) {
+            args = {protocol: this.state.protocolName, ...args};
+        }
+        return args;
     }
 }
+
+export default connect(mapStateToProps)(OpenDatasetDialog);
+

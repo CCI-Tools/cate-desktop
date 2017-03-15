@@ -4,6 +4,7 @@ import {State, ResourceState, DialogState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
+import {ModalDialog} from "../components/ModalDialog";
 
 interface IResourceRenameDialogProps extends DialogState {
     dispatch?: any;
@@ -29,26 +30,35 @@ class ResourceRenameDialog extends React.Component<IResourceRenameDialogProps, I
 
     constructor(props: IResourceRenameDialogProps) {
         super(props);
-        this.handleConfirm = this.handleConfirm.bind(this);
-        this.handleCancel = this.handleCancel.bind(this);
-        this.state = ResourceRenameDialog.getStateFromProps(props);
+        this.onCancel = this.onCancel.bind(this);
+        this.onConfirm = this.onConfirm.bind(this);
+        this.canConfirm = this.canConfirm.bind(this);
+        this.renderBody = this.renderBody.bind(this);
+        this.state = ResourceRenameDialog.mapPropsToState(props);
     }
 
-    private static getStateFromProps(props: IResourceRenameDialogProps) {
+    private static mapPropsToState(props: IResourceRenameDialogProps) {
         return {newName: props.selectedResource ? props.selectedResource.name : ''};
     }
 
     componentWillReceiveProps(nextProps: IResourceRenameDialogProps): void {
-        this.setState(ResourceRenameDialog.getStateFromProps(nextProps));
+        this.setState(ResourceRenameDialog.mapPropsToState(nextProps));
     }
 
-    private handleConfirm() {
-        this.props.dispatch(actions.updateDialogState(ResourceRenameDialog.DIALOG_ID, {isOpen: false}));
+    private onConfirm() {
+        this.props.dispatch(actions.hideDialog(ResourceRenameDialog.DIALOG_ID));
         this.props.dispatch(actions.renameWorkspaceResource(this.props.selectedResource.name, this.state.newName));
     }
 
-    private handleCancel() {
-        this.props.dispatch(actions.updateDialogState(ResourceRenameDialog.DIALOG_ID, {isOpen: false}));
+    private onCancel() {
+        this.props.dispatch(actions.hideDialog(ResourceRenameDialog.DIALOG_ID));
+    }
+
+    private canConfirm(): boolean {
+        const newName = this.state.newName ? this.state.newName.trim() : '';
+        return newName !== ''
+            && newName !== this.props.selectedResource.name
+            && !this.props.resources.find(r => r.name === newName);
     }
 
     render() {
@@ -56,61 +66,19 @@ class ResourceRenameDialog extends React.Component<IResourceRenameDialogProps, I
             return null;
         }
         return (
-            <Dialog
+            <ModalDialog
                 isOpen={this.props.isOpen}
-                iconName="confirm"
-                onClose={this.handleCancel}
                 title={ResourceRenameDialog.DIALOG_TITLE}
-                autoFocus={true}
-                canEscapeKeyClose={true}
-                canOutsideClickClose={true}
-                enforceFocus={true}
-            >
-                {this.renderDialogBody()}
-                {this.renderDialogFooter()}
-            </Dialog>
+                iconName="edit"
+                onCancel={this.onCancel}
+                onConfirm={this.onConfirm}
+                canConfirm={this.canConfirm}
+                renderBody={this.renderBody}
+            />
         );
     }
 
-    private renderDialogBody() {
-        if (!this.props.isOpen) {
-            return null;
-        }
-        return (
-            <div className={Classes.DIALOG_BODY}>
-                {this.renderDialogContents()}
-            </div>
-        );
-    }
-
-
-    private renderDialogFooter() {
-        if (!this.props.isOpen) {
-            return null;
-        }
-        return (
-            <div className={Classes.DIALOG_FOOTER}>
-                <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                    {this.renderDialogFooterActions()}
-                </div>
-            </div>
-        );
-    }
-
-    private renderDialogFooterActions() {
-        const newName = this.state.newName ? this.state.newName.trim() : '';
-        const isValidNewName = newName !== ''
-            && newName !== this.props.selectedResource.name
-            && !this.props.resources.find(r => r.name === newName);
-        return [
-            <Button key={0} onClick={this.handleCancel}>Cancel</Button>,
-            <Button key={1} onClick={this.handleConfirm}
-                    disabled={!isValidNewName}
-                    className="pt-intent-primary">OK</Button>
-        ];
-    }
-
-    private renderDialogContents() {
+    private renderBody() {
         return (
             <div style={{width: '100%', height: '100%', overflow: 'auto', padding: '1em'}}>
                 <label className="pt-label">
@@ -125,7 +93,6 @@ class ResourceRenameDialog extends React.Component<IResourceRenameDialogProps, I
             </div>
         );
     }
-
 }
 
 export default connect(mapStateToProps)(ResourceRenameDialog);

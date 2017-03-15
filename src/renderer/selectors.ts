@@ -60,7 +60,8 @@ export const colorMapsAPISelector = createSelector(
 // Dialog state selectors
 
 const DIALOG_STATE_SELECTORS: {[dialogId: string]: Selector<State, DialogState>} = {};
-const dialogStatesSelector = (state: State): {[dialogId: string]: DialogState} => state.control.dialogs;
+export const dialogStatesSelector = (state: State): {[dialogId: string]: DialogState} => state.control.dialogs;
+
 export const dialogStateSelector = (dialogId: string) => {
     if (!DIALOG_STATE_SELECTORS[dialogId]) {
         DIALOG_STATE_SELECTORS[dialogId] = createSelector<State, DialogState, {[dialogId: string]: DialogState}>(
@@ -186,6 +187,13 @@ export const selectedDataSourceSelector = createSelector<State, DataSourceState|
             return selectedDataSources.find(dataSource => dataSource.id === selectedDataSourceId);
         }
         return null;
+    }
+);
+
+export const selectedDataSourceTemporalCoverageSelector = createSelector<State, [string, string]|null, DataSourceState|null>(
+    selectedDataSourceSelector,
+    (selectedDataSource: DataSourceState) => {
+        return selectedDataSource ? selectedDataSource.temporalCoverage : null;
     }
 );
 

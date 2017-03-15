@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Dialog, Classes, Button, TabPanel, Tab, TabList, Tabs, Switch} from "@blueprintjs/core";
+import {Button, TabPanel, Tab, TabList, Tabs, Switch} from "@blueprintjs/core";
 import {State, SessionState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
@@ -7,6 +7,7 @@ import * as selectors from "../selectors";
 import {TextField} from "../components/TextField";
 import {OpenDialogProperty} from "../actions";
 import * as deepEqual from 'deep-equal';
+import {ModalDialog} from "../components/ModalDialog";
 
 interface IPreferencesDialogProps {
     dispatch?: any;
@@ -21,7 +22,6 @@ function mapStateToProps(state: State): IPreferencesDialogProps {
     };
 }
 
-// TODO (forman): add validation of preferences changes
 
 class PreferencesDialog extends React.Component<IPreferencesDialogProps, SessionState> {
     static readonly DIALOG_ID = 'preferencesDialog';
@@ -29,8 +29,10 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
 
     constructor(props: IPreferencesDialogProps) {
         super(props);
-        this.handleConfirm = this.handleConfirm.bind(this);
-        this.handleCancel = this.handleCancel.bind(this);
+        this.onConfirm = this.onConfirm.bind(this);
+        this.onCancel = this.onCancel.bind(this);
+        this.canConfirm = this.canConfirm.bind(this);
+        this.renderBody = this.renderBody.bind(this);
         this.state = props.preferences;
     }
 
@@ -38,7 +40,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
         this.setState(nextProps.preferences);
     }
 
-    private handleConfirm() {
+    private onConfirm() {
         this.props.dispatch(actions.hidePreferencesDialog());
         if (!deepEqual(this.props.preferences, this.state)) {
             const backendConfig = this.state.backendConfig;
@@ -59,63 +61,44 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
         }
     }
 
-    private handleCancel() {
+    private onCancel() {
         this.props.dispatch(actions.hidePreferencesDialog());
+    }
+
+    //noinspection JSMethodCanBeStatic
+    private canConfirm() {
+        // TODO (forman): add validation of preferences changes
+        return true;
     }
 
     render() {
         return (
-            <Dialog
+            <ModalDialog
                 isOpen={this.props.isOpen}
-                iconName="confirm"
-                onClose={this.handleCancel}
                 title={PreferencesDialog.DIALOG_TITLE}
-                autoFocus={true}
-                canEscapeKeyClose={true}
-                canOutsideClickClose={true}
-                enforceFocus={true}
-            >
-                {this.renderDialogBody()}
-                {this.renderDialogFooter()}
-            </Dialog>
+                iconName="confirm"
+                onCancel={this.onCancel}
+                onConfirm={this.onConfirm}
+                canConfirm={this.canConfirm}
+                renderBody={this.renderBody}
+            />
         );
     }
 
-    private renderDialogFooter() {
-        if (!this.props.isOpen) {
-            return null;
-        }
+    private renderBody() {
         return (
-            <div className={Classes.DIALOG_FOOTER}>
-                <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                    <Button onClick={this.handleCancel}>Cancel</Button>
-                    <Button className="pt-intent-primary"
-                            onClick={this.handleConfirm}
-                    >OK</Button>
-                </div>
-            </div>
-        );
-    }
-
-    private renderDialogBody() {
-        if (!this.props.isOpen) {
-            return null;
-        }
-        return (
-            <div className={Classes.DIALOG_BODY}>
-                <Tabs>
-                    <TabList>
-                        <Tab>General</Tab>
-                        <Tab>Data Management</Tab>
-                    </TabList>
-                    <TabPanel>
-                        {this.renderGeneralPanel()}
-                    </TabPanel>
-                    <TabPanel>
-                        {this.renderDataManagementPanel()}
-                    </TabPanel>
-                </Tabs>
-            </div>
+            <Tabs>
+                <TabList>
+                    <Tab>General</Tab>
+                    <Tab>Data Management</Tab>
+                </TabList>
+                <TabPanel>
+                    {this.renderGeneralPanel()}
+                </TabPanel>
+                <TabPanel>
+                    {this.renderDataManagementPanel()}
+                </TabPanel>
+            </Tabs>
         );
     }
 
