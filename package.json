@@ -29,15 +29,16 @@
     "climate",
     "science"
   ],
-  "author": "Norman Fomferra (Brockmann Consult GmbH)",
+  "author": "Norman Fomferra, Marco Zühlke (Brockmann Consult GmbH)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/CCI-Tools/cate-desktop/issues"
   },
   "homepage": "https://github.com/CCI-Tools/cate-desktop",
   "devDependencies": {
-    "@blueprintjs/core": "^1.9",
-    "@blueprintjs/table": "^1.6",
+    "@blueprintjs/core": "^1.12",
+    "@blueprintjs/datetime": "^1.10",
+    "@blueprintjs/table": "^1.9",
     "@types/chai": "^3.4",
     "@types/chai-as-promised": "^0.0",
     "@types/chai-enzyme": "^0.5",
