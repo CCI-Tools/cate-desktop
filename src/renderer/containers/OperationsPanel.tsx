@@ -4,7 +4,7 @@ import {
     Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
     PopoverInteractionKind, Button
 } from "@blueprintjs/core";
-import {ExpansionPanel} from '../components/ExpansionPanel';
+// import {ExpansionPanel} from '../components/ExpansionPanel';
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
@@ -13,6 +13,7 @@ import OperationStepDialog from "./OperationStepDialog";
 import {State, OperationState, WorkspaceState} from "../state";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
+import {Panel} from "../components/Panel";
 
 
 interface IOperationsPanelProps {
@@ -97,6 +98,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
     render() {
         const operations = this.props.operations;
+        let body;
         if (operations && operations.length) {
             const selectedOperation = this.props.selectedOperation;
             const operationFilterExpr = this.props.operationFilterExpr;
@@ -129,28 +131,23 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                 </div>
             );
 
-            return (
-                <ExpansionPanel icon="pt-icon-function" text="Operations" isExpanded={true} defaultHeight={300}>
-                    {operationFilterExprInput}
-                    {operationTagFilterPanel}
-                    <ContentWithDetailsPanel showDetails={this.props.showOperationDetails}
-                                             onShowDetailsChange={this.handleShowDetailsChanged}
-                                             isSplitPanel={true}
-                                             initialContentHeight={200}
-                                             actionComponent={actionComponent}>
-                        {operationsList}
-                        {operationDetailsCard}
-                    </ContentWithDetailsPanel>
-                </ExpansionPanel>
-            );
+            body = (<div>
+                {operationFilterExprInput}
+                {operationTagFilterPanel}
+                <ContentWithDetailsPanel showDetails={this.props.showOperationDetails}
+                                         onShowDetailsChange={this.handleShowDetailsChanged}
+                                         isSplitPanel={true}
+                                         initialContentHeight={200}
+                                         actionComponent={actionComponent}>
+                    {operationsList}
+                    {operationDetailsCard}
+                </ContentWithDetailsPanel>
+            </div>);
         } else {
-            const noOperationsMessage = this.renderNoOperationsMessage();
-            return (
-                <ExpansionPanel icon="pt-icon-function" text="Operations" isExpanded={true} defaultHeight={300}>
-                    {noOperationsMessage}
-                </ExpansionPanel>
-            );
+            body = this.renderNoOperationsMessage();
         }
+        //return (<Panel id="operationsPanel" iconName="pt-icon-function" title="Operations" body={body}/>);
+        return body;
     }
 
     private renderOperationsList() {

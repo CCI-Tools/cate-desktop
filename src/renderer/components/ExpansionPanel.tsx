@@ -98,7 +98,7 @@ export class ExpansionPanel extends React.PureComponent<IExpansionPanelProps,IEx
     }
 
     handleSplitterDelta(deltaY: number) {
-        this.setState((state, props) => {
+        this.setState((state) => {
             let newHeight: number = (state.height || 0) + deltaY;
             if (newHeight < 0) {
                 newHeight = 0;
@@ -138,8 +138,6 @@ export class ExpansionPanel extends React.PureComponent<IExpansionPanelProps,IEx
             'opened': this.state.isOpen,
             'closed': !this.state.isOpen,
         });
-
-        const headerItemStyle = {margin: '0.2em'};
 
         const menuIconName = "pt-icon-properties";
         //const expandIconName = this.state.isExpanded ? "pt-icon-chevron-up" : "pt-icon-chevron-down";

@@ -11,6 +11,8 @@ import VariablePanel from "./VariablesPanel";
 import TaskPanel from "./TasksPanel";
 import LayersPanel from "./LayersPanel";
 import PreferencesDialog from "./PreferencesDialog";
+import {PanelContainer} from "../components/PanelContainer";
+import {Panel} from "../components/Panel";
 
 // TODO (forman): refactor this class, it is still prototype code!
 
@@ -39,36 +41,10 @@ export function ApplicationPage(props) {
                 {/*<NavBarExample/>*/}
             </HGLHeader>
             <HGLMidsection leftWidth={240} rightWidth={300}>
-                <Tabs>
-                    <TabList>
-                        <Tab>Primary</Tab>
-                        <Tab>Secondary</Tab>
-                    </TabList>
-                    <TabPanel>
-                        <div style={leftStyle}>
-                            <DataSourcesPanel/>
-                            <OperationsPanel/>
-                        </div>
-                    </TabPanel>
-                    <TabPanel>
-                        <div style={leftStyle}>
-                            <CollapseExample1/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample2/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                            <CollapseExample2/>
-                            <CollapseExample2/>
-                            <CollapseExample1/>
-                            <CollapseExample1/>
-                        </div>
-                    </TabPanel>
-                </Tabs>
+                <PanelContainer selectedPanelId="dataSourcesPanel">
+                    <Panel id="dataSourcesPanel" iconName="pt-icon-database" title="Data Sources" body={<DataSourcesPanel/>}/>
+                    <Panel id="operationsPanel" iconName="pt-icon-function" title="Operations" body={<OperationsPanel/>}/>
+                </PanelContainer>
                 <Tabs>
                     <TabList>
                         {/* TODO (forman): implement a component "CloseableTab" which we will use here */}

@@ -1,6 +1,6 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {ExpansionPanel} from "../components/ExpansionPanel";
+//import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, DataStoreState, DataSourceState} from "../state";
 import {Tabs, TabList, Tab, TabPanel, Button, InputGroup, Classes, Tag} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
@@ -10,6 +10,7 @@ import OpenDatasetDialog from "./OpenDatasetDialog";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
+import {Panel} from "../components/Panel";
 
 
 interface IDataSourcesPanelProps {
@@ -99,6 +100,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
     render() {
         const hasDataStores = this.props.dataStores && this.props.dataStores.length;
         const hasDataSources = this.props.selectedDataSources && this.props.selectedDataSources.length;
+        let body;
         if (hasDataStores && hasDataSources) {
             const canDownload = this.props.selectedDataStore && this.props.selectedDataStore.id !== 'local';
             const canOpen = this.props.selectedDataSource && this.props.hasWorkspace;
@@ -118,36 +120,30 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                 </div>
             );
 
-            return (
-                <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
-                    {this.renderDataStoreSelector()}
-                    {this.renderDataSourceFilterExprInput()}
-                    <ContentWithDetailsPanel showDetails={this.props.showDataSourceDetails}
-                                             onShowDetailsChange={this.handleShowDetailsChanged}
-                                             isSplitPanel={true}
-                                             initialContentHeight={200}
-                                             actionComponent={actionComponent}>
-                        <DataSourcesList dataSources={this.props.filteredDataSources}
-                                         selectedDataSourceId={this.props.selectedDataSource ? this.props.selectedDataSource.id : null}
-                                         setSelectedDataSourceId={this.props.setSelectedDataSourceId}/>
-                        <DataSourceDetails dataSource={this.props.selectedDataSource}/>
-                    </ContentWithDetailsPanel>
-                </ExpansionPanel>
-            );
+            body = <div>
+                {this.renderDataStoreSelector()}
+                {this.renderDataSourceFilterExprInput()}
+                <ContentWithDetailsPanel showDetails={this.props.showDataSourceDetails}
+                                         onShowDetailsChange={this.handleShowDetailsChanged}
+                                         isSplitPanel={true}
+                                         initialContentHeight={200}
+                                         actionComponent={actionComponent}>
+                    <DataSourcesList dataSources={this.props.filteredDataSources}
+                                     selectedDataSourceId={this.props.selectedDataSource ? this.props.selectedDataSource.id : null}
+                                     setSelectedDataSourceId={this.props.setSelectedDataSourceId}/>
+                    <DataSourceDetails dataSource={this.props.selectedDataSource}/>
+                </ContentWithDetailsPanel>
+            </div>;
         } else if (hasDataStores) {
-            return (
-                <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
-                    {this.renderDataStoreSelector()}
-                    {this.renderNoDataSourcesMessage()}
-                </ExpansionPanel>
-            );
+            body = <div>
+                {this.renderDataStoreSelector()}
+                {this.renderNoDataSourcesMessage()}
+            </div>;
         } else {
-            return (
-                <ExpansionPanel icon="pt-icon-database" text="Data Sources" isExpanded={true} defaultHeight={400}>
-                    {this.renderNoDataStoreMessage()}
-                </ExpansionPanel>
-            );
+            body = this.renderNoDataStoreMessage();
         }
+        // return (<Panel id="dataSourcesPanel" iconName="pt-icon-database" title="Data Sources" body={body}/>);
+        return body;
     }
 
     private renderDataSourceFilterExprInput() {

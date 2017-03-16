@@ -101,7 +101,7 @@ input, button, textarea, :focus {
     margin: 0;
     /* blueprint's @dark-grey1 */
     border: 1px solid #182026;
-    /* blueprint's @dark-grey3 */
+    /* blueprint's @dark-grey3, the standard dark theme color */
     background-color: #293742;
 }
 
@@ -123,6 +123,28 @@ ul.cate-list-box li.cate-selected {
     background-color: rgba(128, 128, 255, 0.6);
 }
 
+
+.cate-panel-bar {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    border: none;
+    /* blueprint's @dark-grey2 */
+    background-color: #202B33;
+}
+
+.cate-panel-bar li {
+    padding: 0.2em
+}
+
+.cate-panel-bar li:last-child {
+    padding: 0.2em
+}
+
+ul.cate-panel-bar li.cate-selected {
+    /* blueprint's @dark-grey3, the standard dark theme color */
+    background-color: #293742;
+}
 
 .cate-split-pane-hor {
     width: 100%;
