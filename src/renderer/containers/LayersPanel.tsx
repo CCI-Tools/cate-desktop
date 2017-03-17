@@ -208,8 +208,20 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     }
 
     render() {
+        // return (
+        //     <ExpansionPanel icon="pt-icon-layers" text="Layers" isExpanded={true} defaultHeight={300}>
+        //         <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
+        //                                  onShowDetailsChange={this.handleShowDetailsChanged}
+        //                                  isSplitPanel={true}
+        //                                  initialContentHeight={200}
+        //                                  actionComponent={this.renderActionButtonRow()}>
+        //             {this.renderLayersList()}
+        //             {this.renderLayerDetailsCard()}
+        //         </ContentWithDetailsPanel>
+        //     </ExpansionPanel>
+        // );
         return (
-            <ExpansionPanel icon="pt-icon-layers" text="Layers" isExpanded={true} defaultHeight={300}>
+            <div>
                 <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
                                          onShowDetailsChange={this.handleShowDetailsChanged}
                                          isSplitPanel={true}
@@ -218,7 +230,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                     {this.renderLayersList()}
                     {this.renderLayerDetailsCard()}
                 </ContentWithDetailsPanel>
-            </ExpansionPanel>
+            </div>
         );
     }
 

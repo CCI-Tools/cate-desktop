@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {MenuItem, MenuDivider, Menu} from "@blueprintjs/core";
 
 
 export interface IPanelProps {
@@ -27,3 +28,4 @@ export class Panel extends React.PureComponent<IPanelProps, any> {
         return null;
     }
 }
+

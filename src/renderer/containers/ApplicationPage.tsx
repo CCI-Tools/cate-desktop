@@ -3,7 +3,6 @@ import {Classes, ITreeNode, Tooltip, Tree, Tab, TabList, TabPanel, Tabs} from "@
 import {ExpansionPanel} from '../components/ExpansionPanel';
 import GlobeView from './GlobeView'
 import MapView from "./MapView";
-import {HGLContainer, HGLHeader, HGLMidsection, HGLFooter} from "../components/hgl";
 import DataSourcesPanel from "./DataSourcesPanel";
 import OperationsPanel from "./OperationsPanel";
 import WorkspacePanel from "./WorkspacePanel";
@@ -19,16 +18,6 @@ import {Panel} from "../components/Panel";
 //noinspection JSUnusedLocalSymbols
 export function ApplicationPage(props) {
 
-    const leftStyle = {
-        width: "100%",
-        height: "100%",
-        overflow: "auto",
-    };
-    const rightStyle = {
-        width: "100%",
-        height: "100%",
-        overflow: "auto",
-    };
     const centerStyle = {
         width: "100%",
         height: "100%",
@@ -36,82 +25,77 @@ export function ApplicationPage(props) {
     };
 
     return (
-        <HGLContainer>
-            <HGLHeader>
+        <div style={{display: "flex", flexFlow: "column nowrap", width: "100%", height: "100%", }}>
+            <div style={{flex: "none", padding: "0 4px 0 4px;"}}>
                 {/*<NavBarExample/>*/}
-            </HGLHeader>
-            <HGLMidsection leftWidth={240} rightWidth={300}>
-                <PanelContainer selectedPanelId="dataSourcesPanel">
-                    <Panel id="dataSourcesPanel" iconName="pt-icon-database" title="Data Sources" body={<DataSourcesPanel/>}/>
-                    <Panel id="operationsPanel" iconName="pt-icon-function" title="Operations" body={<OperationsPanel/>}/>
+            </div>
+            <div style={{flex: "auto", padding: 0, display:"flex", flexFlow: "row nowrap"}}>
+                <PanelContainer position="left" selectedPanelId="dataSources">
+                    <Panel id="dataSources" iconName="pt-icon-database" title="Data Sources"
+                           body={<DataSourcesPanel/>}/>
+                    <Panel id="operations" iconName="pt-icon-function" title="Operations"
+                           body={<OperationsPanel/>}/>
+                    <Panel id="workspace" iconName="pt-icon-folder-close" title="Workspace"
+                           body={<WorkspacePanel/>}/>
+                    <Panel id="variables" iconName="pt-icon-variable" title="Variables"
+                           body={<VariablePanel/>}/>
                 </PanelContainer>
-                <Tabs>
-                    <TabList>
-                        {/* TODO (forman): implement a component "CloseableTab" which we will use here */}
-                        <Tab>
-                            <TabHeader icon="pt-icon-globe" text="3D Globe"/>
-                        </Tab>
-                        <Tab>
-                            <TabHeader icon="pt-icon-map" text="2D Map"/>
-                        </Tab>
-                        <Tab>
-                            <TabHeader icon="pt-icon-media" text="Image"/>
-                        </Tab>
-                        <Tab>
-                            <TabHeader icon="pt-icon-info-sign" text="Info"/>
-                        </Tab>
-                    </TabList>
+                <div style={{flex:"auto", maxHeight: "100%"}}>
+                    <Tabs>
+                        <TabList>
+                            {/* TODO (forman): implement a component "CloseableTab" which we will use here */}
+                            <Tab>
+                                <TabHeader icon="pt-icon-globe" text="3D Globe"/>
+                            </Tab>
+                            <Tab>
+                                <TabHeader icon="pt-icon-map" text="2D Map"/>
+                            </Tab>
+                            <Tab>
+                                <TabHeader icon="pt-icon-media" text="Image"/>
+                            </Tab>
+                            <Tab>
+                                <TabHeader icon="pt-icon-info-sign" text="Info"/>
+                            </Tab>
+                        </TabList>
 
-                    <TabPanel>
-                        <GlobeView/>
-                    </TabPanel>
+                        <TabPanel>
+                            <GlobeView/>
+                        </TabPanel>
 
-                    <TabPanel>
-                        <MapView/>
-                    </TabPanel>
+                        <TabPanel>
+                            <MapView/>
+                        </TabPanel>
 
-                    <TabPanel>
-                        <div style={centerStyle}>
-                            <img src="resources/SST.png"/>
-                        </div>
-                    </TabPanel>
+                        <TabPanel>
+                            <div style={centerStyle}>
+                                <img src="resources/SST.png"/>
+                            </div>
+                        </TabPanel>
 
-                    <TabPanel>
-                        <div style={centerStyle}>
-                            <h2>Example panel: React</h2>
-                            <p className="pt-running-text">
-                                Lots of people use React as the V in MVC. Since React makes no assumptions about the
-                                rest of your technology stack, it's easy to try it out on a small feature in an existing
-                                project.
-                            </p>
-                        </div>
-                    </TabPanel>
-                </Tabs>
-                <Tabs>
-                    <TabList>
-                        <Tab>Primary</Tab>
-                        <Tab>Secondary</Tab>
-                    </TabList>
-                    <TabPanel>
-                        <div style={rightStyle}>
-                            <WorkspacePanel/>
-                            <VariablePanel/>
-                            <TaskPanel/>
-                        </div>
-                    </TabPanel>
-                    <TabPanel>
-                        <div style={rightStyle}>
-                            <LayersPanel/>
-                            <AnalysisWindow/>
-                        </div>
-                    </TabPanel>
-                </Tabs>
-            </HGLMidsection>
-            <HGLFooter>
+                        <TabPanel>
+                            <div style={centerStyle}>
+                                <h2>Example panel: React</h2>
+                                <p className="pt-running-text">
+                                    Lots of people use React as the V in MVC. Since React makes no assumptions about the
+                                    rest of your technology stack, it's easy to try it out on a small feature in an existing
+                                    project.
+                                </p>
+                            </div>
+                        </TabPanel>
+                    </Tabs>
+                </div>
+                <PanelContainer position="right" selectedPanelId="layers">
+                    <Panel id="layers" iconName="pt-icon-layers" title="Layers" body={<LayersPanel/>}/>
+                    <Panel id="analysis" iconName="pt-icon-scatter-plot" title="Analysis" body={<TreeExample/>}/>
+                    <Panel id="tasks" iconName="pt-icon-play" title="Tasks" body={<TaskPanel/>}/>
+                </PanelContainer>
+            </div>
+            <div
+                style={{flex: "none", padding: "0 4px 0 4px;", height: "1.5em", fontSize: "small", alignItems: "center", backgroundColor: "#2B95D6"}}>
                 Ready.
-            </HGLFooter>
+            </div>
             <PreferencesDialog/>
-        </HGLContainer>
+        </div>
     );
 }
 
@@ -243,41 +227,6 @@ export class TreeExample extends React.Component<any, ITreeExampleState> {
             this.forEachNode(node.childNodes, callback);
         }
     }
-}
-
-
-//noinspection JSUnusedLocalSymbols
-function AnalysisWindow(props: any) {
-    return (
-        <ExpansionPanel icon="pt-icon-scatter-plot" text="Analysis">
-            <TreeExample/>
-        </ExpansionPanel>
-    );
-}
-
-
-//noinspection JSUnusedLocalSymbols
-function CollapseExample1(props: any) {
-    return (
-        <ExpansionPanel icon="pt-icon-build" text="Tree Example">
-            <TreeExample/>
-        </ExpansionPanel>
-    );
-}
-
-//noinspection JSUnusedLocalSymbols
-function CollapseExample2(props: any) {
-    return (
-        <ExpansionPanel icon="pt-icon-geosearch" text="Build Logs">
-            <pre>
-                [11:53:30] Finished 'typescript-bundle-blueprint' after 769 ms<br/>
-                [11:53:30] Starting 'typescript-typings-blueprint'...<br/>
-                [11:53:30] Finished 'typescript-typings-blueprint' after 198 ms<br/>
-                [11:53:30] write ./blueprint.css<br/>
-                [11:53:30] Finished 'sass-compile-blueprint' after 2.84 s
-            </pre>
-        </ExpansionPanel>
-    );
 }
 
 

@@ -1,16 +1,31 @@
 import * as React from 'react'
 import ReactChild = React.ReactChild;
-import {Tooltip, MenuItem, MenuDivider, Menu, PopoverInteractionKind, Popover} from "@blueprintjs/core";
+import {
+    Colors,
+    Position,
+    Tooltip,
+    MenuItem,
+    MenuDivider,
+    Menu,
+    PopoverInteractionKind,
+    Popover
+} from "@blueprintjs/core";
+import {Splitter} from "./Splitter";
+import ReactElement = React.ReactElement;
 
+type PanelSizeMap = {[panelId: string]: [number, number]};
 
-export interface IPanelBarProps {
-    onChange?: (newPanelId: string|null, oldPanelId: string|null) => void;
-    selectedPanelId?: string|null;
+export interface IPanelContainerProps {
     position?: "left"|"right";
+    selectedPanelId?: string|null;
+    panelSizes?: PanelSizeMap;
+    onSelectedPanelChange?: (newPanelId: string|null, oldPanelId: string|null) => void;
+    onPanelSizesChange?: (sizes: PanelSizeMap) => void;
 }
 
-export interface IPanelBarState {
-    selectedPanelId?: string|null;
+export interface IPanelContainerState {
+    selectedPanelId: string|null;
+    panelSizes: PanelSizeMap;
 }
 
 /**
@@ -18,110 +33,123 @@ export interface IPanelBarState {
  *
  * @author Norman Fomferra
  */
-export class PanelContainer extends React.PureComponent<IPanelBarProps, IPanelBarState> {
-    constructor(props: IPanelBarProps) {
+export class PanelContainer extends React.PureComponent<IPanelContainerProps, IPanelContainerState> {
+
+    static readonly PANEL_ICON_SIZE = 20; // ==> because pt-icon-large = 20px
+    static readonly PANEL_ICON_PADDING = 8;
+    static readonly PANEL_BAR_SIZE = 2 * PanelContainer.PANEL_ICON_PADDING + PanelContainer.PANEL_ICON_SIZE;
+
+
+    constructor(props: IPanelContainerProps) {
         super(props);
-        this.selectPanel = this.selectPanel.bind(this);
-        this.state = {selectedPanelId: props.selectedPanelId};
+        this.onPanelSelected = this.onPanelSelected.bind(this);
+        this.onPanelClose = this.onPanelClose.bind(this);
+        this.onPanelSizeChange = this.onPanelSizeChange.bind(this);
+        this.state = PanelContainer.mapPropsToState(props);
     }
 
-    componentWillReceiveProps(props: IPanelBarProps) {
-        this.setState({selectedPanelId: props.selectedPanelId});
+    componentWillReceiveProps(props: IPanelContainerProps) {
+        this.setState(PanelContainer.mapPropsToState(props));
     }
 
-    private selectPanel(panelId: string) {
+    static mapPropsToState(props: IPanelContainerProps): IPanelContainerState {
+        return {
+            selectedPanelId: props.selectedPanelId,
+            panelSizes: Object.assign({}, props.panelSizes),
+        };
+    }
+
+    private onPanelSelected(panelId: string) {
         let oldPanelId = this.state.selectedPanelId;
         const newPanelId = panelId === oldPanelId ? null : panelId;
-        console.log("selectPanel: ", newPanelId, oldPanelId);
-        this.setState({selectedPanelId: newPanelId}, () => {
-            if (this.props.onChange) {
-                this.props.onChange(this.state.selectedPanelId, oldPanelId);
+        console.log("PanelContainer.onPanelSelected: ", newPanelId, oldPanelId);
+        this.setState({selectedPanelId: newPanelId} as any, () => {
+            if (this.props.onSelectedPanelChange) {
+                this.props.onSelectedPanelChange(this.state.selectedPanelId, oldPanelId);
             }
         });
     }
 
-    render() {
-        const panels: JSX.Element[] = this.props.children as any;
-        if (panels && typeof panels.length === 'undefined') {
+    //noinspection JSUnusedLocalSymbols
+    private onPanelClose(panelId: string) {
+        this.onPanelSelected(null);
+    }
+
+    private onPanelSizeChange(delta: number) {
+        const selectedPanelId = this.state.selectedPanelId;
+        let panelSize = this.getPanelSize();
+        let position = this.props.position || "left";
+        if (position === "left") {
+            panelSize[0] += delta;
+        } else {
+            panelSize[0] -= delta;
+        }
+        let panelSizes = Object.assign({}, this.state.panelSizes, {[selectedPanelId]: panelSize});
+        console.log("PanelContainer.onSplitterChange: ", panelSizes);
+        this.setState({panelSizes} as any, () => {
+            if (this.props.onPanelSizesChange) {
+                this.props.onPanelSizesChange(this.state.panelSizes);
+            }
+        });
+    }
+
+    private getPanelSize(): [number, number] {
+        const selectedPanelId = this.state.selectedPanelId;
+        const panelSize = selectedPanelId && this.state.panelSizes[selectedPanelId];
+        return panelSize || [320, 320];
+    }
+
+    private getSelectedPanel(): JSX.Element|null {
+        const selectedPanelId = this.state.selectedPanelId;
+        if (!selectedPanelId) {
             return null;
         }
-
-        const selectedPanelId = this.state.selectedPanelId;
-        let selectedPanel: JSX.Element|null = null;
-
-        const panelButtons: JSX.Element[] = [];
-
-        for (let panel of panels) {
-            console.log('panel: ', panel);
-            if (!panel.props) {
-                console.error('PanelContainer children must be of type Panel');
-                continue;
-            }
-            const panelId: string = panel.props.id;
-            const panelTitle: string = panel.props.title;
-            const panelIconName: string = panel.props.iconName;
-            if (!panelId || !panelTitle || !panelIconName) {
-                console.error('PanelContainer children must have valid id, title, iconName properties');
-                continue;
-            }
-            const selected = panelId === selectedPanelId;
-            const className = selected ? 'cate-selected' : null;
-            if (selected) {
+        let selectedPanel: JSX.Element = null;
+        React.Children.forEach(this.props.children, (child: ReactChild) => {
+            const panel = child as JSX.Element;
+            if (panel.props && panel.props.id === selectedPanelId) {
                 selectedPanel = panel;
             }
-            panelButtons.push(
-                <li key={panelId}
-                    onClick={() => this.selectPanel(panelId)}
-                    className={className}>
-                    <Tooltip content={panelTitle}>
-                        <span className={"pt-icon-large " + panelIconName} style={{minWidth: "24px", minHeight: "24px"}}/>
-                    </Tooltip>
-                </li>
-            );
-        }
+        });
+        return selectedPanel;
+    }
 
-        let panelHeader = null;
-        let panelBody = null;
-        if (selectedPanel) {
-            panelHeader = (
-                <PanelHeader
-                    id={selectedPanel.props.id}
-                    title={selectedPanel.props.title}
-                    iconName={selectedPanel.props.iconName}
-                    onClose={() => this.selectPanel(selectedPanel.props.id)}
-                />);
-            panelBody = selectedPanel.props.body;
-        }
+    render() {
+        const panelContainerStyle = {
+            display: "flex",
+            flexFlow: "row nowrap",
+            flex: "none",
+            maxHeight: "100%",
+        };
+
+        const panelBar = <PanelBar panels={React.Children.toArray(this.props.children) as JSX.Element[]}
+                                   barSize={PanelContainer.PANEL_BAR_SIZE}
+                                   position={this.props.position}
+                                   onPanelSelected={this.onPanelSelected}
+                                   selectedPanelId={this.state.selectedPanelId}/>;
+        const panelPane = <PanelPane panel={this.getSelectedPanel()}
+                                     size={this.getPanelSize()}
+                                     position={this.props.position}
+                                     pinned={false}
+                                     onSizeChange={this.onPanelSizeChange}
+                                     onClose={this.onPanelClose}/>;
 
         const position = this.props.position || "left";
-        let panelContainerStyle = {display: "flex", alignItems: "stretch"};
-        let panelBarStyle = {flex: "none", minWidth: "20px"};
-        let panelParentStyle = {flex: "auto", display: "flex", flexDirection: "column", alignItems: "stretch"};
         if (position === "left") {
-            panelContainerStyle = {...panelContainerStyle, flexDirection: "row", justifyContent: "flex-start"};
-            panelBarStyle = {...panelBarStyle, order: 0};
-            panelParentStyle = {...panelParentStyle, order: 1};
-        } else {
-            panelContainerStyle = {...panelContainerStyle, flexDirection: "row-reverse", justifyContent: "flex-end"};
-            panelBarStyle = {...panelBarStyle, order: 1};
-            panelParentStyle = {...panelParentStyle, order: 0};
-        }
-
-        const panelBar = (
-            <ul className="cate-panel-bar" style={panelBarStyle}>
-                {panelButtons}
-            </ul>
-        );
-
-        return (
-            <div style={panelContainerStyle}>
-                {panelBar}
-                <div style={panelParentStyle}>
-                    {panelHeader}
-                    {panelBody}
+            return (
+                <div style={panelContainerStyle}>
+                    {panelBar}
+                    {panelPane}
                 </div>
-            </div>
-        );
+            );
+        } else {
+            return (
+                <div style={panelContainerStyle}>
+                    {panelPane}
+                    {panelBar}
+                </div>
+            );
+        }
     }
 }
 
@@ -167,3 +195,145 @@ function PanelHeader(props: IPanelHeaderProps): JSX.Element|null {
     );
 }
 
+
+interface IPanelBarProps {
+    panels: JSX.Element[];
+    selectedPanelId: string|null;
+    barSize: number;
+    position: "left"|"right";
+    onPanelSelected: (panelId: string) => void;
+}
+
+function PanelBar(props: IPanelBarProps) {
+    const position = props.position || "left";
+    const tooltipPos = position === "left" ? Position.RIGHT : Position.LEFT;
+    const selectedPanelId = props.selectedPanelId;
+    const barSize = props.barSize;
+    const panels = props.panels || [];
+    //noinspection JSMismatchedCollectionQueryUpdate
+    const panelButtons: JSX.Element[] = [];
+    const itemBaseStyle = {padding: PanelContainer.PANEL_ICON_PADDING};
+    const itemNormalStyle = {...itemBaseStyle, color: Colors.GRAY4};
+    const itemSelectedStyle = {...itemBaseStyle, color: Colors.WHITE, backgroundColor: Colors.DARK_GRAY5};
+    for (let panel of panels) {
+        if (!panel.props) {
+            console.error('PanelBar children must be of type Panel');
+            continue;
+        }
+        const panelId: string = panel.props.id;
+        const panelTitle: string = panel.props.title;
+        const panelIconName: string = panel.props.iconName;
+        if (!panelId || !panelTitle || !panelIconName) {
+            console.error('PanelBar children must have valid id, title, iconName properties');
+            continue;
+        }
+
+        const selected = panelId === selectedPanelId;
+        panelButtons.push(
+            <li key={panelId}
+                onClick={() => props.onPanelSelected(panelId)}
+                style={selected ? itemSelectedStyle : itemNormalStyle}>
+                <Tooltip content={panelTitle} position={tooltipPos}>
+                    <span className={"pt-icon-large " + panelIconName} style={{textAlign: "center", verticalAlign: "middle"}}/>
+                </Tooltip>
+            </li>
+        );
+    }
+
+    return (
+        <div
+            style={{flex: "none", maxHeight: "100%", paddingTop: 30, minWidth: barSize, overflow: "hidden", backgroundColor: Colors.DARK_GRAY2}}>
+            <ul style={{listStyleType: "none", padding: 0, margin: 0, border: "none"}}>
+                {panelButtons}
+            </ul>
+        </div>
+    );
+}
+
+interface IPanelPaneProps {
+    panel: JSX.Element|null;
+    onClose: (panelId: string) => void;
+    onSizeChange: (delta: number) => void;
+    position: "left"|"right";
+    size: [number, number];
+    pinned: boolean;
+}
+
+function PanelPane(props: IPanelPaneProps) {
+    const panel = props.panel;
+    if (!panel || !panel.props || !panel.props.body) {
+        return null;
+    }
+
+    const position = props.position || "left";
+    const panelWidth = props.size[0];
+    const pinnedMode = props.pinned;
+
+    const panelId = panel.props.id;
+    const panelBody = panel.props.body;
+
+    let panelParentStyle = {
+        flex: "none",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "stretch",
+        width: panelWidth,
+        maxWidth: panelWidth,
+        maxHeight: "100%",
+    };
+
+    let panelParent = (
+        <div style={panelParentStyle}>
+            <PanelHeader
+                id={panelId}
+                title={panel.props.title}
+                iconName={panel.props.iconName}
+                onClose={() => props.onClose(panelId)}
+            />
+            {panelBody}
+        </div>
+    );
+
+    let pinnedModeStyle = {};
+    if (pinnedMode) {
+        if (position === "left") {
+            pinnedModeStyle = {
+                position: "absolute",
+                top: 0,
+                left: PanelContainer.PANEL_BAR_SIZE,
+            };
+        } else {
+            pinnedModeStyle = {
+                position: "absolute",
+                top: 0,
+                right: PanelContainer.PANEL_BAR_SIZE,
+            };
+        }
+    }
+
+    const panelPaneStyle = {
+        flex: "auto",
+        display: "flex",
+        flexFlow: "row nowrap",
+        zIndex: 1000,
+        ...pinnedModeStyle
+    };
+
+    const splitter = <Splitter direction="hor" onChange={props.onSizeChange}/>;
+
+    if (position === "left") {
+        return (
+            <div style={panelPaneStyle}>
+                {panelParent}
+                {splitter}
+            </div>
+        );
+    } else {
+        return (
+            <div style={panelPaneStyle}>
+                {splitter}
+                {panelParent}
+            </div>
+        );
+    }
+}

@@ -116,11 +116,12 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
             );
         }
 
-        return (
-            <ExpansionPanel icon="pt-icon-play" text="Tasks" isExpanded={true} defaultHeight={100}>
-                {panelContents}
-            </ExpansionPanel>
-        );
+        // return (
+        //     <ExpansionPanel icon="pt-icon-play" text="Tasks" isExpanded={true} defaultHeight={100}>
+        //         {panelContents}
+        //     </ExpansionPanel>
+        // );
+        return panelContents;
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(TasksPanel);

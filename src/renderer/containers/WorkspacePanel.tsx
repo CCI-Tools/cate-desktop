@@ -132,11 +132,17 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
             );
         }
 
+        // return (
+        //     <ExpansionPanel icon="pt-icon-folder-close" text="Workspace" isExpanded={true} defaultHeight={300}>
+        //         {workspaceInfo}
+        //         {workspacePane}
+        //     </ExpansionPanel>
+        // );
         return (
-            <ExpansionPanel icon="pt-icon-folder-close" text="Workspace" isExpanded={true} defaultHeight={300}>
+            <div style={{width: "100%", height: "100%", overflow: 'auto'}}>
                 {workspaceInfo}
                 {workspacePane}
-            </ExpansionPanel>
+            </div>
         );
     }
 

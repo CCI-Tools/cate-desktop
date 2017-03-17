@@ -74,8 +74,19 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     render() {
         const variables = this.props.variables;
         if (variables && variables.length) {
+            // return (
+            //     <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
+            //         <ContentWithDetailsPanel showDetails={this.props.showVariableDetails}
+            //                                  onShowDetailsChange={this.handleShowDetailsChanged}
+            //                                  isSplitPanel={true}
+            //                                  initialContentHeight={200}
+            //                                  actionComponent={this.renderVariableActionRow()}>
+            //             {this.renderVariablesList()}
+            //             {this.renderVariableDetails()}
+            //         </ContentWithDetailsPanel>
+            //     </ExpansionPanel>
+            // );
             return (
-                <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
                     <ContentWithDetailsPanel showDetails={this.props.showVariableDetails}
                                              onShowDetailsChange={this.handleShowDetailsChanged}
                                              isSplitPanel={true}
@@ -84,18 +95,25 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
                         {this.renderVariablesList()}
                         {this.renderVariableDetails()}
                     </ContentWithDetailsPanel>
-                </ExpansionPanel>
             );
         } else {
+            // return (
+            //     <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
+            //         <Card>
+            //             <p><strong>No variables</strong></p>
+            //             <p>
+            //                 The currently selected resource in the workspace does not contain any variables.
+            //             </p>
+            //         </Card>
+            //     </ExpansionPanel>
+            // );
             return (
-                <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
                     <Card>
                         <p><strong>No variables</strong></p>
                         <p>
                             The currently selected resource in the workspace does not contain any variables.
                         </p>
                     </Card>
-                </ExpansionPanel>
             );
         }
     }
