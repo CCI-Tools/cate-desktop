@@ -242,7 +242,7 @@ function PanelBar(props: IPanelBarProps) {
 
     return (
         <div
-            style={{flex: "none", maxHeight: "100%", paddingTop: 30, minWidth: barSize, overflow: "hidden", backgroundColor: Colors.DARK_GRAY2}}>
+            style={{flex: "none", maxHeight: "100%", minWidth: barSize, overflow: "hidden", backgroundColor: Colors.DARK_GRAY2}}>
             <ul style={{listStyleType: "none", padding: 0, margin: 0, border: "none"}}>
                 {panelButtons}
             </ul>
@@ -312,6 +312,8 @@ function PanelPane(props: IPanelPaneProps) {
     }
 
     const panelPaneStyle = {
+        paddingLeft: position === "left" ? 4 : 0,
+        paddingRight: position === "left" ? 0 : 4,
         flex: "auto",
         display: "flex",
         flexFlow: "row nowrap",
