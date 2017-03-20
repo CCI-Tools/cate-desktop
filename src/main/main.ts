@@ -31,6 +31,9 @@ const WEBAPI_INSTALLER_BAD_EXIT = 4;
 const WEBAPI_ERROR = 5;
 const WEBAPI_BAD_EXIT = 6;
 const WEBAPI_TIMEOUT = 7;
+const WEBAPI_MISSING = 8;
+
+const WEBAPI_VERSION = '0.7';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -101,6 +104,19 @@ function storeConfiguration(config: Configuration, options: string[], defaultCon
     });
 }
 
+function loadBackendLocation(): string {
+    const locationFile = path.join(getAppDataDir(), WEBAPI_VERSION, 'cate.location');
+    if (!fs.existsSync(locationFile)) {
+        console.error(CATE_DESKTOP_PREFIX, `missing cate.location file: ${locationFile}`)
+        return '';
+    }
+    const location = fs.readFileSync(locationFile, 'utf8');
+    if (location) {
+        return location.trim();
+    }
+    return '';
+}
+
 function loadAppConfig(): Configuration {
     return loadConfiguration(CONFIG_OPTIONS, path.resolve('cate-config.js'), 'App configuration');
 }
@@ -152,10 +168,11 @@ export function init() {
 
     _config = loadAppConfig();
     _prefs = loadUserPrefs();
+    const backendLocation = loadBackendLocation();
 
     let webAPIConfig = _config.get('webAPIConfig', {});
     webAPIConfig = updateConditionally(webAPIConfig, {
-        command: path.join(app.getAppPath(), process.platform === 'win32' ? 'python/Scripts/cate-webapi.exe' : 'python/bin/cate-webapi'),
+        command: path.join(backendLocation, process.platform === 'win32' ? 'Scripts/cate-webapi.exe' : 'bin/cate-webapi'),
         servicePort: 9090,
         serviceAddress: '',
         serviceFile: 'cate-webapi.json',
@@ -253,7 +270,7 @@ export function init() {
     app.on('ready', (): void => {
         checkWebapiServiceExecutable((installerPath: string) => {
             createSplashWindow(() => {
-                installWebapiServiceExecutable(installerPath, () => {
+                // installWebapiServiceExecutable(installerPath, () => {
                     console.log(CATE_DESKTOP_PREFIX, 'Ready.');
                     if (!webAPIConfig.useMockService) {
                         console.log(CATE_DESKTOP_PREFIX, 'Using Cate WebAPI service...');
@@ -262,7 +279,7 @@ export function init() {
                         createMainWindow();
                     }
                 });
-            });
+            // });
         });
     });
 
@@ -458,7 +475,21 @@ function checkWebapiServiceExecutable(callback: (installerPath?: string) => void
     if (fs.existsSync(webAPIConfig.command)) {
         callback();
         return true;
+    } else {
+        electron.dialog.showMessageBox({
+            type: 'error',
+            title: 'Cate - Fatal Error',
+            message: 'Can not find required Cate backend service:\n"' +
+            webAPIConfig.command + '"\n' +
+            'Please install the cate backend using the separate installer.\n' +
+            'Application will exit now.',
+        });
+        electron.app.exit(WEBAPI_MISSING);
+        return false;
     }
+/*
+ code currently not used,
+ because we don't ship a bundled miniconda installer
 
     const fileNames = fs.readdirSync(app.getAppPath());
     // console.log('fileNames =', fileNames);
@@ -496,6 +527,7 @@ function checkWebapiServiceExecutable(callback: (installerPath?: string) => void
         electron.app.exit(WEBAPI_INSTALLER_MISSING);
         return false;
     }
+    */
 }
 
 function installWebapiServiceExecutable(installerCommand: string, callback: () => void) {
