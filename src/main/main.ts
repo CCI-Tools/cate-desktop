@@ -45,7 +45,7 @@ let _config: Configuration;
 function getAppIconPath() {
     let icon_file = "cate-icon.png";
     if (process.platform === "darwin") {
-        icon_file = "darwin/cate-icon.icns";
+        icon_file = "darwin/icon.icns";
     } else if (process.platform === "win32") {
         icon_file = "win32/cate-icon.ico";
     }
