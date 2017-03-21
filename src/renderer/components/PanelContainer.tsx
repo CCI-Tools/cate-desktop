@@ -233,7 +233,7 @@ function PanelBar(props: IPanelBarProps) {
             <li key={panelId}
                 onClick={() => props.onPanelSelected(panelId)}
                 style={selected ? itemSelectedStyle : itemNormalStyle}>
-                <Tooltip content={panelTitle} position={tooltipPos}>
+                <Tooltip content={panelTitle} position={tooltipPos} hoverOpenDelay={1500}>
                     <span className={"pt-icon-large " + panelIconName} style={{textAlign: "center", verticalAlign: "middle"}}/>
                 </Tooltip>
             </li>
@@ -317,7 +317,7 @@ function PanelPane(props: IPanelPaneProps) {
         flex: "auto",
         display: "flex",
         flexFlow: "row nowrap",
-        zIndex: 1000,
+        zIndex: 5,
         ...pinnedModeStyle
     };
 
