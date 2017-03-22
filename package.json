@@ -94,17 +94,20 @@
       "target": [
         "nsis",
         "zip"
-      ]
+      ],
+      "icon": "app/resources/win32/cate-icon.ico"
     },
     "nsis": {
-      "oneClick": true
+      "oneClick": true,
+      "installerHeaderIcon": "app/resources/win32/cate-icon.ico"
     },
     "mac": {
+      "icon": "app/resources/darwin/icon.icns",
       "category": "app.category.climate-science"
     },
     "dmg": {
+      "icon": "app/resources/darwin/icon.icns",
       "background": "app/resources/darwin/dmg-background.png"
     }
   }
-
 }
