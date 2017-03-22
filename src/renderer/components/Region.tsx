@@ -1,24 +1,25 @@
 import * as React from 'react';
+import {FieldValue} from "./Field";
 import {NumberField} from "./NumberField";
 
-interface Value {
-    west: string;
-    south: string;
-    east: string;
-    north: string;
+export interface RegionValue {
+    west: FieldValue<number>;
+    south: FieldValue<number>;
+    east: FieldValue<number>;
+    north: FieldValue<number>;
 }
 
 interface IRegionProps {
-    value: Value;
-    onChange: (value: Value) => void;
+    value: RegionValue;
+    onChange: (region: RegionValue) => void;
     disabled?: boolean;
 }
 
-export const GLOBAL: Value = {
-    west: "-180",
-    south: "-90",
-    east: "180",
-    north: "90",
+export const GLOBAL: RegionValue = {
+    west: {value: -180},
+    south: {value: -90},
+    east: {value: 180},
+    north: {value: 90},
 };
 
 /**
@@ -28,26 +29,29 @@ export class Region extends React.PureComponent<IRegionProps, null> {
 
     constructor(props: IRegionProps) {
         super(props);
+        this.onEastChange = this.onEastChange.bind(this);
+        this.onSouthChange = this.onSouthChange.bind(this);
+        this.onWestChange = this.onWestChange.bind(this);
+        this.onNorthChange = this.onNorthChange.bind(this);
     }
 
-    onWestChange(textValue: string) {
-        this.props.onChange({...this.props.value, west: textValue});
+    onWestChange(value: FieldValue<number>) {
+        this.props.onChange({...this.props.value, west: value});
     }
 
-    onEastChange(textValue: string) {
-        this.props.onChange({...this.props.value, east: textValue});
+    onEastChange(value: FieldValue<number>) {
+        this.props.onChange({...this.props.value, east: value});
     }
 
-    onNorthChange(textValue: string) {
-        this.props.onChange({...this.props.value, north: textValue});
+    onNorthChange(value: FieldValue<number>) {
+        this.props.onChange({...this.props.value, north: value});
     }
 
-    onSouthChange(textValue: string) {
-        this.props.onChange({...this.props.value, south: textValue});
+    onSouthChange(value: FieldValue<number>) {
+        this.props.onChange({...this.props.value, south: value});
     }
 
     render() {
-        const fractionDigits = 4;
         let disabled = this.props.disabled;
         return (
             <div>
@@ -55,15 +59,15 @@ export class Region extends React.PureComponent<IRegionProps, null> {
                     <tbody>
                     <tr>
                         <td>W</td>
-                        <td>{this.renderFloatField(this.props.value.west, -180, 180, this.onWestChange.bind(this))}</td>
+                        <td>{this.renderField(this.props.value.west, -180, 180, this.onWestChange)}</td>
                         <td> E</td>
-                        <td>{this.renderFloatField(this.props.value.east, -180, 180, this.onEastChange.bind(this))}</td>
+                        <td>{this.renderField(this.props.value.east, -180, 180, this.onEastChange)}</td>
                     </tr>
                     <tr>
                         <td>S</td>
-                        <td>{this.renderFloatField(this.props.value.south, -90, 90, this.onSouthChange.bind(this))}</td>
+                        <td>{this.renderField(this.props.value.south, -90, 90, this.onSouthChange)}</td>
                         <td> N</td>
-                        <td>{this.renderFloatField(this.props.value.north, -90, 90, this.onNorthChange.bind(this))}</td>
+                        <td>{this.renderField(this.props.value.north, -90, 90, this.onNorthChange)}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -71,8 +75,8 @@ export class Region extends React.PureComponent<IRegionProps, null> {
         );
     }
 
-    renderFloatField(textValue: string, min: number, max: number, onChange: (number) => void) {
-        return (<NumberField textValue={textValue}
+    renderField(value: FieldValue<number>, min: number, max: number, onChange: (number) => void) {
+        return (<NumberField value={value}
                              textAlign="right"
                              min={min}
                              max={max}

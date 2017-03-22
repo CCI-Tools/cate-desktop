@@ -1,19 +1,17 @@
 import * as React from 'react'
+import {isString, isUndefinedOrNull, isDefined} from "../../common/types";
 
-// todo (forman): The "Value" used in Field should be this interface:
-export interface Value<T> {
-    textValue: string;
+export interface FieldValue<T> {
+    textValue?: string;
     value?: T;
     error?: Error | null;
 }
 
-export type ChangeHandler<T> = (textValue: string, value: T, error: any | null) => void;
+export type FieldChangeHandler<T> = (value: FieldValue<T>) => void;
 
 export interface IFieldProps<T> {
-    textValue?: string;
-    value?: T | null;
-    error?: any | null;
-    onChange: ChangeHandler<T>;
+    value: FieldValue<T>|string|any;
+    onChange: FieldChangeHandler<T>;
     placeholder?: string;
     textAlign?: string;
     columns?: number;
@@ -50,7 +48,7 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
     }
 
     protected validateValue(value: T): void {
-        if (isNullOrUndefined(value)) {
+        if (isUndefinedOrNull(value)) {
             if (this.props.nullable) {
                 return;
             }
@@ -63,9 +61,10 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
         let value;
         try {
             value = this.parseValue(textValue);
-            this.notifyValueChange(value, textValue);
+            this.notifyValueChange(textValue, value);
         } catch (error) {
-            this.props.onChange(textValue, value, error);
+            value = this.props.value.value;
+            this.props.onChange({textValue, value, error});
         }
     }
 
@@ -76,14 +75,41 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
         } catch (e) {
             error = e;
         }
-        this.props.onChange(textValue, value, error);
+        this.props.onChange({textValue, value, error});
     }
 
-    protected computeTextValue() {
-        return this.props.textValue || this.formatValue(this.props.value);
+    static isFieldValue(value: any): boolean {
+        return isDefined(value) && (isDefined(value.textValue) || isDefined(value.value));
     }
 
-    protected computeStyle() {
+    getTextValue(): string {
+        const value = this.props.value;
+        if (Field.isFieldValue(value)) {
+            return value.textValue || this.formatValue(value.value);
+        } else if (isString(value)) {
+            return value;
+        }
+        return this.formatValue(value);
+    }
+
+    getValue(): T {
+        const value = this.props.value;
+        if (Field.isFieldValue(value)) {
+            return value.value;
+        }
+        return value as T;
+    }
+
+    getError(): Error|null {
+        const value = this.props.value;
+        if (Field.isFieldValue(value)) {
+            return value.error;
+        }
+        return null;
+    }
+
+
+    getStyle() {
         let style = Object.assign({}, this.props.style);
         if (this.props.columns) {
             style['width'] = `${this.props.columns}em`;
@@ -94,25 +120,22 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
         return style;
     }
 
-    private computeClassNames() {
-        return "pt-input " + (this.props.className || '') + (this.props.error ? 'pt-intent-danger' : '');
+    getClassNames() {
+        const error = this.getError();
+        return "pt-input " + (this.props.className || '') + (error ? 'pt-intent-danger' : '');
     }
 
     render() {
         return (
             <input type="text"
-                   className={this.computeClassNames()}
-                   style={this.computeStyle()}
-                   value={this.computeTextValue()}
+                   className={this.getClassNames()}
+                   style={this.getStyle()}
+                   value={this.getTextValue()}
                    onChange={this.onChange}
                    placeholder={this.props.placeholder}
                    disabled={this.props.disabled}
             />
         );
     }
-
 }
 
-function isNullOrUndefined(value: any): boolean {
-    return value === null || typeof(value) === 'undefined';
-}

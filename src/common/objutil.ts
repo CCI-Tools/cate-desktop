@@ -4,6 +4,7 @@
  * @author Norman Fomferra
  */
 
+import {isUndefined} from "./types";
 
 /**
  * Encapsulate the idea of passing a new object as the first parameter
@@ -42,7 +43,7 @@ export function updateConditionally(target, ...sources) {
     target = updateObject(target);
     for (let source of sources) {
         for (let name of Object.keys(source)) {
-            if (typeof target[name] === 'undefined') {
+            if (isUndefined(target[name])) {
                 target[name] = source[name];
             }
         }

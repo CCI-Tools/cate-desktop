@@ -2,25 +2,15 @@ import * as React from 'react';
 import {Checkbox, Button} from "@blueprintjs/core";
 import {DataSourceState, DialogState, State} from "../state";
 import {formatDateAsISODateString} from "../../common/format";
-// import {TimeRange} from "../components/TimeRange";
 import {ModalDialog} from "../components/ModalDialog";
 import {Dispatch, connect} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import {Region} from "../components/Region";
+import {Region, RegionValue, GLOBAL} from "../components/Region";
 import {DateRangeInput, DateRange} from "@blueprintjs/datetime";
-
-interface RegionValue {
-    west: number;
-    south: number;
-    east: number;
-    north: number;
-}
 
 type TimeRangeValue = [string, string];
 type DateRangeValue = [Date, Date];
-
-const GLOBAL = {west: -180., east: 180., south: -90., north: 90.};
 
 interface IDownloadDatasetDialogProps {
     dispatch?: Dispatch<State>;
@@ -50,7 +40,7 @@ function mapStateToProps(state: State): IDownloadDatasetDialogProps {
         dataSource: selectors.selectedDataSourceSelector(state),
         temporalCoverage: selectors.selectedDataSourceTemporalCoverageSelector(state),
         timeRange: (dialogState as any).timeRange,
-        region: (dialogState as any).region,
+        region: (dialogState as any).region || GLOBAL,
         variableNames: (dialogState as any).variableNames,
     };
 }
@@ -129,10 +119,10 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
     }
 
     private canConfirm(): boolean {
-        const west = this.state.region.west;
-        const east = this.state.region.east;
-        const south = this.state.region.south;
-        const north = this.state.region.north;
+        const west = this.state.region.west.value;
+        const east = this.state.region.east.value;
+        const south = this.state.region.south.value;
+        const north = this.state.region.north.value;
         const eps = 360. / 40000.; // 1km
         const validWest = west >= -180 && west <= 180;
         const validEast = east >= -180 && east <= 180;

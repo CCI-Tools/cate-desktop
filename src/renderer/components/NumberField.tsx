@@ -12,14 +12,12 @@ export interface INumberFieldProps extends IFieldProps<NumberOrNull> {
     isInt?: boolean;
 }
 
-
 function isNumber(value: any): boolean {
     return typeof(value) === 'number';
 }
 
 /**
  * A NumberField is an input field that provides a floating point number.
- * It notifies a parent (onChange property) only if the the RETURN key is pressed or the input field looses its focus.
  *
  * @author Norman Fomferra
  */
@@ -66,10 +64,11 @@ export class NumberField extends Field<NumberOrNull, INumberFieldProps> {
     }
 
     render() {
+        let error = this.getError();
         return (<NumericInput onValueChange={this.onValueChange}
-                              value={this.computeTextValue()}
-                              style={this.computeStyle()}
-                              intent={this.props.error ? Intent.DANGER : Intent.NONE}
+                              value={this.getTextValue()}
+                              style={this.getStyle()}
+                              intent={error ? Intent.DANGER : Intent.NONE}
                               min={this.props.min}
                               max={this.props.max}
                               minorStepSize={this.props.isInt ? 1: 0.1}
