@@ -479,10 +479,10 @@ function checkWebapiServiceExecutable(callback: (installerPath?: string) => void
         electron.dialog.showMessageBox({
             type: 'error',
             title: 'Cate - Fatal Error',
-            message: 'Can not find required Cate backend service:\n"' +
-            webAPIConfig.command + '"\n' +
-            'Please install the cate backend using the separate installer.\n' +
-            'Application will exit now.',
+            message: 'Cate\'s back-end could not be found. The expected location is\n"' +
+            webAPIConfig.command + '"\n\n' +
+            'Please install Cate first.\n' +
+            'The Cate Desktop will exit now.',
         });
         electron.app.exit(WEBAPI_MISSING);
         return false;
