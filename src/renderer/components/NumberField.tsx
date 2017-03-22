@@ -2,6 +2,7 @@ import * as React from 'react'
 
 import {Field, IFieldProps} from "./Field";
 import {NumericInput, Intent} from "@blueprintjs/core";
+import {isNumber} from "../../common/types";
 
 type NumberOrNull = number|null;
 
@@ -12,9 +13,6 @@ export interface INumberFieldProps extends IFieldProps<NumberOrNull> {
     isInt?: boolean;
 }
 
-function isNumber(value: any): boolean {
-    return typeof(value) === 'number';
-}
 
 /**
  * A NumberField is an input field that provides a floating point number.

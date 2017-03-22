@@ -48,7 +48,7 @@ export class InputEditor extends React.PureComponent<IInputEditorProps, null> {
 
         const editorSwitch = this.renderEditorSwitch();
         return (
-            <div key={this.props.name} style={{display: 'flex', alignItems: 'center', padding: '0.2em'}}>
+            <div key={this.props.name} style={{display: 'flex', alignItems: 'center', padding: '0.1em'}}>
                 <LabelWithType style={{flex: 'auto'}}
                                label={this.props.name}
                                units={this.props.units}

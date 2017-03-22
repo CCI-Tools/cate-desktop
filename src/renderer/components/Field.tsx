@@ -22,7 +22,7 @@ export interface IFieldProps<T> {
 }
 
 /**
- * A Field is an text input field that provides a value of type T.
+ * A Field represents a text input field that provides a value of type T.
  *
  * @author Norman Fomferra
  */
@@ -117,6 +117,19 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
                    disabled={this.props.disabled}
             />
         );
+    }
+}
+
+type StringOrNull = string|null;
+
+/**
+ * A TextField represents a text input field providing values of type string.
+ *
+ * @author Norman Fomferra
+ */
+export class TextField extends Field<StringOrNull, IFieldProps<StringOrNull>> {
+    constructor(props: IFieldProps<StringOrNull>) {
+        super(props);
     }
 }
 

@@ -4,13 +4,12 @@ import {Dialog, Classes, Button, Tooltip, Checkbox} from "@blueprintjs/core";
 import {OperationState, WorkspaceState, OperationInputState, State, DialogState} from "../state";
 import FormEvent = React.FormEvent;
 import {InputEditor} from "../components/InputEditor";
-import {FloatField} from "../components/FloatField";
-import {IntField} from "../components/IntField";
-import {TextField} from "../components/TextField";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {updatePropertyObject} from "../../common/objutil";
 import {ModalDialog} from "../components/ModalDialog";
+import {Field, TextField} from "../components/Field";
+import {NumberField} from "../components/NumberField";
 
 
 export interface IInputAssignment {
@@ -22,7 +21,6 @@ export interface IInputAssignment {
 type InputAssignmentMap = { [inputName: string]: IInputAssignment };
 
 type EditorCallback = (input: OperationInputState, value: any) => any;
-type ErrorCallback = (textValue: string, error: any) => any;
 type ShowFileCallback = (input: OperationInputState,
                          value: string | null,
                          onChange: EditorCallback) => any;
@@ -75,7 +73,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
 
     static mapPropsToState(props: IOperationStepDialogProps): IOperationStepDialogState {
         const inputAssignments = OperationStepDialog.getInputAssignments(props);
-        return {inputAssignments} as any;
+        return {inputAssignments, inputNameOfOpenDetailsDialog: null} as any;
     }
 
     static getInputAssignments(props: IOperationStepDialogProps): InputAssignmentMap {
@@ -93,7 +91,9 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
             const inputAssignment = this.state.inputAssignments[input.name];
             let opArg;
             if (inputAssignment.isValueUsed) {
-                opArg = {value: inputAssignment.constantValue};
+                const constantValue = inputAssignment.constantValue;
+                const value = Field.isFieldValue(constantValue) ? constantValue.value : constantValue;
+                opArg = {value};
             } else {
                 opArg = {source: inputAssignment.resourceName};
             }
@@ -251,10 +251,10 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
             // console.log('------------------------> ', input.dataType)
             switch (input.dataType) {
                 case 'int':
-                    valueEditor = OperationStepDialog.renderIntInputEditor(input, constantValue, changeInputIntValue, handleValidationFailure);
+                    valueEditor = OperationStepDialog.renderIntInputEditor(input, constantValue, changeInputIntValue);
                     break;
                 case 'float':
-                    valueEditor = OperationStepDialog.renderFloatInputEditor(input, constantValue, changeInputFloatValue, handleValidationFailure);
+                    valueEditor = OperationStepDialog.renderFloatInputEditor(input, constantValue, changeInputFloatValue);
                     break;
                 case 'bool': {
                     valueEditor = OperationStepDialog.renderBoolInputEditor(input, constantValue, changeInputConstantValue);
@@ -270,16 +270,16 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
                         }
                         valueEditor = OperationStepDialog.renderFileInputEditor(input, constantValue, changeInputConstantValue, showFileCallback);
                     } else {
-                        valueEditor = OperationStepDialog.renderStringInputEditor(input, constantValue, changeInputConstantValue, handleValidationFailure);
+                        valueEditor = OperationStepDialog.renderStringInputEditor(input, constantValue, changeInputConstantValue);
                     }
                     break;
                 }
                 case 'cate.core.types.PointLike': {
-                    valueEditor = this.renderPointInputEditor(input, constantValue, changeInputConstantValue, handleValidationFailure);
+                    valueEditor = this.renderPointInputEditor(input, constantValue, changeInputConstantValue);
                     break;
                 }
                 case 'cate.core.types.PolygonLike': {
-                    valueEditor = this.renderPolygonInputEditor(input, constantValue, changeInputConstantValue, handleValidationFailure);
+                    valueEditor = this.renderPolygonInputEditor(input, constantValue, changeInputConstantValue);
                     break;
                 }
             }
@@ -299,63 +299,62 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
     }
 
     private static renderBoolInputEditor(input: OperationInputState,
-                                         value: boolean,
+                                         value: boolean | null,
                                          onChange: EditorCallback) {
         return (
-            <Checkbox checked={value || false}
+            <Checkbox className="pt-large"
+                      checked={value || false}
+                      indeterminate={value === null}
                       onChange={(event: any) => onChange(input, event.target.checked)}/>
         );
     }
 
     private static renderIntInputEditor(input: OperationInputState,
                                         value: number | null,
-                                        onChange: EditorCallback,
-                                        onError: ErrorCallback) {
+                                        onChange: EditorCallback) {
         const valueSetEditor = this.renderValueSetEditor(input, value, onChange);
         if (valueSetEditor) {
             return valueSetEditor;
         }
         return (
-            <IntField textAlign="right"
-                      columns={8}
-                      value={value}
-                      onChange={(value: number | null) => onChange(input, value)}
-                      onError={onError}
+            <NumberField isInt={true}
+                         size={10}
+                         value={value}
+                         nullable={input.nullable}
+                         onChange={value => onChange(input, value)}
             />
         );
     }
 
     private static renderFloatInputEditor(input: OperationInputState,
                                           value: number | null,
-                                          onChange: EditorCallback,
-                                          onError: ErrorCallback) {
+                                          onChange: EditorCallback) {
         const valueSetEditor = this.renderValueSetEditor(input, value, onChange);
         if (valueSetEditor) {
             return valueSetEditor;
         }
         return (
-            <FloatField textAlign="right"
-                        columns={8}
-                        value={value}
-                        onChange={(value: number | null) => onChange(input, value)}
-                        onError={onError}
+            <NumberField isInt={false}
+                         size={10}
+                         value={value}
+                         nullable={input.nullable}
+                         onChange={value => onChange(input, value)}
             />
         );
     }
 
     private static renderStringInputEditor(input: OperationInputState,
-                                           value: string | null,
-                                           onChange: EditorCallback,
-                                           onError: ErrorCallback) {
+                                           value: any,
+                                           onChange: EditorCallback) {
         const valueSetEditor = this.renderValueSetEditor(input, value, onChange);
         if (valueSetEditor) {
             return valueSetEditor;
         }
         return (
-            <TextField columns={10}
+            <TextField size={16}
                        value={value}
-                       onChange={(value: string | null) => onChange(input, value)}
-                       onError={onError}
+                       nullable={input.nullable}
+                       onChange={value => onChange(input, value)}
             />
         );
     }
@@ -393,8 +392,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
 
     private renderPointInputEditor(input: OperationInputState,
                                    value: string | null,
-                                   onChange: EditorCallback,
-                                   onError: ErrorCallback) {
+                                   onChange: EditorCallback) {
         return (
             <input className="pt-input"
                    type="text"
@@ -409,8 +407,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
 
     private renderPolygonInputEditor(input: OperationInputState,
                                      value: string | null,
-                                     onChange: EditorCallback,
-                                     onError: ErrorCallback) {
+                                     onChange: EditorCallback) {
         return (
             <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}}>
                 <input className="pt-input"
