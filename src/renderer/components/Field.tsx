@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {isString, isUndefinedOrNull, isDefined} from "../../common/types";
+import {isString, isUndefinedOrNull, isDefined, isDefinedAndNotNull} from "../../common/types";
 
 export interface FieldValue<T> {
     textValue?: string;
@@ -13,8 +13,8 @@ export interface IFieldProps<T> {
     value: FieldValue<T>|string|any;
     onChange: FieldChangeHandler<T>;
     placeholder?: string;
-    textAlign?: string;
-    columns?: number;
+    cols?: number;
+    size?: number;
     className?: string;
     style?: { [key: string]: any };
     disabled?: boolean;
@@ -27,6 +27,9 @@ export interface IFieldProps<T> {
  * @author Norman Fomferra
  */
 export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, null> {
+
+    private static readonly NOMINAL_CLASS = "pt-input";
+    private static readonly ERROR_CLASS = "pt-input 'pt-intent-danger";
 
     constructor(props: IFieldProps<T>) {
         super(props);
@@ -79,7 +82,7 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
     }
 
     static isFieldValue(value: any): boolean {
-        return isDefined(value) && (isDefined(value.textValue) || isDefined(value.value));
+        return isDefinedAndNotNull(value) && (isDefined(value.textValue) || isDefined(value.value));
     }
 
     getTextValue(): string {
@@ -92,14 +95,6 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
         return this.formatValue(value);
     }
 
-    getValue(): T {
-        const value = this.props.value;
-        if (Field.isFieldValue(value)) {
-            return value.value;
-        }
-        return value as T;
-    }
-
     getError(): Error|null {
         const value = this.props.value;
         if (Field.isFieldValue(value)) {
@@ -108,29 +103,15 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
         return null;
     }
 
-
-    getStyle() {
-        let style = Object.assign({}, this.props.style);
-        if (this.props.columns) {
-            style['width'] = `${this.props.columns}em`;
-        }
-        if (this.props.textAlign) {
-            style['textAlign'] = this.props.textAlign;
-        }
-        return style;
-    }
-
-    getClassNames() {
-        const error = this.getError();
-        return "pt-input " + (this.props.className || '') + (error ? 'pt-intent-danger' : '');
-    }
-
     render() {
+        const error = this.getError();
         return (
             <input type="text"
-                   className={this.getClassNames()}
-                   style={this.getStyle()}
+                   className={error ? Field.ERROR_CLASS : Field.NOMINAL_CLASS}
+                   style={this.props.style}
                    value={this.getTextValue()}
+                   cols={this.props.cols}
+                   size={this.props.size}
                    onChange={this.onChange}
                    placeholder={this.props.placeholder}
                    disabled={this.props.disabled}

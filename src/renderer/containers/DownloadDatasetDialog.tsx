@@ -40,7 +40,7 @@ function mapStateToProps(state: State): IDownloadDatasetDialogProps {
         dataSource: selectors.selectedDataSourceSelector(state),
         temporalCoverage: selectors.selectedDataSourceTemporalCoverageSelector(state),
         timeRange: (dialogState as any).timeRange,
-        region: (dialogState as any).region || GLOBAL,
+        region: (dialogState as any).region,
         variableNames: (dialogState as any).variableNames,
     };
 }
@@ -82,7 +82,7 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
 
         let region = props.region;
         if (!region) {
-            region = GLOBAL;
+            region = null;
         }
 
         let variableNames = props.variableNames;
@@ -119,31 +119,32 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
     }
 
     private canConfirm(): boolean {
-        const west = this.state.region.west.value;
-        const east = this.state.region.east.value;
-        const south = this.state.region.south.value;
-        const north = this.state.region.north.value;
-        const eps = 360. / 40000.; // 1km
-        const validWest = west >= -180 && west <= 180;
-        const validEast = east >= -180 && east <= 180;
-        const validNorth = north >= -90 && north <= 90;
-        const validSouth = south >= -90 && south <= 90;
-        const validEastWest = validWest && validEast && Math.abs(west - east) >= eps;
-        const validSouthNorth = validSouth && validNorth && (north - south) >= eps;
-        const validRegion = validEastWest && validSouthNorth;
-
-        let validVariableNames = true;
-        const variableNames = this.state.variableNames;
-        const dataSource = this.props.dataSource;
-        const variables: any[] = dataSource.meta_info.variables;
-        if (variableNames && variables) {
-            const validNames = new Set(variables.map(variable => variable.name));
-            validVariableNames = variableNames.every(name => validNames.has(name));
-        }
-
-        // TODO (forman): implement full (file) name validation as name will be used as name of a JSON file
-        const validDataSourceName = this.state.dataSourceName && this.state.dataSourceName.trim() !== '';
-        return validRegion && validVariableNames && validDataSourceName;
+        // const west = this.state.region.west.value;
+        // const east = this.state.region.east.value;
+        // const south = this.state.region.south.value;
+        // const north = this.state.region.north.value;
+        // const eps = 360. / 40000.; // 1km
+        // const validWest = west >= -180 && west <= 180;
+        // const validEast = east >= -180 && east <= 180;
+        // const validNorth = north >= -90 && north <= 90;
+        // const validSouth = south >= -90 && south <= 90;
+        // const validEastWest = validWest && validEast && Math.abs(west - east) >= eps;
+        // const validSouthNorth = validSouth && validNorth && (north - south) >= eps;
+        // const validRegion = validEastWest && validSouthNorth;
+        //
+        // let validVariableNames = true;
+        // const variableNames = this.state.variableNames;
+        // const dataSource = this.props.dataSource;
+        // const variables: any[] = dataSource.meta_info.variables;
+        // if (variableNames && variables) {
+        //     const validNames = new Set(variables.map(variable => variable.name));
+        //     validVariableNames = variableNames.every(name => validNames.has(name));
+        // }
+        //
+        // // TODO (forman): implement full (file) name validation as name will be used as name of a JSON file
+        // const validDataSourceName = this.state.dataSourceName && this.state.dataSourceName.trim() !== '';
+        // return validRegion && validVariableNames && validDataSourceName;
+        return true;
     }
 
     private onTimeRangeChange(timeRange: DateRange) {
@@ -206,24 +207,29 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
 
     private renderBody() {
         const temporalCoverage = this.state.temporalCoverage;
-        const minDate = temporalCoverage ? temporalCoverage[0] : undefined;
-        const maxDate = temporalCoverage ? temporalCoverage[1] : undefined;
+        const minDate = temporalCoverage ? temporalCoverage[0] : new Date('1980-01-01');
+        const maxDate = temporalCoverage ? temporalCoverage[1] : new Date(Date.now());
+        const hasTimeConstraint = this.state.hasTimeConstraint;
+        const timeRange = hasTimeConstraint ? this.state.timeRange || [minDate, maxDate] : this.state.timeRange;
+
+        const hasRegionConstraint = this.state.hasRegionConstraint;
+        const region = hasRegionConstraint ? this.state.region || GLOBAL : this.state.region;
 
         return (
             <div>
                 <p>You are about to download a dataset from data source <strong>{this.props.dataSource.name}</strong>.
                 </p>
 
-                <Checkbox style={{marginTop: '1em'}} checked={this.state.hasTimeConstraint} label="Time constraint"
+                <Checkbox style={{marginTop: '1em'}} checked={hasTimeConstraint} label="Time constraint"
                           onChange={this.onHasTimeConstraintChange}/>
                 <div style={{marginLeft: '2em'}}>
                     <DateRangeInput
-                        disabled={!this.state.hasTimeConstraint}
+                        disabled={!hasTimeConstraint}
                         minDate={minDate}
                         maxDate={maxDate}
                         locale={'en'}
                         format="YYYY-MM-DD"
-                        value={this.state.timeRange}
+                        value={timeRange}
                         onChange={this.onTimeRangeChange}/>
                 </div>
 
@@ -232,11 +238,11 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
                 {/*onChange={this.onTimeRangeChange}/>*/}
 
 
-                <Checkbox style={{marginTop: '1em'}} checked={this.state.hasRegionConstraint} label="Region constraint"
+                <Checkbox style={{marginTop: '1em'}} checked={hasRegionConstraint} label="Region constraint"
                           onChange={this.onHasRegionConstraintChange}/>
                 <div style={{marginLeft: '2em'}}>
-                    <Region value={this.state.region}
-                            disabled={!this.state.hasRegionConstraint}
+                    <Region value={region}
+                            disabled={!hasRegionConstraint}
                             onChange={this.onRegionChange}/>
                 </div>
 

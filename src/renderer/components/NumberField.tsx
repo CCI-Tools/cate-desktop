@@ -67,10 +67,12 @@ export class NumberField extends Field<NumberOrNull, INumberFieldProps> {
         let error = this.getError();
         return (<NumericInput onValueChange={this.onValueChange}
                               value={this.getTextValue()}
-                              style={this.getStyle()}
+                              style={this.props.style}
                               intent={error ? Intent.DANGER : Intent.NONE}
                               min={this.props.min}
                               max={this.props.max}
+                              cols={this.props.cols}
+                              size={this.props.size}
                               minorStepSize={this.props.isInt ? 1: 0.1}
                               selectAllOnFocus={true}
         />);

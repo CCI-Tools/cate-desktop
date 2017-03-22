@@ -26,6 +26,7 @@ export const GLOBAL: RegionValue = {
  * An editor for objects which have the properties west, east, south, north of type number.
  */
 export class Region extends React.PureComponent<IRegionProps, null> {
+    private static readonly NUMBER_FIELD_STYLE = {textAlign: "right"};
 
     constructor(props: IRegionProps) {
         super(props);
@@ -52,37 +53,38 @@ export class Region extends React.PureComponent<IRegionProps, null> {
     }
 
     render() {
-        let disabled = this.props.disabled;
+        let value = this.props.value;
         return (
-            <div>
-                <table disabled={this.props.disabled}>
-                    <tbody>
-                    <tr>
-                        <td>W</td>
-                        <td>{this.renderField(this.props.value.west, -180, 180, this.onWestChange)}</td>
-                        <td> E</td>
-                        <td>{this.renderField(this.props.value.east, -180, 180, this.onEastChange)}</td>
-                    </tr>
-                    <tr>
-                        <td>S</td>
-                        <td>{this.renderField(this.props.value.south, -90, 90, this.onSouthChange)}</td>
-                        <td> N</td>
-                        <td>{this.renderField(this.props.value.north, -90, 90, this.onNorthChange)}</td>
-                    </tr>
-                    </tbody>
-                </table>
+            <div disabled={this.props.disabled}>
+                <div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'flex-start', padding: 2}}>
+                    <div style={{flexGrow: 0, width: '3em'}}>W </div>
+                    <div
+                        style={{flexGrow: 1, width: '100%'}}>{this.renderField(value && value.west || null, -180, 180, this.onWestChange)}</div>
+                    <div style={{flexGrow: 0, width: '3em'}}>E </div>
+                    <div
+                        style={{flexGrow: 1, width: '100%'}}>{this.renderField(value && value.east || null, -180, 180, this.onEastChange)}</div>
+                </div>
+                <div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'flex-start', padding: 2}}>
+                    <div style={{flexGrow: 0, width: '3em'}}>S </div>
+                    <div
+                        style={{flexGrow: 1, width: '100%'}}>{this.renderField(value && value.south || null, -90, 90, this.onSouthChange)}</div>
+                    <div style={{flexGrow: 0, width: '3em'}}>N </div>
+                    <div
+                        style={{flexGrow: 1, width: '100%'}}>{this.renderField(value && value.north || null, -90, 90, this.onNorthChange)}</div>
+                </div>
             </div>
         );
     }
 
     renderField(value: FieldValue<number>, min: number, max: number, onChange: (number) => void) {
         return (<NumberField value={value}
-                             textAlign="right"
+                             style={Region.NUMBER_FIELD_STYLE}
                              min={min}
                              max={max}
-                             columns={8}
+                             size={10}
                              onChange={onChange}
                              disabled={this.props.disabled}
+                             nullable={true}
         />);
     }
 }
