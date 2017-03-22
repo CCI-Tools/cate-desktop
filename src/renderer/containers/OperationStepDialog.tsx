@@ -10,6 +10,7 @@ import {TextField} from "../components/TextField";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {updatePropertyObject} from "../../common/objutil";
+import {ModalDialog} from "../components/ModalDialog";
 
 
 export interface IInputAssignment {
@@ -18,12 +19,12 @@ export interface IInputAssignment {
     isValueUsed: boolean;
 }
 
-type InputAssignmentMap = {[inputName: string]: IInputAssignment};
+type InputAssignmentMap = { [inputName: string]: IInputAssignment };
 
 type EditorCallback = (input: OperationInputState, value: any) => any;
-type FailureCallback = (textValue: string, error: any) => any;
+type ErrorCallback = (textValue: string, error: any) => any;
 type ShowFileCallback = (input: OperationInputState,
-                         value: string|null,
+                         value: string | null,
                          onChange: EditorCallback) => any;
 
 interface IOperationStepDialogOwnProps {
@@ -32,10 +33,15 @@ interface IOperationStepDialogOwnProps {
 
 interface IOperationStepDialogProps extends DialogState, IOperationStepDialogOwnProps {
     dispatch?: any;
-    inputAssignments: {[opName: string]: InputAssignmentMap};
+    inputAssignments: { [opName: string]: InputAssignmentMap };
     workspace: WorkspaceState;
     operation: OperationState;
     newResourceName: string,
+}
+
+interface IOperationStepDialogState {
+    inputAssignments: InputAssignmentMap;
+    inputNameOfOpenDetailsDialog: string | null;
 }
 
 function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): IOperationStepDialogProps {
@@ -51,7 +57,7 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
     };
 }
 
-class OperationStepDialog extends React.Component<IOperationStepDialogProps, InputAssignmentMap> {
+class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOperationStepDialogState> {
     static readonly DIALOG_ID = 'operationStepDialog';
 
     constructor(props: IOperationStepDialogProps) {
@@ -60,11 +66,22 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
         this.handleValidate = this.handleValidate.bind(this);
         this.handleDefaults = this.handleDefaults.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
-        this.state = propsToState(props);
+        this.state = OperationStepDialog.mapPropsToState(props);
     }
 
     componentWillReceiveProps(nextProps: IOperationStepDialogProps) {
-        this.setState(propsToState(nextProps));
+        this.setState(OperationStepDialog.mapPropsToState(nextProps));
+    }
+
+    static mapPropsToState(props: IOperationStepDialogProps): IOperationStepDialogState {
+        const inputAssignments = OperationStepDialog.getInputAssignments(props);
+        return {inputAssignments} as any;
+    }
+
+    static getInputAssignments(props: IOperationStepDialogProps): InputAssignmentMap {
+        const operation = props.operation;
+        const inputAssignments = props.inputAssignments;
+        return (inputAssignments && inputAssignments[operation.name]) || getInitialInputAssignments(operation);
     }
 
     private handleConfirm() {
@@ -73,7 +90,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
         const opName = operation.name;
         const opArgs = {};
         operation.inputs.forEach((input) => {
-            const inputAssignment = this.state[input.name];
+            const inputAssignment = this.state.inputAssignments[input.name];
             let opArg;
             if (inputAssignment.isValueUsed) {
                 opArg = {value: inputAssignment.constantValue};
@@ -83,7 +100,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
             opArgs[input.name] = opArg;
         });
         console.log(`OperationStepDialog: handleConfirm: op="${opName}", args=${opArgs}`);
-        this.props.dispatch(actions.hideOperationStepDialog({[opName]: this.state}));
+        this.props.dispatch(actions.hideOperationStepDialog({[opName]: this.state.inputAssignments}));
         this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, `Applying operation "${opName}"`));
     }
 
@@ -98,8 +115,8 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
     }
 
     private handleDefaults() {
-        const inputAssignments = getInputAssignments(this.props.operation, this.props.inputAssignments, true);
-        this.setState(Object.assign({}, this.state, inputAssignments));
+        const inputAssignments = getInitialInputAssignments(this.props.operation, this.props.inputAssignments, true);
+        this.setState({inputAssignments} as any);
     }
 
     private requiresDatasetResources() {
@@ -194,9 +211,9 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
 
         const changeInputAssignment = (input: OperationInputState, inputAssignment: IInputAssignment) => {
             console.log('OperationStepDialog: changeInputAssignment: newInputAssignments =', inputAssignment);
-            const newInputAssignments = updatePropertyObject(this.state, input.name, inputAssignment);
+            const newInputAssignments = updatePropertyObject(this.state.inputAssignments, input.name, inputAssignment);
             console.log('OperationStepDialog: changeInputAssignment: newInputAssignments =', newInputAssignments);
-            this.setState(newInputAssignments);
+            this.setState({inputAssignments: newInputAssignments} as any);
         };
 
         const changeInputResourceName = (input: OperationInputState, resourceName: string, isValueUsed: boolean) => {
@@ -217,20 +234,21 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
             changeInputAssignment(input, {constantValue: value, isValueUsed: true} as IInputAssignment);
         };
 
-        const changeInputIntValue = (input: OperationInputState, value: number|null) => {
+        const changeInputIntValue = (input: OperationInputState, value: number | null) => {
             // TODO (forman): perform validation against input.valueRange, if any
             changeInputConstantValue(input, value);
         };
 
-        const changeInputFloatValue = (input: OperationInputState, value: number|null) => {
+        const changeInputFloatValue = (input: OperationInputState, value: number | null) => {
             // TODO (forman): perform validation against input.valueRange, if any
             changeInputConstantValue(input, value);
         };
 
         const inputEditors = operation.inputs.map((input: OperationInputState, index: number) => {
-            const inputAssignment = this.state[input.name];
+            const inputAssignment = this.state.inputAssignments[input.name];
             const constantValue = inputAssignment.constantValue;
             let valueEditor = null;
+            // console.log('------------------------> ', input.dataType)
             switch (input.dataType) {
                 case 'int':
                     valueEditor = OperationStepDialog.renderIntInputEditor(input, constantValue, changeInputIntValue, handleValidationFailure);
@@ -256,6 +274,14 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
                     }
                     break;
                 }
+                case 'cate.core.types.PointLike': {
+                    valueEditor = this.renderPointInputEditor(input, constantValue, changeInputConstantValue, handleValidationFailure);
+                    break;
+                }
+                case 'cate.core.types.PolygonLike': {
+                    valueEditor = this.renderPolygonInputEditor(input, constantValue, changeInputConstantValue, handleValidationFailure);
+                    break;
+                }
             }
             return (<InputEditor key={index}
                                  resources={this.props.workspace.resources}
@@ -277,14 +303,14 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
                                          onChange: EditorCallback) {
         return (
             <Checkbox checked={value || false}
-                      onChange={(event:any) => onChange(input, event.target.checked)}/>
+                      onChange={(event: any) => onChange(input, event.target.checked)}/>
         );
     }
 
     private static renderIntInputEditor(input: OperationInputState,
-                                        value: number|null,
+                                        value: number | null,
                                         onChange: EditorCallback,
-                                        onFailure: FailureCallback) {
+                                        onError: ErrorCallback) {
         const valueSetEditor = this.renderValueSetEditor(input, value, onChange);
         if (valueSetEditor) {
             return valueSetEditor;
@@ -293,16 +319,16 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
             <IntField textAlign="right"
                       columns={8}
                       value={value}
-                      onChange={(value:number|null) => onChange(input, value)}
-                      onFailure={onFailure}
+                      onChange={(value: number | null) => onChange(input, value)}
+                      onError={onError}
             />
         );
     }
 
     private static renderFloatInputEditor(input: OperationInputState,
-                                          value: number|null,
+                                          value: number | null,
                                           onChange: EditorCallback,
-                                          onFailure: FailureCallback) {
+                                          onError: ErrorCallback) {
         const valueSetEditor = this.renderValueSetEditor(input, value, onChange);
         if (valueSetEditor) {
             return valueSetEditor;
@@ -311,16 +337,16 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
             <FloatField textAlign="right"
                         columns={8}
                         value={value}
-                        onChange={(value:number|null) => onChange(input, value)}
-                        onFailure={onFailure}
+                        onChange={(value: number | null) => onChange(input, value)}
+                        onError={onError}
             />
         );
     }
 
     private static renderStringInputEditor(input: OperationInputState,
-                                           value: string|null,
+                                           value: string | null,
                                            onChange: EditorCallback,
-                                           onFailure: FailureCallback) {
+                                           onError: ErrorCallback) {
         const valueSetEditor = this.renderValueSetEditor(input, value, onChange);
         if (valueSetEditor) {
             return valueSetEditor;
@@ -328,14 +354,14 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
         return (
             <TextField columns={10}
                        value={value}
-                       onChange={(value:string|null) => onChange(input, value)}
-                       onFailure={onFailure}
+                       onChange={(value: string | null) => onChange(input, value)}
+                       onError={onError}
             />
         );
     }
 
     private static renderValueSetEditor(input: OperationInputState,
-                                        value: string|any,
+                                        value: string | any,
                                         onChange: EditorCallback) {
         if (input.valueSet && input.valueSet.length) {
             let options = input.valueSet.map((v, i) => (
@@ -348,7 +374,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
             return (
                 <div className="pt-select">
                     <select value={value || NULL_VALUE}
-                            onChange={(event:any) => onChange(input, event.target.value === NULL_VALUE ? null : event.target.value)}>
+                            onChange={(event: any) => onChange(input, event.target.value === NULL_VALUE ? null : event.target.value)}>
                         {options}
                     </select>
                 </div>
@@ -357,8 +383,61 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
         return null;
     }
 
+    showDetailsDialog(inputName: string) {
+        this.setState({inputNameOfOpenDetailsDialog: inputName} as any);
+    }
+
+    hideDetailsDialog() {
+        this.setState({inputNameOfOpenDetailsDialog: null} as any);
+    }
+
+    private renderPointInputEditor(input: OperationInputState,
+                                   value: string | null,
+                                   onChange: EditorCallback,
+                                   onError: ErrorCallback) {
+        return (
+            <input className="pt-input"
+                   type="text"
+                   style={{flexGrow: 1}}
+                   value={value || ''}
+                   width="16em"
+                   placeholder='Longitude, Latitude'
+                   onChange={(event: any) => onChange(input, event.target.value)}
+            />
+        );
+    }
+
+    private renderPolygonInputEditor(input: OperationInputState,
+                                     value: string | null,
+                                     onChange: EditorCallback,
+                                     onError: ErrorCallback) {
+        return (
+            <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}}>
+                <input className="pt-input"
+                       type="text"
+                       value={value || ''}
+                       size={40}
+                       placeholder='<E>, <S>, <W>, <N> or well-known text (WKT)'
+                       onChange={(event: any) => onChange(input, event.target.value)}
+                />
+                <Button className="pt-intent-primary" style={{flex: 'none'}}
+                        onClick={() => this.showDetailsDialog.bind(this)(input.name)}>...</Button>
+                <GeometryDetailsDialog isOpen={this.state.inputNameOfOpenDetailsDialog === input.name}
+                                       value={value}
+                                       onConfirm={(value: string) => {
+                                           this.hideDetailsDialog();
+                                           onChange(input, value);
+                                       }}
+                                       onCancel={() => {
+                                           this.hideDetailsDialog()
+                                       }}
+                                       geometryType={'Polygon'}/>
+            </div>
+        );
+    }
+
     private static renderFileInputEditor(input: OperationInputState,
-                                         value: string|null,
+                                         value: string | null,
                                          onChange: EditorCallback,
                                          showFileDialog: ShowFileCallback) {
         return (
@@ -368,7 +447,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
                        style={{flexGrow: 1}}
                        value={value || ''}
                        placeholder="Enter local file path"
-                       onChange={(event:any) => onChange(input, event.target.value)}
+                       onChange={(event: any) => onChange(input, event.target.value)}
                 />
                 <Button className="pt-intent-primary" style={{flex: 'none'}}
                         onClick={() => showFileDialog(input, value || '', onChange)}>...</Button>
@@ -377,7 +456,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
     }
 
     private static showOpenDialog(input: OperationInputState,
-                                  value: string|null,
+                                  value: string | null,
                                   onChange: EditorCallback) {
         const openDialogOptions = {
             title: "Open File",
@@ -394,7 +473,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
     }
 
     private static showSaveDialog(input: OperationInputState,
-                                  value: string|null,
+                                  value: string | null,
                                   onChange: EditorCallback) {
         const saveDialogOptions = {
             title: "Save File",
@@ -408,6 +487,8 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, Inp
             }
         });
     }
+
+
 }
 
 export default connect(mapStateToProps)(OperationStepDialog);
@@ -421,13 +502,7 @@ function isValidDefaultValue(value: any): boolean {
     return typeof value !== 'undefined';
 }
 
-function propsToState(props: IOperationStepDialogProps): InputAssignmentMap {
-    const operation = props.operation;
-    const inputAssignments = props.inputAssignments;
-    return (inputAssignments && inputAssignments[operation.name]) || getInputAssignments(operation);
-}
-
-function getInputAssignments(operation: OperationState, lastInputAssignments?, forceDefaults?: boolean) {
+function getInitialInputAssignments(operation: OperationState, lastInputAssignments?, forceDefaults?: boolean) {
     const inputAssignments = {};
     operation.inputs.forEach((input: OperationInputState) => {
         const hasDefaultValue = isValidDefaultValue(input.defaultValue);
@@ -443,5 +518,69 @@ function getInputAssignments(operation: OperationState, lastInputAssignments?, f
         inputAssignments[input.name] = newInputAssignment;
     });
     return inputAssignments;
+}
+
+interface IGeometryDetailsDialogProps {
+    isOpen: boolean;
+    value: string;
+    onConfirm: (value: string) => void;
+    onCancel: () => void;
+    geometryType: string;
+}
+
+interface IGeometryDetailsDialogState {
+    value: string;
+}
+
+class GeometryDetailsDialog extends React.Component<IGeometryDetailsDialogProps, IGeometryDetailsDialogState> {
+
+    constructor(props: IGeometryDetailsDialogProps, context: any) {
+        super(props, context);
+        this.renderBody = this.renderBody.bind(this);
+        this.onConfirm = this.onConfirm.bind(this);
+        this.onValueChange = this.onValueChange.bind(this);
+        this.state = {value: this.props.value};
+    }
+
+    onConfirm() {
+        this.props.onConfirm(this.state.value);
+    }
+
+    onValueChange(ev: any) {
+        this.setState({value: ev.target.value});
+    }
+
+    render() {
+        return (
+            <ModalDialog isOpen={this.props.isOpen}
+                         onConfirm={this.onConfirm}
+                         onCancel={this.props.onCancel}
+                         renderBody={this.renderBody}/>
+        );
+    }
+
+    renderBody() {
+        return (
+            <div className="pt-form-group">
+                <label className="pt-label" htmlFor="wkt">
+                    Geometry:
+                    <span className="pt-text-muted">{` (${this.props.geometryType})`}</span>
+                </label>
+                <div className="pt-form-content" style={{width: "30em"}}>
+                    <textarea id="wkt" className="pt-input pt-fill" rows={8} dir="auto"
+                              onChange={this.onValueChange}>
+                        {this.props.value}
+                    </textarea>
+                    <div className="pt-form-helper-text">For points enter
+                        a <strong>lon,lat</strong>, for bounding boxes
+                        use <strong>min-lon,min-lat,max-lon,max-lat</strong>.
+                        For any other geometry types use the <strong><a
+                            href="https://en.wikipedia.org/wiki/Well-known_text">well-known text
+                            (WKT)</a></strong> representation.
+                    </div>
+                </div>
+            </div>
+        );
+    }
 }
 

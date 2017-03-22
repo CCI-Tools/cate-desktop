@@ -1,41 +1,49 @@
 import * as React from 'react';
-import {RangeSlider, NumberRange} from "@blueprintjs/core";
-import {formatMillisAsISODateString} from "../../common/format";
-import {FloatField} from "./FloatField";
+import {NumberField} from "./NumberField";
 
 interface Value {
-    west: number;
-    south: number;
-    east: number;
-    north: number;
+    west: string;
+    south: string;
+    east: string;
+    north: string;
 }
 
-interface IBBoxProps {
+interface IRegionProps {
     value: Value;
     onChange: (value: Value) => void;
-    disabled: boolean;
+    disabled?: boolean;
 }
 
-export class Region extends React.PureComponent<IBBoxProps, null> {
+export const GLOBAL: Value = {
+    west: "-180",
+    south: "-90",
+    east: "180",
+    north: "90",
+};
 
-    constructor(props: IBBoxProps) {
+/**
+ * An editor for objects which have the properties west, east, south, north of type number.
+ */
+export class Region extends React.PureComponent<IRegionProps, null> {
+
+    constructor(props: IRegionProps) {
         super(props);
     }
 
-    onWestChange(value: number) {
-        this.props.onChange({...this.props.value, west: value});
+    onWestChange(textValue: string) {
+        this.props.onChange({...this.props.value, west: textValue});
     }
 
-    onEastChange(value: number) {
-        this.props.onChange({...this.props.value, east: value});
+    onEastChange(textValue: string) {
+        this.props.onChange({...this.props.value, east: textValue});
     }
 
-    onNorthChange(value: number) {
-        this.props.onChange({...this.props.value, north: value});
+    onNorthChange(textValue: string) {
+        this.props.onChange({...this.props.value, north: textValue});
     }
 
-    onSouthChange(value: number) {
-        this.props.onChange({...this.props.value, south: value});
+    onSouthChange(textValue: string) {
+        this.props.onChange({...this.props.value, south: textValue});
     }
 
     render() {
@@ -47,15 +55,15 @@ export class Region extends React.PureComponent<IBBoxProps, null> {
                     <tbody>
                     <tr>
                         <td>W</td>
-                        <td>{this.renderFloatField(this.props.value.west, this.onWestChange.bind(this))}</td>
+                        <td>{this.renderFloatField(this.props.value.west, -180, 180, this.onWestChange.bind(this))}</td>
                         <td> E</td>
-                        <td>{this.renderFloatField(this.props.value.east, this.onEastChange.bind(this))}</td>
+                        <td>{this.renderFloatField(this.props.value.east, -180, 180, this.onEastChange.bind(this))}</td>
                     </tr>
                     <tr>
                         <td>S</td>
-                        <td>{this.renderFloatField(this.props.value.south, this.onSouthChange.bind(this))}</td>
+                        <td>{this.renderFloatField(this.props.value.south, -90, 90, this.onSouthChange.bind(this))}</td>
                         <td> N</td>
-                        <td>{this.renderFloatField(this.props.value.north, this.onNorthChange.bind(this))}</td>
+                        <td>{this.renderFloatField(this.props.value.north, -90, 90, this.onNorthChange.bind(this))}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -63,13 +71,14 @@ export class Region extends React.PureComponent<IBBoxProps, null> {
         );
     }
 
-    renderFloatField(value: number, onChange: (number) => void) {
-        return (<FloatField value={value}
-                            textAlign="right"
-                            columns={8}
-                            fractionDigits={4}
-                            onChange={onChange}
-                            disabled={this.props.disabled}
+    renderFloatField(textValue: string, min: number, max: number, onChange: (number) => void) {
+        return (<NumberField textValue={textValue}
+                             textAlign="right"
+                             min={min}
+                             max={max}
+                             columns={8}
+                             onChange={onChange}
+                             disabled={this.props.disabled}
         />);
     }
 }

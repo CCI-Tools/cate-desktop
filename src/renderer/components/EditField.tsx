@@ -5,7 +5,7 @@ type ErrorHandler = (textValue: string, error: any) => void;
 export interface IEditFieldProps<T> {
     value: T | null;
     onChange: (value: T) => void;
-    onFailure?: ErrorHandler;
+    onError?: ErrorHandler;
     parseValue?: (textValue: string) => T;
     formatValue?: (value: T) => string;
     placeholder?: string;
@@ -113,8 +113,8 @@ export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.P
         } catch (e) {
             if (onFailure) {
                 onFailure(textValue, e);
-            } else if (this.props.onFailure) {
-                this.props.onFailure(textValue, e);
+            } else if (this.props.onError) {
+                this.props.onError(textValue, e);
             } else {
                 console.warn(`EditField: no error handler given, ignoring invalid user input "${textValue}":`, e);
             }
@@ -125,8 +125,8 @@ export abstract class EditField<T, P extends IEditFieldProps<T>> extends React.P
     }
 
     private onFailure(textValue: string, error: any) {
-        if (this.props.onFailure) {
-            this.props.onFailure(textValue, error);
+        if (this.props.onError) {
+            this.props.onError(textValue, error);
         }
         this.rejectInputValue();
     }
