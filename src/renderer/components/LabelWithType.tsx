@@ -1,9 +1,11 @@
 import * as React from "react";
 import {Tooltip} from "@blueprintjs/core";
+import {formatDataTypeName} from "../../common/format";
 
 export interface ILabelWithTypeProps {
     label: string;
-    dataType: string;
+    dataType: string|null;
+    fullyQualified?: boolean;
     units?: string;
     tooltipText?: string;
     style?: {[cssProperty: string]: any;}
@@ -17,7 +19,7 @@ export interface ILabelWithTypeProps {
 export function LabelWithType(props: ILabelWithTypeProps) {
 
     const labelText = props.label;
-    const dataTypeText = props.dataType;
+    const dataTypeText = formatDataTypeName(props.dataType, props.fullyQualified);
     const unitsText = props.units && props.units !== '' ? ` (${props.units})` : '';
 
     let content = (
@@ -30,4 +32,8 @@ export function LabelWithType(props: ILabelWithTypeProps) {
 
     return <div style={props.style}>{content}</div>;
 }
+
+
+
+
 

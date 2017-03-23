@@ -15,3 +15,20 @@ export function formatMillisAsISODateString(millis: number) {
 export function formatDateAsISODateString(date: Date) {
     return date.toISOString().slice(0, 10);
 }
+
+/**
+ * Format a data type name for human readers.
+ *
+ * @param name fully qualified data type name
+ * @param fullyQualified if the type name should be (kept) fully qualified
+ * @returns {any}
+ */
+export function formatDataTypeName(name: string|null, fullyQualified: boolean): string {
+    if (name && !fullyQualified) {
+        const index = name.lastIndexOf('.');
+        if (index >= 0) {
+            return name.substr(index + 1);
+        }
+    }
+    return name;
+}
