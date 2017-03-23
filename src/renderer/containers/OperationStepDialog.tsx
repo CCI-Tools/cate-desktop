@@ -1,7 +1,10 @@
 import * as React from 'react';
 import {connect} from "react-redux";
 import {Button} from "@blueprintjs/core";
-import {OperationState, WorkspaceState, OperationInputState, State, DialogState, OperationKWArgs} from "../state";
+import {
+    OperationState, WorkspaceState, OperationInputState, State, DialogState, OperationKWArgs,
+    ResourceState
+} from "../state";
 import FormEvent = React.FormEvent;
 import {InputEditor} from "../components/InputEditor";
 import {updatePropertyObject} from "../../common/objutil";
@@ -219,6 +222,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
         const inputEditors = renderInputEditors(
             operation.inputs,
             this.state.inputAssignments,
+            this.props.workspace.resources,
             this.onConstantValueChange,
             this.onResourceNameChange
         );
@@ -252,6 +256,7 @@ function getInitialInputAssignments(inputs: OperationInputState[],
 
 function renderInputEditors(inputs: OperationInputState[],
                             inputAssignments: InputAssignments,
+                            resources: ResourceState[],
                             onConstantValueChange,
                             onResourceNameChange): JSX.Element[] {
     return inputs.map((input: OperationInputState) => {
@@ -260,7 +265,7 @@ function renderInputEditors(inputs: OperationInputState[],
         const valueEditor = renderValueEditor(input, constantValue, onConstantValueChange);
         return (
             <InputEditor key={input.name}
-                         resources={this.props.workspace.resources}
+                         resources={resources}
                          name={input.name}
                          dataType={input.dataType}
                          units={input.units}
