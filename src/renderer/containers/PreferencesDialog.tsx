@@ -4,7 +4,7 @@ import {State, SessionState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import {TextField} from "../components/TextField";
+import {TextField} from "../components/field/TextField";
 import {OpenDialogProperty} from "../actions";
 import * as deepEqual from 'deep-equal';
 import {ModalDialog} from "../components/ModalDialog";

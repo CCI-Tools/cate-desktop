@@ -1,16 +1,16 @@
 import * as React from 'react'
-import {isString, isUndefinedOrNull, isDefined, isDefinedAndNotNull} from "../../common/types";
+import {isString, isUndefinedOrNull, isDefined, isDefinedAndNotNull} from "../../../common/types";
 
 export interface FieldValue<T> {
     textValue?: string;
-    value?: T;
-    error?: Error | null;
+    value?: T|null;
+    error?: Error|null;
 }
 
 export type FieldChangeHandler<T> = (value: FieldValue<T>) => void;
 
 export interface IFieldProps<T> {
-    value: FieldValue<T>|string|any;
+    value: FieldValue<T>|any;
     onChange: FieldChangeHandler<T>;
     placeholder?: string;
     cols?: number;
@@ -29,18 +29,18 @@ export interface IFieldProps<T> {
 export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, null> {
 
     private static readonly NOMINAL_CLASS = "pt-input";
-    private static readonly ERROR_CLASS = "pt-input 'pt-intent-danger";
+    private static readonly ERROR_CLASS = "pt-input pt-intent-danger";
 
     constructor(props: IFieldProps<T>) {
         super(props);
         this.onChange = this.onChange.bind(this);
     }
 
-    protected parseValue(textValue: string): T {
+    protected parseValue(textValue: string): T|null {
         return textValue as any;
     }
 
-    protected formatValue(value: T): string {
+    protected formatValue(value: T|null): string {
         if (value === null) {
             return '';
         } else if (typeof(value) === 'string') {
@@ -50,7 +50,7 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
         }
     }
 
-    protected validateValue(value: T): void {
+    protected validateValue(value: T|null): void {
         if (isUndefinedOrNull(value)) {
             if (this.props.nullable) {
                 return;
@@ -119,17 +119,3 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
         );
     }
 }
-
-type StringOrNull = string|null;
-
-/**
- * A TextField represents a text input field providing values of type string.
- *
- * @author Norman Fomferra
- */
-export class TextField extends Field<StringOrNull, IFieldProps<StringOrNull>> {
-    constructor(props: IFieldProps<StringOrNull>) {
-        super(props);
-    }
-}
-

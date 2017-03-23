@@ -14,7 +14,7 @@ import {Card} from "../components/Card";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
-import {NumericRangeField} from "../components/NumericRangeField";
+import {NumericRangeField} from "../components/field/NumericRangeField";
 import LayerSourcesDialog from "./LayerSourcesDialog";
 import ProjectionsDialog from "./ProjectionsDialog";
 
@@ -373,8 +373,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                     <div className="pt-control-group">
                         <NumericRangeField value={[layer.displayMin, layer.displayMax]}
                                            onChange={this.handleChangedDisplayMinMax}
-                                           exponential={fractionDigits > 3}
-                                           fractionDigits={fractionDigits > 3 ? 2 : fractionDigits}
                         />
                         <Tooltip content="Compute valid min/max">
                             <Button className="pt-intent-primary" iconName="arrows-horizontal"

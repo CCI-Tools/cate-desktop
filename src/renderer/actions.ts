@@ -2,7 +2,7 @@ import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, SessionState, BackendConfigState, VariableState, VariableImageLayerState, VariableVectorLayerState,
-    VariableRefState
+    VariableRefState, OperationKWArgs
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
@@ -685,7 +685,7 @@ export function setSelectedWorkflowStepId(selectedWorkflowStepId: string) {
     return updateControlState({selectedWorkflowStepId});
 }
 
-export function setWorkspaceResource(resName: string, opName: string, opArgs: {[name: string]: any}, title: string) {
+export function setWorkspaceResource(resName: string, opName: string, opArgs: OperationKWArgs, title: string) {
     return (dispatch, getState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);

@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {FieldValue} from "./Field";
-import {NumberField} from "./NumberField";
+import {FieldValue} from "./field/Field";
+import {NumericField} from "./field/NumericField";
 
 export interface RegionValue {
     west: FieldValue<number>;
@@ -77,14 +77,14 @@ export class Region extends React.PureComponent<IRegionProps, null> {
     }
 
     renderField(value: FieldValue<number>, min: number, max: number, onChange: (number) => void) {
-        return (<NumberField value={value}
-                             style={Region.NUMBER_FIELD_STYLE}
-                             min={min}
-                             max={max}
-                             size={10}
-                             onChange={onChange}
-                             disabled={this.props.disabled}
-                             nullable={true}
+        return (<NumericField value={value}
+                              style={Region.NUMBER_FIELD_STYLE}
+                              min={min}
+                              max={max}
+                              size={10}
+                              onChange={onChange}
+                              disabled={this.props.disabled}
+                              nullable={true}
         />);
     }
 }

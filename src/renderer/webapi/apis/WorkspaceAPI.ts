@@ -1,6 +1,6 @@
 import {WebAPIClient} from "../WebAPIClient";
 import {JobPromise, JobProgress} from "../Job";
-import {WorkspaceState, ImageStatisticsState} from "../../state";
+import {WorkspaceState, ImageStatisticsState, OperationKWArgs} from "../../state";
 
 function responseToWorkspace(workspaceResponse: any): WorkspaceState {
     if (!workspaceResponse) {
@@ -24,7 +24,7 @@ export class WorkspaceAPI {
         this.webAPIClient = webAPI;
     }
 
-    newWorkspace(baseDir: string|null): JobPromise<WorkspaceState> {
+    newWorkspace(baseDir: string | null): JobPromise<WorkspaceState> {
         return this.webAPIClient.call('new_workspace', [baseDir], null, responseToWorkspace);
     }
 
@@ -46,18 +46,18 @@ export class WorkspaceAPI {
         return this.webAPIClient.call('save_workspace_as', [baseDir, toDir], onProgress, responseToWorkspace);
     }
 
-    setWorkspaceResource(baseDir: string, resName: string, opName: string, opArgs: {[name: string]: any},
+    setWorkspaceResource(baseDir: string, resName: string, opName: string, opArgs: OperationKWArgs,
                          onProgress: (progress: JobProgress) => void): JobPromise<WorkspaceState> {
         return this.webAPIClient.call('set_workspace_resource', [baseDir, resName, opName, opArgs],
             onProgress, responseToWorkspace);
     }
 
     renameWorkspaceResource(baseDir: string, resName: string, newResName: string): JobPromise<WorkspaceState> {
-        return this.webAPIClient.call('rename_workspace_resource',  [baseDir, resName, newResName], null, responseToWorkspace);
+        return this.webAPIClient.call('rename_workspace_resource', [baseDir, resName, newResName], null, responseToWorkspace);
     }
 
     getWorkspaceVariableStatistics(baseDir: string, resName: string,
-                                   varName: string, varIndex: Array<number>|null): JobPromise<ImageStatisticsState> {
-        return this.webAPIClient.call('get_workspace_variable_statistics',  [baseDir, resName, varName, varIndex]);
+                                   varName: string, varIndex: Array<number> | null): JobPromise<ImageStatisticsState> {
+        return this.webAPIClient.call('get_workspace_variable_statistics', [baseDir, resName, varName, varIndex]);
     }
 }

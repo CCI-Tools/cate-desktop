@@ -1,12 +1,9 @@
 import * as React from 'react'
-import {IEditFieldProps, EditField} from "./EditField";
+import {IFieldProps, Field} from "./Field";
 
 export type NumericRange = [number, number];
-export type NumericRangeOrNull = NumericRange|null;
 
-export interface INumericRangeFieldProps extends IEditFieldProps<NumericRangeOrNull> {
-    exponential?: boolean;
-    fractionDigits?: number;
+export interface INumericRangeFieldProps extends IFieldProps<NumericRange> {
 }
 
 /**
@@ -15,9 +12,9 @@ export interface INumericRangeFieldProps extends IEditFieldProps<NumericRangeOrN
  *
  * @author Norman Fomferra
  */
-export class NumericRangeField extends EditField<NumericRangeOrNull, INumericRangeFieldProps> {
+export class NumericRangeField extends Field<NumericRange, INumericRangeFieldProps> {
 
-    protected parseValue(textValue: string): NumericRangeOrNull {
+    protected parseValue(textValue: string): NumericRange | null {
         if (!textValue || textValue.trim() === '') {
             return null;
         }
@@ -36,15 +33,10 @@ export class NumericRangeField extends EditField<NumericRangeOrNull, INumericRan
         }
     }
 
-    protected formatValue(value: NumericRangeOrNull): string {
+    protected formatValue(value: NumericRange | null): string {
         if (!value || value.length < 2) {
             return '';
         }
-        return this.formatNumber(value[0]) + ", " + this.formatNumber(value[1]);
-    }
-
-    private formatNumber(value: number): string {
-        const digits = this.props.fractionDigits || 0;
-        return this.props.exponential ? value.toExponential(digits) : value.toFixed(digits)
+        return `${value[0]}, ${value[1]}`;
     }
 }

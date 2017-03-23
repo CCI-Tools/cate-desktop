@@ -1,29 +1,28 @@
 import * as React from 'react';
 import {connect} from "react-redux";
-import {Dialog, Classes, Button, Tooltip, Checkbox} from "@blueprintjs/core";
-import {OperationState, WorkspaceState, OperationInputState, State, DialogState} from "../state";
+import {Button} from "@blueprintjs/core";
+import {OperationState, WorkspaceState, OperationInputState, State, DialogState, OperationKWArgs} from "../state";
 import FormEvent = React.FormEvent;
 import {InputEditor} from "../components/InputEditor";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
 import {updatePropertyObject} from "../../common/objutil";
 import {ModalDialog} from "../components/ModalDialog";
-import {Field, TextField} from "../components/Field";
-import {NumberField} from "../components/NumberField";
+import {Field, FieldValue} from "../components/field/Field";
+import {hasValueEditorFactory, renderValueEditor} from "./veditor/ValueEditor";
+import * as actions from "../actions";
+import * as selectors from "../selectors";
+import {isDefined, isUndefinedOrNull} from "../../common/types";
 
 
-export interface IInputAssignment {
-    constantValue: any;
+export interface InputAssignment {
+    constantValue: FieldValue<any> | any;
     resourceName: string;
     isValueUsed: boolean;
 }
 
-type InputAssignmentMap = { [inputName: string]: IInputAssignment };
+type InputAssignments = { [inputName: string]: InputAssignment };
+type InputErrors = { [inputName: string]: Error };
 
-type EditorCallback = (input: OperationInputState, value: any) => any;
-type ShowFileCallback = (input: OperationInputState,
-                         value: string | null,
-                         onChange: EditorCallback) => any;
+type OpInputAssignments = { [opName: string]: InputAssignments };
 
 interface IOperationStepDialogOwnProps {
     isAddDialog?: boolean;
@@ -31,15 +30,16 @@ interface IOperationStepDialogOwnProps {
 
 interface IOperationStepDialogProps extends DialogState, IOperationStepDialogOwnProps {
     dispatch?: any;
-    inputAssignments: { [opName: string]: InputAssignmentMap };
+    inputAssignments: OpInputAssignments;
     workspace: WorkspaceState;
     operation: OperationState;
     newResourceName: string,
 }
 
 interface IOperationStepDialogState {
-    inputAssignments: InputAssignmentMap;
-    inputNameOfOpenDetailsDialog: string | null;
+    inputAssignments: InputAssignments;
+    inputErrors?: InputErrors;
+    isValidationDialogOpen?: boolean;
 }
 
 function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): IOperationStepDialogProps {
@@ -60,10 +60,16 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
 
     constructor(props: IOperationStepDialogProps) {
         super(props);
-        this.handleConfirm = this.handleConfirm.bind(this);
-        this.handleValidate = this.handleValidate.bind(this);
-        this.handleDefaults = this.handleDefaults.bind(this);
-        this.handleCancel = this.handleCancel.bind(this);
+        this.onCancel = this.onCancel.bind(this);
+        this.onValidate = this.onValidate.bind(this);
+        this.onDefaults = this.onDefaults.bind(this);
+        this.onConfirm = this.onConfirm.bind(this);
+        this.canConfirm = this.canConfirm.bind(this);
+        this.hideValidationDialog = this.hideValidationDialog.bind(this);
+        this.renderBody = this.renderBody.bind(this);
+        this.renderExtraActions = this.renderExtraActions.bind(this);
+        this.onConstantValueChange = this.onConstantValueChange.bind(this);
+        this.onResourceNameChange = this.onResourceNameChange.bind(this);
         this.state = OperationStepDialog.mapPropsToState(props);
     }
 
@@ -72,61 +78,70 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
     }
 
     static mapPropsToState(props: IOperationStepDialogProps): IOperationStepDialogState {
-        const inputAssignments = OperationStepDialog.getInputAssignments(props);
-        return {inputAssignments, inputNameOfOpenDetailsDialog: null} as any;
-    }
-
-    static getInputAssignments(props: IOperationStepDialogProps): InputAssignmentMap {
         const operation = props.operation;
-        const inputAssignments = props.inputAssignments;
-        return (inputAssignments && inputAssignments[operation.name]) || getInitialInputAssignments(operation);
+        const inputAssignments = (props.inputAssignments && props.inputAssignments[operation.name])
+            || getInitialInputAssignments(operation.inputs);
+        return {inputAssignments} as any;
     }
 
-    private handleConfirm() {
+    private onConfirm() {
         const operation = this.props.operation;
         const resName = this.props.newResourceName;
         const opName = operation.name;
-        const opArgs = {};
-        operation.inputs.forEach((input) => {
-            const inputAssignment = this.state.inputAssignments[input.name];
-            let opArg;
-            if (inputAssignment.isValueUsed) {
-                const constantValue = inputAssignment.constantValue;
-                const value = Field.isFieldValue(constantValue) ? constantValue.value : constantValue;
-                opArg = {value};
-            } else {
-                opArg = {source: inputAssignment.resourceName};
-            }
-            opArgs[input.name] = opArg;
-        });
+        const opArgs = this.getInputArguments();
         console.log(`OperationStepDialog: handleConfirm: op="${opName}", args=${opArgs}`);
         this.props.dispatch(actions.hideOperationStepDialog({[opName]: this.state.inputAssignments}));
         this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, `Applying operation "${opName}"`));
     }
 
-    private handleCancel() {
+    private canConfirm() {
+        return !this.getInputErrors();
+    }
+
+    private onCancel() {
         this.props.dispatch(actions.hideOperationStepDialog());
     }
 
-    //noinspection JSMethodCanBeStatic
-    private handleValidate() {
-        // TODO (forman): add validation of input values
-        console.log('OperationStepDialog: validating inputs (TODO!)');
+    private onValidate() {
+        let inputErrors = this.getInputErrors();
+        console.log('onValidate: inputErrors: ', inputErrors);
+
+        this.setState({isValidationDialogOpen: true, inputErrors} as any);
     }
 
-    private handleDefaults() {
-        const inputAssignments = getInitialInputAssignments(this.props.operation, this.props.inputAssignments, true);
+    private hideValidationDialog() {
+        this.setState({isValidationDialogOpen: false} as any);
+    }
+
+    private getInputArguments(): OperationKWArgs {
+        return getInputArguments(this.props.operation.inputs, this.state.inputAssignments);
+    }
+
+    private getInputErrors(): { [name: string]: Error } {
+        return getInputErrors(this.props.operation.inputs, this.state.inputAssignments);
+    }
+
+    private onDefaults() {
+        const inputAssignments = getInitialInputAssignments(this.props.operation.inputs, this.state.inputAssignments, true);
         this.setState({inputAssignments} as any);
     }
 
-    private requiresDatasetResources() {
-        return this.props.operation.inputs.some(input => {
-            return !isValidDefaultValue(input.defaultValue) && isDatasetDataType(input.dataType)
-        });
+    private setInputAssignment(input: OperationInputState, inputAssignment: InputAssignment) {
+        //console.log('OperationStepDialog: setInputAssignment: inputAssignment =', inputAssignment);
+        const inputAssignments = updatePropertyObject(this.state.inputAssignments, input.name, inputAssignment);
+        //console.log('OperationStepDialog: setInputAssignment: inputAssignments =', inputAssignments);
+        this.setState({inputAssignments} as any);
+    };
+
+    private onResourceNameChange(input: OperationInputState, resourceName: string, isValueUsed: boolean) {
+        if (resourceName === '' && input.nullable) {
+            resourceName = null;
+        }
+        this.setInputAssignment(input, {resourceName, isValueUsed} as InputAssignment);
     }
 
-    private hasDatasetResources() {
-        return this.props.workspace.resources.some(resource => isDatasetDataType(resource.dataType));
+    private onConstantValueChange(input: OperationInputState, value: any) {
+        this.setInputAssignment(input, {constantValue: value, isValueUsed: true} as InputAssignment);
     }
 
     render() {
@@ -137,65 +152,63 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
         const dialogTitle = this.props.isAddDialog ? "Add Operation Step" : "Change Operation Step";
         const tooltipText = this.props.isAddDialog ? 'Add a new operation step to the workflow' : 'Change the operation step parameters.';
 
+        return (
+            <ModalDialog
+                isOpen={this.props.isOpen}
+                iconName="function"
+                title={dialogTitle}
+                confirmTooltip={tooltipText}
+                confirmTitle="Apply"
+                confirmIconName="play"
+                onConfirm={this.onConfirm}
+                onCancel={this.onCancel}
+                canConfirm={this.canConfirm}
+                renderBody={this.renderBody}
+                renderExtraActions={this.renderExtraActions}
+            />
+        );
+    }
+
+    renderBody() {
         const operation = this.props.operation;
+
         const bodyHeaderText = (
-            <p style={{marginBottom: '1em'}}>
+            <p key='header' style={{marginBottom: '1em'}}>
                 Adjustable parameter(s) for operation <code>{operation.name}</code>:
             </p>
         );
 
-        let validationFailed = false;
-        let bodyFooterText;
-        if (this.requiresDatasetResources() && !this.hasDatasetResources()) {
-            validationFailed = true;
-            bodyFooterText = (
-                <p style={{marginTop: '1em'}}>
-                    <span style={{color: '#A82A2A', fontWeight: 'bold'}}>Please note:</span> This operation has
-                    parameter(s) of type <code>Dataset</code>, but there are no dataset resources available yet.
-                    You may consider opening a data source or use the <code>read_netcdf</code> or
-                    <code>read_shapefile</code> operations.
-                </p>);
-        } else {
-            bodyFooterText = (
-                <p style={{marginTop: '1em'}}>
-                    Pressing <span className="pt-icon-play"/> will add operation <code>{operation.name}</code> as a new
-                    workflow step to the current workspace. You can remove the step or change it's parameters later.
-                </p>);
-        }
+        const bodyFooterText = (
+            <p key='footer' style={{marginTop: '1em'}}>
+                Pressing <span className="pt-icon-play"/> will add operation <code>{operation.name}</code> as a new
+                workflow step to the current workspace. The result of the step is a new <em>resource</em> which can
+                be
+                used as input for other operations. You can remove the step or change it's parameters later.
+            </p>
+        );
 
         const parameterPanel = this.renderParameterPanel();
 
         return (
-            <Dialog
-                isOpen={this.props.isOpen}
-                iconName="function"
-                onClose={this.handleCancel}
-                title={dialogTitle}
-                autoFocus={true}
-                canEscapeKeyClose={true}
-                canOutsideClickClose={true}
-                enforceFocus={true}
-            >
-                <div className={Classes.DIALOG_BODY}>
-                    {bodyHeaderText}
+            <div className="pt-form-group">
+                {bodyHeaderText}
+                <div className="pt-form-content">
                     {parameterPanel}
-                    {bodyFooterText}
+                    <div className="pt-form-helper-text">{bodyFooterText}</div>
                 </div>
-                <div className={Classes.DIALOG_FOOTER}>
-                    <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                        <Button onClick={this.handleCancel}>Cancel</Button>
-                        <Button onClick={this.handleValidate}>Validate</Button>
-                        <Button onClick={this.handleDefaults}>Defaults</Button>
-                        <Tooltip content={tooltipText} inline>
-                            <Button className="pt-intent-primary"
-                                    disabled={validationFailed}
-                                    onClick={this.handleConfirm}
-                                    iconName="play">Apply</Button>
-                        </Tooltip>
-                    </div>
-                </div>
-            </Dialog>
+                <ValidationDialog isOpen={this.state.isValidationDialogOpen}
+                                  inputErrors={this.state.inputErrors}
+                                  onConfirm={this.hideValidationDialog}
+                />
+            </div>
         );
+    }
+
+    renderExtraActions() {
+        return [
+            <Button key='validate' onClick={this.onValidate}>Validate</Button>,
+            <Button key='defaults' onClick={this.onDefaults}>Defaults</Button>
+        ];
     }
 
     renderParameterPanel(): JSX.Element {
@@ -203,378 +216,189 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
         if (!operation.inputs || !operation.inputs.length) {
             return null;
         }
-
-        const handleValidationFailure = (textValue: string, error: any) => {
-            console.log('OperationStepDialog: handleValidationFailure', textValue, error);
-            actions.showMessageBox({title: 'Input Error', message: error + ''}, actions.MESSAGE_BOX_NO_REPLY);
-        };
-
-        const changeInputAssignment = (input: OperationInputState, inputAssignment: IInputAssignment) => {
-            console.log('OperationStepDialog: changeInputAssignment: newInputAssignments =', inputAssignment);
-            const newInputAssignments = updatePropertyObject(this.state.inputAssignments, input.name, inputAssignment);
-            console.log('OperationStepDialog: changeInputAssignment: newInputAssignments =', newInputAssignments);
-            this.setState({inputAssignments: newInputAssignments} as any);
-        };
-
-        const changeInputResourceName = (input: OperationInputState, resourceName: string, isValueUsed: boolean) => {
-            if (resourceName === '' && input.nullable) {
-                resourceName = null;
-            }
-            changeInputAssignment(input, {resourceName, isValueUsed} as IInputAssignment);
-        };
-
-        const changeInputConstantValue = (input: OperationInputState, value: any) => {
-            if (value === '' && input.nullable) {
-                value = null;
-            }
-            if (value === null && !input.nullable) {
-                handleValidationFailure(null, `A value is required for input "${input.name}"`);
-                return;
-            }
-            changeInputAssignment(input, {constantValue: value, isValueUsed: true} as IInputAssignment);
-        };
-
-        const changeInputIntValue = (input: OperationInputState, value: number | null) => {
-            // TODO (forman): perform validation against input.valueRange, if any
-            changeInputConstantValue(input, value);
-        };
-
-        const changeInputFloatValue = (input: OperationInputState, value: number | null) => {
-            // TODO (forman): perform validation against input.valueRange, if any
-            changeInputConstantValue(input, value);
-        };
-
-        const inputEditors = operation.inputs.map((input: OperationInputState, index: number) => {
-            const inputAssignment = this.state.inputAssignments[input.name];
-            const constantValue = inputAssignment.constantValue;
-            let valueEditor = null;
-            // console.log('------------------------> ', input.dataType)
-            switch (input.dataType) {
-                case 'int':
-                    valueEditor = OperationStepDialog.renderIntInputEditor(input, constantValue, changeInputIntValue);
-                    break;
-                case 'float':
-                    valueEditor = OperationStepDialog.renderFloatInputEditor(input, constantValue, changeInputFloatValue);
-                    break;
-                case 'bool': {
-                    valueEditor = OperationStepDialog.renderBoolInputEditor(input, constantValue, changeInputConstantValue);
-                    break;
-                }
-                case 'str': {
-                    if (input.fileOpenMode) {
-                        let showFileCallback: ShowFileCallback;
-                        if (input.fileOpenMode === 'r') {
-                            showFileCallback = OperationStepDialog.showOpenDialog;
-                        } else {
-                            showFileCallback = OperationStepDialog.showSaveDialog;
-                        }
-                        valueEditor = OperationStepDialog.renderFileInputEditor(input, constantValue, changeInputConstantValue, showFileCallback);
-                    } else {
-                        valueEditor = OperationStepDialog.renderStringInputEditor(input, constantValue, changeInputConstantValue);
-                    }
-                    break;
-                }
-                case 'cate.core.types.PointLike': {
-                    valueEditor = this.renderPointInputEditor(input, constantValue, changeInputConstantValue);
-                    break;
-                }
-                case 'cate.core.types.PolygonLike': {
-                    valueEditor = this.renderPolygonInputEditor(input, constantValue, changeInputConstantValue);
-                    break;
-                }
-            }
-            return (<InputEditor key={index}
-                                 resources={this.props.workspace.resources}
-                                 name={input.name}
-                                 dataType={input.dataType}
-                                 units={input.units}
-                                 tooltipText={input.description}
-                                 onChange={(resourceName, isValueUsed) => changeInputResourceName(input, resourceName, isValueUsed)}
-                                 isValueEditorShown={inputAssignment.isValueUsed}
-                                 resourceName={inputAssignment.resourceName}
-                                 valueEditor={valueEditor}/>
-            );
-        });
-        return (<div>{inputEditors}</div>);
-    }
-
-    private static renderBoolInputEditor(input: OperationInputState,
-                                         value: boolean | null,
-                                         onChange: EditorCallback) {
-        return (
-            <Checkbox className="pt-large"
-                      checked={value || false}
-                      indeterminate={value === null}
-                      onChange={(event: any) => onChange(input, event.target.checked)}/>
+        const inputEditors = renderInputEditors(
+            operation.inputs,
+            this.state.inputAssignments,
+            this.onConstantValueChange,
+            this.onResourceNameChange
         );
+        return (<div key='parameterPanel'>{inputEditors}</div>);
     }
-
-    private static renderIntInputEditor(input: OperationInputState,
-                                        value: number | null,
-                                        onChange: EditorCallback) {
-        const valueSetEditor = this.renderValueSetEditor(input, value, onChange);
-        if (valueSetEditor) {
-            return valueSetEditor;
-        }
-        return (
-            <NumberField isInt={true}
-                         size={10}
-                         value={value}
-                         nullable={input.nullable}
-                         onChange={value => onChange(input, value)}
-            />
-        );
-    }
-
-    private static renderFloatInputEditor(input: OperationInputState,
-                                          value: number | null,
-                                          onChange: EditorCallback) {
-        const valueSetEditor = this.renderValueSetEditor(input, value, onChange);
-        if (valueSetEditor) {
-            return valueSetEditor;
-        }
-        return (
-            <NumberField isInt={false}
-                         size={10}
-                         value={value}
-                         nullable={input.nullable}
-                         onChange={value => onChange(input, value)}
-            />
-        );
-    }
-
-    private static renderStringInputEditor(input: OperationInputState,
-                                           value: any,
-                                           onChange: EditorCallback) {
-        const valueSetEditor = this.renderValueSetEditor(input, value, onChange);
-        if (valueSetEditor) {
-            return valueSetEditor;
-        }
-        return (
-            <TextField size={16}
-                       value={value}
-                       nullable={input.nullable}
-                       onChange={value => onChange(input, value)}
-            />
-        );
-    }
-
-    private static renderValueSetEditor(input: OperationInputState,
-                                        value: string | any,
-                                        onChange: EditorCallback) {
-        if (input.valueSet && input.valueSet.length) {
-            let options = input.valueSet.map((v, i) => (
-                <option key={i} value={v}>{v}</option>
-            ));
-            const NULL_VALUE = '__null__';
-            if (input.nullable) {
-                options = [<option key={-1} value={NULL_VALUE}/>].concat(...options);
-            }
-            return (
-                <div className="pt-select">
-                    <select value={value || NULL_VALUE}
-                            onChange={(event: any) => onChange(input, event.target.value === NULL_VALUE ? null : event.target.value)}>
-                        {options}
-                    </select>
-                </div>
-            );
-        }
-        return null;
-    }
-
-    showDetailsDialog(inputName: string) {
-        this.setState({inputNameOfOpenDetailsDialog: inputName} as any);
-    }
-
-    hideDetailsDialog() {
-        this.setState({inputNameOfOpenDetailsDialog: null} as any);
-    }
-
-    private renderPointInputEditor(input: OperationInputState,
-                                   value: string | null,
-                                   onChange: EditorCallback) {
-        return (
-            <input className="pt-input"
-                   type="text"
-                   style={{flexGrow: 1}}
-                   value={value || ''}
-                   width="16em"
-                   placeholder='Longitude, Latitude'
-                   onChange={(event: any) => onChange(input, event.target.value)}
-            />
-        );
-    }
-
-    private renderPolygonInputEditor(input: OperationInputState,
-                                     value: string | null,
-                                     onChange: EditorCallback) {
-        return (
-            <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}}>
-                <input className="pt-input"
-                       type="text"
-                       value={value || ''}
-                       size={40}
-                       placeholder='<E>, <S>, <W>, <N> or well-known text (WKT)'
-                       onChange={(event: any) => onChange(input, event.target.value)}
-                />
-                <Button className="pt-intent-primary" style={{flex: 'none'}}
-                        onClick={() => this.showDetailsDialog.bind(this)(input.name)}>...</Button>
-                <GeometryDetailsDialog isOpen={this.state.inputNameOfOpenDetailsDialog === input.name}
-                                       value={value}
-                                       onConfirm={(value: string) => {
-                                           this.hideDetailsDialog();
-                                           onChange(input, value);
-                                       }}
-                                       onCancel={() => {
-                                           this.hideDetailsDialog()
-                                       }}
-                                       geometryType={'Polygon'}/>
-            </div>
-        );
-    }
-
-    private static renderFileInputEditor(input: OperationInputState,
-                                         value: string | null,
-                                         onChange: EditorCallback,
-                                         showFileDialog: ShowFileCallback) {
-        return (
-            <div className="pt-control-group" style={{width: '20em', display: 'flex'}}>
-                <input className="pt-input"
-                       type="text"
-                       style={{flexGrow: 1}}
-                       value={value || ''}
-                       placeholder="Enter local file path"
-                       onChange={(event: any) => onChange(input, event.target.value)}
-                />
-                <Button className="pt-intent-primary" style={{flex: 'none'}}
-                        onClick={() => showFileDialog(input, value || '', onChange)}>...</Button>
-            </div>
-        );
-    }
-
-    private static showOpenDialog(input: OperationInputState,
-                                  value: string | null,
-                                  onChange: EditorCallback) {
-        const openDialogOptions = {
-            title: "Open File",
-            defaultPath: value,
-            buttonLabel: "Open",
-            properties: ["openFile" as actions.OpenDialogProperty],
-            filters: input.fileFilters,
-        };
-        actions.showSingleFileOpenDialog(openDialogOptions, (filePath: string) => {
-            if (filePath) {
-                onChange(input, filePath);
-            }
-        });
-    }
-
-    private static showSaveDialog(input: OperationInputState,
-                                  value: string | null,
-                                  onChange: EditorCallback) {
-        const saveDialogOptions = {
-            title: "Save File",
-            defaultPath: value,
-            buttonLabel: "Save",
-            filters: input.fileFilters,
-        };
-        actions.showFileSaveDialog(saveDialogOptions, (filePath: string) => {
-            if (filePath) {
-                onChange(input, filePath);
-            }
-        });
-    }
-
-
 }
 
 export default connect(mapStateToProps)(OperationStepDialog);
 
-
-function isDatasetDataType(dataType: string): boolean {
-    return dataType && dataType.endsWith('Dataset');
-}
-
-function isValidDefaultValue(value: any): boolean {
-    return typeof value !== 'undefined';
-}
-
-function getInitialInputAssignments(operation: OperationState, lastInputAssignments?, forceDefaults?: boolean) {
+function getInitialInputAssignments(inputs: OperationInputState[],
+                                    lastInputAssignments?: InputAssignments,
+                                    forceDefaults?: boolean) {
     const inputAssignments = {};
-    operation.inputs.forEach((input: OperationInputState) => {
-        const hasDefaultValue = isValidDefaultValue(input.defaultValue);
-        const defaultValue = hasDefaultValue ? input.defaultValue : null;
-        const defaultInputAssignment = {constantValue: defaultValue, isValueUsed: true, resourceName: null};
+    inputs.forEach((input: OperationInputState) => {
+        const isValueUsed = hasValueEditorFactory(input.dataType);
+        const hasDefaultValue = isDefined(input.defaultValue);
+        const constantValue = hasDefaultValue ? input.defaultValue : null;
+        const resourceName = null;
+        const defaultInputAssignment = {constantValue, isValueUsed, resourceName};
         const lastInputAssignment = lastInputAssignments && lastInputAssignments[input.name];
-        let newInputAssignment;
+        let inputAssignment;
         if (!lastInputAssignment || forceDefaults) {
-            newInputAssignment = defaultInputAssignment;
+            inputAssignment = defaultInputAssignment;
         } else {
-            newInputAssignment = lastInputAssignment || defaultInputAssignment;
+            inputAssignment = lastInputAssignment || defaultInputAssignment;
         }
-        inputAssignments[input.name] = newInputAssignment;
+        inputAssignments[input.name] = inputAssignment;
     });
     return inputAssignments;
 }
 
-interface IGeometryDetailsDialogProps {
+function renderInputEditors(inputs: OperationInputState[],
+                            inputAssignments: InputAssignments,
+                            onConstantValueChange,
+                            onResourceNameChange): JSX.Element[] {
+    return inputs.map((input: OperationInputState) => {
+        const inputAssignment = inputAssignments[input.name];
+        const constantValue = inputAssignment.constantValue;
+        const valueEditor = renderValueEditor(input, constantValue, onConstantValueChange);
+        return (
+            <InputEditor key={input.name}
+                         resources={this.props.workspace.resources}
+                         name={input.name}
+                         dataType={input.dataType}
+                         units={input.units}
+                         tooltipText={input.description}
+                         onChange={(resourceName, isValueUsed) => onResourceNameChange(input, resourceName, isValueUsed)}
+                         isValueEditorShown={inputAssignment.isValueUsed}
+                         resourceName={inputAssignment.resourceName}
+                         valueEditor={valueEditor}/>
+        );
+    });
+}
+
+function getInputArguments(inputs: OperationInputState[],
+                           inputAssignments: InputAssignments): OperationKWArgs {
+    const inputArguments = {};
+    inputs.forEach((input) => {
+        const inputAssignment = inputAssignments[input.name];
+        if (inputAssignment) {
+            let inputArgument;
+            if (inputAssignment.isValueUsed) {
+                const constantValue = inputAssignment.constantValue;
+                const value = Field.isFieldValue(constantValue) ? constantValue.value : constantValue;
+                inputArgument = {value};
+            } else {
+                inputArgument = {source: inputAssignment.resourceName};
+            }
+            inputArguments[input.name] = inputArgument;
+        }
+    });
+    return inputArguments;
+}
+
+function getInputErrors(inputs: OperationInputState[],
+                        inputAssignments: InputAssignments): InputErrors {
+    let inputErrors = {};
+    let hasInputErrors = false;
+    inputs.forEach((input) => {
+        const inputAssignment = inputAssignments[input.name];
+        console.log('inputAssignment: ', inputAssignment);
+        if (inputAssignment) {
+            if (inputAssignment.isValueUsed) {
+                const constantValue = inputAssignment.constantValue;
+                const error = Field.isFieldValue(constantValue) && constantValue.error;
+                if (error) {
+                    inputErrors[input.name] = error;
+                    hasInputErrors = true;
+                } else if (isUndefinedOrNull(constantValue) && !input.nullable) {
+                    inputErrors[input.name] = new Error('a value must be given.');
+                    hasInputErrors = true;
+                }
+            } else {
+                const resourceName = inputAssignment.resourceName;
+                if (isUndefinedOrNull(resourceName) && !input.nullable) {
+                    inputErrors[input.name] = new Error('a resource must be specified.');
+                    hasInputErrors = true;
+                }
+            }
+        } else {
+            inputErrors[input.name] = new Error('a value must be specified.');
+            hasInputErrors = true;
+        }
+    });
+    return hasInputErrors ? inputErrors : null;
+}
+
+interface IValidationDialogProps {
     isOpen: boolean;
-    value: string;
-    onConfirm: (value: string) => void;
-    onCancel: () => void;
-    geometryType: string;
+    inputErrors: InputErrors;
+    onConfirm: () => void;
 }
 
-interface IGeometryDetailsDialogState {
-    value: string;
-}
+class ValidationDialog extends React.Component<IValidationDialogProps, null> {
 
-class GeometryDetailsDialog extends React.Component<IGeometryDetailsDialogProps, IGeometryDetailsDialogState> {
-
-    constructor(props: IGeometryDetailsDialogProps, context: any) {
-        super(props, context);
-        this.renderBody = this.renderBody.bind(this);
+    constructor(props: IValidationDialogProps) {
+        super(props);
         this.onConfirm = this.onConfirm.bind(this);
-        this.onValueChange = this.onValueChange.bind(this);
-        this.state = {value: this.props.value};
+        this.renderBody = this.renderBody.bind(this);
     }
 
-    onConfirm() {
-        this.props.onConfirm(this.state.value);
+    private onConfirm() {
+        this.props.onConfirm();
     }
 
-    onValueChange(ev: any) {
-        this.setState({value: ev.target.value});
+    private countResourceProblems(): number {
+        const inputErrors = this.props.inputErrors;
+        let count = 0;
+        Object.getOwnPropertyNames(inputErrors).forEach(inputName => {
+            const error = inputErrors[inputName];
+            if (error.message && (error.message.includes('resource') || error.message.includes('Resource'))) {
+                count++;
+            }
+        });
+        return count;
     }
 
     render() {
         return (
             <ModalDialog isOpen={this.props.isOpen}
+                         title="Input Validation"
                          onConfirm={this.onConfirm}
-                         onCancel={this.props.onCancel}
+                         noCancelButton={true}
+                         onCancel={this.onConfirm}
                          renderBody={this.renderBody}/>
         );
     }
 
-    renderBody() {
+    private renderBody() {
+
+        const inputErrors = this.props.inputErrors;
+        if (!inputErrors) {
+            return (<p>No problems encountered.</p>);
+        }
+
+        const problems = [];
+        Object.getOwnPropertyNames(inputErrors).forEach(inputName => {
+            let error = inputErrors[inputName];
+            problems.push(<li key={inputName}>{inputName}: {error.message}</li>);
+        });
+
+        let introText;
+        if (problems.length === 1) {
+            introText = "The following problem has been encountered";
+        } else {
+            introText = `The following ${problems.length} problems have been encountered`;
+        }
+
+        const resourceProblems = this.countResourceProblems();
+        const footerText = resourceProblems > 0 ? (<p>This operation has
+               parameter(s) which require specifying a <em>resource</em>. When there are no compatible resources yet,
+               you may consider opening a data source or use one of the <code>read_...</code> operations first.
+            </p>) : null;
+
         return (
             <div className="pt-form-group">
-                <label className="pt-label" htmlFor="wkt">
-                    Geometry:
-                    <span className="pt-text-muted">{` (${this.props.geometryType})`}</span>
-                </label>
-                <div className="pt-form-content" style={{width: "30em"}}>
-                    <textarea id="wkt" className="pt-input pt-fill" rows={8} dir="auto"
-                              onChange={this.onValueChange}>
-                        {this.props.value}
-                    </textarea>
-                    <div className="pt-form-helper-text">For points enter
-                        a <strong>lon,lat</strong>, for bounding boxes
-                        use <strong>min-lon,min-lat,max-lon,max-lat</strong>.
-                        For any other geometry types use the <strong><a
-                            href="https://en.wikipedia.org/wiki/Well-known_text">well-known text
-                            (WKT)</a></strong> representation.
-                    </div>
+                {introText}
+                <div className="pt-form-content">
+                    {problems}
+                    <div className="pt-form-helper-text">{footerText}</div>
                 </div>
             </div>
         );

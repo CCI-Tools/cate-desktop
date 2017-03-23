@@ -8,11 +8,13 @@ interface IModalDialogProps {
     confirmTitle?: string;
     confirmTooltip?: string;
     iconName?: string;
-    renderBody: () => JSX.Element;
+    renderBody: () => JSX.Element|JSX.Element[];
     renderActions?: () => JSX.Element[];
+    renderExtraActions?: () => JSX.Element[];
     onConfirm: () => void;
     onCancel: () => void;
     canConfirm?: () => boolean;
+    noCancelButton?: boolean;
 }
 
 type IModalDialogState = any;
@@ -61,8 +63,12 @@ export class ModalDialog extends React.Component<IModalDialogProps, IModalDialog
     private renderActions() {
         const canConfirm = this.props.canConfirm ? this.props.canConfirm() : true;
 
-        const cancelButton = (<Button key="cancel"
-                                      onClick={this.props.onCancel}>Cancel</Button>);
+        let cancelButton;
+        if (!this.props.noCancelButton) {
+            cancelButton = (<Button key="cancel"
+                                    onClick={this.props.onCancel}>Cancel</Button>);
+        }
+
         let confirmButton = (<Button key="confirm"
                                      onClick={this.props.onConfirm}
                                      className="pt-intent-primary"
@@ -70,12 +76,15 @@ export class ModalDialog extends React.Component<IModalDialogProps, IModalDialog
                                      iconName={this.props.confirmIconName}>{this.props.confirmTitle || 'OK'}</Button>);
 
         if (this.props.confirmTooltip) {
-            confirmButton = (
-                <Tooltip content="Downloads the dataset and creates a local data source."
-                         inline>{confirmButton}</Tooltip>);
+            confirmButton = (<Tooltip content={this.props.confirmTooltip} inline>{confirmButton}</Tooltip>);
         }
 
-        return [cancelButton, confirmButton];
+        let extraActions;
+        if (this.props.renderExtraActions) {
+            extraActions = this.props.renderExtraActions();
+        }
+
+        return extraActions ? [cancelButton, ...extraActions, confirmButton] : [cancelButton, confirmButton];
     }
 }
 

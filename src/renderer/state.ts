@@ -106,6 +106,38 @@ export interface OperationOutputState {
     description: string|null;
 }
 
+/**
+ * An operation argument that refers to a constant value.
+ */
+export interface OperationArgumentValue {
+    value: any;
+}
+
+/**
+ * An operation argument that refers to another resource.
+ */
+export interface OperationArgumentSource {
+    /**
+     * Resource name. May later also use syntax "<resource>.<outputName>" or "<resource>[<variableName>]".
+     */
+    source: string;
+}
+
+/**
+ * Operation argument.
+ */
+export type OperationArg = OperationArgumentValue|OperationArgumentSource;
+
+/**
+ * Positional operation argument list.
+ */
+export type OperationArgs = OperationArg[];
+
+/**
+ * Non-positional operation keyword-arguments.
+ */
+export type OperationKWArgs = {[name: string]: OperationArg};
+
 export interface WorkspaceState {
     /**
      * The workspace's base directory path.

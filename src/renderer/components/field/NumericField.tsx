@@ -2,31 +2,28 @@ import * as React from 'react'
 
 import {Field, IFieldProps} from "./Field";
 import {NumericInput, Intent} from "@blueprintjs/core";
-import {isNumber} from "../../common/types";
+import {isNumber} from "../../../common/types";
 
-type NumberOrNull = number|null;
 
-export interface INumberFieldProps extends IFieldProps<NumberOrNull> {
-    exponential?: boolean;
+interface INumberFieldProps extends IFieldProps<number> {
     min?: number;
     max?: number;
     isInt?: boolean;
 }
-
 
 /**
  * A NumberField is an input field that provides a floating point number.
  *
  * @author Norman Fomferra
  */
-export class NumberField extends Field<NumberOrNull, INumberFieldProps> {
+export class NumericField extends Field<number, INumberFieldProps> {
 
     constructor(props: INumberFieldProps) {
         super(props);
         this.onValueChange = this.onValueChange.bind(this);
     }
 
-    protected parseValue(textValue: string): NumberOrNull {
+    protected parseValue(textValue: string): number|null {
         if (!textValue || textValue.trim() === '') {
             return null;
         }
@@ -37,8 +34,11 @@ export class NumberField extends Field<NumberOrNull, INumberFieldProps> {
         return value;
     }
 
-    protected validateValue(value: number): void {
+    protected validateValue(value: number|null): void {
         super.validateValue(value);
+        if (value === null) {
+            return;
+        }
         if (this.props.isInt && value !== Math.floor(value)) {
             throw new Error('Value must be an integer');
         }
@@ -50,7 +50,7 @@ export class NumberField extends Field<NumberOrNull, INumberFieldProps> {
         }
     }
 
-    protected formatValue(value: NumberOrNull): string {
+    protected formatValue(value: number|null): string {
         if (!value && value !== 0.0) {
             return '';
         }
