@@ -17,7 +17,8 @@ export const POINT_LIKE_TYPE = 'cate.core.types.PointLike';
 export const POLYGON_LIKE_TYPE = 'cate.core.types.PolygonLike';
 export const GEOMETRY_LIKE_TYPE = 'cate.core.types.GeometryLike';
 export const TIME_RANGE_LIKE_TYPE = 'cate.core.types.TimeRangeLike';
-
+export const VAR_NAME_LIKE_TYPE = 'cate.core.types.VariableNameLike';
+export const VAR_NAMES_LIKE_TYPE = 'cate.core.types.VariableNamesLike';
 
 /**
  * Naive test if a targetDataType is assignable from a given sourceDataType.
@@ -48,6 +49,10 @@ export function isAssignableFrom(targetDataType: string, sourceDataType: string)
             return sourceDataType === GEO_DATA_FRAME_TYPE;
         case SERIES_TYPE:
             return sourceDataType === GEO_SERIES_TYPE;
+        case VAR_NAME_LIKE_TYPE:
+            return sourceDataType === STR_TYPE;
+        case VAR_NAMES_LIKE_TYPE:
+            return sourceDataType === STR_TYPE;
         case TIME_RANGE_LIKE_TYPE:
             return sourceDataType === STR_TYPE;
         case POINT_LIKE_TYPE:

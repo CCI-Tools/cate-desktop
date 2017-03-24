@@ -313,18 +313,18 @@ function getInputErrors(inputs: OperationInputState[],
                     inputErrors[input.name] = error;
                     hasInputErrors = true;
                 } else if (isUndefinedOrNull(constantValue) && !input.nullable) {
-                    inputErrors[input.name] = new Error('a value must be given.');
+                    inputErrors[input.name] = new Error('Value must be given.');
                     hasInputErrors = true;
                 }
             } else {
                 const resourceName = inputAssignment.resourceName;
                 if (isUndefinedOrNull(resourceName) && !input.nullable) {
-                    inputErrors[input.name] = new Error('a resource must be specified.');
+                    inputErrors[input.name] = new Error('Resource must be specified.');
                     hasInputErrors = true;
                 }
             }
         } else {
-            inputErrors[input.name] = new Error('a value must be specified.');
+            inputErrors[input.name] = new Error('Value must be specified.');
             hasInputErrors = true;
         }
     });
@@ -387,9 +387,9 @@ class ValidationDialog extends React.Component<IValidationDialogProps, null> {
 
         let introText;
         if (problems.length === 1) {
-            introText = "The following problem has been encountered";
+            introText = "The following problem has been encountered:";
         } else {
-            introText = `The following ${problems.length} problems have been encountered`;
+            introText = `The following ${problems.length} problems have been encountered:`;
         }
 
         const resourceProblems = this.countResourceProblems();

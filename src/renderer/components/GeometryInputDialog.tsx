@@ -46,7 +46,7 @@ export class GeometryInputDialog extends React.Component<IGeometryInputDialogPro
         return (
             <div className="pt-form-group">
                 <label className="pt-label" htmlFor="wkt">
-                    Geometry:
+                    Geometry text
                     <span className="pt-text-muted">{` (${this.props.geometryType})`}</span>
                 </label>
                 <div className="pt-form-content" style={{width: "30em"}}>
@@ -55,11 +55,11 @@ export class GeometryInputDialog extends React.Component<IGeometryInputDialogPro
                         {this.props.value}
                     </textarea>
                     <div className="pt-form-helper-text">For points enter
-                        a <strong>lon,lat</strong>, for bounding boxes
-                        use <strong>min-lon,min-lat,max-lon,max-lat</strong>.
+                        a <strong>lon,lat</strong>, for bounding boxes you can
+                        use <strong>min-lon,min-lat,max-lon,max-lat</strong> syntax.
                         For any other geometry types use the <strong><a
-                            href="https://en.wikipedia.org/wiki/Well-known_text">well-known text
-                            (WKT)</a></strong> representation.
+                            href="https://en.wikipedia.org/wiki/Well-known_text"
+                        >well-known text (WKT)</a></strong> representation.
                     </div>
                 </div>
             </div>

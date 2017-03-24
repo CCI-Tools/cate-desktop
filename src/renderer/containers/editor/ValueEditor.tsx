@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {DateRange} from "@blueprintjs/datetime";
 import {OperationInputState} from "../../state";
 import {FieldValue} from "../../components/field/Field";
 import {BooleanValueEditor} from "./BooleanValueEditor";
@@ -8,6 +9,10 @@ import {TextValueEditor} from "./TextValueEditor";
 import {PolygonValueEditor} from "./PolygonValueEditor";
 import {FileValueEditor} from "./FileValueEditor";
 import {PointValueEditor} from "./PointValueEditor";
+import {TimeRangeValueEditor} from "./TimeRangeValueEditor";
+import * as types from "../../../common/cate-types";
+import {VarNamesValueEditor} from "./VarNamesValueEditor";
+
 
 export type ValueEditorValue<T> = FieldValue<T> | T | null;
 export type ValueEditorCallback<T> = (input: OperationInputState, value: ValueEditorValue<T>) => void;
@@ -93,13 +98,27 @@ function renderPolygonLikeValueEditor(input: OperationInputState,
     return <PolygonValueEditor input={input} value={value} onChange={onChange}/>;
 }
 
+function renderTimeRangeLikeValueEditor(input: OperationInputState,
+                                        value: ValueEditorValue<string>,
+                                        onChange: ValueEditorCallback<string>) {
+    return <TimeRangeValueEditor input={input} value={value} onChange={onChange}/>;
+}
+
+function renderVarNamesLikeValueEditor(input: OperationInputState,
+                                       value: ValueEditorValue<string>,
+                                       onChange: ValueEditorCallback<string>) {
+    return <VarNamesValueEditor input={input} value={value} onChange={onChange}/>;
+}
+
 const VALUE_EDITOR_FACTORIES = {
-    'bool': renderBoolValueEditor,
-    'int': renderIntValueEditor,
-    'float': renderFloatValueEditor,
-    'str': renderStrValueEditor,
-    'cate.core.types.PointLike': renderPointLikeValueEditor,
-    'cate.core.types.PolygonLike': renderPolygonLikeValueEditor,
+    [types.BOOL_TYPE]: renderBoolValueEditor,
+    [types.INT_TYPE]: renderIntValueEditor,
+    [types.FLOAT_TYPE]: renderFloatValueEditor,
+    [types.STR_TYPE]: renderStrValueEditor,
+    [types.POINT_LIKE_TYPE]: renderPointLikeValueEditor,
+    [types.POLYGON_LIKE_TYPE]: renderPolygonLikeValueEditor,
+    [types.TIME_RANGE_LIKE_TYPE]: renderTimeRangeLikeValueEditor,
+    [types.VAR_NAMES_LIKE_TYPE]: renderVarNamesLikeValueEditor,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////

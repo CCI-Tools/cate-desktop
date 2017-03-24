@@ -93,7 +93,7 @@ export interface OperationInputState {
     defaultValue?: any;
     nullable?: boolean;
     valueSet?: any[];
-    valueRange?: [number, number];
+    valueRange?: [number, number]|[string, string];
     // TODO: (forman): make 'file_mode' a possible input property in Python backend, values "rw", "wr", "r", "w"
     // TODO: (forman): make 'file_filters' a possible input property in Python backend
     fileOpenMode?: 'w' | 'r' | 'rw';

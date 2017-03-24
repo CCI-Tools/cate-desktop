@@ -1,14 +1,14 @@
 import * as React from 'react';
-import {IValueEditorProps, ValueEditorValue} from "./ValueEditor";
+import {IValueEditorProps} from "./ValueEditor";
 import {Button} from "@blueprintjs/core";
 import {GeometryInputDialog} from "../../components/GeometryInputDialog";
-import {FieldValue} from "../../components/field/Field";
+import {FieldValue, toTextValue} from "../../components/field/Field";
+import {TextField} from "../../components/field/TextField";
 
 interface IPolygonValueEditorProps extends IValueEditorProps<string> {
 }
 
 interface IPolygonValueEditorState {
-    value: ValueEditorValue<string>;
     isDetailsEditorOpen: boolean;
 }
 
@@ -19,39 +19,93 @@ export class PolygonValueEditor extends React.Component<IPolygonValueEditorProps
 
     constructor(props: IPolygonValueEditorProps) {
         super(props);
-        this.state = {isDetailsEditorOpen: false, value: this.props.value};
+        this.onChange = this.onChange.bind(this);
+        this.state = {isDetailsEditorOpen: false};
+    }
+
+    onChange(value: FieldValue<string>) {
+        this.props.onChange(this.props.input, value);
     }
 
     render() {
-        let textValue = (this.state.value && (this.state.value as FieldValue<string>).textValue) || (this.state.value as any) || '';
         return (
             <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}}>
-                <input className="pt-input"
-                       type="text"
-                       value={textValue}
-                       size={40}
-                       placeholder='<E>, <S>, <W>, <N> or well-known text (WKT)'
-                       onChange={(event: any) => this.props.onChange(this.props.input, {
-                           textValue: event.target.value,
-                           value: event.target.value
-                       })}
+                <TextField
+                       value={this.props.value}
+                       validator={validatePolygonText}
+                       size={36}
+                       placeholder='Enter <E>, <S>, <W>, <N> or WKT'
+                       onChange={this.onChange}
                 />
 
                 <Button className="pt-intent-primary" style={{flex: 'none'}}
-                        onClick={() => this.setState({isDetailsEditorOpen: true} as any)}>...</Button>
+                        onClick={() => this.setState({isDetailsEditorOpen: true})}>...</Button>
 
                 <GeometryInputDialog isOpen={this.state.isDetailsEditorOpen}
-                                     value={textValue}
+                                     value={toTextValue(this.props.value)}
                                      onConfirm={(value: string) => {
-                                         const fieldValue = {textValue: value, value: value};
-                                         this.setState({isDetailsEditorOpen: false, value: fieldValue} as any);
-                                         this.props.onChange(this.props.input, fieldValue);
+                                         this.setState({isDetailsEditorOpen: false});
+                                         this.onChange({textValue: value, value: value});
                                      }}
                                      onCancel={() => {
-                                         this.setState({isDetailsEditorOpen: false} as any);
+                                         this.setState({isDetailsEditorOpen: false});
                                      }}
                                      geometryType={'Polygon'}/>
             </div>
         );
+    }
+}
+
+
+export function validatePolygonText(value: string) {
+    value = value.trim().toUpperCase();
+    if (value === '') {
+        return;
+    }
+    if (value[0] >= 'A' && value[0] <= 'Z') {
+        if (!value.startsWith('POLYGON')) {
+            throw new Error('Polygon WKT must start with "POLYGON".')
+        }
+        // Quick and dirty WKT validation
+        let coordCount = 0;
+        let depthCount = 0;
+        let maxDepthCount = 0;
+        for (let i = 0; i < value.length; i++) {
+            const c = value[i];
+            if (c === '(') {
+                depthCount++;
+                if (depthCount > 2) {
+                    throw new Error('Invalid WKT, too many "(".');
+                }
+                maxDepthCount = Math.max(maxDepthCount, depthCount);
+            } else if (c === ')') {
+                depthCount--;
+                if (depthCount < 0) {
+                    throw new Error('Invalid WKT, too many ")".');
+                }
+                if (depthCount === 0) {
+                    if (coordCount < 3) {
+                        throw new Error('Invalid WKT, too few coordinates.');
+                    }
+                    coordCount = 0;
+                }
+            } else if (c === ',') {
+                coordCount++;
+            }
+        }
+        if (depthCount !== 0) {
+            throw new Error('Invalid WKT, too many "(".');
+        }
+        if (maxDepthCount < 2) {
+            throw new Error('Invalid WKT, too few "(".');
+        }
+    } else {
+        const bboxCoords = value.split(',');
+        if (bboxCoords.length !== 4) {
+            throw new Error('Bounding box must use "<E>, <S>, <W>, <N>" syntax.');
+        }
+        for (let bboxCoord of bboxCoords) {
+            parseFloat(bboxCoord.trim());
+        }
     }
 }

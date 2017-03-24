@@ -29,7 +29,7 @@ export class NumericRangeField extends Field<NumericRange, INumericRangeFieldPro
             }
             return [x1, x2];
         } else {
-            throw new Error('Value must be a pair of numbers');
+            throw new Error('Value must be a pair of numbers.');
         }
     }
 

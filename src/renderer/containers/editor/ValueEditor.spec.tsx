@@ -11,9 +11,10 @@ describe('ValueEditor', () => {
         expect(hasValueEditorFactory('str')).to.be.true;
         expect(hasValueEditorFactory('cate.core.types.PointLike')).to.be.true;
         expect(hasValueEditorFactory('cate.core.types.PolygonLike')).to.be.true;
+        expect(hasValueEditorFactory('cate.core.types.TimeRangeLike')).to.be.true;
     });
 
-    it('has misses some factories', () => {
+    it('misses some factories', () => {
         expect(hasValueEditorFactory('xarray.core.dataset.Dataset')).to.be.false;
     });
 

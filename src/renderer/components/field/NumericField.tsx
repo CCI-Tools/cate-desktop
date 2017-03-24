@@ -40,13 +40,13 @@ export class NumericField extends Field<number, INumberFieldProps> {
             return;
         }
         if (this.props.isInt && value !== Math.floor(value)) {
-            throw new Error('Value must be an integer');
+            throw new Error('Value must be an integer.');
         }
         if (isNumber(this.props.min) && value < this.props.min) {
-            throw new Error('Value must be >= ' + this.props.min);
+            throw new Error(`Value must be >= ${this.props.min}.`);
         }
         if (isNumber(this.props.max) && value > this.props.max) {
-            throw new Error('Value must be <= ' + this.props.max);
+            throw new Error(`Value must be <= ${this.props.max}.`);
         }
     }
 
