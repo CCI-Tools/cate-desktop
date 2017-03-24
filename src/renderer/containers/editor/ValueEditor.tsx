@@ -1,6 +1,5 @@
 import * as React from 'react';
-import {DateRange} from "@blueprintjs/datetime";
-import {OperationInputState} from "../../state";
+import {OperationInputState, ResourceState} from "../../state";
 import {FieldValue} from "../../components/field/Field";
 import {BooleanValueEditor} from "./BooleanValueEditor";
 import {IntegerValueEditor} from "./IntegerValueEditor";
@@ -10,37 +9,43 @@ import {PolygonValueEditor} from "./PolygonValueEditor";
 import {FileValueEditor} from "./FileValueEditor";
 import {PointValueEditor} from "./PointValueEditor";
 import {TimeRangeValueEditor} from "./TimeRangeValueEditor";
-import * as types from "../../../common/cate-types";
 import {VarNamesValueEditor} from "./VarNamesValueEditor";
+import * as types from "../../../common/cate-types";
 
+export interface InputAssignment {
+    constantValue: FieldValue<any> | any;
+    resourceName: string;
+    isValueUsed: boolean;
+}
+
+export type InputAssignments = { [inputName: string]: InputAssignment };
 
 export type ValueEditorValue<T> = FieldValue<T> | T | null;
 export type ValueEditorCallback<T> = (input: OperationInputState, value: ValueEditorValue<T>) => void;
-export type ValueEditorFactory<T> = (input: OperationInputState,
-                                     value: ValueEditorValue<T>,
-                                     onChange: ValueEditorCallback<T>) => JSX.Element | null;
 
 export interface IValueEditorProps<T> {
     input: OperationInputState;
     value: ValueEditorValue<T>;
     onChange: ValueEditorCallback<T>;
+    inputAssignments?: InputAssignments;
+    resources?: ResourceState[];
 }
+
+export type ValueEditorFactory<T> = (props: IValueEditorProps<T>) => JSX.Element | null;
 
 /**
  * Provides an appropriate value editor widget for the given input (OperationInputState).
  */
 export function ValueEditor(props: IValueEditorProps<any>) {
-    return renderValueEditor(props.input, props.value, props.onChange);
+    return renderValueEditor(props);
 }
 
 /**
  * Provides an appropriate value editor widget for the given input (OperationInputState).
  */
-export function renderValueEditor<T>(input: OperationInputState,
-                                     value: ValueEditorValue<T>,
-                                     onChange: ValueEditorCallback<T>) {
-    const factory = getValueEditorFactory(input.dataType);
-    return factory ? factory(input, value, onChange) : null;
+export function renderValueEditor<T>(props: IValueEditorProps<T>) {
+    const factory = getValueEditorFactory(props.input.dataType);
+    return factory ? factory(props) : null;
 }
 
 export function hasValueEditorFactory(dataType: string): boolean {
@@ -58,56 +63,40 @@ export function registerValueEditorFactory(dataType: string, factory: ValueEdito
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-function renderBoolValueEditor(input: OperationInputState,
-                               value: ValueEditorValue<boolean>,
-                               onChange: ValueEditorCallback<boolean>) {
-    return <BooleanValueEditor input={input} value={value} onChange={onChange}/>;
+function renderBoolValueEditor(props: IValueEditorProps<boolean>) {
+    return <BooleanValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
 }
 
-function renderIntValueEditor(input: OperationInputState,
-                              value: ValueEditorValue<number>,
-                              onChange: ValueEditorCallback<number>) {
-    return <IntegerValueEditor input={input} value={value} onChange={onChange}/>;
+function renderIntValueEditor(props: IValueEditorProps<number>) {
+    return <IntegerValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
 }
 
-function renderFloatValueEditor(input: OperationInputState,
-                                value: ValueEditorValue<number>,
-                                onChange: ValueEditorCallback<number>) {
-    return <FloatValueEditor input={input} value={value} onChange={onChange}/>;
+function renderFloatValueEditor(props: IValueEditorProps<number>) {
+    return <FloatValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
 }
 
-function renderStrValueEditor(input: OperationInputState,
-                              value: ValueEditorValue<string>,
-                              onChange: ValueEditorCallback<string>) {
-    if (input.fileOpenMode) {
-        return <FileValueEditor input={input} value={value} onChange={onChange}/>;
+function renderStrValueEditor(props: IValueEditorProps<string>) {
+    if (props.input.fileOpenMode) {
+        return <FileValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
     } else {
-        return <TextValueEditor input={input} value={value} onChange={onChange}/>;
+        return <TextValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
     }
 }
 
-function renderPointLikeValueEditor(input: OperationInputState,
-                                    value: ValueEditorValue<string>,
-                                    onChange: ValueEditorCallback<string>) {
-    return <PointValueEditor input={input} value={value} onChange={onChange}/>;
+function renderPointLikeValueEditor(props: IValueEditorProps<string>) {
+    return <PointValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
 }
 
-function renderPolygonLikeValueEditor(input: OperationInputState,
-                                      value: ValueEditorValue<string>,
-                                      onChange: ValueEditorCallback<string>) {
-    return <PolygonValueEditor input={input} value={value} onChange={onChange}/>;
+function renderPolygonLikeValueEditor(props: IValueEditorProps<string>) {
+    return <PolygonValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
 }
 
-function renderTimeRangeLikeValueEditor(input: OperationInputState,
-                                        value: ValueEditorValue<string>,
-                                        onChange: ValueEditorCallback<string>) {
-    return <TimeRangeValueEditor input={input} value={value} onChange={onChange}/>;
+function renderTimeRangeLikeValueEditor(props: IValueEditorProps<string>) {
+    return <TimeRangeValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
 }
 
-function renderVarNamesLikeValueEditor(input: OperationInputState,
-                                       value: ValueEditorValue<string>,
-                                       onChange: ValueEditorCallback<string>) {
-    return <VarNamesValueEditor input={input} value={value} onChange={onChange}/>;
+function renderVarNamesLikeValueEditor(props: IValueEditorProps<string>) {
+    return <VarNamesValueEditor input={props.input} value={props.value} onChange={props.onChange} resource={findResource(props)}/>;
 }
 
 const VALUE_EDITOR_FACTORIES = {
@@ -122,3 +111,20 @@ const VALUE_EDITOR_FACTORIES = {
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////
+
+
+function findResource(props: IValueEditorProps<any>) {
+    const valueSetSource = props.input.valueSetSource;
+    const resources = props.resources;
+    const inputAssignments = props.inputAssignments;
+    let resource;
+    if (valueSetSource && resources && inputAssignments) {
+        const inputAssignment = inputAssignments[valueSetSource];
+        const resourceName = inputAssignment.resourceName;
+        if (inputAssignment && resourceName && !inputAssignment.isValueUsed) {
+            resource = resources.find(r => r.name === resourceName);
+        }
+    }
+    return resource;
+}
+

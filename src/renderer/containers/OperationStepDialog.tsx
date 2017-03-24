@@ -9,20 +9,13 @@ import FormEvent = React.FormEvent;
 import {InputEditor} from "./editor/InputEditor";
 import {updatePropertyObject} from "../../common/objutil";
 import {ModalDialog} from "../components/ModalDialog";
-import {Field, FieldValue} from "../components/field/Field";
-import {hasValueEditorFactory, renderValueEditor} from "./editor/ValueEditor";
+import {Field} from "../components/field/Field";
+import {hasValueEditorFactory, InputAssignment, InputAssignments, renderValueEditor} from "./editor/ValueEditor";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {isDefined, isUndefinedOrNull} from "../../common/types";
 
 
-export interface InputAssignment {
-    constantValue: FieldValue<any> | any;
-    resourceName: string;
-    isValueUsed: boolean;
-}
-
-type InputAssignments = { [inputName: string]: InputAssignment };
 type InputErrors = { [inputName: string]: Error };
 
 type OpInputAssignments = { [opName: string]: InputAssignments };
@@ -262,7 +255,7 @@ function renderInputEditors(inputs: OperationInputState[],
     return inputs.map((input: OperationInputState) => {
         const inputAssignment = inputAssignments[input.name];
         const constantValue = inputAssignment.constantValue;
-        const valueEditor = renderValueEditor(input, constantValue, onConstantValueChange);
+        const valueEditor = renderValueEditor({input, inputAssignments, resources, value: constantValue, onChange: onConstantValueChange});
         return (
             <InputEditor key={input.name}
                          resources={resources}
