@@ -1,4 +1,3 @@
-import {updateObject, updatePropertyObject, updateConditionally} from "./objutil";
 import {should, expect} from "chai";
 import {formatDataTypeName} from "./format";
 

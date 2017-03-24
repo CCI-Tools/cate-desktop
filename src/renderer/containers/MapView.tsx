@@ -144,7 +144,7 @@ class MapView extends React.Component<IMapViewProps, null> {
 
             let numFeatures = 0;
 
-            const worker = new Worker("renderer/containers/stream-features.js");
+            const worker = new Worker("common/stream-geojson.js");
             worker.postMessage(url);
             worker.onmessage = function (event: MessageEvent) {
                 const geoJsonFeatures = event.data;

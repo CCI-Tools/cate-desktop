@@ -132,7 +132,7 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
         const dataSource = (dataSourceOptions) => {
             let numFeatures = 0;
             const customDataSource: DataSource = new Cesium.CustomDataSource(dataSourceOptions.name);
-            const worker = new Worker("renderer/containers/stream-features.js");
+            const worker = new Worker("common/stream-geojson.js");
             worker.postMessage(dataSourceOptions.url);
             worker.onmessage = function (event: MessageEvent) {
                 const features = event.data;

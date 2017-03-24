@@ -1,5 +1,5 @@
 import {should, expect} from 'chai';
-import {getLayerDiff} from "./Layer";
+import {getLayerDiff} from "./layer-diff";
 
 should();
 

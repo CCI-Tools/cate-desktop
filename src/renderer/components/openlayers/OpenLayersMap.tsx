@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ol from 'openlayers';
 import * as proj4 from 'proj4';
 import {IPermanentComponentProps, PermanentComponent} from '../PermanentComponent'
-import {getLayerDiff} from "../Layer";
+import {getLayerDiff} from "../../../common/layer-diff";
 
 ol.proj.setProj4(proj4);
 

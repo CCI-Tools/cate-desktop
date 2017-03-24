@@ -1,4 +1,4 @@
-import * as assert from '../../common/assert';
+import * as assert from './assert';
 import deepEqual = require("deep-equal");
 
 export interface Layer {

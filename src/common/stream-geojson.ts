@@ -1,4 +1,12 @@
-importScripts('../../node_modules/oboe/dist/oboe-browser.js');
+/*
+ * This modules allows for streaming GeoJSON through a new process.
+ * It is designed as a WebWorker (see https://developer.mozilla.org/en-US/docs/Web/API/Worker)
+ * and uses OboeJS for JSON streaming.
+ *
+ * @author Norman Fomferra
+ */
+
+importScripts('../node_modules/oboe/dist/oboe-browser.js');
 const oboe = (self as any).oboe;
 
 onmessage = function (event: MessageEvent) {

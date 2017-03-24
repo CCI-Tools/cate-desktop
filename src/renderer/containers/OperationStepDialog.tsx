@@ -6,11 +6,11 @@ import {
     ResourceState
 } from "../state";
 import FormEvent = React.FormEvent;
-import {InputEditor} from "../components/InputEditor";
+import {InputEditor} from "./editor/InputEditor";
 import {updatePropertyObject} from "../../common/objutil";
 import {ModalDialog} from "../components/ModalDialog";
 import {Field, FieldValue} from "../components/field/Field";
-import {hasValueEditorFactory, renderValueEditor} from "./veditor/ValueEditor";
+import {hasValueEditorFactory, renderValueEditor} from "./editor/ValueEditor";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {isDefined, isUndefinedOrNull} from "../../common/types";

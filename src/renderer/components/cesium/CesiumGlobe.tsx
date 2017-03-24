@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {IPermanentComponentProps, PermanentComponent} from '../PermanentComponent'
-import {getLayerDiff} from "../Layer";
+import {getLayerDiff} from "../../../common/layer-diff";
 
 
 // console.log(Cesium);
