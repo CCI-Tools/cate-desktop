@@ -45,7 +45,7 @@ let _config: Configuration;
 function getAppIconPath() {
     let icon_file = "cate-icon.png";
     if (process.platform === "darwin") {
-        icon_file = "darwin/cate-icon.icns";
+        icon_file = "darwin/icon.icns";
     } else if (process.platform === "win32") {
         icon_file = "win32/cate-icon.ico";
     }
@@ -107,7 +107,7 @@ function storeConfiguration(config: Configuration, options: string[], defaultCon
 function loadBackendLocation(): string {
     const locationFile = path.join(getAppDataDir(), WEBAPI_VERSION, 'cate.location');
     if (!fs.existsSync(locationFile)) {
-        console.error(CATE_DESKTOP_PREFIX, `missing cate.location file: ${locationFile}`)
+        console.error(CATE_DESKTOP_PREFIX, `missing cate.location file: ${locationFile}`);
         return '';
     }
     const location = fs.readFileSync(locationFile, 'utf8');
@@ -270,7 +270,7 @@ export function init() {
     app.on('ready', (): void => {
         checkWebapiServiceExecutable((installerPath: string) => {
             createSplashWindow(() => {
-                // installWebapiServiceExecutable(installerPath, () => {
+                installWebapiServiceExecutable(installerPath, () => {
                     console.log(CATE_DESKTOP_PREFIX, 'Ready.');
                     if (!webAPIConfig.useMockService) {
                         console.log(CATE_DESKTOP_PREFIX, 'Using Cate WebAPI service...');
@@ -279,7 +279,7 @@ export function init() {
                         createMainWindow();
                     }
                 });
-            // });
+            });
         });
     });
 
@@ -475,21 +475,7 @@ function checkWebapiServiceExecutable(callback: (installerPath?: string) => void
     if (fs.existsSync(webAPIConfig.command)) {
         callback();
         return true;
-    } else {
-        electron.dialog.showMessageBox({
-            type: 'error',
-            title: 'Cate - Fatal Error',
-            message: 'Cate\'s back-end could not be found. The expected location is\n"' +
-            webAPIConfig.command + '"\n\n' +
-            'Please install Cate first.\n' +
-            'The Cate Desktop will exit now.',
-        });
-        electron.app.exit(WEBAPI_MISSING);
-        return false;
     }
-/*
- code currently not used,
- because we don't ship a bundled miniconda installer
 
     const fileNames = fs.readdirSync(app.getAppPath());
     // console.log('fileNames =', fileNames);
@@ -520,14 +506,14 @@ function checkWebapiServiceExecutable(callback: (installerPath?: string) => void
         electron.dialog.showMessageBox({
             type: 'error',
             title: 'Cate - Fatal Error',
-            message: 'Can neither find required Cate backend service\n"' +
-            webAPIConfig.command + '"\n' +
-            'nor a bundled Cate Python installer. Application will exit now.',
+            message: 'Can\'t find required Cate back-end service:\n    "' +
+            webAPIConfig.command + '"\n\n' +
+            'Please install Cate back-end first.\n\n' +
+            'Application will exit now.',
         });
-        electron.app.exit(WEBAPI_INSTALLER_MISSING);
+        electron.app.exit(WEBAPI_MISSING);
         return false;
     }
-    */
 }
 
 function installWebapiServiceExecutable(installerCommand: string, callback: () => void) {
