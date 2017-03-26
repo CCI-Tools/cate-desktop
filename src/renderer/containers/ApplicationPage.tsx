@@ -26,7 +26,7 @@ export function ApplicationPage(props) {
 
     return (
         <div style={{display: "flex", flexFlow: "column nowrap", width: "100%", height: "100%", }}>
-            <div style={{flex: "none", padding: "0 4px 0 4px;"}}>
+            <div style={{flex: "none", padding: "0 4px 0 4px"}}>
                 {/*<NavBarExample/>*/}
             </div>
             <div style={{flex: "auto", padding: 0, display:"flex", flexFlow: "row nowrap"}}>
