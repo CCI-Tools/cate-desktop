@@ -8,7 +8,7 @@ import {TextValueEditor} from "./TextValueEditor";
 import {FileValueEditor} from "./FileValueEditor";
 import {GeometryValueEditor} from "./GeometryValueEditor";
 import {TimeRangeValueEditor} from "./TimeRangeValueEditor";
-import {VarNamesValueEditor} from "./VarNamesValueEditor";
+import {VarNameValueEditor} from "./VarNameValueEditor";
 import * as types from "../../../common/cate-types";
 
 export interface InputAssignment {
@@ -98,8 +98,12 @@ function renderTimeRangeLikeValueEditor(props: IValueEditorProps<string>) {
     return <TimeRangeValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
 }
 
+function renderVarNameLikeValueEditor(props: IValueEditorProps<string>) {
+    return <VarNameValueEditor input={props.input} value={props.value} onChange={props.onChange} resource={findResource(props)} multi={false}/>;
+}
+
 function renderVarNamesLikeValueEditor(props: IValueEditorProps<string>) {
-    return <VarNamesValueEditor input={props.input} value={props.value} onChange={props.onChange} resource={findResource(props)}/>;
+    return <VarNameValueEditor input={props.input} value={props.value} onChange={props.onChange} resource={findResource(props)} multi={true}/>;
 }
 
 const VALUE_EDITOR_FACTORIES = {
@@ -111,6 +115,7 @@ const VALUE_EDITOR_FACTORIES = {
     [types.POLYGON_LIKE_TYPE]: renderPolygonLikeValueEditor,
     [types.GEOMETRY_LIKE_TYPE]: renderGeometryLikeValueEditor,
     [types.TIME_RANGE_LIKE_TYPE]: renderTimeRangeLikeValueEditor,
+    [types.VAR_NAME_LIKE_TYPE]: renderVarNameLikeValueEditor,
     [types.VAR_NAMES_LIKE_TYPE]: renderVarNamesLikeValueEditor,
 };
 

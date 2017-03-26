@@ -10,6 +10,7 @@ interface IVariablesDialogProps {
     resource: ResourceState;
     onConfirm: (value: string[]) => void;
     onCancel: () => void;
+    multiSelect?: boolean;
 }
 
 interface IVariablesDialogState {
@@ -37,8 +38,8 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
         return (
             <ModalDialog
                 isOpen={this.props.isOpen}
-                title={"Select Variables"}
-                iconName="layers"
+                title={this.props.multiSelect ? "Select Variables" : "Select Variable"}
+                iconName="variable"
                 onConfirm={this.onConfirm}
                 onCancel={this.props.onCancel}
                 renderBody={this.renderBody}
@@ -57,7 +58,7 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
                 <ListBox items={variables}
                          getItemKey={VariablesDialog.getVariableItemKey}
                          renderItem={VariablesDialog.renderVariableItem}
-                         selectionMode={ListBoxSelectionMode.MULTIPLE}
+                         selectionMode={this.props.multiSelect ? ListBoxSelectionMode.MULTIPLE : ListBoxSelectionMode.SINGLE}
                          selection={this.state.value}
                          onSelection={this.onSelection}/>
             </div>
@@ -72,8 +73,6 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
     private static renderVariableItem(variable: VariableState) {
         return (
             <div>
-                <span>{variable.name}</span>
-                <span> / </span>
                 <LabelWithType label={variable.name}
                                dataType={`${variable.dataType}[${variable.dimensions}]`}
                                units={variable.units}
