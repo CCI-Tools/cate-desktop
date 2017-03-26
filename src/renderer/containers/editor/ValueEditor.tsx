@@ -5,9 +5,8 @@ import {BooleanValueEditor} from "./BooleanValueEditor";
 import {IntegerValueEditor} from "./IntegerValueEditor";
 import {FloatValueEditor} from "./FloatValueEditor";
 import {TextValueEditor} from "./TextValueEditor";
-import {PolygonValueEditor} from "./PolygonValueEditor";
 import {FileValueEditor} from "./FileValueEditor";
-import {PointValueEditor} from "./PointValueEditor";
+import {GeometryValueEditor} from "./GeometryValueEditor";
 import {TimeRangeValueEditor} from "./TimeRangeValueEditor";
 import {VarNamesValueEditor} from "./VarNamesValueEditor";
 import * as types from "../../../common/cate-types";
@@ -84,11 +83,15 @@ function renderStrValueEditor(props: IValueEditorProps<string>) {
 }
 
 function renderPointLikeValueEditor(props: IValueEditorProps<string>) {
-    return <PointValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
+    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Point" fieldSize={16}/>;
 }
 
 function renderPolygonLikeValueEditor(props: IValueEditorProps<string>) {
-    return <PolygonValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
+    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Polygon" fieldSize={32}/>;
+}
+
+function renderGeometryLikeValueEditor(props: IValueEditorProps<string>) {
+    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Geometry" fieldSize={32}/>;
 }
 
 function renderTimeRangeLikeValueEditor(props: IValueEditorProps<string>) {
@@ -106,6 +109,7 @@ const VALUE_EDITOR_FACTORIES = {
     [types.STR_TYPE]: renderStrValueEditor,
     [types.POINT_LIKE_TYPE]: renderPointLikeValueEditor,
     [types.POLYGON_LIKE_TYPE]: renderPolygonLikeValueEditor,
+    [types.GEOMETRY_LIKE_TYPE]: renderGeometryLikeValueEditor,
     [types.TIME_RANGE_LIKE_TYPE]: renderTimeRangeLikeValueEditor,
     [types.VAR_NAMES_LIKE_TYPE]: renderVarNamesLikeValueEditor,
 };

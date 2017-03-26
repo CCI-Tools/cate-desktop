@@ -46,8 +46,8 @@ export function toValue(value: any) {
  */
 export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, null> {
 
-    private static readonly NOMINAL_CLASS = "pt-input";
-    private static readonly ERROR_CLASS = "pt-input pt-intent-danger";
+    static readonly NOMINAL_CLASS = "pt-input";
+    static readonly ERROR_CLASS = "pt-input pt-intent-danger";
 
     constructor(props: IFieldProps<T>) {
         super(props);
