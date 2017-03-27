@@ -1,8 +1,8 @@
 import * as React from "react";
 import {connect} from "react-redux";
-//import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, DataStoreState, DataSourceState} from "../state";
-import {Tabs, TabList, Tab, TabPanel, Button, InputGroup, Classes, Tag} from "@blueprintjs/core";
+import {Button, InputGroup, Classes, Tag, Tabs2, Tab2} from "@blueprintjs/core";
+import {Table, Column, Cell} from "@blueprintjs/table";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
 import DownloadDatasetDialog from "./DownloadDatasetDialog";
@@ -10,7 +10,6 @@ import OpenDatasetDialog from "./OpenDatasetDialog";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import {Panel} from "../components/Panel";
 
 
 interface IDataSourcesPanelProps {
@@ -287,81 +286,68 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         if (!dataSource) {
             return null;
         }
-        let metaInfo = null;
-        let variables = null;
+        let metaInfoTable = null;
+        let variablesTable = null;
         if (dataSource.meta_info) {
-            const metaInfoItems = Object.keys(dataSource.meta_info).filter(key => key !== 'variables').map(key => {
-                const value = dataSource.meta_info[key];
-                return (<tr key={key}>
-                    <td>{key}</td>
-                    <td>{value}</td>
-                </tr>);
-            });
-            if (metaInfoItems.length > 0) {
-                metaInfo = (
-                    <table className="pt-table pt-condensed pt-striped">
-                        <thead>
-                        <tr>
-                            <th>Key</th>
-                            <th>Value</th>
-                        </tr>
-                        </thead>
-                        <tbody>{metaInfoItems}</tbody>
-                    </table>
+            const metaInfoKeys = Object.keys(dataSource.meta_info).filter(key => key !== 'variables');
+            if (metaInfoKeys.length) {
+                function renderKey(rowIndex: number) {
+                    const key = metaInfoKeys[rowIndex];
+                    return <Cell>{key}</Cell>;
+                }
+                function renderValue(rowIndex: number) {
+                    const key = metaInfoKeys[rowIndex];
+                    return <Cell>{dataSource.meta_info[key]}</Cell>;
+                }
+                function getCellClipboardData(row: number, col: number) {
+                    console.log('getCellClipboardData: ', row, col);
+                }
+                metaInfoTable = (
+                    <Table numRows={metaInfoKeys.length}
+                           isRowHeaderShown={false}
+                           getCellClipboardData={getCellClipboardData}>
+                        <Column name="Key" renderCell={renderKey}/>
+                        <Column name="Value" renderCell={renderValue}/>
+                    </Table>
                 );
             }
+            const variables = dataSource.meta_info.variables;
             if (dataSource.meta_info.variables) {
-                const variableItems = dataSource.meta_info.variables.map(variable => {
-                    return (<tr key={variable.name}>
-                        <td>{variable.name}</td>
-                        <td>{variable.units || '-'}</td>
-                    </tr>);
-                });
-                if (variableItems.length > 0) {
-                    variables = (
-                        <table className="pt-table pt-condensed pt-striped">
-                            <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Units</th>
-                            </tr>
-                            </thead>
-                            <tbody>{variableItems}</tbody>
-                        </table>
+                if (variables.length) {
+                    function renderName(rowIndex: number) {
+                        const variable = variables[rowIndex];
+                        return <Cell>{variable.name}</Cell>;
+                    }
+                    function renderUnit(rowIndex: number) {
+                        const variable = variables[rowIndex];
+                        return <Cell>{variable.units || '-'}</Cell>;
+                    }
+                    function getCellClipboardData(row: number, col: number) {
+                        console.log('getCellClipboardData: ', row, col);
+                    }
+                    variablesTable = (
+                        <Table numRows={variables.length}
+                               isRowHeaderShown={false}
+                               getCellClipboardData={getCellClipboardData}>
+                            <Column name="Name" renderCell={renderName}/>
+                            <Column name="Units" renderCell={renderUnit}/>
+                        </Table>
                     );
                 }
             }
         }
 
-        let metaInfoPanel;
-        if (metaInfo) {
-            metaInfoPanel = (<Card>{metaInfo}</Card>);
-        }
-
-        let variablesPanel;
-        if (variables) {
-            variablesPanel = (<Card>{variables}</Card>);
-        }
-
-        if (metaInfoPanel && variablesPanel) {
+        if (metaInfoTable && variablesTable) {
             return (
-                <Tabs>
-                    <TabList>
-                        <Tab>Variables</Tab>
-                        <Tab>Meta-Info</Tab>
-                    </TabList>
-                    <TabPanel>
-                        {variablesPanel}
-                    </TabPanel>
-                    <TabPanel>
-                        {metaInfoPanel}
-                    </TabPanel>
-                </Tabs>
+                <Tabs2 id="dsDetails">
+                    <Tab2 id="vars" title="Variables" panel={variablesTable}/>
+                    <Tab2 id="meta" title="Meta-Info" panel={metaInfoTable}/>
+                </Tabs2>
             );
-        } else if (metaInfoPanel) {
-            return metaInfoPanel;
-        } else if (variablesPanel) {
-            return variablesPanel;
+        } else if (metaInfoTable) {
+            return metaInfoTable;
+        } else if (variablesTable) {
+            return variablesTable;
         } else {
             return (
                 <Card>

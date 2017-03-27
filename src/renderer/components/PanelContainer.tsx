@@ -282,6 +282,13 @@ function PanelPane(props: IPanelPaneProps) {
         maxHeight: "100%",
     };
 
+    const bodyContainerStyle = {
+        overflow: "auto",
+        //width: "100%",
+        flexGrow: 1,
+        padding: 2
+    };
+
     let panelParent = (
         <div style={panelParentStyle}>
             <PanelHeader
@@ -290,7 +297,9 @@ function PanelPane(props: IPanelPaneProps) {
                 iconName={panel.props.iconName}
                 onClose={() => props.onClose(panelId)}
             />
-            {panelBody}
+            <div style={bodyContainerStyle}>
+                {panelBody}
+            </div>
         </div>
     );
 
