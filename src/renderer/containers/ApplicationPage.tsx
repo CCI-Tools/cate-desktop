@@ -1,12 +1,12 @@
 import * as React from 'react';
 import {Classes, ITreeNode, Tooltip, Tree, Tab, TabList, TabPanel, Tabs} from "@blueprintjs/core";
-import {ExpansionPanel} from '../components/ExpansionPanel';
 import GlobeView from './GlobeView'
 import MapView from "./MapView";
 import DataSourcesPanel from "./DataSourcesPanel";
 import OperationsPanel from "./OperationsPanel";
 import WorkspacePanel from "./WorkspacePanel";
 import VariablePanel from "./VariablesPanel";
+import ViewPanel from "./ViewPanel";
 import TaskPanel from "./TasksPanel";
 import LayersPanel from "./LayersPanel";
 import PreferencesDialog from "./PreferencesDialog";
@@ -85,13 +85,14 @@ export function ApplicationPage(props) {
                     </Tabs>
                 </div>
                 <PanelContainer position="right" selectedPanelId="layers">
+                    <Panel id="view" iconName="pt-icon-eye-open" title="View" body={<ViewPanel/>}/>
                     <Panel id="layers" iconName="pt-icon-layers" title="Layers" body={<LayersPanel/>}/>
                     <Panel id="analysis" iconName="pt-icon-scatter-plot" title="Analysis" body={<TreeExample/>}/>
                     <Panel id="tasks" iconName="pt-icon-play" title="Tasks" body={<TaskPanel/>}/>
                 </PanelContainer>
             </div>
             <div
-                style={{flex: "none", padding: "0 4px 0 4px;", height: "1.5em", fontSize: "small", alignItems: "center", backgroundColor: "#2B95D6"}}>
+                style={{flex: "none", padding: "0 4px 0 4px", height: "1.5em", fontSize: "small", alignItems: "center", backgroundColor: "#2B95D6"}}>
                 Ready.
             </div>
             <PreferencesDialog/>
