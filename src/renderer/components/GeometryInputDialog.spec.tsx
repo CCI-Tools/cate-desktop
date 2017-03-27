@@ -7,6 +7,8 @@ describe('GeometryInputDialog', function () {
         it('can detect WKT syntax errors', function () {
             expect(validateGeometryValue.bind(this, 'PIONT (1 2)', 'Point')).to.throw('Point WKT must start with "POINT".');
             expect(validateGeometryValue.bind(this, 'POINT (1 2))', 'Polygon')).to.throw('Polygon WKT must start with "POLYGON".');
+            expect(validateGeometryValue.bind(this, 'POLYGON ', 'Polygon')).to.throw('Invalid WKT, too few "(".');
+            expect(validateGeometryValue.bind(this, 'POLYGON (1 2, 3 4, 5 6, 1 2)', 'Polygon')).to.throw('Invalid WKT, too few "(".');
             expect(validateGeometryValue.bind(this, 'POLYGON ((1 2, 3 4, 5 6, 1 2)))', 'Polygon')).to.throw('Invalid WKT, too many ")".');
             expect(validateGeometryValue.bind(this, 'POLYGON ((1 2, 3 4, 5 6, 1 2)', 'Polygon')).to.throw('Invalid WKT, too many "(".');
             expect(validateGeometryValue.bind(this, 'POLYGON (((1 2, 3 4, 5 6, 1 2))', 'Polygon')).to.throw('Invalid WKT, too many "(".');
