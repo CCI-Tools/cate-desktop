@@ -29,7 +29,6 @@ export interface DataState {
     dataStores: DataStoreState[] | null;
     operations: OperationState[] | null;
     workspace: WorkspaceState | null;
-    layers: LayerState[];
     colorMaps: ColorMapCategoryState[] | null;
 }
 
@@ -272,6 +271,29 @@ export interface ImageLayout {
     tileHeight: number;
 }
 
+export type ViewMode = "2D" | "3D";
+
+
+/**
+ * State of the 2D/3D viewer.
+ */
+export interface ViewerState {
+    /**
+     * 2D map or 3D globe?
+     */
+    viewMode: ViewMode;
+
+    /**
+     * Code of the projection used by the 2D map.
+     */
+    projectionCode: string;
+
+    /**
+     * The layers in a viewer.
+     */
+    layers: LayerState[];
+}
+
 /**
  * State of a layer.
  */
@@ -505,11 +527,11 @@ export interface ControlState {
     showLayerDetails: boolean;
     savedLayers: {[key: string]: LayerState};
 
-    // Currently only for 2D map
-    projectionCode: string;
+    // State of the 2D/3D viewer.
+    viewer: ViewerState;
 
     // A map that stores the last state of any dialog given a dialogId
-    dialogs: {[dialogId: string]: DialogState;};
+    dialogs: {[dialogId: string]: DialogState};
 }
 
 export interface DialogState {

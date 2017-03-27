@@ -23,7 +23,7 @@ function mapStateToProps(state: State): IGlobeViewProps {
         baseUrl: state.data.appConfig.webAPIConfig.restUrl,
         workspace: state.data.workspace,
         offlineMode: state.session.offlineMode,
-        layers: state.data.layers,
+        layers: state.control.viewer.layers,
     };
 }
 

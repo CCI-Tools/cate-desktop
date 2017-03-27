@@ -1,5 +1,5 @@
 import {
-    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState
+    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState, ViewerState
 } from './state';
 import * as actions from './actions';
 import * as assert from "../common/assert";
@@ -24,19 +24,6 @@ const initialDataState: DataState = {
     dataStores: null,
     operations: null,
     workspace: null,
-    layers: [
-        {
-            id: actions.SELECTED_VARIABLE_LAYER_ID,
-            type: 'Unknown',
-            visible: true,
-        },
-        {
-            id: actions.COUNTRIES_LAYER_ID,
-            name: 'Countries',
-            type: 'Vector',
-            visible: false,
-        }
-    ],
     colorMaps: null
 };
 
@@ -57,14 +44,24 @@ const updateDataStores = (state: DataState, action, createDataSources: (dataStor
 const dataReducer = (state: DataState = initialDataState, action) => {
     switch (action.type) {
         case actions.UPDATE_INITIAL_STATE:
-            return updateObject(state, {
-                appConfig: updateObject(state.appConfig, action.payload.appConfig)
-            });
+            const appConfig = updateObject(state.appConfig, action.payload.appConfig);
+            return updateObject(state, {appConfig});
         case actions.SET_WEBAPI_STATUS: {
             const webAPIClient = action.payload.webAPIClient;
-            return updateObject(state, {
-                appConfig: updateObject(state.appConfig, {webAPIClient})
-            });
+            const appConfig = updateObject(state.appConfig, {webAPIClient});
+            return updateObject(state, {appConfig});
+        }
+        case actions.UPDATE_OPERATIONS: {
+            const operations = action.payload.operations;
+            return updateObject(state, {operations});
+        }
+        case actions.SET_CURRENT_WORKSPACE: {
+            const workspace = action.payload.workspace;
+            return updateObject(state, {workspace});
+        }
+        case actions.UPDATE_COLOR_MAPS: {
+            const colorMaps = action.payload.colorMaps;
+            return updateObject(state, {colorMaps});
         }
         case actions.UPDATE_DATA_STORES: {
             const dataStores = action.payload.dataStores.slice();
@@ -89,14 +86,111 @@ const dataReducer = (state: DataState = initialDataState, action) => {
                 return newDataSources;
             });
         }
-        case actions.UPDATE_OPERATIONS:
-            return updateObject(state, {
-                operations: action.payload.operations,
-            });
-        case actions.SET_CURRENT_WORKSPACE:
-            return updateObject(state, {
-                workspace: action.payload.workspace,
-            });
+    }
+    return state;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// state.control initial state and reducers
+
+
+let initialViewerState = {
+    viewMode: "3D",
+    projectionCode: 'EPSG:4326',
+    layers: [
+        {
+            id: actions.SELECTED_VARIABLE_LAYER_ID,
+            type: 'Unknown',
+            visible: true,
+        },
+        {
+            id: actions.COUNTRIES_LAYER_ID,
+            name: 'Countries',
+            type: 'Vector',
+            visible: false,
+        }
+    ],
+} as ViewerState;
+
+const initialControlState: ControlState = {
+    selectedDataStoreId: null,
+    selectedDataSourceId: null,
+    dataSourceFilterExpr: '',
+    selectedOperationName: null,
+    showDataSourceDetails: true,
+    operationFilterTags: [],
+    operationFilterExpr: '',
+    showOperationDetails: true,
+    selectedWorkflowStepId: null,
+    selectedWorkspaceResourceId: null,
+    selectedVariableName: null,
+    showVariableDetails: true,
+    selectedLayerId: null,
+    showLayerDetails: true,
+    viewer: initialViewerState,
+    savedLayers: {},
+    dialogs: {}
+};
+
+
+const controlReducer = (state: ControlState = initialControlState, action) => {
+    switch (action.type) {
+        case actions.UPDATE_DATA_SOURCES: {
+            const dataSources = action.payload.dataSources;
+            const selectedDataSourceId = (dataSources && dataSources.length) ? dataSources[0].id : null;
+            state = updateObject(state, {selectedDataSourceId});
+            break;
+        }
+        case actions.UPDATE_OPERATIONS: {
+            const operations = action.payload.operations;
+            const selectedOperationName = (operations && operations.length) ? operations[0].name : null;
+            state = updateObject(state, {selectedOperationName});
+            break;
+        }
+        case actions.SAVE_LAYER: {
+            const key = action.payload.key;
+            const layer = action.payload.layer;
+            const savedLayers = updateObject(state.savedLayers, {[key]: updateObject(layer, {})});
+            state = updateObject(state, {savedLayers});
+            break;
+        }
+        case actions.UPDATE_CONTROL_STATE:
+            state = updateObject(state, action.payload);
+            break;
+        case actions.UPDATE_DIALOG_STATE: {
+            const dialogs = updatePropertyObject(state.dialogs, action.payload.dialogId, action.payload.dialogState);
+            state = updateObject(state, {dialogs});
+            break;
+        }
+        case actions.RENAME_RESOURCE: {
+            const resName = action.payload.resName;
+            const newResName = action.payload.newResName;
+            if (state.selectedWorkspaceResourceId === resName) {
+                state = updateObject(state, {selectedWorkspaceResourceId: newResName});
+            }
+            break;
+        }
+    }
+
+    const viewer = viewerReducer(state.viewer, action);
+    if (viewer !== state.viewer) {
+        state = updateObject(state, {viewer});
+    }
+
+    return state;
+};
+
+
+const viewerReducer = (state: ViewerState, action) => {
+    switch (action.type) {
+        case actions.SET_VIEW_MODE: {
+            const viewMode = action.payload.viewMode;
+            return updateObject(state, {viewMode});
+        }
+        case actions.SET_PROJECTION_CODE: {
+            const projectionCode = action.payload.projectionCode;
+            return updateObject(state, {projectionCode});
+        }
         case actions.ADD_LAYER: {
             const layer = action.payload.layer;
             const layers = state.layers.slice();
@@ -172,70 +266,6 @@ const dataReducer = (state: DataState = initialDataState, action) => {
                 return updateObject(state, {layers});
             }
             return state;
-        }
-        case actions.UPDATE_COLOR_MAPS: {
-            return updateObject(state, action.payload);
-        }
-    }
-    return state;
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// state.control initial state and reducers
-
-
-const initialControlState: ControlState = {
-    selectedDataStoreId: null,
-    selectedDataSourceId: null,
-    dataSourceFilterExpr: '',
-    selectedOperationName: null,
-    showDataSourceDetails: true,
-    operationFilterTags: [],
-    operationFilterExpr: '',
-    showOperationDetails: true,
-    selectedWorkflowStepId: null,
-    selectedWorkspaceResourceId: null,
-    selectedVariableName: null,
-    showVariableDetails: true,
-    selectedLayerId: null,
-    showLayerDetails: true,
-    projectionCode: 'EPSG:4326',
-    savedLayers: {},
-    dialogs: {}
-};
-
-const controlReducer = (state: ControlState = initialControlState, action) => {
-    switch (action.type) {
-        case actions.UPDATE_DATA_SOURCES: {
-            const dataSources = action.payload.dataSources;
-            return updateObject(state, {
-                selectedDataSourceId: (dataSources && dataSources.length) ? dataSources[0].id : null
-            });
-        }
-        case actions.UPDATE_OPERATIONS: {
-            const operations = action.payload.operations;
-            return updateObject(state, {
-                selectedOperationName: (operations && operations.length) ? operations[0].name : null
-            });
-        }
-        case actions.SAVE_LAYER: {
-            const key = action.payload.key;
-            const layer = action.payload.layer;
-            const savedLayers = updateObject(state.savedLayers, {[key]: updateObject(layer, {})});
-            return updateObject(state, {savedLayers});
-        }
-        case actions.UPDATE_CONTROL_STATE:
-            return updateObject(state, action.payload);
-        case actions.UPDATE_DIALOG_STATE:
-            return updateObject(state, {
-                dialogs: updatePropertyObject(state.dialogs, action.payload.dialogId, action.payload.dialogState)
-            });
-        case actions.RENAME_RESOURCE: {
-            const resName = action.payload.resName;
-            const newResName = action.payload.newResName;
-            if (state.selectedWorkspaceResourceId == resName) {
-                return updateObject(state, {selectedWorkspaceResourceId: newResName});
-            }
         }
     }
     return state;

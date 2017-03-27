@@ -21,8 +21,8 @@ function mapStateToProps(state: State): IMapViewProps {
         baseUrl: state.data.appConfig.webAPIConfig.restUrl,
         workspace: state.data.workspace,
         offlineMode: state.session.offlineMode,
-        layers: state.data.layers,
-        projectionCode: state.control.projectionCode,
+        layers: state.control.viewer.layers,
+        projectionCode: state.control.viewer.projectionCode,
     };
 }
 

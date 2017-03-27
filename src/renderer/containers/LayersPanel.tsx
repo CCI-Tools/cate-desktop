@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
-import {ExpansionPanel} from '../components/ExpansionPanel';
 import {
     State, LayerState, ColorMapCategoryState, ImageLayerState,
     VariableImageLayerState, VariableState, ResourceState, ColorMapState, VariableVectorLayerState
@@ -16,7 +15,6 @@ import * as selectors from "../selectors";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {NumericRangeField} from "../components/field/NumericRangeField";
 import LayerSourcesDialog from "./LayerSourcesDialog";
-import ProjectionsDialog from "./ProjectionsDialog";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -85,7 +83,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         this.handleRemoveLayerButtonClicked = this.handleRemoveLayerButtonClicked.bind(this);
         this.handleMoveLayerUpButtonClicked = this.handleMoveLayerUpButtonClicked.bind(this);
         this.handleMoveLayerDownButtonClicked = this.handleMoveLayerDownButtonClicked.bind(this);
-        this.handleProjectionButtonClicked = this.handleProjectionButtonClicked.bind(this);
         this.handleChangedLayerSelection = this.handleChangedLayerSelection.bind(this);
         this.handleChangedLayerVisibility = this.handleChangedLayerVisibility.bind(this);
         this.handleChangedLayerOpacity = this.handleChangedLayerOpacity.bind(this);
@@ -121,10 +118,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
 
     private handleMoveLayerDownButtonClicked() {
         this.props.dispatch(actions.moveLayerDown(this.props.selectedLayerId));
-    }
-
-    private handleProjectionButtonClicked() {
-        this.props.dispatch(actions.showDialog('projectionsDialog'));
     }
 
     private handleChangedLayerVisibility(layer: LayerState, visible: boolean) {
@@ -258,11 +251,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                 <Button disabled={!canMoveLayerDown}
                         onClick={this.handleMoveLayerDownButtonClicked}
                         iconName="arrow-down"/>
-                <Button disabled={false}
-                        onClick={this.handleProjectionButtonClicked}
-                        iconName="map"/>
                 <LayerSourcesDialog/>
-                <ProjectionsDialog/>
             </div>
         );
     }
@@ -359,11 +348,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
         if (!layer) {
             return null;
-        }
-
-        let fractionDigits = 2;
-        if (layer.statistics) {
-            fractionDigits = getDisplayFractionDigits(layer.statistics.min, layer.statistics.max);
         }
 
         return (

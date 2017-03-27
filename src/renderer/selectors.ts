@@ -1,7 +1,7 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
-    WorkflowStepState, VariableVectorLayerState
+    WorkflowStepState, VariableVectorLayerState, ViewMode
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient} from "./webapi/WebAPIClient";
@@ -283,10 +283,13 @@ export const selectedVariableSelector = createSelector<State, VariableState|null
 );
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Layer selectors
+// Viewer/Layer selectors
 
-export const layersSelector = (state: State): Array<LayerState> => state.data.layers;
+export const viewModeSelector = (state: State): ViewMode => state.control.viewer.viewMode;
+export const projectionCodeSelector = (state: State): string => state.control.viewer.projectionCode;
+export const layersSelector = (state: State): LayerState[] => state.control.viewer.layers;
 export const selectedLayerIdSelector = (state: State): string|null => state.control.selectedLayerId;
+export const savedLayersSelector = (state: State): {[key: string]: LayerState} => state.control.savedLayers;
 
 export const selectedLayerSelector = createSelector<State, LayerState|null, LayerState[], string>(
     layersSelector,

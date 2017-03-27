@@ -1,14 +1,22 @@
-import {Store, createStore, applyMiddleware} from 'redux';
+import {createStore, applyMiddleware} from 'redux';
 import * as actions from './actions';
 import {stateReducer} from './reducers';
 import thunk from 'redux-thunk'
-import {LayerState} from "./state";
+import {LayerState, State} from "./state";
 import {should, expect} from 'chai';
 
 should();
 
 describe('Actions', () => {
     let store = null;
+
+    const getState = () : State => {
+        return store.getState();
+    };
+
+    const dispatch = (action: any): void => {
+        store.dispatch(action);
+    };
 
     const defaultSelectedVariableLayer = {
         id: actions.SELECTED_VARIABLE_LAYER_ID,
@@ -31,19 +39,19 @@ describe('Actions', () => {
     describe('Session/Preferences actions', () => {
 
         it('updatePreferences', () => {
-            store.dispatch(actions.updatePreferences({lastDir: 'a/b'}));
+            dispatch(actions.updatePreferences({lastDir: 'a/b'}));
             expect(store.getState().session.lastDir).to.deep.equal('a/b');
-            store.dispatch(actions.updatePreferences({lastVar: 'c'}));
-            expect(store.getState().session.lastDir).to.deep.equal('a/b');
-            expect(store.getState().session.lastVar).to.deep.equal('c');
+            dispatch(actions.updatePreferences({lastVar: 'c'}));
+            expect(getState().session.lastDir).to.deep.equal('a/b');
+            expect((getState().session as any).lastVar).to.deep.equal('c');
         });
 
         it('updateBackendConfig', () => {
-            store.dispatch(actions.updateBackendConfig({
+            dispatch(actions.updateBackendConfig({
                 dataStoresPath: '/a/b/c',
                 useWorkspaceImageryCache: false
             }));
-            expect(store.getState().session.backendConfig).to.deep.equal({
+            expect(getState().session.backendConfig).to.deep.equal({
                 dataStoresPath: '/a/b/c',
                 useWorkspaceImageryCache: false
             });
@@ -53,26 +61,26 @@ describe('Actions', () => {
     describe('DataStores actions', () => {
 
         it('updateDataStores', () => {
-            store.dispatch(actions.updateDataStores([
+            dispatch(actions.updateDataStores([
                 {id: 'local-1'},
                 {id: 'local-2'}
             ] as any));
-            expect(store.getState().data.dataStores).to.deep.equal([
+            expect(getState().data.dataStores).to.deep.equal([
                 {id: 'local-1'},
                 {id: 'local-2'}
             ]);
         });
 
         it('updateDataSources', () => {
-            store.dispatch(actions.updateDataStores([
+            dispatch(actions.updateDataStores([
                 {id: 'local-1'},
                 {id: 'local-2'}
             ] as any));
-            store.dispatch(actions.updateDataSources('local-2', [
+            dispatch(actions.updateDataSources('local-2', [
                 {id: 'fileset-1'},
                 {id: 'fileset-2'}
             ] as any));
-            expect(store.getState().data.dataStores).to.deep.equal([
+            expect(getState().data.dataStores).to.deep.equal([
                 {id: 'local-1'},
                 {
                     id: 'local-2', dataSources: [
@@ -84,16 +92,16 @@ describe('Actions', () => {
         });
 
         it('updateDataSourceTemporalCoverage', () => {
-            store.dispatch(actions.updateDataStores([
+            dispatch(actions.updateDataStores([
                 {id: 'local-1'},
                 {id: 'local-2'}
             ] as any));
-            store.dispatch(actions.updateDataSources('local-2', [
+            dispatch(actions.updateDataSources('local-2', [
                 {id: 'fileset-1'},
                 {id: 'fileset-2'}
             ] as any));
-            store.dispatch(actions.updateDataSourceTemporalCoverage('local-2', 'fileset-1', ['2010-01-01', '2014-12-30']));
-            expect(store.getState().data.dataStores).to.deep.equal([
+            dispatch(actions.updateDataSourceTemporalCoverage('local-2', 'fileset-1', ['2010-01-01', '2014-12-30']));
+            expect(getState().data.dataStores).to.deep.equal([
                 {id: 'local-1'},
                 {
                     id: 'local-2', dataSources: [
@@ -105,94 +113,94 @@ describe('Actions', () => {
         });
 
         it('setSelectedDataStoreId', () => {
-            store.dispatch(actions.updateDataStores([
+            dispatch(actions.updateDataStores([
                 {id: 'local-1', dataSources: []},
                 {id: 'local-2', dataSources: []}
             ] as any));
-            store.dispatch(actions.setSelectedDataStoreId('local-2'));
-            expect(store.getState().control.selectedDataStoreId).to.equal('local-2');
-            store.dispatch(actions.setSelectedDataStoreId(null));
-            expect(store.getState().control.selectedDataStoreId).to.be.null;
+            dispatch(actions.setSelectedDataStoreId('local-2'));
+            expect(getState().control.selectedDataStoreId).to.equal('local-2');
+            dispatch(actions.setSelectedDataStoreId(null));
+            expect(getState().control.selectedDataStoreId).to.be.null;
         });
 
         it('setSelectedDataSourceId', () => {
-            store.dispatch(actions.setSelectedDataSourceId('ds-1'));
-            expect(store.getState().control.selectedDataSourceId).to.equal('ds-1');
-            store.dispatch(actions.setSelectedDataSourceId(null));
-            expect(store.getState().control.selectedDataSourceId).to.be.null;
+            dispatch(actions.setSelectedDataSourceId('ds-1'));
+            expect(getState().control.selectedDataSourceId).to.equal('ds-1');
+            dispatch(actions.setSelectedDataSourceId(null));
+            expect(getState().control.selectedDataSourceId).to.be.null;
         });
 
         it('setDataSourceFilterExpr', () => {
-            store.dispatch(actions.setDataSourceFilterExpr('oz mon'));
-            expect(store.getState().control.dataSourceFilterExpr).to.equal('oz mon');
-            store.dispatch(actions.setDataSourceFilterExpr(null));
-            expect(store.getState().control.dataSourceFilterExpr).to.be.null;
+            dispatch(actions.setDataSourceFilterExpr('oz mon'));
+            expect(getState().control.dataSourceFilterExpr).to.equal('oz mon');
+            dispatch(actions.setDataSourceFilterExpr(null));
+            expect(getState().control.dataSourceFilterExpr).to.be.null;
         });
     });
 
     describe('Operations actions', () => {
 
         it('updateOperations', () => {
-            store.dispatch(actions.updateOperations([
+            dispatch(actions.updateOperations([
                 {name: 'op-1'},
                 {name: 'op-2'}
             ] as any));
-            expect(store.getState().data.operations).to.deep.equal([
+            expect(getState().data.operations).to.deep.equal([
                 {name: 'op-1'},
                 {name: 'op-2'}
             ]);
         });
 
         it('setSelectedOperationName', () => {
-            store.dispatch(actions.setSelectedOperationName('op-2'));
-            expect(store.getState().control.selectedOperationName).to.equal('op-2');
-            store.dispatch(actions.setSelectedOperationName(null));
-            expect(store.getState().control.selectedOperationName).to.be.null;
+            dispatch(actions.setSelectedOperationName('op-2'));
+            expect(getState().control.selectedOperationName).to.equal('op-2');
+            dispatch(actions.setSelectedOperationName(null));
+            expect(getState().control.selectedOperationName).to.be.null;
         });
 
         it('setOperationFilterTags', () => {
-            store.dispatch(actions.setOperationFilterTags(['a', 'b']));
-            expect(store.getState().control.operationFilterTags).to.deep.equal(['a', 'b']);
-            store.dispatch(actions.setOperationFilterTags(null));
-            expect(store.getState().control.operationFilterTags).to.be.null;
+            dispatch(actions.setOperationFilterTags(['a', 'b']));
+            expect(getState().control.operationFilterTags).to.deep.equal(['a', 'b']);
+            dispatch(actions.setOperationFilterTags(null));
+            expect(getState().control.operationFilterTags).to.be.null;
         });
 
         it('setOperationFilterExpr', () => {
-            store.dispatch(actions.setOperationFilterExpr('read wri'));
-            expect(store.getState().control.operationFilterExpr).to.equal('read wri');
-            store.dispatch(actions.setOperationFilterExpr(null));
-            expect(store.getState().control.operationFilterExpr).to.be.null;
+            dispatch(actions.setOperationFilterExpr('read wri'));
+            expect(getState().control.operationFilterExpr).to.equal('read wri');
+            dispatch(actions.setOperationFilterExpr(null));
+            expect(getState().control.operationFilterExpr).to.be.null;
         });
     });
 
     describe('Workspace actions', () => {
 
         it('setCurrentWorkspace - scratch', () => {
-            store.dispatch(actions.setCurrentWorkspace({
+            dispatch(actions.setCurrentWorkspace({
                 baseDir: '/1/2/3',
                 isScratch: true,
             } as any));
-            expect(store.getState().data.workspace).to.deep.equal({
+            expect(getState().data.workspace).to.deep.equal({
                 baseDir: '/1/2/3',
                 isScratch: true,
             });
-            expect(store.getState().session.lastWorkspacePath).to.be.null;
+            expect(getState().session.lastWorkspacePath).to.be.null;
         });
 
         it('setCurrentWorkspace - non-scratch', () => {
-            store.dispatch(actions.setCurrentWorkspace({
+            dispatch(actions.setCurrentWorkspace({
                 baseDir: '/uh/oh/ah',
                 isScratch: false,
             } as any));
-            expect(store.getState().data.workspace).to.deep.equal({
+            expect(getState().data.workspace).to.deep.equal({
                 baseDir: '/uh/oh/ah',
                 isScratch: false,
             });
-            expect(store.getState().session.lastWorkspacePath).to.equal('/uh/oh/ah');
+            expect(getState().session.lastWorkspacePath).to.equal('/uh/oh/ah');
         });
 
         it('setSelectedWorkspaceResourceId - w/o variables', () => {
-            store.dispatch(actions.setCurrentWorkspace({
+            dispatch(actions.setCurrentWorkspace({
                 baseDir: '/uh/oh/ah',
                 isScratch: false,
                 resources: [
@@ -200,13 +208,13 @@ describe('Actions', () => {
                     {name: 'res_2', variables: []}
                 ]
             } as any));
-            store.dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
-            expect(store.getState().control.selectedWorkspaceResourceId).to.equal('res_2');
-            expect(store.getState().control.selectedVariableName).to.be.null;
+            dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
+            expect(getState().control.selectedWorkspaceResourceId).to.equal('res_2');
+            expect(getState().control.selectedVariableName).to.be.null;
         });
 
         it('setSelectedWorkspaceResourceId - with variables', () => {
-            store.dispatch(actions.setCurrentWorkspace({
+            dispatch(actions.setCurrentWorkspace({
                 baseDir: '/uh/oh/ah',
                 isScratch: false,
                 resources: [
@@ -214,23 +222,23 @@ describe('Actions', () => {
                     {name: 'res_2', variables: [{name: 'var_1'}, {name: 'var_2'}]}
                 ]
             } as any));
-            store.dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
-            expect(store.getState().control.selectedWorkspaceResourceId).to.equal('res_2');
-            expect(store.getState().control.selectedVariableName).to.equal('var_1');
+            dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
+            expect(getState().control.selectedWorkspaceResourceId).to.equal('res_2');
+            expect(getState().control.selectedVariableName).to.equal('var_1');
         });
 
         it('setSelectedWorkflowStepId', () => {
-            store.dispatch(actions.setSelectedWorkflowStepId('res_2'));
-            expect(store.getState().control.selectedWorkflowStepId).to.equal('res_2');
-            store.dispatch(actions.setSelectedWorkflowStepId(null));
-            expect(store.getState().control.selectedWorkflowStepId).to.be.null;
+            dispatch(actions.setSelectedWorkflowStepId('res_2'));
+            expect(getState().control.selectedWorkflowStepId).to.equal('res_2');
+            dispatch(actions.setSelectedWorkflowStepId(null));
+            expect(getState().control.selectedWorkflowStepId).to.be.null;
         });
 
         it('setSelectedVariableName', () => {
-            store.dispatch(actions.setSelectedVariableName('var_3'));
-            expect(store.getState().control.selectedVariableName).to.equal('var_3');
-            store.dispatch(actions.setSelectedVariableName(null));
-            expect(store.getState().control.selectedVariableName).to.be.null;
+            dispatch(actions.setSelectedVariableName('var_3'));
+            expect(getState().control.selectedVariableName).to.equal('var_3');
+            dispatch(actions.setSelectedVariableName(null));
+            expect(getState().control.selectedVariableName).to.be.null;
         });
     });
 
@@ -277,10 +285,10 @@ describe('Actions', () => {
 
 
         it('setSelectedVariableName - with image variable', () => {
-            store.dispatch(actions.setCurrentWorkspace(workspace as any));
-            store.dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
-            store.dispatch(actions.setSelectedVariableName('analysed_sst'));
-            expect(store.getState().data.layers).to.deep.equal([
+            dispatch(actions.setCurrentWorkspace(workspace as any));
+            dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+            dispatch(actions.setSelectedVariableName('analysed_sst'));
+            expect(getState().control.viewer.layers).to.deep.equal([
                 {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: "VariableImage",
@@ -304,10 +312,10 @@ describe('Actions', () => {
         });
 
         it('setSelectedVariableName - with non-image variable selection', () => {
-            store.dispatch(actions.setCurrentWorkspace(workspace as any));
-            store.dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
-            store.dispatch(actions.setSelectedVariableName('profile'));
-            expect(store.getState().data.layers).to.deep.equal([
+            dispatch(actions.setCurrentWorkspace(workspace as any));
+            dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+            dispatch(actions.setSelectedVariableName('profile'));
+            expect(getState().control.viewer.layers).to.deep.equal([
                 {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: "Unknown",
@@ -356,25 +364,25 @@ describe('Actions', () => {
                 saturation: 1,
             };
 
-            store.dispatch(actions.setCurrentWorkspace(workspace as any));
-            store.dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
-            store.dispatch(actions.setSelectedVariableName('analysed_sst'));
-            store.dispatch(actions.updateLayer({
+            dispatch(actions.setCurrentWorkspace(workspace as any));
+            dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+            dispatch(actions.setSelectedVariableName('analysed_sst'));
+            dispatch(actions.updateLayer({
                 id: actions.SELECTED_VARIABLE_LAYER_ID,
                 varIndex: [139],
                 displayMax: 300
             } as any));
-            expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
-            store.dispatch(actions.setSelectedVariableName('sst_error'));
-            expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayers]);
-            store.dispatch(actions.setSelectedVariableName('analysed_sst'));
-            expect(store.getState().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
+            expect(getState().control.viewer.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
+            dispatch(actions.setSelectedVariableName('sst_error'));
+            expect(getState().control.viewer.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayers]);
+            dispatch(actions.setSelectedVariableName('analysed_sst'));
+            expect(getState().control.viewer.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
         });
 
         it('addVariableLayer - w/o variable selection', () => {
-            store.dispatch(actions.setCurrentWorkspace(workspace as any));
-            store.dispatch(actions.addVariableLayer('ID756473'));
-            expect(store.getState().data.layers).to.deep.equal([
+            dispatch(actions.setCurrentWorkspace(workspace as any));
+            dispatch(actions.addVariableLayer('ID756473'));
+            expect(getState().control.viewer.layers).to.deep.equal([
                 {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: 'Unknown',
@@ -385,11 +393,11 @@ describe('Actions', () => {
         });
 
         it('addVariableLayer - with image variable selection', () => {
-            store.dispatch(actions.setCurrentWorkspace(workspace as any));
-            store.dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
-            store.dispatch(actions.setSelectedVariableName('analysed_sst'));
-            store.dispatch(actions.addVariableLayer('ID756473'));
-            expect(store.getState().data.layers).to.deep.equal([
+            dispatch(actions.setCurrentWorkspace(workspace as any));
+            dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+            dispatch(actions.setSelectedVariableName('analysed_sst'));
+            dispatch(actions.addVariableLayer('ID756473'));
+            expect(getState().control.viewer.layers).to.deep.equal([
                 {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: "VariableImage",
@@ -431,11 +439,11 @@ describe('Actions', () => {
         });
 
         it('addVariableLayer - with non-image variable selection', () => {
-            store.dispatch(actions.setCurrentWorkspace(workspace as any));
-            store.dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
-            store.dispatch(actions.setSelectedVariableName('profile'));
-            store.dispatch(actions.addVariableLayer('ID756473'));
-            expect(store.getState().data.layers).to.deep.equal([
+            dispatch(actions.setCurrentWorkspace(workspace as any));
+            dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+            dispatch(actions.setSelectedVariableName('profile'));
+            dispatch(actions.addVariableLayer('ID756473'));
+            expect(getState().control.viewer.layers).to.deep.equal([
                 {
                     id: actions.SELECTED_VARIABLE_LAYER_ID,
                     type: "Unknown",
@@ -447,8 +455,8 @@ describe('Actions', () => {
         });
 
         it('addLayer', () => {
-            store.dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
-            expect(store.getState().data.layers).to.deep.equal([
+            dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
+            expect(getState().control.viewer.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
                 {id: 'layer-2', visible: true},
@@ -456,10 +464,10 @@ describe('Actions', () => {
         });
 
         it('removeLayer', () => {
-            store.dispatch(actions.addLayer({id: 'layer-1', visible: true} as LayerState));
-            store.dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
-            store.dispatch(actions.removeLayer('layer-2'));
-            expect(store.getState().data.layers).to.deep.equal([
+            dispatch(actions.addLayer({id: 'layer-1', visible: true} as LayerState));
+            dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
+            dispatch(actions.removeLayer('layer-2'));
+            expect(getState().control.viewer.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
                 {id: 'layer-1', visible: true},
@@ -467,19 +475,19 @@ describe('Actions', () => {
         });
 
         it('updateLayer', () => {
-            store.dispatch(actions.addLayer({id: 'layer-1', visible: true} as LayerState));
-            store.dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
-            store.dispatch(actions.addLayer({id: 'layer-3', visible: true} as LayerState));
-            store.dispatch(actions.updateLayer({id: 'layer-2', visible: false} as LayerState));
-            expect(store.getState().data.layers).to.deep.equal([
+            dispatch(actions.addLayer({id: 'layer-1', visible: true} as LayerState));
+            dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
+            dispatch(actions.addLayer({id: 'layer-3', visible: true} as LayerState));
+            dispatch(actions.updateLayer({id: 'layer-2', visible: false} as LayerState));
+            expect(getState().control.viewer.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
                 {id: 'layer-1', visible: true},
                 {id: 'layer-2', visible: false},
                 {id: 'layer-3', visible: true},
             ]);
-            store.dispatch(actions.updateLayer({id: 'layer-1', name: 'LX'} as LayerState));
-            expect(store.getState().data.layers).to.deep.equal([
+            dispatch(actions.updateLayer({id: 'layer-1', name: 'LX'} as LayerState));
+            expect(getState().control.viewer.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
                 {id: 'layer-1', name: 'LX', visible: true},
@@ -489,36 +497,36 @@ describe('Actions', () => {
         });
 
         it('setShowSelectedVariableLayer', () => {
-            store.dispatch(actions.setShowSelectedVariableLayer(true));
-            expect(store.getState().session.showSelectedVariableLayer).to.equal(true);
-            expect(store.getState().data.layers).to.deep.equal([
+            dispatch(actions.setShowSelectedVariableLayer(true));
+            expect(getState().session.showSelectedVariableLayer).to.equal(true);
+            expect(getState().control.viewer.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
             ]);
 
-            store.dispatch(actions.setShowSelectedVariableLayer(false));
-            expect(store.getState().session.showSelectedVariableLayer).to.equal(false);
-            expect(store.getState().data.layers).to.deep.equal([
+            dispatch(actions.setShowSelectedVariableLayer(false));
+            expect(getState().session.showSelectedVariableLayer).to.equal(false);
+            expect(getState().control.viewer.layers).to.deep.equal([
                 {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: false, type: 'Unknown'},
                 defaultCountriesLayers,
             ]);
         });
 
         it('setShowSelectedVariableLayer - setSelectedLayerId', () => {
-            store.dispatch(actions.setSelectedLayerId(actions.SELECTED_VARIABLE_LAYER_ID));
+            dispatch(actions.setSelectedLayerId(actions.SELECTED_VARIABLE_LAYER_ID));
 
-            store.dispatch(actions.setShowSelectedVariableLayer(true));
-            expect(store.getState().control.selectedLayerId).to.be.equal(actions.SELECTED_VARIABLE_LAYER_ID);
+            dispatch(actions.setShowSelectedVariableLayer(true));
+            expect(getState().control.selectedLayerId).to.be.equal(actions.SELECTED_VARIABLE_LAYER_ID);
 
-            store.dispatch(actions.setShowSelectedVariableLayer(false));
-            expect(store.getState().control.selectedLayerId).to.be.null;
+            dispatch(actions.setShowSelectedVariableLayer(false));
+            expect(getState().control.selectedLayerId).to.be.null;
         });
 
         it('setSelectedLayerId', () => {
-            store.dispatch(actions.setSelectedLayerId('var2'));
-            expect(store.getState().control.selectedLayerId).to.equal('var2');
-            store.dispatch(actions.setSelectedLayerId(null));
-            expect(store.getState().control.selectedLayerId).to.be.null;
+            dispatch(actions.setSelectedLayerId('var2'));
+            expect(getState().control.selectedLayerId).to.equal('var2');
+            dispatch(actions.setSelectedLayerId(null));
+            expect(getState().control.selectedLayerId).to.be.null;
         });
     });
 
@@ -547,18 +555,18 @@ describe('Actions', () => {
         };
 
         it('renameWorkspaceResourceImpl', () => {
-            store.dispatch(actions.setCurrentWorkspace(workspace as any));
-            store.dispatch(actions.addLayer({id: 'L1', resName: 'res_1', varName: 'X'} as any));
-            store.dispatch(actions.addLayer({id: 'L2', resName: 'res_2', varName: 'X'} as any));
-            store.dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
-            store.dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
-            expect(store.getState().data.layers).to.deep.equal([
+            dispatch(actions.setCurrentWorkspace(workspace as any));
+            dispatch(actions.addLayer({id: 'L1', resName: 'res_1', varName: 'X'} as any));
+            dispatch(actions.addLayer({id: 'L2', resName: 'res_2', varName: 'X'} as any));
+            dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
+            dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
+            expect(getState().control.viewer.layers).to.deep.equal([
                 {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: "Unknown"},
                 {id: actions.COUNTRIES_LAYER_ID, visible: false, type: "Vector", name: 'Countries'},
                 {id: 'L1', resName: 'res_1', varName: 'X'},
                 {id: 'L2', resName: 'bert', varName: 'X'},
             ]);
-            expect(store.getState().control.selectedWorkspaceResourceId).to.equal('bert');
+            expect(getState().control.selectedWorkspaceResourceId).to.equal('bert');
         });
 
     });
@@ -567,24 +575,24 @@ describe('Actions', () => {
 
         it('show/hideOperationStepDialog', () => {
             let inputAssignments;
-            store.dispatch(actions.showOperationStepDialog());
-            expect(store.getState().control.dialogs['operationStepDialog']).to.deep.equal({
+            dispatch(actions.showOperationStepDialog());
+            expect(getState().control.dialogs['operationStepDialog']).to.deep.equal({
                 isOpen: true
             });
-            store.dispatch(actions.hideOperationStepDialog());
-            expect(store.getState().control.dialogs['operationStepDialog']).to.deep.equal({
+            dispatch(actions.hideOperationStepDialog());
+            expect(getState().control.dialogs['operationStepDialog']).to.deep.equal({
                 isOpen: false,
                 inputAssignments
             });
-            store.dispatch(actions.hideOperationStepDialog({op1: {a: 3, b: 8}}));
-            expect(store.getState().control.dialogs['operationStepDialog']).to.deep.equal({
+            dispatch(actions.hideOperationStepDialog({op1: {a: 3, b: 8}}));
+            expect(getState().control.dialogs['operationStepDialog']).to.deep.equal({
                 isOpen: false,
                 inputAssignments: {
                     op1: {a: 3, b: 8}
                 }
             });
-            store.dispatch(actions.hideOperationStepDialog({op2: {x: 2, y: 1}}));
-            expect(store.getState().control.dialogs['operationStepDialog']).to.deep.equal({
+            dispatch(actions.hideOperationStepDialog({op2: {x: 2, y: 1}}));
+            expect(getState().control.dialogs['operationStepDialog']).to.deep.equal({
                 isOpen: false,
                 inputAssignments: {
                     op1: {a: 3, b: 8},
@@ -597,13 +605,13 @@ describe('Actions', () => {
     describe('Dialog actions', () => {
 
         it('show/hideDialog', () => {
-            expect(store.getState().control.dialogs['myDialog']).to.be.undefined;
+            expect(getState().control.dialogs['myDialog']).to.be.undefined;
 
-            store.dispatch(actions.showDialog('myDialog'));
-            expect(store.getState().control.dialogs['myDialog']).to.deep.equal({isOpen: true});
+            dispatch(actions.showDialog('myDialog'));
+            expect(getState().control.dialogs['myDialog']).to.deep.equal({isOpen: true});
 
-            store.dispatch(actions.hideDialog('myDialog', {a: 4, b: 5}));
-            expect(store.getState().control.dialogs['myDialog']).to.deep.equal({isOpen: false, a: 4, b: 5});
+            dispatch(actions.hideDialog('myDialog', {a: 4, b: 5}));
+            expect(getState().control.dialogs['myDialog']).to.deep.equal({isOpen: false, a: 4, b: 5});
         });
     });
 });

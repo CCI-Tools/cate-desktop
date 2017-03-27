@@ -2,7 +2,7 @@ import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, SessionState, BackendConfigState, VariableState, VariableImageLayerState, VariableVectorLayerState,
-    VariableRefState, OperationKWArgs
+    VariableRefState, OperationKWArgs, ViewMode
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
@@ -10,7 +10,7 @@ import * as assert from "../common/assert";
 
 // TODO (forman/marcoz): find easy way to unit-test our async actions calling remote API (WebAPIServiceMock?)
 
-type NumberRange = [number, number];
+type GetState = () => State;
 
 const CANCELLED_CODE = 999;
 
@@ -72,7 +72,7 @@ export function updateSessionState(session: any) {
 }
 
 export function loadBackendConfig() {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         function call() {
             // Get state from the Python back-end
             return selectors.backendConfigAPISelector(getState()).getBackendConfig();
@@ -91,7 +91,7 @@ export function updateBackendConfig(backendConfig: BackendConfigState) {
 }
 
 export function storeBackendConfig(backendConfig: BackendConfigState) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         function call() {
             // Store state changes to the Python back-end
             return selectors.backendConfigAPISelector(getState()).setBackendConfig(backendConfig);
@@ -102,7 +102,7 @@ export function storeBackendConfig(backendConfig: BackendConfigState) {
 }
 
 export function cancelJob(jobId: number) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         const webAPIClient = selectors.webAPIClientSelector(getState());
         webAPIClient.cancel(jobId);
     }
@@ -185,7 +185,7 @@ export const UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE = 'UPDATE_DATA_SOURCE_TEMPORAL
  * @returns a Redux thunk action
  */
 export function loadDataStores() {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         function call() {
             return selectors.datasetAPISelector(getState()).getDataStores();
         }
@@ -215,7 +215,7 @@ export function updateDataStores(dataStores: Array<DataStoreState>) {
  * @returns a Redux thunk action
  */
 export function loadDataSources(dataStoreId: string) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         function call(onProgress) {
             return selectors.datasetAPISelector(getState()).getDataSources(dataStoreId, onProgress);
         }
@@ -239,7 +239,7 @@ export function updateDataSources(dataStoreId: string, dataSources) {
 }
 
 export function setSelectedDataStoreId(selectedDataStoreId: string|null) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         if (getState().control.selectedDataStoreId === selectedDataStoreId) {
             return;
         }
@@ -266,7 +266,7 @@ export function setDataSourceFilterExpr(dataSourceFilterExpr: string) {
 }
 
 export function loadTemporalCoverage(dataStoreId: string, dataSourceId: string) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
 
         function call(onProgress) {
             return selectors.datasetAPISelector(getState()).getTemporalCoverage(dataStoreId, dataSourceId, onProgress);
@@ -285,7 +285,7 @@ export function updateDataSourceTemporalCoverage(dataStoreId: string, dataSource
 }
 
 export function openDataset(dataSourceId: string, args: any) {
-    return (dispatch, getState: () => State) => {
+    return (dispatch, getState: GetState) => {
 
         // TODO (forman): Handle case where action is called twice without completing the first.
         //                In this case the same resource name will be generated :(
@@ -316,7 +316,7 @@ export function openDataset(dataSourceId: string, args: any) {
 export const UPDATE_OPERATIONS = 'UPDATE_OPERATIONS';
 
 export function loadOperations() {
-    return (dispatch, getState: () => State) => {
+    return (dispatch, getState: GetState) => {
 
         function call() {
             return selectors.operationAPISelector(getState()).getOperations();
@@ -351,9 +351,9 @@ export function showOperationStepDialog() {
 }
 
 export function hideOperationStepDialog(inputAssignments?) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         if (inputAssignments) {
-            const dialogState = getState().control.dialogs['operationStepDialog'];
+            const dialogState = getState().control.dialogs['operationStepDialog'] as any;
             inputAssignments = Object.assign({}, dialogState.inputAssignments, inputAssignments)
         }
         dispatch(hideDialog('operationStepDialog', {inputAssignments}));
@@ -373,7 +373,7 @@ export const RENAME_RESOURCE = 'RENAME_RESOURCE';
  * @returns a Redux thunk action
  */
 export function loadInitialWorkspace() {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         const reopenLastWorkspace = getState().session.reopenLastWorkspace;
         const lastWorkspacePath = getState().session.lastWorkspacePath;
         if (reopenLastWorkspace && lastWorkspacePath) {
@@ -391,7 +391,7 @@ export function loadInitialWorkspace() {
  * @returns a Redux thunk action
  */
 export function newWorkspace(workspacePath: string|null) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         function call() {
             return selectors.workspaceAPISelector(getState()).newWorkspace(workspacePath);
         }
@@ -416,7 +416,7 @@ export function newWorkspace(workspacePath: string|null) {
  * @returns a Redux thunk action
  */
 export function openWorkspace(workspacePath?: string|null) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         function call(onProgress) {
             return selectors.workspaceAPISelector(getState()).openWorkspace(workspacePath, onProgress);
         }
@@ -440,7 +440,7 @@ export function openWorkspace(workspacePath?: string|null) {
  * @returns a Redux thunk action
  */
 export function closeWorkspace() {
-    return (dispatch, getState: () => State) => {
+    return (dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
@@ -462,7 +462,7 @@ export function closeWorkspace() {
  * @returns a Redux thunk action
  */
 export function saveWorkspace() {
-    return (dispatch, getState: () => State) => {
+    return (dispatch, getState: GetState) => {
         let workspace = getState().data.workspace;
         assert.ok(workspace);
 
@@ -490,7 +490,7 @@ export function saveWorkspace() {
  * @returns a Redux thunk action
  */
 export function saveWorkspaceAs(workspacePath: string) {
-    return (dispatch, getState: () => State) => {
+    return (dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
@@ -512,7 +512,7 @@ export function saveWorkspaceAs(workspacePath: string) {
  * @returns a Redux thunk action
  */
 export function newWorkspaceInteractive() {
-    return (dispatch, getState: () => State) => {
+    return (dispatch, getState: GetState) => {
         const workspacePath = showSingleFileOpenDialog({
             title: "New Workspace - Select Directory",
             buttonLabel: "Select",
@@ -537,7 +537,7 @@ export function newWorkspaceInteractive() {
  * @returns a Redux thunk action
  */
 export function openWorkspaceInteractive() {
-    return (dispatch, getState: () => State) => {
+    return (dispatch, getState: GetState) => {
         const workspacePath = showSingleFileOpenDialog({
             title: "Open Workspace - Select Directory",
             buttonLabel: "Open",
@@ -570,7 +570,7 @@ export function openWorkspaceInteractive() {
  * @returns a Redux thunk action
  */
 export function closeWorkspaceInteractive() {
-    return (dispatch, getState: () => State) => {
+    return (dispatch, getState: GetState) => {
         const ok = maybeSaveWorkspace(dispatch, getState,
             "Close Workspace",
             "Would you like to save the current workspace before closing it?",
@@ -588,7 +588,7 @@ export function closeWorkspaceInteractive() {
  * @returns a Redux thunk action
  */
 export function saveWorkspaceInteractive() {
-    return (dispatch, getState: () => State) => {
+    return (dispatch, getState: GetState) => {
         const workspace = getState().data.workspace;
         if (workspace.isScratch) {
             dispatch(saveWorkspaceAsInteractive());
@@ -621,7 +621,7 @@ export function saveWorkspaceAsInteractive() {
  *
  * @returns a Redux thunk action
  */
-const maybeSaveWorkspace = function (dispatch, getState: () => State, title: string, message: string, detail?: string): boolean {
+const maybeSaveWorkspace = function (dispatch, getState: GetState, title: string, message: string, detail?: string): boolean {
     const workspace = getState().data.workspace;
     const maySave = workspace.workflow.steps.length && (workspace.isModified || !workspace.isSaved);
     if (maySave) {
@@ -662,7 +662,7 @@ function setCurrentWorkspaceImpl(workspace: WorkspaceState) {
 }
 
 export function setSelectedWorkspaceResourceId(selectedWorkspaceResourceId: string) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         dispatch(setSelectedWorkspaceResourceIdImpl(selectedWorkspaceResourceId));
         if (selectedWorkspaceResourceId && getState().data.workspace) {
             const resources: Array<ResourceState> = getState().data.workspace.resources;
@@ -686,7 +686,7 @@ export function setSelectedWorkflowStepId(selectedWorkflowStepId: string) {
 }
 
 export function setWorkspaceResource(resName: string, opName: string, opArgs: OperationKWArgs, title: string) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
@@ -704,7 +704,7 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: Op
 }
 
 export function renameWorkspaceResource(resName: string, newResName: string) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
@@ -729,7 +729,7 @@ export function getWorkspaceVariableStatistics(resName: string,
                                                varName: string,
                                                varIndex: Array<number>,
                                                action: (statistics: ImageStatisticsState) => any) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
@@ -749,7 +749,7 @@ export function getWorkspaceVariableStatistics(resName: string,
 // Variable actions
 
 export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         const layers = selectors.layersSelector(getState());
         const selectedVariableLayer = layers.find(l => l.id === SELECTED_VARIABLE_LAYER_ID);
         assert.ok(selectedVariableLayer);
@@ -764,7 +764,7 @@ export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean)
 }
 
 export function setSelectedVariableName(selectedVariableName: string|null) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         dispatch(setSelectedVariableNameImpl(selectedVariableName));
         if (getState().session.showSelectedVariableLayer) {
             dispatch(updateSelectedVariableLayer());
@@ -843,7 +843,7 @@ export function findVariable(resources: ResourceState[], ref: VariableRefState):
 }
 
 export function updateOrAddVariableLayer(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
-    return (dispatch, getState) => {
+    return (dispatch, getState: GetState) => {
         resource = resource || selectors.selectedResourceSelector(getState());
         variable = variable || selectors.selectedVariableSelector(getState());
         if (!resource || !variable) {
@@ -851,7 +851,7 @@ export function updateOrAddVariableLayer(layerId?: string|null, resource?: Resou
         }
         let existingVariableLayer = null;
         if (layerId) {
-            existingVariableLayer = getState().data.layers.find(layer => layer.id == layerId);
+            existingVariableLayer = selectors.layersSelector(getState()).find(layer => layer.id == layerId);
         } else {
             layerId = createLayerId();
         }
@@ -862,8 +862,8 @@ export function updateOrAddVariableLayer(layerId?: string|null, resource?: Resou
             layerType = 'VariableVector';
         }
         if (layerType) {
-            const savedLayers = getState().control.savedLayers;
-            const restoredLayer = savedLayers[variable.name];
+            const savedLayers = selectors.savedLayersSelector(getState());
+            const restoredLayer = savedLayers[variable.name] as VariableImageLayerState;
 
             let layerDisplayProperties;
             let varIndex;
@@ -933,6 +933,19 @@ function setSelectedVariableNameImpl(selectedVariableName: string|null) {
     return updateControlState({selectedVariableName});
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Viewer actions
+
+export const SET_VIEW_MODE = 'SET_VIEW_MODE';
+export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
+
+export function setViewMode(viewMode: ViewMode) {
+    return {type: SET_VIEW_MODE, payload: {viewMode}};
+}
+
+export function setProjectionCode(projectionCode: string) {
+    return {type: SET_PROJECTION_CODE, payload: {projectionCode}};
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer actions
@@ -1003,7 +1016,7 @@ export const UPDATE_COLOR_MAPS = 'UPDATE_COLOR_MAPS';
  * @returns a Redux thunk action
  */
 export function loadColorMaps() {
-    return (dispatch, getState: () => State) => {
+    return (dispatch, getState: GetState) => {
         function call() {
             return selectors.colorMapsAPISelector(getState()).getColorMaps();
         }

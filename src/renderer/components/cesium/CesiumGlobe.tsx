@@ -56,11 +56,19 @@ export type DataSourceCollection = {
     remove: (dataSource: DataSource, destroy?: boolean) => boolean;
 };
 
+export type CesiumScene = {
+    camera: any;
+    globe: any;
+    mode: any;
+};
+
 export type CesiumViewer = {
     container: HTMLElement;
     entities: any;
     imageryLayers: ImageryLayerCollection;
     dataSources: DataSourceCollection;
+    scene: CesiumScene;
+    camera: any;
 };
 
 // >> end @types/Cesium
@@ -72,7 +80,7 @@ export type CesiumViewer = {
  */
 export interface PinDescriptor {
     id: string;
-    name?: string|null;
+    name?: string | null;
     visible: boolean;
     image: string;
     state: string;
@@ -85,7 +93,7 @@ export interface PinDescriptor {
  */
 export interface LayerDescriptor {
     id: string;
-    name?: string|null;
+    name?: string | null;
     visible: boolean;
     opacity?: number;
     brightness?: number;
@@ -103,7 +111,7 @@ export interface LayerDescriptor {
  */
 export interface DataSourceDescriptor {
     id: string;
-    name?: string|null;
+    name?: string | null;
     visible: boolean;
 
     dataSource?: (options: any) => ImageryProvider | ImageryProvider;
@@ -123,6 +131,8 @@ export interface ICesiumGlobeProps extends IPermanentComponentProps {
     pins?: PinDescriptor[];
     layers?: LayerDescriptor[];
     dataSources?: DataSourceDescriptor[];
+    onViewerMounted?: (id: string, viewer: CesiumViewer) => void;
+    onViewerUnmounted?: (id: string, viewer: CesiumViewer) => void;
 }
 
 const CENTRAL_EUROPE_BOX = Cesium.Rectangle.fromDegrees(-30, 20, 40, 80);
@@ -214,14 +224,22 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         this.updateDataSources(this.props.dataSources || [], nextProps.dataSources || []);
     }
 
-    permanentObjectMounted(permanentObject: CesiumViewer): void {
+    permanentObjectMounted(viewer: CesiumViewer): void {
         this.updateLayers(this.lastLayers || [], this.props.layers || []);
         this.updateDataSources(this.lastDataSources || [], this.props.dataSources || []);
+        getViewerPosition(viewer);
+        if (this.props.onViewerMounted) {
+            this.props.onViewerMounted(this.props.id, viewer);
+        }
     }
 
-    permanentObjectUnmounted(permanentObject: CesiumViewer): void {
+    permanentObjectUnmounted(viewer: CesiumViewer): void {
         this.lastLayers = this.props.layers;
         this.lastDataSources = this.props.dataSources;
+        if (this.props.onViewerUnmounted) {
+            this.props.onViewerUnmounted(this.props.id, viewer);
+        }
+        getViewerPosition(viewer);
     }
 
     private updateLayers(currentLayers: LayerDescriptor[], nextLayers: LayerDescriptor[]) {
@@ -347,7 +365,6 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
     private insertDataSource(dataSource: DataSource, index: number) {
         const dataSources: DataSource[] = [];
         for (let i = index; i < this.viewer.dataSources.length; i++) {
-            const ds = this.viewer.dataSources.get(i);
             dataSources.push(this.viewer.dataSources.get(i));
         }
         dataSources.forEach(ds => {
@@ -388,7 +405,9 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         imageryLayer.gamma = layerDescriptor.gamma;
     }
 
-    private static setDataSourceProps(dataSource: DataSource|Promise<DataSource>, dataSourceDescriptor: DataSourceDescriptor) {
+    private static setDataSourceProps(dataSource:
+                                          DataSource
+                                          | Promise<DataSource>, dataSourceDescriptor: DataSourceDescriptor) {
         Promise.resolve(dataSource).then((resolvedDataSource: DataSource) => {
             //resolvedDataSource.name = dataSourceDescriptor.name;
             resolvedDataSource.show = dataSourceDescriptor.visible;
@@ -402,4 +421,29 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         return div;
     }
 
+}
+
+function getViewerPosition(viewer: CesiumViewer) {
+    let coord;
+    console.log('getViewerPosition: viewer.container.clientWidth =', viewer.container.clientWidth);
+    console.log('getViewerPosition: viewer.container.clientHeight =', viewer.container.clientHeight);
+    let windowPosition = new Cesium.Cartesian2(viewer.container.clientWidth / 2, viewer.container.clientHeight / 2);
+    console.log('getViewerPosition: windowPosition =', windowPosition);
+    if (windowPosition) {
+        try {
+            let pickPosition = viewer.camera.pickEllipsoid(windowPosition);
+            if (pickPosition) {
+                let pickPositionCartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(pickPosition);
+                coord = [
+                    pickPositionCartographic.longitude * (180 / Math.PI),
+                    pickPositionCartographic.latitude * (180 / Math.PI)
+                ];
+            }
+        } catch (e) {
+            console.error('getViewerPosition: e =', e);
+        }
+    }
+
+    console.log('getViewerPosition: coord =', coord);
+    return coord;
 }

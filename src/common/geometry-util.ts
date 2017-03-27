@@ -1,118 +1,13 @@
-import * as React from 'react';
-import {ModalDialog} from "./ModalDialog";
-
 export type GeometryType =
     'Point'
-    | 'LineString'
-    | 'Polygon'
-    | 'Geometry'
-    | 'MultiPoint'
-    | 'MultiLineString'
-    | 'MultiPolygon'
-    | 'Gemetry'
-    | 'GemetryCollection';
-
-interface IGeometryInputDialogProps {
-    isOpen: boolean;
-    value: string;
-    onConfirm: (value: string) => void;
-    onCancel: () => void;
-    geometryType: GeometryType;
-}
-
-interface IGeometryInputDialogState {
-    value?: string;
-    error?: Error;
-}
-
-export class GeometryInputDialog extends React.Component<IGeometryInputDialogProps, IGeometryInputDialogState> {
-    static readonly NOMINAL_CLASS = "pt-input pt-fill";
-    static readonly ERROR_CLASS = "pt-input pt-fill pt-intent-danger";
-
-    constructor(props: IGeometryInputDialogProps, context: any) {
-        super(props, context);
-        this.renderBody = this.renderBody.bind(this);
-        this.onConfirm = this.onConfirm.bind(this);
-        this.canConfirm = this.canConfirm.bind(this);
-        this.onChange = this.onChange.bind(this);
-        this.state = this.toState(this.props.value);
-    }
-
-    onConfirm() {
-        this.props.onConfirm(this.state.value);
-    }
-
-    onChange(ev: any) {
-        this.setState(this.toState(ev.target.value));
-    }
-
-    canConfirm(): boolean {
-        return !this.state.error;
-    }
-
-    private toState(value: any) {
-        let error;
-        try {
-            validateWKTGeometryType(value, this.props.geometryType);
-        } catch (e) {
-            error = e;
-        }
-        return {value, error};
-    }
-
-    render() {
-        return (
-            <ModalDialog isOpen={this.props.isOpen}
-                         title="Geometry Editor"
-                         onCancel={this.props.onCancel}
-                         onConfirm={this.onConfirm}
-                         canConfirm={this.canConfirm}
-                         renderBody={this.renderBody}/>
-        );
-    }
-
-    renderBody() {
-        const value = this.state.value;
-        const hasError = !!this.state.error;
-        return (
-            <div className="pt-form-group">
-                <label className="pt-label" htmlFor="wkt">
-                    {`Enter Geometry of type ${this.props.geometryType}`}
-                    <span className="pt-text-muted"> (WGS84 coordinates in degree)</span>
-                </label>
-                <div className="pt-form-content" style={{width: "100%"}}>
-                    <textarea id="wkt"
-                              className={hasError ? GeometryInputDialog.ERROR_CLASS : GeometryInputDialog.NOMINAL_CLASS}
-                              rows={10}
-                              dir="auto"
-                              value={value}
-                              onChange={this.onChange}/>
-                    {this.getHelpText()}
-                </div>
-            </div>
-        );
-    }
-
-    getHelpText() {
-        let errorText;
-        if (this.state.error) {
-            errorText = (<p>{`Error: ${this.state.error.message}`}</p>);
-        }
-
-        let helpText;
-        if (this.props.geometryType === 'Point') {
-            helpText = (<p>Use <code>lon, lat</code> or use {this.props.geometryType} {WKT_LINK} syntax.</p>);
-        }
-        else if (this.props.geometryType === 'Polygon') {
-            helpText = (
-                <p>Use <code>west, south, east, north</code> or use {this.props.geometryType} {WKT_LINK} syntax.</p>);
-        } else {
-            helpText = (<p>Use {this.props.geometryType} {WKT_LINK} syntax.</p>);
-        }
-
-        return (<div className="pt-form-helper-text">{errorText}{helpText}</div>);
-    }
-}
+        | 'LineString'
+        | 'Polygon'
+        | 'Geometry'
+        | 'MultiPoint'
+        | 'MultiLineString'
+        | 'MultiPolygon'
+        | 'Gemetry'
+        | 'GemetryCollection';
 
 const WKT_GEOMETRY_TYPES = new Set([
     'POINT',
@@ -125,9 +20,6 @@ const WKT_GEOMETRY_TYPES = new Set([
 ]);
 
 const WKT_GEOMETRIES_TEXT = new Array(WKT_GEOMETRY_TYPES.values()).map(s => `"${s}"`).join(', ');
-console.log('WKT_GEOMETRIES_TEXT:', WKT_GEOMETRIES_TEXT);
-
-const WKT_LINK = (<a href="https://en.wikipedia.org/wiki/Well-known_text">Well-Known Text (WKT)</a>);
 
 function isAlpha(c: string) {
     return c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z';
@@ -232,7 +124,7 @@ function validateWKTBody(value: string, geometryType: string) {
         expectedMinCommaCount = 3;
         expectedMinDepthCount = 2;
         expectedMaxDepthCount = 2;
-    }  else if (geometryType === 'MULTIPOINT') {
+    } else if (geometryType === 'MULTIPOINT') {
         expectedMinCommaCount = 1;
         expectedMinDepthCount = 1;
         expectedMaxDepthCount = 2;
@@ -294,3 +186,4 @@ export function validateGeoCoordinate(lon: number, lat: number) {
         throw new Error('Latitude must be in the range -90 to +90 degrees.');
     }
 }
+
