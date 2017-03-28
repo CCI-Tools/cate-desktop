@@ -1,12 +1,11 @@
 import * as React from 'react'
-import {MenuItem, MenuDivider, Menu} from "@blueprintjs/core";
-
 
 export interface IPanelProps {
     id: string;
     title: string;
     iconName: string;
     body?: JSX.Element|null;
+    position?: "top" | "bottom";
 }
 
 /**

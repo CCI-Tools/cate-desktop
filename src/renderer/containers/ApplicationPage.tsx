@@ -30,15 +30,13 @@ export function ApplicationPage(props) {
                 {/*<NavBarExample/>*/}
             </div>
             <div style={{flex: "auto", padding: 0, display:"flex", flexFlow: "row nowrap"}}>
-                <PanelContainer position="left" selectedPanelId="dataSources">
+                <PanelContainer position="left" selectedTopPanelId="dataSources"  selectedBottomPanelId="workspace">
                     <Panel id="dataSources" iconName="pt-icon-database" title="Data Sources"
                            body={<DataSourcesPanel/>}/>
                     <Panel id="operations" iconName="pt-icon-function" title="Operations"
                            body={<OperationsPanel/>}/>
                     <Panel id="workspace" iconName="pt-icon-folder-close" title="Workspace"
                            body={<WorkspacePanel/>}/>
-                    <Panel id="variables" iconName="pt-icon-variable" title="Variables"
-                           body={<VariablePanel/>}/>
                 </PanelContainer>
                 <div style={{flex:"auto", maxHeight: "100%"}}>
                     <Tabs>
@@ -84,11 +82,13 @@ export function ApplicationPage(props) {
                         </TabPanel>
                     </Tabs>
                 </div>
-                <PanelContainer position="right" selectedPanelId="layers">
-                    <Panel id="view" iconName="pt-icon-eye-open" title="View" body={<ViewPanel/>}/>
-                    <Panel id="layers" iconName="pt-icon-layers" title="Layers" body={<LayersPanel/>}/>
-                    <Panel id="analysis" iconName="pt-icon-scatter-plot" title="Analysis" body={<TreeExample/>}/>
-                    <Panel id="tasks" iconName="pt-icon-play" title="Tasks" body={<TaskPanel/>}/>
+                <PanelContainer position="right" selectedTopPanelId="variables"  selectedBottomPanelId="layers">
+                    <Panel id="variables" position="top" iconName="pt-icon-variable" title="Variables"
+                           body={<VariablePanel/>}/>
+                    <Panel id="analysis" position="top" iconName="pt-icon-scatter-plot" title="Analysis" body={<TreeExample/>}/>
+                    <Panel id="view" position="bottom" iconName="pt-icon-eye-open" title="View" body={<ViewPanel/>}/>
+                    <Panel id="layers" position="bottom" iconName="pt-icon-layers" title="Layers" body={<LayersPanel/>}/>
+                    <Panel id="tasks" position="bottom" iconName="pt-icon-play" title="Tasks" body={<TaskPanel/>}/>
                 </PanelContainer>
             </div>
             <div
