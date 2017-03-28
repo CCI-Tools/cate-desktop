@@ -948,6 +948,17 @@ export function setProjectionCode(projectionCode: string) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ApplicationPage actions
+
+export function setSelectedLeftPanelId(selectedLeftPanelId: string|null) {
+    return updateControlState({selectedLeftPanelId});
+}
+
+export function setSelectedRightPanelId(selectedRightPanelId: string|null) {
+    return updateControlState({selectedRightPanelId});
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer actions
 
 export const ADD_LAYER = 'ADD_LAYER';

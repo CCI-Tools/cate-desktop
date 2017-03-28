@@ -72,6 +72,13 @@ export const dialogStateSelector = (dialogId: string) => {
     return DIALOG_STATE_SELECTORS[dialogId];
 };
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ApplicationPage layout selectors
+
+export const selectedLeftPanelIdSelector = (state: State): string|null => state.control.selectedLeftPanelId;
+export const selectedRightPanelIdSelector = (state: State): string|null => state.control.selectedRightPanelId;
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation selectors
 
