@@ -51,45 +51,6 @@ input, button, textarea, :focus {
     background: rgba(191, 204, 214, 0.5);
 }
 
-.hgl-container {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    flex-flow: column nowrap;
-}
-
-.hgl-header, .hgl-footer {
-    flex: none; /* same as "flex: 0 0 auto;" */
-    /* left and right padding should be aligned with .cate-splitter-hor/-ver sizes */
-    padding: 0 4px 0 4px;
-}
-
-.hgl-footer {
-    height: 1.5em;
-    font-size: small;
-    align-items: center;
-    /* blueprint's color @blue4 */
-    background-color: #2B95D6;
-}
-
-.hgl-midsection {
-    flex: auto; /* same as "flex: 1 1 auto;" */
-    display: flex;
-    flex-flow: row nowrap;
-    /* left and right padding should be aligned with .cate-splitter-hor/-ver sizes */
-    padding: 0 4px 0 4px;
-}
-
-.hgl-left, .hgl-right {
-    flex: none;
-    max-height: 100%;
-}
-
-.hgl-center {
-    flex: auto;
-    max-height: 100%;
-}
-
 .cate-color-bars-popover  .pt-popover-content {
     max-height: 20em;
     overflow-y: auto;

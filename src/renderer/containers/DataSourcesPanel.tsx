@@ -119,20 +119,22 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                 </div>
             );
 
-            body = <div>
-                {this.renderDataStoreSelector()}
-                {this.renderDataSourceFilterExprInput()}
-                <ContentWithDetailsPanel showDetails={this.props.showDataSourceDetails}
-                                         onShowDetailsChange={this.handleShowDetailsChanged}
-                                         isSplitPanel={true}
-                                         initialContentHeight={200}
-                                         actionComponent={actionComponent}>
-                    <DataSourcesList dataSources={this.props.filteredDataSources}
-                                     selectedDataSourceId={this.props.selectedDataSource ? this.props.selectedDataSource.id : null}
-                                     setSelectedDataSourceId={this.props.setSelectedDataSourceId}/>
-                    <DataSourceDetails dataSource={this.props.selectedDataSource}/>
-                </ContentWithDetailsPanel>
-            </div>;
+            body = (
+                <div>
+                    {this.renderDataStoreSelector()}
+                    {this.renderDataSourceFilterExprInput()}
+                    <ContentWithDetailsPanel showDetails={this.props.showDataSourceDetails}
+                                             onShowDetailsChange={this.handleShowDetailsChanged}
+                                             isSplitPanel={true}
+                                             initialContentHeight={200}
+                                             actionComponent={actionComponent}>
+                        <DataSourcesList dataSources={this.props.filteredDataSources}
+                                         selectedDataSourceId={this.props.selectedDataSource ? this.props.selectedDataSource.id : null}
+                                         setSelectedDataSourceId={this.props.setSelectedDataSourceId}/>
+                        <DataSourceDetails dataSource={this.props.selectedDataSource}/>
+                    </ContentWithDetailsPanel>
+                </div>
+            );
         } else if (hasDataStores) {
             body = <div>
                 {this.renderDataStoreSelector()}
@@ -141,7 +143,6 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         } else {
             body = this.renderNoDataStoreMessage();
         }
-        // return (<Panel id="dataSourcesPanel" iconName="pt-icon-database" title="Data Sources" body={body}/>);
         return body;
     }
 
@@ -295,13 +296,16 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
                     const key = metaInfoKeys[rowIndex];
                     return <Cell>{key}</Cell>;
                 }
+
                 function renderValue(rowIndex: number) {
                     const key = metaInfoKeys[rowIndex];
                     return <Cell>{dataSource.meta_info[key]}</Cell>;
                 }
+
                 function getCellClipboardData(row: number, col: number) {
                     console.log('getCellClipboardData: ', row, col);
                 }
+
                 metaInfoTable = (
                     <Table numRows={metaInfoKeys.length}
                            isRowHeaderShown={false}
@@ -318,13 +322,16 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
                         const variable = variables[rowIndex];
                         return <Cell>{variable.name}</Cell>;
                     }
+
                     function renderUnit(rowIndex: number) {
                         const variable = variables[rowIndex];
                         return <Cell>{variable.units || '-'}</Cell>;
                     }
+
                     function getCellClipboardData(row: number, col: number) {
                         console.log('getCellClipboardData: ', row, col);
                     }
+
                     variablesTable = (
                         <Table numRows={variables.length}
                                isRowHeaderShown={false}

@@ -112,6 +112,7 @@ let initialViewerState = {
     ],
 } as ViewerState;
 
+
 const initialControlState: ControlState = {
     selectedDataStoreId: null,
     selectedDataSourceId: null,
@@ -127,8 +128,13 @@ const initialControlState: ControlState = {
     showVariableDetails: true,
     selectedLayerId: null,
     showLayerDetails: true,
-    selectedLeftPanelId: 'dataSources',
-    selectedRightPanelId: 'layers',
+    panelContainerUndockedMode: true,
+    leftPanelContainerLayout: {horPos: 300, verPos: 600},
+    rightPanelContainerLayout: {horPos: 300, verPos: 300},
+    selectedLeftTopPanelId: 'dataSources',
+    selectedLeftBottomPanelId: 'workspace',
+    selectedRightTopPanelId: 'variables',
+    selectedRightBottomPanelId: 'layers',
     viewer: initialViewerState,
     savedLayers: {},
     dialogs: {}

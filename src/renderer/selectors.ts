@@ -10,6 +10,7 @@ import {OperationAPI} from "./webapi/apis/OperationAPI";
 import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
+import {PanelContainerLayout} from "./components/PanelContainer";
 
 const EMPTY_OBJECT = {};
 const EMPTY_ARRAY = [];
@@ -76,8 +77,15 @@ export const dialogStateSelector = (dialogId: string) => {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ApplicationPage layout selectors
 
-export const selectedLeftPanelIdSelector = (state: State): string|null => state.control.selectedLeftPanelId;
-export const selectedRightPanelIdSelector = (state: State): string|null => state.control.selectedRightPanelId;
+export const panelContainerUndockedModeSelector = (state: State): boolean => state.control.panelContainerUndockedMode;
+
+export const leftPanelContainerLayoutSelector = (state: State): PanelContainerLayout => state.control.leftPanelContainerLayout;
+export const rightPanelContainerLayoutSelector = (state: State): PanelContainerLayout => state.control.rightPanelContainerLayout;
+
+export const selectedLeftTopPanelIdSelector = (state: State): string|null => state.control.selectedLeftTopPanelId;
+export const selectedLeftBottomPanelIdSelector = (state: State): string|null => state.control.selectedLeftBottomPanelId;
+export const selectedRightTopPanelIdSelector = (state: State): string|null => state.control.selectedRightTopPanelId;
+export const selectedRightBottomPanelIdSelector = (state: State): string|null => state.control.selectedRightBottomPanelId;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation selectors

@@ -7,6 +7,7 @@ import {
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
 import * as assert from "../common/assert";
+import {PanelContainerLayout} from "./components/PanelContainer";
 
 // TODO (forman/marcoz): find easy way to unit-test our async actions calling remote API (WebAPIServiceMock?)
 
@@ -950,12 +951,28 @@ export function setProjectionCode(projectionCode: string) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ApplicationPage actions
 
-export function setSelectedLeftPanelId(selectedLeftPanelId: string|null) {
-    return updateControlState({selectedLeftPanelId});
+export function setLeftPanelContainerLayout(leftPanelContainerLayout: PanelContainerLayout) {
+    return updateControlState({leftPanelContainerLayout});
 }
 
-export function setSelectedRightPanelId(selectedRightPanelId: string|null) {
-    return updateControlState({selectedRightPanelId});
+export function setRightPanelContainerLayout(rightPanelContainerLayout: PanelContainerLayout) {
+    return updateControlState({rightPanelContainerLayout});
+}
+
+export function setSelectedLeftTopPanelId(selectedLeftTopPanelId: string|null) {
+    return updateControlState({selectedLeftTopPanelId});
+}
+
+export function setSelectedLeftBottomPanelId(selectedLeftBottomPanelId: string|null) {
+    return updateControlState({selectedLeftBottomPanelId});
+}
+
+export function setSelectedRightTopPanelId(selectedRightTopPanelId: string|null) {
+    return updateControlState({selectedRightTopPanelId});
+}
+
+export function setSelectedRightBottomPanelId(selectedRightBottomPanelId: string|null) {
+    return updateControlState({selectedRightBottomPanelId});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,6 @@
 import  {WebAPIClient} from './webapi';
 import {JobStatus, JobFailure, JobProgress} from "./webapi/Job";
+import {PanelContainerLayout} from "./components/PanelContainer";
 
 /**
  * Interface describing Cate's application state structure.
@@ -528,8 +529,13 @@ export interface ControlState {
     savedLayers: {[key: string]: LayerState};
 
     // ApplicationPage
-    selectedLeftPanelId: string|null;
-    selectedRightPanelId: string|null;
+    panelContainerUndockedMode: boolean;
+    leftPanelContainerLayout: PanelContainerLayout;
+    rightPanelContainerLayout: PanelContainerLayout;
+    selectedLeftTopPanelId: string|null;
+    selectedLeftBottomPanelId: string|null;
+    selectedRightTopPanelId: string|null;
+    selectedRightBottomPanelId: string|null;
 
     // State of the 2D/3D viewer.
     viewer: ViewerState;

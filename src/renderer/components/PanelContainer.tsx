@@ -13,21 +13,20 @@ import {
 import {Splitter} from "./Splitter";
 import ReactElement = React.ReactElement;
 
-interface PanelContainerLayout {
+export interface PanelContainerLayout {
     horPos: number;
     verPos: number;
 }
-
-type PanelSizeMap = { [panelId: string]: [number, number] };
 
 export interface IPanelContainerProps {
     position?: "left" | "right";
     selectedTopPanelId?: string | null;
     selectedBottomPanelId?: string | null;
-    onSelectedTopPanelChange?: (newPanelId: string | null, oldPanelId: string | null) => void;
-    onSelectedBottomPanelChange?: (newPanelId: string | null, oldPanelId: string | null) => void;
+    onSelectedTopPanelChange?: (panelId: string | null) => void;
+    onSelectedBottomPanelChange?: (panelId: string | null) => void;
     layout: PanelContainerLayout;
     onLayoutChange?: (layout: PanelContainerLayout) => void;
+    undockedMode?: boolean;
 }
 
 export interface IPanelContainerState {
@@ -46,6 +45,9 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
     static readonly PANEL_ICON_SIZE = 20; // ==> because pt-icon-large = 20px
     static readonly PANEL_ICON_PADDING = 8;
     static readonly PANEL_BAR_SIZE = 2 * PanelContainer.PANEL_ICON_PADDING + PanelContainer.PANEL_ICON_SIZE;
+    static readonly PANEL_BAR_PADDING = 8;
+    static readonly PANEL_PANE_PADDING = 4;
+    static readonly PANEL_BODY_PADDING = 2;
 
 
     constructor(props: IPanelContainerProps) {
@@ -54,7 +56,8 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
         this.onBottomPanelSelected = this.onBottomPanelSelected.bind(this);
         this.onTopPanelClose = this.onTopPanelClose.bind(this);
         this.onBottomPanelClose = this.onBottomPanelClose.bind(this);
-        this.onPanelWidthChange = this.onPanelWidthChange.bind(this);
+        this.onVerSplitterPosChange = this.onVerSplitterPosChange.bind(this);
+        this.onHorSplitterPosChange = this.onHorSplitterPosChange.bind(this);
         this.state = PanelContainer.mapPropsToState(props);
     }
 
@@ -71,17 +74,19 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
     }
 
     private onTopPanelSelected(panelId: string) {
-        this.setState({selectedTopPanelId: panelId} as any, () => {
+        const isCurrent = this.state.selectedTopPanelId === panelId;
+        this.setState({selectedTopPanelId: isCurrent ? null : panelId} as any, () => {
             if (this.props.onSelectedTopPanelChange) {
-                this.props.onSelectedTopPanelChange(panelId, this.state.selectedBottomPanelId);
+                this.props.onSelectedTopPanelChange(this.state.selectedTopPanelId);
             }
         });
     }
 
     private onBottomPanelSelected(panelId: string) {
-        this.setState({selectedBottomPanelId: panelId} as any, () => {
+        const isCurrent = this.state.selectedBottomPanelId === panelId;
+        this.setState({selectedBottomPanelId: isCurrent ? null : panelId} as any, () => {
             if (this.props.onSelectedBottomPanelChange) {
-                this.props.onSelectedBottomPanelChange(this.state.selectedTopPanelId, panelId);
+                this.props.onSelectedBottomPanelChange(this.state.selectedBottomPanelId);
             }
         });
     }
@@ -94,17 +99,25 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
         this.onBottomPanelSelected(null);
     }
 
-    private onPanelWidthChange(delta: number) {
+    private onVerSplitterPosChange(delta: number) {
+        let verPos = this.state.layout.verPos + delta;
+        this.setLayout({...this.state.layout, verPos});
+    }
+
+    private onHorSplitterPosChange(delta: number) {
         let horPos = this.state.layout.horPos;
         if ((this.props.position || "left") === "left") {
             horPos += delta;
         } else {
             horPos -= delta;
         }
-        const layout = {...this.state.layout, horPos};
+        this.setLayout({...this.state.layout, horPos});
+    }
+
+    private setLayout(layout: PanelContainerLayout) {
         this.setState({layout} as any, () => {
             if (this.props.onLayoutChange) {
-                this.props.onLayoutChange(this.state.layout);
+                this.props.onLayoutChange(layout);
             }
         });
     }
@@ -114,7 +127,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
     }
 
     private getSelectedBottomPanel(): JSX.Element | null {
-        return this.findPanel(this.state.selectedTopPanelId);
+        return this.findPanel(this.state.selectedBottomPanelId);
     }
 
     private findPanel(id: string): JSX.Element | null {
@@ -132,49 +145,166 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
     }
 
     render() {
-        const panelContainerStyle = {
-            display: "flex",
-            flexFlow: "row nowrap",
-            flex: "none",
-            maxHeight: "100%",
-        };
-
         const panelBar = <PanelBar panels={React.Children.toArray(this.props.children) as JSX.Element[]}
                                    barSize={PanelContainer.PANEL_BAR_SIZE}
                                    position={this.props.position}
                                    selectedTopPanelId={this.state.selectedTopPanelId}
                                    selectedBottomPanelId={this.state.selectedBottomPanelId}
                                    onTopPanelSelected={this.onTopPanelSelected}
-                                   onBottomPanelSelected={this.onBottomPanelSelected}
-        />;
-        const topPanelPane = <PanelPane panel={this.getSelectedTopPanel()}
-                                     size={[this.state.width, this.state.height]}
-                                     position={this.props.position}
-                                     pinned={false}
-                                     onSizeChange={this.onPanelWidthChange}
-                                     onClose={this.onTopPanelClose}/>;
-        const bottomPane = <PanelPane panel={this.getSelectedBottomPanel()}
-                                        size={[this.state.width, this.state.height]}
-                                        position={this.props.position}
-                                        pinned={false}
-                                        onSizeChange={this.onPanelWidthChange}
-                                        onClose={this.onBottomPanelClose}/>;
+                                   onBottomPanelSelected={this.onBottomPanelSelected}/>;
+
+        const selectedTopPanel = this.getSelectedTopPanel();
+        const selectedBottomPanel = this.getSelectedBottomPanel();
+
+        const panelPaneWidth = this.state.layout.horPos;
+
+        let topPanelPane;
+        if (selectedTopPanel) {
+
+            let panelPaneHeight;
+            if (selectedTopPanel && selectedBottomPanel) {
+                panelPaneHeight = this.state.layout.verPos;
+            } else {
+                panelPaneHeight = "100%";
+            }
+
+            const topPanelPaneStyle = {
+                width: panelPaneWidth,
+                maxWidth: panelPaneWidth,
+                height: panelPaneHeight,
+                maxHeight: panelPaneHeight,
+            };
+
+            topPanelPane = <PanelPane panel={selectedTopPanel}
+                                      onClose={this.onTopPanelClose}
+                                      position={this.props.position}
+                                      style={topPanelPaneStyle}/>;
+        }
+
+        let bottomPanelPane;
+        if (selectedBottomPanel) {
+
+            let panelPaneHeight;
+            if (selectedTopPanel && selectedBottomPanel) {
+                // panelPaneHeight remains undefined
+            } else {
+                panelPaneHeight = "100%";
+            }
+
+            const bottomPanelPaneStyle = {
+                width: panelPaneWidth,
+                maxWidth: panelPaneWidth,
+                height: panelPaneHeight,
+                maxHeight: panelPaneHeight,
+            };
+
+            bottomPanelPane = <PanelPane panel={selectedBottomPanel}
+                                         onClose={this.onBottomPanelClose}
+                                         position={this.props.position}
+                                         style={bottomPanelPaneStyle}/>;
+        }
+
+        let panelParent;
+        if (topPanelPane && bottomPanelPane) {
+            panelParent = this.renderTwoPanelsPane(topPanelPane, bottomPanelPane);
+        } else if (topPanelPane) {
+            panelParent = topPanelPane;
+        } else if (bottomPanelPane) {
+            panelParent = bottomPanelPane;
+        }
+
+        let panelPane;
+        if (panelParent) {
+            panelPane = this.renderPanelPane(panelParent);
+        }
+
+        const panelContainerStyle = {
+            display: "flex",
+            flexFlow: "row nowrap",
+            flex: "none",
+            maxHeight: "100%",
+            //opacity: .5,
+        };
 
         const position = this.props.position || "left";
         if (position === "left") {
             return (
                 <div style={panelContainerStyle}>
                     {panelBar}
-                    {topPanelPane}
-                    {bottomPane}
+                    {panelPane}
                 </div>
             );
         } else {
             return (
                 <div style={panelContainerStyle}>
-                    {topPanelPane}
-                    {bottomPane}
+                    {panelPane}
                     {panelBar}
+                </div>
+            );
+        }
+    }
+
+    private renderTwoPanelsPane(topPanelPane, bottomPanelPane) {
+        const verSplitter = <Splitter direction="ver" onChange={this.onVerSplitterPosChange}/>;
+        return (
+            <div style={{display: "flex", flexDirection: "column"}}>
+                {topPanelPane}
+                {verSplitter}
+                {bottomPanelPane}
+            </div>
+        );
+    }
+
+    private renderPanelPane(panelParent) {
+        const undockedMode = this.props.undockedMode || false;
+        const position = this.props.position || "left";
+
+        let undockedModeStyle;
+        if (undockedMode) {
+            if (position === "left") {
+                undockedModeStyle = {
+                    position: "absolute",
+                    top: 0,
+                    left: PanelContainer.PANEL_BAR_SIZE,
+                    backgroundColor: PANEL_UNDOCKED_BACKGROUND_COLOR,
+                };
+            } else {
+                undockedModeStyle = {
+                    position: "absolute",
+                    top: 0,
+                    right: PanelContainer.PANEL_BAR_SIZE,
+                    backgroundColor: PANEL_UNDOCKED_BACKGROUND_COLOR,
+                };
+            }
+        }
+
+        const panelPaneStyle = {
+            paddingTop: PanelContainer.PANEL_PANE_PADDING,
+            paddingLeft: position === "left" ? PanelContainer.PANEL_PANE_PADDING : 0,
+            paddingRight: position === "left" ? 0 : PanelContainer.PANEL_PANE_PADDING,
+            flex: "auto",
+            display: "flex",
+            flexFlow: "row nowrap",
+            zIndex: 5,
+            //height: "100%",
+            maxHeight: "100%",
+            ...undockedModeStyle
+        };
+
+        const horSplitter = <Splitter direction="hor" onChange={this.onHorSplitterPosChange}/>;
+
+        if (position === "left") {
+            return (
+                <div style={panelPaneStyle}>
+                    {panelParent}
+                    {horSplitter}
+                </div>
+            );
+        } else {
+            return (
+                <div style={panelPaneStyle}>
+                    {horSplitter}
+                    {panelParent}
                 </div>
             );
         }
@@ -223,13 +353,16 @@ function PanelHeader(props: IPanelHeaderProps): JSX.Element | null {
     );
 }
 
-const PANELBAR_ITEMBASESTYLE = {padding: PanelContainer.PANEL_ICON_PADDING};
-const PANEL_BAR_ITEM_NORMAL_STYLE = {...PANELBAR_ITEMBASESTYLE, color: Colors.GRAY4};
+const PANEL_BAR_ITEM_BASE_STYLE = {padding: PanelContainer.PANEL_ICON_PADDING};
+const PANEL_BAR_ITEM_NORMAL_STYLE = {...PANEL_BAR_ITEM_BASE_STYLE, color: Colors.GRAY4};
 const PANEL_BAR_ITEM_SELECTED_STYLE = {
-    ...PANELBAR_ITEMBASESTYLE,
+    ...PANEL_BAR_ITEM_BASE_STYLE,
     color: Colors.WHITE,
     backgroundColor: Colors.DARK_GRAY5
 };
+
+// This is Colors.DARK_GRAY5 with 0.5 opacity
+const PANEL_UNDOCKED_BACKGROUND_COLOR = "rgba(57, 75, 89, 0.5)";
 
 
 interface IPanelBarProps {
@@ -245,37 +378,40 @@ interface IPanelBarProps {
 function PanelBar(props: IPanelBarProps) {
     const position = props.position || "left";
     const tooltipPos = position === "left" ? Position.RIGHT : Position.LEFT;
-    const selectedTopPanelId = props.selectedTopPanelId;
-    const selectedBottomPanelId = props.selectedBottomPanelId;
     const barSize = props.barSize;
     const panels = props.panels || [];
-    const topPanelButtons: JSX.Element[] = [];
-    const bottomPanelButtons: JSX.Element[] = [];
 
     function renderPanelButton(panel, selectedPanelId: string) {
         const panelId: string = panel.props.id;
         const panelTitle: string = panel.props.title;
         const panelIconName: string = panel.props.iconName;
         const selected = panelId === selectedPanelId;
+        const style = selected ? PANEL_BAR_ITEM_SELECTED_STYLE : PANEL_BAR_ITEM_NORMAL_STYLE;
+        const panelPosition: string = panel.props.position || "top";
+        const onClick = () => panelPosition === "top" ? props.onTopPanelSelected(panelId) : props.onBottomPanelSelected(panelId);
         return (
             <li key={panelId}
-                onClick={() => props.onTopPanelSelected(panelId)}
-                style={selected ? PANEL_BAR_ITEM_SELECTED_STYLE : PANEL_BAR_ITEM_NORMAL_STYLE}>
+                onClick={onClick}
+                style={style}>
                 <Tooltip content={panelTitle} position={tooltipPos} hoverOpenDelay={1500}>
-                <span className={"pt-icon-large " + panelIconName}
-                      style={{textAlign: "center", verticalAlign: "middle"}}/>
+                    <span className={"pt-icon-large " + panelIconName}
+                          style={{textAlign: "center", verticalAlign: "middle"}}/>
                 </Tooltip>
             </li>
         );
     }
 
+    //noinspection JSMismatchedCollectionQueryUpdate
+    const topPanelButtons: JSX.Element[] = [];
+    //noinspection JSMismatchedCollectionQueryUpdate
+    const bottomPanelButtons: JSX.Element[] = [];
     for (let panel of panels) {
         if (!panel.props || !panel.props.id) {
             console.error('PanelBar children must be of type Panel');
             continue;
         }
         const panelPosition: string = panel.props.position || "top";
-        if (panelPosition === "top")  {
+        if (panelPosition === "top") {
             topPanelButtons.push(renderPanelButton(panel, props.selectedTopPanelId));
         } else {
             bottomPanelButtons.push(renderPanelButton(panel, props.selectedBottomPanelId));
@@ -291,7 +427,9 @@ function PanelBar(props: IPanelBarProps) {
                 maxHeight: "100%",
                 minWidth: barSize,
                 overflow: "hidden",
-                backgroundColor: Colors.DARK_GRAY2
+                backgroundColor: Colors.DARK_GRAY2,
+                paddingTop: PanelContainer.PANEL_BAR_PADDING,
+                paddingBottom: PanelContainer.PANEL_BAR_PADDING,
             }}>
             <ul style={{flex: "none", listStyleType: "none", padding: 0, margin: 0, border: "none"}}>
                 {topPanelButtons}
@@ -305,12 +443,10 @@ function PanelBar(props: IPanelBarProps) {
 }
 
 interface IPanelPaneProps {
+    position: "left" | "right";
+    style?: {[key:string]: any};
     panel: JSX.Element | null;
     onClose: (panelId: string) => void;
-    onSizeChange: (delta: number) => void;
-    position: "left" | "right";
-    size: [number, number];
-    pinned: boolean;
 }
 
 function PanelPane(props: IPanelPaneProps) {
@@ -319,31 +455,25 @@ function PanelPane(props: IPanelPaneProps) {
         return null;
     }
 
-    const position = props.position || "left";
-    const panelWidth = props.size[0];
-    const pinnedMode = props.pinned;
-
     const panelId = panel.props.id;
     const panelBody = panel.props.body;
 
     let panelParentStyle = {
-        flex: "none",
+        //flex: "none",
         display: "flex",
         flexDirection: "column",
         alignItems: "stretch",
-        width: panelWidth,
-        maxWidth: panelWidth,
-        maxHeight: "100%",
+        ...props.style,
     };
 
     const bodyContainerStyle = {
         overflow: "auto",
         //width: "100%",
-        flexGrow: 1,
-        padding: 2
+        flex: "auto",
+        padding: PanelContainer.PANEL_BODY_PADDING,
     };
 
-    let panelParent = (
+    return (
         <div style={panelParentStyle}>
             <PanelHeader
                 id={panelId}
@@ -356,49 +486,4 @@ function PanelPane(props: IPanelPaneProps) {
             </div>
         </div>
     );
-
-    let pinnedModeStyle = {};
-    if (pinnedMode) {
-        if (position === "left") {
-            pinnedModeStyle = {
-                position: "absolute",
-                top: 0,
-                left: PanelContainer.PANEL_BAR_SIZE,
-            };
-        } else {
-            pinnedModeStyle = {
-                position: "absolute",
-                top: 0,
-                right: PanelContainer.PANEL_BAR_SIZE,
-            };
-        }
-    }
-
-    const panelPaneStyle = {
-        paddingLeft: position === "left" ? 4 : 0,
-        paddingRight: position === "left" ? 0 : 4,
-        flex: "auto",
-        display: "flex",
-        flexFlow: "row nowrap",
-        zIndex: 5,
-        ...pinnedModeStyle
-    };
-
-    const splitter = <Splitter direction="hor" onChange={props.onSizeChange}/>;
-
-    if (position === "left") {
-        return (
-            <div style={panelPaneStyle}>
-                {panelParent}
-                {splitter}
-            </div>
-        );
-    } else {
-        return (
-            <div style={panelPaneStyle}>
-                {splitter}
-                {panelParent}
-            </div>
-        );
-    }
 }
