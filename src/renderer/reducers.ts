@@ -127,6 +127,8 @@ const initialControlState: ControlState = {
     showVariableDetails: true,
     selectedLayerId: null,
     showLayerDetails: true,
+    selectedLeftPanelId: 'dataSources',
+    selectedRightPanelId: 'layers',
     viewer: initialViewerState,
     savedLayers: {},
     dialogs: {}

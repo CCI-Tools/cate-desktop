@@ -527,6 +527,10 @@ export interface ControlState {
     showLayerDetails: boolean;
     savedLayers: {[key: string]: LayerState};
 
+    // ApplicationPage
+    selectedLeftPanelId: string|null;
+    selectedRightPanelId: string|null;
+
     // State of the 2D/3D viewer.
     viewer: ViewerState;
 

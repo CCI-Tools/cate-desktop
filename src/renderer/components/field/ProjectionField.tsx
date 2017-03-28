@@ -41,8 +41,9 @@ export class ProjectionField extends React.Component<IProjectionFieldProps, IPro
                     disabled={this.props.disabled}
                 />
 
-                <Button className="pt-intent-primary" style={{flex: 'none'}}
-                        onClick={() => this.setState({isEditorOpen: true})} disabled={this.props.disabled}>...</Button>
+                <Button className="pt-intent-primary"
+                        onClick={() => this.setState({isEditorOpen: true})}
+                        disabled={this.props.disabled}>...</Button>
 
                 <ProjectionDialog isOpen={this.state.isEditorOpen}
                                   projectionCode={toTextValue(this.props.value)}
