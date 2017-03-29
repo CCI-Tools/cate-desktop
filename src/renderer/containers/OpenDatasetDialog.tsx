@@ -25,36 +25,12 @@ interface IOpenDatasetDialogState extends DialogState {
 
 function mapStateToProps(state: State): IOpenDatasetDialogProps {
     let dialogState = selectors.dialogStateSelector(OpenDatasetDialog.DIALOG_ID)(state);
-
-    let temporalCoverage: any = selectors.selectedDataSourceTemporalCoverageSelector(state);
-    console.log('temporalCoverage =', temporalCoverage);
-    if (temporalCoverage) {
-        let ms1 = Date.parse(temporalCoverage[0]);
-        let ms2 = Date.parse(temporalCoverage[1]);
-        temporalCoverage = [ms1, ms2];
-    }
-
-    let timeRange: any = (dialogState as any).timeRange;
-    if (!timeRange) {
-        timeRange = temporalCoverage;
-    }
-
-    const dataSource = selectors.selectedDataSourceSelector(state);
-
-    let protocolName = null;
-    if (dataSource.meta_info) {
-        const protocols = dataSource.meta_info.protocols;
-        if (protocols && protocols.length > 1) {
-            protocolName = protocols[0];
-        }
-    }
-
     return {
         isOpen: dialogState.isOpen,
-        temporalCoverage,
-        timeRange,
-        dataSource,
-        protocolName,
+        temporalCoverage: selectors.selectedDataSourceTemporalCoverageMillisSelector(state),
+        timeRange: selectors.selectedDataSourceTemporalCoverageMillisSelector(state),
+        dataSource: selectors.selectedDataSourceSelector(state),
+        protocolName: selectors.protocolNameSelector(state),
     };
 }
 

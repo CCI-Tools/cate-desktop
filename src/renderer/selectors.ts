@@ -206,12 +206,42 @@ export const selectedDataSourceSelector = createSelector<State, DataSourceState|
     }
 );
 
+
+export const protocolNameSelector = createSelector<State, string|null, DataSourceState|null>(
+    selectedDataSourceSelector,
+    (dataSource: DataSourceState|null) => {
+        let protocolName = null;
+        if (dataSource && dataSource.meta_info) {
+            const protocols = dataSource.meta_info.protocols;
+            if (protocols && protocols.length > 1) {
+                protocolName = protocols[0];
+            }
+        }
+        return protocolName;
+    }
+);
+
+
 export const selectedDataSourceTemporalCoverageSelector = createSelector<State, [string, string]|null, DataSourceState|null>(
     selectedDataSourceSelector,
-    (selectedDataSource: DataSourceState) => {
+    (selectedDataSource: DataSourceState): [string, string]|null => {
         return selectedDataSource ? selectedDataSource.temporalCoverage : null;
     }
 );
+
+
+export const selectedDataSourceTemporalCoverageMillisSelector = createSelector<State, [number, number]|null, [string, string]|null>(
+    selectedDataSourceTemporalCoverageSelector,
+    (temporalCoverage: [string, string]|null): [number, number]|null => {
+        if (temporalCoverage) {
+            let ms1 = Date.parse(temporalCoverage[0]);
+            let ms2 = Date.parse(temporalCoverage[1]);
+            return [ms1, ms2];
+        }
+        return null;
+    }
+);
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Workspace, resource, step, and variable selectors
