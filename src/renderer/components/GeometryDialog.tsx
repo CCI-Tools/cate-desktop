@@ -64,6 +64,10 @@ export class GeometryDialog extends React.Component<IGeometryDialogProps, IGeome
     }
 
     renderBody() {
+        if (!this.props.isOpen) {
+            return null;
+        }
+
         const value = this.state.value;
         const hasError = !!this.state.error;
         return (

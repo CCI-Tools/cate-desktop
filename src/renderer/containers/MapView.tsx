@@ -7,6 +7,10 @@ import {OpenLayersMap, LayerDescriptor} from "../components/openlayers/OpenLayer
 import {connect} from "react-redux";
 import * as actions from "../actions";
 import * as ol from 'openlayers';
+import {
+    findVariable, findResource, getGeoJSONUrl, getTileUrl, getGeoJSONCountriesUrl,
+    COUNTRIES_LAYER_ID
+} from "../state-util";
 
 interface IMapViewProps {
     baseUrl: string;
@@ -69,11 +73,11 @@ class MapView extends React.Component<IMapViewProps, null> {
     }
 
     private getResource(ref: VariableRefState): ResourceState {
-        return actions.findResource(this.props.workspace.resources, ref);
+        return findResource(this.props.workspace.resources, ref);
     }
 
     private getVariable(ref: VariableRefState): VariableState {
-        return actions.findVariable(this.props.workspace.resources, ref);
+        return findVariable(this.props.workspace.resources, ref);
     }
 
     private convertVariableImageLayerToMapLayer(layer: VariableImageLayerState): LayerDescriptor|null {
@@ -88,7 +92,7 @@ class MapView extends React.Component<IMapViewProps, null> {
             return null;
         }
         const baseDir = this.props.workspace.baseDir;
-        const url = actions.getTileUrl(this.props.baseUrl, baseDir, layer);
+        const url = getTileUrl(this.props.baseUrl, baseDir, layer);
         let extent: ol.Extent = [-180, -90, 180, 90];
         if (imageLayout.sector) {
             const sector = imageLayout.sector;
@@ -131,7 +135,7 @@ class MapView extends React.Component<IMapViewProps, null> {
             return null;
         }
         const baseDir = this.props.workspace.baseDir;
-        const url = actions.getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
+        const url = getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
 
         const streamFeatures = function (extend: ol.Extent, resolution: number, projection: ol.proj.Projection) {
             const source = (this as any) as ol.source.Vector;
@@ -182,8 +186,8 @@ class MapView extends React.Component<IMapViewProps, null> {
 
     private convertVectorLayerToMapLayer(layer: VectorLayerState): LayerDescriptor|null {
         let url = layer.url;
-        if (layer.id === actions.COUNTRIES_LAYER_ID) {
-            url = actions.getGeoJSONCountriesUrl(this.props.baseUrl);
+        if (layer.id === COUNTRIES_LAYER_ID) {
+            url = getGeoJSONCountriesUrl(this.props.baseUrl);
         }
         return {
             id: layer.id,

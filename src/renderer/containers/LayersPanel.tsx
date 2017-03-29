@@ -15,6 +15,7 @@ import * as selectors from "../selectors";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {NumericRangeField} from "../components/field/NumericRangeField";
 import LayerSourcesDialog from "./LayerSourcesDialog";
+import {getLayerDisplayName, SELECTED_VARIABLE_LAYER_ID} from "../state-util";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -195,7 +196,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                        onChange={(event:any) => this.handleChangedLayerVisibility(layer, event.target.checked)}
                 />
                 <span style={{marginLeft: "0.5em"}} className="pt-icon-layout-grid"/>
-                <span style={{marginLeft: "0.5em"}}>{actions.getLayerName(layer)}</span>
+                <span style={{marginLeft: "0.5em"}}>{getLayerDisplayName(layer)}</span>
             </div>
         );
     }
@@ -231,7 +232,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         const layerCount = this.props.layers ? this.props.layers.length : 0;
         const selectedLayerIndex = this.props.selectedLayerIndex;
         const selectedLayer = this.props.selectedLayer;
-        const canRemoveLayer = selectedLayer && selectedLayer.id !== actions.SELECTED_VARIABLE_LAYER_ID;
+        const canRemoveLayer = selectedLayer && selectedLayer.id !== SELECTED_VARIABLE_LAYER_ID;
         const canMoveLayerUp = selectedLayerIndex > 0;
         const canMoveLayerDown = selectedLayerIndex >= 0 && selectedLayerIndex < layerCount - 1;
         return (

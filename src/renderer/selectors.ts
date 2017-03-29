@@ -1,7 +1,7 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
-    WorkflowStepState, VariableVectorLayerState, ViewMode
+    WorkflowStepState, VariableVectorLayerState, ViewMode, LayerVariableState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient} from "./webapi/WebAPIClient";
@@ -11,6 +11,7 @@ import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import {PanelContainerLayout} from "./components/PanelContainer";
+import {isSpatialVectorVariable, isSpatialImageVariable} from "./state-util";
 
 const EMPTY_OBJECT = {};
 const EMPTY_ARRAY = [];
@@ -358,6 +359,23 @@ export const selectedVariableVectorLayerSelector = createSelector<State, Variabl
     }
 );
 
+
+export const selectedLayerVariablesSelector = createSelector<State, LayerVariableState[]|null, ResourceState[]>(
+    resourcesSelector,
+    (resources: ResourceState[]) => {
+        const layerVariables = [];
+        for (let resource of resources) {
+            for (let variable of resource.variables) {
+                if (isSpatialImageVariable(variable) || isSpatialVectorVariable(variable)) {
+                    layerVariables.push({resource, variable});
+                }
+            }
+        }
+        return layerVariables;
+    }
+);
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Color map selectors
 
@@ -383,8 +401,8 @@ export const selectedColorMapSelector = createSelector<State, ColorMapState, Col
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utilities
 
-function canFind(array: any[], id: any): boolean {
-    return array && array.length && id;
+function canFind(array: any[], id: string): boolean {
+    return array && array.length && !!id;
 }
 
 

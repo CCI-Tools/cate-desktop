@@ -4,10 +4,16 @@ import {validateProjectionCode} from "./projection-util";
 describe('ProjectionDialog', function () {
 
     describe('validateProjectionCode()', function () {
-        it('accepts valid projection codes', function () {
+        it('accepts valid proj4 default codes', function () {
             expect(validateProjectionCode('EPSG:4326')).to.be.undefined;
-            expect(validateProjectionCode('epsg:4326')).to.be.undefined;
-            expect(validateProjectionCode('epsg:3857')).to.be.undefined;
+            expect(validateProjectionCode('WGS84')).to.be.undefined;
+
+            expect(validateProjectionCode('EPSG:3857')).to.be.undefined;
+            expect(validateProjectionCode('EPSG:900913')).to.be.undefined;
+            expect(validateProjectionCode('GOOGLE')).to.be.undefined;
+        });
+
+        it('accepts valid Cate projection codes', function () {
             expect(validateProjectionCode('Glaciers_CCI_Greenland')).to.be.undefined;
             expect(validateProjectionCode('EPSG:3411')).to.be.undefined;
             expect(validateProjectionCode('EPSG:3412')).to.be.undefined;

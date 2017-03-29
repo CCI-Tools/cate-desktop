@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {ListBoxSelectionMode, ListBox} from "./ListBox";
 import {ModalDialog} from "./ModalDialog";
+import {getProjection, getProjectionCodes} from "../../common/projection-util";
 import * as ol from 'openlayers';
 import * as proj4 from 'proj4';
 
@@ -57,10 +58,13 @@ export class ProjectionDialog extends React.Component<IProjectionDialogProps, IP
     }
 
     private renderBody() {
+        if (!this.props.isOpen) {
+            return null;
+        }
         return (
             <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
                 <p>Select the variables to wish to add as a layer:</p>
-                <ListBox items={Object.keys(proj4.defs)}
+                <ListBox items={getProjectionCodes()}
                          getItemKey={ProjectionDialog.getProjectionKey}
                          renderItem={ProjectionDialog.renderProjectionItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
@@ -71,7 +75,7 @@ export class ProjectionDialog extends React.Component<IProjectionDialogProps, IP
     }
 
     private static renderProjectionItem(projectionCode: string) {
-        const projection = proj4.defs[projectionCode];
+        const projection = getProjection(projectionCode);
         return (
             <div>
                 {projectionCode}

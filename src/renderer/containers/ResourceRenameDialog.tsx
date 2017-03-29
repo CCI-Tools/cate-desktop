@@ -79,6 +79,10 @@ class ResourceRenameDialog extends React.Component<IResourceRenameDialogProps, I
     }
 
     private renderBody() {
+        if (!this.props.isOpen) {
+            return null;
+        }
+
         return (
             <div style={{width: '100%', height: '100%', overflow: 'auto', padding: '1em'}}>
                 <label className="pt-label">

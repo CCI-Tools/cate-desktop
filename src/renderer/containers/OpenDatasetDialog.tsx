@@ -123,6 +123,10 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
     }
 
     private renderBody() {
+        if (!this.props.isOpen) {
+            return null;
+        }
+
         return (
             <div>
                 <p>You are about to open a dataset from data source <strong>{this.props.dataSource.name}</strong>.</p>

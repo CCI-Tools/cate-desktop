@@ -5,6 +5,7 @@ import * as actions from './actions';
 import * as assert from "../common/assert";
 import {combineReducers} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
+import {COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID} from "./state-util";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -99,12 +100,12 @@ let initialViewerState = {
     projectionCode: 'EPSG:4326',
     layers: [
         {
-            id: actions.SELECTED_VARIABLE_LAYER_ID,
+            id: SELECTED_VARIABLE_LAYER_ID,
             type: 'Unknown',
             visible: true,
         },
         {
-            id: actions.COUNTRIES_LAYER_ID,
+            id: COUNTRIES_LAYER_ID,
             name: 'Countries',
             type: 'Vector',
             visible: false,

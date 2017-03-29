@@ -4,6 +4,7 @@ import {stateReducer} from './reducers';
 import thunk from 'redux-thunk'
 import {LayerState, State} from "./state";
 import {should, expect} from 'chai';
+import {SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID} from "./state-util";
 
 should();
 
@@ -19,13 +20,13 @@ describe('Actions', () => {
     };
 
     const defaultSelectedVariableLayer = {
-        id: actions.SELECTED_VARIABLE_LAYER_ID,
+        id: SELECTED_VARIABLE_LAYER_ID,
         type: 'Unknown',
         visible: true,
     };
 
     const defaultCountriesLayers = {
-        id: actions.COUNTRIES_LAYER_ID,
+        id: COUNTRIES_LAYER_ID,
         name: "Countries",
         type: "Vector",
         visible: false,
@@ -290,7 +291,7 @@ describe('Actions', () => {
             dispatch(actions.setSelectedVariableName('analysed_sst'));
             expect(getState().control.viewer.layers).to.deep.equal([
                 {
-                    id: actions.SELECTED_VARIABLE_LAYER_ID,
+                    id: SELECTED_VARIABLE_LAYER_ID,
                     type: "VariableImage",
                     visible: true,
                     resName: "res_1",
@@ -317,7 +318,7 @@ describe('Actions', () => {
             dispatch(actions.setSelectedVariableName('profile'));
             expect(getState().control.viewer.layers).to.deep.equal([
                 {
-                    id: actions.SELECTED_VARIABLE_LAYER_ID,
+                    id: SELECTED_VARIABLE_LAYER_ID,
                     type: "Unknown",
                     name: "profile of res_1",
                     visible: true,
@@ -328,7 +329,7 @@ describe('Actions', () => {
 
         it('setSelectedVariableName - can restore previous layer state', () => {
             const selectedVariableLayerOld = {
-                id: actions.SELECTED_VARIABLE_LAYER_ID,
+                id: SELECTED_VARIABLE_LAYER_ID,
                 type: "VariableImage",
                 visible: true,
                 resName: "res_1",
@@ -346,7 +347,7 @@ describe('Actions', () => {
                 saturation: 1,
             };
             const selectedVariableLayerNew = {
-                id: actions.SELECTED_VARIABLE_LAYER_ID,
+                id: SELECTED_VARIABLE_LAYER_ID,
                 type: "VariableImage",
                 visible: true,
                 resName: "res_1",
@@ -368,7 +369,7 @@ describe('Actions', () => {
             dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
             dispatch(actions.setSelectedVariableName('analysed_sst'));
             dispatch(actions.updateLayer({
-                id: actions.SELECTED_VARIABLE_LAYER_ID,
+                id: SELECTED_VARIABLE_LAYER_ID,
                 varIndex: [139],
                 displayMax: 300
             } as any));
@@ -384,7 +385,7 @@ describe('Actions', () => {
             dispatch(actions.addVariableLayer('ID756473'));
             expect(getState().control.viewer.layers).to.deep.equal([
                 {
-                    id: actions.SELECTED_VARIABLE_LAYER_ID,
+                    id: SELECTED_VARIABLE_LAYER_ID,
                     type: 'Unknown',
                     visible: true,
                 },
@@ -399,7 +400,7 @@ describe('Actions', () => {
             dispatch(actions.addVariableLayer('ID756473'));
             expect(getState().control.viewer.layers).to.deep.equal([
                 {
-                    id: actions.SELECTED_VARIABLE_LAYER_ID,
+                    id: SELECTED_VARIABLE_LAYER_ID,
                     type: "VariableImage",
                     visible: true,
                     resName: "res_1",
@@ -445,7 +446,7 @@ describe('Actions', () => {
             dispatch(actions.addVariableLayer('ID756473'));
             expect(getState().control.viewer.layers).to.deep.equal([
                 {
-                    id: actions.SELECTED_VARIABLE_LAYER_ID,
+                    id: SELECTED_VARIABLE_LAYER_ID,
                     type: "Unknown",
                     name: "profile of res_1",
                     visible: true,
@@ -507,16 +508,16 @@ describe('Actions', () => {
             dispatch(actions.setShowSelectedVariableLayer(false));
             expect(getState().session.showSelectedVariableLayer).to.equal(false);
             expect(getState().control.viewer.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: false, type: 'Unknown'},
+                {id: SELECTED_VARIABLE_LAYER_ID, visible: false, type: 'Unknown'},
                 defaultCountriesLayers,
             ]);
         });
 
         it('setShowSelectedVariableLayer - setSelectedLayerId', () => {
-            dispatch(actions.setSelectedLayerId(actions.SELECTED_VARIABLE_LAYER_ID));
+            dispatch(actions.setSelectedLayerId(SELECTED_VARIABLE_LAYER_ID));
 
             dispatch(actions.setShowSelectedVariableLayer(true));
-            expect(getState().control.selectedLayerId).to.be.equal(actions.SELECTED_VARIABLE_LAYER_ID);
+            expect(getState().control.selectedLayerId).to.be.equal(SELECTED_VARIABLE_LAYER_ID);
 
             dispatch(actions.setShowSelectedVariableLayer(false));
             expect(getState().control.selectedLayerId).to.be.null;
@@ -531,15 +532,6 @@ describe('Actions', () => {
     });
 
     describe('Workspace actions involving layers', () => {
-
-        const layers = [
-            {
-                id: 'L1', resName: 'res_1', varName: 'X'
-            },
-            {
-                id: 'L2', resName: 'res_2', varName: 'X'
-            }
-        ];
 
         const workspace = {
             baseDir: 'a/b/c',
@@ -561,8 +553,8 @@ describe('Actions', () => {
             dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
             dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
             expect(getState().control.viewer.layers).to.deep.equal([
-                {id: actions.SELECTED_VARIABLE_LAYER_ID, visible: true, type: "Unknown"},
-                {id: actions.COUNTRIES_LAYER_ID, visible: false, type: "Vector", name: 'Countries'},
+                {id: SELECTED_VARIABLE_LAYER_ID, visible: true, type: "Unknown"},
+                {id: COUNTRIES_LAYER_ID, visible: false, type: "Vector", name: 'Countries'},
                 {id: 'L1', resName: 'res_1', varName: 'X'},
                 {id: 'L2', resName: 'bert', varName: 'X'},
             ]);
@@ -580,6 +572,7 @@ describe('Actions', () => {
                 isOpen: true
             });
             dispatch(actions.hideOperationStepDialog());
+            //noinspection JSUnusedAssignment
             expect(getState().control.dialogs['operationStepDialog']).to.deep.equal({
                 isOpen: false,
                 inputAssignments

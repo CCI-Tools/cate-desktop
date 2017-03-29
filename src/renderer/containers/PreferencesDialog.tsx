@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Button, TabPanel, Tab, TabList, Tabs, Switch} from "@blueprintjs/core";
+import {Button, TabPanel, Tab, TabList, Tabs, Switch, Tabs2, Tab2} from "@blueprintjs/core";
 import {State, SessionState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
@@ -86,19 +86,15 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
     }
 
     private renderBody() {
+        if (!this.props.isOpen) {
+            return null;
+        }
+
         return (
-            <Tabs>
-                <TabList>
-                    <Tab>General</Tab>
-                    <Tab>Data Management</Tab>
-                </TabList>
-                <TabPanel>
-                    {this.renderGeneralPanel()}
-                </TabPanel>
-                <TabPanel>
-                    {this.renderDataManagementPanel()}
-                </TabPanel>
-            </Tabs>
+            <Tabs2 id="preferences">
+                <Tab2 id="g" title="General" panel={this.renderGeneralPanel()}/>
+                <Tab2 id="dm" title="Data Management" panel={this.renderDataManagementPanel()}/>
+            </Tabs2>
         );
     }
 

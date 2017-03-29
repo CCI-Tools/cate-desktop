@@ -8,7 +8,10 @@ import {
     DataSource, GeoJsonDataSource
 } from "../components/cesium/CesiumGlobe";
 import {connect} from "react-redux";
-import * as actions from "../actions";
+import {
+    findVariable, findResource, getTileUrl, getGeoJSONUrl, getGeoJSONCountriesUrl,
+    COUNTRIES_LAYER_ID
+} from "../state-util";
 const Cesium: any = require('cesium');
 
 interface IGlobeViewProps {
@@ -73,11 +76,11 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
     }
 
     private getResource(ref: VariableRefState): ResourceState {
-        return actions.findResource(this.props.workspace.resources, ref);
+        return findResource(this.props.workspace.resources, ref);
     }
 
     private getVariable(ref: VariableRefState): VariableState {
-        return actions.findVariable(this.props.workspace.resources, ref);
+        return findVariable(this.props.workspace.resources, ref);
     }
 
     private convertVariableImageLayerToLayerDescriptor(layer: VariableImageLayerState): LayerDescriptor|null {
@@ -93,7 +96,7 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
             return null;
         }
         const baseDir = this.props.workspace.baseDir;
-        const url = actions.getTileUrl(this.props.baseUrl, baseDir, layer);
+        const url = getTileUrl(this.props.baseUrl, baseDir, layer);
         let rectangle = Cesium.Rectangle.MAX_VALUE;
         if (imageLayout.sector) {
             const sector = imageLayout.sector;
@@ -126,7 +129,7 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
         }
 
         const baseDir = this.props.workspace.baseDir;
-        const url = actions.getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
+        const url = getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
         const dataSourceName = `${resource.name} / ${variable.name}`;
 
         const dataSource = (dataSourceOptions) => {
@@ -180,8 +183,8 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
 
     private convertVectorLayerToDataSourceDescriptor(layer: VectorLayerState): DataSourceDescriptor|null {
         let url = layer.url;
-        if (layer.id === actions.COUNTRIES_LAYER_ID) {
-            url = actions.getGeoJSONCountriesUrl(this.props.baseUrl);
+        if (layer.id === COUNTRIES_LAYER_ID) {
+            url = getGeoJSONCountriesUrl(this.props.baseUrl);
         }
         return {
             id: layer.id,

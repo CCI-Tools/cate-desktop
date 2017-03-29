@@ -16,10 +16,39 @@ function registerProjections() {
 
 registerProjections();
 
-const PROJECTION_CODES_SET = new Set(Object.keys(proj4.defs));
+export interface Proj4CoordinatesObj {
+    x: number;
+    y: number;
+    z?: number;
+    m?: number;
+}
+
+export type Proj4Coordinates = number[] | Proj4CoordinatesObj;
+
+export interface Proj4Projection {
+    title: string;
+    units: string;
+    datum: string;
+    b: number;
+    rf: number;
+    sphere: number;
+    es: number;
+    e: number;
+    ep2: number;
+    forward(coordinates: Proj4Coordinates): number[];
+    inverse(coordinates: Proj4Coordinates): number[];
+}
+
+export function getProjectionCodes(): string[] {
+    return Object.keys(proj4.defs);
+}
+
+export function getProjection(projectionCode: string): Proj4Projection|null|undefined {
+    return proj4.defs(projectionCode);
+}
 
 export function validateProjectionCode(projectionCode: string) {
-    if (!PROJECTION_CODES_SET.has(projectionCode.toUpperCase())) {
+    if (!getProjection(projectionCode)) {
         throw new Error(`"${projectionCode}" is not a legal projection code.`);
     }
 }

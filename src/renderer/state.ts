@@ -458,6 +458,20 @@ export interface VariableVectorLayerState extends VariableLayerBase {
     type: 'VariableVector';
 }
 
+/**
+ * An object comprising the resource and one of its variables which can be represented as a spatial 2D layer.
+ */
+export class LayerVariableState {
+    /**
+     * The resource.
+     */
+    resource: ResourceState;
+    /**
+     * A spatial 2D variable within the resource.
+     */
+    variable: VariableState;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ColorMapState

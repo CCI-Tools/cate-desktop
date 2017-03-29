@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {State, VariableState, ResourceState, LayerState, DialogState} from "../state";
+import {State, ResourceState, LayerState, DialogState, LayerVariableState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -7,16 +7,11 @@ import {ListBoxSelectionMode, ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
 import {ModalDialog} from "../components/ModalDialog";
 
-class LayerVariable {
-    resource: ResourceState;
-    variable: VariableState;
-}
-
 interface ILayerSourcesDialogProps extends DialogState {
     dispatch?: any;
     resources: ResourceState[];
     layers: LayerState[];
-    layerVariables: LayerVariable[];
+    layerVariables: LayerVariableState[];
 }
 
 interface ILayerSourcesDialogState {
@@ -28,7 +23,7 @@ function mapStateToProps(state: State): ILayerSourcesDialogProps {
         isOpen: selectors.dialogStateSelector(LayerSourcesDialog.DIALOG_ID)(state).isOpen,
         layers: selectors.layersSelector(state),
         resources: selectors.resourcesSelector(state),
-        layerVariables: getLayerVariables(selectors.resourcesSelector(state)),
+        layerVariables: selectors.selectedLayerVariablesSelector(state),
     };
 }
 
@@ -82,6 +77,9 @@ class LayerSourcesDialog extends React.Component<ILayerSourcesDialogProps, ILaye
     }
 
     private renderBody() {
+        if (!this.props.isOpen) {
+            return null;
+        }
         if (!this.props.layerVariables.length) {
             return (<p>There are currently no variables that could be added as layers.</p>);
         }
@@ -99,11 +97,11 @@ class LayerSourcesDialog extends React.Component<ILayerSourcesDialogProps, ILaye
     }
 
     //noinspection JSUnusedLocalSymbols
-    private static getVariableItemKey(variable: LayerVariable, index: number) {
+    private static getVariableItemKey(variable: LayerVariableState, index: number) {
         return index;
     }
 
-    private static renderVariableItem(layerVariable: LayerVariable) {
+    private static renderVariableItem(layerVariable: LayerVariableState) {
         const variable = layerVariable.variable;
         return (
             <div>
@@ -119,18 +117,5 @@ class LayerSourcesDialog extends React.Component<ILayerSourcesDialogProps, ILaye
 }
 
 export default connect(mapStateToProps)(LayerSourcesDialog);
-
-
-function getLayerVariables(resources: ResourceState[]) {
-    const layerVariables = [];
-    for (let resource of resources) {
-        for (let variable of resource.variables) {
-            if (actions.isSpatialImageVariable(variable) || actions.isSpatialVectorVariable(variable)) {
-                layerVariables.push({resource, variable});
-            }
-        }
-    }
-    return layerVariables;
-}
 
 

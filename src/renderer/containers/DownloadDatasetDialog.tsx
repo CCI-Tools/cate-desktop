@@ -206,6 +206,10 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
     }
 
     private renderBody() {
+        if (!this.props.isOpen) {
+            return null;
+        }
+
         const temporalCoverage = this.state.temporalCoverage;
         const minDate = temporalCoverage ? temporalCoverage[0] : new Date('1980-01-01');
         const maxDate = temporalCoverage ? temporalCoverage[1] : new Date(Date.now());

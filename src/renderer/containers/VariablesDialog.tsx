@@ -49,6 +49,10 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
     }
 
     private renderBody() {
+        if (!this.props.isOpen) {
+            return null;
+        }
+
         const variables = this.props.resource.variables;
         if (!variables) {
             return (<p>{`Resource "${this.props.resource.name}" does not seem to have any variables.`}</p>);

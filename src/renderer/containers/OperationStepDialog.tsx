@@ -141,10 +141,6 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
     }
 
     render() {
-        if (!this.props.isOpen) {
-            return null;
-        }
-
         const dialogTitle = this.props.isAddDialog ? "Add Operation Step" : "Change Operation Step";
         const tooltipText = this.props.isAddDialog ? 'Add a new operation step to the workflow' : 'Change the operation step parameters.';
 
@@ -166,6 +162,10 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
     }
 
     renderBody() {
+        if (!this.props.isOpen) {
+            return null;
+        }
+
         const operation = this.props.operation;
 
         const bodyHeaderText = (
@@ -201,6 +201,10 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
     }
 
     renderExtraActions() {
+        if (!this.props.isOpen) {
+            return null;
+        }
+
         return [
             <Button key='validate' onClick={this.onValidate}>Validate</Button>,
             <Button key='defaults' onClick={this.onDefaults}>Defaults</Button>
@@ -366,6 +370,9 @@ class ValidationDialog extends React.Component<IValidationDialogProps, null> {
     }
 
     private renderBody() {
+        if (!this.props.isOpen) {
+            return null;
+        }
 
         const inputErrors = this.props.inputErrors;
         if (!inputErrors) {
