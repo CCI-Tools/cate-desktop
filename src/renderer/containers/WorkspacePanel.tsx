@@ -207,8 +207,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         const selectedWorkflowStep = this.props.selectedWorkflowStep;
         return (
             <div className="pt-button-group">
-                <Button disabled={!selectedWorkflowStep} style={{marginRight: '0.2em'}} iconName="duplicate"/>
-                <Button disabled={!selectedWorkflowStep} style={{marginRight: '0.2em'}} iconName="edit"/>
+                <Button disabled={!selectedWorkflowStep} iconName="duplicate"/>
+                <Button disabled={!selectedWorkflowStep} iconName="edit"/>
                 <Button disabled={!selectedWorkflowStep} iconName="delete"/>
             </div>
         );
