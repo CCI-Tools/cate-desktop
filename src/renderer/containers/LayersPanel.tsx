@@ -16,6 +16,7 @@ import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {NumericRangeField} from "../components/field/NumericRangeField";
 import LayerSourcesDialog from "./LayerSourcesDialog";
 import {getLayerDisplayName, SELECTED_VARIABLE_LAYER_ID} from "../state-util";
+import {FieldValue} from "../components/field/Field";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -70,14 +71,18 @@ function mapStateToProps(state: State): ILayersPanelProps {
     };
 }
 
+interface ILayersPanelState {
+    displayMinMax: FieldValue<NumberRange>;
+}
+
 /**
  * The LayersPanel is used to select and browse available layers.
  *
  * @author Norman Fomferra
  */
-class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispatch, any> {
+class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispatch, ILayersPanelState> {
 
-    constructor(props: ILayersPanelProps&ILayersPanelDispatch, context: any) {
+    constructor(props: ILayersPanelProps & ILayersPanelDispatch, context: any) {
         super(props, context);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleAddLayerButtonClicked = this.handleAddLayerButtonClicked.bind(this);
@@ -93,9 +98,24 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         this.handleChangedDisplayAlphaBlend = this.handleChangedDisplayAlphaBlend.bind(this);
         this.handleChangedColorMapName = this.handleChangedColorMapName.bind(this);
         this.renderLayerItem = this.renderLayerItem.bind(this);
+        this.state = LayersPanel.mapPropsToState(props);
     }
 
-    componentDidMount() {
+    static mapPropsToState(props: ILayersPanelProps): ILayersPanelState {
+        let displayMinMax;
+        if (props.selectedVariableImageLayer) {
+            const textValue = `${props.selectedVariableImageLayer.displayMin}, ${props.selectedVariableImageLayer.displayMax}`;
+            const value = [props.selectedVariableImageLayer.displayMin, props.selectedVariableImageLayer.displayMax];
+            displayMinMax = {textValue, value};
+        }
+        return {displayMinMax};
+    }
+
+    componentWillReceiveProps(nextProps: ILayersPanelProps&ILayersPanelDispatch): void {
+        this.setState(LayersPanel.mapPropsToState(nextProps));
+    }
+
+    componentDidMount(): void {
         if (!this.props.colorMapCategories) {
             this.props.dispatch(actions.loadColorMaps());
         }
@@ -152,11 +172,14 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     }
 
 
-    private handleChangedDisplayMinMax(value: [number, number]) {
+    private handleChangedDisplayMinMax(displayMinMax: FieldValue<NumberRange>) {
         const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
-        const displayMin = value[0];
-        const displayMax = value[1];
-        this.props.dispatch(actions.updateLayer(layer, {displayMin, displayMax}));
+        if (!displayMinMax.error) {
+            const displayMin = displayMinMax.value[0];
+            const displayMax = displayMinMax.value[1];
+            this.props.dispatch(actions.updateLayer(layer, {displayMin, displayMax}));
+        }
+        this.setState({displayMinMax});
     }
 
     private handleChangedDisplayAlphaBlend(event: any) {
@@ -353,7 +376,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                 <td>Display range</td>
                 <td>
                     <div className="pt-control-group">
-                        <NumericRangeField value={[layer.displayMin, layer.displayMax]}
+                        <NumericRangeField value={this.state.displayMinMax}
                                            onChange={this.handleChangedDisplayMinMax}
                         />
                         <Tooltip content="Compute valid min/max">
