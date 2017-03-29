@@ -108,13 +108,13 @@ function loadBackendLocation(): string {
     const locationFile = path.join(getAppDataDir(), WEBAPI_VERSION, 'cate.location');
     if (!fs.existsSync(locationFile)) {
         console.error(CATE_DESKTOP_PREFIX, `missing cate.location file: ${locationFile}`);
-        return '';
+        return null;
     }
     const location = fs.readFileSync(locationFile, 'utf8');
     if (location) {
         return location.trim();
     }
-    return '';
+    return null;
 }
 
 function loadAppConfig(): Configuration {
@@ -168,11 +168,10 @@ export function init() {
 
     _config = loadAppConfig();
     _prefs = loadUserPrefs();
-    const backendLocation = loadBackendLocation();
+
 
     let webAPIConfig = _config.get('webAPIConfig', {});
     webAPIConfig = updateConditionally(webAPIConfig, {
-        command: path.join(backendLocation, process.platform === 'win32' ? 'Scripts/cate-webapi.exe' : 'bin/cate-webapi'),
         servicePort: 9090,
         serviceAddress: '',
         serviceFile: 'cate-webapi.json',
@@ -180,6 +179,12 @@ export function init() {
         processOptions: {},
         useMockService: false,
     });
+    const backendLocation = loadBackendLocation();
+    if (backendLocation) {
+        webAPIConfig = updateConditionally(webAPIConfig, {
+            command: path.join(backendLocation, process.platform === 'win32' ? 'Scripts/cate-webapi.exe' : 'bin/cate-webapi')
+        });
+    }
     _config.set('webAPIConfig', webAPIConfig);
 
     console.log(CATE_DESKTOP_PREFIX, 'appConfig:', _config.data);
@@ -503,11 +508,11 @@ function checkWebapiServiceExecutable(callback: (installerPath?: string) => void
             return true;
         }
     } else {
+        const expectedLoc = webAPIConfig.command ? "The expected location is:\n    '" + webAPIConfig.command + "'\n" : "";
         electron.dialog.showMessageBox({
             type: 'error',
             title: 'Cate - Fatal Error',
-            message: 'Cate\'s back-end could not be found. The expected location is:\n    "' +
-            webAPIConfig.command + '"\n\n' +
+            message: `Cate\'s back-end could not be found. ${expectedLoc}\n` +
             'Please install Cate back-end first.\n\n' +
             'Application will exit now.',
         });
