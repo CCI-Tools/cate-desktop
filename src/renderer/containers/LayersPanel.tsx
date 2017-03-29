@@ -219,7 +219,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                 <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
                                          onShowDetailsChange={this.handleShowDetailsChanged}
                                          isSplitPanel={true}
-                                         initialContentHeight={200}
+                                         initialContentHeight={160}
                                          actionComponent={this.renderActionButtonRow()}>
                     {this.renderLayersList()}
                     {this.renderLayerDetailsCard()}
@@ -236,17 +236,14 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         const canMoveLayerUp = selectedLayerIndex > 0;
         const canMoveLayerDown = selectedLayerIndex >= 0 && selectedLayerIndex < layerCount - 1;
         return (
-            <div style={{display: 'inline', padding: '0.2em'}}>
+            <div className="pt-button-group">
                 <Button className="pt-intent-primary"
-                        style={{marginRight: '0.1em'}}
                         onClick={this.handleAddLayerButtonClicked}
                         iconName="add"/>
-                <Button style={{marginRight: '0.1em'}}
-                        disabled={!canRemoveLayer}
+                <Button disabled={!canRemoveLayer}
                         onClick={this.handleRemoveLayerButtonClicked}
                         iconName="remove"/>
-                <Button style={{marginRight: '0.1em'}}
-                        disabled={!canMoveLayerUp}
+                <Button disabled={!canMoveLayerUp}
                         onClick={this.handleMoveLayerUpButtonClicked}
                         iconName="arrow-up"/>
                 <Button disabled={!canMoveLayerDown}

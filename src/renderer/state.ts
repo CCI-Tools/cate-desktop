@@ -530,8 +530,10 @@ export interface ControlState {
     showOperationDetails: boolean;
 
     // WorkspacePanel
-    selectedWorkflowStepId: string|null;
+    showResourceDetails: boolean;
     selectedWorkspaceResourceId: string|null;
+    showWorkflowStepDetails: boolean;
+    selectedWorkflowStepId: string|null;
 
     // VariablesPanel
     selectedVariableName: string|null;

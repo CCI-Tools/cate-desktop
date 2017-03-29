@@ -87,14 +87,14 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
             //     </ExpansionPanel>
             // );
             return (
-                    <ContentWithDetailsPanel showDetails={this.props.showVariableDetails}
-                                             onShowDetailsChange={this.handleShowDetailsChanged}
-                                             isSplitPanel={true}
-                                             initialContentHeight={200}
-                                             actionComponent={this.renderVariableActionRow()}>
-                        {this.renderVariablesList()}
-                        {this.renderVariableDetails()}
-                    </ContentWithDetailsPanel>
+                <ContentWithDetailsPanel showDetails={this.props.showVariableDetails}
+                                         onShowDetailsChange={this.handleShowDetailsChanged}
+                                         isSplitPanel={true}
+                                         initialContentHeight={200}
+                                         actionComponent={this.renderVariableActionRow()}>
+                    {this.renderVariablesList()}
+                    {this.renderVariableDetails()}
+                </ContentWithDetailsPanel>
             );
         } else {
             // return (
@@ -108,12 +108,12 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
             //     </ExpansionPanel>
             // );
             return (
-                    <Card>
-                        <p><strong>No variables</strong></p>
-                        <p>
-                            The currently selected resource in the workspace does not contain any variables.
-                        </p>
-                    </Card>
+                <Card>
+                    <p><strong>No variables</strong></p>
+                    <p>
+                        The currently selected resource in the workspace does not contain any variables.
+                    </p>
+                </Card>
             );
         }
     }
@@ -122,8 +122,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         const selectedVariable = this.props.selectedVariable;
         const isSpatialVariable = selectedVariable && selectedVariable.ndim >= 2 && selectedVariable.imageLayout;
         return (
-            <div style={{display: 'flex'}}>
-                <span style={{flex: 'auto'}}/>
+            <div className="pt-button-group">
                 <Button disabled={false}
                         iconName={this.props.showSelectedVariableLayer ? "eye-open" : "eye-off"}
                         onClick={this.handleShowSelectedVariableLayer}
@@ -184,12 +183,14 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
 
     private renderVariablesList() {
         return (
-            <ListBox items={this.props.variables}
-                     getItemKey={VariablesPanel.getItemKey}
-                     renderItem={VariablesPanel.renderItem}
-                     selection={this.props.selectedVariableName}
-                     selectionMode={ListBoxSelectionMode.SINGLE}
-                     onSelection={this.handleSelectedVariableName}/>
+            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+                <ListBox items={this.props.variables}
+                         getItemKey={VariablesPanel.getItemKey}
+                         renderItem={VariablesPanel.renderItem}
+                         selection={this.props.selectedVariableName}
+                         selectionMode={ListBoxSelectionMode.SINGLE}
+                         onSelection={this.handleSelectedVariableName}/>
+            </div>
         );
     }
 }

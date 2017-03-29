@@ -122,7 +122,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             />);
 
             const actionComponent = (
-                <div>
+                <div className="pt-button-group">
                     <Button className="pt-intent-primary"
                             onClick={this.handleAddOperationStepButtonClicked}
                             disabled={!this.props.selectedOperationName || !this.props.workspace}
@@ -146,7 +146,6 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         } else {
             body = this.renderNoOperationsMessage();
         }
-        //return (<Panel id="operationsPanel" iconName="pt-icon-function" title="Operations" body={body}/>);
         return body;
     }
 

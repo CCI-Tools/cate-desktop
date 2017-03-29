@@ -1,21 +1,22 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {State, WorkspaceState, WorkflowStepState, ResourceState} from "../state";
-import {Tooltip, Tab, Tabs, TabList, TabPanel, Button} from "@blueprintjs/core";
-import {ExpansionPanel} from "../components/ExpansionPanel";
+import {TabPanel, Button, Tabs2, Tab2, NonIdealState} from "@blueprintjs/core";
 import * as actions from '../actions'
 import * as selectors from '../selectors'
 import * as assert from "../../common/assert";
 import {ListBox} from "../components/ListBox";
-import {Card} from "../components/Card";
 import {LabelWithType} from "../components/LabelWithType";
 import ResourceRenameDialog from "./ResourceRenameDialog";
+import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
     workspace: WorkspaceState;
+    showResourceDetails: boolean;
     selectedResource: ResourceState|null;
     selectedResourceId: string|null;
+    showWorkflowStepDetails: boolean;
     selectedWorkflowStep: WorkflowStepState|null;
     selectedWorkflowStepId: string|null;
 }
@@ -23,8 +24,10 @@ interface IWorkspacePanelProps {
 function mapStateToProps(state: State): IWorkspacePanelProps {
     return {
         workspace: selectors.workspaceSelector(state),
+        showResourceDetails: selectors.showResourceDetailsSelector(state),
         selectedResource: selectors.selectedResourceSelector(state),
         selectedResourceId: selectors.selectedResourceIdSelector(state),
+        showWorkflowStepDetails: selectors.showWorkflowStepDetailsSelector(state),
         selectedWorkflowStep: selectors.selectedWorkflowStepSelector(state),
         selectedWorkflowStepId: selectors.selectedWorkflowStepIdSelector(state),
     };
@@ -41,13 +44,15 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
     constructor(props, context) {
         super(props, context);
-        this.handleWorkspaceResourceIdSelected = this.handleWorkspaceResourceIdSelected.bind(this);
+        this.handleShowResourceDetailsChanged = this.handleShowResourceDetailsChanged.bind(this);
+        this.handleResourceIdSelected = this.handleResourceIdSelected.bind(this);
+        this.handleShowWorkflowStepDetailsChanged = this.handleShowWorkflowStepDetailsChanged.bind(this);
         this.handleWorkflowStepIdSelected = this.handleWorkflowStepIdSelected.bind(this);
         this.handleResourceRenameButtonClicked = this.handleResourceRenameButtonClicked.bind(this);
         this.renderStepItem = this.renderStepItem.bind(this);
     }
 
-    private handleWorkspaceResourceIdSelected(newSelection: Array<React.Key>) {
+    private handleResourceIdSelected(newSelection: Array<React.Key>) {
         if (newSelection && newSelection.length) {
             this.props.dispatch(actions.setSelectedWorkspaceResourceId(newSelection[0] as string));
         } else {
@@ -61,6 +66,14 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         } else {
             this.props.dispatch(actions.setSelectedWorkflowStepId(null));
         }
+    }
+
+    private handleShowResourceDetailsChanged(value: boolean) {
+        this.props.dispatch(actions.setControlProperty('showResourceDetails', value));
+    }
+
+    private handleShowWorkflowStepDetailsChanged(value: boolean) {
+        this.props.dispatch(actions.setControlProperty('showWorkflowStepDetails', value));
     }
 
     private handleResourceRenameButtonClicked() {
@@ -81,110 +94,128 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     private renderStepItem(step: WorkflowStepState) {
-        return ( <span>{this.getStepLabel(step)}</span>);
+        return ( <span>{this.getWorkflowStepLabel(step)}</span>);
     }
 
     render() {
         const workspace = this.props.workspace;
-
-        let workspaceInfo; // For debug only
-        let workspacePane;
-        if (workspace) {
-            assert.ok(workspace.workflow);
-            const steps = workspace.workflow.steps;
-            assert.ok(steps);
-            const resources = workspace.resources;
-            assert.ok(resources);
-
-            const resourcesTooltip = "Workspace resources that result from workflow steps";
-            const workflowTooltip = "Workflow steps that generate workspace resources";
-
-            // const resourcesMoreMenu = <span className="pt-icon-standard pt-icon-edit"/>;
-            // const operationsMoreMenu = <span className="pt-icon-standard pt-icon-more"/>;
-
-            workspaceInfo = <span>Path: {workspace.baseDir}</span>;
-            workspacePane = (
-                <Tabs>
-                    <TabList>
-                        <Tab>
-                            <span className="pt-icon-database" style={{marginRight: 4}}/>
-                            <Tooltip content={resourcesTooltip}>
-                                <span>{`Resources (${resources.length})`}</span>
-                            </Tooltip>
-                        </Tab>
-                        <Tab>
-                            <span className="pt-icon-flows" style={{marginRight: 4}}/>
-                            <Tooltip content={workflowTooltip}>
-                                <span>{`Steps (${steps.length})`}</span>
-                            </Tooltip>
-                        </Tab>
-                    </TabList>
-                    {this.renderResourcesPanel()}
-                    {this.renderStepsPanel()}
-                </Tabs>
-            );
-        } else {
-            workspaceInfo = null;
-            workspacePane = (
-                <Card>
-                    <p>No workspace available.</p>
-                </Card>
+        if (!workspace) {
+            return (
+                <NonIdealState title="No workspace available"
+                               description={<span>Try <strong>File / New</strong> or <strong>File / Open</strong> from the main menu.</span>}
+                               visual="folder"/>
             );
         }
 
-        // return (
-        //     <ExpansionPanel icon="pt-icon-folder-close" text="Workspace" isExpanded={true} defaultHeight={300}>
-        //         {workspaceInfo}
-        //         {workspacePane}
-        //     </ExpansionPanel>
-        // );
+        assert.ok(workspace.workflow);
+        const steps = workspace.workflow.steps;
+        assert.ok(steps);
+        const resources = workspace.resources;
+        assert.ok(resources);
+
+        //const resourcesTooltip = "Workspace resources that result from workflow steps";
+        //const workflowTooltip = "Workflow steps that generate workspace resources";
+
         return (
             <div style={{width: "100%", height: "100%", overflow: 'auto'}}>
-                {workspaceInfo}
-                {workspacePane}
+                <span>Path: <code>{workspace.baseDir}</code></span>
+                <Tabs2 id="workflow">
+                    <Tab2 id="resources" title={`Resources (${resources.length})`} panel={this.renderResourcesPanel()}/>
+                    <Tab2 id="steps" title={`Steps (${steps.length})`} panel={this.renderWorkflowStepsPanel()}/>
+                </Tabs2>
             </div>
         );
     }
 
     private renderResourcesPanel() {
-        const resources = this.props.workspace.resources;
-        const selectedResource = this.props.selectedResource;
         return (
-            <TabPanel>
+            <ContentWithDetailsPanel showDetails={this.props.showResourceDetails}
+                                     onShowDetailsChange={this.handleShowResourceDetailsChanged}
+                                     isSplitPanel={true}
+                                     initialContentHeight={100}
+                                     actionComponent={this.renderResourcesActions()}>
+                {this.renderResourcesList()}
+                {this.renderResourceDetails()}
+            </ContentWithDetailsPanel>
+        );
+    }
+
+    private renderResourcesList() {
+        const resources = this.props.workspace.resources;
+        return (
+            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
                 <ListBox items={resources}
                          getItemKey={WorkspacePanel.getResourceItemKey}
                          renderItem={WorkspacePanel.renderResourceItem}
                          selection={this.props.selectedResourceId}
-                         onSelection={this.handleWorkspaceResourceIdSelected}/>
-                <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
-                    <Button disabled={!selectedResource} iconName="label" onClick={this.handleResourceRenameButtonClicked}/>
-                </div>
-                <ResourceRenameDialog/>
-            </TabPanel>
+                         onSelection={this.handleResourceIdSelected}/>
+
+            </div>
         );
     }
 
-    private renderStepsPanel() {
-        const workflowSteps = this.props.workspace.workflow.steps;
-        const selectedWorkflowStep = this.props.selectedWorkflowStep;
+    //noinspection JSMethodCanBeStatic
+    private renderResourceDetails() {
+        // TODO (forman): implement me!
+        return <div></div>;
+    }
+
+    private renderResourcesActions() {
+        const selectedResource = this.props.selectedResource;
         return (
-            <TabPanel>
+            <div className="pt-button-group">
+                <Button disabled={!selectedResource} iconName="label"
+                        onClick={this.handleResourceRenameButtonClicked}/>
+                <ResourceRenameDialog/>
+            </div>
+        );
+    }
+
+    private renderWorkflowStepsPanel() {
+        return (
+            <ContentWithDetailsPanel showDetails={this.props.showWorkflowStepDetails}
+                                     onShowDetailsChange={this.handleShowWorkflowStepDetailsChanged}
+                                     isSplitPanel={true}
+                                     initialContentHeight={100}
+                                     actionComponent={this.renderWorkflowStepActions()}>
+                {this.renderWorkflowStepsList()}
+                {this.renderWorkflowStepDetails()}
+            </ContentWithDetailsPanel>
+        );
+    }
+
+    //noinspection JSMethodCanBeStatic
+    private renderWorkflowStepDetails() {
+        // TODO (forman): implement me!
+        return <div></div>;
+    }
+
+    private renderWorkflowStepsList() {
+        const workflowSteps = this.props.workspace.workflow.steps;
+        return (
+            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
                 <ListBox items={workflowSteps}
                          getItemKey={WorkspacePanel.getStepItemKey}
                          renderItem={this.renderStepItem}
                          selection={this.props.selectedWorkflowStepId}
                          onSelection={this.handleWorkflowStepIdSelected}/>
-                <div style={{display: 'flex'}}><span style={{flex: 'auto'}}/>
-                    <Button disabled={!selectedWorkflowStep} style={{marginRight: '0.2em'}} iconName="duplicate"/>
-                    <Button disabled={!selectedWorkflowStep} style={{marginRight: '0.2em'}} iconName="edit"/>
-                    <Button disabled={!selectedWorkflowStep} iconName="delete"/>
-                </div>
-            </TabPanel>
+            </div>
+        );
+    }
+
+    private renderWorkflowStepActions() {
+        const selectedWorkflowStep = this.props.selectedWorkflowStep;
+        return (
+            <div className="pt-button-group">
+                <Button disabled={!selectedWorkflowStep} style={{marginRight: '0.2em'}} iconName="duplicate"/>
+                <Button disabled={!selectedWorkflowStep} style={{marginRight: '0.2em'}} iconName="edit"/>
+                <Button disabled={!selectedWorkflowStep} iconName="delete"/>
+            </div>
         );
     }
 
     //noinspection JSMethodCanBeStatic
-    private getStepLabel(step: WorkflowStepState) {
+    private getWorkflowStepLabel(step: WorkflowStepState) {
         if (step["op"]) {
             return step["op"];
         } else {

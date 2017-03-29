@@ -56,8 +56,8 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                     label="View mode"
                     onChange={this.onViewModeChange}
                     selectedValue={this.props.viewMode}>
-                    <Radio label="2D Map" value="2D"/>
                     <Radio label="3D Globe" value="3D"/>
+                    <Radio label="2D Map" value="2D"/>
                 </RadioGroup>
 
                 <label className="pt-label">

@@ -104,17 +104,16 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             const canDownload = this.props.selectedDataStore && this.props.selectedDataStore.id !== 'local';
             const canOpen = this.props.selectedDataSource && this.props.hasWorkspace;
             const actionComponent = (
-                <div>
+                <div className="pt-button-group">
                     <Button className="pt-intent-primary"
                             onClick={this.handleShowDownloadDatasetDialog}
                             disabled={!canDownload}
                             iconName="cloud-download"/>
-                    <DownloadDatasetDialog/>
                     <Button className="pt-intent-primary"
-                            style={{marginLeft: 4}}
                             onClick={this.handleShowOpenDatasetDialog}
                             disabled={!canOpen}
                             iconName="folder-shared-open"/>
+                    <DownloadDatasetDialog/>
                     <OpenDatasetDialog/>
                 </div>
             );
