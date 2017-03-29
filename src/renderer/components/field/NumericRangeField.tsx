@@ -8,7 +8,6 @@ export interface INumericRangeFieldProps extends IFieldProps<NumericRange> {
 
 /**
  * A NumericRangeField is an input field that provides a numeric range of two number values (x1 and x2 properties).
- * It notifies a parent (onChange property) only if the the RETURN key is pressed or the input field looses its focus.
  *
  * @author Norman Fomferra
  */
