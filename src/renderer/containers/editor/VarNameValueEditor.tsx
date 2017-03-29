@@ -35,6 +35,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
     render() {
         const textValue = toTextValue(this.props.value);
         const varNames = textValue !== '' ? textValue.split(',').map(name => name.trim()) : [];
+        const hasSelectableVariables = this.props.resource && this.props.resource.variables && this.props.resource.variables.length;
         return (
             <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}}>
                 <TextField
@@ -46,7 +47,8 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
                 />
 
                 <Button className="pt-intent-primary" style={{flex: 'none'}}
-                        onClick={() => this.setState({isDetailsEditorOpen: true})}>...</Button>
+                        onClick={() => this.setState({isDetailsEditorOpen: true})}
+                        disabled={!hasSelectableVariables}>...</Button>
 
                 <VariablesDialog isOpen={this.state.isDetailsEditorOpen}
                                  resource={this.props.resource}

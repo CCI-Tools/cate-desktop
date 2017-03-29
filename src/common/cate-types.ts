@@ -17,8 +17,8 @@ export const POINT_LIKE_TYPE = 'cate.core.types.PointLike';
 export const POLYGON_LIKE_TYPE = 'cate.core.types.PolygonLike';
 export const GEOMETRY_LIKE_TYPE = 'cate.core.types.GeometryLike';
 export const TIME_RANGE_LIKE_TYPE = 'cate.core.types.TimeRangeLike';
-export const VAR_NAME_LIKE_TYPE = 'cate.core.types.VariableNameLike';
-export const VAR_NAMES_LIKE_TYPE = 'cate.core.types.VariableNamesLike';
+export const VAR_NAME_LIKE_TYPE = 'cate.core.types.VarName';
+export const VAR_NAMES_LIKE_TYPE = 'cate.core.types.VarNamesLike';
 
 /**
  * Naive test if a targetDataType is assignable from a given sourceDataType.

@@ -22,6 +22,7 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
     constructor(props: IVariablesDialogProps) {
         super(props);
         this.onSelection = this.onSelection.bind(this);
+        this.onConfirm = this.onConfirm.bind(this);
         this.renderBody = this.renderBody.bind(this);
         this.state = {value: this.props.value};
     }

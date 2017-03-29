@@ -128,7 +128,7 @@ const initialControlState: ControlState = {
     showVariableDetails: true,
     selectedLayerId: null,
     showLayerDetails: true,
-    panelContainerUndockedMode: true,
+    panelContainerUndockedMode: false,
     leftPanelContainerLayout: {horPos: 300, verPos: 600},
     rightPanelContainerLayout: {horPos: 300, verPos: 300},
     selectedLeftTopPanelId: 'dataSources',
