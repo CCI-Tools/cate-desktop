@@ -218,9 +218,20 @@ export interface WorkflowPortState {
     sourceRef: string|null;
 }
 
+export type DimSizes = {[dimName: string]: number};
+export type Attribute = [string, any];
+
+// TODO (forman): harmonize ResourceState + VariableState, in the end
+//                1. ResourceState is-a VariableState
+//                2. ResourceState has-zero-or-more VariableStates
+//                3. VariableState also has a path name
+
+
 export interface ResourceState {
     name: string;
     dataType: string;
+    dims?: DimSizes;
+    attrs?: Attribute[];
     variables: VariableState[];
 }
 

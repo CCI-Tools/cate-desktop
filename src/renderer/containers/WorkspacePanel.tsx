@@ -9,6 +9,8 @@ import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
 import ResourceRenameDialog from "./ResourceRenameDialog";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
+import {Table, Cell} from "@blueprintjs/table";
+import {Column} from "../../../app/node_modules/@blueprintjs/table/src/column";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
@@ -50,6 +52,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         this.handleWorkflowStepIdSelected = this.handleWorkflowStepIdSelected.bind(this);
         this.handleResourceRenameButtonClicked = this.handleResourceRenameButtonClicked.bind(this);
         this.renderStepItem = this.renderStepItem.bind(this);
+        this.renderResourceAttrName = this.renderResourceAttrName.bind(this);
+        this.renderResourceAttrValue = this.renderResourceAttrValue.bind(this);
     }
 
     private handleResourceIdSelected(newSelection: Array<React.Key>) {
@@ -154,10 +158,38 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         );
     }
 
-    //noinspection JSMethodCanBeStatic
+    renderResourceAttrName(row: number) {
+        return <Cell>{this.props.selectedResource.attrs[row][0]}</Cell>;
+    }
+
+    renderResourceAttrValue(row: number): any {
+        return <Cell>{`${this.props.selectedResource.attrs[row][1]}`}</Cell>;
+    }
+
     private renderResourceDetails() {
-        // TODO (forman): implement me!
-        return <div></div>;
+        if (!this.props.showResourceDetails) {
+            return null;
+        }
+
+        const selectedResource = this.props.selectedResource;
+        if (!selectedResource) {
+            return null;
+        }
+
+        const attributes = selectedResource.attrs;
+        if (!attributes || !attributes.length) {
+            return null;
+        }
+
+        return (
+            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+                <span>Attributes:</span>
+                <Table numRows={attributes.length}>
+                    <Column name="Name" renderCell={this.renderResourceAttrName}/>
+                    <Column name="Value" renderCell={this.renderResourceAttrValue}/>
+                </Table>
+            </div>
+        );
     }
 
     private renderResourcesActions() {
