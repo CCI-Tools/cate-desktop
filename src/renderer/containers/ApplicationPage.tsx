@@ -7,6 +7,7 @@ import WorkspacePanel from "./WorkspacePanel";
 import VariablePanel from "./VariablesPanel";
 import ViewPanel from "./ViewPanel";
 import TaskPanel from "./TasksPanel";
+import StatusBar from "./StatusBar";
 import LayersPanel from "./LayersPanel";
 import PreferencesDialog from "./PreferencesDialog";
 import {PanelContainer, PanelContainerLayout} from "../components/PanelContainer";
@@ -121,10 +122,7 @@ class ApplicationPage extends React.PureComponent<IApplicationPageProps & IDispa
                         <Panel id="tasks" position="bottom"  iconName="pt-icon-play" title="Tasks" body={<TaskPanel/>}/>
                     </PanelContainer>
                 </div>
-                <div
-                    style={{flex: "none", padding: "0 4px 0 4px", height: "1.5em", fontSize: "small", alignItems: "center", backgroundColor: "#2B95D6"}}>
-                    Ready.
-                </div>
+                <StatusBar/>
                 <PreferencesDialog/>
             </div>
         );
