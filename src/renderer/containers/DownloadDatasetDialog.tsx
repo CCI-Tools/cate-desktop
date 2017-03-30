@@ -90,7 +90,7 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
             variableNames = null;
         }
 
-        let dataSourceName = props.dataSource.name;
+        let dataSourceName = props.dataSource && props.dataSource.name;
         if (!dataSourceName) {
             dataSourceName = props.dataSource.id;
         }
