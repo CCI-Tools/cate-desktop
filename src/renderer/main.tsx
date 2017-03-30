@@ -49,6 +49,10 @@ export function main() {
     ipcRenderer.on('show-preferences-dialog', () => {
         store.dispatch(actions.showPreferencesDialog());
     });
+
+    ipcRenderer.on('get-preferences', () => {
+        store.dispatch(actions.sendPreferencesToMain());
+    });
 }
 
 function connectWebAPIClient(store: Store<State>) {

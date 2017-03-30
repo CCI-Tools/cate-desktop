@@ -68,7 +68,7 @@ export function setPreferencesProperty(propertyName: string, value: any) {
 export function updatePreferences(session: any) {
     return (dispatch) => {
         dispatch(updateSessionState(session));
-        dispatch(sendPreferencesToMain(session));
+        dispatch(sendPreferencesToMain());
     };
 }
 
@@ -1234,17 +1234,17 @@ export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: 
 /**
  * Update frontend preferences (but not backend configuration).
  *
- * @param session the session state to be stored
  * @param callback an optional function which is called with the selected button index
  * @returns the selected button index or null, if no button was selected or the callback function is defined
  */
-export function sendPreferencesToMain(session: SessionState, callback?: (error: any) => void) {
-    return () => {
+export function sendPreferencesToMain(callback?: (error: any) => void) {
+    return (dispatch, getState: GetState) => {
         const electron = require('electron');
         if (!electron || !electron.ipcRenderer) {
             console.warn('sendPreferencesToMain() cannot be executed, electron/electron.ipcRenderer not available from renderer process');
             return;
         }
+        const session = getState().session;
         const preferences = Object.assign({}, session);
         if (preferences.hasOwnProperty('backendConfig')) {
             delete preferences.backendConfig;

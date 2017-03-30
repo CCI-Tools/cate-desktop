@@ -41,6 +41,8 @@ let _mainWindow;
 let _splashWindow;
 let _prefs: Configuration;
 let _config: Configuration;
+let _prefsUpdateRequestedOnClose = false;
+let _prefsUpdatedOnClose = false;
 
 function getAppIconPath() {
     let icon_file = "cate-icon.png";
@@ -411,10 +413,17 @@ function createMainWindow() {
     });
 
     // Emitted when the window is going to be closed.
-    _mainWindow.on('close', () => {
-        console.log(CATE_DESKTOP_PREFIX, 'Main window is going to be closed, fetching user preferences...');
-        _prefs.set('mainWindowBounds', _mainWindow.getBounds());
-        _prefs.set('devToolsOpened', _mainWindow.webContents.isDevToolsOpened());
+    _mainWindow.on('close', (event) => {
+        if (!_prefsUpdateRequestedOnClose) {
+            _prefsUpdateRequestedOnClose = true;
+            event.preventDefault();
+            console.log(CATE_DESKTOP_PREFIX, 'Main window is going to be closed, fetching user preferences...');
+            _prefs.set('mainWindowBounds', _mainWindow.getBounds());
+            _prefs.set('devToolsOpened', _mainWindow.webContents.isDevToolsOpened());
+            event.sender.send('get-preferences');
+        } else if (!_prefsUpdatedOnClose) {
+            event.preventDefault();
+        }
     });
 
     // Emitted when the window is closed.
@@ -464,14 +473,12 @@ function createMainWindow() {
 
     ipcMain.on('set-preferences', (event, preferences) => {
         _prefs.setAll(preferences);
-        // let error;
-        // try {
-        //     storeUserPrefs(_prefs);
-        //     error = null;
-        // } catch (e) {
-        //     error = e;
-        // }
-        event.sender.send('set-preferences-reply', error);
+        if (_prefsUpdateRequestedOnClose) {
+            _prefsUpdatedOnClose = true;
+            app.quit();
+        } else {
+            event.sender.send('set-preferences-reply', error);
+        }
     });
 }
 
