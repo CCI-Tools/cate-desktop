@@ -544,15 +544,6 @@ export interface ControlState {
     showLayerDetails: boolean;
     savedLayers: {[key: string]: LayerState};
 
-    // ApplicationPage
-    panelContainerUndockedMode: boolean;
-    leftPanelContainerLayout: PanelContainerLayout;
-    rightPanelContainerLayout: PanelContainerLayout;
-    selectedLeftTopPanelId: string|null;
-    selectedLeftBottomPanelId: string|null;
-    selectedRightTopPanelId: string|null;
-    selectedRightBottomPanelId: string|null;
-
     // State of the 2D/3D viewer.
     viewer: ViewerState;
 
@@ -593,6 +584,16 @@ export interface SessionState {
     resourceNamePrefix: string;
     offlineMode: boolean;
     showSelectedVariableLayer: boolean;
+
+    // ApplicationPage
+    panelContainerUndockedMode: boolean;
+    leftPanelContainerLayout: PanelContainerLayout;
+    rightPanelContainerLayout: PanelContainerLayout;
+    selectedLeftTopPanelId: string|null;
+    selectedLeftBottomPanelId: string|null;
+    selectedRightTopPanelId: string|null;
+    selectedRightBottomPanelId: string|null;
+
     /**
      * backendConfig settings are applied on restart (of the WebAPI) only.
      */

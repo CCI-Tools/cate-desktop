@@ -78,15 +78,15 @@ export const dialogStateSelector = (dialogId: string) => {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ApplicationPage layout selectors
 
-export const panelContainerUndockedModeSelector = (state: State): boolean => state.control.panelContainerUndockedMode;
+export const panelContainerUndockedModeSelector = (state: State): boolean => state.session.panelContainerUndockedMode;
 
-export const leftPanelContainerLayoutSelector = (state: State): PanelContainerLayout => state.control.leftPanelContainerLayout;
-export const rightPanelContainerLayoutSelector = (state: State): PanelContainerLayout => state.control.rightPanelContainerLayout;
+export const leftPanelContainerLayoutSelector = (state: State): PanelContainerLayout => state.session.leftPanelContainerLayout;
+export const rightPanelContainerLayoutSelector = (state: State): PanelContainerLayout => state.session.rightPanelContainerLayout;
 
-export const selectedLeftTopPanelIdSelector = (state: State): string|null => state.control.selectedLeftTopPanelId;
-export const selectedLeftBottomPanelIdSelector = (state: State): string|null => state.control.selectedLeftBottomPanelId;
-export const selectedRightTopPanelIdSelector = (state: State): string|null => state.control.selectedRightTopPanelId;
-export const selectedRightBottomPanelIdSelector = (state: State): string|null => state.control.selectedRightBottomPanelId;
+export const selectedLeftTopPanelIdSelector = (state: State): string|null => state.session.selectedLeftTopPanelId;
+export const selectedLeftBottomPanelIdSelector = (state: State): string|null => state.session.selectedLeftBottomPanelId;
+export const selectedRightTopPanelIdSelector = (state: State): string|null => state.session.selectedRightTopPanelId;
+export const selectedRightBottomPanelIdSelector = (state: State): string|null => state.session.selectedRightBottomPanelId;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation selectors
@@ -106,7 +106,6 @@ export const selectedOperationSelector = createSelector<State, OperationState|nu
         return null;
     }
 );
-
 
 export const filteredOperationsSelector = createSelector<State, OperationState[], OperationState[]|null, string[]|null, string|null>(
     operationsSelector,
@@ -206,7 +205,6 @@ export const selectedDataSourceSelector = createSelector<State, DataSourceState|
     }
 );
 
-
 export const protocolNameSelector = createSelector<State, string|null, DataSourceState|null>(
     selectedDataSourceSelector,
     (dataSource: DataSourceState|null) => {
@@ -221,14 +219,12 @@ export const protocolNameSelector = createSelector<State, string|null, DataSourc
     }
 );
 
-
 export const selectedDataSourceTemporalCoverageSelector = createSelector<State, [string, string]|null, DataSourceState|null>(
     selectedDataSourceSelector,
     (selectedDataSource: DataSourceState): [string, string]|null => {
         return selectedDataSource ? selectedDataSource.temporalCoverage : null;
     }
 );
-
 
 export const selectedDataSourceTemporalCoverageMillisSelector = createSelector<State, [number, number]|null, [string, string]|null>(
     selectedDataSourceTemporalCoverageSelector,
@@ -241,7 +237,6 @@ export const selectedDataSourceTemporalCoverageMillisSelector = createSelector<S
         return null;
     }
 );
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Workspace, resource, step, and variable selectors

@@ -119,26 +119,23 @@ const initialControlState: ControlState = {
     selectedDataSourceId: null,
     dataSourceFilterExpr: '',
     selectedOperationName: null,
-    showDataSourceDetails: true,
     operationFilterTags: [],
     operationFilterExpr: '',
-    showOperationDetails: true,
     selectedWorkflowStepId: null,
     selectedWorkspaceResourceId: null,
     selectedVariableName: null,
-    showVariableDetails: true,
     selectedLayerId: null,
-    showLayerDetails: true,
-    panelContainerUndockedMode: false,
-    leftPanelContainerLayout: {horPos: 300, verPos: 600},
-    rightPanelContainerLayout: {horPos: 300, verPos: 300},
-    selectedLeftTopPanelId: 'dataSources',
-    selectedLeftBottomPanelId: 'workspace',
-    selectedRightTopPanelId: 'variables',
-    selectedRightBottomPanelId: 'layers',
     viewer: initialViewerState,
     savedLayers: {},
-    dialogs: {}
+    dialogs: {},
+
+    // TODO (forman): move to session, so they are stored in preferences
+    showDataSourceDetails: true,
+    showResourceDetails: true,
+    showWorkflowStepDetails: true,
+    showOperationDetails: true,
+    showVariableDetails: true,
+    showLayerDetails: true,
 };
 
 
@@ -289,6 +286,15 @@ const initialSessionState: SessionState = {
     resourceNamePrefix: 'res_',
     offlineMode: false,
     showSelectedVariableLayer: true,
+
+    panelContainerUndockedMode: false,
+    leftPanelContainerLayout: {horPos: 300, verPos: 600},
+    rightPanelContainerLayout: {horPos: 300, verPos: 300},
+    selectedLeftTopPanelId: 'dataSources',
+    selectedLeftBottomPanelId: 'workspace',
+    selectedRightTopPanelId: 'variables',
+    selectedRightBottomPanelId: 'layers',
+
     backendConfig: {
         dataStoresPath: null,
         useWorkspaceImageryCache: false,

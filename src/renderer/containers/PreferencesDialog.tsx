@@ -104,6 +104,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
                 {this.renderReopenLastWorkspace()}
                 {this.renderResourceNamePrefix()}
                 {this.renderOfflineMode()}
+                {this.renderPanelContainerUndockedMode()}
             </div>
         );
     }
@@ -138,6 +139,14 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
             'offlineMode',
             false,
             "Force offline mode (requires restart)"
+        );
+    }
+
+    private renderPanelContainerUndockedMode() {
+        return this.renderBooleanValue(
+            'panelContainerUndockedMode',
+            false,
+            "Undocked tool panels (experimental)"
         );
     }
 

@@ -72,8 +72,8 @@ export function updatePreferences(session: any) {
     };
 }
 
-export function updateSessionState(session: any) {
-    return {type: UPDATE_SESSION_STATE, payload: session};
+export function updateSessionState(sessionState: any) {
+    return {type: UPDATE_SESSION_STATE, payload: sessionState};
 }
 
 export function loadBackendConfig() {
@@ -890,27 +890,27 @@ export function setProjectionCode(projectionCode: string) {
 // ApplicationPage actions
 
 export function setLeftPanelContainerLayout(leftPanelContainerLayout: PanelContainerLayout) {
-    return updateControlState({leftPanelContainerLayout});
+    return updateSessionState({leftPanelContainerLayout});
 }
 
 export function setRightPanelContainerLayout(rightPanelContainerLayout: PanelContainerLayout) {
-    return updateControlState({rightPanelContainerLayout});
+    return updateSessionState({rightPanelContainerLayout});
 }
 
 export function setSelectedLeftTopPanelId(selectedLeftTopPanelId: string|null) {
-    return updateControlState({selectedLeftTopPanelId});
+    return updateSessionState({selectedLeftTopPanelId});
 }
 
 export function setSelectedLeftBottomPanelId(selectedLeftBottomPanelId: string|null) {
-    return updateControlState({selectedLeftBottomPanelId});
+    return updateSessionState({selectedLeftBottomPanelId});
 }
 
 export function setSelectedRightTopPanelId(selectedRightTopPanelId: string|null) {
-    return updateControlState({selectedRightTopPanelId});
+    return updateSessionState({selectedRightTopPanelId});
 }
 
 export function setSelectedRightBottomPanelId(selectedRightBottomPanelId: string|null) {
-    return updateControlState({selectedRightBottomPanelId});
+    return updateSessionState({selectedRightBottomPanelId});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
