@@ -1,6 +1,6 @@
 import {
     VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
-    VariableImageLayerState, State
+    VariableImageLayerState, State, OperationState
 } from "./state";
 
 export type GetState = () => State;
@@ -62,13 +62,16 @@ export function getLayerDisplayName(layer: LayerState): string {
     return layer.id;
 }
 
-export function findResource(resources: ResourceState[], ref: VariableRefState): ResourceState {
+export function findResource(resources: ResourceState[], ref: VariableRefState): ResourceState|null {
     return resources.find(r => r.name === ref.resName);
 }
 
-export function findVariable(resources: ResourceState[], ref: VariableRefState): VariableState {
+export function findVariable(resources: ResourceState[], ref: VariableRefState): VariableState|null {
     const resource = findResource(resources, ref);
     return resource && resource.variables.find(v => v.name === ref.varName);
 }
 
+export function findOperation(operations: OperationState[], name: string): OperationState|null {
+    return operations && operations.find(op => op.qualifiedName === name || op.name === name);
+}
 

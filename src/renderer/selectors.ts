@@ -11,7 +11,7 @@ import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import {PanelContainerLayout} from "./components/PanelContainer";
-import {isSpatialVectorVariable, isSpatialImageVariable} from "./state-util";
+import {isSpatialVectorVariable, isSpatialImageVariable, findOperation} from "./state-util";
 
 const EMPTY_OBJECT = {};
 const EMPTY_ARRAY = [];
@@ -269,6 +269,17 @@ export const selectedWorkflowStepSelector = createSelector<State, WorkflowStepSt
     (workflowSteps: WorkflowStepState[], selectedWorkflowStepId: string) => {
         if (canFind(workflowSteps, selectedWorkflowStepId)) {
             return workflowSteps.find(r => r.id === selectedWorkflowStepId);
+        }
+        return null;
+    }
+);
+
+export const selectedWorkflowStepOpSelector = createSelector<State, OperationState|null, OperationState[]|null, WorkflowStepState|null>(
+    operationsSelector,
+    selectedWorkflowStepSelector,
+    (operations: OperationState[]|null, selectedWorkflowStep: WorkflowStepState|null) => {
+        if (operations && selectedWorkflowStep && selectedWorkflowStep.op) {
+            return findOperation(operations, selectedWorkflowStep.op);
         }
         return null;
     }

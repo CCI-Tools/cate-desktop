@@ -297,20 +297,19 @@ export class WebAPIServiceMock implements IServiceObject {
             throw Error(`Unknown operation: ${opName}`);
         }
 
-        const inputs = [] as Array<State.WorkflowPortState>;
+        const inputs = {};
         for (let input of op.inputs) {
             if (input.name in opArgs) {
                 // Note: check if opArgs[input.name] is a "sourceRef" or a constant "value". We use just "value" here.
-                inputs.push({
-                    name: input.name,
+                inputs[input.name] = {
                     value: opArgs[input.name],
-                    sourceRef: null,
-                });
+                    source: null,
+                };
             }
             // console.log('WebAPIServiceMock: input', input);
         }
 
-        const outputs = [] as Array<State.WorkflowPortState>;
+        const outputs = {};
         for (let output of op.outputs) {
             // console.log('WebAPIServiceMock: output', output);
         }
@@ -321,9 +320,9 @@ export class WebAPIServiceMock implements IServiceObject {
             id: resName,
             type: 'operation',
             op: opName,
-            inputs,
-            outputs,
-        } as State.WorkflowOperationStepState);
+            input: inputs,
+            output: outputs,
+        });
         const newWorkflow = Object.assign({}, oldWorkflow, {steps: newSteps});
 
         const varList = ['var_a', 'var_b', 'var_c', 'var_d'].map(v => v + '_' + resName)  as Array<string>;

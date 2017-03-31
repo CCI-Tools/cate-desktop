@@ -1,16 +1,18 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
-import {State, WorkspaceState, WorkflowStepState, ResourceState} from "../state";
-import {TabPanel, Button, Tabs2, Tab2, NonIdealState} from "@blueprintjs/core";
-import * as actions from '../actions'
-import * as selectors from '../selectors'
-import * as assert from "../../common/assert";
+import {
+    State, WorkspaceState, WorkflowStepState, ResourceState, WorkflowPortState, OperationState,
+    OperationIOBaseState
+} from "../state";
+import {Button, Tabs2, Tab2, NonIdealState} from "@blueprintjs/core";
+import {Table, Column, Cell} from "@blueprintjs/table";
 import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
 import ResourceRenameDialog from "./ResourceRenameDialog";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
-import {Table, Cell} from "@blueprintjs/table";
-import {Column} from "../../../app/node_modules/@blueprintjs/table/src/column";
+import * as assert from "../../common/assert";
+import * as actions from '../actions'
+import * as selectors from '../selectors'
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
@@ -21,6 +23,7 @@ interface IWorkspacePanelProps {
     showWorkflowStepDetails: boolean;
     selectedWorkflowStep: WorkflowStepState|null;
     selectedWorkflowStepId: string|null;
+    selectedWorkflowStepOp: OperationState|null;
 }
 
 function mapStateToProps(state: State): IWorkspacePanelProps {
@@ -32,6 +35,7 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
         showWorkflowStepDetails: selectors.showWorkflowStepDetailsSelector(state),
         selectedWorkflowStep: selectors.selectedWorkflowStepSelector(state),
         selectedWorkflowStepId: selectors.selectedWorkflowStepIdSelector(state),
+        selectedWorkflowStepOp: selectors.selectedWorkflowStepOpSelector(state),
     };
 }
 
@@ -54,6 +58,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         this.renderStepItem = this.renderStepItem.bind(this);
         this.renderResourceAttrName = this.renderResourceAttrName.bind(this);
         this.renderResourceAttrValue = this.renderResourceAttrValue.bind(this);
+        this.renderOperationStepInputName = this.renderOperationStepInputName.bind(this);
+        this.renderOperationStepInputValue = this.renderOperationStepInputValue.bind(this);
+        this.renderOperationStepOutputName = this.renderOperationStepOutputName.bind(this);
+        this.renderOperationStepOutputValue = this.renderOperationStepOutputValue.bind(this);
     }
 
     private handleResourceIdSelected(newSelection: Array<React.Key>) {
@@ -153,24 +161,11 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                          renderItem={WorkspacePanel.renderResourceItem}
                          selection={this.props.selectedResourceId}
                          onSelection={this.handleResourceIdSelected}/>
-
             </div>
         );
     }
 
-    renderResourceAttrName(row: number) {
-        return <Cell>{this.props.selectedResource.attrs[row][0]}</Cell>;
-    }
-
-    renderResourceAttrValue(row: number): any {
-        return <Cell>{`${this.props.selectedResource.attrs[row][1]}`}</Cell>;
-    }
-
     private renderResourceDetails() {
-        if (!this.props.showResourceDetails) {
-            return null;
-        }
-
         const selectedResource = this.props.selectedResource;
         if (!selectedResource) {
             return null;
@@ -184,7 +179,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         return (
             <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
                 <span>Attributes:</span>
-                <Table numRows={attributes.length}>
+                <Table numRows={attributes.length} isRowHeaderShown={false}>
                     <Column name="Name" renderCell={this.renderResourceAttrName}/>
                     <Column name="Value" renderCell={this.renderResourceAttrValue}/>
                 </Table>
@@ -216,12 +211,6 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         );
     }
 
-    //noinspection JSMethodCanBeStatic
-    private renderWorkflowStepDetails() {
-        // TODO (forman): implement me!
-        return <div></div>;
-    }
-
     private renderWorkflowStepsList() {
         const workflowSteps = this.props.workspace.workflow.steps;
         return (
@@ -247,11 +236,99 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     //noinspection JSMethodCanBeStatic
-    private getWorkflowStepLabel(step: WorkflowStepState) {
-        if (step["op"]) {
-            return step["op"];
+    private renderWorkflowStepDetails() {
+
+        const selectedWorkflowStepOp = this.props.selectedWorkflowStepOp;
+        console.log('selectedWorkflowStepOp',selectedWorkflowStepOp);
+        if (!selectedWorkflowStepOp) {
+            return null;
+        }
+
+        let stepInputPanel = WorkspacePanel.renderWorkflowStepPorts(selectedWorkflowStepOp.inputs,
+            "Step inputs:", "No step inputs.",
+            this.renderOperationStepInputName,
+            this.renderOperationStepInputValue);
+
+        let stepOutputPanel = null;
+        // let stepOutputPanel = WorkspacePanel.renderWorkflowStepPorts(selectedWorkflowStepOp.outputs,
+        //     "Step outputs:", "No step outputs.",
+        //     this.renderOperationStepOutputName,
+        //     this.renderOperationStepOutputValue);
+
+        return (
+            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+                {stepInputPanel}
+                {stepOutputPanel}
+            </div>
+        );
+    }
+
+    static renderWorkflowStepPorts(ports: OperationIOBaseState[], itemsTitle: string, noItemsTitle: string, renderName, renderValue) {
+        if (ports && ports.length) {
+            return (
+                <div>
+                    <p>{itemsTitle}</p>
+                    <Table numRows={ports.length} isRowHeaderShown={false}>
+                        <Column name="Name" renderCell={renderName}/>
+                        <Column name="Value" renderCell={renderValue}/>
+                    </Table>
+                </div>
+            );
         } else {
-            return "?";
+            return (
+                <div>
+                    <p>{noItemsTitle}</p>
+                </div>
+            );
+        }
+    }
+
+    renderResourceAttrName(row: number) {
+        return <Cell>{this.props.selectedResource.attrs[row][0]}</Cell>;
+    }
+
+    renderResourceAttrValue(row: number): any {
+        return <Cell>{`${this.props.selectedResource.attrs[row][1]}`}</Cell>;
+    }
+
+    renderOperationStepInputName(row: number) {
+        return WorkspacePanel.renderWorkflowPortName(this.props.selectedWorkflowStepOp.inputs[row]);
+    }
+
+    renderOperationStepInputValue(row: number): any {
+        const name = this.props.selectedWorkflowStepOp.inputs[row].name;
+        return WorkspacePanel.renderWorkflowPortValue(this.props.selectedWorkflowStep.input[name]);
+    }
+
+    renderOperationStepOutputName(row: number) {
+        return WorkspacePanel.renderWorkflowPortName(this.props.selectedWorkflowStepOp.outputs[row]);
+    }
+
+    renderOperationStepOutputValue(row: number): any {
+        const name = this.props.selectedWorkflowStepOp.outputs[row].name;
+        return WorkspacePanel.renderWorkflowPortValue(this.props.selectedWorkflowStep.output[name]);
+    }
+
+    static renderWorkflowPortName(port: OperationIOBaseState) {
+        return <Cell>{port.name}</Cell>;
+    }
+
+    static renderWorkflowPortValue(port: WorkflowPortState) {
+        let cellValue;
+        if (port.source) {
+            cellValue = <span>&#8599; <em>{port.source}</em></span>;
+        } else {
+            cellValue = <span>{`${port.value}`}</span>;
+        }
+        return <Cell>{cellValue}</Cell>;
+    }
+
+    //noinspection JSMethodCanBeStatic
+    private getWorkflowStepLabel(step: WorkflowStepState) {
+        if (step.op) {
+            return <span>{step.op} &rarr; {step.id}</span>;
+        } else {
+            return <span>? &rarr; {step.id}</span>;
         }
     }
 }

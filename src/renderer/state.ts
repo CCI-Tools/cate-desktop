@@ -84,11 +84,14 @@ export interface FileFilterState {
     extensions: string[];
 }
 
-export interface OperationInputState {
+export interface OperationIOBaseState {
     name: string;
     dataType: string;
     description: string|null;
     units?: string|null;
+}
+
+export interface OperationInputState extends OperationIOBaseState {
     /* optional properties used mainly for validation */
     defaultValue?: any;
     nullable?: boolean;
@@ -101,11 +104,7 @@ export interface OperationInputState {
     fileFilters?: FileFilterState[];
 }
 
-export interface OperationOutputState {
-    name: string;
-    dataType: string;
-    description: string|null;
-    units?: string|null;
+export interface OperationOutputState extends OperationIOBaseState {
 }
 
 /**
@@ -180,30 +179,26 @@ export interface WorkflowStepState {
      * Step ID. The ID will be used as Workspace's resource name.
      */
     id: string;
+
     /**
      * Step type.
      */
     type: 'operation'|'workflow'|'python-expression'|'python-script'|'executable';
-    inputs: WorkflowPortState[];
-    outputs: WorkflowPortState[];
-}
 
-export interface WorkflowOperationStepState extends WorkflowStepState {
     /**
      * The actual action to be performed. Allowed values depend on 'type'.
-     * For example, 'action' is the operation's name, if type==="operation".
+     * For example, 'op' is the operation's name, if type==="operation".
      */
     op: string;
+
+    input: {[name:string]: WorkflowPortState};
+    output: {[name:string]: WorkflowPortState};
 }
 
 /**
  * See cate-core/cate/core/workspace.py, class NodePort
  */
 export interface WorkflowPortState {
-    /**
-     * Name of the port.
-     */
-    name: string;
     /**
      * A constant value.
      * Constraint: value!==undefined, if sourceRef===null.
@@ -216,7 +211,7 @@ export interface WorkflowPortState {
      * Source reference can either be the ID of another (single-output) step or it can have the form
      * "stepId.outputPort" if it refers to specific output of a (multi-output) step.
      */
-    sourceRef: string|null;
+    source: string|null;
 }
 
 export type DimSizes = {[dimName: string]: number};

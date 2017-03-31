@@ -127,8 +127,8 @@ describe('WebAPIServiceMock', function () {
                     {
                         op: "open_dataset",
                         id: "resource_34",
-                        inputs: [],
-                        outputs: [],
+                        input: {},
+                        output: {},
                         type: "operation",
                     }
                 ]
