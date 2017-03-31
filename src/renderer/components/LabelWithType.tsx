@@ -30,7 +30,7 @@ export function LabelWithType(props: ILabelWithTypeProps) {
         content = (<Tooltip content={props.tooltipText}>{content}</Tooltip>);
     }
 
-    return <div style={props.style}>{content}</div>;
+    return <span style={props.style}>{content}</span>;
 }
 
 
