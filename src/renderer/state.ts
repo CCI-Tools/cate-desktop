@@ -105,6 +105,7 @@ export interface OperationOutputState {
     name: string;
     dataType: string;
     description: string|null;
+    units?: string|null;
 }
 
 /**
