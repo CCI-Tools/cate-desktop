@@ -10,7 +10,7 @@ import {LabelWithType} from "../components/LabelWithType";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
 import OperationStepDialog from "./OperationStepDialog";
-import {State, OperationState, WorkspaceState} from "../state";
+import {State, OperationState, WorkspaceState, OperationOutputState, OperationInputState} from "../state";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {Panel} from "../components/Panel";
@@ -220,6 +220,35 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         this.props.dispatch(actions.setOperationFilterTags(Array.from(tags)));
     }
 
+    private static formatPortDescriptionText(description) {
+        if (!description || description === '') {
+            return description;
+        }
+        description = description.trim();
+        if (!description.endsWith('.')) {
+            description += '.';
+        }
+        return ' - ' + description;
+    }
+
+    private static getInputDescriptionText(input: OperationInputState) {
+        let description = OperationsPanel.formatPortDescriptionText(input.description);
+        if (typeof (input.defaultValue) === 'undefined') {
+            description += ' Mandatory value.';
+        } else {
+            description += ` Default value is "${input.defaultValue}".`
+        }
+        return description;
+    }
+
+    private static getOutputDescriptionText(output: OperationOutputState) {
+        return OperationsPanel.formatPortDescriptionText(output.description);
+    }
+
+    private static getMultiplicityText(n: number, singularText: string, pluralText?: string): string {
+        return n == 1 ? singularText : (pluralText || singularText + "s");
+    }
+
     private renderOperationDetailsCard() {
         const operation = this.props.selectedOperation;
         let title = "No selection";
@@ -238,38 +267,37 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                 tags = (<p><b>Tags:</b> {operation.tags.join(', ')}</p>);
             }
 
-            if (operation.outputs) {
-                if (operation.outputs.length == 1) {
-                    const output = operation.outputs[0];
-                    outputs = (<p><b>Returns:</b> {`: (${output.dataType}) `}{output.description}</p>);
-                } else {
-                    const outputElems = operation.outputs.map(output => (
-                        <li key={output.name}>
-                            <i>{output.name}</i>{`: (${output.dataType}) `}
-                            {output.description}
-                        </li>
-                    ));
-                    outputs = (
-                        <div><p><b>Outputs:</b></p>
-                            <ul>{outputElems}</ul>
-                        </div>
-                    );
-                }
+            if (operation.outputs && operation.outputs.length) {
+                const outputElems = operation.outputs.map(output => (
+                    <li key={output.name}>
+                        <LabelWithType label={output.name} dataType={output.dataType} units={output.units}/>
+                        {OperationsPanel.getOutputDescriptionText(output)}
+                    </li>
+                ));
+                outputs = (
+                    <p>
+                        <p>
+                            <strong>{OperationsPanel.getMultiplicityText(operation.outputs.length, 'Output') + ":"}</strong>
+                        </p>
+                        <ul>{outputElems}</ul>
+                    </p>
+                );
             }
 
-            if (operation.inputs) {
+
+            if (operation.inputs && operation.inputs.length) {
                 const inputElems = operation.inputs.map(input => (
                     <li key={input.name}>
-                        <i>{input.name}</i>
-                        {`: (${input.dataType}) `}
-                        {input.description}
-                        {input.defaultValue !== 'undefined' ? ` Default value is "${input.defaultValue}".` : null}
+                        <LabelWithType label={input.name} dataType={input.dataType} units={input.units}/>
+                        {OperationsPanel.getInputDescriptionText(input)}
                     </li>
                 ));
                 inputs = (
-                    <div><p><b>Parameter(s):</b></p>
+                    <p><p>
+                        <strong>{OperationsPanel.getMultiplicityText(operation.outputs.length, 'Input') + ":"}</strong>
+                    </p>
                         <ul>{inputElems}</ul>
-                    </div>
+                    </p>
                 );
             }
         }
