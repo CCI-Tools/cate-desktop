@@ -1,14 +1,18 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {State} from "../state";
+import {State, TaskState} from "../state";
+import {Tooltip, Position, ProgressBar, Intent} from "@blueprintjs/core";
+import {JobStatusEnum} from "../webapi/Job";
 
 interface IStatusBarProps {
     webAPIStatus: 'connecting'|'open'|'error'|'closed'|null;
+    tasks: {[jobId: number]: TaskState};
 }
 
 function mapStateToProps(state: State): IStatusBarProps {
     return {
-        webAPIStatus: state.communication.webAPIStatus
+        webAPIStatus: state.communication.webAPIStatus,
+        tasks: state.communication.tasks
     };
 }
 
@@ -25,25 +29,58 @@ class StatusBar extends React.Component<IStatusBarProps, null> {
 
     render() {
         // TODO dummy
-        const message = "MESSAGE";
+        const message = "Ready.";
 
         // TODO dummy
-        const lat = 42.78;
-        const lon = 22.76;
+        const lat = 22.22;
+        const lon = 11.11;
         const cursor = `LAT = ${lat.toFixed(2)} LON = ${lon.toFixed(2)}`;
 
-        // TODO dummy
-        const tasks = "processing...";
+        // TODO show summary of all tasks
+        // TODO show tooltip with detailed information about the individual tasks
+        // TODO code partly taken from TaskPanel => extract
+        let tasksState = null;
+        for (let taskId in this.props.tasks) {
+            const task = this.props.tasks[taskId];
+            if (task.status === JobStatusEnum.SUBMITTED || task.status === JobStatusEnum.IN_PROGRESS) {
+                let progressValue = null;
+                if (task.progress && task.progress.worked && task.progress.total > 0) {
+                    progressValue = task.progress.worked / task.progress.total;
+                }
+                tasksState = <ProgressBar intent={Intent.SUCCESS} value={progressValue}/>;
+                break;
+            }
+        }
 
-        // TODO should be replaced with an icon
-        const backend = this.props.webAPIStatus;
+        let iconName = null;
+        let tooltipText = null;
+        if (this.props.webAPIStatus === 'connecting') {
+            iconName = "pt-icon-link";
+            tooltipText = "Connecting";
+        } else if (this.props.webAPIStatus === 'open') {
+            iconName = "pt-icon-link";
+            tooltipText = "Connected";
+        } else if (this.props.webAPIStatus === 'error') {
+            iconName = "pt-icon-offline";
+            tooltipText = "Error";
+        } else if (this.props.webAPIStatus === 'closed') {
+            iconName = "pt-icon-offline";
+            tooltipText = "Closed";
+        } else {
+            iconName = "pt-icon-help";
+            tooltipText = "Unknown";
+        }
+        const backendState =
+            <Tooltip content={tooltipText} hoverOpenDelay={1500} position={Position.LEFT_TOP}>
+                <span className={`pt-icon-standard ${iconName}` }/>
+            </Tooltip>;
         return (
             <div
                 style={{display:"flex", flexFlow: "row nowrap", height: "1.5em", fontSize: "small", backgroundColor: "#2B95D6"}}>
-                <div style={{flex: "1 0 auto", padding: "1px 1px 1px 1px", border: "1px solid white" }}>{message}</div>
-                <div style={{flex: "0 0 auto", padding: "1px 1px 1px 1px", border: "1px solid white" }}>{cursor}</div>
-                <div style={{flex: "1 0 auto", padding: "1px 1px 1px 1px", border: "1px solid white" }}>{tasks}</div>
-                <div style={{flex: "0 0 auto", padding: "1px 1px 1px 1px", border: "1px solid white" }}>{backend}</div>
+                <div style={{flex: "80 0 auto", padding: "1px 1px 1px 1px"}}>{message}</div>
+                <div style={{flex: "9 0 auto", padding: "1px 1px 1px 1px"}}>{tasksState}</div>
+                <div style={{flex: "9 0 auto", padding: "1px 1px 1px 1px"}}>{cursor}</div>
+                <div style={{flex: "2 0 auto", padding: "1px 1px 1px 1px"}}>{backendState}</div>
             </div>
         );
     }
