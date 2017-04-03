@@ -57,7 +57,7 @@ export class ContentWithDetailsPanel extends React.PureComponent<IContentWithDet
         let contentWithDetailsPanel;
         if (this.props.isSplitPanel) {
             contentWithDetailsPanel = (
-                <SplitPane direction="ver" initialSize={this.props.initialContentHeight || 300}>
+                <SplitPane dir="ver" initialSize={this.props.initialContentHeight || 300}>
                     {contentChild}
                     {detailsPanel}
                 </SplitPane>);

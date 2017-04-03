@@ -175,7 +175,7 @@ export class ExpansionPanel extends React.PureComponent<IExpansionPanelProps,IEx
             if (contentPaneHeight) {
                 contentPaneStyle['height'] = contentPaneHeight;
             }
-            heightAdjuster = (<Splitter direction='ver' onChange={this.handleSplitterDelta.bind(this)}/>);
+            heightAdjuster = (<Splitter dir='ver' onChange={this.handleSplitterDelta.bind(this)}/>);
         }
 
         return (

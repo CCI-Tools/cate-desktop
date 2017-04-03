@@ -2,7 +2,7 @@ import * as React from 'react'
 
 // TODO (forman): add splitter width, color, handleIcon, etc. style props
 interface ISplitterProps {
-    direction?: "hor" | "ver";
+    dir?: "hor" | "ver";
     onChange: (delta: number) => any;
 }
 
@@ -90,7 +90,7 @@ export class Splitter extends React.PureComponent<ISplitterProps, any> {
     }
 
     private getCurrentPosition(event: IScreenEvent) {
-        return this.props.direction === 'hor' ? event.screenX : event.screenY;
+        return this.props.dir === 'hor' ? event.screenX : event.screenY;
     }
 
     private endDragging() {
@@ -113,7 +113,7 @@ export class Splitter extends React.PureComponent<ISplitterProps, any> {
     }
 
     render() {
-        const className = this.props.direction === 'hor' ? 'cate-splitter-hor' : 'cate-splitter-ver';
+        const className = this.props.dir === 'hor' ? 'cate-splitter-hor' : 'cate-splitter-ver';
         return (
             <div
                 className={className}

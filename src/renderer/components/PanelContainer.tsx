@@ -245,7 +245,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
     }
 
     private renderTwoPanelsPane(topPanelPane, bottomPanelPane) {
-        const verSplitter = <Splitter direction="ver" onChange={this.onVerSplitterPosChange}/>;
+        const verSplitter = <Splitter dir="ver" onChange={this.onVerSplitterPosChange}/>;
         return (
             <div style={{display: "flex", flexDirection: "column"}}>
                 {topPanelPane}
@@ -291,7 +291,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
             ...undockedModeStyle
         };
 
-        const horSplitter = <Splitter direction="hor" onChange={this.onHorSplitterPosChange}/>;
+        const horSplitter = <Splitter dir="hor" onChange={this.onHorSplitterPosChange}/>;
 
         if (position === "left") {
             return (

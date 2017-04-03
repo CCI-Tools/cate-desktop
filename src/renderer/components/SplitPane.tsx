@@ -3,7 +3,7 @@ import {Splitter} from "./Splitter";
 
 
 export interface ISplitPaneProps {
-    direction: "hor" | "ver";
+    dir: "hor" | "ver";
     initialSize?: number;
     onChange?: (newSize: number, oldSize: number) => void;
 }
@@ -47,7 +47,7 @@ export class SplitPane extends React.PureComponent<ISplitPaneProps, ISplitPaneSt
         let containerClass;
         let childContainer1Style;
         let childContainer2Style;
-        if (this.props.direction === 'hor') {
+        if (this.props.dir === 'hor') {
             containerClass = 'cate-split-pane-hor';
             childContainer1Style = {flex: 'none', width: this.state.size, height: '100%'};
             childContainer2Style = {flex: 'auto', width: '100%', height: '100%'};
@@ -61,7 +61,7 @@ export class SplitPane extends React.PureComponent<ISplitPaneProps, ISplitPaneSt
                 <div style={childContainer1Style}>
                     {this.props.children[0]}
                 </div>
-                <Splitter direction={this.props.direction} onChange={this.handleSplitDelta.bind(this)}/>
+                <Splitter dir={this.props.dir} onChange={this.handleSplitDelta.bind(this)}/>
                 <div style={childContainer2Style}>
                     {this.props.children[1]}
                 </div>
