@@ -1,8 +1,10 @@
 import * as React from 'react'
 
+export type SplitDir = "hor" | "ver";
+
 // TODO (forman): add splitter width, color, handleIcon, etc. style props
 interface ISplitterProps {
-    dir?: "hor" | "ver";
+    dir?: SplitDir;
     onChange: (delta: number) => any;
 }
 
