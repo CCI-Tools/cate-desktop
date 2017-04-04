@@ -177,12 +177,12 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
         color: Colors.WHITE,
         backgroundColor: ViewPanel.SELECTED_BG_COLOR
     };
-    static readonly TAB_STYLE_NORMAL = {padding: 2, color: Colors.GRAY5};
+    static readonly TAB_STYLE_NORMAL = {padding: 2, color: Colors.GRAY3};
 
     static readonly TITLE_STYLE = {paddingLeft: 4, paddingRight: 4};
 
     static readonly CLOSE_ICON_STYLE_SELECTED = {marginLeft: 6};
-    static readonly CLOSE_ICON_STYLE_NORMAL = {marginLeft: 6, transition: "color 0.5s linear"};
+    static readonly CLOSE_ICON_STYLE_NORMAL = {marginLeft: 6};
 
     static readonly MENU_ICON_STYLE = {color: Colors.GRAY5};
 
