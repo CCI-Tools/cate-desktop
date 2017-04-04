@@ -7,7 +7,7 @@ module.exports = {
          * Cate WebAPI service executable which points into Cate's Python environment where cate-core
          * has be installed, e.g. using "python setup.py develop" or "python setup.py install".
          */
-        command: "C:\\Users\\Norman\\Miniconda3\\envs\\ect\\Scripts\\cate-webapi.exe",
+        command: "C:\\Users\\Norman\\Miniconda3\\envs\\cate\\Scripts\\cate-webapi.exe",
         /**
          * The port used by the Cate WebAPI service
          */
