@@ -41,10 +41,10 @@ describe('function manipulating a ViewLayout', () => {
         layouts: [viewSplit2, viewPanel1],
     } as ViewLayoutState;
 
-    describe('addView()', () => {
+    describe('addViewToLayout()', () => {
         it('can add view to top-level view panel', () => {
             expect(addViewToLayout(viewPanel, 'd')).to.deep.equal({
-                viewIds: ['d', 'a', 'b', 'c'],
+                viewIds: ['a', 'b', 'c', 'd'],
                 selectedViewId: 'd'
             });
         });
@@ -58,7 +58,7 @@ describe('function manipulating a ViewLayout', () => {
                         pos: 120,
                         layouts: [
                             {
-                                viewIds: ['x', 'd', 'e', 'f'],
+                                viewIds: ['d', 'e', 'f', 'x'],
                                 selectedViewId: 'x',
                             },
                             viewPanel3,
