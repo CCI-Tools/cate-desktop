@@ -47,9 +47,9 @@ export interface IPermanentComponentProps {
  * Note that the permanent object is removed from the store only if the "dispose()" method is called.
  *
  * @author Norman Fomferra
- * @version 0.1
+ * @version 0.2
  */
-export abstract class PermanentComponent<T extends IPermanentObjectType, P extends IPermanentComponentProps, S> extends React.Component<P, S> {
+export abstract class PermanentComponent<T extends IPermanentObjectType, P extends IPermanentComponentProps, S> extends React.PureComponent<P, S> {
     private static readonly defaultPermanentObjectStore: Object = {};
 
     private _parentContainer: HTMLElement|null;
@@ -112,24 +112,19 @@ export abstract class PermanentComponent<T extends IPermanentObjectType, P exten
         }
     }
 
-    //noinspection JSMethodCanBeStatic
-    /**
-     * Overridden to always return false.
-     * @returns {boolean} false
-     */
-    shouldComponentUpdate() {
-        return false;
-    }
-
     /**
      * By default, returns a "div" element.
      * @returns {JSX.Element}
      */
     render(): JSX.Element {
+        const onRef = (element: any) => {
+            this.handleRef(element);
+        };
+
         return <div id={this.props.id}
                     className={this.props.className}
                     style={this.props.style}
-                    ref={this.handleRef.bind(this)}/>
+                    ref={onRef}/>
     }
 
     private mountNewPermanentObject(parentContainer: HTMLElement) {
