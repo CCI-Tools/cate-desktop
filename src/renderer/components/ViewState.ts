@@ -1,5 +1,10 @@
 import * as assert from "../../common/assert";
-export type Direction = "hor" | "ver";
+
+
+type Direction = "hor" | "ver";
+
+export type ViewPath = string;
+
 
 export interface ViewState {
     id: string;
@@ -49,7 +54,7 @@ export function isViewPanelState(obj: any) {
     return 'viewIds' in obj;
 }
 
-export function getViewPanel(viewLayout: ViewLayoutState, viewPath: number[]): ViewPanelState {
+export function getViewPanel(viewLayout: ViewLayoutState, viewPath: ViewPath): ViewPanelState {
     return _getViewPanel(viewLayout, viewPath, 0);
 }
 
@@ -59,20 +64,26 @@ export function addView(viewLayout: ViewLayoutState,
 }
 
 export function splitViewPanel(viewLayout: ViewLayoutState,
-                               viewPath: number[],
+                               viewPath: ViewPath,
                                dir: Direction,
                                pos: number): ViewLayoutState {
     return _splitViewPanel(viewLayout, viewPath, dir, pos, 0);
 }
 
+export function changeViewSplitPos(viewLayout: ViewLayoutState,
+                                   viewPath: ViewPath,
+                                   delta: number): ViewLayoutState {
+    return _changeViewSplitPos(viewLayout, viewPath, delta, 0);
+}
+
 export function removeViewFromLayout(viewLayout: ViewLayoutState,
-                                     viewPath: number[],
+                                     viewPath: ViewPath,
                                      viewId: string): ViewLayoutState {
     return _removeViewFromLayout(viewLayout, viewPath, viewId, 0);
 }
 
 export function removeAllViewsFromLayout(viewLayout: ViewLayoutState,
-                                         viewPath: number[]) {
+                                         viewPath: ViewPath) {
     return _removeViewFromLayout(viewLayout, viewPath, null, 0);
 }
 
@@ -102,7 +113,7 @@ export function removeViewFromViewArray(views: ViewState[], viewId: string): Vie
 
 
 function _getViewPanel(viewLayout: ViewLayoutState,
-                       viewPath: number[],
+                       viewPath: ViewPath,
                        pathIndex: number): ViewPanelState {
     assert.ok(pathIndex <= viewPath.length, 'illegal path index');
     if (pathIndex < viewPath.length) {
@@ -127,14 +138,13 @@ function _addView(viewLayout: ViewLayoutState,
     } else {
         const viewPanel = viewLayout as ViewPanelState;
         const viewIds = [viewId].concat(viewPanel.viewIds);
-        const selectedViewId = viewId;
-        return {viewIds, selectedViewId} as ViewPanelState;
+        return {viewIds, selectedViewId: viewId};
     }
 }
 
 
 function _splitViewPanel(viewLayout: ViewLayoutState,
-                         viewPath: number[],
+                         viewPath: ViewPath,
                          dir: Direction,
                          pos: number,
                          pathIndex: number): ViewLayoutState {
@@ -142,7 +152,7 @@ function _splitViewPanel(viewLayout: ViewLayoutState,
     if (pathIndex < viewPath.length) {
         assert.ok(isViewSplitState(viewLayout), "ViewSplitState expected");
         const viewSplit = viewLayout as ViewSplitState;
-        const layoutIndex = viewPath[pathIndex];
+        const layoutIndex = viewPath.charCodeAt(pathIndex) - 48; // 48 = ascii('0')
         const oldLayout = viewSplit.layouts[layoutIndex];
         const newLayout = _splitViewPanel(oldLayout, viewPath, dir, pos, pathIndex + 1);
         let layouts;
@@ -170,19 +180,44 @@ function _splitViewPanel(viewLayout: ViewLayoutState,
                     selectedViewId: viewIds[0]
                 }
             ],
-        } as ViewLayoutState;
+        };
+    }
+}
+
+function _changeViewSplitPos(viewLayout: ViewLayoutState,
+                             viewPath: ViewPath,
+                             delta: number,
+                             pathIndex: number): ViewLayoutState {
+    assert.ok(pathIndex <= viewPath.length, 'illegal path index');
+    if (pathIndex < viewPath.length) {
+        assert.ok(isViewSplitState(viewLayout), "ViewSplitState expected");
+        const viewSplit = viewLayout as ViewSplitState;
+        const layoutIndex = viewPath.charCodeAt(pathIndex) - 48; // 48 = ascii('0')
+        const oldLayout = viewSplit.layouts[layoutIndex];
+        const newLayout = _changeViewSplitPos(oldLayout, viewPath, delta, pathIndex + 1);
+        let layouts;
+        if (layoutIndex === 0) {
+            layouts = [newLayout, viewSplit.layouts[1]];
+        } else {
+            layouts = [viewSplit.layouts[0], newLayout];
+        }
+        return {...viewSplit, layouts};
+    } else {
+        assert.ok(isViewSplitState(viewLayout), "ViewSplitState expected");
+        const viewSplit = viewLayout as ViewSplitState;
+        return {...viewSplit, pos: viewSplit.pos + delta};
     }
 }
 
 function _removeViewFromLayout(viewLayout: ViewLayoutState,
-                               viewPath: number[],
+                               viewPath: ViewPath,
                                viewId: string | null,
                                pathIndex: number): ViewLayoutState {
     assert.ok(pathIndex <= viewPath.length, 'illegal path index');
     if (pathIndex < viewPath.length) {
         assert.ok(isViewSplitState(viewLayout), "ViewSplitState expected");
         const viewSplit = viewLayout as ViewSplitState;
-        const layoutIndex = viewPath[pathIndex];
+        const layoutIndex = viewPath.charCodeAt(pathIndex) - 48; // 48 = ascii('0')
         const oldLayout = viewSplit.layouts[layoutIndex];
         const newLayout = _removeViewFromLayout(oldLayout, viewPath, viewId, pathIndex + 1);
         if (oldLayout === newLayout) {

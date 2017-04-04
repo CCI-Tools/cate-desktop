@@ -1,15 +1,15 @@
 import * as React from 'react';
 import {Colors} from "@blueprintjs/core";
-import {Splitter} from "./Splitter";
-import {isViewSplitState, ViewState, ViewSplitState, ViewPanelState, ViewLayoutState, Direction} from "./ViewState";
+import {Splitter, SplitDir} from "./Splitter";
+import {isViewSplitState, ViewState, ViewSplitState, ViewPanelState, ViewLayoutState, ViewPath} from "./ViewState";
 
 interface IViewManagerProps {
     viewLayout: ViewLayoutState;
     views: ViewState[];
-    onClose: (viewPath: number[], viewId: string) => void;
-    onCloseAll: (viewPath: number[]) => void;
-    onSplit: (viewPath: number[], dir: Direction, pos: number) => void;
-    onSplitPosChange: (viewPath: number[], delta: number) => void;
+    onClose: (viewPath: ViewPath, viewId: string) => void;
+    onCloseAll: (viewPath: ViewPath) => void;
+    onSplit: (viewPath: ViewPath, dir: SplitDir, pos: number) => void;
+    onSplitPosChange: (viewPath: ViewPath, delta: number) => void;
 }
 
 interface IViewManagerState {
@@ -38,28 +38,28 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
 
     render() {
         if (isViewSplitState(this.props.viewLayout)){
-            return this.renderViewSplit(this.props.viewLayout as ViewSplitState, []);
+            return this.renderViewSplit(this.props.viewLayout as ViewSplitState, '');
         } else {
-            return this.renderViewPanel(this.props.viewLayout as ViewPanelState, []);
+            return this.renderViewPanel(this.props.viewLayout as ViewPanelState, '');
         }
     }
 
-    renderViewSplit(viewSplit: ViewSplitState, viewPath: number[]) {
+    renderViewSplit(viewSplit: ViewSplitState, viewPath: ViewPath) {
 
         let renderedLayout1;
         let layout1 = viewSplit.layouts[0];
         if (isViewSplitState(layout1)) {
-            renderedLayout1 = this.renderViewSplit(layout1 as ViewSplitState, [...viewPath, 0]);
+            renderedLayout1 = this.renderViewSplit(layout1 as ViewSplitState, viewPath + '0');
         } else {
-            renderedLayout1 = this.renderViewPanel(layout1 as ViewPanelState, [...viewPath, 0]);
+            renderedLayout1 = this.renderViewPanel(layout1 as ViewPanelState, viewPath + '0');
         }
 
         let renderedLayout2;
         let layout2 = viewSplit.layouts[1];
         if (isViewSplitState(layout2)) {
-            renderedLayout2 = this.renderViewSplit(layout2 as ViewSplitState, [...viewPath, 1]);
+            renderedLayout2 = this.renderViewSplit(layout2 as ViewSplitState, viewPath + '1');
         } else {
-            renderedLayout2 = this.renderViewPanel(layout2 as ViewPanelState, [...viewPath, 1]);
+            renderedLayout2 = this.renderViewPanel(layout2 as ViewPanelState, viewPath + '1');
         }
 
         if (renderedLayout1 && renderedLayout2) {
@@ -106,28 +106,13 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
         return null;
     }
 
-    renderViewPanel(viewPanel: ViewPanelState, viewPath: number[]) {
-        const viewIds = viewPanel.viewIds;
-        if (!viewIds || !viewIds.length) {
-            return null;
-        }
-        const selectedViewId = viewPanel.selectedViewId;
-        const viewDefs = [];
-        let selectedViewDef = null;
-        viewIds.forEach(id => {
-            const viewDef = this.viewMap[id];
-            if (viewDef) {
-                if (selectedViewId && id === selectedViewId) {
-                    selectedViewDef = viewDef;
-                }
-                viewDefs.push(viewDef);
-            }
-        });
+    renderViewPanel(viewPanel: ViewPanelState, viewPath: ViewPath) {
         return (
             <ViewPanel
+                viewMap={this.viewMap}
                 viewPath={viewPath}
-                views={viewDefs}
-                selectedView={selectedViewDef}
+                viewIds={viewPanel.viewIds}
+                selectedViewId={viewPanel.selectedViewId}
                 onClose={this.props.onClose}
                 onCloseAll={this.props.onCloseAll}
                 onSplit={this.props.onSplit}
@@ -140,12 +125,13 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
 // ViewPanel
 
 interface IViewPanelProps {
-    viewPath: number[];
-    views: ViewState[];
-    selectedView: ViewState|null;
-    onClose: (viewPath: number[], viewId: string) => void;
-    onCloseAll: (viewPath: number[]) => void;
-    onSplit: (viewPath: number[], dir:"hor"|"ver", pos: number) => void;
+    viewMap: {[viewId:string]: ViewState};
+    viewPath: ViewPath;
+    viewIds: string[];
+    selectedViewId: string|null;
+    onClose: (viewPath: ViewPath, viewId: string) => void;
+    onCloseAll: (viewPath: ViewPath) => void;
+    onSplit: (viewPath: ViewPath, dir: SplitDir, pos: number) => void;
 }
 
 class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
@@ -177,15 +163,29 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
     }
 
     onContentDivRef(contentElement: HTMLDivElement) {
+        console.log('ViewPanel.onContentDivRef: contentElement:', contentElement);
         this.contentElement = contentElement;
     }
 
     render() {
-        const views = this.props.views;
-        if (!views.length) {
+        const viewIds = this.props.viewIds;
+        if (!viewIds.length) {
             return <div style={{width:"100%", height:"100%"}}/>
         }
-        const selectedView = this.props.selectedView;
+
+        const selectedViewId = this.props.selectedViewId;
+        const views = [];
+        let selectedView = null;
+        viewIds.forEach(id => {
+            const view = this.props.viewMap[id];
+            if (view) {
+                if (selectedViewId && id === selectedViewId) {
+                    selectedView = view;
+                }
+                views.push(view);
+            }
+        });
+
         let selectedContent;
         const tabs = [];
         for (let i = 0; i < views.length; i++) {

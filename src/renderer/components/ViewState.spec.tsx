@@ -1,11 +1,18 @@
-import {should, expect} from 'chai';
+import {expect} from 'chai';
+
 import {
-    addView, splitViewPanel, removeViewFromLayout, removeViewFromViewArray, ViewLayoutState, ViewState,
-    removeAllViewsFromLayout
+    addView,
+    splitViewPanel,
+    changeViewSplitPos,
+    removeViewFromLayout,
+    removeAllViewsFromLayout,
+    removeViewFromViewArray,
+    ViewLayoutState,
+    ViewState,
 } from "./ViewState";
 
-should();
-describe('ViewLayoutState tests', () => {
+describe('function manipulating a ViewLayout', () => {
+
     const viewPanel = {
         viewIds: ['a', 'b', 'c'],
         selectedViewId: 'c'
@@ -23,26 +30,26 @@ describe('ViewLayoutState tests', () => {
         viewIds: ['g', 'h', 'i'],
         selectedViewId: 'g'
     } as ViewLayoutState;
-    const viewSplit1 = {
+    const viewSplit2 = {
         dir: "ver",
         pos: 120,
         layouts: [viewPanel2, viewPanel3],
     } as ViewLayoutState;
-    const viewSplit2 = {
+    const viewSplit1 = {
         dir: "hor",
         pos: 80,
-        layouts: [viewSplit1, viewPanel1],
+        layouts: [viewSplit2, viewPanel1],
     } as ViewLayoutState;
 
     describe('addView()', () => {
-        it('can add to top-level view panel', () => {
+        it('can add view to top-level view panel', () => {
             expect(addView(viewPanel, 'd')).to.deep.equal({
                 viewIds: ['d', 'a', 'b', 'c'],
                 selectedViewId: 'd'
             });
         });
-        it('can add to deeper panel', () => {
-            expect(addView(viewSplit2, 'x')).to.deep.equal({
+        it('can add view to deeper view panel', () => {
+            expect(addView(viewSplit1, 'x')).to.deep.equal({
                 dir: "hor",
                 pos: 80,
                 layouts: [
@@ -65,7 +72,7 @@ describe('ViewLayoutState tests', () => {
 
     describe('splitViewPanel()', () => {
         it('can split a top-level view panel', () => {
-            expect(splitViewPanel(viewPanel, [], "hor", 100)).to.deep.equal({
+            expect(splitViewPanel(viewPanel, '', "hor", 100)).to.deep.equal({
                 dir: "hor",
                 pos: 100,
                 layouts: [
@@ -85,8 +92,8 @@ describe('ViewLayoutState tests', () => {
                 ],
             });
         });
-        it('can split a deeper panel', () => {
-            expect(splitViewPanel(viewSplit2, [0, 1], "hor", 60)).to.deep.equal({
+        it('can split a deeper view panel', () => {
+            expect(splitViewPanel(viewSplit1, '01', "hor", 60)).to.deep.equal({
                 dir: "hor",
                 pos: 80,
                 layouts: [
@@ -117,9 +124,34 @@ describe('ViewLayoutState tests', () => {
         });
     });
 
+    describe('changeViewSplitPos()', () => {
+        it('can change pos in top-level view split', () => {
+            expect(changeViewSplitPos(viewSplit2, '', 3)).to.deep.equal({
+                    dir: "ver",
+                    pos: 123,
+                    layouts: [viewPanel2, viewPanel3],
+                }
+            );
+        });
+        it('can change pos in deeper view split', () => {
+            expect(changeViewSplitPos(viewSplit1, '0', -2)).to.deep.equal({
+                dir: "hor",
+                pos: 80,
+                layouts: [
+                    {
+                        dir: "ver",
+                        pos: 118,
+                        layouts: [viewPanel2, viewPanel3],
+                    },
+                    viewPanel1
+                ],
+            });
+        });
+    });
+
     describe('removeViewFromLayout()', () => {
-        it('can remove view from top-level-panel', () => {
-            expect(removeViewFromLayout(viewPanel, [], 'b')).to.deep.equal({
+        it('can remove view from top-level view panel', () => {
+            expect(removeViewFromLayout(viewPanel, '', 'b')).to.deep.equal({
                 selectedViewId: "c",
                 viewIds: [
                     "a",
@@ -127,17 +159,38 @@ describe('ViewLayoutState tests', () => {
                 ]
             });
         });
+
+        it('can remove view from a deeper view panel', () => {
+            expect(removeViewFromLayout(viewSplit1, '01', 'i')).to.deep.equal({
+                dir: "hor",
+                pos: 80,
+                layouts: [
+                    {
+                        dir: "ver",
+                        pos: 120,
+                        layouts: [
+                            viewPanel2,
+                            {
+                                viewIds: ['g', 'h'],
+                                selectedViewId: 'g'
+                            }
+                        ],
+                    },
+                    viewPanel1,
+                ],
+            });
+        });
     });
 
     describe('removeAllViewFromLayout()', () => {
-        it('can remove all views from top-level-panel', () => {
-            expect(removeAllViewsFromLayout(viewPanel, [])).to.deep.equal({
+        it('can remove all views from top-level view panel', () => {
+            expect(removeAllViewsFromLayout(viewPanel, '')).to.deep.equal({
                 selectedViewId: null,
                 viewIds: []
             });
         });
-        it('can remove all views from a deeper panel', () => {
-            expect(removeAllViewsFromLayout(viewSplit2, [0, 1])).to.deep.equal({
+        it('can remove all views from a deeper view panel', () => {
+            expect(removeAllViewsFromLayout(viewSplit1, '01')).to.deep.equal({
                 dir: "hor",
                 pos: 80,
                 layouts: [viewPanel2, viewPanel1],
