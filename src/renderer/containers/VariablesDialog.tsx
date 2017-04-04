@@ -3,6 +3,7 @@ import {VariableState, ResourceState} from "../state";
 import {ListBoxSelectionMode, ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
 import {ModalDialog} from "../components/ModalDialog";
+import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 interface IVariablesDialogProps {
     isOpen: boolean;
@@ -58,7 +59,7 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
             return (<p>{`Resource "${this.props.resource.name}" does not seem to have any variables.`}</p>);
         }
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+            <ScrollablePanelContent>
                 <p>Select the variables to wish to add as a layer:</p>
                 <ListBox items={variables}
                          getItemKey={VariablesDialog.getVariableItemKey}
@@ -66,7 +67,7 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
                          selectionMode={this.props.multiSelect ? ListBoxSelectionMode.MULTIPLE : ListBoxSelectionMode.SINGLE}
                          selection={this.state.value}
                          onSelection={this.onSelection}/>
-            </div>
+            </ScrollablePanelContent>
         );
     }
 

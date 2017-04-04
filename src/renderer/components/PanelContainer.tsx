@@ -218,6 +218,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
             panelPane = this.renderPanelPane(panelParent);
         }
 
+        // Important: panelContainerStyle must have flex="none"
         const panelContainerStyle = {
             display: "flex",
             flexFlow: "row nowrap",
@@ -459,7 +460,6 @@ function PanelPane(props: IPanelPaneProps) {
     const panelBody = panel.props.body;
 
     let panelParentStyle = {
-        //flex: "none",
         display: "flex",
         flexDirection: "column",
         alignItems: "stretch",
@@ -467,8 +467,6 @@ function PanelPane(props: IPanelPaneProps) {
     };
 
     const bodyContainerStyle = {
-        overflow: "auto",
-        //width: "100%",
         flex: "auto",
         padding: PanelContainer.PANEL_BODY_PADDING,
     };

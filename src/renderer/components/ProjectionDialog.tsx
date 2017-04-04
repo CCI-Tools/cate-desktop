@@ -4,6 +4,7 @@ import {ModalDialog} from "./ModalDialog";
 import {getProjection, getProjectionCodes} from "../../common/projection-util";
 import * as ol from 'openlayers';
 import * as proj4 from 'proj4';
+import {ScrollablePanelContent} from "./ScrollableContent";
 
 ol.proj.setProj4(proj4);
 
@@ -62,7 +63,7 @@ export class ProjectionDialog extends React.Component<IProjectionDialogProps, IP
             return null;
         }
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+            <ScrollablePanelContent>
                 <p>Select the variables to wish to add as a layer:</p>
                 <ListBox items={getProjectionCodes()}
                          getItemKey={ProjectionDialog.getProjectionKey}
@@ -70,7 +71,7 @@ export class ProjectionDialog extends React.Component<IProjectionDialogProps, IP
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={this.state.projectionCode}
                          onSelection={this.onProjectionCodeChange}/>
-            </div>
+            </ScrollablePanelContent>
         );
     }
 

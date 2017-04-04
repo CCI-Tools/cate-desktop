@@ -17,6 +17,7 @@ import {NumericRangeField} from "../components/field/NumericRangeField";
 import LayerSourcesDialog from "./LayerSourcesDialog";
 import {getLayerDisplayName, SELECTED_VARIABLE_LAYER_ID} from "../state-util";
 import {FieldValue} from "../components/field/Field";
+import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -284,14 +285,14 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         }
 
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+            <ScrollablePanelContent>
                 <ListBox items={layers}
                          getItemKey={LayersPanel.getLayerItemKey}
                          renderItem={this.renderLayerItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={this.props.selectedLayerId}
                          onSelection={this.handleChangedLayerSelection}/>
-            </div>
+            </ScrollablePanelContent>
         );
     }
 

@@ -12,6 +12,7 @@ import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {isSpatialVectorVariable, isSpatialImageVariable, findOperation} from "./state-util";
+import {ViewState, ViewLayoutState} from "./components/ViewState";
 
 const EMPTY_OBJECT = {};
 const EMPTY_ARRAY = [];
@@ -339,6 +340,8 @@ export const selectedVariableSelector = createSelector<State, VariableState|null
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Viewer/Layer selectors
 
+export const viewLayoutSelector = (state: State): ViewLayoutState => state.session.viewLayout;
+export const viewsSelector = (state: State): ViewState[] => state.session.views;
 export const viewModeSelector = (state: State): ViewMode => state.control.viewer.viewMode;
 export const projectionCodeSelector = (state: State): string => state.control.viewer.projectionCode;
 export const layersSelector = (state: State): LayerState[] => state.control.viewer.layers;

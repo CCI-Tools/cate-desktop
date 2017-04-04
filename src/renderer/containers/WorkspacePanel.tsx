@@ -13,6 +13,7 @@ import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import * as assert from "../../common/assert";
 import * as actions from '../actions'
 import * as selectors from '../selectors'
+import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
@@ -129,13 +130,13 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         //const workflowTooltip = "Workflow steps that generate workspace resources";
 
         return (
-            <div style={{width: "100%", height: "100%", overflow: 'auto'}}>
+            <ScrollablePanelContent>
                 <span>Path: <code>{workspace.baseDir}</code></span>
                 <Tabs2 id="workflow">
                     <Tab2 id="resources" title={`Resources (${resources.length})`} panel={this.renderResourcesPanel()}/>
                     <Tab2 id="steps" title={`Steps (${steps.length})`} panel={this.renderWorkflowStepsPanel()}/>
                 </Tabs2>
-            </div>
+            </ScrollablePanelContent>
         );
     }
 
@@ -155,13 +156,13 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     private renderResourcesList() {
         const resources = this.props.workspace.resources;
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+            <ScrollablePanelContent>
                 <ListBox items={resources}
                          getItemKey={WorkspacePanel.getResourceItemKey}
                          renderItem={WorkspacePanel.renderResourceItem}
                          selection={this.props.selectedResourceId}
                          onSelection={this.handleResourceIdSelected}/>
-            </div>
+            </ScrollablePanelContent>
         );
     }
 
@@ -177,13 +178,13 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         }
 
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+            <ScrollablePanelContent>
                 <span>Attributes:</span>
                 <Table numRows={attributes.length} isRowHeaderShown={false}>
                     <Column name="Name" renderCell={this.renderResourceAttrName}/>
                     <Column name="Value" renderCell={this.renderResourceAttrValue}/>
                 </Table>
-            </div>
+            </ScrollablePanelContent>
         );
     }
 
@@ -214,13 +215,13 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     private renderWorkflowStepsList() {
         const workflowSteps = this.props.workspace.workflow.steps;
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+            <ScrollablePanelContent>
                 <ListBox items={workflowSteps}
                          getItemKey={WorkspacePanel.getStepItemKey}
                          renderItem={this.renderStepItem}
                          selection={this.props.selectedWorkflowStepId}
                          onSelection={this.handleWorkflowStepIdSelected}/>
-            </div>
+            </ScrollablePanelContent>
         );
     }
 
@@ -256,10 +257,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         //     this.renderOperationStepOutputValue);
 
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+            <ScrollablePanelContent>
                 {stepInputPanel}
                 {stepOutputPanel}
-            </div>
+            </ScrollablePanelContent>
         );
     }
 

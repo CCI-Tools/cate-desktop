@@ -1,6 +1,7 @@
 import  {WebAPIClient} from './webapi';
 import {JobStatus, JobFailure, JobProgress} from "./webapi/Job";
 import {PanelContainerLayout} from "./components/PanelContainer";
+import {ViewLayoutState, ViewState} from "./components/ViewState";
 
 /**
  * Interface describing Cate's application state structure.
@@ -600,6 +601,8 @@ export interface SessionState {
     selectedLeftBottomPanelId: string|null;
     selectedRightTopPanelId: string|null;
     selectedRightBottomPanelId: string|null;
+    viewLayout: ViewLayoutState;
+    views: ViewState[];
 
     /**
      * backendConfig settings are applied on restart (of the WebAPI) only.

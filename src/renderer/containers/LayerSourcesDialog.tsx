@@ -6,6 +6,7 @@ import * as selectors from "../selectors";
 import {ListBoxSelectionMode, ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
 import {ModalDialog} from "../components/ModalDialog";
+import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 interface ILayerSourcesDialogProps extends DialogState {
     dispatch?: any;
@@ -84,7 +85,7 @@ class LayerSourcesDialog extends React.Component<ILayerSourcesDialogProps, ILaye
             return (<p>There are currently no variables that could be added as layers.</p>);
         }
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+            <ScrollablePanelContent>
                 <p>Select the variables to wish to add as a layer:</p>
                 <ListBox items={this.props.layerVariables}
                          getItemKey={LayerSourcesDialog.getVariableItemKey}
@@ -92,7 +93,7 @@ class LayerSourcesDialog extends React.Component<ILayerSourcesDialogProps, ILaye
                          selectionMode={ListBoxSelectionMode.MULTIPLE}
                          selection={this.state.selectedIndices}
                          onSelection={this.handleChangedVariableSelection}/>
-            </div>
+            </ScrollablePanelContent>
         );
     }
 

@@ -10,6 +10,7 @@ import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {Card} from "../components/Card";
 import {LabelWithType} from "../components/LabelWithType";
 import {Button} from "@blueprintjs/core";
+import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 interface IVariablesPanelProps {
     dispatch?: any;
@@ -183,14 +184,14 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
 
     private renderVariablesList() {
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+            <ScrollablePanelContent>
                 <ListBox items={this.props.variables}
                          getItemKey={VariablesPanel.getItemKey}
                          renderItem={VariablesPanel.renderItem}
                          selection={this.props.selectedVariableName}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          onSelection={this.handleSelectedVariableName}/>
-            </div>
+            </ScrollablePanelContent>
         );
     }
 }

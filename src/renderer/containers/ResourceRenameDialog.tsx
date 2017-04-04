@@ -5,6 +5,7 @@ import {connect} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ModalDialog} from "../components/ModalDialog";
+import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 interface IResourceRenameDialogProps extends DialogState {
     dispatch?: any;
@@ -84,7 +85,7 @@ class ResourceRenameDialog extends React.Component<IResourceRenameDialogProps, I
         }
 
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto', padding: '1em'}}>
+            <ScrollablePanelContent>
                 <label className="pt-label">
                     New resource name
                     <span className="pt-text-muted"> (must be unique within the workspace)</span>
@@ -94,7 +95,7 @@ class ResourceRenameDialog extends React.Component<IResourceRenameDialogProps, I
                            value={this.state.newName}
                            onChange={(ev: any) => this.setState({newName: ev.target.value})}/>
                 </label>
-            </div>
+            </ScrollablePanelContent>
         );
     }
 }

@@ -2,6 +2,7 @@ import {
     VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
     VariableImageLayerState, State, OperationState
 } from "./state";
+import {ViewState} from "./components/ViewState";
 
 export type GetState = () => State;
 
@@ -75,3 +76,15 @@ export function findOperation(operations: OperationState[], name: string): Opera
     return operations && operations.find(op => op.qualifiedName === name || op.name === name);
 }
 
+let WORLD_VIEW_COUNTER = 1;
+
+export function createWorldView(): ViewState {
+    const id = ++WORLD_VIEW_COUNTER;
+    return {
+        title: `World (${id})`,
+        id: `world-${id}`,
+        type: 'world',
+        iconName: "pt-icon-globe",
+        data: {}
+    };
+}

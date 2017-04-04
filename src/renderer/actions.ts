@@ -13,6 +13,8 @@ import {
     GetState
 } from "./state-util";
 import {isNumber} from "../common/types";
+import {ViewPath} from "./components/ViewState";
+import {SplitDir} from "./components/Splitter";
 
 // TODO (forman/marcoz): find easy way to unit-test our async actions calling remote API (WebAPIServiceMock?)
 
@@ -911,6 +913,41 @@ export function setSelectedRightTopPanelId(selectedRightTopPanelId: string|null)
 
 export function setSelectedRightBottomPanelId(selectedRightBottomPanelId: string|null) {
     return updateSessionState({selectedRightBottomPanelId});
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ViewManager actions
+
+export const ADD_WORLD_VIEW = "ADD_WORLD_VIEW";
+export const SELECT_VIEW = "SELECT_VIEW";
+export const CLOSE_VIEW = "CLOSE_VIEW";
+export const CLOSE_ALL_VIEWS = "CLOSE_ALL_VIEWS";
+export const SPLIT_VIEW_PANEL = "SPLIT_VIEW_PANEL";
+export const CHANGE_VIEW_SPLIT_POS = "CHANGE_VIEW_SPLIT_POS";
+
+
+export function addWorldView() {
+    return {type: ADD_WORLD_VIEW};
+}
+
+export function selectView(viewPath: ViewPath, viewId: string) {
+    return {type: SELECT_VIEW, payload: {viewPath, viewId}};
+}
+
+export function closeView(viewPath: ViewPath, viewId: string) {
+    return {type: CLOSE_VIEW, payload: {viewPath, viewId}};
+}
+
+export function closeAllViews(viewPath: ViewPath) {
+    return {type: CLOSE_ALL_VIEWS, payload: {viewPath}};
+}
+
+export function splitViewPanel(viewPath: ViewPath, dir: SplitDir, pos: number) {
+    return {type: SPLIT_VIEW_PANEL, payload: {viewPath, dir, pos}};
+}
+
+export function changeViewSplitPos(viewPath: ViewPath, delta: number) {
+    return {type: CHANGE_VIEW_SPLIT_POS, payload: {viewPath, delta}};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

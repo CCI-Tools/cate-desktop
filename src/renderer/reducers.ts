@@ -5,7 +5,11 @@ import * as actions from './actions';
 import * as assert from "../common/assert";
 import {combineReducers} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
-import {COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID} from "./state-util";
+import {COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID, createWorldView} from "./state-util";
+import {
+    removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
+    addViewToLayout, selectViewInLayout
+} from "./components/ViewState";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -295,6 +299,19 @@ const initialSessionState: SessionState = {
     selectedRightTopPanelId: 'variables',
     selectedRightBottomPanelId: 'layers',
 
+    views: [
+        {
+            id: "world-1",
+            type: "world",
+            title: "World",
+            iconName: "pt-icon-globe",
+        }
+    ],
+    viewLayout: {
+        viewIds: ["world-1"],
+        selectedViewId: "world-1",
+    },
+
     backendConfig: {
         dataStoresPath: null,
         useWorkspaceImageryCache: false,
@@ -307,6 +324,25 @@ const sessionReducer = (state: SessionState = initialSessionState, action) => {
             return updateObject(state, action.payload.session);
         case actions.UPDATE_SESSION_STATE:
             return updateObject(state, action.payload);
+        case actions.ADD_WORLD_VIEW: {
+            const view = createWorldView();
+            const views = addViewToViewArray(state.views, view);
+            const viewLayout = addViewToLayout(state.viewLayout, view.id);
+            return {...state, viewLayout, views};
+        }
+        case actions.SELECT_VIEW: {
+            const viewPath = action.payload.viewPath;
+            const viewId = action.payload.viewId;
+            const viewLayout = selectViewInLayout(state.viewLayout, viewPath, viewId);
+            return {...state, viewLayout};
+        }
+        case actions.CLOSE_VIEW: {
+            const viewPath = action.payload.viewPath;
+            const viewId = action.payload.viewId;
+            const views = removeViewFromViewArray(state.views, viewId);
+            const viewLayout = removeViewFromLayout(state.viewLayout, viewPath, viewId);
+            return {...state, viewLayout, views};
+        }
     }
     return state;
 };

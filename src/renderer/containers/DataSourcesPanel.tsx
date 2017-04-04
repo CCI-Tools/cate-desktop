@@ -10,6 +10,7 @@ import OpenDatasetDialog from "./OpenDatasetDialog";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
+import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 
 interface IDataSourcesPanelProps {
@@ -264,14 +265,14 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
 
     render() {
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+            <ScrollablePanelContent>
                 <ListBox items={this.props.dataSources}
                          getItemKey={DataSourcesList.getItemKey}
                          renderItem={this.renderItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={this.props.selectedDataSourceId}
                          onSelection={this.handleDataSourceSelected}/>
-            </div>
+            </ScrollablePanelContent>
         );
     }
 }
@@ -345,6 +346,7 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
 
         if (metaInfoTable && variablesTable) {
             return (
+
                 <Tabs2 id="dsDetails">
                     <Tab2 id="vars" title="Variables" panel={variablesTable}/>
                     <Tab2 id="meta" title="Meta-Info" panel={metaInfoTable}/>

@@ -14,6 +14,7 @@ import {State, OperationState, WorkspaceState, OperationOutputState, OperationIn
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {Panel} from "../components/Panel";
+import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 
 interface IOperationsPanelProps {
@@ -151,14 +152,14 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
     private renderOperationsList() {
         return (
-            <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+            <ScrollablePanelContent>
                 <ListBox items={this.props.filteredOperations}
                          getItemKey={OperationsPanel.getItemKey}
                          renderItem={OperationsPanel.renderItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={this.props.selectedOperationName}
                          onSelection={this.handleOperationSelection}/>
-            </div>
+            </ScrollablePanelContent>
         );
     }
 
@@ -303,13 +304,15 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         }
 
         return (
-            <Card>
-                <h5>{title}</h5>
-                {description}
-                {tags}
-                {outputs}
-                {inputs}
-            </Card>
+            <ScrollablePanelContent>
+                <Card>
+                    <h5>{title}</h5>
+                    {description}
+                    {tags}
+                    {outputs}
+                    {inputs}
+                </Card>
+            </ScrollablePanelContent>
         );
     }
 

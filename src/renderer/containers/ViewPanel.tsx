@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {State, ViewMode} from "../state";
-import {RadioGroup, Radio} from "@blueprintjs/core";
+import {RadioGroup, Radio, Button} from "@blueprintjs/core";
 import {ProjectionField} from "../components/field/ProjectionField";
 import {FieldValue} from "../components/field/Field";
 import * as selectors from "../selectors";
@@ -38,6 +38,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         super(props, context);
         this.onViewModeChange = this.onViewModeChange.bind(this);
         this.onProjectionCodeChange = this.onProjectionCodeChange.bind(this);
+        this.onAddWorldView = this.onAddWorldView.bind(this);
         this.state = {isProjectionsDialogOpen: false};
     }
 
@@ -49,9 +50,16 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         this.props.dispatch(actions.setProjectionCode(projectionCode.textValue));
     }
 
+    onAddWorldView() {
+        this.props.dispatch(actions.addWorldView());
+    }
+
     render() {
         return (
             <div>
+
+                <Button iconName="globe" onClick={this.onAddWorldView}>New World View</Button>
+
                 <RadioGroup
                     label="View mode"
                     onChange={this.onViewModeChange}

@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 
 import {
-    addView,
+    addViewToLayout,
     splitViewPanel,
     changeViewSplitPos,
     removeViewFromLayout,
@@ -43,13 +43,13 @@ describe('function manipulating a ViewLayout', () => {
 
     describe('addView()', () => {
         it('can add view to top-level view panel', () => {
-            expect(addView(viewPanel, 'd')).to.deep.equal({
+            expect(addViewToLayout(viewPanel, 'd')).to.deep.equal({
                 viewIds: ['d', 'a', 'b', 'c'],
                 selectedViewId: 'd'
             });
         });
         it('can add view to deeper view panel', () => {
-            expect(addView(viewSplit1, 'x')).to.deep.equal({
+            expect(addViewToLayout(viewSplit1, 'x')).to.deep.equal({
                 dir: "hor",
                 pos: 80,
                 layouts: [

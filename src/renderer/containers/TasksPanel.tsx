@@ -7,6 +7,7 @@ import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {JobStatusEnum} from "../webapi/Job";
 import * as actions from "../actions";
 import {Card} from "../components/Card";
+import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 interface ITaskPanelProps {
     tasks: {[jobId: number]: TaskState};
@@ -101,12 +102,12 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
         let panelContents;
         if (visibleTaskIds.length) {
             panelContents = (
-                <div style={{width: '100%', height: '100%', overflow: 'auto'}}>
+                <ScrollablePanelContent>
                     <ListBox items={visibleTaskIds}
                              getItemKey={TasksPanel.getItemKey}
                              renderItem={renderItem}
                              selectionMode={ListBoxSelectionMode.SINGLE}/>
-                </div>
+                </ScrollablePanelContent>
             );
         } else {
             panelContents = (

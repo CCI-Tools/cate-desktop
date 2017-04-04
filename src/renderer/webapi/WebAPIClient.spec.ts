@@ -212,7 +212,7 @@ describe('WebAPIClient', function () {
                 actualErrorEvent = event;
             };
 
-            webAPI.onClose = (event) => {
+            webAPI.onCloseView = (event) => {
                 actualCloseEvent = event;
             };
 

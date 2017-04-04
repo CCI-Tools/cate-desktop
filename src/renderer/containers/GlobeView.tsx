@@ -63,7 +63,7 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
         }
 
         return (
-            <div style={{width:"100%", height:"100%"}}>
+            <div style={{width:"100%", height:"100%", overflow: "none"}}>
                 <CesiumGlobe id="defaultGlobeView"
                              debug={true}
                              layers={layers}
