@@ -340,8 +340,8 @@ export const selectedVariableSelector = createSelector<State, VariableState|null
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Viewer/Layer selectors
 
-export const viewLayoutSelector = (state: State): ViewLayoutState => state.session.viewLayout;
-export const viewsSelector = (state: State): ViewState[] => state.session.views;
+export const viewLayoutSelector = (state: State): ViewLayoutState => state.control.viewLayout;
+export const viewsSelector = (state: State): ViewState[] => state.control.views;
 export const viewModeSelector = (state: State): ViewMode => state.control.viewer.viewMode;
 export const projectionCodeSelector = (state: State): string => state.control.viewer.projectionCode;
 export const layersSelector = (state: State): LayerState[] => state.control.viewer.layers;

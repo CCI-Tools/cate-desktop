@@ -98,7 +98,7 @@ const dataReducer = (state: DataState = initialDataState, action) => {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // state.control initial state and reducers
 
-
+// TODO (forman): move into ViewState.data
 let initialViewerState = {
     viewMode: "3D",
     projectionCode: 'EPSG:4326',
@@ -140,6 +140,19 @@ const initialControlState: ControlState = {
     showOperationDetails: true,
     showVariableDetails: true,
     showLayerDetails: true,
+
+    views: [
+        {
+            id: "world-1",
+            type: "world",
+            title: "World",
+            iconName: "pt-icon-globe",
+        }
+    ],
+    viewLayout: {
+        viewIds: ["world-1"],
+        selectedViewId: "world-1",
+    },
 };
 
 
@@ -179,6 +192,25 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
                 state = updateObject(state, {selectedWorkspaceResourceId: newResName});
             }
             break;
+        }
+        case actions.ADD_WORLD_VIEW: {
+            const view = createWorldView();
+            const views = addViewToViewArray(state.views, view);
+            const viewLayout = addViewToLayout(state.viewLayout, view.id);
+            return {...state, viewLayout, views};
+        }
+        case actions.SELECT_VIEW: {
+            const viewPath = action.payload.viewPath;
+            const viewId = action.payload.viewId;
+            const viewLayout = selectViewInLayout(state.viewLayout, viewPath, viewId);
+            return {...state, viewLayout};
+        }
+        case actions.CLOSE_VIEW: {
+            const viewPath = action.payload.viewPath;
+            const viewId = action.payload.viewId;
+            const views = removeViewFromViewArray(state.views, viewId);
+            const viewLayout = removeViewFromLayout(state.viewLayout, viewPath, viewId);
+            return {...state, viewLayout, views};
         }
     }
 
@@ -299,19 +331,6 @@ const initialSessionState: SessionState = {
     selectedRightTopPanelId: 'variables',
     selectedRightBottomPanelId: 'layers',
 
-    views: [
-        {
-            id: "world-1",
-            type: "world",
-            title: "World",
-            iconName: "pt-icon-globe",
-        }
-    ],
-    viewLayout: {
-        viewIds: ["world-1"],
-        selectedViewId: "world-1",
-    },
-
     backendConfig: {
         dataStoresPath: null,
         useWorkspaceImageryCache: false,
@@ -324,25 +343,6 @@ const sessionReducer = (state: SessionState = initialSessionState, action) => {
             return updateObject(state, action.payload.session);
         case actions.UPDATE_SESSION_STATE:
             return updateObject(state, action.payload);
-        case actions.ADD_WORLD_VIEW: {
-            const view = createWorldView();
-            const views = addViewToViewArray(state.views, view);
-            const viewLayout = addViewToLayout(state.viewLayout, view.id);
-            return {...state, viewLayout, views};
-        }
-        case actions.SELECT_VIEW: {
-            const viewPath = action.payload.viewPath;
-            const viewId = action.payload.viewId;
-            const viewLayout = selectViewInLayout(state.viewLayout, viewPath, viewId);
-            return {...state, viewLayout};
-        }
-        case actions.CLOSE_VIEW: {
-            const viewPath = action.payload.viewPath;
-            const viewId = action.payload.viewId;
-            const views = removeViewFromViewArray(state.views, viewId);
-            const viewLayout = removeViewFromLayout(state.viewLayout, viewPath, viewId);
-            return {...state, viewLayout, views};
-        }
     }
     return state;
 };

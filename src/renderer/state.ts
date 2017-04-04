@@ -552,7 +552,11 @@ export interface ControlState {
     showLayerDetails: boolean;
     savedLayers: {[key: string]: LayerState};
 
+    // TODO (forman): move into workspace
+    viewLayout: ViewLayoutState;
+    views: ViewState[];
     // State of the 2D/3D viewer.
+    // TODO (forman): move into view.data
     viewer: ViewerState;
 
     // A map that stores the last state of any dialog given a dialogId
@@ -601,8 +605,6 @@ export interface SessionState {
     selectedLeftBottomPanelId: string|null;
     selectedRightTopPanelId: string|null;
     selectedRightBottomPanelId: string|null;
-    viewLayout: ViewLayoutState;
-    views: ViewState[];
 
     /**
      * backendConfig settings are applied on restart (of the WebAPI) only.
