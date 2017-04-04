@@ -14,15 +14,20 @@ import {
 } from "../state-util";
 const Cesium: any = require('cesium');
 
-interface IGlobeViewProps {
+interface IGlobeViewOwnProps {
+    id: string;
+}
+
+interface IGlobeViewProps extends IGlobeViewOwnProps {
     baseUrl: string;
     workspace: WorkspaceState | null;
     offlineMode: boolean;
     layers: LayerState[];
 }
 
-function mapStateToProps(state: State): IGlobeViewProps {
+function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
     return {
+        id: ownProps.id,
         baseUrl: state.data.appConfig.webAPIConfig.restUrl,
         workspace: state.data.workspace,
         offlineMode: state.session.offlineMode,
@@ -33,7 +38,7 @@ function mapStateToProps(state: State): IGlobeViewProps {
 /**
  * This component displays a 3D globe with a number of layers.
  */
-class GlobeView extends React.Component<IGlobeViewProps, null> {
+class GlobeView extends React.Component<IGlobeViewProps&IGlobeViewOwnProps, null> {
 
     render() {
         const layers = [];
@@ -64,13 +69,13 @@ class GlobeView extends React.Component<IGlobeViewProps, null> {
 
         return (
             <div style={{width:"100%", height:"100%", overflow: "none"}}>
-                <CesiumGlobe id="defaultGlobeView"
+                <CesiumGlobe id={this.props.id}
                              debug={true}
                              layers={layers}
                              dataSources={dataSources}
                              offlineMode={this.props.offlineMode}
                              style={{width:"100%", height:"100%"}}/>
-                <div id="creditContainer" style={{display:"none"}}></div>
+                <div id="creditContainer" style={{display:"none"}}/>
             </div>
         );
     }

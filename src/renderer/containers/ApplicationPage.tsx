@@ -22,7 +22,7 @@ import {ViewLayoutState, ViewState, ViewPath, SplitDir} from "../components/View
 
 function renderWorldView(view: ViewState) {
     //return (<WorldView viewMode={this.props.viewMode}/>);
-    return (<WorldView viewMode="3D"/>);
+    return (<WorldView viewMode="3D" viewId={view.id}/>);
 }
 
 
@@ -68,8 +68,6 @@ function mapStateToProps(state: State): IApplicationPageProps {
 class ApplicationPage extends React.PureComponent<IApplicationPageProps & IDispatch, null> {
 
     constructor(props: IApplicationPageProps & IDispatch) {
-        //
-
         super(props);
         this.onLeftPanelContainerLayoutChange = this.onLeftPanelContainerLayoutChange.bind(this);
         this.onRightPanelContainerLayoutChange = this.onRightPanelContainerLayoutChange.bind(this);
@@ -189,11 +187,12 @@ export default connect(mapStateToProps)(ApplicationPage);
 
 
 interface IWorldViewProps {
+    viewId: string;
     viewMode: ViewMode;
 }
 
 function WorldView(props: IWorldViewProps) {
-    return props.viewMode === "3D" ? (<GlobeView/>) : (<MapView/>);
+    return props.viewMode === "3D" ? (<GlobeView id={props.viewId}/>) : (<MapView/>);
 }
 
 
