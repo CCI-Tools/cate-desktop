@@ -9,46 +9,67 @@
 
 ## Building from Sources
 
-The only development tool initially required is the latest version [Node.js](https://nodejs.org/). 
-After installing Node.js, we use its Package Manager `npm` to install all other required project dependencies. 
+Note that cate-desktop requires [cate-core](https://github.com/CCI-Tools/cate-core) to be installed on your system.
+Follow the instruction in cate-core's [README](https://github.com/CCI-Tools/cate-core/blob/master/README.md) first.
+
+Once cate-core is ready to be used, `cd`back into cate-dektop and copy file `cate-config.template.js` to a file
+named `cate-config.js`. Then adjust the "command" parameter in `cate-config.js` to match
+the `cate-webapi` executable located in the Python environment in which you've installed cate-core.
+
+On Linux and Darwin the "command" setting may look like
+
+    module.exports = {
+        webAPIConfig: {
+            command: "/home/bibo/apps/miniconda3/envs/cate/bin/cate-webapi",
+            ...
+
+On Windows the "command" setting may look like
+
+    module.exports = {
+        webAPIConfig: {
+            command: "C:\\Users\\Bibo\\Miniconda3\\envs\\cate\\Scripts\\cate-webapi.exe",
+            ...
+
+The only development tool initially required to build cate-desktop is the latest version [Node.js](https://nodejs.org/).
+After installing Node.js, we use its Package Manager `npm` to install all other required project dependencies.
 
 Get the source code and locally install dependencies:
 
-    git clone https://github.com/CCI-Tools/cate-desktop.git
-    cd cate-desktop
-    npm install
+    $ git clone https://github.com/CCI-Tools/cate-desktop.git
+    $ cd cate-desktop
+    $ npm install
 
 To compile TypeScript to JavaScript:
 
-    npm run compile
-
-To execute the unit-tests:
-
-    npm test
-
-To perform end-to-end tests:
-
-    npm run test:e2e
+    $ npm run compile
 
 To run the application:
     
-    npm start
+    $ npm start
+
+To execute the unit-tests:
+
+    $ npm test
+
+To perform end-to-end tests:
+
+    $ npm run test:e2e
 
 To build platform installer executables:
 
-    npm run dist
+    $ npm run dist
 
 To build binary packages:
 
-    npm run pack
+    $ npm run pack
 
 To clean compilation results:
 
-    npm run clean
+    $ npm run clean
 
 To get rid of all outputs since cloning the repo:
 
-    npm run clean:all
+    $ npm run clean:all
 
 ## Frameworks and Libraries in use
 
