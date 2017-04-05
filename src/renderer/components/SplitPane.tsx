@@ -50,11 +50,11 @@ export class SplitPane extends React.PureComponent<ISplitPaneProps, ISplitPaneSt
         if (this.props.dir === 'hor') {
             containerClass = 'cate-split-pane-hor';
             childContainer1Style = {flex: 'none', width: this.state.size, height: '100%'};
-            childContainer2Style = {flex: 'auto', width: '100%', height: '100%'};
+            childContainer2Style = {flex: 1, width: '100%', height: '100%'};
         } else {
             containerClass = 'cate-split-pane-ver';
             childContainer1Style = {flex: 'none', width: '100%', height: this.state.size};
-            childContainer2Style = {flex: 'auto', width: '100%', height: '100%'};
+            childContainer2Style = {flex: 1, width: '100%', height: '100%'};
         }
         return (
             <div className={containerClass}>

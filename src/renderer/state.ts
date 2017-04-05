@@ -300,7 +300,14 @@ export interface WorldViewDataState {
      * The layers in a viewer.
      */
     layers: LayerState[];
+
+    /**
+     * The ID of the selected layer.
+     */
+    selectedLayerId: string|null;
 }
+
+export type WorldViewState = ViewState<WorldViewDataState>;
 
 /**
  * State of a layer.
@@ -547,7 +554,6 @@ export interface ControlState {
     showVariableDetails: boolean;
 
     // LayersPanel
-    selectedLayerId: string|null;
     showLayerDetails: boolean;
     savedLayers: {[key: string]: LayerState};
 

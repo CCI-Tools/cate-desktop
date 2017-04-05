@@ -10,8 +10,9 @@ should();
 
 describe('Actions', () => {
     let store = null;
+    let initialViewId: string;
 
-    const getState = () : State => {
+    const getState = (): State => {
         return store.getState();
     };
 
@@ -37,11 +38,20 @@ describe('Actions', () => {
         store = createStore(stateReducer, middleware);
     });
 
+    describe('Initial state', () => {
+        it('One single view is defined', () => {
+            expect(getState().control.views).to.not.be.null;
+            expect(getState().control.views).to.not.be.undefined;
+            expect(getState().control.views.length).to.equal(1);
+            expect(getState().control.views[0].id.startsWith("world-")).to.be.true;
+        });
+    });
+
     describe('Session/Preferences actions', () => {
 
         it('updatePreferences', () => {
             dispatch(actions.updatePreferences({lastDir: 'a/b'}));
-            expect(store.getState().session.lastDir).to.deep.equal('a/b');
+            expect(getState().session.lastDir).to.deep.equal('a/b');
             dispatch(actions.updatePreferences({lastVar: 'c'}));
             expect(getState().session.lastDir).to.deep.equal('a/b');
             expect((getState().session as any).lastVar).to.deep.equal('c');
@@ -236,14 +246,16 @@ describe('Actions', () => {
         });
 
         it('setSelectedVariableName', () => {
-            dispatch(actions.setSelectedVariableName('var_3'));
+            dispatch(actions.setSelectedVariableName('dummy', 'var_3'));
             expect(getState().control.selectedVariableName).to.equal('var_3');
-            dispatch(actions.setSelectedVariableName(null));
+            dispatch(actions.setSelectedVariableName(null, null));
             expect(getState().control.selectedVariableName).to.be.null;
         });
     });
 
     describe('Layer actions', () => {
+
+        initialViewId = getState().control.views[0].id;
 
         const workspace = {
             baseDir: 'a/b/c',
@@ -288,7 +300,7 @@ describe('Actions', () => {
         it('setSelectedVariableName - with image variable', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
-            dispatch(actions.setSelectedVariableName('analysed_sst'));
+            dispatch(actions.setSelectedVariableName('res_1', 'analysed_sst'));
             expect(getState().control.views[0].data.layers).to.deep.equal([
                 {
                     id: SELECTED_VARIABLE_LAYER_ID,
@@ -315,7 +327,7 @@ describe('Actions', () => {
         it('setSelectedVariableName - with non-image variable selection', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
-            dispatch(actions.setSelectedVariableName('profile'));
+            dispatch(actions.setSelectedVariableName('res_1', 'profile'));
             expect(getState().control.views[0].data.layers).to.deep.equal([
                 {
                     id: SELECTED_VARIABLE_LAYER_ID,
@@ -367,96 +379,96 @@ describe('Actions', () => {
 
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
-            dispatch(actions.setSelectedVariableName('analysed_sst'));
-            dispatch(actions.updateLayer({
+            dispatch(actions.setSelectedVariableName('res_1', 'analysed_sst'));
+            dispatch(actions.updateLayer('world-1', {
                 id: SELECTED_VARIABLE_LAYER_ID,
                 varIndex: [139],
                 displayMax: 300
             } as any));
             expect(getState().control.views[0].data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
-            dispatch(actions.setSelectedVariableName('sst_error'));
+            dispatch(actions.setSelectedVariableName('res_1', 'sst_error'));
             expect(getState().control.views[0].data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayers]);
-            dispatch(actions.setSelectedVariableName('analysed_sst'));
+            dispatch(actions.setSelectedVariableName('res_1', 'analysed_sst'));
             expect(getState().control.views[0].data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
         });
 
-        it('addVariableLayer - w/o variable selection', () => {
-            dispatch(actions.setCurrentWorkspace(workspace as any));
-            dispatch(actions.addVariableLayer('ID756473'));
-            expect(getState().control.views[0].data.layers).to.deep.equal([
-                {
-                    id: SELECTED_VARIABLE_LAYER_ID,
-                    type: 'Unknown',
-                    visible: true,
-                },
-                defaultCountriesLayers
-            ]);
-        });
-
-        it('addVariableLayer - with image variable selection', () => {
-            dispatch(actions.setCurrentWorkspace(workspace as any));
-            dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
-            dispatch(actions.setSelectedVariableName('analysed_sst'));
-            dispatch(actions.addVariableLayer('ID756473'));
-            expect(getState().control.views[0].data.layers).to.deep.equal([
-                {
-                    id: SELECTED_VARIABLE_LAYER_ID,
-                    type: "VariableImage",
-                    visible: true,
-                    resName: "res_1",
-                    varName: "analysed_sst",
-                    varIndex: [0],
-                    colorMapName: "jet",
-                    alphaBlending: false,
-                    displayMin: 270,
-                    displayMax: 310,
-                    opacity: 1,
-                    brightness: 1,
-                    contrast: 1,
-                    gamma: 1,
-                    hue: 0,
-                    saturation: 1,
-                },
-                defaultCountriesLayers,
-                {
-                    id: "ID756473",
-                    type: "VariableImage",
-                    visible: true,
-                    resName: "res_1",
-                    varName: "analysed_sst",
-                    varIndex: [0],
-                    colorMapName: "jet",
-                    alphaBlending: false,
-                    displayMin: 270,
-                    displayMax: 310,
-                    opacity: 1,
-                    brightness: 1,
-                    contrast: 1,
-                    gamma: 1,
-                    hue: 0,
-                    saturation: 1,
-                }
-            ]);
-        });
-
-        it('addVariableLayer - with non-image variable selection', () => {
-            dispatch(actions.setCurrentWorkspace(workspace as any));
-            dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
-            dispatch(actions.setSelectedVariableName('profile'));
-            dispatch(actions.addVariableLayer('ID756473'));
-            expect(getState().control.views[0].data.layers).to.deep.equal([
-                {
-                    id: SELECTED_VARIABLE_LAYER_ID,
-                    type: "Unknown",
-                    name: "profile of res_1",
-                    visible: true,
-                },
-                defaultCountriesLayers
-            ]);
-        });
+        // it('addVariableLayer - w/o variable selection', () => {
+        //     dispatch(actions.setCurrentWorkspace(workspace as any));
+        //     dispatch(actions.addVariableLayer('ID756473'));
+        //     expect(getState().control.views[0].data.layers).to.deep.equal([
+        //         {
+        //             id: SELECTED_VARIABLE_LAYER_ID,
+        //             type: 'Unknown',
+        //             visible: true,
+        //         },
+        //         defaultCountriesLayers
+        //     ]);
+        // });
+        //
+        // it('addVariableLayer - with image variable selection', () => {
+        //     dispatch(actions.setCurrentWorkspace(workspace as any));
+        //     dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+        //     dispatch(actions.setSelectedVariableName('res_1', 'analysed_sst'));
+        //     dispatch(actions.addVariableLayer('ID756473'));
+        //     expect(getState().control.views[0].data.layers).to.deep.equal([
+        //         {
+        //             id: SELECTED_VARIABLE_LAYER_ID,
+        //             type: "VariableImage",
+        //             visible: true,
+        //             resName: "res_1",
+        //             varName: "analysed_sst",
+        //             varIndex: [0],
+        //             colorMapName: "jet",
+        //             alphaBlending: false,
+        //             displayMin: 270,
+        //             displayMax: 310,
+        //             opacity: 1,
+        //             brightness: 1,
+        //             contrast: 1,
+        //             gamma: 1,
+        //             hue: 0,
+        //             saturation: 1,
+        //         },
+        //         defaultCountriesLayers,
+        //         {
+        //             id: "ID756473",
+        //             type: "VariableImage",
+        //             visible: true,
+        //             resName: "res_1",
+        //             varName: "analysed_sst",
+        //             varIndex: [0],
+        //             colorMapName: "jet",
+        //             alphaBlending: false,
+        //             displayMin: 270,
+        //             displayMax: 310,
+        //             opacity: 1,
+        //             brightness: 1,
+        //             contrast: 1,
+        //             gamma: 1,
+        //             hue: 0,
+        //             saturation: 1,
+        //         }
+        //     ]);
+        // });
+        //
+        // it('addVariableLayer - with non-image variable selection', () => {
+        //     dispatch(actions.setCurrentWorkspace(workspace as any));
+        //     dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+        //     dispatch(actions.setSelectedVariableName('res_1', 'profile'));
+        //     dispatch(actions.addVariableLayer('ID756473'));
+        //     expect(getState().control.views[0].data.layers).to.deep.equal([
+        //         {
+        //             id: SELECTED_VARIABLE_LAYER_ID,
+        //             type: "Unknown",
+        //             name: "profile of res_1",
+        //             visible: true,
+        //         },
+        //         defaultCountriesLayers
+        //     ]);
+        // });
 
         it('addLayer', () => {
-            dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
+            dispatch(actions.addLayer(initialViewId, {id: 'layer-2', visible: true} as LayerState, true));
             expect(getState().control.views[0].data.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
@@ -465,9 +477,9 @@ describe('Actions', () => {
         });
 
         it('removeLayer', () => {
-            dispatch(actions.addLayer({id: 'layer-1', visible: true} as LayerState));
-            dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
-            dispatch(actions.removeLayer('layer-2'));
+            dispatch(actions.addLayer(initialViewId, {id: 'layer-1', visible: true} as LayerState, true));
+            dispatch(actions.addLayer(initialViewId, {id: 'layer-2', visible: true} as LayerState, false));
+            dispatch(actions.removeLayer(initialViewId, 'layer-2'));
             expect(getState().control.views[0].data.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
@@ -476,10 +488,10 @@ describe('Actions', () => {
         });
 
         it('updateLayer', () => {
-            dispatch(actions.addLayer({id: 'layer-1', visible: true} as LayerState));
-            dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
-            dispatch(actions.addLayer({id: 'layer-3', visible: true} as LayerState));
-            dispatch(actions.updateLayer({id: 'layer-2', visible: false} as LayerState));
+            dispatch(actions.addLayer(initialViewId, {id: 'layer-1', visible: true} as LayerState, false));
+            dispatch(actions.addLayer(initialViewId, {id: 'layer-2', visible: true} as LayerState, false));
+            dispatch(actions.addLayer(initialViewId, {id: 'layer-3', visible: true} as LayerState, false));
+            dispatch(actions.updateLayer(initialViewId, {id: 'layer-2', visible: false} as LayerState));
             expect(getState().control.views[0].data.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
@@ -487,7 +499,7 @@ describe('Actions', () => {
                 {id: 'layer-2', visible: false},
                 {id: 'layer-3', visible: true},
             ]);
-            dispatch(actions.updateLayer({id: 'layer-1', name: 'LX'} as LayerState));
+            dispatch(actions.updateLayer(initialViewId, {id: 'layer-1', name: 'LX'} as LayerState));
             expect(getState().control.views[0].data.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
@@ -514,20 +526,20 @@ describe('Actions', () => {
         });
 
         it('setShowSelectedVariableLayer - setSelectedLayerId', () => {
-            dispatch(actions.setSelectedLayerId(SELECTED_VARIABLE_LAYER_ID));
+            dispatch(actions.setSelectedLayerId(initialViewId, SELECTED_VARIABLE_LAYER_ID));
 
             dispatch(actions.setShowSelectedVariableLayer(true));
-            expect(getState().control.selectedLayerId).to.be.equal(SELECTED_VARIABLE_LAYER_ID);
+            expect(getState().control.views[0].data.selectedLayerId).to.be.equal(SELECTED_VARIABLE_LAYER_ID);
 
             dispatch(actions.setShowSelectedVariableLayer(false));
-            expect(getState().control.selectedLayerId).to.be.null;
+            expect(getState().control.views[0].data.selectedLayerId).to.be.null;
         });
 
         it('setSelectedLayerId', () => {
-            dispatch(actions.setSelectedLayerId('var2'));
-            expect(getState().control.selectedLayerId).to.equal('var2');
-            dispatch(actions.setSelectedLayerId(null));
-            expect(getState().control.selectedLayerId).to.be.null;
+            dispatch(actions.setSelectedLayerId(initialViewId, 'var2'));
+            expect(getState().control.views[0].data.selectedLayerId).to.equal('var2');
+            dispatch(actions.setSelectedLayerId(initialViewId, null));
+            expect(getState().control.views[0].data.selectedLayerId).to.be.null;
         });
     });
 
@@ -548,8 +560,8 @@ describe('Actions', () => {
 
         it('renameWorkspaceResourceImpl', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
-            dispatch(actions.addLayer({id: 'L1', resName: 'res_1', varName: 'X'} as any));
-            dispatch(actions.addLayer({id: 'L2', resName: 'res_2', varName: 'X'} as any));
+            dispatch(actions.addLayer(initialViewId, {id: 'L1', resName: 'res_1', varName: 'X'} as any, false));
+            dispatch(actions.addLayer(initialViewId, {id: 'L2', resName: 'res_2', varName: 'X'} as any, false));
             dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
             dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
             expect(getState().control.views[0].data.layers).to.deep.equal([

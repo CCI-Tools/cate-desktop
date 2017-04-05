@@ -6,7 +6,7 @@ import {
 } from "../state";
 import {
     Button, Slider, Popover, Position, PopoverInteractionKind, Switch,
-    RangeSlider, NumberRange, Tooltip
+    RangeSlider, NumberRange, Tooltip, NonIdealState
 } from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
@@ -18,6 +18,7 @@ import LayerSourcesDialog from "./LayerSourcesDialog";
 import {getLayerDisplayName, SELECTED_VARIABLE_LAYER_ID} from "../state-util";
 import {FieldValue} from "../components/field/Field";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
+import {ViewState} from "../components/ViewState";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -43,6 +44,7 @@ interface ILayersPanelDispatch {
 interface ILayersPanelProps {
     selectedResource: ResourceState|null;
     selectedVariable: VariableState|null,
+    activeView: ViewState<any>|null;
     layers: Array<LayerState>;
     selectedLayerId: string|null;
     selectedLayerIndex: number;
@@ -59,6 +61,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
     return {
         selectedResource: selectors.selectedResourceSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
+        activeView: selectors.activeViewSelector(state),
         layers: selectors.layersSelector(state),
         selectedLayerId: selectors.selectedLayerIdSelector(state),
         selectedLayerIndex: selectors.selectedLayerIndexSelector(state),
@@ -131,42 +134,42 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     }
 
     private handleRemoveLayerButtonClicked() {
-        this.props.dispatch(actions.removeLayer(this.props.selectedLayerId));
+        this.props.dispatch(actions.removeLayer(this.props.activeView.id, this.props.selectedLayerId));
     }
 
     private handleMoveLayerUpButtonClicked() {
-        this.props.dispatch(actions.moveLayerUp(this.props.selectedLayerId));
+        this.props.dispatch(actions.moveLayerUp(this.props.activeView.id, this.props.selectedLayerId));
     }
 
     private handleMoveLayerDownButtonClicked() {
-        this.props.dispatch(actions.moveLayerDown(this.props.selectedLayerId));
+        this.props.dispatch(actions.moveLayerDown(this.props.activeView.id, this.props.selectedLayerId));
     }
 
     private handleChangedLayerVisibility(layer: LayerState, visible: boolean) {
-        this.props.dispatch(actions.updateLayer(layer, {visible}));
+        this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {visible}));
     }
 
     private handleChangedLayerOpacity(opacity: number) {
         const layer = this.props.selectedLayer;
-        this.props.dispatch(actions.updateLayer(layer, {opacity}));
+        this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {opacity}));
     }
 
     private handleChangedLayerSelection(newSelection: string[]) {
         const selectedLayerId = newSelection.length ? newSelection[0] : null;
-        this.props.dispatch(actions.setSelectedLayerId(selectedLayerId));
+        this.props.dispatch(actions.setSelectedLayerId(this.props.activeView.id, selectedLayerId));
     }
 
     private handleChangedColorMapName(newSelection: string[]) {
         const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
         const colorMapName = newSelection && newSelection.length && newSelection[0];
         if (colorMapName) {
-            this.props.dispatch(actions.updateLayer(layer, {colorMapName}));
+            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {colorMapName}));
         }
     }
 
     private handleChangedDisplayRange(displayRange: NumberRange) {
         const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
-        this.props.dispatch(actions.updateLayer(layer, {
+        this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {
             displayMin: displayRange[0],
             displayMax: displayRange[1]
         }));
@@ -178,7 +181,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         if (!displayMinMax.error) {
             const displayMin = displayMinMax.value[0];
             const displayMax = displayMinMax.value[1];
-            this.props.dispatch(actions.updateLayer(layer, {displayMin, displayMax}));
+            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {displayMin, displayMax}));
         }
         this.setState({displayMinMax});
     }
@@ -186,7 +189,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     private handleChangedDisplayAlphaBlend(event: any) {
         const alphaBlending = event.target.checked;
         const layer = this.props.selectedVariableImageLayer;
-        this.props.dispatch(actions.updateLayer(layer, {alphaBlending}));
+        this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {alphaBlending}));
     }
 
 
@@ -199,7 +202,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         }
         this.props.dispatch(actions.getWorkspaceVariableStatistics(resource.name, variable.name, layer.varIndex,
             (statistics) => {
-                return actions.updateLayer(layer, {
+                return actions.updateLayer(this.props.activeView.id, layer, {
                     displayMin: statistics.min,
                     displayMax: statistics.max,
                     statistics
@@ -226,18 +229,11 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     }
 
     render() {
-        // return (
-        //     <ExpansionPanel icon="pt-icon-layers" text="Layers" isExpanded={true} defaultHeight={300}>
-        //         <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
-        //                                  onShowDetailsChange={this.handleShowDetailsChanged}
-        //                                  isSplitPanel={true}
-        //                                  initialContentHeight={200}
-        //                                  actionComponent={this.renderActionButtonRow()}>
-        //             {this.renderLayersList()}
-        //             {this.renderLayerDetailsCard()}
-        //         </ContentWithDetailsPanel>
-        //     </ExpansionPanel>
-        // );
+        let activeView = this.props.activeView;
+        if (!activeView || activeView.type !== 'world') {
+            return (<NonIdealState title="No layers" description="To show layers, activate a world view" visual="pt-icon-globe"/>);
+        }
+
         return (
             <div>
                 <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
@@ -420,7 +416,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         function handleChangedLayerVarIndex(dispatch, i: number, value: number) {
             const varIndex = layer.varIndex.slice();
             varIndex[i] = value;
-            dispatch(actions.updateLayer(layer, {varIndex}));
+            dispatch(actions.updateLayer(this.props.activeView.id, layer, {varIndex}));
         }
 
         const n = variable.ndim - 2;
@@ -456,7 +452,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         }
 
         function handleChangedImageEnhancement(dispatch, name: string, value: number) {
-            dispatch(actions.updateLayer(layer,  {[name]: value}));
+            dispatch(actions.updateLayer(this.props.activeView.id, layer,  {[name]: value}));
         }
 
         return (

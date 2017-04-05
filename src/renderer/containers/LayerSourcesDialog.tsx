@@ -12,6 +12,8 @@ interface ILayerSourcesDialogProps extends DialogState {
     dispatch?: any;
     resources: ResourceState[];
     layers: LayerState[];
+    savedLayers: {[name: string ]: LayerState};
+    activeViewId: string;
     layerVariables: LayerVariableState[];
 }
 
@@ -23,6 +25,8 @@ function mapStateToProps(state: State): ILayerSourcesDialogProps {
     return {
         isOpen: selectors.dialogStateSelector(LayerSourcesDialog.DIALOG_ID)(state).isOpen,
         layers: selectors.layersSelector(state),
+        savedLayers: selectors.savedLayersSelector(state),
+        activeViewId: selectors.activeViewIdSelector(state),
         resources: selectors.resourcesSelector(state),
         layerVariables: selectors.selectedLayerVariablesSelector(state),
     };
@@ -49,9 +53,17 @@ class LayerSourcesDialog extends React.Component<ILayerSourcesDialogProps, ILaye
 
     private onConfirm() {
         this.props.dispatch(actions.hideDialog(LayerSourcesDialog.DIALOG_ID));
+        let selectLayer = true;
         for (let index of this.state.selectedIndices) {
             const layerVariable = this.props.layerVariables[index];
-            this.props.dispatch(actions.addVariableLayer(null, layerVariable.resource, layerVariable.variable));
+            this.props.dispatch(
+                actions.addVariableLayer(this.props.activeViewId,
+                    layerVariable.resource,
+                    layerVariable.variable,
+                    selectLayer,
+                    this.props.savedLayers
+                ));
+            selectLayer = false;
         }
     }
 

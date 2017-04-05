@@ -383,13 +383,19 @@ export const activeViewSelector = createSelector<State, ViewState<any> | null, V
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer selectors
 
-export const selectedLayerIdSelector = (state: State): string | null => state.control.selectedLayerId;
 export const savedLayersSelector = (state: State): { [key: string]: LayerState } => state.control.savedLayers;
+
+export const selectedLayerIdSelector = createSelector<State, string | null, ViewState<any> | null>(
+    activeViewSelector,
+    (view: ViewState<any> | null) => {
+        return (view && view.data.selectedLayerId) || null;
+    }
+);
 
 export const layersSelector = createSelector<State, LayerState[] | null, ViewState<any> | null>(
     activeViewSelector,
     (view: ViewState<any> | null) => {
-        return view.data.layers || null;
+        return (view && view.data.layers) || null;
     }
 );
 

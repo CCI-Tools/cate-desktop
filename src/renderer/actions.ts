@@ -1,22 +1,20 @@
 import {
-    WorkspaceState, DataStoreState, TaskState, State, ResourceState,
+    WorkspaceState, DataStoreState, TaskState, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
-    OperationState, SessionState, BackendConfigState, VariableState, VariableImageLayerState, VariableVectorLayerState,
-    VariableRefState, OperationKWArgs, WorldViewMode
+    OperationState, BackendConfigState, VariableState, VariableImageLayerState,
+    OperationKWArgs, WorldViewMode
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
-    isSpatialImageVariable, isSpatialVectorVariable, SELECTED_VARIABLE_LAYER_ID, createLayerId,
-    GetState
+    isSpatialImageVariable, isSpatialVectorVariable, genLayerId,
+    GetState, newVariableLayer
 } from "./state-util";
 import {isNumber} from "../common/types";
 import {ViewPath} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
-
-// TODO (forman/marcoz): find easy way to unit-test our async actions calling remote API (WebAPIServiceMock?)
 
 
 const CANCELLED_CODE = 999;
@@ -61,10 +59,6 @@ export function setControlProperty(propertyName: string, value: any) {
 
 export function updateControlState(controlState: any) {
     return {type: UPDATE_CONTROL_STATE, payload: controlState};
-}
-
-export function setPreferencesProperty(propertyName: string, value: any) {
-    return updatePreferences({[propertyName]: value});
 }
 
 export function updatePreferences(session: any) {
@@ -676,7 +670,7 @@ export function setSelectedWorkspaceResourceId(selectedWorkspaceResourceId: stri
             if (resources) {
                 const resource = resources.find(res => res.name === selectedWorkspaceResourceId);
                 if (resource && resource.variables && resource.variables.length) {
-                    dispatch(setSelectedVariableName(resource.variables[0].name));
+                    dispatch(setSelectedVariableName(resource.name, resource.variables[0].name));
                 }
             }
         }
@@ -755,39 +749,35 @@ export function getWorkspaceVariableStatistics(resName: string,
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Variable actions
 
+export const SET_SHOW_SELECTED_VARIABLE_LAYER = 'SET_SHOW_SELECTED_VARIABLE_LAYER';
+export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
+
 export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean) {
-    return (dispatch, getState: GetState) => {
-        const layers = selectors.layersSelector(getState());
-        const selectedVariableLayer = layers.find(l => l.id === SELECTED_VARIABLE_LAYER_ID);
-        assert.ok(selectedVariableLayer);
-        dispatch(updateLayer(selectedVariableLayer, {visible: showSelectedVariableLayer}));
-        dispatch(setPreferencesProperty('showSelectedVariableLayer', showSelectedVariableLayer));
-        // if we don't show layer for selected variable and selected layer is SELECTED_VARIABLE_LAYER_ID
-        if (!showSelectedVariableLayer && getState().control.selectedLayerId === SELECTED_VARIABLE_LAYER_ID) {
-            // deselect layer
-            dispatch(setSelectedLayerId(null));
-        }
-    };
+    return {type: SET_SHOW_SELECTED_VARIABLE_LAYER, payload: {showSelectedVariableLayer}};
 }
 
-export function setSelectedVariableName(selectedVariableName: string|null) {
-    return (dispatch, getState: GetState) => {
-        dispatch(setSelectedVariableNameImpl(selectedVariableName));
-        if (getState().session.showSelectedVariableLayer) {
-            dispatch(updateSelectedVariableLayer());
-        }
-    }
+// TODO (forman): write reducer for SET_SELECTED_VARIABLE_NAME
+
+export function setSelectedVariableName(selectedResourceName: string|null, selectedVariableName: string|null) {
+    return {type: SET_SELECTED_VARIABLE_NAME, payload: {selectedResourceName, selectedVariableName}};
 }
 
-export function updateSelectedVariableLayer() {
-    return updateOrAddVariableLayer(SELECTED_VARIABLE_LAYER_ID);
+export function addVariableLayer(viewId: string,
+                                 resource: ResourceState,
+                                 variable: VariableState,
+                                 selectLayer: boolean,
+                                 savedLayers?: {[name: string]: LayerState}) {
+    let layer = newVariableLayer(resource, variable, savedLayers);
+    return addLayer(viewId, layer, selectLayer);
 }
 
-export function addVariableLayer(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
-    return updateOrAddVariableLayer(layerId, resource, variable);
+export function addVariableLayer_OLD(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
+    return updateOrAddVariableLayer_OLD(layerId, resource, variable);
 }
 
-export function updateOrAddVariableLayer(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
+// TODO (forman): reuse this code for reducer for SET_SELECTED_VARIABLE_NAME
+
+export function updateOrAddVariableLayer_OLD(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
     return (dispatch, getState: GetState) => {
         resource = resource || selectors.selectedResourceSelector(getState());
         variable = variable || selectors.selectedVariableSelector(getState());
@@ -798,7 +788,7 @@ export function updateOrAddVariableLayer(layerId?: string|null, resource?: Resou
         if (layerId) {
             existingVariableLayer = selectors.layersSelector(getState()).find(layer => layer.id == layerId);
         } else {
-            layerId = createLayerId();
+            layerId = genLayerId();
         }
         let layerType;
         if (isSpatialImageVariable(variable)) {
@@ -868,10 +858,6 @@ function createVariableLayerDisplayProperties(variable: VariableState) {
         saturation: 1.0,
         gamma: 1.0,
     };
-}
-
-function setSelectedVariableNameImpl(selectedVariableName: string|null) {
-    return updateControlState({selectedVariableName});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -953,6 +939,7 @@ export function changeViewSplitPos(viewPath: ViewPath, delta: number) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer actions
 
+export const SET_SELECTED_LAYER_ID = 'SET_SELECTED_LAYER_ID';
 export const ADD_LAYER = 'ADD_LAYER';
 export const REMOVE_LAYER = 'REMOVE_LAYER';
 export const UPDATE_LAYER = 'UPDATE_LAYER';
@@ -961,35 +948,35 @@ export const MOVE_LAYER_UP = 'MOVE_LAYER_UP';
 export const MOVE_LAYER_DOWN = 'MOVE_LAYER_DOWN';
 export const SAVE_LAYER = 'SAVE_LAYER';
 
-export function setSelectedLayerId(selectedLayerId: string|null) {
-    return updateControlState({selectedLayerId});
+export function setSelectedLayerId(viewId: string, selectedLayerId: string|null) {
+    return {type: SET_SELECTED_LAYER_ID, payload: {viewId, selectedLayerId}};
 }
 
-export function addLayer(layer: LayerState) {
-    return {type: ADD_LAYER, payload: {layer}};
+export function addLayer(viewId: string, layer: LayerState, selectLayer: boolean) {
+    return {type: ADD_LAYER, payload: {viewId, layer, selectLayer}};
 }
 
-export function removeLayer(id: string) {
-    return {type: REMOVE_LAYER, payload: {id}};
+export function removeLayer(viewId: string, id: string) {
+    return {type: REMOVE_LAYER, payload: {viewId, id}};
 }
 
-export function moveLayerUp(id: string) {
-    return {type: MOVE_LAYER_UP, payload: {id}};
+export function moveLayerUp(viewId: string, id: string) {
+    return {type: MOVE_LAYER_UP, payload: {viewId, id}};
 }
 
-export function moveLayerDown(id: string) {
-    return {type: MOVE_LAYER_DOWN, payload: {id}};
+export function moveLayerDown(viewId: string, id: string) {
+    return {type: MOVE_LAYER_DOWN, payload: {viewId, id}};
 }
 
-export function updateLayer(layer: LayerState, ...layerSources) {
-    if (layerSources.length) {
-        layer = Object.assign({}, layer, ...layerSources);
+export function updateLayer(viewId: string, layer: LayerState, ...layerProperties) {
+    if (layerProperties.length) {
+        layer = {...layer, ...layerProperties};
     }
-    return {type: UPDATE_LAYER, payload: {layer}};
+    return {type: UPDATE_LAYER, payload: {viewId, layer}};
 }
 
-export function replaceLayer(layer: LayerState) {
-    return {type: REPLACE_LAYER, payload: {layer}};
+export function replaceLayer(viewId: string, layer: LayerState) {
+    return {type: REPLACE_LAYER, payload: {viewId, layer}};
 }
 
 

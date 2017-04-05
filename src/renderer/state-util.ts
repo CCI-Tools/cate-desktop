@@ -3,6 +3,8 @@ import {
     VariableImageLayerState, State, OperationState, WorldViewDataState
 } from "./state";
 import {ViewState} from "./components/ViewState";
+import * as assert from "../common/assert";
+import {isNumber} from "../common/types";
 
 export type GetState = () => State;
 
@@ -40,8 +42,12 @@ export function isSpatialVectorVariable(variable: VariableState): boolean {
     return variable.isFeatureAttribute;
 }
 
-export function createLayerId() {
-    return Math.floor((1 + Math.random()) * 0x10000000).toString(16) + '-' + Math.floor(Date.now()).toString(16);
+export function genSimpleId(prefix: string): string {
+    return prefix + Math.floor((1 + Math.random()) * 0x100000000).toString(16) + '-' + Math.floor(Date.now()).toString(16);
+}
+
+export function genLayerId() {
+    return genSimpleId('layer-');
 }
 
 export function getLayerDisplayName(layer: LayerState): string {
@@ -79,10 +85,6 @@ export function findOperation(operations: OperationState[], name: string): Opera
 let WORLD_VIEW_COUNTER = 1;
 
 
-export function genSimpleId(prefix: string): string {
-    return prefix + (Math.random() * 0x10000000000000).toString(16);
-}
-
 function newInitialWorldViewData(): WorldViewDataState {
     return {
         viewMode: "3D",
@@ -100,6 +102,7 @@ function newInitialWorldViewData(): WorldViewDataState {
                 visible: false,
             }
         ],
+        selectedLayerId: SELECTED_VARIABLE_LAYER_ID,
     } as WorldViewDataState;
 }
 
@@ -113,3 +116,57 @@ export function newWorldView(): ViewState<WorldViewDataState> {
         data: newInitialWorldViewData(),
     };
 }
+
+export function newVariableLayer(resource: ResourceState, variable: VariableState, savedLayers?: {[name: string]: LayerState}) {
+    assert.ok(resource);
+    assert.ok(variable);
+
+    const layerId = genLayerId();
+
+    let layerType;
+    if (isSpatialImageVariable(variable)) {
+        layerType = 'VariableImage';
+    } else if (isSpatialVectorVariable(variable)) {
+        layerType = 'VariableVector';
+    }
+    assert.ok(layerType, 'illegal variable');
+
+    const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
+
+    let layerDisplayProperties;
+    let varIndex;
+    if (restoredLayer) {
+        varIndex = restoredLayer.varIndex && restoredLayer.varIndex.slice();
+    } else {
+        layerDisplayProperties = newVariableLayerDisplayProperties(variable);
+    }
+
+    if (variable.ndim >= 2 && (!varIndex || varIndex.length != variable.ndim - 2)) {
+        varIndex = Array(variable.ndim - 2).fill(0);
+    }
+
+    return Object.assign({}, restoredLayer, {
+        id: genLayerId(),
+        type: layerType,
+        visible: true,
+        resName: resource.name,
+        varName: variable.name,
+        varIndex,
+    }, layerDisplayProperties);
+}
+
+function newVariableLayerDisplayProperties(variable: VariableState) {
+    return {
+        colorMapName: 'jet',
+        displayMin: isNumber(variable.valid_min) ? variable.valid_min : 0.,
+        displayMax: isNumber(variable.valid_max) ? variable.valid_max : 1.,
+        alphaBlending: false,
+        opacity: 1.0,
+        brightness: 1.0,
+        contrast: 1.0,
+        hue: 0.0,
+        saturation: 1.0,
+        gamma: 1.0,
+    };
+}
+

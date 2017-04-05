@@ -1,6 +1,5 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, VariableState, ResourceState} from "../state";
 import * as assert from "../../common/assert";
 import * as actions from "../actions";
@@ -9,8 +8,9 @@ import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {Card} from "../components/Card";
 import {LabelWithType} from "../components/LabelWithType";
-import {Button} from "@blueprintjs/core";
+import {Button, NonIdealState} from "@blueprintjs/core";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
+import {ViewState} from "../components/ViewState";
 
 interface IVariablesPanelProps {
     dispatch?: any;
@@ -20,6 +20,8 @@ interface IVariablesPanelProps {
     selectedVariable: VariableState|null;
     showVariableDetails: boolean;
     showSelectedVariableLayer: boolean;
+    activeView: ViewState<any>;
+    savedLayers: any;
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
@@ -29,7 +31,9 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         selectedVariableName: selectors.selectedVariableNameSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
         showVariableDetails: state.control.showVariableDetails,
-        showSelectedVariableLayer: state.session.showSelectedVariableLayer
+        showSelectedVariableLayer: state.session.showSelectedVariableLayer,
+        activeView: selectors.activeViewSelector(state),
+        savedLayers: selectors.savedLayersSelector(state),
     }
 }
 
@@ -48,10 +52,12 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     }
 
     private handleSelectedVariableName(newSelection: Array<React.Key>) {
+        const resource = this.props.selectedResource;
+        assert.ok(resource);
         if (newSelection && newSelection.length) {
-            this.props.dispatch(actions.setSelectedVariableName(newSelection[0] as string));
+            this.props.dispatch(actions.setSelectedVariableName(resource.name, newSelection[0] as string));
         } else {
-            this.props.dispatch(actions.setSelectedVariableName(null));
+            this.props.dispatch(actions.setSelectedVariableName(resource.name, null));
         }
     }
 
@@ -67,26 +73,18 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     private handleAddVariableLayer() {
         const resource = this.props.selectedResource;
         const variable = this.props.selectedVariable;
+        const activeView = this.props.activeView;
+        const savedLayers = this.props.savedLayers;
         assert.ok(resource);
         assert.ok(variable && variable.imageLayout);
-        this.props.dispatch(actions.addVariableLayer(null, resource, variable));
+        assert.ok(activeView);
+        this.props.dispatch(actions.addVariableLayer(activeView.id, resource, variable, true, savedLayers));
     }
 
     render() {
+        const resource = this.props.selectedResource;
         const variables = this.props.variables;
         if (variables && variables.length) {
-            // return (
-            //     <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
-            //         <ContentWithDetailsPanel showDetails={this.props.showVariableDetails}
-            //                                  onShowDetailsChange={this.handleShowDetailsChanged}
-            //                                  isSplitPanel={true}
-            //                                  initialContentHeight={200}
-            //                                  actionComponent={this.renderVariableActionRow()}>
-            //             {this.renderVariablesList()}
-            //             {this.renderVariableDetails()}
-            //         </ContentWithDetailsPanel>
-            //     </ExpansionPanel>
-            // );
             return (
                 <ContentWithDetailsPanel showDetails={this.props.showVariableDetails}
                                          onShowDetailsChange={this.handleShowDetailsChanged}
@@ -97,24 +95,17 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
                     {this.renderVariableDetails()}
                 </ContentWithDetailsPanel>
             );
-        } else {
-            // return (
-            //     <ExpansionPanel icon="pt-icon-variable" text="Variables" isExpanded={true} defaultHeight={200}>
-            //         <Card>
-            //             <p><strong>No variables</strong></p>
-            //             <p>
-            //                 The currently selected resource in the workspace does not contain any variables.
-            //             </p>
-            //         </Card>
-            //     </ExpansionPanel>
-            // );
+        } else if (resource) {
             return (
-                <Card>
-                    <p><strong>No variables</strong></p>
-                    <p>
-                        The currently selected resource in the workspace does not contain any variables.
-                    </p>
-                </Card>
+                <NonIdealState title="No variables"
+                               visual="pt-icon-variable"
+                               description={`Selected resource "${resource.name}" in the workspace doesn't contain any variables.`}/>
+            );
+        } else {
+            return (
+                <NonIdealState title="No resource"
+                               visual="pt-icon-database"
+                               description={`No resource selected.`}/>
             );
         }
     }
@@ -122,13 +113,15 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     private renderVariableActionRow() {
         const selectedVariable = this.props.selectedVariable;
         const isSpatialVariable = selectedVariable && selectedVariable.ndim >= 2 && selectedVariable.imageLayout;
+        const hasWorldView = this.props.activeView && this.props.activeView.type === 'world';
+        const canAddLayer = isSpatialVariable && hasWorldView;
         return (
             <div className="pt-button-group">
                 <Button disabled={false}
                         iconName={this.props.showSelectedVariableLayer ? "eye-open" : "eye-off"}
                         onClick={this.handleShowSelectedVariableLayer}
                 />
-                <Button disabled={!isSpatialVariable}
+                <Button disabled={!canAddLayer}
                         iconName="layer"
                         onClick={this.handleAddVariableLayer}
                 />

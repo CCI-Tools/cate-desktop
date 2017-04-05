@@ -1,13 +1,12 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
-import {State, WorldViewMode} from "../state";
+import {State, WorldViewDataState} from "../state";
 import {RadioGroup, Radio, Button, NonIdealState} from "@blueprintjs/core";
 import {ProjectionField} from "../components/field/ProjectionField";
 import {FieldValue} from "../components/field/Field";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {ViewState} from "../components/ViewState";
-import {Card} from "../components/Card";
 
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
@@ -71,23 +70,26 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         }
 
         if (activeView.type === 'world') {
+            const worldView = activeView as ViewState<WorldViewDataState>;
+            let is3DGlobe = worldView.data.viewMode === '3D';
             return (
                 <div>
                     <RadioGroup
                         label="View mode"
                         onChange={this.onViewModeChange}
-                        selectedValue={this.props.viewMode}>
+                        selectedValue={worldView.data.viewMode}>
                         <Radio label="3D Globe" value="3D"/>
                         <Radio label="2D Map" value="2D"/>
                     </RadioGroup>
 
                     <label className="pt-label">
                         Projection
-                        <span className="pt-text-muted"> (for 2D Map)</span>
+                        {is3DGlobe ? <span className="pt-text-muted"> (for 2D Map only)</span> : null}
                         <ProjectionField
-                            value={this.props.viewMode === '2D' ? this.props.projectionCode : "3D Perspective"}
+                            disabled={is3DGlobe}
+                            value={worldView.data.projectionCode}
                             onChange={this.onProjectionCodeChange}
-                            disabled={this.props.viewMode !== '2D'}/>
+                        />
                     </label>
                 </div>
             );

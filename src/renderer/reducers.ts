@@ -1,5 +1,6 @@
 import {
-    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState, WorldViewDataState
+    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
+    LayerState
 } from './state';
 import * as actions from './actions';
 import * as assert from "../common/assert";
@@ -111,7 +112,6 @@ const initialControlState: ControlState = {
     selectedWorkflowStepId: null,
     selectedWorkspaceResourceId: null,
     selectedVariableName: null,
-    selectedLayerId: null,
     savedLayers: {},
     dialogs: {},
 
@@ -134,40 +134,42 @@ const initialControlState: ControlState = {
 
 const controlReducer = (state: ControlState = initialControlState, action) => {
     switch (action.type) {
+        case actions.RENAME_RESOURCE: {
+            const resName = action.payload.resName;
+            const newResName = action.payload.newResName;
+            let selectedWorkspaceResourceId = state.selectedWorkspaceResourceId;
+            if (selectedWorkspaceResourceId === resName) {
+                selectedWorkspaceResourceId = newResName;
+            }
+            const views = viewsReducer(state.views, action);
+            if (selectedWorkspaceResourceId !== state.selectedWorkspaceResourceId || views !== state.views) {
+                return {...state, selectedWorkspaceResourceId, views};
+            }
+            return state;
+        }
         case actions.UPDATE_DATA_SOURCES: {
             const dataSources = action.payload.dataSources;
             const selectedDataSourceId = (dataSources && dataSources.length) ? dataSources[0].id : null;
-            state = updateObject(state, {selectedDataSourceId});
-            break;
+            return {...state, selectedDataSourceId};
         }
         case actions.UPDATE_OPERATIONS: {
             const operations = action.payload.operations;
             const selectedOperationName = (operations && operations.length) ? operations[0].name : null;
-            state = updateObject(state, {selectedOperationName});
-            break;
+            return {...state, selectedOperationName};
         }
         case actions.SAVE_LAYER: {
             const key = action.payload.key;
             const layer = action.payload.layer;
             const savedLayers = updateObject(state.savedLayers, {[key]: updateObject(layer, {})});
-            state = updateObject(state, {savedLayers});
-            break;
+            return {...state, savedLayers};
         }
+        case actions.SET_SELECTED_VARIABLE_NAME:
+            return {...state, ...action.payload};
         case actions.UPDATE_CONTROL_STATE:
-            state = updateObject(state, action.payload);
-            break;
+            return {...state, ...action.payload};
         case actions.UPDATE_DIALOG_STATE: {
             const dialogs = updatePropertyObject(state.dialogs, action.payload.dialogId, action.payload.dialogState);
-            state = updateObject(state, {dialogs});
-            break;
-        }
-        case actions.RENAME_RESOURCE: {
-            const resName = action.payload.resName;
-            const newResName = action.payload.newResName;
-            if (state.selectedWorkspaceResourceId === resName) {
-                state = updateObject(state, {selectedWorkspaceResourceId: newResName});
-            }
-            break;
+            return {...state, dialogs};
         }
         case actions.ADD_WORLD_VIEW: {
             const view = newWorldView();
@@ -201,106 +203,224 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             }
             return {...state, viewLayout, views, activeViewId};
         }
-    }
-
-    const viewer = viewerReducer(state.viewer, action);
-    if (viewer !== state.viewer) {
-        state = updateObject(state, {viewer});
+        default: {
+            const newViews = viewsReducer(state.views, action);
+            if (newViews !== state.views) {
+                return {...state, views: newViews};
+            }
+        }
     }
 
     return state;
 };
 
 
-const viewerReducer = (state: WorldViewState, action) => {
+const viewsReducer = (state: ViewState<any>[], action) => {
+    // delegate action to all children
+    let newViews;
+    for (let i = 0; i < state.length; i++) {
+        const oldView = state[i];
+        const newView = viewReducer(oldView, action);
+        if (oldView !== newView) {
+            if (!newViews) {
+                newViews = state.slice(0, i);
+            }
+            if (newView) {
+                newViews.push(newView);
+            }
+        }
+    }
+    return newViews || state;
+};
+
+
+const viewReducer = (state: ViewState<any>, action) => {
     switch (action.type) {
+        case actions.RENAME_RESOURCE: {
+            if (state.type === 'world') {
+                const layers = layersReducer(state.data.layers, action);
+                if (layers !== state.data.layers) {
+                    return {...state, data: {...state.data, layers}};
+                }
+            }
+            break;
+        }
+        case actions.SET_SHOW_SELECTED_VARIABLE_LAYER: {
+            if (state.type === 'world') {
+                const layers = layersReducer(state.data.layers, action);
+                if (layers !== state.data.layers) {
+                    return {...state, data: {...state.data, layers}};
+                }
+            }
+            break;
+        }
         case actions.SET_VIEW_MODE: {
-            const viewMode = action.payload.viewMode;
-            return updateObject(state, {viewMode});
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'world');
+                const viewMode = action.payload.viewMode;
+                return {...state, data: {...state.data, viewMode}};
+            }
+            break;
         }
         case actions.SET_PROJECTION_CODE: {
-            const projectionCode = action.payload.projectionCode;
-            return updateObject(state, {projectionCode});
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'world');
+                const projectionCode = action.payload.projectionCode;
+                return {...state, data: {...state.data, projectionCode}};
+            }
+            break;
         }
         case actions.ADD_LAYER: {
-            const layer = action.payload.layer;
-            const layers = state.layers.slice();
-            layers.push(updateObject(layer));
-            return updateObject(state, {layers});
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'world');
+                const layer = action.payload.layer;
+                const selectLayer = action.payload.selectLayer;
+                const selectedLayerId = selectLayer ? layer.id: state.data.selectedLayerId;
+                const layers = state.data.layers.concat([layer]);
+                return {...state, data: {...state.data, layers, selectedLayerId}};
+            }
+            break;
         }
         case actions.REMOVE_LAYER: {
-            const layerId = action.payload.id;
-            const layers = state.layers.slice();
-            const layerIndex = layers.findIndex(l => l.id === layerId);
-            if (layerIndex >= 0) {
-                layers.splice(layerIndex, 1);
-                return updateObject(state, {layers});
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'world');
+                const layerId = action.payload.id;
+                const layers = state.data.layers.slice();
+                let selectedLayerId = state.data.selectedLayerId;
+                if (layerId === selectedLayerId) {
+                    selectedLayerId = null;
+                }
+                const layerIndex = layers.findIndex(l => l.id === layerId);
+                if (layerIndex >= 0) {
+                    layers.splice(layerIndex, 1);
+                    return {...state, data: {...state.data, layers, selectedLayerId}};
+                }
             }
-            return state;
+            break;
         }
         case actions.MOVE_LAYER_UP: {
-            const layerId = action.payload.id;
-            const layers = state.layers.slice();
-            const layerIndex = layers.findIndex(l => l.id === layerId);
-            assert.ok(layerIndex >= 0, "layerIndex >= 0");
-            if (layerIndex > 0) {
-                const temp = layers[layerIndex - 1];
-                layers[layerIndex - 1] = layers[layerIndex];
-                layers[layerIndex] = temp;
-                return updateObject(state, {layers});
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'world');
+                const layerId = action.payload.id;
+                const layers = state.data.layers.slice();
+                const layerIndex = layers.findIndex(l => l.id === layerId);
+                assert.ok(layerIndex >= 0, "layerIndex >= 0");
+                if (layerIndex > 0) {
+                    const temp = layers[layerIndex - 1];
+                    layers[layerIndex - 1] = layers[layerIndex];
+                    layers[layerIndex] = temp;
+                    return {...state, data: {...state.data, layers}};
+                }
             }
-            return state;
+            break;
         }
         case actions.MOVE_LAYER_DOWN: {
-            const layerId = action.payload.id;
-            const layers = state.layers.slice();
-            const layerIndex = layers.findIndex(l => l.id === layerId);
-            assert.ok(layerIndex >= 0, "layerIndex >= 0");
-            if (layerIndex >= 0 && layerIndex < layers.length - 1) {
-                const temp = layers[layerIndex + 1];
-                layers[layerIndex + 1] = layers[layerIndex];
-                layers[layerIndex] = temp;
-                return updateObject(state, {layers});
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'world');
+                const layerId = action.payload.id;
+                const layers = state.data.layers.slice();
+                const layerIndex = layers.findIndex(l => l.id === layerId);
+                assert.ok(layerIndex >= 0, "layerIndex >= 0");
+                if (layerIndex >= 0 && layerIndex < layers.length - 1) {
+                    const temp = layers[layerIndex + 1];
+                    layers[layerIndex + 1] = layers[layerIndex];
+                    layers[layerIndex] = temp;
+                    return {...state, data: {...state.data, layers}};
+                }
             }
-            return state;
+            break;
         }
         case actions.UPDATE_LAYER: {
-            const layer = action.payload.layer;
-            const layers = state.layers.slice();
-            const layerIndex = layers.findIndex(l => l.id === layer.id);
-            assert.ok(layerIndex >= 0, "layerIndex >= 0");
-            layers[layerIndex] = updateObject(layers[layerIndex], layer);
-            return updateObject(state, {layers});
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'world');
+                const layer = action.payload.layer;
+                const layers = state.data.layers.slice();
+                const layerIndex = layers.findIndex(l => l.id === layer.id);
+                assert.ok(layerIndex >= 0, "layerIndex >= 0");
+                layers[layerIndex] = updateObject(layers[layerIndex], layer);
+                return {...state, data: {...state.data, layers}};
+            }
+            break;
         }
         case actions.REPLACE_LAYER: {
-            const layer = action.payload.layer;
-            const layers = state.layers.slice();
-            const layerIndex = layers.findIndex(l => l.id === layer.id);
-            assert.ok(layerIndex >= 0, "layerIndex >= 0");
-            layers[layerIndex] = updateObject(layer);
-            return updateObject(state, {layers});
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'world');
+                const layer = action.payload.layer;
+                const layers = state.data.layers.slice();
+                const layerIndex = layers.findIndex(l => l.id === layer.id);
+                assert.ok(layerIndex >= 0, "layerIndex >= 0");
+                layers[layerIndex] = updateObject(layer);
+                return updateObject(state, {layers});
+            }
+            break;
         }
+        default: {
+            if (state.type === 'world') {
+                const layers = layersReducer(state.data.layers, action);
+                if (layers !== state.data.layers) {
+                    return {...state, data: {...state.data, layers}};
+                }
+            }
+        }
+    }
+    return state;
+};
+
+const layersReducer = (state: LayerState[], action) => {
+    // delegate action to all children
+    let newLayers;
+    for (let i = 0; i < state.length; i++) {
+        const oldLayer = state[i];
+        const newLayer = layerReducer(oldLayer, action);
+        if (oldLayer !== newLayer) {
+            if (!newLayers) {
+                newLayers = state.slice(0, i);
+            }
+            if (newLayer) {
+                newLayers.push(newLayer);
+            }
+        }
+    }
+    return newLayers || state;
+};
+
+const layerReducer = (state: LayerState, action) => {
+    switch (action.type) {
         case actions.RENAME_RESOURCE: {
             const resName = action.payload.resName;
             const newResName = action.payload.newResName;
-            let layers;
-            for (let i = 0; i < state.layers.length; i++) {
-                const layer = state.layers[i];
-                if ((layer as any).resName == resName) {
-                    if (!layers) {
-                        layers = state.layers.slice();
-                    }
-                    layers[i] = updateObject(layer, {resName: newResName});
-                }
+            if ((state as any).resName === resName) {
+                return {...state, resName: newResName};
             }
-            if (layers) {
-                return updateObject(state, {layers});
+            break;
+        }
+        case actions.SET_SHOW_SELECTED_VARIABLE_LAYER: {
+            if (state.id === SELECTED_VARIABLE_LAYER_ID) {
+                const showSelectedVariableLayer = action.payload.showSelectedVariableLayer;
+                return {...state, visible: showSelectedVariableLayer};
             }
-            return state;
+            break;
+        }
+        case actions.SET_SELECTED_VARIABLE_NAME: {
+            if (state.id === SELECTED_VARIABLE_LAYER_ID) {
+                const selectedVariableName = action.payload.selectedVariableName;
+                return {...state, visible: selectedVariableName};
+            }
+            break;
         }
     }
     return state;
 };
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // state.session initial state and reducers
@@ -329,9 +449,11 @@ const initialSessionState: SessionState = {
 const sessionReducer = (state: SessionState = initialSessionState, action) => {
     switch (action.type) {
         case actions.UPDATE_INITIAL_STATE:
-            return updateObject(state, action.payload.session);
+            return {...state, ...action.payload.session};
         case actions.UPDATE_SESSION_STATE:
-            return updateObject(state, action.payload);
+            return {...state, ...action.payload};
+        case actions.SET_SHOW_SELECTED_VARIABLE_LAYER:
+            return {...state, ...action.payload};
     }
     return state;
 };
