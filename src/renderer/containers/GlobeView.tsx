@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
-    LayerState, State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
-    VariableState, VariableRefState, VectorLayerState, ResourceState
+    State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
+    VariableState, VariableRefState, VectorLayerState, ResourceState, WorldViewDataState
 } from "../state";
 import {
     CesiumGlobe, LayerDescriptor, ImageryProvider, DataSourceDescriptor,
@@ -12,26 +12,26 @@ import {
     findVariable, findResource, getTileUrl, getGeoJSONUrl, getGeoJSONCountriesUrl,
     COUNTRIES_LAYER_ID
 } from "../state-util";
+import {ViewState} from "../components/ViewState";
 const Cesium: any = require('cesium');
 
+
 interface IGlobeViewOwnProps {
-    id: string;
+    view: ViewState<WorldViewDataState>;
 }
 
 interface IGlobeViewProps extends IGlobeViewOwnProps {
     baseUrl: string;
     workspace: WorkspaceState | null;
     offlineMode: boolean;
-    layers: LayerState[];
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
     return {
-        id: ownProps.id,
+        view: ownProps.view,
         baseUrl: state.data.appConfig.webAPIConfig.restUrl,
         workspace: state.data.workspace,
         offlineMode: state.session.offlineMode,
-        layers: state.control.viewer.layers,
     };
 }
 
@@ -43,8 +43,8 @@ class GlobeView extends React.Component<IGlobeViewProps&IGlobeViewOwnProps, null
     render() {
         const layers = [];
         const dataSources = [];
-        if (this.props.workspace && this.props.workspace.resources && this.props.layers) {
-            for (let layer of this.props.layers) {
+        if (this.props.workspace && this.props.workspace.resources && this.props.view.data.layers) {
+            for (let layer of this.props.view.data.layers) {
                 switch (layer.type) {
                     case 'VariableImage': {
                         const layerDescriptor = this.convertVariableImageLayerToLayerDescriptor(layer as VariableImageLayerState);
@@ -69,7 +69,7 @@ class GlobeView extends React.Component<IGlobeViewProps&IGlobeViewOwnProps, null
 
         return (
             <div style={{width:"100%", height:"100%", overflow: "none"}}>
-                <CesiumGlobe id={this.props.id}
+                <CesiumGlobe id={this.props.view.id}
                              debug={true}
                              layers={layers}
                              dataSources={dataSources}

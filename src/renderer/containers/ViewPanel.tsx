@@ -1,19 +1,20 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
-import {State, ViewMode} from "../state";
-import {RadioGroup, Radio, Button} from "@blueprintjs/core";
+import {State, WorldViewMode} from "../state";
+import {RadioGroup, Radio, Button, NonIdealState} from "@blueprintjs/core";
 import {ProjectionField} from "../components/field/ProjectionField";
 import {FieldValue} from "../components/field/Field";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
+import {ViewState} from "../components/ViewState";
+import {Card} from "../components/Card";
 
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
 }
 
 interface IViewPanelProps {
-    viewMode: ViewMode;
-    projectionCode: string;
+    activeView: ViewState<any>;
 }
 
 interface IViewPanelState {
@@ -22,8 +23,7 @@ interface IViewPanelState {
 
 function mapStateToProps(state: State): IViewPanelProps {
     return {
-        viewMode: selectors.viewModeSelector(state),
-        projectionCode: selectors.projectionCodeSelector(state),
+        activeView: selectors.activeViewSelector(state),
     };
 }
 
@@ -57,27 +57,43 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
     render() {
         return (
             <div>
-
-                <Button iconName="globe" onClick={this.onAddWorldView}>New World View</Button>
-
-                <RadioGroup
-                    label="View mode"
-                    onChange={this.onViewModeChange}
-                    selectedValue={this.props.viewMode}>
-                    <Radio label="3D Globe" value="3D"/>
-                    <Radio label="2D Map" value="2D"/>
-                </RadioGroup>
-
-                <label className="pt-label">
-                    Projection
-                    <span className="pt-text-muted"> (for 2D Map)</span>
-                    <ProjectionField
-                        value={this.props.viewMode === '2D' ? this.props.projectionCode : "3D Perspective"}
-                        onChange={this.onProjectionCodeChange}
-                        disabled={this.props.viewMode !== '2D'}/>
-                </label>
+                <Button iconName="globe" onClick={this.onAddWorldView}>Add World View</Button>
+                {this.renderActiveViewPanel()}
             </div>
         );
+    }
+
+    renderActiveViewPanel() {
+
+        const activeView = this.props.activeView;
+        if (!activeView) {
+            return <NonIdealState visual="eye" title="No active view" description="Create a view first."/>;
+        }
+
+        if (activeView.type === 'world') {
+            return (
+                <div>
+                    <RadioGroup
+                        label="View mode"
+                        onChange={this.onViewModeChange}
+                        selectedValue={this.props.viewMode}>
+                        <Radio label="3D Globe" value="3D"/>
+                        <Radio label="2D Map" value="2D"/>
+                    </RadioGroup>
+
+                    <label className="pt-label">
+                        Projection
+                        <span className="pt-text-muted"> (for 2D Map)</span>
+                        <ProjectionField
+                            value={this.props.viewMode === '2D' ? this.props.projectionCode : "3D Perspective"}
+                            onChange={this.onProjectionCodeChange}
+                            disabled={this.props.viewMode !== '2D'}/>
+                    </label>
+                </div>
+            );
+        } else {
+            return <NonIdealState visual="eye" title="No view properties" description="The active view is not yet supported."/>;
+        }
     }
 }
 

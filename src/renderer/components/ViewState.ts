@@ -6,15 +6,17 @@ export type SplitDir = "hor" | "ver";
 export type ViewPath = string;
 
 
-export interface ViewState {
-    type: "world" | "chart" | "table";
+export interface ViewState<T> {
     id: string;
     title: string;
     iconName?: string;
-    data?: any;
+    /** The view type is used to lookup the renderer for this kind of view. */
+    type: string;
+    /** Type T of 'data' property depends on 'type' property. */
+    data: T;
 }
 
-export type ViewRenderer = (view: ViewState) => JSX.Element;
+export type ViewRenderer<T> = (view: ViewState<T>) => JSX.Element;
 
 
 /**
@@ -58,6 +60,17 @@ export function isViewPanelState(obj: any) {
 
 export function getViewPanel(viewLayout: ViewLayoutState, viewPath: ViewPath): ViewPanelState {
     return _getViewPanel(viewLayout, viewPath, 0);
+}
+
+export function findViewPanel(viewLayout: ViewLayoutState,
+                              filter: (viewPanel: ViewPanelState) => boolean): ViewPanelState|null {
+    if (isViewPanelState(viewLayout)) {
+        const viewPanel = viewLayout as ViewPanelState;
+        return filter && filter(viewPanel) ? viewPanel : null;
+    }
+    assert.ok(isViewSplitState(viewLayout), "ViewSplitState expected");
+    const viewSplit = viewLayout as ViewSplitState;
+    return findViewPanel(viewSplit.layouts[0], filter) || findViewPanel(viewSplit.layouts[1], filter);
 }
 
 export function addViewToLayout(viewLayout: ViewLayoutState,
@@ -107,11 +120,11 @@ function removeViewFromViewIds(viewIds: string[], viewId: string): string[] {
     return viewIds;
 }
 
-export function addViewToViewArray(views: ViewState[], view: ViewState): ViewState[] {
+export function addViewToViewArray(views: ViewState<any>[], view: ViewState<any>): ViewState<any>[] {
     return views.concat([view]);
 }
 
-export function removeViewFromViewArray(views: ViewState[], viewId: string): ViewState[] {
+export function removeViewFromViewArray(views: ViewState<any>[], viewId: string): ViewState<any>[] {
     while (true) {
         const i = views.findIndex(w => w.id === viewId);
         if (i >= 0) {
@@ -127,14 +140,16 @@ export function removeViewFromViewArray(views: ViewState[], viewId: string): Vie
 function _getViewPanel(viewLayout: ViewLayoutState,
                        viewPath: ViewPath,
                        pathIndex: number): ViewPanelState {
-    assert.ok(pathIndex <= viewPath.length, 'illegal path index');
+    if (isViewPanelState(viewLayout)) {
+        return viewLayout as ViewPanelState;
+    }
     if (pathIndex < viewPath.length) {
         assert.ok(isViewSplitState(viewLayout), "ViewSplitState expected");
         const viewSplit = viewLayout as ViewSplitState;
-        return _getViewPanel(viewSplit.layouts[viewPath[pathIndex]], viewPath, pathIndex + 1);
+        const layoutIndex = viewPath[pathIndex];
+        return _getViewPanel(viewSplit.layouts[layoutIndex], viewPath, pathIndex + 1);
     } else {
-        assert.ok(isViewPanelState(viewLayout), "ViewPanelState expected");
-        return viewLayout as ViewPanelState;
+        return null;
     }
 }
 
@@ -292,16 +307,17 @@ function _removeViewFromLayout(viewLayout: ViewLayoutState,
         assert.ok(isViewPanelState(viewLayout), "ViewPanelState expected");
         const viewPanel = viewLayout as ViewPanelState;
         if (viewId) {
-            const viewIds = removeViewFromViewIds(viewPanel.viewIds, viewId);
-            if (viewIds === viewPanel.viewIds) {
+            let viewIds = viewPanel.viewIds;
+            const viewIndex = viewIds.indexOf(viewId);
+            if (viewIndex < 0) {
                 // No change!
                 return viewPanel;
             }
+            viewIds = viewIds.slice(0, viewIndex).concat(viewIds.slice(viewIndex + 1));
             let selectedViewId = viewPanel.selectedViewId;
             if (selectedViewId === viewId) {
-                selectedViewId = viewIds.length > 0 ? viewIds[viewIds.length - 1] : null;
+                selectedViewId = viewIndex > 0 ? viewIds[viewIndex - 1] : viewIndex < viewIds.length ? viewIds[viewIndex] : null;
             }
-
             return {viewIds, selectedViewId};
         } else {
             return {viewIds: [], selectedViewId: null};

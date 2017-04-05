@@ -1,7 +1,7 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
-    WorkflowStepState, VariableVectorLayerState, ViewMode, LayerVariableState
+    WorkflowStepState, VariableVectorLayerState, WorldViewMode, LayerVariableState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient} from "./webapi/WebAPIClient";
@@ -13,6 +13,7 @@ import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {isSpatialVectorVariable, isSpatialImageVariable, findOperation} from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
+import {ViewMap} from "./components/ViewManager";
 
 const EMPTY_OBJECT = {};
 const EMPTY_ARRAY = [];
@@ -62,14 +63,14 @@ export const colorMapsAPISelector = createSelector(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Dialog state selectors
 
-const DIALOG_STATE_SELECTORS: {[dialogId: string]: Selector<State, DialogState>} = {};
-export const dialogStatesSelector = (state: State): {[dialogId: string]: DialogState} => state.control.dialogs;
+const DIALOG_STATE_SELECTORS: { [dialogId: string]: Selector<State, DialogState> } = {};
+export const dialogStatesSelector = (state: State): { [dialogId: string]: DialogState } => state.control.dialogs;
 
 export const dialogStateSelector = (dialogId: string) => {
     if (!DIALOG_STATE_SELECTORS[dialogId]) {
-        DIALOG_STATE_SELECTORS[dialogId] = createSelector<State, DialogState, {[dialogId: string]: DialogState}>(
+        DIALOG_STATE_SELECTORS[dialogId] = createSelector<State, DialogState, { [dialogId: string]: DialogState }>(
             dialogStatesSelector,
-            (dialogStates: {[dialogId: string]: DialogState}) => dialogStates[dialogId] || EMPTY_OBJECT
+            (dialogStates: { [dialogId: string]: DialogState }) => dialogStates[dialogId] || EMPTY_OBJECT
         );
     }
     return DIALOG_STATE_SELECTORS[dialogId];
@@ -84,20 +85,24 @@ export const panelContainerUndockedModeSelector = (state: State): boolean => sta
 export const leftPanelContainerLayoutSelector = (state: State): PanelContainerLayout => state.session.leftPanelContainerLayout;
 export const rightPanelContainerLayoutSelector = (state: State): PanelContainerLayout => state.session.rightPanelContainerLayout;
 
-export const selectedLeftTopPanelIdSelector = (state: State): string|null => state.session.selectedLeftTopPanelId;
-export const selectedLeftBottomPanelIdSelector = (state: State): string|null => state.session.selectedLeftBottomPanelId;
-export const selectedRightTopPanelIdSelector = (state: State): string|null => state.session.selectedRightTopPanelId;
-export const selectedRightBottomPanelIdSelector = (state: State): string|null => state.session.selectedRightBottomPanelId;
+export const selectedLeftTopPanelIdSelector = (state: State): string | null => state.session.selectedLeftTopPanelId;
+export const selectedLeftBottomPanelIdSelector = (state: State): string
+    | null => state.session.selectedLeftBottomPanelId;
+export const selectedRightTopPanelIdSelector = (state: State): string | null => state.session.selectedRightTopPanelId;
+export const selectedRightBottomPanelIdSelector = (state: State): string
+    | null => state.session.selectedRightBottomPanelId;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation selectors
 
-export const operationsSelector = (state: State): OperationState[]|null => state.data.operations;
-export const operationFilterTagsSelector = (state: State): string[]|null => state.control.operationFilterTags;
-export const operationFilterExprSelector = (state: State): string|null => state.control.operationFilterExpr;
-export const selectedOperationNameSelector = (state: State): string|null => state.control.selectedOperationName;
+export const operationsSelector = (state: State): OperationState[] | null => state.data.operations;
+export const operationFilterTagsSelector = (state: State): string[] | null => state.control.operationFilterTags;
+export const operationFilterExprSelector = (state: State): string | null => state.control.operationFilterExpr;
+export const selectedOperationNameSelector = (state: State): string | null => state.control.selectedOperationName;
 
-export const selectedOperationSelector = createSelector<State, OperationState|null, OperationState[]|null, string|null>(
+export const selectedOperationSelector = createSelector<State, OperationState | null, OperationState[] | null,
+    string
+    | null>(
     operationsSelector,
     selectedOperationNameSelector,
     (operations, selectedOperationName) => {
@@ -108,7 +113,9 @@ export const selectedOperationSelector = createSelector<State, OperationState|nu
     }
 );
 
-export const filteredOperationsSelector = createSelector<State, OperationState[], OperationState[]|null, string[]|null, string|null>(
+export const filteredOperationsSelector = createSelector<State, OperationState[], OperationState[] | null,
+    string[]
+    | null, string | null>(
     operationsSelector,
     operationFilterTagsSelector,
     operationFilterExprSelector,
@@ -139,7 +146,7 @@ export const filteredOperationsSelector = createSelector<State, OperationState[]
     }
 );
 
-export const operationsTagCountsSelector = createSelector<State, Map<string, number>, OperationState[]|null>(
+export const operationsTagCountsSelector = createSelector<State, Map<string, number>, OperationState[] | null>(
     operationsSelector,
     (operations) => {
         let tagCounts = new Map<string, number>();
@@ -159,7 +166,9 @@ export const selectedDataSourceIdSelector = (state: State) => state.control.sele
 export const dataSourceFilterExprSelector = (state: State) => state.control.dataSourceFilterExpr;
 export const showDataSourceDetailsSelector = (state: State) => state.control.showDataSourceDetails;
 
-export const selectedDataStoreSelector = createSelector<State, DataStoreState|null, DataStoreState[]|null, string|null>(
+export const selectedDataStoreSelector = createSelector<State, DataStoreState | null, DataStoreState[] | null,
+    string
+    | null>(
     dataStoresSelector,
     selectedDataStoreIdSelector,
     (dataStores, selectedDataStoreId) => {
@@ -170,14 +179,16 @@ export const selectedDataStoreSelector = createSelector<State, DataStoreState|nu
     }
 );
 
-export const selectedDataSourcesSelector = createSelector<State, DataSourceState[]|null, DataStoreState|null>(
+export const selectedDataSourcesSelector = createSelector<State, DataSourceState[] | null, DataStoreState | null>(
     selectedDataStoreSelector,
     (selectedDataStore) => {
         return (selectedDataStore && selectedDataStore.dataSources) || null;
     }
 );
 
-export const filteredDataSourcesSelector = createSelector<State, DataSourceState[]|null, DataSourceState[]|null, string|null>(
+export const filteredDataSourcesSelector = createSelector<State, DataSourceState[] | null, DataSourceState[] | null,
+    string
+    | null>(
     selectedDataSourcesSelector,
     dataSourceFilterExprSelector,
     (selectedDataSources, dataSourceFilterExpr) => {
@@ -195,7 +206,9 @@ export const filteredDataSourcesSelector = createSelector<State, DataSourceState
     }
 );
 
-export const selectedDataSourceSelector = createSelector<State, DataSourceState|null, DataSourceState[]|null,  string|null>(
+export const selectedDataSourceSelector = createSelector<State, DataSourceState | null, DataSourceState[] | null,
+    string
+    | null>(
     selectedDataSourcesSelector,
     selectedDataSourceIdSelector,
     (selectedDataSources, selectedDataSourceId) => {
@@ -206,9 +219,9 @@ export const selectedDataSourceSelector = createSelector<State, DataSourceState|
     }
 );
 
-export const protocolNameSelector = createSelector<State, string|null, DataSourceState|null>(
+export const protocolNameSelector = createSelector<State, string | null, DataSourceState | null>(
     selectedDataSourceSelector,
-    (dataSource: DataSourceState|null) => {
+    (dataSource: DataSourceState | null) => {
         let protocolName = null;
         if (dataSource && dataSource.meta_info) {
             const protocols = dataSource.meta_info.protocols;
@@ -220,16 +233,20 @@ export const protocolNameSelector = createSelector<State, string|null, DataSourc
     }
 );
 
-export const selectedDataSourceTemporalCoverageSelector = createSelector<State, [string, string]|null, DataSourceState|null>(
+export const selectedDataSourceTemporalCoverageSelector = createSelector<State, [string, string] | null,
+    DataSourceState
+    | null>(
     selectedDataSourceSelector,
-    (selectedDataSource: DataSourceState): [string, string]|null => {
+    (selectedDataSource: DataSourceState): [string, string] | null => {
         return selectedDataSource ? selectedDataSource.temporalCoverage : null;
     }
 );
 
-export const selectedDataSourceTemporalCoverageMillisSelector = createSelector<State, [number, number]|null, [string, string]|null>(
+export const selectedDataSourceTemporalCoverageMillisSelector = createSelector<State, [number, number] | null,
+    [string, string]
+    | null>(
     selectedDataSourceTemporalCoverageSelector,
-    (temporalCoverage: [string, string]|null): [number, number]|null => {
+    (temporalCoverage: [string, string] | null): [number, number] | null => {
         if (temporalCoverage) {
             let ms1 = Date.parse(temporalCoverage[0]);
             let ms2 = Date.parse(temporalCoverage[1]);
@@ -242,18 +259,19 @@ export const selectedDataSourceTemporalCoverageMillisSelector = createSelector<S
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Workspace, resource, step, and variable selectors
 
-export const workspaceSelector = (state: State): WorkspaceState|null => state.data.workspace;
-export const workspaceBaseDirSelector = (state: State): string|null => state.data.workspace && state.data.workspace.baseDir;
+export const workspaceSelector = (state: State): WorkspaceState | null => state.data.workspace;
+export const workspaceBaseDirSelector = (state: State): string
+    | null => state.data.workspace && state.data.workspace.baseDir;
 export const resourcesSelector = (state: State): ResourceState[] => state.data.workspace ? state.data.workspace.resources : [];
 export const workflowStepsSelector = (state: State): WorkflowStepState[] => state.data.workspace ? state.data.workspace.workflow.steps : [];
 export const showResourceDetailsSelector = (state: State): boolean => state.control.showResourceDetails;
-export const selectedResourceIdSelector = (state: State): string|null => state.control.selectedWorkspaceResourceId;
+export const selectedResourceIdSelector = (state: State): string | null => state.control.selectedWorkspaceResourceId;
 export const showWorkflowStepDetailsSelector = (state: State): boolean => state.control.showWorkflowStepDetails;
-export const selectedWorkflowStepIdSelector = (state: State): string|null => state.control.selectedWorkflowStepId;
-export const selectedVariableNameSelector = (state: State): string|null => state.control.selectedVariableName;
+export const selectedWorkflowStepIdSelector = (state: State): string | null => state.control.selectedWorkflowStepId;
+export const selectedVariableNameSelector = (state: State): string | null => state.control.selectedVariableName;
 export const resourceNamePrefixSelector = (state: State): string => state.session.resourceNamePrefix;
 
-export const selectedResourceSelector = createSelector<State, ResourceState|null, ResourceState[], string>(
+export const selectedResourceSelector = createSelector<State, ResourceState | null, ResourceState[], string>(
     resourcesSelector,
     selectedResourceIdSelector,
     (resources: ResourceState[], selectedResourceId: string) => {
@@ -264,7 +282,9 @@ export const selectedResourceSelector = createSelector<State, ResourceState|null
     }
 );
 
-export const selectedWorkflowStepSelector = createSelector<State, WorkflowStepState|null, WorkflowStepState[], string>(
+export const selectedWorkflowStepSelector = createSelector<State,
+    WorkflowStepState
+    | null, WorkflowStepState[], string>(
     workflowStepsSelector,
     selectedWorkflowStepIdSelector,
     (workflowSteps: WorkflowStepState[], selectedWorkflowStepId: string) => {
@@ -275,10 +295,12 @@ export const selectedWorkflowStepSelector = createSelector<State, WorkflowStepSt
     }
 );
 
-export const selectedWorkflowStepOpSelector = createSelector<State, OperationState|null, OperationState[]|null, WorkflowStepState|null>(
+export const selectedWorkflowStepOpSelector = createSelector<State, OperationState | null, OperationState[] | null,
+    WorkflowStepState
+    | null>(
     operationsSelector,
     selectedWorkflowStepSelector,
-    (operations: OperationState[]|null, selectedWorkflowStep: WorkflowStepState|null) => {
+    (operations: OperationState[] | null, selectedWorkflowStep: WorkflowStepState | null) => {
         if (operations && selectedWorkflowStep && selectedWorkflowStep.op) {
             return findOperation(operations, selectedWorkflowStep.op);
         }
@@ -318,18 +340,20 @@ export function newResourceName(resources: ResourceState[], namePrefix: string):
     return `${namePrefix}${maxNameIndex + 1}`;
 }
 
-export const variablesSelector = createSelector<State, VariableState[]|null, ResourceState|null>(
+export const variablesSelector = createSelector<State, VariableState[] | null, ResourceState | null>(
     selectedResourceSelector,
-    (selectedResource: ResourceState|null) => {
+    (selectedResource: ResourceState | null) => {
         return selectedResource ? selectedResource.variables : null;
     }
 );
 
 
-export const selectedVariableSelector = createSelector<State, VariableState|null, VariableState[]|null, string|null>(
+export const selectedVariableSelector = createSelector<State, VariableState | null, VariableState[] | null,
+    string
+    | null>(
     variablesSelector,
     selectedVariableNameSelector,
-    (selectedVariables: VariableState[]|null, selectedVariableName: string|null) => {
+    (selectedVariables: VariableState[] | null, selectedVariableName: string | null) => {
         if (canFind(selectedVariables, selectedVariableName)) {
             return (selectedVariables || EMPTY_ARRAY).find(v => v.name === selectedVariableName);
         }
@@ -338,20 +362,41 @@ export const selectedVariableSelector = createSelector<State, VariableState|null
 );
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Viewer/Layer selectors
+// Viewer selectors
 
 export const viewLayoutSelector = (state: State): ViewLayoutState => state.control.viewLayout;
-export const viewsSelector = (state: State): ViewState[] => state.control.views;
-export const viewModeSelector = (state: State): ViewMode => state.control.viewer.viewMode;
-export const projectionCodeSelector = (state: State): string => state.control.viewer.projectionCode;
-export const layersSelector = (state: State): LayerState[] => state.control.viewer.layers;
-export const selectedLayerIdSelector = (state: State): string|null => state.control.selectedLayerId;
-export const savedLayersSelector = (state: State): {[key: string]: LayerState} => state.control.savedLayers;
+export const viewsSelector = (state: State): ViewState<any>[] => state.control.views;
+export const activeViewIdSelector = (state: State): string | null => state.control.activeViewId;
 
-export const selectedLayerSelector = createSelector<State, LayerState|null, LayerState[], string>(
+export const activeViewSelector = createSelector<State, ViewState<any> | null, ViewState<any>[], string | null>(
+    viewsSelector,
+    activeViewIdSelector,
+    (views: ViewState<any>[], activeViewId) => {
+        if (canFind(views, activeViewId)) {
+            return views.find(view => view.id === activeViewId);
+        }
+        return null;
+    }
+);
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Layer selectors
+
+export const selectedLayerIdSelector = (state: State): string | null => state.control.selectedLayerId;
+export const savedLayersSelector = (state: State): { [key: string]: LayerState } => state.control.savedLayers;
+
+export const layersSelector = createSelector<State, LayerState[] | null, ViewState<any> | null>(
+    activeViewSelector,
+    (view: ViewState<any> | null) => {
+        return view.data.layers || null;
+    }
+);
+
+export const selectedLayerSelector = createSelector<State, LayerState | null, LayerState[], string | null>(
     layersSelector,
     selectedLayerIdSelector,
-    (layers: LayerState[], selectedLayerId: string|null) => {
+    (layers: LayerState[] | null, selectedLayerId: string | null): LayerState | null => {
         if (canFind(layers, selectedLayerId)) {
             return layers.find(l => l.id === selectedLayerId);
         }
@@ -362,7 +407,7 @@ export const selectedLayerSelector = createSelector<State, LayerState|null, Laye
 export const selectedLayerIndexSelector = createSelector<State, number, LayerState[], string>(
     layersSelector,
     selectedLayerIdSelector,
-    (layers: LayerState[], selectedLayerId: string|null) => {
+    (layers: LayerState[] | null, selectedLayerId: string | null): number => {
         if (canFind(layers, selectedLayerId)) {
             return layers.findIndex(l => l.id === selectedLayerId);
         }
@@ -370,9 +415,9 @@ export const selectedLayerIndexSelector = createSelector<State, number, LayerSta
     }
 );
 
-export const selectedImageLayerSelector = createSelector<State, ImageLayerState|null,LayerState|null>(
+export const selectedImageLayerSelector = createSelector<State, ImageLayerState | null, LayerState | null>(
     selectedLayerSelector,
-    (selectedLayer: LayerState|null) => {
+    (selectedLayer: LayerState | null) => {
         if (selectedLayer && (selectedLayer.type === 'Image' || selectedLayer.type === 'VariableImage')) {
             return selectedLayer as ImageLayerState;
         }
@@ -380,9 +425,10 @@ export const selectedImageLayerSelector = createSelector<State, ImageLayerState|
     }
 );
 
-export const selectedVariableImageLayerSelector = createSelector<State, VariableImageLayerState|null,LayerState|null>(
+export const selectedVariableImageLayerSelector = createSelector<State, VariableImageLayerState | null,
+    LayerState | null>(
     selectedLayerSelector,
-    (selectedLayer: LayerState|null) => {
+    (selectedLayer: LayerState | null) => {
         if (selectedLayer && selectedLayer.type === 'VariableImage') {
             return selectedLayer as VariableImageLayerState;
         }
@@ -390,9 +436,10 @@ export const selectedVariableImageLayerSelector = createSelector<State, Variable
     }
 );
 
-export const selectedVariableVectorLayerSelector = createSelector<State, VariableVectorLayerState|null,LayerState|null>(
+export const selectedVariableVectorLayerSelector = createSelector<State, VariableVectorLayerState | null,
+    LayerState | null>(
     selectedLayerSelector,
-    (selectedLayer: LayerState|null) => {
+    (selectedLayer: LayerState | null) => {
         if (selectedLayer && selectedLayer.type === 'VariableVector') {
             return selectedLayer as VariableVectorLayerState;
         }
@@ -401,7 +448,7 @@ export const selectedVariableVectorLayerSelector = createSelector<State, Variabl
 );
 
 
-export const selectedLayerVariablesSelector = createSelector<State, LayerVariableState[]|null, ResourceState[]>(
+export const selectedLayerVariablesSelector = createSelector<State, LayerVariableState[] | null, ResourceState[]>(
     resourcesSelector,
     (resources: ResourceState[]) => {
         const layerVariables = [];
@@ -422,10 +469,12 @@ export const selectedLayerVariablesSelector = createSelector<State, LayerVariabl
 
 export const colorMapCategoriesSelector = (state: State): Array<ColorMapCategoryState> => state.data.colorMaps;
 
-export const selectedColorMapSelector = createSelector<State, ColorMapState, ColorMapCategoryState[]|null, VariableImageLayerState|null>(
+export const selectedColorMapSelector = createSelector<State, ColorMapState, ColorMapCategoryState[] | null,
+    VariableImageLayerState
+    | null>(
     colorMapCategoriesSelector,
     selectedVariableImageLayerSelector,
-    (colorMapCategories: ColorMapCategoryState[]|null, selectedImageLayer: VariableImageLayerState|null) => {
+    (colorMapCategories: ColorMapCategoryState[] | null, selectedImageLayer: VariableImageLayerState | null) => {
         const selectedColorMapName = selectedImageLayer ? selectedImageLayer.colorMapName : null;
         if (canFind(colorMapCategories, selectedColorMapName)) {
             for (let cat of colorMapCategories) {

@@ -13,20 +13,19 @@ import PreferencesDialog from "./PreferencesDialog";
 import {PanelContainer, PanelContainerLayout} from "../components/PanelContainer";
 import {Panel} from "../components/Panel";
 import {connect, Dispatch} from "react-redux";
-import {State, ViewMode} from "../state";
+import {State, WorldViewDataState} from "../state";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import {ViewManager, ViewTypeRenderers} from "../components/ViewManager";
+import {ViewManager, ViewRenderMap} from "../components/ViewManager";
 import {ViewLayoutState, ViewState, ViewPath, SplitDir} from "../components/ViewState";
 
 
-function renderWorldView(view: ViewState) {
-    //return (<WorldView viewMode={this.props.viewMode}/>);
-    return (<WorldView viewMode="3D" viewId={view.id}/>);
+function renderWorldView(view: ViewState<WorldViewDataState>) {
+    return view.data.viewMode === "3D" ? (<GlobeView view={view}/>) : (<MapView view={view}/>);
 }
 
 
-const VIEW_TYPE_RENDERERS: ViewTypeRenderers = {
+const VIEW_TYPE_RENDERERS: ViewRenderMap = {
     world: renderWorldView
 };
 
@@ -44,9 +43,8 @@ interface IApplicationPageProps {
     selectedRightBottomPanelId?: string;
 
     viewLayout: ViewLayoutState;
-    views: ViewState[];
-    // TODO (forman): move into view
-    viewMode: ViewMode;
+    views: ViewState<any>[];
+    activeView: ViewState<any> | null;
 }
 
 function mapStateToProps(state: State): IApplicationPageProps {
@@ -60,7 +58,7 @@ function mapStateToProps(state: State): IApplicationPageProps {
         selectedRightBottomPanelId: selectors.selectedRightBottomPanelIdSelector(state),
         viewLayout: selectors.viewLayoutSelector(state),
         views: selectors.viewsSelector(state),
-        viewMode: selectors.viewModeSelector(state),
+        activeView: selectors.activeViewSelector(state),
     };
 }
 
@@ -147,9 +145,10 @@ class ApplicationPage extends React.PureComponent<IApplicationPageProps & IDispa
                         <Panel id="workspace" position="bottom" iconName="pt-icon-folder-close" title="Workspace"
                                body={<WorkspacePanel/>}/>
                     </PanelContainer>
-                    <ViewManager viewTypeRenderers={VIEW_TYPE_RENDERERS}
+                    <ViewManager viewRenderMap={VIEW_TYPE_RENDERERS}
                                  viewLayout={this.props.viewLayout}
                                  views={this.props.views}
+                                 activeView={this.props.activeView}
                                  onSelectView={this.onSelectView}
                                  onCloseView={this.onCloseView}
                                  onCloseAllViews={this.onCloseAllViews}
@@ -184,16 +183,6 @@ class ApplicationPage extends React.PureComponent<IApplicationPageProps & IDispa
 }
 
 export default connect(mapStateToProps)(ApplicationPage);
-
-
-interface IWorldViewProps {
-    viewId: string;
-    viewMode: ViewMode;
-}
-
-function WorldView(props: IWorldViewProps) {
-    return props.viewMode === "3D" ? (<GlobeView id={props.viewId}/>) : (<MapView/>);
-}
 
 
 

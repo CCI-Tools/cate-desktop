@@ -289,7 +289,7 @@ describe('Actions', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
             dispatch(actions.setSelectedVariableName('analysed_sst'));
-            expect(getState().control.viewer.layers).to.deep.equal([
+            expect(getState().control.views[0].data.layers).to.deep.equal([
                 {
                     id: SELECTED_VARIABLE_LAYER_ID,
                     type: "VariableImage",
@@ -316,7 +316,7 @@ describe('Actions', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
             dispatch(actions.setSelectedVariableName('profile'));
-            expect(getState().control.viewer.layers).to.deep.equal([
+            expect(getState().control.views[0].data.layers).to.deep.equal([
                 {
                     id: SELECTED_VARIABLE_LAYER_ID,
                     type: "Unknown",
@@ -373,17 +373,17 @@ describe('Actions', () => {
                 varIndex: [139],
                 displayMax: 300
             } as any));
-            expect(getState().control.viewer.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
+            expect(getState().control.views[0].data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
             dispatch(actions.setSelectedVariableName('sst_error'));
-            expect(getState().control.viewer.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayers]);
+            expect(getState().control.views[0].data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayers]);
             dispatch(actions.setSelectedVariableName('analysed_sst'));
-            expect(getState().control.viewer.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
+            expect(getState().control.views[0].data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
         });
 
         it('addVariableLayer - w/o variable selection', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.addVariableLayer('ID756473'));
-            expect(getState().control.viewer.layers).to.deep.equal([
+            expect(getState().control.views[0].data.layers).to.deep.equal([
                 {
                     id: SELECTED_VARIABLE_LAYER_ID,
                     type: 'Unknown',
@@ -398,7 +398,7 @@ describe('Actions', () => {
             dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
             dispatch(actions.setSelectedVariableName('analysed_sst'));
             dispatch(actions.addVariableLayer('ID756473'));
-            expect(getState().control.viewer.layers).to.deep.equal([
+            expect(getState().control.views[0].data.layers).to.deep.equal([
                 {
                     id: SELECTED_VARIABLE_LAYER_ID,
                     type: "VariableImage",
@@ -444,7 +444,7 @@ describe('Actions', () => {
             dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
             dispatch(actions.setSelectedVariableName('profile'));
             dispatch(actions.addVariableLayer('ID756473'));
-            expect(getState().control.viewer.layers).to.deep.equal([
+            expect(getState().control.views[0].data.layers).to.deep.equal([
                 {
                     id: SELECTED_VARIABLE_LAYER_ID,
                     type: "Unknown",
@@ -457,7 +457,7 @@ describe('Actions', () => {
 
         it('addLayer', () => {
             dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
-            expect(getState().control.viewer.layers).to.deep.equal([
+            expect(getState().control.views[0].data.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
                 {id: 'layer-2', visible: true},
@@ -468,7 +468,7 @@ describe('Actions', () => {
             dispatch(actions.addLayer({id: 'layer-1', visible: true} as LayerState));
             dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
             dispatch(actions.removeLayer('layer-2'));
-            expect(getState().control.viewer.layers).to.deep.equal([
+            expect(getState().control.views[0].data.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
                 {id: 'layer-1', visible: true},
@@ -480,7 +480,7 @@ describe('Actions', () => {
             dispatch(actions.addLayer({id: 'layer-2', visible: true} as LayerState));
             dispatch(actions.addLayer({id: 'layer-3', visible: true} as LayerState));
             dispatch(actions.updateLayer({id: 'layer-2', visible: false} as LayerState));
-            expect(getState().control.viewer.layers).to.deep.equal([
+            expect(getState().control.views[0].data.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
                 {id: 'layer-1', visible: true},
@@ -488,7 +488,7 @@ describe('Actions', () => {
                 {id: 'layer-3', visible: true},
             ]);
             dispatch(actions.updateLayer({id: 'layer-1', name: 'LX'} as LayerState));
-            expect(getState().control.viewer.layers).to.deep.equal([
+            expect(getState().control.views[0].data.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
                 {id: 'layer-1', name: 'LX', visible: true},
@@ -500,14 +500,14 @@ describe('Actions', () => {
         it('setShowSelectedVariableLayer', () => {
             dispatch(actions.setShowSelectedVariableLayer(true));
             expect(getState().session.showSelectedVariableLayer).to.equal(true);
-            expect(getState().control.viewer.layers).to.deep.equal([
+            expect(getState().control.views[0].data.layers).to.deep.equal([
                 defaultSelectedVariableLayer,
                 defaultCountriesLayers,
             ]);
 
             dispatch(actions.setShowSelectedVariableLayer(false));
             expect(getState().session.showSelectedVariableLayer).to.equal(false);
-            expect(getState().control.viewer.layers).to.deep.equal([
+            expect(getState().control.views[0].data.layers).to.deep.equal([
                 {id: SELECTED_VARIABLE_LAYER_ID, visible: false, type: 'Unknown'},
                 defaultCountriesLayers,
             ]);
@@ -552,7 +552,7 @@ describe('Actions', () => {
             dispatch(actions.addLayer({id: 'L2', resName: 'res_2', varName: 'X'} as any));
             dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
             dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
-            expect(getState().control.viewer.layers).to.deep.equal([
+            expect(getState().control.views[0].data.layers).to.deep.equal([
                 {id: SELECTED_VARIABLE_LAYER_ID, visible: true, type: "Unknown"},
                 {id: COUNTRIES_LAYER_ID, visible: false, type: "Vector", name: 'Countries'},
                 {id: 'L1', resName: 'res_1', varName: 'X'},

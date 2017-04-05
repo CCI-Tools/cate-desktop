@@ -280,17 +280,16 @@ export interface ImageLayout {
     tileHeight: number;
 }
 
-export type ViewMode = "2D" | "3D";
-
+export type WorldViewMode = "2D" | "3D";
 
 /**
- * State of the 2D/3D viewer.
+ * Data object for view type "world".
  */
-export interface ViewerState {
+export interface WorldViewDataState {
     /**
      * 2D map or 3D globe?
      */
-    viewMode: ViewMode;
+    viewMode: WorldViewMode;
 
     /**
      * Code of the projection used by the 2D map.
@@ -552,15 +551,14 @@ export interface ControlState {
     showLayerDetails: boolean;
     savedLayers: {[key: string]: LayerState};
 
-    // TODO (forman): move into workspace
-    viewLayout: ViewLayoutState;
-    views: ViewState[];
-    // State of the 2D/3D viewer.
-    // TODO (forman): move into view.data
-    viewer: ViewerState;
-
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState};
+
+    // TODO (forman): Move view properties into workspace so they can be stored.
+    // Take care, workspace objects come from Python back-end, therefore must preserve view settings.
+    viewLayout: ViewLayoutState;
+    views: ViewState<any>[];
+    activeViewId: string | null;
 }
 
 export interface DialogState {

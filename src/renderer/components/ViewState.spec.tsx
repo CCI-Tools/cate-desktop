@@ -204,7 +204,7 @@ describe('function manipulating a ViewLayout', () => {
                 {id: 'a'},
                 {id: 'b'},
                 {id: 'c'},
-            ] as ViewState[];
+            ] as ViewState<any>[];
             expect(removeViewFromViewArray(views, 'b')).to.deep.equal([{id: 'a'}, {id: 'c'}]);
         });
     });

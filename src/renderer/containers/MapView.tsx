@@ -1,32 +1,33 @@
 import * as React from 'react';
 import {
-    LayerState, State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
-    VariableRefState, VariableState, ResourceState, VectorLayerState
+    State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
+    VariableRefState, VariableState, ResourceState, VectorLayerState, WorldViewDataState
 } from "../state";
 import {OpenLayersMap, LayerDescriptor} from "../components/openlayers/OpenLayersMap";
 import {connect} from "react-redux";
-import * as actions from "../actions";
 import * as ol from 'openlayers';
 import {
     findVariable, findResource, getGeoJSONUrl, getTileUrl, getGeoJSONCountriesUrl,
     COUNTRIES_LAYER_ID
 } from "../state-util";
+import {ViewState} from "../components/ViewState";
 
-interface IMapViewProps {
+interface IMaxViewOwnProps {
+    view: ViewState<WorldViewDataState>;
+}
+
+interface IMapViewProps extends IMaxViewOwnProps {
     baseUrl: string;
     workspace: WorkspaceState | null;
     offlineMode: boolean;
-    layers: LayerState[];
-    projectionCode: string;
 }
 
-function mapStateToProps(state: State): IMapViewProps {
+function mapStateToProps(state: State, ownProps: IMaxViewOwnProps): IMapViewProps {
     return {
+        view: ownProps.view,
         baseUrl: state.data.appConfig.webAPIConfig.restUrl,
         workspace: state.data.workspace,
         offlineMode: state.session.offlineMode,
-        layers: state.control.viewer.layers,
-        projectionCode: state.control.viewer.projectionCode,
     };
 }
 
@@ -37,8 +38,8 @@ class MapView extends React.Component<IMapViewProps, null> {
 
     render() {
         const mapLayers = [];
-        if (this.props.workspace && this.props.workspace.resources && this.props.layers) {
-            for (let layer of this.props.layers) {
+        if (this.props.workspace && this.props.workspace.resources && this.props.view.data.layers) {
+            for (let layer of this.props.view.data.layers) {
                 let mapLayer;
                 switch (layer.type) {
                     case 'VariableImage':
@@ -60,14 +61,14 @@ class MapView extends React.Component<IMapViewProps, null> {
         }
 
         return (
-            <div style={{width:"100%", height:"100%"}}>
-                <OpenLayersMap id="defaultMapView"
+            <div style={{width: "100%", height: "100%"}}>
+                <OpenLayersMap id={this.props.view.id}
                                debug={true}
-                               projectionCode={this.props.projectionCode}
+                               projectionCode={this.props.view.data.projectionCode}
                                layers={mapLayers}
                                offlineMode={this.props.offlineMode}
-                               style={{width:"100%", height:"100%"}}/>
-                <div id="creditContainer" style={{display:"none"}}></div>
+                               style={{width: "100%", height: "100%"}}/>
+                <div id="creditContainer" style={{display: "none"}}/>
             </div>
         );
     }
@@ -80,7 +81,7 @@ class MapView extends React.Component<IMapViewProps, null> {
         return findVariable(this.props.workspace.resources, ref);
     }
 
-    private convertVariableImageLayerToMapLayer(layer: VariableImageLayerState): LayerDescriptor|null {
+    private convertVariableImageLayerToMapLayer(layer: VariableImageLayerState): LayerDescriptor | null {
         const variable = this.getVariable(layer);
         if (!variable) {
             console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
@@ -127,7 +128,7 @@ class MapView extends React.Component<IMapViewProps, null> {
         };
     }
 
-    private convertVariableVectorLayerToMapLayer(layer: VariableVectorLayerState): LayerDescriptor|null {
+    private convertVariableVectorLayerToMapLayer(layer: VariableVectorLayerState): LayerDescriptor | null {
         const resource = this.getResource(layer);
         const variable = this.getVariable(layer);
         if (!variable) {
@@ -184,7 +185,7 @@ class MapView extends React.Component<IMapViewProps, null> {
         };
     }
 
-    private convertVectorLayerToMapLayer(layer: VectorLayerState): LayerDescriptor|null {
+    private convertVectorLayerToMapLayer(layer: VectorLayerState): LayerDescriptor | null {
         let url = layer.url;
         if (layer.id === COUNTRIES_LAYER_ID) {
             url = getGeoJSONCountriesUrl(this.props.baseUrl);

@@ -1,6 +1,6 @@
 import {
     VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
-    VariableImageLayerState, State, OperationState
+    VariableImageLayerState, State, OperationState, WorldViewDataState
 } from "./state";
 import {ViewState} from "./components/ViewState";
 
@@ -63,28 +63,53 @@ export function getLayerDisplayName(layer: LayerState): string {
     return layer.id;
 }
 
-export function findResource(resources: ResourceState[], ref: VariableRefState): ResourceState|null {
+export function findResource(resources: ResourceState[], ref: VariableRefState): ResourceState | null {
     return resources.find(r => r.name === ref.resName);
 }
 
-export function findVariable(resources: ResourceState[], ref: VariableRefState): VariableState|null {
+export function findVariable(resources: ResourceState[], ref: VariableRefState): VariableState | null {
     const resource = findResource(resources, ref);
     return resource && resource.variables.find(v => v.name === ref.varName);
 }
 
-export function findOperation(operations: OperationState[], name: string): OperationState|null {
+export function findOperation(operations: OperationState[], name: string): OperationState | null {
     return operations && operations.find(op => op.qualifiedName === name || op.name === name);
 }
 
 let WORLD_VIEW_COUNTER = 1;
 
-export function createWorldView(): ViewState {
-    const id = ++WORLD_VIEW_COUNTER;
+
+export function genSimpleId(prefix: string): string {
+    return prefix + (Math.random() * 0x10000000000000).toString(16);
+}
+
+function newInitialWorldViewData(): WorldViewDataState {
     return {
-        title: `World (${id})`,
-        id: `world-${id}`,
+        viewMode: "3D",
+        projectionCode: 'EPSG:4326',
+        layers: [
+            {
+                id: SELECTED_VARIABLE_LAYER_ID,
+                type: 'Unknown',
+                visible: true,
+            },
+            {
+                id: COUNTRIES_LAYER_ID,
+                name: 'Countries',
+                type: 'Vector',
+                visible: false,
+            }
+        ],
+    } as WorldViewDataState;
+}
+
+export function newWorldView(): ViewState<WorldViewDataState> {
+    const viewNumber = ++WORLD_VIEW_COUNTER;
+    return {
+        title: `World (${viewNumber})`,
+        id: genSimpleId('world-'),
         type: 'world',
         iconName: "pt-icon-globe",
-        data: {}
+        data: newInitialWorldViewData(),
     };
 }

@@ -1,14 +1,14 @@
 import {
-    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState, ViewerState
+    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState, WorldViewDataState
 } from './state';
 import * as actions from './actions';
 import * as assert from "../common/assert";
 import {combineReducers} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
-import {COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID, createWorldView} from "./state-util";
+import {COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID, newWorldView} from "./state-util";
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
-    addViewToLayout, selectViewInLayout
+    addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel
 } from "./components/ViewState";
 
 // Note: reducers are unit-tested through actions.spec.ts
@@ -95,28 +95,11 @@ const dataReducer = (state: DataState = initialDataState, action) => {
     return state;
 };
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // state.control initial state and reducers
 
-// TODO (forman): move into ViewState.data
-let initialViewerState = {
-    viewMode: "3D",
-    projectionCode: 'EPSG:4326',
-    layers: [
-        {
-            id: SELECTED_VARIABLE_LAYER_ID,
-            type: 'Unknown',
-            visible: true,
-        },
-        {
-            id: COUNTRIES_LAYER_ID,
-            name: 'Countries',
-            type: 'Vector',
-            visible: false,
-        }
-    ],
-} as ViewerState;
-
+const initialView = newWorldView();
 
 const initialControlState: ControlState = {
     selectedDataStoreId: null,
@@ -129,7 +112,6 @@ const initialControlState: ControlState = {
     selectedWorkspaceResourceId: null,
     selectedVariableName: null,
     selectedLayerId: null,
-    viewer: initialViewerState,
     savedLayers: {},
     dialogs: {},
 
@@ -141,18 +123,12 @@ const initialControlState: ControlState = {
     showVariableDetails: true,
     showLayerDetails: true,
 
-    views: [
-        {
-            id: "world-1",
-            type: "world",
-            title: "World",
-            iconName: "pt-icon-globe",
-        }
-    ],
+    views: [initialView],
     viewLayout: {
-        viewIds: ["world-1"],
-        selectedViewId: "world-1",
+        viewIds: [initialView.id],
+        selectedViewId: initialView.id,
     },
+    activeViewId: initialView.id,
 };
 
 
@@ -194,23 +170,36 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             break;
         }
         case actions.ADD_WORLD_VIEW: {
-            const view = createWorldView();
+            const view = newWorldView();
             const views = addViewToViewArray(state.views, view);
             const viewLayout = addViewToLayout(state.viewLayout, view.id);
-            return {...state, viewLayout, views};
+            return {...state, viewLayout, views, activeViewId: view.id};
         }
         case actions.SELECT_VIEW: {
             const viewPath = action.payload.viewPath;
             const viewId = action.payload.viewId;
             const viewLayout = selectViewInLayout(state.viewLayout, viewPath, viewId);
-            return {...state, viewLayout};
+            return {...state, viewLayout, activeViewId: viewId};
         }
         case actions.CLOSE_VIEW: {
             const viewPath = action.payload.viewPath;
             const viewId = action.payload.viewId;
             const views = removeViewFromViewArray(state.views, viewId);
             const viewLayout = removeViewFromLayout(state.viewLayout, viewPath, viewId);
-            return {...state, viewLayout, views};
+            let activeViewId = state.activeViewId;
+            if (activeViewId === viewId) {
+                activeViewId = null;
+                let viewPanel = getViewPanel(viewLayout, viewPath);
+                if (viewPanel && viewPanel.selectedViewId) {
+                    activeViewId = viewPanel.selectedViewId;
+                } else {
+                    viewPanel = findViewPanel(viewLayout, viewPanel => !!viewPanel.selectedViewId);
+                    if (viewPanel) {
+                        activeViewId = viewPanel.selectedViewId;
+                    }
+                }
+            }
+            return {...state, viewLayout, views, activeViewId};
         }
     }
 
@@ -223,7 +212,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
 };
 
 
-const viewerReducer = (state: ViewerState, action) => {
+const viewerReducer = (state: WorldViewState, action) => {
     switch (action.type) {
         case actions.SET_VIEW_MODE: {
             const viewMode = action.payload.viewMode;

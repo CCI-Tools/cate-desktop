@@ -2,7 +2,7 @@ import {
     WorkspaceState, DataStoreState, TaskState, State, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, SessionState, BackendConfigState, VariableState, VariableImageLayerState, VariableVectorLayerState,
-    VariableRefState, OperationKWArgs, ViewMode
+    VariableRefState, OperationKWArgs, WorldViewMode
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
@@ -880,7 +880,7 @@ function setSelectedVariableNameImpl(selectedVariableName: string|null) {
 export const SET_VIEW_MODE = 'SET_VIEW_MODE';
 export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
 
-export function setViewMode(viewMode: ViewMode) {
+export function setViewMode(viewMode: WorldViewMode) {
     return {type: SET_VIEW_MODE, payload: {viewMode}};
 }
 

@@ -6,13 +6,20 @@ import {
     ViewRenderer
 } from "./ViewState";
 
-
-export type ViewTypeRenderers = {[viewType: string]: ViewRenderer};
+/**
+ * Mapping from view type name to ViewRenderer
+ */
+export type ViewRenderMap = {[viewType: string]: ViewRenderer<any>};
+/**
+ * Mapping from view id to ViewState
+ */
+export type ViewMap = {[viewId: string]: ViewState<any>};
 
 interface IViewManagerProps {
-    viewTypeRenderers: ViewTypeRenderers;
+    viewRenderMap: ViewRenderMap;
     viewLayout: ViewLayoutState;
-    views: ViewState[];
+    views: ViewState<any>[];
+    activeView: ViewState<any>|null;
     noViewsDescription?: string|null;
     noViewsAction?: JSX.Element|null;
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
@@ -27,20 +34,18 @@ interface IViewManagerState {
 
 export class ViewManager extends React.PureComponent<IViewManagerProps, IViewManagerState> {
 
-    private viewMap: {[id: string]: ViewState};
+    private viewMap: ViewMap;
 
     constructor(props: IViewManagerProps) {
         super(props);
         this.viewMap = ViewManager.createViewMap(this.props.views);
-        console.log('ViewManager.constructor: viewMap: ', this.viewMap);
     }
 
     componentWillReceiveProps(nextProps: IViewManagerProps): void {
         this.viewMap = ViewManager.createViewMap(nextProps.views);
-        console.log('ViewManager.constructor: viewMap: ', this.viewMap);
     }
 
-    static createViewMap(views: ViewState[]) {
+    static createViewMap(views: ViewState<any>[]) {
         const map = {};
         views.forEach(w => {
             map[w.id] = w;
@@ -139,8 +144,9 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
     renderViewPanel(viewPanel: ViewPanelState, viewPath: ViewPath) {
         return (
             <ViewPanel
-                viewTypeRenderers={this.props.viewTypeRenderers}
+                viewRenderMap={this.props.viewRenderMap}
                 viewMap={this.viewMap}
+                activeView={this.props.activeView}
                 viewPath={viewPath}
                 viewIds={viewPanel.viewIds}
                 selectedViewId={viewPanel.selectedViewId}
@@ -157,8 +163,9 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
 // ViewPanel
 
 interface IViewPanelProps {
-    viewTypeRenderers: ViewTypeRenderers;
-    viewMap: {[viewId: string]: ViewState};
+    viewRenderMap: ViewRenderMap;
+    viewMap: ViewMap;
+    activeView: ViewState<any>|null;
     viewPath: ViewPath;
     viewIds: string[];
     selectedViewId: string|null;
@@ -179,7 +186,10 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
     };
     static readonly TAB_STYLE_NORMAL = {padding: 2, color: Colors.GRAY3};
 
-    static readonly TITLE_STYLE = {paddingLeft: 4, paddingRight: 4};
+    static readonly TITLE_STYLE_BASE = {paddingLeft: 4, paddingRight: 4};
+    static readonly TITLE_STYLE_ACTIVE = {...ViewPanel.TITLE_STYLE_BASE, color: Colors.BLUE4};
+    static readonly TITLE_STYLE_SELECTED = ViewPanel.TITLE_STYLE_BASE;
+    static readonly TITLE_STYLE_NORMAL = ViewPanel.TITLE_STYLE_BASE;
 
     static readonly CLOSE_ICON_STYLE_SELECTED = {marginLeft: 6};
     static readonly CLOSE_ICON_STYLE_NORMAL = {marginLeft: 6};
@@ -227,8 +237,8 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
             }
         });
 
-        console.log('ViewPanel.render: views: ', views);
-        console.log('ViewPanel.render: selectedView: ', selectedView);
+        //console.log('ViewPanel.render: views: ', views);
+        //console.log('ViewPanel.render: selectedView: ', selectedView);
 
         let renderedViewContent;
         const tabItems = [];
@@ -241,14 +251,14 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
             let titleStyle;
             let closeIconStyle;
             if (selectedView && selectedView.id === viewId) {
-                let viewRenderer = this.props.viewTypeRenderers[view.type];
+                let viewRenderer = this.props.viewRenderMap[view.type];
                 renderedViewContent = viewRenderer(view);
                 tabStyle = ViewPanel.TAB_STYLE_SELECTED;
-                titleStyle = ViewPanel.TITLE_STYLE;
+                titleStyle = selectedView === this.props.activeView ? ViewPanel.TITLE_STYLE_ACTIVE : ViewPanel.TITLE_STYLE_SELECTED;
                 closeIconStyle = ViewPanel.CLOSE_ICON_STYLE_SELECTED;
             } else {
                 tabStyle = ViewPanel.TAB_STYLE_NORMAL;
-                titleStyle = ViewPanel.TITLE_STYLE;
+                titleStyle = ViewPanel.TITLE_STYLE_NORMAL;
                 closeIconStyle = ViewPanel.CLOSE_ICON_STYLE_NORMAL;
             }
 
