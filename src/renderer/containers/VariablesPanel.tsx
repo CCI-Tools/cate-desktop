@@ -107,7 +107,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         } else {
             return (
                 <NonIdealState title="No variables"
-                               visual="pt-icon-database"
+                               visual="pt-icon-variable"
                                description={`Select a resource in the WORKSPACE panel first.`}/>
             );
         }

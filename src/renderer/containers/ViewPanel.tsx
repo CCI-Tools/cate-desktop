@@ -7,6 +7,7 @@ import {FieldValue} from "../components/field/Field";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {ViewState} from "../components/ViewState";
+import {Card} from "../components/Card";
 
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
@@ -38,6 +39,8 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         this.onViewModeChange = this.onViewModeChange.bind(this);
         this.onProjectionCodeChange = this.onProjectionCodeChange.bind(this);
         this.onAddWorldView = this.onAddWorldView.bind(this);
+        this.onAddChartView = this.onAddChartView.bind(this);
+        this.onAddTableView = this.onAddTableView.bind(this);
         this.state = {isProjectionsDialogOpen: false};
     }
 
@@ -53,10 +56,25 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         this.props.dispatch(actions.addWorldView());
     }
 
+    onAddChartView() {
+        //this.props.dispatch(actions.addChartView());
+    }
+
+    onAddTableView() {
+        //this.props.dispatch(actions.addTableView());
+    }
+
     render() {
         return (
-            <div>
-                <Button iconName="globe" onClick={this.onAddWorldView}>Add World View</Button>
+            <div style={{overflowY: "auto"}}>
+                <label className="pt-label">
+                    Add new view&nbsp;
+                    <div className="pt-button-group">
+                        <Button iconName="globe" onClick={this.onAddWorldView}>World</Button>
+                        <Button iconName="timeline-area-chart" onClick={this.onAddChartView}>Chart</Button>
+                        <Button iconName="th" onClick={this.onAddTableView}>Table</Button>
+                    </div>
+                </label>
                 {this.renderActiveViewPanel()}
             </div>
         );
@@ -66,14 +84,27 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
 
         const activeView = this.props.activeView;
         if (!activeView) {
-            return <NonIdealState visual="eye" title="No active view" description="Create a view first."/>;
+            return <NonIdealState visual="eye" title="No active view" description="Add a new view first."/>;
         }
+
+        // TODO (forman): make title field editable
+        const titleField = (
+            <label className="pt-label">
+                View title
+                <div className="pt-input-group">
+                    <span className={"pt-icon " + activeView.iconName}/>
+                    <input className="pt-input" type="text" value={activeView.title} dir="auto" disabled={true}/>
+                </div>
+            </label>
+        );
 
         if (activeView.type === 'world') {
             const worldView = activeView as ViewState<WorldViewDataState>;
             let is3DGlobe = worldView.data.viewMode === '3D';
             return (
                 <div>
+                    {titleField}
+
                     <RadioGroup
                         label="View mode"
                         onChange={this.onViewModeChange}
@@ -91,10 +122,19 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                             onChange={this.onProjectionCodeChange}
                         />
                     </label>
+
+                    <label className="pt-label">
+                        Imagery layer credits
+                        <Card>
+                            <div id="creditContainer"
+                                 style={{minWidth: "10em", minHeight: "4em", position: "relative", overflow: "auto"}}/>
+                        </Card>
+                    </label>
                 </div>
             );
         } else {
-            return <NonIdealState visual="eye" title="No view properties" description="The active view is not yet supported."/>;
+            return <NonIdealState visual="eye" title="No view properties"
+                                  description="The type of the active view is not yet supported."/>;
         }
     }
 }

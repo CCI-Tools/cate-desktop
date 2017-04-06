@@ -28,15 +28,11 @@ export class CesiumGlobeExample extends React.Component<ICesiumViewProps, ICesiu
 
     render() {
         return (
-            <div style={{width:"100%", height:"100%"}}>
-                <CesiumGlobe id={this.props.id}
-                             debug={true}
-                             offlineMode={false}
-                             style={{width:"100%", height:"100%"}}
-                             pins={this.state.pins}/>
-                {/*<CesiumCityList pins={this.state.pins} onChange={this.handleCheckboxChange.bind(this)}/>*/}
-                <div id="creditContainer" style={{display:"none"}}></div>
-            </div>
+            <CesiumGlobe id={this.props.id}
+                         debug={true}
+                         offlineMode={false}
+                         style={{width:"100%", height:"100%"}}
+                         pins={this.state.pins}/>
         );
     }
 }

@@ -126,6 +126,12 @@ class ApplicationPage extends React.PureComponent<IApplicationPageProps & IDispa
     }
 
     render() {
+
+        const centerStyle = {
+            flex: "auto",
+            maxHeight: "100%",
+        };
+
         return (
             <div style={{display: "flex", flexFlow: "column nowrap", width: "100%", height: "100%", }}>
                 <div style={{flex: "auto", padding: 0, display:"flex", flexFlow: "row nowrap"}}>
@@ -145,18 +151,20 @@ class ApplicationPage extends React.PureComponent<IApplicationPageProps & IDispa
                         <Panel id="workspace" position="bottom" iconName="pt-icon-folder-close" title="Workspace"
                                body={<WorkspacePanel/>}/>
                     </PanelContainer>
-                    <ViewManager viewRenderMap={VIEW_TYPE_RENDERERS}
-                                 viewLayout={this.props.viewLayout}
-                                 views={this.props.views}
-                                 activeView={this.props.activeView}
-                                 noViewsDescription="You can create a new view in the VIEW panel."
-                                 noViewsVisual="pt-icon-eye-open"
-                                 onSelectView={this.onSelectView}
-                                 onCloseView={this.onCloseView}
-                                 onCloseAllViews={this.onCloseAllViews}
-                                 onChangeViewSplitPos={this.onChangeViewSplitPos}
-                                 onSplitViewPanel={this.onSplitViewPanel}
-                    />
+                    <div style={centerStyle}>
+                        <ViewManager viewRenderMap={VIEW_TYPE_RENDERERS}
+                                     viewLayout={this.props.viewLayout}
+                                     views={this.props.views}
+                                     activeView={this.props.activeView}
+                                     noViewsDescription="You can create a new view in the VIEW panel."
+                                     noViewsVisual="pt-icon-eye-open"
+                                     onSelectView={this.onSelectView}
+                                     onCloseView={this.onCloseView}
+                                     onCloseAllViews={this.onCloseAllViews}
+                                     onChangeViewSplitPos={this.onChangeViewSplitPos}
+                                     onSplitViewPanel={this.onSplitViewPanel}
+                        />
+                    </div>
                     <PanelContainer position="right"
                                     undockedMode={this.props.panelContainerUndockedMode}
                                     layout={this.props.rightPanelContainerLayout}
@@ -179,6 +187,9 @@ class ApplicationPage extends React.PureComponent<IApplicationPageProps & IDispa
                 </div>
                 <StatusBar/>
                 <PreferencesDialog/>
+                <div id="creditContainer"
+                     style={{minWidth: "10em", minHeight: "4em", position: "relative", overflow: "auto", display: "none"}}/>
+
             </div>
         );
     }

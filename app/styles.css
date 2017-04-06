@@ -164,7 +164,7 @@ ul.cate-panel-bar li.cate-selected {
     border-top: 1px solid #5C7080;
     border-bottom: 1px solid #5C7080;
 
-    font-size: medium;
+    /*font-size: medium;*/
     /*font-weight: bolder;*/
 
     /* blueprint @light-grey5 */

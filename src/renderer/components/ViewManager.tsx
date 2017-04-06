@@ -103,23 +103,23 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
             if (viewSplit.dir === 'hor') {
                 containerStyle = {
                     width: "100%",
-                    maxWidth: "100%",
+                    height: "100%",
                     display: "flex",
                     flexFlow: "row nowrap",
                     flex: "auto",
                 };
                 childContainer1Style = {flex: 'none', width: viewSplit.pos, height: '100%'};
-                childContainer2Style = {flex: 'auto', height: '100%'};
+                childContainer2Style = {flex: 'auto', width: '100%', height: '100%'};
             } else {
                 containerStyle = {
+                    width: "100%",
                     height: "100%",
-                    maxHeight: "100%",
                     display: "flex",
                     flexFlow: "column nowrap",
                     flex: "auto",
                 };
                 childContainer1Style = {flex: 'none', width: '100%', height: viewSplit.pos};
-                childContainer2Style = {flex: 'auto', width: '100%'};
+                childContainer2Style = {flex: 'auto', width: '100%', height: '100%'};
             }
 
             return (
@@ -195,7 +195,7 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
     static readonly CLOSE_ICON_STYLE_SELECTED = {marginLeft: 6};
     static readonly CLOSE_ICON_STYLE_NORMAL = {marginLeft: 6};
 
-    static readonly MENU_ICON_STYLE = {color: Colors.GRAY5};
+    static readonly MENU_ICON_STYLE = {color: Colors.GRAY5, marginLeft: 4};
 
     private contentElement: HTMLDivElement;
 
@@ -291,11 +291,11 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
             const menuIconStyle = ViewPanel.MENU_ICON_STYLE;
             menu = (
                 <div style={{flex: "none"}}>
-                    <span key="splitHor" style={menuIconStyle} className="pt-icon-standard pt-icon-add-row-bottom"
+                    <span key="splitHor" style={menuIconStyle} className="pt-icon-standard pt-icon-add-column-right"
                           onClick={this.onSplitHor}/>
-                    <span key="splitVer" style={menuIconStyle} className="pt-icon-standard pt-icon-add-column-right"
+                    <span key="splitVer" style={menuIconStyle} className="pt-icon-standard pt-icon-add-row-bottom"
                           onClick={this.onSplitVer}/>
-                    <span key="more" style={menuIconStyle} className="pt-icon-standard pt-icon-more"/>,
+                    <span key="more" style={menuIconStyle} className="pt-icon-standard pt-icon-more"/>
                 </div>
             );
         }
@@ -304,21 +304,24 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
             display: "flex",
             flexDirection: "row",
             flex: "none",
-            width:"100%",
+            width: "100%",
             marginTop: 2,
-            borderBottomStyle:"solid",
+            fontSize: "12px",
+            fontWeight: "lighter",
+            borderBottomStyle: "solid",
             borderBottomWidth: 2,
             borderBottomColor: ViewPanel.SELECTED_BG_COLOR
         };
 
         return (
-            <div style={{display: "flex", flexDirection: "column", width:"100%", maxHeight:"100%"}}>
-                <div style={headerStyle}>
+            <div style={{display: "flex", flexDirection: "column", width:"100%", height:"100%"}}>
+                <div style={headerStyle as any}>
                     {tabs}
                     {spacer}
                     {menu}
                 </div>
-                <div style={{display: "flex", flexDirection: "column", flex: 1, width:"100%"}} ref={this.onContentDivRef}>
+                <div style={{display: "flex", flexDirection: "column", flex: 'auto', width:"100%", height:"100%"}}
+                     ref={this.onContentDivRef}>
                     {renderedViewContent}
                 </div>
             </div>

@@ -61,15 +61,12 @@ class MapView extends React.Component<IMapViewProps, null> {
         }
 
         return (
-            <div style={{width: "100%", height: "100%"}}>
-                <OpenLayersMap id={this.props.view.id}
-                               debug={true}
-                               projectionCode={this.props.view.data.projectionCode}
-                               layers={mapLayers}
-                               offlineMode={this.props.offlineMode}
-                               style={{width: "100%", height: "100%"}}/>
-                <div id="creditContainer" style={{display: "none"}}/>
-            </div>
+            <OpenLayersMap id={'OpenLayersMap-' + this.props.view.id}
+                           debug={true}
+                           projectionCode={this.props.view.data.projectionCode}
+                           layers={mapLayers}
+                           offlineMode={this.props.offlineMode}
+                           style={{width: "100%", height: "100%"}}/>
         );
     }
 

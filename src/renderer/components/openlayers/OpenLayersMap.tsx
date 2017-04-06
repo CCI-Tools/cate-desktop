@@ -3,6 +3,7 @@ import * as ol from 'openlayers';
 import * as proj4 from 'proj4';
 import {IPermanentComponentProps, PermanentComponent} from '../PermanentComponent'
 import {getLayerDiff} from "../../../common/layer-diff";
+import * as assert from "../../../common/assert";
 
 ol.proj.setProj4(proj4);
 
@@ -42,7 +43,18 @@ export interface IOpenLayersMapProps extends IPermanentComponentProps {
     pins?: PinDescriptor[];
     layers?: LayerDescriptor[];
     projectionCode?: string;
+    onMapMounted?: (id: string, map: ol.Map) => void;
+    onMapUnmounted?: (id: string, map: ol.Map) => void;
 }
+
+interface LastState {
+    id: string;
+    layers: LayerDescriptor[];
+}
+
+type LastStateMap = {[id: string]: LastState};
+
+const EMPTY_ARRAY = [];
 
 /**
  * A component that wraps an OpenLayers 4.0 2D Map.
@@ -51,11 +63,11 @@ export interface IOpenLayersMapProps extends IPermanentComponentProps {
  */
 export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLayersMapProps,any> {
 
-    private lastLayers: LayerDescriptor[];
+    private lastStateMap: LastStateMap;
 
     constructor(props) {
         super(props);
-        this.lastLayers = null;
+        this.lastStateMap = {};
     }
 
     get map(): ol.Map {
@@ -63,10 +75,9 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
     }
 
     createPermanentObject(parentContainer: HTMLElement): OpenLayersObject {
-
-        const divElement = this.createContainer();
+        const container = this.createContainer();
         const options = {
-            target: divElement,
+            target: container,
             layers: [
                 new ol.layer.Tile({
                     // source: new ol.source.OSM()
@@ -94,28 +105,50 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
         //map.addControl(new ol.control.Attribution());
         //map.addControl(new ol.control.Zoom());
 
-        return {
-            container: divElement,
-            map
-        };
+        return {container, map};
     }
 
     componentWillReceiveProps(nextProps: IOpenLayersMapProps) {
-        this.updateMapLayers(this.props.layers || [], nextProps.layers || []);
+        this.saveCurrentState();
+        if (this.map) {
+            this.updateMap(nextProps);
+        }
     }
 
     permanentObjectMounted(permanentObject: OpenLayersObject): void {
         permanentObject.map.updateSize();
-        this.updateMapLayers(this.lastLayers || [], this.props.layers || []);
+        this.updateMap(this.props);
+        if (this.props.onMapMounted) {
+            this.props.onMapMounted(this.props.id, permanentObject.map);
+        }
     }
 
     permanentObjectUnmounted(permanentObject: OpenLayersObject): void {
-        this.lastLayers = this.props.layers;
+        this.saveCurrentState();
+        if (this.props.onMapUnmounted) {
+            this.props.onMapUnmounted(this.props.id, permanentObject.map);
+        }
+    }
+
+    private saveCurrentState() {
+        const currentId = this.props.id;
+        const currentLayers = this.props.layers || EMPTY_ARRAY;
+        this.lastStateMap[currentId] = {id: currentId, layers: currentLayers};
+    }
+
+    private updateMap(props: IOpenLayersMapProps) {
+        const nextId = props.id;
+        const nextLayers = props.layers || EMPTY_ARRAY;
+
+        const lastState = this.lastStateMap[nextId];
+        const lastLayers = (lastState && lastState.layers) || EMPTY_ARRAY;
+
+        this.updateMapLayers(lastLayers, nextLayers);
     }
 
     private updateMapLayers(currentLayers: LayerDescriptor[], nextLayers: LayerDescriptor[]) {
         if (this.props.debug) {
-            console.log('OpenLayersMap: updating map layers');
+            console.log('OpenLayersMap: updating layers');
         }
         const actions = getLayerDiff<LayerDescriptor>(currentLayers, nextLayers);
         let olLayer: ol.layer.Layer;
@@ -130,6 +163,7 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
             switch (action.type) {
                 case 'ADD':
                     olLayer = this.addLayer(action.newLayer, olIndex);
+                    assert.ok(olLayer);
                     OpenLayersMap.setLayerProps(olLayer, action.newLayer);
                     break;
                 case 'REMOVE':
@@ -137,6 +171,7 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
                     break;
                 case 'UPDATE':
                     olLayer = this.map.getLayers().item(olIndex) as ol.layer.Tile;
+                    assert.ok(olLayer);
                     oldLayer = action.oldLayer;
                     newLayer = action.newLayer;
                     if (oldLayer.layerSourceOptions.url !== newLayer.layerSourceOptions.url) {
@@ -159,6 +194,7 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
                     break;
                 case 'MOVE_DOWN':
                     olLayer = this.map.getLayers().item(olIndex) as ol.layer.Layer;
+                    assert.ok(olLayer);
                     this.map.getLayers().removeAt(olIndex);
                     this.map.getLayers().insertAt(olIndex - action.numSteps, olLayer);
                     break;

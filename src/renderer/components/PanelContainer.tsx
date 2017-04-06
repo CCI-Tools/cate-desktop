@@ -186,7 +186,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
 
             let panelPaneHeight;
             if (selectedTopPanel && selectedBottomPanel) {
-                // panelPaneHeight remains undefined
+                // panelPaneHeight remains undefined, flex with handle that
             } else {
                 panelPaneHeight = "100%";
             }
@@ -268,6 +268,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
                     top: 0,
                     left: PanelContainer.PANEL_BAR_SIZE,
                     backgroundColor: PANEL_UNDOCKED_BACKGROUND_COLOR,
+                    zIndex: 5,
                 };
             } else {
                 undockedModeStyle = {
@@ -275,6 +276,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
                     top: 0,
                     right: PanelContainer.PANEL_BAR_SIZE,
                     backgroundColor: PANEL_UNDOCKED_BACKGROUND_COLOR,
+                    zIndex: 5,
                 };
             }
         }
@@ -286,8 +288,6 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
             flex: "auto",
             display: "flex",
             flexFlow: "row nowrap",
-            zIndex: 5,
-            //height: "100%",
             maxHeight: "100%",
             ...undockedModeStyle
         };
@@ -467,8 +467,9 @@ function PanelPane(props: IPanelPaneProps) {
     };
 
     const bodyContainerStyle = {
-        flex: "auto",
+        flex: 1,
         padding: PanelContainer.PANEL_BODY_PADDING,
+        overflow: "auto",
     };
 
     return (

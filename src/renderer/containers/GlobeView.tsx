@@ -68,15 +68,12 @@ class GlobeView extends React.Component<IGlobeViewProps&IGlobeViewOwnProps, null
         }
 
         return (
-            <div style={{width:"100%", height:"100%", overflow: "none"}}>
-                <CesiumGlobe id={this.props.view.id}
-                             debug={true}
-                             layers={layers}
-                             dataSources={dataSources}
-                             offlineMode={this.props.offlineMode}
-                             style={{width:"100%", height:"100%"}}/>
-                <div id="creditContainer" style={{display:"none"}}/>
-            </div>
+            <CesiumGlobe id={'CesiumGlobe-' + this.props.view.id}
+                         debug={true}
+                         layers={layers}
+                         dataSources={dataSources}
+                         offlineMode={this.props.offlineMode}
+                         style={{width:"100%", height:"100%", overflow: "none"}}/>
         );
     }
 

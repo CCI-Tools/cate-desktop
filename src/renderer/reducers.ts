@@ -9,7 +9,7 @@ import {updateObject, updatePropertyObject} from "../common/objutil";
 import {SELECTED_VARIABLE_LAYER_ID, newWorldView, updateSelectedVariableLayer} from "./state-util";
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
-    addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel
+    addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos
 } from "./components/ViewState";
 
 // Note: reducers are unit-tested through actions.spec.ts
@@ -211,6 +211,19 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             }
             return {...state, viewLayout, views, activeViewId};
         }
+        case actions.SPLIT_VIEW_PANEL: {
+            const viewPath = action.payload.viewPath;
+            const dir = action.payload.dir;
+            const pos = action.payload.pos;
+            const viewLayout = splitViewPanel(state.viewLayout, viewPath, dir, pos);
+            return {...state, viewLayout};
+        }
+        case actions.CHANGE_VIEW_SPLIT_POS:{
+            const viewPath = action.payload.viewPath;
+            const delta = action.payload.delta;
+            const viewLayout = changeViewSplitPos(state.viewLayout, viewPath, delta);
+            return {...state, viewLayout};
+        }
         default: {
             const newViews = viewsReducer(state.views, action);
             if (newViews !== state.views) {
@@ -225,7 +238,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
 
 const viewsReducer = (state: ViewState<any>[], action) => {
     // delegate action to all children
-    let newViews;
+    let newViews = null;
     for (let i = 0; i < state.length; i++) {
         const oldView = state[i];
         const newView = viewReducer(oldView, action);
@@ -233,9 +246,9 @@ const viewsReducer = (state: ViewState<any>[], action) => {
             if (!newViews) {
                 newViews = state.slice(0, i);
             }
-            if (newView) {
-                newViews.push(newView);
-            }
+        }
+        if (newViews && newView) {
+            newViews.push(newView);
         }
     }
     return newViews || state;
@@ -387,9 +400,9 @@ const layersReducer = (state: LayerState[], action) => {
             if (!newLayers) {
                 newLayers = state.slice(0, i);
             }
-            if (newLayer) {
-                newLayers.push(newLayer);
-            }
+        }
+        if (newLayers && newLayer) {
+            newLayers.push(newLayer);
         }
     }
     return newLayers || state;
