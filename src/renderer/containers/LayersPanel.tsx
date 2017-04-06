@@ -413,10 +413,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             return null;
         }
 
-        function handleChangedLayerVarIndex(dispatch, i: number, value: number) {
+        const handleChangedLayerVarIndex = (i: number, value: number) => {
             const varIndex = layer.varIndex.slice();
             varIndex[i] = value;
-            dispatch(actions.updateLayer(this.props.activeView.id, layer, {varIndex}));
+            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {varIndex}));
         }
 
         const n = variable.ndim - 2;
@@ -435,7 +435,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                                     stepSize={1}
                                     labelStepSize={max}
                                     value={value}
-                                    onChange={(value: number) => handleChangedLayerVarIndex(this.props.dispatch, i, value)}
+                                    onChange={(value: number) => handleChangedLayerVarIndex(i, value)}
                             />
                         </td>
                     </tr>
@@ -451,9 +451,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             return null;
         }
 
-        function handleChangedImageEnhancement(dispatch, name: string, value: number) {
-            dispatch(actions.updateLayer(this.props.activeView.id, layer,  {[name]: value}));
-        }
+        const handleChangedImageEnhancement = (name: string, value: number) => {
+            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {[name]: value}));
+        };
 
         return (
             <tr key={key}>
@@ -465,7 +465,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                             labelStepSize={max - min}
                             renderLabel={(x) => formatNumber(x, 1)}
                             value={layer[key]}
-                            onChange={(value: number) => handleChangedImageEnhancement(this.props.dispatch, key, value)}/>
+                            onChange={(value: number) => handleChangedImageEnhancement(key, value)}/>
                 </td>
             </tr>
         );

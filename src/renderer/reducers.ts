@@ -6,7 +6,7 @@ import * as actions from './actions';
 import * as assert from "../common/assert";
 import {combineReducers} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
-import {COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID, newWorldView} from "./state-util";
+import {SELECTED_VARIABLE_LAYER_ID, newWorldView, updateSelectedVariableLayer} from "./state-util";
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
     addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel
@@ -163,8 +163,16 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             const savedLayers = updateObject(state.savedLayers, {[key]: updateObject(layer, {})});
             return {...state, savedLayers};
         }
-        case actions.SET_SELECTED_VARIABLE_NAME:
-            return {...state, ...action.payload};
+        case actions.SET_SELECTED_VARIABLE: {
+            const selectedVariable = action.payload.selectedVariable;
+            const selectedVariableName = selectedVariable ? selectedVariable.name : null;
+            let views = state.views;
+            const newViews = viewsReducer(state.views, action);
+            if (newViews !== views) {
+                views = newViews;
+            }
+            return {...state, selectedVariableName, views};
+        }
         case actions.UPDATE_CONTROL_STATE:
             return {...state, ...action.payload};
         case actions.UPDATE_DIALOG_STATE: {
@@ -254,6 +262,14 @@ const viewReducer = (state: ViewState<any>, action) => {
             }
             break;
         }
+        case actions.SET_SELECTED_LAYER_ID: {
+            const viewId = action.payload.viewId;
+            if (viewId === state.id && state.type === 'world') {
+                const selectedLayerId = action.payload.selectedLayerId;
+                return {...state, data: {...state.data, selectedLayerId}};
+            }
+            break;
+        }
         case actions.SET_VIEW_MODE: {
             const viewId = action.payload.viewId;
             if (viewId === state.id) {
@@ -278,7 +294,7 @@ const viewReducer = (state: ViewState<any>, action) => {
                 assert.ok(state.type === 'world');
                 const layer = action.payload.layer;
                 const selectLayer = action.payload.selectLayer;
-                const selectedLayerId = selectLayer ? layer.id: state.data.selectedLayerId;
+                const selectedLayerId = selectLayer ? layer.id : state.data.selectedLayerId;
                 const layers = state.data.layers.concat([layer]);
                 return {...state, data: {...state.data, layers, selectedLayerId}};
             }
@@ -349,19 +365,6 @@ const viewReducer = (state: ViewState<any>, action) => {
             }
             break;
         }
-        case actions.REPLACE_LAYER: {
-            const viewId = action.payload.viewId;
-            if (viewId === state.id) {
-                assert.ok(state.type === 'world');
-                const layer = action.payload.layer;
-                const layers = state.data.layers.slice();
-                const layerIndex = layers.findIndex(l => l.id === layer.id);
-                assert.ok(layerIndex >= 0, "layerIndex >= 0");
-                layers[layerIndex] = updateObject(layer);
-                return updateObject(state, {layers});
-            }
-            break;
-        }
         default: {
             if (state.type === 'world') {
                 const layers = layersReducer(state.data.layers, action);
@@ -409,17 +412,18 @@ const layerReducer = (state: LayerState, action) => {
             }
             break;
         }
-        case actions.SET_SELECTED_VARIABLE_NAME: {
+        case actions.SET_SELECTED_VARIABLE: {
             if (state.id === SELECTED_VARIABLE_LAYER_ID) {
-                const selectedVariableName = action.payload.selectedVariableName;
-                return {...state, visible: selectedVariableName};
+                const resource = action.payload.resource;
+                const selectedVariable = action.payload.selectedVariable;
+                const savedLayers = action.payload.savedLayers;
+                return updateSelectedVariableLayer(state, resource, selectedVariable, savedLayers);
             }
             break;
         }
     }
     return state;
 };
-
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

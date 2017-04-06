@@ -1,6 +1,6 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {State, VariableState, ResourceState} from "../state";
+import {State, VariableState, ResourceState, SavedVariableLayers} from "../state";
 import * as assert from "../../common/assert";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -21,7 +21,7 @@ interface IVariablesPanelProps {
     showVariableDetails: boolean;
     showSelectedVariableLayer: boolean;
     activeView: ViewState<any>;
-    savedLayers: any;
+    savedLayers: SavedVariableLayers;
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
@@ -55,9 +55,12 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         const resource = this.props.selectedResource;
         assert.ok(resource);
         if (newSelection && newSelection.length) {
-            this.props.dispatch(actions.setSelectedVariableName(resource.name, newSelection[0] as string));
+            const selectedVariableName = newSelection[0] as string;
+            const selectedVariable = this.props.variables.find(v => v.name === selectedVariableName);
+            assert.ok(selectedVariable);
+            this.props.dispatch(actions.setSelectedVariable(resource, selectedVariable, this.props.savedLayers));
         } else {
-            this.props.dispatch(actions.setSelectedVariableName(resource.name, null));
+            this.props.dispatch(actions.setSelectedVariable(resource, null, null));
         }
     }
 
@@ -99,13 +102,13 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
             return (
                 <NonIdealState title="No variables"
                                visual="pt-icon-variable"
-                               description={`Selected resource "${resource.name}" in the workspace doesn't contain any variables.`}/>
+                               description={`Selected resource "${resource.name}" doesn't contain any variables.`}/>
             );
         } else {
             return (
-                <NonIdealState title="No resource"
+                <NonIdealState title="No variables"
                                visual="pt-icon-database"
-                               description={`No resource selected.`}/>
+                               description={`Select a resource in the WORKSPACE panel first.`}/>
             );
         }
     }

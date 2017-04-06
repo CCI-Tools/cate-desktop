@@ -99,8 +99,6 @@ export interface OperationInputState extends OperationIOBaseState {
     valueSet?: any[];
     valueSetSource?: string;
     valueRange?: [number, number]|[string, string];
-    // TODO: (forman): make 'file_mode' a possible input property in Python backend, values "rw", "wr", "r", "w"
-    // TODO: (forman): make 'file_filters' a possible input property in Python backend
     fileOpenMode?: 'w' | 'r' | 'rw';
     fileFilters?: FileFilterState[];
 }
@@ -133,7 +131,7 @@ export type OperationArg = OperationArgumentValue|OperationArgumentSource;
 /**
  * Positional operation argument list.
  */
-export type OperationArgs = OperationArg[];
+//export type OperationArgs = OperationArg[];
 
 /**
  * Non-positional operation keyword-arguments.
@@ -307,7 +305,6 @@ export interface WorldViewDataState {
     selectedLayerId: string|null;
 }
 
-export type WorldViewState = ViewState<WorldViewDataState>;
 
 /**
  * State of a layer.
@@ -526,6 +523,8 @@ export interface TaskState {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ControlState
 
+export type SavedVariableLayers = {[key: string]: VariableImageLayerState|VariableVectorLayerState};
+
 /**
  * Control State is state which is specific to a given container component, and which is not stored in the screen’s
  * URL or in the HTML5 History API.
@@ -555,7 +554,7 @@ export interface ControlState {
 
     // LayersPanel
     showLayerDetails: boolean;
-    savedLayers: {[key: string]: LayerState};
+    savedLayers: SavedVariableLayers;
 
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState};

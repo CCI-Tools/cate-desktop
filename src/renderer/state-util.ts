@@ -117,22 +117,70 @@ export function newWorldView(): ViewState<WorldViewDataState> {
     };
 }
 
-export function newVariableLayer(resource: ResourceState, variable: VariableState, savedLayers?: {[name: string]: LayerState}) {
+export function newVariableLayer(resource: ResourceState,
+                                 variable: VariableState,
+                                 savedLayers?: { [name: string]: LayerState }): LayerState {
     assert.ok(resource);
     assert.ok(variable);
-
-    const layerId = genLayerId();
-
-    let layerType;
-    if (isSpatialImageVariable(variable)) {
-        layerType = 'VariableImage';
-    } else if (isSpatialVectorVariable(variable)) {
-        layerType = 'VariableVector';
-    }
-    assert.ok(layerType, 'illegal variable');
-
+    const spatialImageVariable = isSpatialImageVariable(variable);
+    const spatialVectorVariable = isSpatialVectorVariable(variable);
+    assert.ok(spatialImageVariable || spatialVectorVariable, 'geo-spatial variable expected');
     const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
+    const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
+    return {
+        ...restoredLayer,
+        id: genLayerId(),
+        type: spatialImageVariable ? 'VariableImage' : 'VariableVector',
+        name: `${resource.name}/${variable.name}`,
+        visible: true,
+        resName: resource.name,
+        varName: variable.name,
+        ...layerDisplayProperties
+    };
+}
 
+export function updateSelectedVariableLayer(selectedVariableLayer: LayerState,
+                                            resource: ResourceState,
+                                            variable: VariableState,
+                                            savedLayers?: { [name: string]: LayerState }): LayerState {
+    assert.ok(selectedVariableLayer);
+    assert.ok(selectedVariableLayer.id === SELECTED_VARIABLE_LAYER_ID);
+    const spatialImageVariable = isSpatialImageVariable(variable);
+    const spatialVectorVariable = isSpatialVectorVariable(variable);
+    if (spatialImageVariable || spatialVectorVariable) {
+        const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
+        const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
+        return {
+            ...selectedVariableLayer,
+            ...restoredLayer,
+            type: spatialImageVariable ? 'VariableImage' : 'VariableVector',
+            name: `Sel. var.: ${resource.name}/${variable.name}`,
+            resName: resource.name,
+            varName: variable.name,
+            ...layerDisplayProperties
+        };
+    } else {
+        return {
+            ...selectedVariableLayer,
+            type: 'Unknown' as any,
+            name: variable ? 'Sel. var. (not geo-spatial)' : 'Sel. var. (none)',
+            resName: null,
+            varName: null,
+            varIndex: null,
+        };
+    }
+}
+
+/**
+ * If there is a restoredLayer try reusing its varIndex, otherwise generate new variable display properties with
+ * new varIndex.
+ *
+ * @param variable
+ * @param restoredLayer
+ * @returns {{varIndex: any}}
+ */
+function updateVariableLayerVarIndex(variable?: VariableState,
+                                     restoredLayer?: VariableImageLayerState) {
     let layerDisplayProperties;
     let varIndex;
     if (restoredLayer) {
@@ -140,20 +188,20 @@ export function newVariableLayer(resource: ResourceState, variable: VariableStat
     } else {
         layerDisplayProperties = newVariableLayerDisplayProperties(variable);
     }
-
-    if (variable.ndim >= 2 && (!varIndex || varIndex.length != variable.ndim - 2)) {
-        varIndex = Array(variable.ndim - 2).fill(0);
-    }
-
-    return Object.assign({}, restoredLayer, {
-        id: genLayerId(),
-        type: layerType,
-        visible: true,
-        resName: resource.name,
-        varName: variable.name,
-        varIndex,
-    }, layerDisplayProperties);
+    varIndex = newVarIndex(variable, varIndex);
+    return {...layerDisplayProperties, varIndex};
 }
+
+function newVarIndex(variable: VariableState, varIndex) {
+    const numSpatialDims = 2;
+    if (variable.ndim
+        && variable.ndim >= numSpatialDims
+        && (!varIndex || varIndex.length != variable.ndim - numSpatialDims)) {
+        return Array(variable.ndim - numSpatialDims).fill(0);
+    }
+    return varIndex;
+}
+
 
 function newVariableLayerDisplayProperties(variable: VariableState) {
     return {
@@ -169,4 +217,3 @@ function newVariableLayerDisplayProperties(variable: VariableState) {
         gamma: 1.0,
     };
 }
-

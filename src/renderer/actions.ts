@@ -2,7 +2,7 @@ import {
     WorkspaceState, DataStoreState, TaskState, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState, VariableImageLayerState,
-    OperationKWArgs, WorldViewMode
+    OperationKWArgs, WorldViewMode, SavedVariableLayers
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
@@ -15,6 +15,7 @@ import {
 import {isNumber} from "../common/types";
 import {ViewPath} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
+import {updateObject} from "../common/objutil";
 
 
 const CANCELLED_CODE = 999;
@@ -670,7 +671,7 @@ export function setSelectedWorkspaceResourceId(selectedWorkspaceResourceId: stri
             if (resources) {
                 const resource = resources.find(res => res.name === selectedWorkspaceResourceId);
                 if (resource && resource.variables && resource.variables.length) {
-                    dispatch(setSelectedVariableName(resource.name, resource.variables[0].name));
+                    dispatch(setSelectedVariable(resource, resource.variables[0], selectors.savedLayersSelector(getState())));
                 }
             }
         }
@@ -750,16 +751,14 @@ export function getWorkspaceVariableStatistics(resName: string,
 // Variable actions
 
 export const SET_SHOW_SELECTED_VARIABLE_LAYER = 'SET_SHOW_SELECTED_VARIABLE_LAYER';
-export const SET_SELECTED_VARIABLE_NAME = 'SET_SELECTED_VARIABLE_NAME';
+export const SET_SELECTED_VARIABLE = 'SET_SELECTED_VARIABLE';
 
 export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean) {
     return {type: SET_SHOW_SELECTED_VARIABLE_LAYER, payload: {showSelectedVariableLayer}};
 }
 
-// TODO (forman): write reducer for SET_SELECTED_VARIABLE_NAME
-
-export function setSelectedVariableName(selectedResourceName: string|null, selectedVariableName: string|null) {
-    return {type: SET_SELECTED_VARIABLE_NAME, payload: {selectedResourceName, selectedVariableName}};
+export function setSelectedVariable(resource: ResourceState, selectedVariable: VariableState|null, savedLayers?: SavedVariableLayers) {
+    return {type: SET_SELECTED_VARIABLE, payload: {resource, selectedVariable, savedLayers}};
 }
 
 export function addVariableLayer(viewId: string,
@@ -769,80 +768,6 @@ export function addVariableLayer(viewId: string,
                                  savedLayers?: {[name: string]: LayerState}) {
     let layer = newVariableLayer(resource, variable, savedLayers);
     return addLayer(viewId, layer, selectLayer);
-}
-
-export function addVariableLayer_OLD(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
-    return updateOrAddVariableLayer_OLD(layerId, resource, variable);
-}
-
-// TODO (forman): reuse this code for reducer for SET_SELECTED_VARIABLE_NAME
-
-export function updateOrAddVariableLayer_OLD(layerId?: string|null, resource?: ResourceState, variable?: VariableState) {
-    return (dispatch, getState: GetState) => {
-        resource = resource || selectors.selectedResourceSelector(getState());
-        variable = variable || selectors.selectedVariableSelector(getState());
-        if (!resource || !variable) {
-            return;
-        }
-        let existingVariableLayer = null;
-        if (layerId) {
-            existingVariableLayer = selectors.layersSelector(getState()).find(layer => layer.id == layerId);
-        } else {
-            layerId = genLayerId();
-        }
-        let layerType;
-        if (isSpatialImageVariable(variable)) {
-            layerType = 'VariableImage';
-        } else if (isSpatialVectorVariable(variable)) {
-            layerType = 'VariableVector';
-        }
-        if (layerType) {
-            const savedLayers = selectors.savedLayersSelector(getState());
-            const restoredLayer = savedLayers[variable.name] as VariableImageLayerState;
-
-            let layerDisplayProperties;
-            let varIndex;
-            if (restoredLayer) {
-                varIndex = restoredLayer.varIndex && restoredLayer.varIndex.slice();
-            } else {
-                layerDisplayProperties = createVariableLayerDisplayProperties(variable);
-            }
-
-            if (variable.ndim >= 2 && (!varIndex || varIndex.length != variable.ndim - 2)) {
-                varIndex = Array(variable.ndim - 2).fill(0);
-            }
-
-            const currentVariableLayer = Object.assign({}, restoredLayer, {
-                id: layerId,
-                type: layerType,
-                visible: true,
-                resName: resource.name,
-                varName: variable.name,
-                varIndex,
-            }, layerDisplayProperties);
-
-            if (existingVariableLayer) {
-                dispatch(updateLayer(currentVariableLayer));
-                if (existingVariableLayer.type === layerType
-                    && existingVariableLayer.varName
-                    && existingVariableLayer.varName !== currentVariableLayer.varName) {
-                    dispatch(saveVariableLayer(existingVariableLayer.varName, existingVariableLayer));
-                }
-            } else {
-                dispatch(addLayer(currentVariableLayer));
-            }
-            dispatch(setSelectedLayerId(currentVariableLayer.id));
-        } else if (existingVariableLayer) {
-            // instead of removing existingVariableLayer, we set its type to 'Unknown'
-            const currentVariableLayer = {
-                id: layerId,
-                type: 'Unknown' as any,
-                name: (resource && variable) ? `${variable.name} of ${resource.name}` : null,
-                visible: true,
-            };
-            dispatch(replaceLayer(currentVariableLayer));
-        }
-    };
 }
 
 function createVariableLayerDisplayProperties(variable: VariableState) {
@@ -858,20 +783,6 @@ function createVariableLayerDisplayProperties(variable: VariableState) {
         saturation: 1.0,
         gamma: 1.0,
     };
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Viewer actions
-
-export const SET_VIEW_MODE = 'SET_VIEW_MODE';
-export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
-
-export function setViewMode(viewMode: WorldViewMode) {
-    return {type: SET_VIEW_MODE, payload: {viewMode}};
-}
-
-export function setProjectionCode(projectionCode: string) {
-    return {type: SET_PROJECTION_CODE, payload: {projectionCode}};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -937,6 +848,21 @@ export function changeViewSplitPos(viewPath: ViewPath, delta: number) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// View actions
+
+export const SET_VIEW_MODE = 'SET_VIEW_MODE';
+export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
+
+export function setViewMode(viewId: string, viewMode: WorldViewMode) {
+    return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
+}
+
+export function setProjectionCode(viewId: string, projectionCode: string) {
+    return {type: SET_PROJECTION_CODE, payload: {viewId, projectionCode}};
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer actions
 
 export const SET_SELECTED_LAYER_ID = 'SET_SELECTED_LAYER_ID';
@@ -970,13 +896,9 @@ export function moveLayerDown(viewId: string, id: string) {
 
 export function updateLayer(viewId: string, layer: LayerState, ...layerProperties) {
     if (layerProperties.length) {
-        layer = {...layer, ...layerProperties};
+        layer = updateObject({}, layer, ...layerProperties);
     }
     return {type: UPDATE_LAYER, payload: {viewId, layer}};
-}
-
-export function replaceLayer(viewId: string, layer: LayerState) {
-    return {type: REPLACE_LAYER, payload: {viewId, layer}};
 }
 
 

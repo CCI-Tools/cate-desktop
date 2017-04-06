@@ -22,6 +22,7 @@ interface IViewManagerProps {
     activeView: ViewState<any>|null;
     noViewsDescription?: string|null;
     noViewsAction?: JSX.Element|null;
+    noViewsVisual?: string|JSX.Element;
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
     onCloseView: (viewPath: ViewPath, viewId: string) => void;
     onCloseAllViews: (viewPath: ViewPath) => void;
@@ -68,10 +69,10 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
         return (
             <div style={{width:"100%", maxHeight:"100%", flex: "auto"}}>
                 <NonIdealState
-                    visual="globe"
                     title="No views opened"
                     description={this.props.noViewsDescription}
                     action={this.props.noViewsAction}
+                    visual={this.props.noViewsVisual}
                 />
             </div>
         );
@@ -187,7 +188,7 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
     static readonly TAB_STYLE_NORMAL = {padding: 2, color: Colors.GRAY3};
 
     static readonly TITLE_STYLE_BASE = {paddingLeft: 4, paddingRight: 4};
-    static readonly TITLE_STYLE_ACTIVE = {...ViewPanel.TITLE_STYLE_BASE, color: Colors.BLUE4};
+    static readonly TITLE_STYLE_ACTIVE = {...ViewPanel.TITLE_STYLE_BASE, color: Colors.BLUE5};
     static readonly TITLE_STYLE_SELECTED = ViewPanel.TITLE_STYLE_BASE;
     static readonly TITLE_STYLE_NORMAL = ViewPanel.TITLE_STYLE_BASE;
 

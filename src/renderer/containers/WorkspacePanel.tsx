@@ -19,12 +19,12 @@ interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
     workspace: WorkspaceState;
     showResourceDetails: boolean;
-    selectedResource: ResourceState|null;
-    selectedResourceId: string|null;
+    selectedResource: ResourceState | null;
+    selectedResourceId: string | null;
     showWorkflowStepDetails: boolean;
-    selectedWorkflowStep: WorkflowStepState|null;
-    selectedWorkflowStepId: string|null;
-    selectedWorkflowStepOp: OperationState|null;
+    selectedWorkflowStep: WorkflowStepState | null;
+    selectedWorkflowStepId: string | null;
+    selectedWorkflowStepOp: OperationState | null;
 }
 
 function mapStateToProps(state: State): IWorkspacePanelProps {
@@ -141,6 +141,15 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     private renderResourcesPanel() {
+        const resources = this.props.workspace.resources;
+        if (!resources || !resources.length) {
+            return (
+                <NonIdealState title="No resources"
+                               visual="pt-icon-database"
+                               description={<span>Open a dataset in DATA SOURCES panel or apply a <code>read_</code> operation from the OPERATIONS panel.</span>}
+                />
+            );
+        }
         return (
             <ContentWithDetailsPanel showDetails={this.props.showResourceDetails}
                                      onShowDetailsChange={this.handleShowResourceDetailsChanged}
@@ -200,6 +209,15 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     private renderWorkflowStepsPanel() {
+        const workflowSteps = this.props.workspace.workflow.steps;
+        if (!workflowSteps || !workflowSteps.length) {
+            return (
+                <NonIdealState title="No workflow steps"
+                               visual="pt-icon-flows"
+                               description={<span>Open a dataset in DATA SOURCES panel or apply a <code>read_</code> operation from the OPERATIONS panel.</span>}
+                />
+            );
+        }
         return (
             <ContentWithDetailsPanel showDetails={this.props.showWorkflowStepDetails}
                                      onShowDetailsChange={this.handleShowWorkflowStepDetailsChanged}
@@ -240,7 +258,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     private renderWorkflowStepDetails() {
 
         const selectedWorkflowStepOp = this.props.selectedWorkflowStepOp;
-        console.log('selectedWorkflowStepOp',selectedWorkflowStepOp);
+        console.log('selectedWorkflowStepOp', selectedWorkflowStepOp);
         if (!selectedWorkflowStepOp) {
             return null;
         }

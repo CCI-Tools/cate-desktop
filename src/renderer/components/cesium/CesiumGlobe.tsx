@@ -425,10 +425,7 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
 
 function getViewerPosition(viewer: CesiumViewer) {
     let coord;
-    console.log('getViewerPosition: viewer.container.clientWidth =', viewer.container.clientWidth);
-    console.log('getViewerPosition: viewer.container.clientHeight =', viewer.container.clientHeight);
     let windowPosition = new Cesium.Cartesian2(viewer.container.clientWidth / 2, viewer.container.clientHeight / 2);
-    console.log('getViewerPosition: windowPosition =', windowPosition);
     if (windowPosition) {
         try {
             let pickPosition = viewer.camera.pickEllipsoid(windowPosition);
@@ -440,7 +437,7 @@ function getViewerPosition(viewer: CesiumViewer) {
                 ];
             }
         } catch (e) {
-            console.error('getViewerPosition: e =', e);
+            // console.error('getViewerPosition: e =', e);
         }
     }
 

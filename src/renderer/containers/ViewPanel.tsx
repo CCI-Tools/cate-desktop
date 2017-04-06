@@ -42,11 +42,11 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
     }
 
     onViewModeChange(ev: any) {
-        this.props.dispatch(actions.setViewMode(ev.target.value));
+        this.props.dispatch(actions.setViewMode(this.props.activeView.id, ev.target.value));
     }
 
     onProjectionCodeChange(projectionCode: FieldValue<string>) {
-        this.props.dispatch(actions.setProjectionCode(projectionCode.textValue));
+        this.props.dispatch(actions.setProjectionCode(this.props.activeView.id, projectionCode.textValue));
     }
 
     onAddWorldView() {

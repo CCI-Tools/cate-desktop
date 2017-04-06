@@ -149,6 +149,8 @@ class ApplicationPage extends React.PureComponent<IApplicationPageProps & IDispa
                                  viewLayout={this.props.viewLayout}
                                  views={this.props.views}
                                  activeView={this.props.activeView}
+                                 noViewsDescription="You can create a new view in the VIEW panel."
+                                 noViewsVisual="pt-icon-eye-open"
                                  onSelectView={this.onSelectView}
                                  onCloseView={this.onCloseView}
                                  onCloseAllViews={this.onCloseAllViews}
