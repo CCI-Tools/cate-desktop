@@ -97,9 +97,11 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
         }
 
         if (renderedLayout1 && renderedLayout2) {
+            // TODO (forman/marcoz): code duplication here, use <SplitPane/> instead
             let containerStyle;
             let childContainer1Style;
             let childContainer2Style;
+            const splitterSize = 4; // px
             if (viewSplit.dir === 'hor') {
                 containerStyle = {
                     width: "100%",
@@ -108,8 +110,10 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
                     flexFlow: "row nowrap",
                     flex: "auto",
                 };
-                childContainer1Style = {flex: 'none', width: viewSplit.pos, height: '100%'};
-                childContainer2Style = {flex: 'auto', width: '100%', height: '100%'};
+                let width1 = viewSplit.pos;
+                let width2 = `calc(100% - ${width1 + splitterSize}px)`;
+                childContainer1Style = {flex: 'none', width: width1, height: '100%'};
+                childContainer2Style = {flex: 'auto', width: width2, height: '100%'};
             } else {
                 containerStyle = {
                     width: "100%",
@@ -118,8 +122,10 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
                     flexFlow: "column nowrap",
                     flex: "auto",
                 };
-                childContainer1Style = {flex: 'none', width: '100%', height: viewSplit.pos};
-                childContainer2Style = {flex: 'auto', width: '100%', height: '100%'};
+                let height1 = viewSplit.pos;
+                let height2 = `calc(100% - ${height1 + splitterSize}px)`;
+                childContainer1Style = {flex: 'none', width: '100%', height: height1};
+                childContainer2Style = {flex: 'auto', width: '100%', height: height2};
             }
 
             return (
