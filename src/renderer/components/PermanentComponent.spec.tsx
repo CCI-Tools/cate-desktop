@@ -78,22 +78,22 @@ describe('PermanentComponent', function () {
         let instance2 = new MyPermanentComponent({id: "P6", cache: cache});
 
         let parentContainer1 = new HTMLElement("div");
-        instance1.handleRef(parentContainer1);
+        instance1.remountPermanentObject(parentContainer1);
         expect(instance1.parentContainer).to.equal(parentContainer1);
         let component1 = instance1.permanentObject;
         expect(component1).not.to.be.null;
         expect(component1).not.to.be.undefined;
         expect(component1.id).to.equal("P6");
-        instance1.handleRef(null);
+        instance1.remountPermanentObject(null);
         expect(instance1.parentContainer).to.be.null;
         expect(instance1.permanentObject).to.be.null;
 
         let parentContainer2 = new HTMLElement("div");
-        instance2.handleRef(parentContainer2);
+        instance2.remountPermanentObject(parentContainer2);
         expect(instance2.parentContainer).to.equal(parentContainer2);
         let component2 = instance2.permanentObject;
         expect(component2).to.equal(component1);
-        instance2.handleRef(null);
+        instance2.remountPermanentObject(null);
         expect(instance2.parentContainer).to.be.null;
         expect(instance2.permanentObject).to.be.null;
 

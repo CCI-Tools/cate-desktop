@@ -64,7 +64,7 @@ export abstract class PermanentComponent<T extends IPermanentObjectType, P exten
         this._permanentObject = null;
     }
 
-    get parentContainer(): HTMLElement|any {
+    get parentContainer(): HTMLElement|null {
         return this._parentContainer;
     }
 
@@ -100,7 +100,19 @@ export abstract class PermanentComponent<T extends IPermanentObjectType, P exten
         }
     }
 
-    handleRef(parentContainer: HTMLElement|any) {
+    forceRegeneration() {
+        let permanentObjectStore = this.permanentObjectStore;
+        let permanentObject = permanentObjectStore[this.props.id];
+        if (permanentObject) {
+            delete permanentObjectStore[this.props.id];
+            if (this.parentContainer && permanentObject.container) {
+                this.parentContainer.removeChild(permanentObject.container);
+            }
+            this.remountPermanentObject(this.parentContainer);
+        }
+    }
+
+    remountPermanentObject(parentContainer: HTMLElement|null) {
         if (parentContainer) {
             if (this.props.id in this.permanentObjectStore) {
                 this.mountOldPermanentObject(parentContainer);
@@ -118,7 +130,7 @@ export abstract class PermanentComponent<T extends IPermanentObjectType, P exten
      */
     render(): JSX.Element {
         const onRef = (element: any) => {
-            this.handleRef(element);
+            this.remountPermanentObject(element);
         };
 
         return <div id={this.props.id}

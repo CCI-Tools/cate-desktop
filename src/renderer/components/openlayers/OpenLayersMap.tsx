@@ -88,7 +88,7 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
                         reprojectionErrorThreshold: 2.5,
                     }),
                 }),
-                createEmptyVectorLayer(),
+                this.createEmptyVectorLayer(),
             ],
             view: new ol.View({
                 projection: this.props.projectionCode || 'EPSG:4326',
@@ -111,6 +111,9 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
     componentWillReceiveProps(nextProps: IOpenLayersMapProps) {
         this.saveCurrentState();
         if (this.map) {
+            if (this.props.projectionCode !== nextProps.projectionCode) {
+                this.forceRegeneration();
+            }
             this.updateMap(nextProps);
         }
     }
@@ -235,39 +238,44 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
         div.setAttribute("class", "ol-container");
         return div;
     }
+
+    /**
+     * Creates an empty Vector layer that demonstrates using a custom loading strategy and loader.
+     * This will be the basis for creating our own Vector pyramid for faster display of large Shapefiles.
+     *
+     * Note that "resolution" is given in map units per display pixel.
+     */
+    createEmptyVectorLayer() {
+        function loader(extend: ol.Extent, resolution: number, projection: ol.proj.Projection) {
+            if (this.debug) {
+                console.log('OpenLayersMap: loader: extend =', extend, ', resolution (deg/pix) =', resolution, ', projection =', projection);
+            }
+        }
+
+        function strategy(extend: ol.Extent, resolution: number): ol.Extent[] {
+            if (this.debug) {
+                console.log('OpenLayersMap: strategy: extend =', extend, ', resolution (deg/pix) =', resolution);
+            }
+            // [minx, miny, maxx, maxy]
+            const minx = extend[0];
+            const miny = extend[1];
+            const maxx = extend[2];
+            const maxy = extend[3];
+            const dx = maxx - minx;
+            const dy = maxy - miny;
+            // quad-tree tiling:
+            return [
+                [minx, miny, minx + 0.5 * dx, miny + 0.5 * dy],
+                [minx, miny + 0.5 * dy, minx + 0.5 * dx, miny + dy],
+                [minx + 0.5 * dx, miny, minx + dx, miny + 0.5 * dy],
+                [minx + 0.5 * dx, miny + 0.5 * dy, minx + dx, miny + dy],
+            ];
+        }
+
+        return new ol.layer.Vector({
+            source: new ol.source.Vector({loader, strategy}),
+        });
+    }
 }
 
 
-/**
- * Creates an empty Vector layer that demonstrates using a custom loading strategy and loader.
- * This will be the basis for creating our own Vector pyramid for faster display of large Shapefiles.
- *
- * Note that "resolution" is given in map units per display pixel.
- */
-function createEmptyVectorLayer() {
-    function loader(extend: ol.Extent, resolution: number, projection: ol.proj.Projection) {
-        console.log('OpenLayersMap: loader: extend =', extend, ', resolution (deg/pix) =', resolution, ', projection =', projection);
-    }
-
-    function strategy(extend: ol.Extent, resolution: number): ol.Extent[] {
-        console.log('OpenLayersMap: strategy: extend =', extend, ', resolution (deg/pix) =', resolution);
-        // [minx, miny, maxx, maxy]
-        const minx = extend[0];
-        const miny = extend[1];
-        const maxx = extend[2];
-        const maxy = extend[3];
-        const dx = maxx - minx;
-        const dy = maxy - miny;
-        // quad-tree tiling:
-        return [
-            [minx, miny, minx + 0.5 * dx, miny + 0.5 * dy],
-            [minx, miny + 0.5 * dy, minx + 0.5 * dx, miny + dy],
-            [minx + 0.5 * dx, miny, minx + dx, miny + 0.5 * dy],
-            [minx + 0.5 * dx, miny + 0.5 * dy, minx + dx, miny + dy],
-        ];
-    }
-
-    return new ol.layer.Vector({
-        source: new ol.source.Vector({loader, strategy}),
-    });
-}

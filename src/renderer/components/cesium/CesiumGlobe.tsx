@@ -479,7 +479,6 @@ function getViewerPosition(viewer: CesiumViewer) {
             // console.error('getViewerPosition: e =', e);
         }
     }
-
     console.log('getViewerPosition: coord =', coord);
     return coord;
 }
