@@ -86,7 +86,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
 
         const activeView = this.props.activeView;
         if (!activeView) {
-            return <NonIdealState visual="eye" title="No active view" description="Add a new view first."/>;
+            return <NonIdealState visual="pt-icon-eye-open" title="No active view" description="Add a new view first."/>;
         }
 
         // TODO (forman): make title field editable
@@ -135,7 +135,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                 </div>
             );
         } else {
-            return <NonIdealState visual="eye" title="No view properties"
+            return <NonIdealState visual="pt-icon-eye-open" title="No view properties"
                                   description="The type of the active view is not yet supported."/>;
         }
     }

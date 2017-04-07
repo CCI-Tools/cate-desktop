@@ -115,8 +115,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         if (!workspace) {
             return (
                 <NonIdealState title="No workspace available"
-                               description={<span>Try <strong>File / New</strong> or <strong>File / Open</strong> from the main menu.</span>}
-                               visual="folder"/>
+                               description={<span>Use <strong>File / New</strong> or <strong>File / Open</strong> from the main menu to open a workspace.</span>}
+                               visual="pt-icon-folder-open"/>
             );
         }
 

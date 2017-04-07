@@ -231,7 +231,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     render() {
         let activeView = this.props.activeView;
         if (!activeView || activeView.type !== 'world') {
-            return (<NonIdealState title="No layers" description="To show layers, activate a world view" visual="pt-icon-globe"/>);
+            return (<NonIdealState title="No layers" description="To show layers, activate a world view" visual="pt-icon-layers"/>);
         }
 
         return (
