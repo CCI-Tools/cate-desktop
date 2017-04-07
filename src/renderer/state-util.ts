@@ -122,8 +122,8 @@ export function newVariableLayer(resource: ResourceState,
                                  savedLayers?: { [name: string]: LayerState }): LayerState {
     assert.ok(resource);
     assert.ok(variable);
-    const spatialImageVariable = isSpatialImageVariable(variable);
-    const spatialVectorVariable = isSpatialVectorVariable(variable);
+    const spatialImageVariable = variable && isSpatialImageVariable(variable);
+    const spatialVectorVariable = variable && isSpatialVectorVariable(variable);
     assert.ok(spatialImageVariable || spatialVectorVariable, 'geo-spatial variable expected');
     const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
     const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
@@ -145,8 +145,8 @@ export function updateSelectedVariableLayer(selectedVariableLayer: LayerState,
                                             savedLayers?: { [name: string]: LayerState }): LayerState {
     assert.ok(selectedVariableLayer);
     assert.ok(selectedVariableLayer.id === SELECTED_VARIABLE_LAYER_ID);
-    const spatialImageVariable = isSpatialImageVariable(variable);
-    const spatialVectorVariable = isSpatialVectorVariable(variable);
+    const spatialImageVariable = variable && isSpatialImageVariable(variable);
+    const spatialVectorVariable = variable && isSpatialVectorVariable(variable);
     if (spatialImageVariable || spatialVectorVariable) {
         const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
         const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
@@ -161,13 +161,14 @@ export function updateSelectedVariableLayer(selectedVariableLayer: LayerState,
         };
     } else {
         return {
-            ...selectedVariableLayer,
+            id: SELECTED_VARIABLE_LAYER_ID,
             type: 'Unknown' as any,
-            name: variable ? 'Sel. var. (not geo-spatial)' : 'Sel. var. (none)',
+            name: variable ? 'Sel. var.: none (not geo-spatial)' : 'Sel. var.: none (no selection)',
+            visible: selectedVariableLayer.visible,
             resName: null,
             varName: null,
             varIndex: null,
-        };
+        } as any;
     }
 }
 
@@ -185,10 +186,12 @@ function updateVariableLayerVarIndex(variable?: VariableState,
     let varIndex;
     if (restoredLayer) {
         varIndex = restoredLayer.varIndex && restoredLayer.varIndex.slice();
-    } else {
+    } else if (variable) {
         layerDisplayProperties = newVariableLayerDisplayProperties(variable);
     }
-    varIndex = newVarIndex(variable, varIndex);
+    if (variable) {
+        varIndex = newVarIndex(variable, varIndex);
+    }
     return {...layerDisplayProperties, varIndex};
 }
 
