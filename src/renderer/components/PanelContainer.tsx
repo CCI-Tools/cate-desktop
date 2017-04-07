@@ -157,65 +157,48 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
         const selectedBottomPanel = this.getSelectedBottomPanel();
 
         const panelPaneWidth = this.state.layout.horPos;
+        let panelPaneHeight: string|number = "100%";
 
         let topPanelPane;
         if (selectedTopPanel) {
-
-            let panelPaneHeight;
             if (selectedTopPanel && selectedBottomPanel) {
                 panelPaneHeight = this.state.layout.verPos;
-            } else {
-                panelPaneHeight = "100%";
             }
-
             const topPanelPaneStyle = {
                 width: panelPaneWidth,
-                maxWidth: panelPaneWidth,
+                //maxWidth: panelPaneWidth,
                 height: panelPaneHeight,
-                maxHeight: panelPaneHeight,
+                //maxHeight: panelPaneHeight,
             };
-
-            topPanelPane = <PanelPane panel={selectedTopPanel}
-                                      onClose={this.onTopPanelClose}
-                                      position={this.props.position}
-                                      style={topPanelPaneStyle}/>;
+            topPanelPane = this.renderPanelPane(selectedTopPanel, topPanelPaneStyle, this.onTopPanelClose);
         }
 
         let bottomPanelPane;
         if (selectedBottomPanel) {
-
-            let panelPaneHeight;
             if (selectedTopPanel && selectedBottomPanel) {
-                // panelPaneHeight remains undefined, flex with handle that
-            } else {
-                panelPaneHeight = "100%";
+                panelPaneHeight = `calc(100% - ${this.state.layout.verPos + 4}px)`;
             }
-
             const bottomPanelPaneStyle = {
                 width: panelPaneWidth,
-                maxWidth: panelPaneWidth,
+                //maxWidth: panelPaneWidth,
                 height: panelPaneHeight,
-                maxHeight: panelPaneHeight,
+                //maxHeight: panelPaneHeight,
             };
-
-            bottomPanelPane = <PanelPane panel={selectedBottomPanel}
-                                         onClose={this.onBottomPanelClose}
-                                         position={this.props.position}
-                                         style={bottomPanelPaneStyle}/>;
-        }
-
-        let panelParent;
-        if (topPanelPane && bottomPanelPane) {
-            panelParent = this.renderTwoPanelsPane(topPanelPane, bottomPanelPane);
-        } else if (topPanelPane) {
-            panelParent = topPanelPane;
-        } else if (bottomPanelPane) {
-            panelParent = bottomPanelPane;
+            bottomPanelPane = this.renderPanelPane(selectedBottomPanel, bottomPanelPaneStyle, this.onBottomPanelClose);
         }
 
         let panelPane;
-        if (panelParent) {
-            panelPane = this.renderPanelPane(panelParent);
+        if (topPanelPane && bottomPanelPane) {
+            panelPane = this.renderTwoPanelsPane(topPanelPane, bottomPanelPane);
+        } else if (topPanelPane) {
+            panelPane = topPanelPane;
+        } else if (bottomPanelPane) {
+            panelPane = bottomPanelPane;
+        }
+
+        let resizablePanelPane;
+        if (panelPane) {
+            resizablePanelPane = this.renderResizablePanelPane(panelPane);
         }
 
         // Important: panelContainerStyle must have flex="none"
@@ -232,17 +215,24 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
             return (
                 <div style={panelContainerStyle}>
                     {panelBar}
-                    {panelPane}
+                    {resizablePanelPane}
                 </div>
             );
         } else {
             return (
                 <div style={panelContainerStyle}>
-                    {panelPane}
+                    {resizablePanelPane}
                     {panelBar}
                 </div>
             );
         }
+    }
+
+    private renderPanelPane(panel: JSX.Element, style: any, onClose: (panelId: string) => void) {
+        return (<PanelPane panel={panel}
+                           onClose={onClose}
+                           position={this.props.position}
+                           style={style}/>);
     }
 
     private renderTwoPanelsPane(topPanelPane, bottomPanelPane) {
@@ -256,7 +246,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
         );
     }
 
-    private renderPanelPane(panelParent) {
+    private renderResizablePanelPane(panelPane) {
         const undockedMode = this.props.undockedMode || false;
         const position = this.props.position || "left";
 
@@ -281,7 +271,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
             }
         }
 
-        const panelPaneStyle = {
+        const resizablePanelPaneStyle = {
             paddingTop: PanelContainer.PANEL_PANE_PADDING,
             paddingLeft: position === "left" ? PanelContainer.PANEL_PANE_PADDING : 0,
             paddingRight: position === "left" ? 0 : PanelContainer.PANEL_PANE_PADDING,
@@ -296,16 +286,16 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
 
         if (position === "left") {
             return (
-                <div style={panelPaneStyle}>
-                    {panelParent}
+                <div style={resizablePanelPaneStyle}>
+                    {panelPane}
                     {horSplitter}
                 </div>
             );
         } else {
             return (
-                <div style={panelPaneStyle}>
+                <div style={resizablePanelPaneStyle}>
                     {horSplitter}
-                    {panelParent}
+                    {panelPane}
                 </div>
             );
         }
@@ -445,7 +435,7 @@ function PanelBar(props: IPanelBarProps) {
 
 interface IPanelPaneProps {
     position: "left" | "right";
-    style?: {[key:string]: any};
+    style?: {[key: string]: any};
     panel: JSX.Element | null;
     onClose: (panelId: string) => void;
 }
