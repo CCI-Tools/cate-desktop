@@ -1,7 +1,7 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
-    WorkflowStepState, VariableVectorLayerState, WorldViewMode, LayerVariableState, SavedVariableLayers
+    WorkflowStepState, VariableVectorLayerState, LayerVariableState, SavedVariableLayers
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient} from "./webapi/WebAPIClient";
@@ -13,7 +13,6 @@ import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {isSpatialVectorVariable, isSpatialImageVariable, findOperation} from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
-import {ViewMap} from "./components/ViewManager";
 
 const EMPTY_OBJECT = {};
 const EMPTY_ARRAY = [];
@@ -379,6 +378,12 @@ export const activeViewSelector = createSelector<State, ViewState<any> | null, V
     }
 );
 
+export const activeViewTypeSelector = createSelector<State, string | null, ViewState<any> | null>(
+    activeViewSelector,
+    (view: ViewState<any>) => {
+        return view ? view.type : null
+    }
+);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer selectors

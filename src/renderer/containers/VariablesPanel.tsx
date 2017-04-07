@@ -10,29 +10,30 @@ import {Card} from "../components/Card";
 import {LabelWithType} from "../components/LabelWithType";
 import {Button, NonIdealState} from "@blueprintjs/core";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
-import {ViewState} from "../components/ViewState";
 
 interface IVariablesPanelProps {
     dispatch?: any;
-    variables: VariableState[];
+    variables: VariableState[]|null;
     selectedResource: ResourceState|null;
     selectedVariableName: string|null;
     selectedVariable: VariableState|null;
     showVariableDetails: boolean;
     showSelectedVariableLayer: boolean;
-    activeView: ViewState<any>;
+    activeViewId: string;
+    activeViewType: string;
     savedLayers: SavedVariableLayers;
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
     return {
-        variables: selectors.variablesSelector(state) || [],
+        variables: selectors.variablesSelector(state),
         selectedResource: selectors.selectedResourceSelector(state),
         selectedVariableName: selectors.selectedVariableNameSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
         showVariableDetails: state.control.showVariableDetails,
         showSelectedVariableLayer: state.session.showSelectedVariableLayer,
-        activeView: selectors.activeViewSelector(state),
+        activeViewId: selectors.activeViewIdSelector(state),
+        activeViewType: selectors.activeViewTypeSelector(state),
         savedLayers: selectors.savedLayersSelector(state),
     }
 }
@@ -56,7 +57,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         assert.ok(resource);
         if (newSelection && newSelection.length) {
             const selectedVariableName = newSelection[0] as string;
-            const selectedVariable = this.props.variables.find(v => v.name === selectedVariableName);
+            const selectedVariable = (this.props.variables || []).find(v => v.name === selectedVariableName);
             assert.ok(selectedVariable);
             this.props.dispatch(actions.setSelectedVariable(resource, selectedVariable, this.props.savedLayers));
         } else {
@@ -76,12 +77,12 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     private handleAddVariableLayer() {
         const resource = this.props.selectedResource;
         const variable = this.props.selectedVariable;
-        const activeView = this.props.activeView;
+        const activeViewId = this.props.activeViewId;
         const savedLayers = this.props.savedLayers;
         assert.ok(resource);
         assert.ok(variable && variable.imageLayout);
-        assert.ok(activeView);
-        this.props.dispatch(actions.addVariableLayer(activeView.id, resource, variable, true, savedLayers));
+        assert.ok(activeViewId);
+        this.props.dispatch(actions.addVariableLayer(activeViewId, resource, variable, true, savedLayers));
     }
 
     render() {
@@ -116,7 +117,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     private renderVariableActionRow() {
         const selectedVariable = this.props.selectedVariable;
         const isSpatialVariable = selectedVariable && selectedVariable.ndim >= 2 && selectedVariable.imageLayout;
-        const hasWorldView = this.props.activeView && this.props.activeView.type === 'world';
+        const hasWorldView = this.props.activeViewType && this.props.activeViewType === 'world';
         const canAddLayer = isSpatialVariable && hasWorldView;
         return (
             <div className="pt-button-group">
