@@ -13,7 +13,7 @@ export interface ViewState<T> {
     /**
      * The view type is used to lookup the renderer for this kind of view, e.g. "world".
      */
-    type: string;
+        type: string;
     /**
      * Type T of 'data' property depends on 'type' property, e.g. if type is "world",
      * data may contains a layer list, the selected layer, and a projection code.
@@ -76,6 +76,12 @@ export function findViewPanel(viewLayout: ViewLayoutState,
     assert.ok(isViewSplitState(viewLayout), "ViewSplitState expected");
     const viewSplit = viewLayout as ViewSplitState;
     return findViewPanel(viewSplit.layouts[0], filter) || findViewPanel(viewSplit.layouts[1], filter);
+}
+
+export function addViewToPanel(viewLayout: ViewLayoutState,
+                               placeAfterViewId: string,
+                               viewId: string): ViewLayoutState {
+    return _addViewToPanel(viewLayout, placeAfterViewId, viewId);
 }
 
 export function addViewToLayout(viewLayout: ViewLayoutState,
@@ -155,6 +161,41 @@ function _getViewPanel(viewLayout: ViewLayoutState,
         return _getViewPanel(viewSplit.layouts[layoutIndex], viewPath, pathIndex + 1);
     } else {
         return null;
+    }
+}
+
+
+function _addViewToPanel(viewLayout: ViewLayoutState,
+                         placeAfterViewId: string,
+                         viewId: string): ViewLayoutState {
+    if (isViewSplitState(viewLayout)) {
+        const viewSplit = viewLayout as ViewSplitState;
+        let oldLayout1 = viewSplit.layouts[0];
+        let oldLayout2 = viewSplit.layouts[1];
+        let newLayout1 = _addViewToPanel(oldLayout1, placeAfterViewId, viewId);
+        let newLayout2;
+        if (oldLayout1 === newLayout1) {
+            newLayout2 = _addViewToPanel(oldLayout2, placeAfterViewId, viewId);
+        } else {
+            newLayout2 = oldLayout2;
+        }
+        if (oldLayout1 === newLayout1 && oldLayout2 === newLayout2) {
+            // no change!
+            return viewSplit;
+        }
+        const layouts = [newLayout1, newLayout2];
+        return {...viewSplit, layouts} as ViewSplitState;
+    } else {
+        const viewPanel = viewLayout as ViewPanelState;
+        let oldViewIds = viewPanel.viewIds;
+        const placeAfterIndex = oldViewIds.findIndex(id => id === placeAfterViewId);
+        if (placeAfterIndex < 0) {
+            // no change!
+            return viewPanel;
+        }
+        const insertionIndex = placeAfterIndex + 1;
+        const viewIds = oldViewIds.slice(0, insertionIndex).concat([viewId].concat(oldViewIds.slice(insertionIndex)));
+        return {viewIds, selectedViewId: viewId};
     }
 }
 

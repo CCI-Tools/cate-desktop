@@ -823,8 +823,8 @@ export const SPLIT_VIEW_PANEL = "SPLIT_VIEW_PANEL";
 export const CHANGE_VIEW_SPLIT_POS = "CHANGE_VIEW_SPLIT_POS";
 
 
-export function addWorldView() {
-    return {type: ADD_WORLD_VIEW};
+export function addWorldView(placeAfterViewId: string|null) {
+    return {type: ADD_WORLD_VIEW, payload: {placeAfterViewId}};
 }
 
 export function selectView(viewPath: ViewPath, viewId: string) {

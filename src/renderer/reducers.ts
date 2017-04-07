@@ -9,7 +9,7 @@ import {updateObject, updatePropertyObject} from "../common/objutil";
 import {SELECTED_VARIABLE_LAYER_ID, newWorldView, updateSelectedVariableLayer} from "./state-util";
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
-    addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos
+    addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos, addViewToPanel
 } from "./components/ViewState";
 
 // Note: reducers are unit-tested through actions.spec.ts
@@ -180,10 +180,20 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             return {...state, dialogs};
         }
         case actions.ADD_WORLD_VIEW: {
+            const placeAfterViewId = action.payload.placeAfterViewId;
             const view = newWorldView();
-            const views = addViewToViewArray(state.views, view);
-            const viewLayout = addViewToLayout(state.viewLayout, view.id);
-            return {...state, viewLayout, views, activeViewId: view.id};
+            const newId = view.id;
+            const newViews = addViewToViewArray(state.views, view);
+            const oldViewLayout = state.viewLayout;
+            let newViewLayout;
+            if (placeAfterViewId) {
+                newViewLayout = addViewToPanel(oldViewLayout, placeAfterViewId, newId);
+            }
+            if (!newViewLayout || newViewLayout === oldViewLayout) {
+                // Could not be inserted, so use following call which will always succeed.
+                newViewLayout = addViewToLayout(oldViewLayout, newId);
+            }
+            return {...state, viewLayout: newViewLayout, views: newViews, activeViewId: newId};
         }
         case actions.SELECT_VIEW: {
             const viewPath = action.payload.viewPath;
