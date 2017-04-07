@@ -15,7 +15,7 @@ import {isSpatialVectorVariable, isSpatialImageVariable, findOperation} from "./
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 
 const EMPTY_OBJECT = {};
-const EMPTY_ARRAY = [];
+export const EMPTY_ARRAY = [];
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remote API selectors

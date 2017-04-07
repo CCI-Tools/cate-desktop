@@ -13,7 +13,7 @@ import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 interface IVariablesPanelProps {
     dispatch?: any;
-    variables: VariableState[]|null;
+    variables: VariableState[];
     selectedResource: ResourceState|null;
     selectedVariableName: string|null;
     selectedVariable: VariableState|null;
@@ -26,7 +26,7 @@ interface IVariablesPanelProps {
 
 function mapStateToProps(state: State): IVariablesPanelProps {
     return {
-        variables: selectors.variablesSelector(state),
+        variables: selectors.variablesSelector(state) || selectors.EMPTY_ARRAY,
         selectedResource: selectors.selectedResourceSelector(state),
         selectedVariableName: selectors.selectedVariableNameSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
@@ -57,7 +57,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         assert.ok(resource);
         if (newSelection && newSelection.length) {
             const selectedVariableName = newSelection[0] as string;
-            const selectedVariable = (this.props.variables || []).find(v => v.name === selectedVariableName);
+            const selectedVariable = this.props.variables.find(v => v.name === selectedVariableName);
             assert.ok(selectedVariable);
             this.props.dispatch(actions.setSelectedVariable(resource, selectedVariable, this.props.savedLayers));
         } else {

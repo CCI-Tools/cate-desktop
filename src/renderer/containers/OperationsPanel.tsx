@@ -23,7 +23,7 @@ interface IOperationsPanelProps {
     selectedOperationName: string|null;
     selectedOperation: OperationState|null;
     filteredOperations: OperationState[];
-    operationFilterTags: string[]|null;
+    operationFilterTags: string[];
     operationFilterExpr: string|null;
     operationsTagCounts: Map<string, number>,
     showOperationDetails: boolean;
@@ -37,7 +37,7 @@ function mapStateToProps(state: State): IOperationsPanelProps {
         selectedOperation: selectors.selectedOperationSelector(state),
         filteredOperations: selectors.filteredOperationsSelector(state),
         selectedOperationName: selectors.selectedOperationNameSelector(state),
-        operationFilterTags: selectors.operationFilterTagsSelector(state),
+        operationFilterTags: selectors.operationFilterTagsSelector(state) || selectors.EMPTY_ARRAY,
         operationFilterExpr: selectors.operationFilterExprSelector(state),
         operationsTagCounts: selectors.operationsTagCountsSelector(state),
         showOperationDetails: state.control.showOperationDetails,
@@ -163,7 +163,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
     //noinspection JSMethodCanBeStatic
     private renderOperationTagFilterPanel() {
-        const selectedOperationTags = new Set(this.props.operationFilterTags || []);
+        const selectedOperationTags = new Set(this.props.operationFilterTags);
         const tagCounts = this.props.operationsTagCounts;
 
         const tagContainerStyle = {padding: '0.2em'};
@@ -208,13 +208,13 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     }
 
     private addTagName(tagName: string) {
-        const tags = new Set<string>(this.props.operationFilterTags || []);
+        const tags = new Set<string>(this.props.operationFilterTags);
         tags.add(tagName);
         this.props.dispatch(actions.setOperationFilterTags(Array.from(tags)));
     }
 
     private removeTagName(tagName: string) {
-        const tags = new Set<string>(this.props.operationFilterTags || []);
+        const tags = new Set<string>(this.props.operationFilterTags);
         tags.delete(tagName);
         this.props.dispatch(actions.setOperationFilterTags(Array.from(tags)));
     }
