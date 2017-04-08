@@ -2,9 +2,8 @@ import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {
     Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
-    PopoverInteractionKind, Button
+    PopoverInteractionKind, Button, NonIdealState
 } from "@blueprintjs/core";
-// import {ExpansionPanel} from '../components/ExpansionPanel';
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
@@ -14,6 +13,7 @@ import {State, OperationState, WorkspaceState, OperationOutputState, OperationIn
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
+import {CONFIG_ERROR_MESSAGE} from "./DataSourcesPanel";
 
 
 interface IOperationsPanelProps {
@@ -317,13 +317,11 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     //noinspection JSMethodCanBeStatic
     private renderNoOperationsMessage() {
         return (
-            <Card>
-                <p><strong>No data operations found!</strong></p>
-                <p>
-                    This is very likely a configuration error,
-                    please check the logs of the Cate WebAPI service.
-                </p>
-            </Card>);
+            <NonIdealState
+                title="No data operations found"
+                description={CONFIG_ERROR_MESSAGE}
+                visual="pt-icon-function"/>
+        );
     }
 
 }

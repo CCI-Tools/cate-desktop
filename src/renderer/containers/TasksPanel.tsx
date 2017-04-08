@@ -1,6 +1,5 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {ExpansionPanel} from "../components/ExpansionPanel";
 import {State, TaskState} from "../state";
 import {Button, ProgressBar, Intent} from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
@@ -112,16 +111,11 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
         } else {
             panelContents = (
                 <Card>
-                    <p><strong>No tasks</strong></p>
+                    <p><strong>There are currently no active tasks.</strong></p>
                 </Card>
             );
         }
 
-        // return (
-        //     <ExpansionPanel icon="pt-icon-play" text="Tasks" isExpanded={true} defaultHeight={100}>
-        //         {panelContents}
-        //     </ExpansionPanel>
-        // );
         return panelContents;
     }
 }

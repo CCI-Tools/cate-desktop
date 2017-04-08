@@ -9,7 +9,6 @@ import {
     RangeSlider, NumberRange, Tooltip, NonIdealState
 } from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
-import {Card} from "../components/Card";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
@@ -231,7 +230,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     render() {
         let activeView = this.props.activeView;
         if (!activeView || activeView.type !== 'world') {
-            return (<NonIdealState title="No layers" description="To show layers, activate a world view" visual="pt-icon-globe"/>);
+            return (<NonIdealState title="No layers" description="To show layers, activate a world view"
+                                   visual="pt-icon-globe"/>);
         }
 
         return (
@@ -296,22 +296,19 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         const layers = this.props.layers;
         if (!layers || !layers.length) {
             return (
-                <Card>
-                    <p><strong>No layer added.</strong></p>
-                    <p>
-                        Press the <span className="pt-icon-add"/> button to add a layer.
-                    </p>
-                </Card>);
+                <NonIdealState
+                    title="No layers"
+                    description={<span>Press the <span className="pt-icon-add"/> button to add a layer.</span>}
+                    visual="pt-icon-layers"/>
+            );
         }
 
         if (!this.props.selectedLayer) {
             return (
-                <Card>
-                    <p><strong>No layer selected.</strong></p>
-                    <p>
-                        Select a layer to browse and edit its details.
-                    </p>
-                </Card>
+                <NonIdealState
+                    title="No layer selected"
+                    description="Select a layer to browse and edit its details."
+                    visual="pt-icon-layers"/>
             );
         }
 
@@ -417,7 +414,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             const varIndex = layer.varIndex.slice();
             varIndex[i] = value;
             this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {varIndex}));
-        }
+        };
 
         const n = variable.ndim - 2;
         const dimensionRows = [];
