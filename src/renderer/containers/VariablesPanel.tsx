@@ -8,8 +8,9 @@ import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {Card} from "../components/Card";
 import {LabelWithType} from "../components/LabelWithType";
-import {Button, NonIdealState} from "@blueprintjs/core";
+import {Button} from "@blueprintjs/core";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
+import {NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE} from "../messages";
 
 interface IVariablesPanelProps {
     dispatch?: any;
@@ -100,17 +101,9 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
                 </ContentWithDetailsPanel>
             );
         } else if (resource) {
-            return (
-                <NonIdealState title="No variables"
-                               visual="pt-icon-variable"
-                               description={`Selected resource "${resource.name}" doesn't contain any variables.`}/>
-            );
+            return NO_VARIABLES_EMPTY_RESOURCE(resource.name);
         } else {
-            return (
-                <NonIdealState title="No variables"
-                               visual="pt-icon-variable"
-                               description={`Select a resource in the WORKSPACE panel first.`}/>
-            );
+            return NO_VARIABLES;
         }
     }
 

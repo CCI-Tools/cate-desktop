@@ -1,13 +1,14 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {State, WorldViewDataState} from "../state";
-import {RadioGroup, Radio, Button, NonIdealState} from "@blueprintjs/core";
+import {RadioGroup, Radio, Button} from "@blueprintjs/core";
 import {ProjectionField} from "../components/field/ProjectionField";
 import {FieldValue} from "../components/field/Field";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {ViewState} from "../components/ViewState";
 import {Card} from "../components/Card";
+import {NO_ACTIVE_VIEW, NO_VIEW_PROPS} from "../messages";
 
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
@@ -86,7 +87,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
 
         const activeView = this.props.activeView;
         if (!activeView) {
-            return <NonIdealState visual="pt-icon-eye-open" title="No active view" description="Add a new view first."/>;
+            return NO_ACTIVE_VIEW;
         }
 
         // TODO (forman): make title field editable
@@ -135,8 +136,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                 </div>
             );
         } else {
-            return <NonIdealState visual="pt-icon-eye-open" title="No view properties"
-                                  description="The type of the active view is not yet supported."/>;
+            return NO_VIEW_PROPS;
         }
     }
 }

@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {
     Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
-    PopoverInteractionKind, Button, NonIdealState
+    PopoverInteractionKind, Button
 } from "@blueprintjs/core";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
@@ -13,7 +13,7 @@ import {State, OperationState, WorkspaceState, OperationOutputState, OperationIn
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
-import {CONFIG_ERROR_MESSAGE} from "./DataSourcesPanel";
+import {NO_OPERATIONS_FOUND} from "../messages";
 
 
 interface IOperationsPanelProps {
@@ -316,12 +316,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
 
     //noinspection JSMethodCanBeStatic
     private renderNoOperationsMessage() {
-        return (
-            <NonIdealState
-                title="No data operations found"
-                description={CONFIG_ERROR_MESSAGE}
-                visual="pt-icon-function"/>
-        );
+        return NO_OPERATIONS_FOUND;
     }
 
 }
