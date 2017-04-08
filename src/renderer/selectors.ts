@@ -62,14 +62,14 @@ export const colorMapsAPISelector = createSelector(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Dialog state selectors
 
-const DIALOG_STATE_SELECTORS: { [dialogId: string]: Selector<State, DialogState> } = {};
-export const dialogStatesSelector = (state: State): { [dialogId: string]: DialogState } => state.control.dialogs;
+const DIALOG_STATE_SELECTORS: {[dialogId: string]: Selector<State, DialogState>} = {};
+export const dialogStatesSelector = (state: State): {[dialogId: string]: DialogState} => state.control.dialogs;
 
 export const dialogStateSelector = (dialogId: string) => {
     if (!DIALOG_STATE_SELECTORS[dialogId]) {
-        DIALOG_STATE_SELECTORS[dialogId] = createSelector<State, DialogState, { [dialogId: string]: DialogState }>(
+        DIALOG_STATE_SELECTORS[dialogId] = createSelector<State, DialogState, {[dialogId: string]: DialogState}>(
             dialogStatesSelector,
-            (dialogStates: { [dialogId: string]: DialogState }) => dialogStates[dialogId] || EMPTY_OBJECT
+            (dialogStates: {[dialogId: string]: DialogState}) => dialogStates[dialogId] || EMPTY_OBJECT
         );
     }
     return DIALOG_STATE_SELECTORS[dialogId];
@@ -101,7 +101,7 @@ export const selectedOperationNameSelector = (state: State): string | null => st
 
 export const selectedOperationSelector = createSelector<State, OperationState | null, OperationState[] | null,
     string
-    | null>(
+        | null>(
     operationsSelector,
     selectedOperationNameSelector,
     (operations, selectedOperationName) => {
@@ -114,7 +114,7 @@ export const selectedOperationSelector = createSelector<State, OperationState | 
 
 export const filteredOperationsSelector = createSelector<State, OperationState[], OperationState[] | null,
     string[]
-    | null, string | null>(
+        | null, string | null>(
     operationsSelector,
     operationFilterTagsSelector,
     operationFilterExprSelector,
@@ -167,7 +167,7 @@ export const showDataSourceDetailsSelector = (state: State) => state.control.sho
 
 export const selectedDataStoreSelector = createSelector<State, DataStoreState | null, DataStoreState[] | null,
     string
-    | null>(
+        | null>(
     dataStoresSelector,
     selectedDataStoreIdSelector,
     (dataStores, selectedDataStoreId) => {
@@ -186,8 +186,7 @@ export const selectedDataSourcesSelector = createSelector<State, DataSourceState
 );
 
 export const filteredDataSourcesSelector = createSelector<State, DataSourceState[] | null, DataSourceState[] | null,
-    string
-    | null>(
+    string | null>(
     selectedDataSourcesSelector,
     dataSourceFilterExprSelector,
     (selectedDataSources, dataSourceFilterExpr) => {
@@ -207,7 +206,7 @@ export const filteredDataSourcesSelector = createSelector<State, DataSourceState
 
 export const selectedDataSourceSelector = createSelector<State, DataSourceState | null, DataSourceState[] | null,
     string
-    | null>(
+        | null>(
     selectedDataSourcesSelector,
     selectedDataSourceIdSelector,
     (selectedDataSources, selectedDataSourceId) => {
@@ -234,7 +233,7 @@ export const protocolNameSelector = createSelector<State, string | null, DataSou
 
 export const selectedDataSourceTemporalCoverageSelector = createSelector<State, [string, string] | null,
     DataSourceState
-    | null>(
+        | null>(
     selectedDataSourceSelector,
     (selectedDataSource: DataSourceState): [string, string] | null => {
         return selectedDataSource ? selectedDataSource.temporalCoverage : null;
@@ -243,7 +242,7 @@ export const selectedDataSourceTemporalCoverageSelector = createSelector<State, 
 
 export const selectedDataSourceTemporalCoverageMillisSelector = createSelector<State, [number, number] | null,
     [string, string]
-    | null>(
+        | null>(
     selectedDataSourceTemporalCoverageSelector,
     (temporalCoverage: [string, string] | null): [number, number] | null => {
         if (temporalCoverage) {
@@ -283,7 +282,7 @@ export const selectedResourceSelector = createSelector<State, ResourceState | nu
 
 export const selectedWorkflowStepSelector = createSelector<State,
     WorkflowStepState
-    | null, WorkflowStepState[], string>(
+        | null, WorkflowStepState[], string>(
     workflowStepsSelector,
     selectedWorkflowStepIdSelector,
     (workflowSteps: WorkflowStepState[], selectedWorkflowStepId: string) => {
@@ -296,7 +295,7 @@ export const selectedWorkflowStepSelector = createSelector<State,
 
 export const selectedWorkflowStepOpSelector = createSelector<State, OperationState | null, OperationState[] | null,
     WorkflowStepState
-    | null>(
+        | null>(
     operationsSelector,
     selectedWorkflowStepSelector,
     (operations: OperationState[] | null, selectedWorkflowStep: WorkflowStepState | null) => {
@@ -349,7 +348,7 @@ export const variablesSelector = createSelector<State, VariableState[] | null, R
 
 export const selectedVariableSelector = createSelector<State, VariableState | null, VariableState[] | null,
     string
-    | null>(
+        | null>(
     variablesSelector,
     selectedVariableNameSelector,
     (selectedVariables: VariableState[] | null, selectedVariableName: string | null) => {
@@ -464,9 +463,11 @@ export const selectedLayerVariablesSelector = createSelector<State, LayerVariabl
     (resources: ResourceState[]) => {
         const layerVariables = [];
         for (let resource of resources) {
-            for (let variable of resource.variables) {
-                if (isSpatialImageVariable(variable) || isSpatialVectorVariable(variable)) {
-                    layerVariables.push({resource, variable});
+            if (resource.variables) {
+                for (let variable of resource.variables) {
+                    if (isSpatialImageVariable(variable) || isSpatialVectorVariable(variable)) {
+                        layerVariables.push({resource, variable});
+                    }
                 }
             }
         }
@@ -482,7 +483,7 @@ export const colorMapCategoriesSelector = (state: State): Array<ColorMapCategory
 
 export const selectedColorMapSelector = createSelector<State, ColorMapState, ColorMapCategoryState[] | null,
     VariableImageLayerState
-    | null>(
+        | null>(
     colorMapCategoriesSelector,
     selectedVariableImageLayerSelector,
     (colorMapCategories: ColorMapCategoryState[] | null, selectedImageLayer: VariableImageLayerState | null) => {
