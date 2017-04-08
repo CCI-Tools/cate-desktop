@@ -11,6 +11,11 @@ import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
+import {NonIdealState} from "../../../app/node_modules/@blueprintjs/core/src/components/non-ideal-state/nonIdealState";
+
+export const CONFIG_ERROR_MESSAGE = (
+    <span>This is very likely a configuration error, please check <code>.cate/webapi.log</code> file.</span>
+);
 
 
 interface IDataSourcesPanelProps {
@@ -153,7 +158,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             </Tag>
         );
 
-        return (<div style={{paddingBottom: '0.1em'}}>
+        return (<div style={{paddingTop: 4, paddingBottom: 2}}>
             <InputGroup
                 disabled={false}
                 leftIconName="filter"
@@ -175,11 +180,12 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             dataStoreOptions.push(<option key={dataStore.id} value={dataStore.id}>{dataStore.name}</option>);
         }
 
+        const selectedDataStore = this.props.selectedDataStore;
         return (
             <label className="pt-label pt-inline">
                 Data store:
                 <div className="pt-select" style={{padding: '0.2em'}}>
-                    <select value={this.props.selectedDataStore ? this.props.selectedDataStore.id : ''}
+                    <select value={selectedDataStore ? selectedDataStore.id : ''}
                             onChange={this.handleDataStoreSelected}>
                         {dataStoreOptions}
                     </select>
@@ -191,26 +197,27 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
     //noinspection JSMethodCanBeStatic
     private renderNoDataStoreMessage() {
         return (
-            <Card>
-                <p><strong>No data stores found!</strong></p>
-                <p>
-                    This is very likely a configuration error,
-                    please check the logs of the Cate WebAPI service.
-                </p>
-            </Card>
+            <NonIdealState
+                title="No data stores found"
+                visual="pt-icon-offline"
+                description={CONFIG_ERROR_MESSAGE}/>
         );
     }
 
     //noinspection JSMethodCanBeStatic
     private renderNoDataSourcesMessage() {
+        const selectedDataStore = this.props.selectedDataStore;
+        let description;
+        if (selectedDataStore.id === 'local') {
+            description = <span>Add new local data sources using the <code>cate ds add <em>name</em> <em>files...</em></code> command-line</span>;
+        } else {
+            description = CONFIG_ERROR_MESSAGE;
+        }
         return (
-            <Card>
-                <p><strong>No data sources found!</strong></p>
-                <p>
-                    This is very likely a configuration error,
-                    please check the logs of the Cate WebAPI service.
-                </p>
-            </Card>
+            <NonIdealState
+                title="No data sources found"
+                visual="pt-icon-database"
+                description={description}/>
         );
     }
 }
