@@ -12,17 +12,17 @@ import {
 } from "../state-util";
 import {ViewState} from "../components/ViewState";
 
-interface IMaxViewOwnProps {
+interface IMapViewOwnProps {
     view: ViewState<WorldViewDataState>;
 }
 
-interface IMapViewProps extends IMaxViewOwnProps {
+interface IMapViewProps extends IMapViewOwnProps {
     baseUrl: string;
     workspace: WorkspaceState | null;
     offlineMode: boolean;
 }
 
-function mapStateToProps(state: State, ownProps: IMaxViewOwnProps): IMapViewProps {
+function mapStateToProps(state: State, ownProps: IMapViewOwnProps): IMapViewProps {
     return {
         view: ownProps.view,
         baseUrl: state.data.appConfig.webAPIConfig.restUrl,
