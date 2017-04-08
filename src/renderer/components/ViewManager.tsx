@@ -198,10 +198,10 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
     static readonly TITLE_STYLE_SELECTED = ViewPanel.TITLE_STYLE_BASE;
     static readonly TITLE_STYLE_NORMAL = ViewPanel.TITLE_STYLE_BASE;
 
-    static readonly CLOSE_ICON_STYLE_SELECTED = {marginLeft: 6};
-    static readonly CLOSE_ICON_STYLE_NORMAL = {marginLeft: 6};
+    static readonly CLOSE_ICON_STYLE_SELECTED = {marginLeft: 6, fontSize: 12};
+    static readonly CLOSE_ICON_STYLE_NORMAL = {marginLeft: 6, fontSize: 12};
 
-    static readonly MENU_ICON_STYLE = {color: Colors.GRAY5, marginLeft: 4};
+    static readonly MENU_ICON_STYLE = {color: Colors.GRAY5, marginLeft: 5, fontSize: 12};
 
     private contentElement: HTMLDivElement;
 
@@ -296,7 +296,7 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
         if (views.length > 1) {
             const menuIconStyle = ViewPanel.MENU_ICON_STYLE;
             menu = (
-                <div style={{flex: "none"}}>
+                <div style={{flex: "none", height: "100%"}}>
                     <span key="splitHor" style={menuIconStyle} className="pt-icon-standard pt-icon-add-column-right"
                           onClick={this.onSplitHor}/>
                     <span key="splitVer" style={menuIconStyle} className="pt-icon-standard pt-icon-add-row-bottom"
