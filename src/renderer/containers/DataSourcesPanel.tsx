@@ -5,17 +5,13 @@ import {Button, InputGroup, Classes, Tag, Tabs2, Tab2} from "@blueprintjs/core";
 import {Table, Column, Cell} from "@blueprintjs/table";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
+import {ScrollablePanelContent} from "../components/ScrollableContent";
+import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import DownloadDatasetDialog from "./DownloadDatasetDialog";
 import OpenDatasetDialog from "./OpenDatasetDialog";
-import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import {ScrollablePanelContent} from "../components/ScrollableContent";
-import {NonIdealState} from "../../../app/node_modules/@blueprintjs/core/src/components/non-ideal-state/nonIdealState";
-
-export const CONFIG_ERROR_MESSAGE = (
-    <span>This is very likely a configuration error, please check <code>.cate/webapi.log</code> file.</span>
-);
+import {NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES} from "../messages";
 
 
 interface IDataSourcesPanelProps {
@@ -196,29 +192,17 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
 
     //noinspection JSMethodCanBeStatic
     private renderNoDataStoreMessage() {
-        return (
-            <NonIdealState
-                title="No data stores found"
-                visual="pt-icon-offline"
-                description={CONFIG_ERROR_MESSAGE}/>
-        );
+        return NO_DATA_STORES_FOUND;
     }
 
     //noinspection JSMethodCanBeStatic
     private renderNoDataSourcesMessage() {
         const selectedDataStore = this.props.selectedDataStore;
-        let description;
         if (selectedDataStore.id === 'local') {
-            description = <span>Add new local data sources using the <code>cate ds add <em>name</em> <em>files...</em></code> command-line</span>;
+            return NO_LOCAL_DATA_SOURCES;
         } else {
-            description = CONFIG_ERROR_MESSAGE;
+            return NO_DATA_SOURCES_FOUND;
         }
-        return (
-            <NonIdealState
-                title="No data sources found"
-                visual="pt-icon-database"
-                description={description}/>
-        );
     }
 }
 

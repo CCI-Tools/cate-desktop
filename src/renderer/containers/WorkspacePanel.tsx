@@ -4,7 +4,7 @@ import {
     State, WorkspaceState, WorkflowStepState, ResourceState, WorkflowPortState, OperationState,
     OperationIOBaseState
 } from "../state";
-import {Button, Tabs2, Tab2, NonIdealState} from "@blueprintjs/core";
+import {Button, Tabs2, Tab2} from "@blueprintjs/core";
 import {Table, Column, Cell} from "@blueprintjs/table";
 import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
@@ -14,6 +14,7 @@ import * as assert from "../../common/assert";
 import * as actions from '../actions'
 import * as selectors from '../selectors'
 import {ScrollablePanelContent} from "../components/ScrollableContent";
+import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messages";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
@@ -113,11 +114,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     render() {
         const workspace = this.props.workspace;
         if (!workspace) {
-            return (
-                <NonIdealState title="No workspace available"
-                               description={<span>Try <strong>File / New</strong> or <strong>File / Open</strong> from the main menu.</span>}
-                               visual="folder"/>
-            );
+            return NO_WORKSPACE;
         }
 
         assert.ok(workspace.workflow);
@@ -143,12 +140,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     private renderResourcesPanel() {
         const resources = this.props.workspace.resources;
         if (!resources || !resources.length) {
-            return (
-                <NonIdealState title="No resources"
-                               visual="pt-icon-database"
-                               description={<span>Open a dataset in DATA SOURCES panel or apply a <code>read_</code> operation from the OPERATIONS panel.</span>}
-                />
-            );
+            return NO_WORKSPACE_RESOURCES;
         }
         return (
             <ContentWithDetailsPanel showDetails={this.props.showResourceDetails}
@@ -211,12 +203,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     private renderWorkflowStepsPanel() {
         const workflowSteps = this.props.workspace.workflow.steps;
         if (!workflowSteps || !workflowSteps.length) {
-            return (
-                <NonIdealState title="No workflow steps"
-                               visual="pt-icon-flows"
-                               description={<span>Open a dataset in DATA SOURCES panel or apply a <code>read_</code> operation from the OPERATIONS panel.</span>}
-                />
-            );
+            return NO_WORKFLOW_STEPS;
         }
         return (
             <ContentWithDetailsPanel showDetails={this.props.showWorkflowStepDetails}

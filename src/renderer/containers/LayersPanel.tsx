@@ -6,7 +6,7 @@ import {
 } from "../state";
 import {
     Button, Slider, Popover, Position, PopoverInteractionKind, Switch,
-    RangeSlider, NumberRange, Tooltip, NonIdealState
+    RangeSlider, NumberRange, Tooltip
 } from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import * as actions from "../actions";
@@ -18,6 +18,7 @@ import {getLayerDisplayName, SELECTED_VARIABLE_LAYER_ID} from "../state-util";
 import {FieldValue} from "../components/field/Field";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {ViewState} from "../components/ViewState";
+import {NO_LAYERS_NO_VIEW, NO_LAYERS_EMPTY_VIEW, NO_LAYER_SELECTED} from "../messages";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -230,8 +231,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     render() {
         let activeView = this.props.activeView;
         if (!activeView || activeView.type !== 'world') {
-            return (<NonIdealState title="No layers" description="To show layers, activate a world view"
-                                   visual="pt-icon-globe"/>);
+            return NO_LAYERS_NO_VIEW;
         }
 
         return (
@@ -295,21 +295,11 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     private renderLayerDetailsCard() {
         const layers = this.props.layers;
         if (!layers || !layers.length) {
-            return (
-                <NonIdealState
-                    title="No layers"
-                    description={<span>Press the <span className="pt-icon-add"/> button to add a layer.</span>}
-                    visual="pt-icon-layers"/>
-            );
+            return NO_LAYERS_EMPTY_VIEW;
         }
 
         if (!this.props.selectedLayer) {
-            return (
-                <NonIdealState
-                    title="No layer selected"
-                    description="Select a layer to browse and edit its details."
-                    visual="pt-icon-layers"/>
-            );
+            return NO_LAYER_SELECTED;
         }
 
         return (
