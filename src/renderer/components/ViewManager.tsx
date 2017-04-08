@@ -221,7 +221,6 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
     }
 
     onContentDivRef(contentElement: HTMLDivElement) {
-        console.log('ViewPanel.onContentDivRef: contentElement:', contentElement);
         this.contentElement = contentElement;
     }
 
@@ -243,9 +242,6 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
                 views.push(view);
             }
         });
-
-        //console.log('ViewPanel.render: views: ', views);
-        //console.log('ViewPanel.render: selectedView: ', selectedView);
 
         let renderedViewContent;
         const tabItems = [];
