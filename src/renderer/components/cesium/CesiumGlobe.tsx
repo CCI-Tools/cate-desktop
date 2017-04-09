@@ -287,17 +287,32 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
             switch (action.type) {
                 case 'ADD':
                     imageryLayer = this.addLayer(action.newLayer, cesiumIndex);
-                    assert.ok(imageryLayer);
+                    // TODO (forman): FIXME! Keep assertion here and below, but they currently fail.
+                    //                Possible reason, new globe views may not have their
+                    //                'selectedVariable' layer correctly initialized. Same problem in OpenLayersMap!
+                    //assert.ok(imageryLayer);
+                    if (!imageryLayer) {
+                        console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
+                        break;
+                    }
                     CesiumGlobe.setLayerProps(imageryLayer, action.newLayer);
                     break;
                 case 'REMOVE':
                     imageryLayer = this.viewer.imageryLayers.get(cesiumIndex);
-                    assert.ok(imageryLayer);
+                    //assert.ok(imageryLayer);
+                    if (!imageryLayer) {
+                        console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
+                        break;
+                    }
                     this.removeLayer(imageryLayer, cesiumIndex);
                     break;
                 case 'UPDATE':
                     imageryLayer = this.viewer.imageryLayers.get(cesiumIndex);
-                    assert.ok(imageryLayer);
+                    //assert.ok(imageryLayer);
+                    if (!imageryLayer) {
+                        console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
+                        break;
+                    }
                     oldLayer = action.oldLayer;
                     newLayer = action.newLayer;
                     if (oldLayer.imageryProviderOptions.url !== newLayer.imageryProviderOptions.url) {
@@ -311,7 +326,11 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
                     break;
                 case 'MOVE_DOWN':
                     imageryLayer = this.viewer.imageryLayers.get(cesiumIndex);
-                    assert.ok(imageryLayer);
+                    //assert.ok(imageryLayer);
+                    if (!imageryLayer) {
+                        console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
+                        break;
+                    }
                     for (let i = 0; i < action.numSteps; i++) {
                         this.viewer.imageryLayers.lower(imageryLayer);
                     }

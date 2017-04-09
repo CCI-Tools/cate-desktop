@@ -238,19 +238,26 @@ function _splitViewPanel(viewLayout: ViewLayoutState,
     } else {
         assert.ok(isViewPanelState(viewLayout), "ViewPanelState expected");
         const viewPanel = viewLayout as ViewPanelState;
-        assert.ok(viewPanel.viewIds.length > 1, "ViewPanelState must have more than one view to be split");
+        let viewIds = viewPanel.viewIds;
+        assert.ok(viewIds.length > 1, "ViewPanelState must have more than one view to be split");
         const selectedViewId = viewPanel.selectedViewId;
-        const viewIds = removeViewFromViewIds(viewPanel.viewIds, selectedViewId);
+        let index = viewIds.findIndex(id => id === selectedViewId);
+        if (index === viewIds.length - 1) {
+            index -= 1;
+        }
+        assert.ok(index >= 0);
+        const viewIds1 = viewIds.slice(0, index + 1);
+        const viewIds2 = viewIds.slice(index + 1);
         return {
             dir, pos,
             layouts: [
                 {
-                    viewIds: [selectedViewId],
-                    selectedViewId
+                    viewIds: viewIds1,
+                    selectedViewId: viewIds1[viewIds1.length - 1],
                 },
                 {
-                    viewIds,
-                    selectedViewId: viewIds[0]
+                    viewIds: viewIds2,
+                    selectedViewId: viewIds2[0],
                 }
             ],
         };

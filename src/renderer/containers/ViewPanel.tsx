@@ -69,7 +69,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
 
     render() {
         return (
-            <div style={{overflowY: "auto"}}>
+            <div>
                 <label className="pt-label">
                     Add new view&nbsp;
                     <div className="pt-button-group">

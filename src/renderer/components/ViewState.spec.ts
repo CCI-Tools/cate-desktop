@@ -77,16 +77,16 @@ describe('function manipulating a ViewLayout', () => {
                 pos: 100,
                 layouts: [
                     {
-                        selectedViewId: "c",
+                        selectedViewId: "b",
                         viewIds: [
-                            "c"
+                            "a",
+                            "b",
                         ]
                     },
                     {
-                        selectedViewId: "a",
+                        selectedViewId: "c",
                         viewIds: [
-                            "a",
-                            "b"
+                            "c",
                         ]
                     }
                 ],
