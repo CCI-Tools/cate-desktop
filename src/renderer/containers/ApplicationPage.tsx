@@ -1,10 +1,12 @@
 import * as React from 'react';
 import GlobeView from './GlobeView'
 import MapView from "./MapView";
+import ChartView from "./ChartView";
 import DataSourcesPanel from "./DataSourcesPanel";
 import OperationsPanel from "./OperationsPanel";
 import WorkspacePanel from "./WorkspacePanel";
 import VariablePanel from "./VariablesPanel";
+import ChartSettingsPanel from "./ChartSettingsPanel";
 import ViewPanel from "./ViewPanel";
 import TaskPanel from "./TasksPanel";
 import StatusBar from "./StatusBar";
@@ -13,7 +15,7 @@ import PreferencesDialog from "./PreferencesDialog";
 import {PanelContainer, PanelContainerLayout} from "../components/PanelContainer";
 import {Panel} from "../components/Panel";
 import {connect, Dispatch} from "react-redux";
-import {State, WorldViewDataState} from "../state";
+import {State, WorldViewDataState, ChartViewDataState} from "../state";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ViewManager, ViewRenderMap} from "../components/ViewManager";
@@ -24,9 +26,13 @@ function renderWorldView(view: ViewState<WorldViewDataState>) {
     return view.data.viewMode === "3D" ? (<GlobeView view={view}/>) : (<MapView view={view}/>);
 }
 
+function renderChartView(view: ViewState<ChartViewDataState>) {
+    return <ChartView view={view}/>;
+}
 
 const VIEW_TYPE_RENDERERS: ViewRenderMap = {
-    world: renderWorldView
+    world: renderWorldView,
+    chart: renderChartView,
 };
 
 interface IDispatch {
@@ -180,8 +186,8 @@ class RightPanelComponent extends React.PureComponent<IRightPanelProps & IDispat
             >
                 <Panel id="variables" position="top" iconName="pt-icon-variable" title="Variables"
                        body={<VariablePanel/>}/>
-                <Panel id="analysis" position="top" iconName="pt-icon-scatter-plot" title="Analysis"
-                       body={null}/>
+                <Panel id="analysis" position="top" iconName="pt-icon-timeline-area-chart" title="Charts"
+                       body={<ChartSettingsPanel/>}/>
                 <Panel id="view" position="bottom" iconName="pt-icon-eye-open" title="View"
                        body={<ViewPanel/>}/>
                 <Panel id="layers" position="bottom" iconName="pt-icon-layers" title="Layers"

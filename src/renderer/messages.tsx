@@ -105,3 +105,10 @@ export const NO_LAYER_SELECTED = (
         description="Select a layer to browse and edit its details."
         visual={ICON_EMPTY}/>
 );
+
+export const NO_CHARTS = (
+    <NonIdealState
+        title="No charts"
+        description={<span>Press the <span className="pt-icon-add"/> button to add a new chart.</span>}
+        visual={ICON_EMPTY}/>
+);

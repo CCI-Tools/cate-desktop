@@ -74,7 +74,7 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
         return this.permanentObject.map;
     }
 
-    createPermanentObject(parentContainer: HTMLElement): OpenLayersObject {
+    createPermanentObject(): OpenLayersObject {
         const container = this.createContainer();
         const options = {
             target: container,

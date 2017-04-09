@@ -2,6 +2,7 @@ import  {WebAPIClient} from './webapi';
 import {JobStatus, JobFailure, JobProgress} from "./webapi/Job";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
+import {ChartState} from "./components/plotly/PlotlyPanel";
 
 /**
  * Interface describing Cate's application state structure.
@@ -305,6 +306,22 @@ export interface WorldViewDataState {
     selectedLayerId: string|null;
 }
 
+export interface ChartViewDataState {
+    /**
+     * The layers in a viewer.
+     */
+    charts: VariableChartState[];
+
+    /**
+     * The ID of the selected layer.
+     */
+    selectedChartId: string|null;
+}
+
+export interface VariableChartState extends ChartState, VariableRefState {
+    varIndex: (number|null)[];
+}
+
 
 /**
  * State of a layer.
@@ -408,7 +425,7 @@ export interface VectorLayerState extends LayerState {
 /**
  * Variable reference
  */
-export interface VariableRefState extends LayerState {
+export interface VariableRefState {
     /**
      * The name of the resource that contains the variable.
      */
@@ -417,6 +434,12 @@ export interface VariableRefState extends LayerState {
      * The name of the variable.
      */
     varName: string;
+}
+
+/**
+ * Variable data reference
+ */
+export interface VariableDataRefState extends VariableRefState {
     /**
      * The current index into the variable that results in a 2D-subset (i.e. with dims ['lat', 'lon']).
      */
@@ -426,7 +449,7 @@ export interface VariableRefState extends LayerState {
 /**
  * State of an image layer that displays a variable.
  */
-export interface VariableLayerBase extends VariableRefState {
+export interface VariableLayerBase extends LayerState, VariableDataRefState {
     /**
      * Image layer minimum display value.
      */

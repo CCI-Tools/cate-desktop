@@ -51,6 +51,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleShowSelectedVariableLayer = this.handleShowSelectedVariableLayer.bind(this);
         this.handleAddVariableLayer = this.handleAddVariableLayer.bind(this);
+        this.handleAddVariablePlot = this.handleAddVariablePlot.bind(this);
     }
 
     private handleSelectedVariableName(newSelection: Array<React.Key>) {
@@ -86,6 +87,10 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         this.props.dispatch(actions.addVariableLayer(activeViewId, resource, variable, true, savedLayers));
     }
 
+    private handleAddVariablePlot() {
+
+    }
+
     render() {
         const resource = this.props.selectedResource;
         const variables = this.props.variables;
@@ -112,6 +117,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         const isSpatialVariable = selectedVariable && selectedVariable.ndim >= 2 && selectedVariable.imageLayout;
         const hasWorldView = this.props.activeViewType && this.props.activeViewType === 'world';
         const canAddLayer = isSpatialVariable && hasWorldView;
+        const canAddPlot = selectedVariable && selectedVariable.ndim > 0;
         return (
             <div className="pt-button-group">
                 <Button disabled={false}
@@ -121,6 +127,10 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
                 <Button disabled={!canAddLayer}
                         iconName="layer"
                         onClick={this.handleAddVariableLayer}
+                />
+                <Button disabled={!canAddPlot}
+                        iconName="timeline-area-chart"
+                        onClick={this.handleAddVariablePlot}
                 />
             </div>
         );
