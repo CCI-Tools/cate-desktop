@@ -67,14 +67,12 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
 
     renderNoViews() {
         return (
-            <div style={{width:"100%", maxHeight:"100%", flex: "auto"}}>
-                <NonIdealState
-                    title="No views"
-                    description={this.props.noViewsDescription}
-                    action={this.props.noViewsAction}
-                    visual={this.props.noViewsVisual}
-                />
-            </div>
+            <NonIdealState
+                title="No views"
+                description={this.props.noViewsDescription}
+                action={this.props.noViewsAction}
+                visual={this.props.noViewsVisual}
+            />
         );
     }
 
