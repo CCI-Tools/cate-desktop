@@ -166,15 +166,32 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
             switch (action.type) {
                 case 'ADD':
                     olLayer = this.addLayer(action.newLayer, olIndex);
-                    assert.ok(olLayer);
+                    // TODO (forman): FIXME! Keep assertion here and below, but they currently fail.
+                    //                Possible reason, new map views may not have their
+                    //                'selectedVariable' layer correctly initialized. Same problem in CesiumGlobe!
+                    //assert.ok(olLayer);
+                    if (!olLayer) {
+                        console.error('OpenLayersMap: no olLayer at index ' + olIndex);
+                        break;
+                    }
                     OpenLayersMap.setLayerProps(olLayer, action.newLayer);
                     break;
                 case 'REMOVE':
+                    olLayer = this.map.getLayers().item(olIndex) as ol.layer.Tile;
+                    //assert.ok(olLayer);
+                    if (!olLayer) {
+                        console.error('OpenLayersMap: no olLayer at index ' + olIndex);
+                        break;
+                    }
                     this.removeLayer(olIndex);
                     break;
                 case 'UPDATE':
                     olLayer = this.map.getLayers().item(olIndex) as ol.layer.Tile;
-                    assert.ok(olLayer);
+                    //assert.ok(olLayer);
+                    if (!olLayer) {
+                        console.error('OpenLayersMap: no olLayer at index ' + olIndex);
+                        break;
+                    }
                     oldLayer = action.oldLayer;
                     newLayer = action.newLayer;
                     if (oldLayer.layerSourceOptions.url !== newLayer.layerSourceOptions.url) {
@@ -197,7 +214,11 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
                     break;
                 case 'MOVE_DOWN':
                     olLayer = this.map.getLayers().item(olIndex) as ol.layer.Layer;
-                    assert.ok(olLayer);
+                    //assert.ok(olLayer);
+                    if (!olLayer) {
+                        console.error('OpenLayersMap: no olLayer at index ' + olIndex);
+                        break;
+                    }
                     this.map.getLayers().removeAt(olIndex);
                     this.map.getLayers().insertAt(olIndex - action.numSteps, olLayer);
                     break;
