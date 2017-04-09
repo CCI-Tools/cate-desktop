@@ -8,6 +8,7 @@ import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {ViewState} from "../components/ViewState";
 import {Card} from "../components/Card";
+import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_ACTIVE_VIEW, NO_VIEW_PROPS} from "../messages";
 
 interface IViewPanelDispatch {
@@ -69,7 +70,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
 
     render() {
         return (
-            <div style={{overflowY: "auto"}}>
+            <div>
                 <label className="pt-label">
                     Add new view&nbsp;
                     <div className="pt-button-group">
