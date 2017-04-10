@@ -43,8 +43,8 @@ export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, 
             title: "Open File",
             defaultPath: value as string,
             buttonLabel: "Open",
-            properties: ["openFile" as actions.OpenDialogProperty],
             filters: input.fileFilters,
+            properties: input.fileProps as any,
         };
         actions.showSingleFileOpenDialog(openDialogOptions, (filePath: string) => {
             if (filePath) {

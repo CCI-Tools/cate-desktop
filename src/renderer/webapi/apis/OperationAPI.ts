@@ -32,6 +32,7 @@ function responseInputToOperationInput(input: any): OperationInputState {
         valueRange: input.value_range,
         fileOpenMode: input.file_open_mode,
         fileFilters: input.file_filters,
+        fileProps: input.file_props,
     };
 }
 
