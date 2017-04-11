@@ -198,7 +198,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
     //noinspection JSMethodCanBeStatic
     private renderNoDataSourcesMessage() {
         const selectedDataStore = this.props.selectedDataStore;
-        if (selectedDataStore.id === 'local') {
+        if (selectedDataStore && selectedDataStore.id === 'local') {
             return NO_LOCAL_DATA_SOURCES;
         } else {
             return NO_DATA_SOURCES_FOUND;
