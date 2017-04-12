@@ -33,4 +33,11 @@ export class DatasetAPI {
             onProgress, responseToTemporalCoverage
         );
     }
+
+    makeDataSourceLocal(dataSourceId: string, localName: string, args: any, onProgress: (progress: JobProgress) => void): JobPromise<DataSourceState[]> {
+        return this.webAPIClient.call('make_ds_local',
+            [dataSourceId, localName, args],
+            onProgress);
+
+    }
 }
