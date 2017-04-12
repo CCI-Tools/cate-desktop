@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {IPermanentComponentProps, PermanentComponent} from '../PermanentComponent'
+import {IExternalObjectComponentProps, ExternalObjectComponent, ExternalObjectRef} from '../ExternalObjectComponent'
 import {getLayerDiff} from "../../../common/layer-diff";
 import * as assert from "../../../common/assert";
 
@@ -126,23 +126,18 @@ export interface DataSourceDescriptor {
 //
 Cesium.BingMapsApi.defaultKey = 'AnCcpOxnAAgq-KyFcczSZYZ_iFvCOmWl0Mx-6QzQ_rzMtpgxZrPZZNxa8_9ZNXci';
 
-
-export interface ICesiumGlobeProps extends IPermanentComponentProps {
-    offlineMode?: boolean;
+interface CesiumGlobeState {
     pins?: PinDescriptor[];
     layers?: LayerDescriptor[];
+    dataSources?: DataSourceDescriptor[];
+}
+
+export interface ICesiumGlobeProps extends IExternalObjectComponentProps<CesiumViewer, CesiumGlobeState>, CesiumGlobeState {
+    offlineMode?: boolean;
     dataSources?: DataSourceDescriptor[];
     onViewerMounted?: (id: string, viewer: CesiumViewer) => void;
     onViewerUnmounted?: (id: string, viewer: CesiumViewer) => void;
 }
-
-interface LastState {
-    id: string;
-    layers: LayerDescriptor[];
-    dataSources: DataSourceDescriptor[];
-}
-
-type LastStateMap = {[id: string]: LastState};
 
 const CENTRAL_EUROPE_BOX = Cesium.Rectangle.fromDegrees(-30, 20, 40, 80);
 const EMPTY_ARRAY = [];
@@ -154,20 +149,13 @@ Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
  *
  * @author Norman Fomferra
  */
-export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobeProps, null> {
-
-    private lastStateMap: LastStateMap;
+export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlobeState, ICesiumGlobeProps, null> {
 
     constructor(props: ICesiumGlobeProps) {
         super(props);
-        this.lastStateMap = {};
     }
 
-    get viewer(): CesiumViewer {
-        return this.permanentObject;
-    }
-
-    createPermanentObject(): CesiumViewer {
+    newExternalObject(): ExternalObjectRef<CesiumViewer, CesiumGlobeState> {
         const container = this.createContainer();
 
         let baseLayerImageryProvider;
@@ -205,72 +193,70 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         };
 
         // Create the Cesium Viewer
-        let viewer = new Cesium.Viewer(container, cesiumViewerOptions);
+        const viewer = new Cesium.Viewer(container, cesiumViewerOptions);
 
-        // Add the initial points
-        const pins = this.props.pins || EMPTY_ARRAY;
-        pins.forEach((pin) => {
-            //noinspection JSFileReferences
-            let billboard = {
-                image: pin.image,
-                width: 30,
-                height: 30
-            };
-            viewer.entities.add(new Cesium.Entity({
-                id: pin.id,
-                show: pin.visible,
-                position: new Cesium.Cartesian3.fromDegrees(pin.longitude, pin.latitude),
-                billboard: billboard
-            }));
-        });
+        // // Add the initial points
+        // const pins = this.props.pins || EMPTY_ARRAY;
+        // pins.forEach((pin) => {
+        //     //noinspection JSFileReferences
+        //     let billboard = {
+        //         image: pin.image,
+        //         width: 30,
+        //         height: 30
+        //     };
+        //     viewer.entities.add(new Cesium.Entity({
+        //         id: pin.id,
+        //         show: pin.visible,
+        //         position: new Cesium.Cartesian3.fromDegrees(pin.longitude, pin.latitude),
+        //         billboard: billboard
+        //     }));
+        // });
 
-        return viewer;
+        return {object: viewer, container};
     }
 
-    componentWillReceiveProps(nextProps: ICesiumGlobeProps) {
-        this.saveCurrentState();
-        if (this.viewer) {
-            this.updateGlobe(nextProps);
+    propsToExternalObjectState(props: ICesiumGlobeProps&CesiumGlobeState): CesiumGlobeState {
+        const layers = this.props.layers || EMPTY_ARRAY;
+        const dataSources = this.props.dataSources || EMPTY_ARRAY;
+        return {
+            layers,
+            dataSources
+        };
+    }
+
+    updateExternalObject(viewer: CesiumViewer, parentContainer: HTMLElement, prevState: CesiumGlobeState, nextState: CesiumGlobeState) {
+        if (this.props.debug) {
+            console.log('CesiumGlobe: check to update layers and data sources: ', prevState, nextState);
+        }
+        const prevLayers = (prevState && prevState.layers) || EMPTY_ARRAY;
+        const prevDataSources = (prevState && prevState.dataSources) || EMPTY_ARRAY;
+
+        const nextLayers = nextState.layers || EMPTY_ARRAY;
+        const nextDataSources = nextState.dataSources || EMPTY_ARRAY;
+
+        if (prevLayers !== nextLayers) {
+            this.updateGlobeLayers(viewer, prevLayers, nextLayers);
+        }
+        if (prevDataSources !== nextDataSources) {
+            this.updateGlobeDataSources(viewer, prevDataSources, nextDataSources);
         }
     }
 
-    permanentObjectMounted(viewer: CesiumViewer): void {
+    externalObjectMounted(viewer: CesiumViewer): void {
         //getViewerPosition(viewer);
-        this.updateGlobe(this.props);
         if (this.props.onViewerMounted) {
             this.props.onViewerMounted(this.props.id, viewer);
         }
     }
 
-    permanentObjectUnmounted(viewer: CesiumViewer): void {
+    externalObjectUnmounted(viewer: CesiumViewer): void {
         //getViewerPosition(viewer);
-        this.saveCurrentState();
         if (this.props.onViewerUnmounted) {
             this.props.onViewerUnmounted(this.props.id, viewer);
         }
     }
 
-    private saveCurrentState() {
-        const currentId = this.props.id;
-        const currentLayers = this.props.layers || EMPTY_ARRAY;
-        const currentDataSources = this.props.dataSources || EMPTY_ARRAY;
-        this.lastStateMap[currentId] = {id: currentId, layers: currentLayers, dataSources: currentDataSources};
-    }
-
-    private updateGlobe(props: ICesiumGlobeProps) {
-        const nextId = props.id;
-        const nextLayers = props.layers || EMPTY_ARRAY;
-        const nextDataSources = props.dataSources || EMPTY_ARRAY;
-
-        const lastState = this.lastStateMap[nextId];
-        const lastLayers = (lastState && lastState.layers) || EMPTY_ARRAY;
-        const lastDataSources = (lastState && lastState.dataSources) || EMPTY_ARRAY;
-
-        this.updateGlobeLayers(lastLayers, nextLayers);
-        this.updateGlobeDataSources(lastDataSources, nextDataSources);
-    }
-
-    private updateGlobeLayers(currentLayers: LayerDescriptor[], nextLayers: LayerDescriptor[]) {
+    private updateGlobeLayers(viewer: CesiumViewer, currentLayers: LayerDescriptor[], nextLayers: LayerDescriptor[]) {
         if (this.props.debug) {
             console.log('CesiumGlobe: updating layers');
         }
@@ -286,7 +272,7 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
             const cesiumIndex = action.index + 1;
             switch (action.type) {
                 case 'ADD':
-                    imageryLayer = this.addLayer(action.newLayer, cesiumIndex);
+                    imageryLayer = this.addLayer(viewer, action.newLayer, cesiumIndex);
                     // TODO (forman): FIXME! Keep assertion here and below, but they currently fail.
                     //                Possible reason, new globe views may not have their
                     //                'selectedVariable' layer correctly initialized. Same problem in OpenLayersMap!
@@ -298,16 +284,16 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
                     CesiumGlobe.setLayerProps(imageryLayer, action.newLayer);
                     break;
                 case 'REMOVE':
-                    imageryLayer = this.viewer.imageryLayers.get(cesiumIndex);
+                    imageryLayer = viewer.imageryLayers.get(cesiumIndex);
                     //assert.ok(imageryLayer);
                     if (!imageryLayer) {
                         console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
                         break;
                     }
-                    this.removeLayer(imageryLayer, cesiumIndex);
+                    this.removeLayer(viewer, imageryLayer, cesiumIndex);
                     break;
                 case 'UPDATE':
-                    imageryLayer = this.viewer.imageryLayers.get(cesiumIndex);
+                    imageryLayer = viewer.imageryLayers.get(cesiumIndex);
                     //assert.ok(imageryLayer);
                     if (!imageryLayer) {
                         console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
@@ -318,21 +304,21 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
                     if (oldLayer.imageryProviderOptions.url !== newLayer.imageryProviderOptions.url) {
                         // It is a pitty that Cesium API does not allow for changing the
                         // URL in place. The current approach, namely remove/add, causes flickering.
-                        this.removeLayer(imageryLayer, cesiumIndex);
-                        imageryLayer = this.addLayer(newLayer, cesiumIndex);
+                        this.removeLayer(viewer, imageryLayer, cesiumIndex);
+                        imageryLayer = this.addLayer(viewer, newLayer, cesiumIndex);
                     }
                     // update imageryLayer
                     CesiumGlobe.setLayerProps(imageryLayer, newLayer);
                     break;
                 case 'MOVE_DOWN':
-                    imageryLayer = this.viewer.imageryLayers.get(cesiumIndex);
+                    imageryLayer = viewer.imageryLayers.get(cesiumIndex);
                     //assert.ok(imageryLayer);
                     if (!imageryLayer) {
                         console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
                         break;
                     }
                     for (let i = 0; i < action.numSteps; i++) {
-                        this.viewer.imageryLayers.lower(imageryLayer);
+                        viewer.imageryLayers.lower(imageryLayer);
                     }
                     break;
                 default:
@@ -341,7 +327,7 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         }
     }
 
-    private updateGlobeDataSources(currentLayers: DataSourceDescriptor[], nextLayers: DataSourceDescriptor[]) {
+    private updateGlobeDataSources(viewer: CesiumViewer, currentLayers: DataSourceDescriptor[], nextLayers: DataSourceDescriptor[]) {
         const actions = getLayerDiff<DataSourceDescriptor>(currentLayers, nextLayers);
         let dataSource: DataSource;
         let newLayer: DataSourceDescriptor;
@@ -353,33 +339,33 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
             const index = action.index;
             switch (action.type) {
                 case 'ADD':
-                    dataSource = this.addDataSource(action.newLayer, index);
+                    dataSource = this.addDataSource(viewer, action.newLayer, index);
                     assert.ok(dataSource);
                     CesiumGlobe.setDataSourceProps(dataSource, action.newLayer);
                     break;
                 case 'REMOVE':
-                    dataSource = this.viewer.dataSources.get(index);
+                    dataSource = viewer.dataSources.get(index);
                     assert.ok(dataSource);
-                    this.viewer.dataSources.remove(dataSource, true);
+                    viewer.dataSources.remove(dataSource, true);
                     break;
                 case 'UPDATE':
-                    dataSource = this.viewer.dataSources.get(index);
+                    dataSource = viewer.dataSources.get(index);
                     assert.ok(dataSource);
                     oldLayer = action.oldLayer;
                     newLayer = action.newLayer;
                     if (oldLayer.dataSourceOptions.url !== newLayer.dataSourceOptions.url) {
                         // It is a pitty that Cesium API does not allow for changing the
                         // URL in place. The current approach, namely remove/add, causes flickering.
-                        this.viewer.dataSources.remove(dataSource, true);
-                        dataSource = this.addDataSource(newLayer, index);
+                        viewer.dataSources.remove(dataSource, true);
+                        dataSource = this.addDataSource(viewer, newLayer, index);
                     }
                     // update imageryLayer
                     CesiumGlobe.setDataSourceProps(dataSource, newLayer);
                     break;
                 case 'MOVE_DOWN': {
-                    dataSource = this.viewer.dataSources.get(index);
+                    dataSource = viewer.dataSources.get(index);
                     assert.ok(dataSource);
-                    this.insertDataSource(dataSource, index - action.numSteps);
+                    this.insertDataSource(viewer, dataSource, index - action.numSteps);
                     break;
                 }
                 default:
@@ -411,42 +397,46 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         return null;
     }
 
-    private addDataSource(layerDescriptor: DataSourceDescriptor, layerIndex: number): ImageryLayer {
+    private addDataSource(viewer: CesiumViewer, layerDescriptor: DataSourceDescriptor, layerIndex: number): ImageryLayer {
         const dataSource = CesiumGlobe.getDataSource(layerDescriptor);
-        this.insertDataSource(dataSource, layerIndex);
+        this.insertDataSource(viewer, dataSource, layerIndex);
         if (this.props.debug) {
             console.log(`CesiumGlobe: added data source #${layerIndex}: ${layerDescriptor.name}`);
         }
         return dataSource;
     }
 
-    private insertDataSource(dataSource: DataSource, index: number) {
+    private insertDataSource(viewer: CesiumViewer, dataSource: DataSource, index: number) {
         const dataSources: DataSource[] = [];
-        for (let i = index; i < this.viewer.dataSources.length; i++) {
-            dataSources.push(this.viewer.dataSources.get(i));
+        // Save all data sources from index to end in dataSources
+        for (let i = index; i < viewer.dataSources.length; i++) {
+            dataSources.push(viewer.dataSources.get(i));
         }
+        // Remove them from viewer
         dataSources.forEach(ds => {
-            this.viewer.dataSources.remove(ds, false);
+            viewer.dataSources.remove(ds, false);
         });
-        this.viewer.dataSources.add(dataSource);
+        // Add the new one (at index)
+        viewer.dataSources.add(dataSource);
+        // Add the removed ones
         dataSources.forEach(ds => {
             if (ds !== dataSource) {
-                this.viewer.dataSources.add(ds);
+                viewer.dataSources.add(ds);
             }
         });
     }
 
-    private addLayer(layerDescriptor: LayerDescriptor, layerIndex: number): ImageryLayer {
+    private addLayer(viewer: CesiumViewer, layerDescriptor: LayerDescriptor, layerIndex: number): ImageryLayer {
         const imageryProvider = CesiumGlobe.getImageryProvider(layerDescriptor);
-        const imageryLayer = this.viewer.imageryLayers.addImageryProvider(imageryProvider, layerIndex);
+        const imageryLayer = viewer.imageryLayers.addImageryProvider(imageryProvider, layerIndex);
         if (this.props.debug) {
             console.log(`CesiumGlobe: added imagery layer #${layerIndex}: ${layerDescriptor.name}`);
         }
         return imageryLayer;
     }
 
-    private removeLayer(imageryLayer: ImageryLayer, layerIndex: number): void {
-        this.viewer.imageryLayers.remove(imageryLayer, true);
+    private removeLayer(viewer: CesiumViewer, imageryLayer: ImageryLayer, layerIndex: number): void {
+        viewer.imageryLayers.remove(imageryLayer, true);
         if (this.props.debug) {
             console.log(`CesiumGlobe: removed imagery layer #${layerIndex}`);
         }
@@ -463,9 +453,8 @@ export class CesiumGlobe extends PermanentComponent<CesiumViewer, ICesiumGlobePr
         imageryLayer.gamma = layerDescriptor.gamma;
     }
 
-    private static setDataSourceProps(dataSource:
-                                          DataSource
-                                          | Promise<DataSource>, dataSourceDescriptor: DataSourceDescriptor) {
+    private static setDataSourceProps(dataSource: DataSource
+        | Promise<DataSource>, dataSourceDescriptor: DataSourceDescriptor) {
         Promise.resolve(dataSource).then((resolvedDataSource: DataSource) => {
             //resolvedDataSource.name = dataSourceDescriptor.name;
             resolvedDataSource.show = dataSourceDescriptor.visible;

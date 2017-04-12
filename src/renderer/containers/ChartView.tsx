@@ -2,7 +2,7 @@ import * as React from 'react';
 import {State, WorkspaceState, ChartViewDataState} from "../state";
 import {connect} from "react-redux";
 import {ViewState} from "../components/ViewState";
-import {PlotlyPanel} from "../components/plotly/PlotlyPanel";
+import {PlotPanel} from "../components/plotly/PlotlyPanel";
 
 interface IChartViewOwnProps {
     view: ViewState<ChartViewDataState>;
@@ -27,12 +27,24 @@ function mapStateToProps(state: State, ownProps: IChartViewOwnProps): IChartView
 class ChartView extends React.Component<IChartViewProps, null> {
 
     render() {
-        return (
-            <PlotlyPanel id={'PlotlyPanel-' + this.props.view.id}
-                         debug={true}
-                         charts={this.props.view.data.charts}
-                         style={{width: "100%", height: "100%"}}/>
-        );
+        const plots = [];
+        let view = this.props.view;
+        for (let i in view.data.charts) {
+            let chart = view.data.charts[i];
+            let id = `plot-${chart.id}-${view.id}`;
+            plots.push(
+                <PlotPanel
+                    key={id}
+                    id={id}
+                    type="line"
+                    debug={true}
+                    title="bibo"
+                    style={{width: "100%", height: "100%"}}
+                    data={null}
+                    layout={null}/>
+            );
+        }
+        return <div>{plots}</div>
     }
 }
 

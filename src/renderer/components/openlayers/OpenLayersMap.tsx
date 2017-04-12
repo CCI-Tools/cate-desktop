@@ -1,17 +1,11 @@
 import * as React from 'react';
 import * as ol from 'openlayers';
 import * as proj4 from 'proj4';
-import {IPermanentComponentProps, PermanentComponent} from '../PermanentComponent'
+import {IExternalObjectComponentProps, ExternalObjectComponent, ExternalObjectRef} from '../ExternalObjectComponent'
 import {getLayerDiff} from "../../../common/layer-diff";
-import * as assert from "../../../common/assert";
 
 ol.proj.setProj4(proj4);
 
-
-type OpenLayersObject = {
-    container: HTMLElement;
-    map: ol.Map;
-}
 
 /**
  * Describes a "pin" to be displayed on the Cesium globe.
@@ -38,21 +32,17 @@ export interface LayerDescriptor {
     layerSourceOptions: any;
 }
 
-export interface IOpenLayersMapProps extends IPermanentComponentProps {
+export interface IOpenLayersMapProps extends IExternalObjectComponentProps<ol.Map, OpenLayersState>, OpenLayersState {
     offlineMode?: boolean;
-    pins?: PinDescriptor[];
-    layers?: LayerDescriptor[];
     projectionCode?: string;
     onMapMounted?: (id: string, map: ol.Map) => void;
     onMapUnmounted?: (id: string, map: ol.Map) => void;
 }
 
-interface LastState {
-    id: string;
-    layers: LayerDescriptor[];
+interface OpenLayersState {
+    pins?: PinDescriptor[];
+    layers?: LayerDescriptor[];
 }
-
-type LastStateMap = {[id: string]: LastState};
 
 const EMPTY_ARRAY = [];
 
@@ -61,20 +51,13 @@ const EMPTY_ARRAY = [];
  *
  * @author Norman Fomferra
  */
-export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLayersMapProps,any> {
-
-    private lastStateMap: LastStateMap;
+export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersState, IOpenLayersMapProps,any> {
 
     constructor(props) {
         super(props);
-        this.lastStateMap = {};
     }
 
-    get map(): ol.Map {
-        return this.permanentObject.map;
-    }
-
-    createPermanentObject(): OpenLayersObject {
+    newExternalObject(): ExternalObjectRef<ol.Map, OpenLayersState> {
         const container = this.createContainer();
         const options = {
             target: container,
@@ -105,51 +88,38 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
         //map.addControl(new ol.control.Attribution());
         //map.addControl(new ol.control.Zoom());
 
-        return {container, map};
+        return {object: map, container};
     }
 
-    componentWillReceiveProps(nextProps: IOpenLayersMapProps) {
-        this.saveCurrentState();
-        if (this.map) {
-            if (this.props.projectionCode !== nextProps.projectionCode) {
-                this.forceRegeneration();
-            }
-            this.updateMap(nextProps);
+    updateExternalObject(map: ol.Map, parentContainer: HTMLElement, prevState: OpenLayersState, nextState: OpenLayersState): void {
+        const prevLayers = (prevState && prevState.layers) || EMPTY_ARRAY;
+        const nextLayers = nextState.layers || EMPTY_ARRAY;
+        if (prevLayers !== nextLayers) {
+            this.updateMapLayers(map, prevLayers, nextLayers);
         }
     }
 
-    permanentObjectMounted(permanentObject: OpenLayersObject): void {
-        permanentObject.map.updateSize();
-        this.updateMap(this.props);
+    componentWillUpdate(nextProps: IOpenLayersMapProps&OpenLayersState): any {
+        if (this.props.projectionCode !== nextProps.projectionCode) {
+            this.forceRegeneration();
+        }
+        return super.componentWillUpdate(nextProps);
+    }
+
+    externalObjectMounted(map: ol.Map): void {
+        map.updateSize();
         if (this.props.onMapMounted) {
-            this.props.onMapMounted(this.props.id, permanentObject.map);
+            this.props.onMapMounted(this.props.id, map);
         }
     }
 
-    permanentObjectUnmounted(permanentObject: OpenLayersObject): void {
-        this.saveCurrentState();
+    externalObjectUnmounted(map: ol.Map): void {
         if (this.props.onMapUnmounted) {
-            this.props.onMapUnmounted(this.props.id, permanentObject.map);
+            this.props.onMapUnmounted(this.props.id, map);
         }
     }
 
-    private saveCurrentState() {
-        const currentId = this.props.id;
-        const currentLayers = this.props.layers || EMPTY_ARRAY;
-        this.lastStateMap[currentId] = {id: currentId, layers: currentLayers};
-    }
-
-    private updateMap(props: IOpenLayersMapProps) {
-        const nextId = props.id;
-        const nextLayers = props.layers || EMPTY_ARRAY;
-
-        const lastState = this.lastStateMap[nextId];
-        const lastLayers = (lastState && lastState.layers) || EMPTY_ARRAY;
-
-        this.updateMapLayers(lastLayers, nextLayers);
-    }
-
-    private updateMapLayers(currentLayers: LayerDescriptor[], nextLayers: LayerDescriptor[]) {
+    private updateMapLayers(map: ol.Map, currentLayers: LayerDescriptor[], nextLayers: LayerDescriptor[]) {
         if (this.props.debug) {
             console.log('OpenLayersMap: updating layers');
         }
@@ -165,7 +135,7 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
             const olIndex = action.index + 1;
             switch (action.type) {
                 case 'ADD':
-                    olLayer = this.addLayer(action.newLayer, olIndex);
+                    olLayer = this.addLayer(map, action.newLayer, olIndex);
                     // TODO (forman): FIXME! Keep assertion here and below, but they currently fail.
                     //                Possible reason, new map views may not have their
                     //                'selectedVariable' layer correctly initialized. Same problem in CesiumGlobe!
@@ -177,16 +147,16 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
                     OpenLayersMap.setLayerProps(olLayer, action.newLayer);
                     break;
                 case 'REMOVE':
-                    olLayer = this.map.getLayers().item(olIndex) as ol.layer.Tile;
+                    olLayer = map.getLayers().item(olIndex) as ol.layer.Tile;
                     //assert.ok(olLayer);
                     if (!olLayer) {
                         console.error('OpenLayersMap: no olLayer at index ' + olIndex);
                         break;
                     }
-                    this.removeLayer(olIndex);
+                    this.removeLayer(map, olIndex);
                     break;
                 case 'UPDATE':
-                    olLayer = this.map.getLayers().item(olIndex) as ol.layer.Tile;
+                    olLayer = map.getLayers().item(olIndex) as ol.layer.Tile;
                     //assert.ok(olLayer);
                     if (!olLayer) {
                         console.error('OpenLayersMap: no olLayer at index ' + olIndex);
@@ -206,21 +176,21 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
                                 console.log('OpenLayersMap: exchanging layer');
                             }
                             // Replace layer
-                            this.removeLayer(olIndex);
-                            olLayer = this.addLayer(newLayer, olIndex);
+                            this.removeLayer(map, olIndex);
+                            olLayer = this.addLayer(map, newLayer, olIndex);
                         }
                     }
                     OpenLayersMap.setLayerProps(olLayer, action.newLayer, action.oldLayer);
                     break;
                 case 'MOVE_DOWN':
-                    olLayer = this.map.getLayers().item(olIndex) as ol.layer.Layer;
+                    olLayer = map.getLayers().item(olIndex) as ol.layer.Layer;
                     //assert.ok(olLayer);
                     if (!olLayer) {
                         console.error('OpenLayersMap: no olLayer at index ' + olIndex);
                         break;
                     }
-                    this.map.getLayers().removeAt(olIndex);
-                    this.map.getLayers().insertAt(olIndex - action.numSteps, olLayer);
+                    map.getLayers().removeAt(olIndex);
+                    map.getLayers().insertAt(olIndex - action.numSteps, olLayer);
                     break;
                 default:
                     console.error(`OpenLayersMap: unhandled layer action type "${action.type}"`);
@@ -228,17 +198,17 @@ export class OpenLayersMap extends PermanentComponent<OpenLayersObject, IOpenLay
         }
     }
 
-    private addLayer(layerDescriptor: LayerDescriptor, layerIndex: number): ol.layer.Layer {
+    private addLayer(map: ol.Map, layerDescriptor: LayerDescriptor, layerIndex: number): ol.layer.Layer {
         const olLayer = layerDescriptor.layerFactory(layerDescriptor.layerSourceOptions);
-        this.map.getLayers().insertAt(layerIndex, olLayer);
+        map.getLayers().insertAt(layerIndex, olLayer);
         if (this.props.debug) {
             console.log(`OpenLayersMap: added layer #${layerIndex}: ${layerDescriptor.name}`);
         }
         return olLayer;
     }
 
-    private removeLayer(layerIndex: number): void {
-        this.map.getLayers().removeAt(layerIndex);
+    private removeLayer(map: ol.Map, layerIndex: number): void {
+        map.getLayers().removeAt(layerIndex);
         if (this.props.debug) {
             console.log(`OpenLayersMap: removed layer #${layerIndex}`);
         }

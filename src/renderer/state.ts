@@ -2,7 +2,7 @@ import  {WebAPIClient} from './webapi';
 import {JobStatus, JobFailure, JobProgress} from "./webapi/Job";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
-import {ChartState} from "./components/plotly/PlotlyPanel";
+import {PlotState} from "./components/plotly/PlotlyPanel";
 
 /**
  * Interface describing Cate's application state structure.
@@ -319,7 +319,7 @@ export interface ChartViewDataState {
     selectedChartId: string|null;
 }
 
-export interface VariableChartState extends ChartState, VariableRefState {
+export interface VariableChartState extends PlotState, VariableRefState {
     varIndex: (number|null)[];
 }
 
