@@ -286,6 +286,26 @@ export function updateDataSourceTemporalCoverage(dataStoreId: string, dataSource
     return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
 }
 
+export function downloadDataset(dataSourceId: string, localName: string, args: any) {
+    return (dispatch, getState: GetState) => {
+        function call(onProgress) {
+            return selectors.datasetAPISelector(getState()).makeDataSourceLocal(dataSourceId, localName, args, onProgress);
+        }
+
+        function action(dataSources: DataSourceState[]) {
+            if (dataSources && dataSources.length) {
+                dispatch(updateDataSources('local', dataSources));
+                dispatch(setSelectedDataStoreIdImpl('local'));
+                dispatch(setDataSourceFilterExpr(''));
+                const localDSName = dataSources.find(ds => ds.name === localName || ds.name === `local.${localName}`);
+                if (localDSName) {
+                    dispatch(setSelectedDataSourceId(localDSName.name));
+                }
+            }
+        }
+        callAPI(dispatch, `Creating local copy for data source "${dataSourceId}" as "${localName}""`, call, action);
+    }
+}
 export function openDataset(dataSourceId: string, args: any) {
     return (dispatch, getState: GetState) => {
 
@@ -295,7 +315,6 @@ export function openDataset(dataSourceId: string, args: any) {
         const opName = 'open_dataset';
         const opArgs = {
             ds_name: dataSourceId,
-            sync: true,
             ...args
         };
 

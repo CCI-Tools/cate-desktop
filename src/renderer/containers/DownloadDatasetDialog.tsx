@@ -15,7 +15,7 @@ type DateRangeValue = [Date, Date];
 interface IDownloadDatasetDialogProps {
     dispatch?: Dispatch<State>;
     isOpen: boolean;
-    dataSource: DataSourceState;
+    dataSource: DataSourceState|null;
     temporalCoverage: TimeRangeValue|null;
     timeRange: TimeRangeValue|null;
     region: RegionValue;
@@ -30,7 +30,7 @@ interface IDownloadDatasetDialogState extends DialogState {
     region: RegionValue;
     hasVariablesConstraint: boolean;
     variableNames: string[]|null;
-    dataSourceName: string;
+    localDataSourceName: string;
 }
 
 function mapStateToProps(state: State): IDownloadDatasetDialogProps {
@@ -90,9 +90,12 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
             variableNames = null;
         }
 
-        let dataSourceName = props.dataSource && props.dataSource.name;
-        if (!dataSourceName) {
-            dataSourceName = props.dataSource.id;
+        let localDataSourceName = props.dataSource && props.dataSource.name;
+        if (!localDataSourceName) {
+            localDataSourceName = props.dataSource && props.dataSource.id;
+            if (!localDataSourceName) {
+                localDataSourceName = 'local'
+            }
         }
 
         return {
@@ -103,7 +106,7 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
             region,
             hasVariablesConstraint: !!props.variableNames,
             variableNames,
-            dataSourceName,
+            localDataSourceName,
         };
     }
 
@@ -113,9 +116,9 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
 
     private onConfirm() {
         this.props.dispatch(actions.hideDialog(DownloadDatasetDialog.DIALOG_ID, this.state));
-        // TODO (forman): implement me!
-        console.log('DownloadDatasetDialog.onConfirm:', this.assembleArguments());
-        // this.props.dispatch(actions.downloadDataset(this.props.dataSource.id, this.assembleArguments()));
+        const args = this.assembleArguments();
+        console.log('DownloadDatasetDialog.onConfirm:', args);
+        this.props.dispatch(actions.downloadDataset(this.props.dataSource.id, this.state.localDataSourceName, args));
     }
 
     private canConfirm(): boolean {
@@ -142,7 +145,7 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
         // }
         //
         // // TODO (forman): implement full (file) name validation as name will be used as name of a JSON file
-        // const validDataSourceName = this.state.dataSourceName && this.state.dataSourceName.trim() !== '';
+        // const validDataSourceName = this.state.localDataSourceName && this.state.localDataSourceName.trim() !== '';
         // return validRegion && validVariableNames && validDataSourceName;
         return true;
     }
@@ -156,7 +159,7 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
     }
 
     private onDataSourceNameChange(ev: any) {
-        this.setState({dataSourceName: ev.target.value} as IDownloadDatasetDialogState);
+        this.setState({localDataSourceName: ev.target.value} as IDownloadDatasetDialogState);
     }
 
     private onHasTimeConstraintChange(ev: any) {
@@ -274,7 +277,7 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
                 <input className="pt-input"
                        style={{width: '100%', marginLeft: '1em'}}
                        type="text"
-                       value={this.state.dataSourceName}
+                       value={this.state.localDataSourceName}
                        onChange={this.onDataSourceNameChange}/>
             </div>
         );
@@ -290,7 +293,7 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
         }
         if (this.state.hasRegionConstraint && this.state.region) {
             let region = this.state.region;
-            args = {...args, region: `${region.west},${region.south},${region.east},${region.north}`};
+            args = {...args, region: `${region.west.value},${region.south.value},${region.east.value},${region.north.value}`};
         }
         if (this.state.hasVariablesConstraint && this.state.variableNames) {
             let variableNames = this.state.variableNames;

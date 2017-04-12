@@ -111,7 +111,7 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
                 <TimeRange coverage={this.props.temporalCoverage}
                            value={this.state.timeRange}
                            onChange={this.onTimeRangeChange}/>
-                {this.renderProtocolSelector()}
+                {/*{this.renderProtocolSelector()}*/}
             </div>
         );
     }
@@ -140,14 +140,15 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
     private assembleArguments() {
         let args = {};
         if (this.state.timeRange[0] && this.state.timeRange[1]) {
+            const t0 = formatMillisAsISODateString(this.state.timeRange[0]);
+            const t1 = formatMillisAsISODateString(this.state.timeRange[1]);
             args = {
-                start_date: formatMillisAsISODateString(this.state.timeRange[0]),
-                end_date: formatMillisAsISODateString(this.state.timeRange[1]),
+                time_range: `${t0}, ${t1}`,
             }
         }
-        if (this.state.protocolName != null) {
-            args = {protocol: this.state.protocolName, ...args};
-        }
+        // if (this.state.protocolName != null) {
+        //     args = {protocol: this.state.protocolName, ...args};
+        // }
         return args;
     }
 }
