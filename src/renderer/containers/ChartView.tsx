@@ -3,6 +3,7 @@ import {State, WorkspaceState, ChartViewDataState} from "../state";
 import {connect} from "react-redux";
 import {ViewState} from "../components/ViewState";
 import {PlotPanel} from "../components/plotly/PlotlyPanel";
+import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 interface IChartViewOwnProps {
     view: ViewState<ChartViewDataState>;
@@ -36,15 +37,14 @@ class ChartView extends React.Component<IChartViewProps, null> {
                 <PlotPanel
                     key={id}
                     id={id}
-                    type="line"
                     debug={true}
                     title="bibo"
-                    style={{width: "100%", height: "100%"}}
-                    data={null}
-                    layout={null}/>
+                    type={chart.type}
+                    data={chart.data}
+                    layout={chart.layout}/>
             );
         }
-        return <div>{plots}</div>
+        return <ScrollablePanelContent>{plots}</ScrollablePanelContent>
     }
 }
 

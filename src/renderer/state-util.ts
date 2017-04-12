@@ -1,6 +1,6 @@
 import {
     VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
-    VariableImageLayerState, State, OperationState, WorldViewDataState
+    VariableImageLayerState, State, OperationState, WorldViewDataState, ChartViewDataState
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
@@ -82,8 +82,6 @@ export function findOperation(operations: OperationState[], name: string): Opera
     return operations && operations.find(op => op.qualifiedName === name || op.name === name);
 }
 
-let WORLD_VIEW_COUNTER = 1;
-
 
 function newInitialWorldViewData(): WorldViewDataState {
     return {
@@ -106,6 +104,40 @@ function newInitialWorldViewData(): WorldViewDataState {
     } as WorldViewDataState;
 }
 
+function newInitialChartViewData(): ChartViewDataState {
+    return {
+        charts: [
+            {
+                id: "1",
+                type: 'line',
+                layout: {},
+                data: {},
+            },
+            {
+                id: "2",
+                type: 'scatter',
+                layout: {},
+                data: {},
+            },
+            {
+                id: "3",
+                type: 'line',
+                layout: {},
+                data: {},
+            },
+            {
+                id: "4",
+                type: 'scatter',
+                layout: {},
+                data: {},
+            },
+        ],
+        selectedChartId: "1",
+    } as ChartViewDataState;
+}
+
+let WORLD_VIEW_COUNTER = 0
+
 export function newWorldView(): ViewState<WorldViewDataState> {
     const viewNumber = ++WORLD_VIEW_COUNTER;
     return {
@@ -114,6 +146,19 @@ export function newWorldView(): ViewState<WorldViewDataState> {
         type: 'world',
         iconName: "pt-icon-globe",
         data: newInitialWorldViewData(),
+    };
+}
+
+let CHART_VIEW_COUNTER = 0
+
+export function newChartView(): ViewState<ChartViewDataState> {
+    const viewNumber = ++CHART_VIEW_COUNTER;
+    return {
+        title: `Chart (${viewNumber})`,
+        id: genSimpleId('chart-'),
+        type: 'chart',
+        iconName: "timeline-area-chart",
+        data: newInitialChartViewData(),
     };
 }
 

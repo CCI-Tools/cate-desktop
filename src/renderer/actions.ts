@@ -835,6 +835,7 @@ export function setSelectedRightBottomPanelId(selectedRightBottomPanelId: string
 // ViewManager actions
 
 export const ADD_WORLD_VIEW = "ADD_WORLD_VIEW";
+export const ADD_CHART_VIEW = "ADD_CHART_VIEW";
 export const SELECT_VIEW = "SELECT_VIEW";
 export const CLOSE_VIEW = "CLOSE_VIEW";
 export const CLOSE_ALL_VIEWS = "CLOSE_ALL_VIEWS";
@@ -844,6 +845,10 @@ export const CHANGE_VIEW_SPLIT_POS = "CHANGE_VIEW_SPLIT_POS";
 
 export function addWorldView(placeAfterViewId: string|null) {
     return {type: ADD_WORLD_VIEW, payload: {placeAfterViewId}};
+}
+
+export function addChartView(placeAfterViewId: string|null) {
+    return {type: ADD_CHART_VIEW, payload: {placeAfterViewId}};
 }
 
 export function selectView(viewPath: ViewPath, viewId: string) {
