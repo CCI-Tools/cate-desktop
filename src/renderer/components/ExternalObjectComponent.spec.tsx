@@ -1,13 +1,13 @@
 import {should, expect} from 'chai';
 import * as React from 'react';
-import {IExternalObjectComponentProps, ExternalObjectComponent, ExternalObjectRef} from './ExternalObjectComponent';
+import {IExternalObjectComponentProps, ExternalObjectComponent} from './ExternalObjectComponent';
 
 should();
 
 /**
  * HTMLElement mock
  */
-class HTMLElement {
+class HTMLElementMock {
     nodeName: string;
     children: Array<HTMLElement>;
 
@@ -16,10 +16,12 @@ class HTMLElement {
         this.children = [];
     }
 
+    //noinspection JSUnusedGlobalSymbols
     appendChild(element: HTMLElement) {
         this.children.push(element);
     }
 
+    //noinspection JSUnusedGlobalSymbols
     removeChild(element: HTMLElement) {
         for (let i = 0; i < this.children.length; i++) {
             let e = this.children[i];
@@ -36,15 +38,14 @@ type MyExternalObject = {
     foo: number;
 };
 
-type MyExternalState = {
-    foo: number;
-};
-
-interface MyExternalComponentProps extends IExternalObjectComponentProps<MyExternalObject, MyExternalState> {
+interface MyExternalState  {
     foo: number;
 }
 
-class MyExternalComponent extends ExternalObjectComponent<MyExternalObject, MyExternalState, MyExternalComponentProps, any> {
+interface MyExternalComponentProps extends IExternalObjectComponentProps<MyExternalObject, MyExternalState>, MyExternalState {
+}
+
+class MyExternalComponent extends ExternalObjectComponent<MyExternalObject, MyExternalState, MyExternalComponentProps, null> {
 
     trace: any[] = [];
 
@@ -56,25 +57,24 @@ class MyExternalComponent extends ExternalObjectComponent<MyExternalObject, MyEx
         this.remountExternalObject(parentContainer as any);
     }
 
-    newExternalObject(): ExternalObjectRef<MyExternalObject, MyExternalComponentProps> {
-        this.trace.push({method: "create"});
-        let container = new HTMLElement("div");
-        return {
-            object: {id: this.props.id, foo: this.props.foo},
-            container: container as any,
-        };
+    newContainer(id: string): HTMLElement {
+        return new HTMLElementMock("div") as any;
     }
 
+    newExternalObject(container: HTMLElement): MyExternalObject {
+        this.trace.push({method: "create"});
+        return {id: this.props.id, foo: this.props.foo};
+    }
 
     propsToExternalObjectState(props: MyExternalComponentProps&MyExternalState): MyExternalState {
         return {foo: props.foo};
     }
 
     updateExternalObject(object: MyExternalObject,
-                         parentContainer: any,
-                         prevProps: MyExternalComponentProps,
-                         nextProps: MyExternalComponentProps) {
-        this.trace.push({method: "updateExternalComponent", object, parentContainer, prevProps, nextProps});
+                         prevState: MyExternalState,
+                         nextState: MyExternalState,
+                         container: HTMLElement): void {
+        this.trace.push({method: "updateExternalComponent", object, container, prevState, nextState});
     }
 
     externalObjectMounted(object: MyExternalObject): void {
@@ -84,7 +84,6 @@ class MyExternalComponent extends ExternalObjectComponent<MyExternalObject, MyEx
     externalObjectUnmounted(object: MyExternalObject): void {
         this.trace.push({method: "externalObjectUnmounted", object});
     }
-
 }
 
 
@@ -94,7 +93,7 @@ describe('PermanentComponent', function () {
         let instance1 = new MyExternalComponent({id: "P6", externalObjectStore, foo: 6});
         let instance2 = new MyExternalComponent({id: "P6", externalObjectStore, foo: 7});
 
-        let parentContainer1 = new HTMLElement("div");
+        let parentContainer1 = new HTMLElementMock("div");
 
         instance1.mount(parentContainer1 as any);
         expect(instance1.trace).to.deep.equal([
@@ -114,7 +113,7 @@ describe('PermanentComponent', function () {
                     id: "P6",
                     foo: 6,
                 },
-                parentContainer: {
+                container: {
                     children: [
                         {
                             children: [],
@@ -123,8 +122,8 @@ describe('PermanentComponent', function () {
                     ],
                     nodeName: "div",
                 },
-                prevProps: undefined,
-                nextProps: {
+                prevState: undefined,
+                nextState: {
                     foo: 6
                 },
             }]);
@@ -136,7 +135,7 @@ describe('PermanentComponent', function () {
             object: {id: "P6", foo: 6}
         }]);
 
-        let parentContainer2 = new HTMLElement("div");
+        let parentContainer2 = new HTMLElementMock("div");
         instance2.mount(parentContainer2 as any);
         instance2.mount(null);
         instance2.componentWillUpdate({id: "P6", externalObjectStore, foo: 8});

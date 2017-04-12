@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ol from 'openlayers';
 import * as proj4 from 'proj4';
-import {IExternalObjectComponentProps, ExternalObjectComponent, ExternalObjectRef} from '../ExternalObjectComponent'
+import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
 import {getLayerDiff} from "../../../common/layer-diff";
 
 ol.proj.setProj4(proj4);
@@ -57,8 +57,13 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
         super(props);
     }
 
-    newExternalObject(): ExternalObjectRef<ol.Map, OpenLayersState> {
-        const container = this.createContainer();
+    newContainer(id: string): HTMLElement {
+        const div = document.createElement("div");
+        div.setAttribute("id", "olmap-container-" + id);
+        return div;
+    }
+
+    newExternalObject(container: HTMLElement): ol.Map {
         const options = {
             target: container,
             layers: [
@@ -80,6 +85,7 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
                 zoom: 4,
             })
         };
+        //noinspection UnnecessaryLocalVariableJS
         const map = new ol.Map(options);
         //map.addControl(new ol.control.ZoomSlider());
         //map.addControl(new ol.control.ScaleLine());
@@ -88,10 +94,10 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
         //map.addControl(new ol.control.Attribution());
         //map.addControl(new ol.control.Zoom());
 
-        return {object: map, container};
+        return map;
     }
 
-    updateExternalObject(map: ol.Map, parentContainer: HTMLElement, prevState: OpenLayersState, nextState: OpenLayersState): void {
+    updateExternalObject(map: ol.Map, prevState: OpenLayersState, nextState: OpenLayersState): void {
         const prevLayers = (prevState && prevState.layers) || EMPTY_ARRAY;
         const nextLayers = nextState.layers || EMPTY_ARRAY;
         if (prevLayers !== nextLayers) {
@@ -221,13 +227,6 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
         if (!oldLayer || oldLayer.opacity !== newLayer.opacity) {
             olLayer.setOpacity(newLayer.opacity);
         }
-    }
-
-    private createContainer(): HTMLElement {
-        const div = document.createElement("div");
-        div.setAttribute("id", "ol-container-" + this.props.id);
-        div.setAttribute("class", "ol-container");
-        return div;
     }
 
     /**

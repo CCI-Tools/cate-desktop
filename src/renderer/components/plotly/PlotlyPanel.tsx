@@ -1,6 +1,9 @@
 import * as React from 'react';
 import {IExternalObjectComponentProps, ExternalObjectComponent, ExternalObjectRef} from '../ExternalObjectComponent'
-import * as Plotly from "plotly.js";
+
+// see https://github.com/plotly/plotly.js/issues/891: Plotly.js requires gl in Electron contexts
+//import * as Plotly from "plotly.js";
+const Plotly = require('plotly.js/dist/plotly.js');
 
 type Plot = any;
 
@@ -15,7 +18,6 @@ export interface PlotState {
     layout: any;
 }
 
-
 interface IPlotPanelProps extends IExternalObjectComponentProps<Plot, PlotState>, PlotState {
 }
 
@@ -26,12 +28,16 @@ interface IPlotPanelProps extends IExternalObjectComponentProps<Plot, PlotState>
  */
 export class PlotPanel extends ExternalObjectComponent<Plot, PlotState, IPlotPanelProps, null> {
 
-    newExternalObject(): ExternalObjectRef<Plot, PlotState> {
+    newContainer(id: string): HTMLElement {
+        const div = document.createElement("div");
+        div.setAttribute("id", "plotly-container-" + id);
+        div.setAttribute("style", "width: 100%; height: 20em; padding: 1em; margin: 1em;");
+        return div;
+    }
+
+    newExternalObject(container: HTMLElement): ExternalObjectRef<Plot, PlotState> {
         console.log('Plotly', Plotly);
 
-        const container = this.createContainer();
-
-        let plot;
         if (this.props.type === 'scatter') {
             Plotly.d3.csv('https://raw.githubusercontent.com/plotly/datasets/master/wind_speed_laurel_nebraska.csv', function (rows) {
                 const trace = {
@@ -66,15 +72,12 @@ export class PlotPanel extends ExternalObjectComponent<Plot, PlotState, IPlotPan
                     }
                 };
 
-                Plotly.newPlot(this.getContainerId(), [trace as any], layout, {showLink: false});
+                Plotly.newPlot(container.id, [trace as any], layout, {showLink: false});
             });
 
-
-            // TODO
-            plot = {};
         } else if (this.props.type === 'line') {
             Plotly.newPlot(
-                this.getContainerId(),
+                container.id,
                 [{
                     x: [1, 2, 3, 4, 5],
                     y: [1, 2, 4, 8, 16]
@@ -84,23 +87,11 @@ export class PlotPanel extends ExternalObjectComponent<Plot, PlotState, IPlotPan
                 }
             );
         }
-        return {object: plot, container};
+        return null;
     }
 
-    updateExternalObject(plots: Plot, parentContainer: HTMLElement, prevState: PlotState, nextState: PlotState): void {
+    updateExternalObject(plot: Plot, prevState: PlotState, nextState: PlotState): void {
         // TODO
-    }
-
-    private createContainer(): HTMLDivElement {
-        const div = document.createElement("div");
-        div.setAttribute("id", this.getContainerId());
-        div.setAttribute("class", "plotly-container");
-        div.setAttribute("style", "height:16em;");
-        return div;
-    }
-
-    private getContainerId() {
-        return "plotly-container-" + this.props.id;
     }
 }
 

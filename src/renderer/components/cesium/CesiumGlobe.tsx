@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {IExternalObjectComponentProps, ExternalObjectComponent, ExternalObjectRef} from '../ExternalObjectComponent'
+import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
 import {getLayerDiff} from "../../../common/layer-diff";
 import * as assert from "../../../common/assert";
 
@@ -155,8 +155,14 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         super(props);
     }
 
-    newExternalObject(): ExternalObjectRef<CesiumViewer, CesiumGlobeState> {
-        const container = this.createContainer();
+    newContainer(): HTMLElement {
+        const div = document.createElement("div");
+        div.setAttribute("id", "cesium-container-" + this.props.id);
+        div.setAttribute("class", "cesium-container");
+        return div;
+    }
+
+    newExternalObject(container: HTMLElement): CesiumViewer {
 
         let baseLayerImageryProvider;
         if (this.props.offlineMode) {
@@ -193,6 +199,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         };
 
         // Create the Cesium Viewer
+        //noinspection UnnecessaryLocalVariableJS
         const viewer = new Cesium.Viewer(container, cesiumViewerOptions);
 
         // // Add the initial points
@@ -212,7 +219,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         //     }));
         // });
 
-        return {object: viewer, container};
+        return viewer;
     }
 
     propsToExternalObjectState(props: ICesiumGlobeProps&CesiumGlobeState): CesiumGlobeState {
@@ -224,7 +231,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         };
     }
 
-    updateExternalObject(viewer: CesiumViewer, parentContainer: HTMLElement, prevState: CesiumGlobeState, nextState: CesiumGlobeState) {
+    updateExternalObject(viewer: CesiumViewer, prevState: CesiumGlobeState, nextState: CesiumGlobeState): void {
         if (this.props.debug) {
             console.log('CesiumGlobe: check to update layers and data sources: ', prevState, nextState);
         }
@@ -459,13 +466,6 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
             //resolvedDataSource.name = dataSourceDescriptor.name;
             resolvedDataSource.show = dataSourceDescriptor.visible;
         });
-    }
-
-    private createContainer(): HTMLElement {
-        const div = document.createElement("div");
-        div.setAttribute("id", "cesium-container-" + this.props.id);
-        div.setAttribute("class", "cesium-container");
-        return div;
     }
 
 }
