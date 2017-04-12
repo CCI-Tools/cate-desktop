@@ -57,10 +57,6 @@ class MyPermanentComponent extends PermanentComponent<MyPermanentObject, MyPerma
         };
     }
 
-    disposePermanentObject(permanentObject: MyPermanentObject): void {
-        this.trace.push("dispose");
-    }
-
     permanentObjectMounted(permanentObject: MyPermanentObject): void {
         this.trace.push("mount");
     }

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as assert from "../../common/assert";
 
 type ContainerType = HTMLElement|any;
 
@@ -54,6 +55,7 @@ export abstract class PermanentComponent<T extends IPermanentObjectType, P exten
 
     private _parentContainer: HTMLElement|null;
     private _permanentObject: T|null;
+    private _prevPropsMap: {[id: string]: P};
 
     constructor(props: IPermanentComponentProps) {
         super(props);
@@ -62,66 +64,20 @@ export abstract class PermanentComponent<T extends IPermanentObjectType, P exten
         }
         this._parentContainer = null;
         this._permanentObject = null;
-    }
-
-    get parentContainer(): HTMLElement|null {
-        return this._parentContainer;
-    }
-
-    get permanentObject(): T|null {
-        return this._permanentObject;
-    }
-
-    get permanentObjectStore(): Object {
-        return this.props.cache || PermanentComponent.defaultPermanentObjectStore;
+        this._prevPropsMap = {};
     }
 
     abstract createPermanentObject(parentContainer?: HTMLElement|any): T;
 
-    disposePermanentObject(permanentObject: T): void {
+    permanentObjectMounted(permanentObject: T, parentContainer: HTMLElement): void {
     }
 
-    permanentObjectMounted(permanentObject: T, parentContainer?: HTMLElement|any): void {
+    permanentObjectUnmounted(permanentObject: T, parentContainer: HTMLElement): void {
     }
 
-    permanentObjectUnmounted(permanentObject: T, parentContainer?: HTMLElement|any): void {
-    }
-
-    dispose() {
-        const id = this.props.id;
-        const permanentObjectStore = this.permanentObjectStore;
-        if (id in permanentObjectStore) {
-            if (this.props.debug) {
-                console.log("PermanentComponent: disposing permanent object with id =", this.props.id);
-            }
-            let permanentObject = permanentObjectStore[id];
-            delete permanentObjectStore[id];
-            this.disposePermanentObject(permanentObject);
-        }
-    }
-
-    forceRegeneration() {
-        let permanentObjectStore = this.permanentObjectStore;
-        let permanentObject = permanentObjectStore[this.props.id];
-        if (permanentObject) {
-            delete permanentObjectStore[this.props.id];
-            if (this.parentContainer && permanentObject.container) {
-                this.parentContainer.removeChild(permanentObject.container);
-            }
-            this.remountPermanentObject(this.parentContainer);
-        }
-    }
-
-    remountPermanentObject(parentContainer: HTMLElement|null) {
-        if (parentContainer) {
-            if (this.props.id in this.permanentObjectStore) {
-                this.mountOldPermanentObject(parentContainer);
-            } else {
-                this.mountNewPermanentObject(parentContainer);
-            }
-        } else if (this._parentContainer) {
-            this.unmountPermanentObject(this._parentContainer);
-        }
+    componentWillReceiveProps(nextProps: P) {
+        this.saveCurrentProps();
+        this.maybeUpdatePermanentComponent(nextProps);
     }
 
     /**
@@ -139,16 +95,108 @@ export abstract class PermanentComponent<T extends IPermanentObjectType, P exten
                     ref={onRef}/>
     }
 
+    private remountPermanentObject(parentContainer: HTMLElement|null) {
+        if (parentContainer) {
+            if (this.props.id in this.permanentObjectStore) {
+                this.mountOldPermanentObject(parentContainer);
+            } else {
+                this.mountNewPermanentObject(parentContainer);
+            }
+        } else if (this._parentContainer) {
+            this.unmountPermanentObject(this._parentContainer);
+        }
+    }
+
+    get parentContainer(): HTMLElement|null {
+        return this._parentContainer;
+    }
+
+    get permanentObject(): T|null {
+        return this._permanentObject;
+    }
+
+    get permanentObjectStore(): Object {
+        return this.props.cache || PermanentComponent.defaultPermanentObjectStore;
+    }
+
+    private saveCurrentProps() {
+        let props = this.props;
+        if (props)
+            this._prevPropsMap[props.id] = props;
+    }
+
+    private getPrevProps(id: string) {
+        return this._prevPropsMap[id];
+    }
+
+    private maybeUpdatePermanentComponent(nextProps: P) {
+        let permanentObject = this._permanentObject;
+        if (permanentObject) {
+            this.updatePermanentComponent(permanentObject, this._parentContainer,
+                this.getPrevProps(nextProps.id), nextProps);
+        }
+    }
+
+    /**
+     * Clients must compute the delta between *prevProps* and *nextProps* and update their
+     * permanent object accordingly.
+     *
+     * @param permanentComponent
+     * @param parentContainer
+     * @param prevProps
+     * @param nextProps
+     */
+    updatePermanentComponent(permanentComponent: T, parentContainer: HTMLElement, prevProps: P, nextProps: P) {
+    }
+
+    dispose() {
+        /*
+        const id = this.props.id;
+        const permanentObjectStore = this.permanentObjectStore;
+        if (id in permanentObjectStore) {
+            if (this.props.debug) {
+                console.log("PermanentComponent: disposing permanent object with id =", this.props.id);
+            }
+            let permanentObject = permanentObjectStore[id];
+            delete permanentObjectStore[id];
+            if (id in this._prevPropsMap) {
+                delete this._prevPropsMap[id];
+            }
+            this.disposePermanentObject(permanentObject);
+        }
+        */
+    }
+
+    /**
+     * Removes the current permanent object from cache and creates a new one.
+     * Clients may call this method to force a regeneration of their permanent component.
+     */
+    forceRegeneration() {
+        let permanentObjectStore = this.permanentObjectStore;
+        let permanentObject = permanentObjectStore[this.props.id];
+        if (permanentObject) {
+            delete permanentObjectStore[this.props.id];
+            delete this._prevPropsMap[this.props.id];
+            if (this.parentContainer && permanentObject.container) {
+                this.parentContainer.removeChild(permanentObject.container);
+            }
+            this.remountPermanentObject(this.parentContainer);
+        }
+    }
+
     private mountNewPermanentObject(parentContainer: HTMLElement) {
         if (this.props.debug) {
             console.log("PermanentComponent: mounting new permanent object with id =", this.props.id);
         }
         let permanentObject = this.createPermanentObject(parentContainer);
+        assert.ok(permanentObject);
         parentContainer.appendChild(permanentObject.container);
         this.permanentObjectStore[this.props.id] = permanentObject;
         this._permanentObject = permanentObject;
         this._parentContainer = parentContainer;
         this.permanentObjectMounted(permanentObject, parentContainer);
+        this.updatePermanentComponent(permanentObject, parentContainer,
+            this.getPrevProps(this.props.id), this.props);
     }
 
     private mountOldPermanentObject(parentContainer: HTMLElement) {
@@ -156,10 +204,14 @@ export abstract class PermanentComponent<T extends IPermanentObjectType, P exten
             console.log("PermanentComponent: mounting existing permanent object with id =", this.props.id);
         }
         let permanentObject = this.permanentObjectStore[this.props.id];
+        assert.ok(permanentObject);
         parentContainer.appendChild(permanentObject.container);
         this._permanentObject = permanentObject;
         this._parentContainer = parentContainer;
+        this.saveCurrentProps();
         this.permanentObjectMounted(permanentObject, parentContainer);
+        this.updatePermanentComponent(permanentObject, parentContainer,
+            this.getPrevProps(this.props.id), this.props);
     }
 
     private unmountPermanentObject(parentContainer: HTMLElement) {
@@ -170,6 +222,7 @@ export abstract class PermanentComponent<T extends IPermanentObjectType, P exten
         let permanentObject = this._permanentObject;
         this._permanentObject = null;
         this._parentContainer = null;
+        this.saveCurrentProps();
         this.permanentObjectUnmounted(permanentObject, parentContainer);
     }
 }
