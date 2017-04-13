@@ -67,10 +67,20 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
 
     constructor(props: IDataSourcesPanelProps) {
         super(props);
+        this.handleAddDatasetDialog = this.handleAddDatasetDialog.bind(this);
+        this.handleRemoveDatasetDialog = this.handleRemoveDatasetDialog.bind(this);
         this.handleShowDownloadDatasetDialog = this.handleShowDownloadDatasetDialog.bind(this);
         this.handleShowOpenDatasetDialog = this.handleShowOpenDatasetDialog.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleDataStoreSelected = this.handleDataStoreSelected.bind(this);
+    }
+
+    private handleAddDatasetDialog() {
+        //this.props.showDialog('addDatasetDialog');
+    }
+
+    private handleRemoveDatasetDialog() {
+        //this.props.showDialog('removeDatasetDialog');
     }
 
     private handleShowDownloadDatasetDialog() {
@@ -103,10 +113,23 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         const hasDataSources = this.props.selectedDataSources && this.props.selectedDataSources.length;
         let body;
         if (hasDataStores && hasDataSources) {
-            const canDownload = this.props.selectedDataStore && this.props.selectedDataStore.id !== 'local';
-            const canOpen = this.props.selectedDataSource && this.props.hasWorkspace;
+            const hasSelection = this.props.selectedDataSource;
+            const isLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id === 'local';
+            const isNonLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id !== 'local';
+            const canAdd= isLocalStore;
+            const canRemove= isLocalStore && hasSelection;
+            const canDownload = isNonLocalStore && hasSelection;
+            const canOpen = hasSelection && this.props.hasWorkspace;
             const actionComponent = (
                 <div className="pt-button-group">
+                   <Button className="pt-intent-primary"
+                            onClick={this.handleAddDatasetDialog}
+                            disabled={!canAdd}
+                            iconName="add"/>
+                    <Button className="pt-intent-primary"
+                            onClick={this.handleRemoveDatasetDialog}
+                            disabled={!canRemove}
+                            iconName="delete"/>
                     <Button className="pt-intent-primary"
                             onClick={this.handleShowDownloadDatasetDialog}
                             disabled={!canDownload}
