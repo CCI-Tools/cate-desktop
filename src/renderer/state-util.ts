@@ -1,6 +1,6 @@
 import {
     VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
-    VariableImageLayerState, State, OperationState, WorldViewDataState, ChartViewDataState
+    VariableImageLayerState, State, OperationState, WorldViewDataState, ChartViewDataState, VariableChartState
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
@@ -28,6 +28,12 @@ export function getGeoJSONUrl(baseUrl: string, baseDir: string, layer: VariableV
         + `&cmap=${encodeURIComponent(layer.colorMapName)}`
         + `&min=${encodeURIComponent(layer.displayMin + '')}`
         + `&max=${encodeURIComponent(layer.displayMax + '')}`;
+}
+
+export function getChartCsvUrl(baseUrl: string, baseDir: string, chart: VariableChartState): string {
+    return baseUrl + `ws/res/csv/${encodeURIComponent(baseDir)}/${encodeURIComponent(chart.resName)}?`
+        + `&var=${encodeURIComponent(chart.varName)}`
+        + `&index=${encodeURIComponent((chart.varIndex || []).join())}`;
 }
 
 export function getGeoJSONCountriesUrl(baseUrl: string): string {
@@ -109,25 +115,25 @@ function newInitialChartViewData(): ChartViewDataState {
         charts: [
             {
                 id: "1",
-                type: 'line',
+                type: 'line_test',
                 layout: {},
                 data: {},
             },
             {
                 id: "2",
-                type: 'scatter',
+                type: 'scatter_test',
                 layout: {},
                 data: {},
             },
             {
                 id: "3",
-                type: 'line',
+                type: 'line_test',
                 layout: {},
                 data: {},
             },
             {
                 id: "4",
-                type: 'scatter',
+                type: 'scatter_test',
                 layout: {},
                 data: {},
             },

@@ -5,6 +5,7 @@ import {ViewState} from "../components/ViewState";
 import {PlotPanel} from "../components/plotly/PlotlyPanel";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 
+
 interface IChartViewOwnProps {
     view: ViewState<ChartViewDataState>;
 }
@@ -26,13 +27,14 @@ function mapStateToProps(state: State, ownProps: IChartViewOwnProps): IChartView
  * This component displays a 2D map with a number of layers.
  */
 class ChartView extends React.Component<IChartViewProps, null> {
+    static readonly DIV_STYLE = {width: '100%', minWidth: '100%', maxWidth: '100%', height: '100%', overflowY: 'auto'};
 
     render() {
         const plots = [];
         let view = this.props.view;
         for (let i in view.data.charts) {
             let chart = view.data.charts[i];
-            let id = `plot-${chart.id}-${view.id}`;
+            let id = `ChartView-${chart.id}-${view.id}`;
             plots.push(
                 <PlotPanel
                     key={id}
@@ -44,7 +46,7 @@ class ChartView extends React.Component<IChartViewProps, null> {
                     layout={chart.layout}/>
             );
         }
-        return <ScrollablePanelContent>{plots}</ScrollablePanelContent>
+        return <div style={ChartView.DIV_STYLE}>{plots}</div>
     }
 }
 

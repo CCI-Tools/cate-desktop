@@ -12,7 +12,7 @@ type Plot = any;
  */
 export interface PlotState {
     id: string;
-    type: "line"|"histogram"|"scatter"|"density";
+    type: "line"|"histogram"|"scatter"|"density"|"line_test"|"scatter_test";
     title?: string;
     data: any;
     layout: any;
@@ -29,16 +29,38 @@ interface IPlotPanelProps extends IExternalObjectComponentProps<Plot, PlotState>
 export class PlotPanel extends ExternalObjectComponent<Plot, PlotState, IPlotPanelProps, null> {
 
     newContainer(id: string): HTMLElement {
-        const div = document.createElement("div");
-        div.setAttribute("id", "plotly-container-" + id);
-        div.setAttribute("style", "width: 100%; height: 20em; padding: 1em; margin: 0.2em;");
-        return div;
+        const graphDiv = document.createElement("div");
+        graphDiv.setAttribute("id", "plotly-container-" + id);
+        graphDiv.setAttribute("style", "width: 100%; height: 20em; padding: 1em; margin: 0.2em;");
+        return graphDiv;
     }
 
-    newExternalObject(parentContainer: HTMLElement, container: HTMLElement): ExternalObjectRef<Plot, PlotState> {
-        console.log('Plotly', Plotly);
+    newExternalObject(parentContainer: HTMLElement, graphDiv: HTMLElement): ExternalObjectRef<Plot, PlotState> {
+        return null;
+    }
 
-        if (this.props.type === 'scatter') {
+    updateExternalObject(plot: Plot, prevState: PlotState, nextState: PlotState, parentContainer: HTMLElement, graphDiv: HTMLElement): void {
+
+        const prevType = prevState &&  prevState.type;
+        const nextType = nextState.type;
+
+        const prevData = prevState &&  prevState.data;
+        const nextData = nextState.data;
+
+        const prevLayout = prevState &&  prevState.layout;
+        const nextLayout = nextState.layout;
+
+        const graphDivHasPlot = (graphDiv as any).data && (graphDiv as any).layout;
+
+        if (prevType !== nextType || !graphDivHasPlot) {
+            Plotly.newPlot(graphDiv, nextData, nextLayout);
+        } else if (prevData !== nextData) {
+            Plotly.update(graphDiv, nextData, nextLayout);
+        } else if (prevLayout !== nextLayout) {
+            Plotly.restyle(graphDiv, nextLayout);
+        }
+
+        if (this.props.type === 'line_test') {
             Plotly.d3.csv('https://raw.githubusercontent.com/plotly/datasets/master/wind_speed_laurel_nebraska.csv', function (rows) {
                 const trace = {
                     type: 'scatter',                    // set the chart type
@@ -68,16 +90,16 @@ export class PlotPanel extends ExternalObjectComponent<Plot, PlotState, IPlotPan
                         tickformat: "%B, %Y"              // customize the date format to "month, day"
                     },
                     margin: {                           // update the left, bottom, right, top margin
-                        l: 40, b: 10, r: 10, t: 20
+                        l: 40, b: 40, r: 10, t: 20
                     }
                 };
 
-                Plotly.newPlot(container.id, [trace as any], layout, {showLink: false});
+                Plotly.newPlot(graphDiv.id, [trace as any], layout, {showLink: false});
             });
 
-        } else if (this.props.type === 'line') {
+        } else if (this.props.type === 'scatter_test') {
             Plotly.newPlot(
-                container.id,
+                graphDiv.id,
                 [{
                     x: [1, 2, 3, 4, 5],
                     y: [1, 2, 4, 8, 16]
@@ -87,11 +109,6 @@ export class PlotPanel extends ExternalObjectComponent<Plot, PlotState, IPlotPan
                 }
             );
         }
-        return null;
-    }
-
-    updateExternalObject(plot: Plot, prevState: PlotState, nextState: PlotState): void {
-        // TODO
     }
 }
 
