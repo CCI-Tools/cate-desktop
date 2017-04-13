@@ -9,6 +9,7 @@ import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import DownloadDatasetDialog from "./DownloadDatasetDialog";
 import OpenDatasetDialog from "./OpenDatasetDialog";
+import RemoveDatasetDialog from "./RemoveDatasetDialog";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES} from "../messages";
@@ -80,7 +81,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
     }
 
     private handleRemoveDatasetDialog() {
-        //this.props.showDialog('removeDatasetDialog');
+        this.props.showDialog('removeDatasetDialog');
     }
 
     private handleShowDownloadDatasetDialog() {
@@ -116,13 +117,13 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             const hasSelection = this.props.selectedDataSource;
             const isLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id === 'local';
             const isNonLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id !== 'local';
-            const canAdd= isLocalStore;
-            const canRemove= isLocalStore && hasSelection;
+            const canAdd = isLocalStore;
+            const canRemove = isLocalStore && hasSelection;
             const canDownload = isNonLocalStore && hasSelection;
             const canOpen = hasSelection && this.props.hasWorkspace;
             const actionComponent = (
                 <div className="pt-button-group">
-                   <Button className="pt-intent-primary"
+                    <Button className="pt-intent-primary"
                             onClick={this.handleAddDatasetDialog}
                             disabled={!canAdd}
                             iconName="add"/>
@@ -138,6 +139,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                             onClick={this.handleShowOpenDatasetDialog}
                             disabled={!canOpen}
                             iconName="folder-shared-open"/>
+                    <RemoveDatasetDialog/>
                     <DownloadDatasetDialog/>
                     <OpenDatasetDialog/>
                 </div>

@@ -123,6 +123,9 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
     }
 
     private canConfirm(): boolean {
+        if (!this.props.dataSource) {
+            return false;
+        }
         let validRegion = true;
         if (this.state.region) {
             const west = this.state.region.west.value;
@@ -191,7 +194,7 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
     }
 
     private static dataSourceToResource(dataSource: DataSourceState): ResourceState {
-        if (dataSource.meta_info && dataSource.meta_info.variables && dataSource.meta_info.variables.length) {
+        if (dataSource && dataSource.meta_info && dataSource.meta_info.variables && dataSource.meta_info.variables.length) {
             return {
                 name: dataSource.name,
                 dataType: 'xr.Dataset', // TODO

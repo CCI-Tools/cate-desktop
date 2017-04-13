@@ -35,9 +35,10 @@ export class DatasetAPI {
     }
 
     makeDataSourceLocal(dataSourceId: string, localName: string, args: any, onProgress: (progress: JobProgress) => void): JobPromise<DataSourceState[]> {
-        return this.webAPIClient.call('make_ds_local',
-            [dataSourceId, localName, args],
-            onProgress);
+        return this.webAPIClient.call('make_ds_local', [dataSourceId, localName, args], onProgress);
+    }
 
+    removeLocalDataSource(dataSourceId: string, removeFiles: boolean): JobPromise<DataSourceState[]> {
+        return this.webAPIClient.call('remove_local_datasource', [dataSourceId, removeFiles]);
     }
 }
