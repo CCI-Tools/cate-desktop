@@ -155,14 +155,14 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         super(props);
     }
 
-    newContainer(): HTMLElement {
+    newContainer(id: string): HTMLElement {
         const div = document.createElement("div");
-        div.setAttribute("id", "cesium-container-" + this.props.id);
+        div.setAttribute("id", "cesium-container-" + id);
         div.setAttribute("class", "cesium-container");
         return div;
     }
 
-    newExternalObject(container: HTMLElement): CesiumViewer {
+    newExternalObject(parentContainer: HTMLElement, container: HTMLElement): CesiumViewer {
 
         let baseLayerImageryProvider;
         if (this.props.offlineMode) {
@@ -232,9 +232,6 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
     }
 
     updateExternalObject(viewer: CesiumViewer, prevState: CesiumGlobeState, nextState: CesiumGlobeState): void {
-        if (this.props.debug) {
-            console.log('CesiumGlobe: check to update layers and data sources: ', prevState, nextState);
-        }
         const prevLayers = (prevState && prevState.layers) || EMPTY_ARRAY;
         const prevDataSources = (prevState && prevState.dataSources) || EMPTY_ARRAY;
 

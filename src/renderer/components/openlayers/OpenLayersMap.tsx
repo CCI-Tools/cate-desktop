@@ -12,7 +12,7 @@ ol.proj.setProj4(proj4);
  */
 export interface PinDescriptor {
     id: string;
-    name?: string|null;
+    name?: string | null;
     visible: boolean;
     image: string;
     state: string;
@@ -25,7 +25,7 @@ export interface PinDescriptor {
  */
 export interface LayerDescriptor {
     id: string;
-    name?: string|null;
+    name?: string | null;
     visible: boolean;
     opacity?: number;
     layerFactory: (layerSourceOptions: any) => ol.layer.Layer;
@@ -51,7 +51,7 @@ const EMPTY_ARRAY = [];
  *
  * @author Norman Fomferra
  */
-export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersState, IOpenLayersMapProps,any> {
+export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersState, IOpenLayersMapProps, any> {
 
     constructor(props) {
         super(props);
@@ -60,10 +60,11 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
     newContainer(id: string): HTMLElement {
         const div = document.createElement("div");
         div.setAttribute("id", "olmap-container-" + id);
+        div.setAttribute("style", "width: 100%; height: 100%;");
         return div;
     }
 
-    newExternalObject(container: HTMLElement): ol.Map {
+    newExternalObject(parentContainer: HTMLElement, container: HTMLElement): ol.Map {
         const options = {
             target: container,
             layers: [
@@ -83,6 +84,12 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
                 // projection: 'Glaciers_CCI_Greenland',
                 center: [0, 0],
                 zoom: 4,
+
+            }),
+            controls: ol.control.defaults({
+                zoom: false,
+                attribution: false,
+                rotate: false
             })
         };
         //noinspection UnnecessaryLocalVariableJS
@@ -105,7 +112,7 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
         }
     }
 
-    componentWillUpdate(nextProps: IOpenLayersMapProps&OpenLayersState): any {
+    componentWillUpdate(nextProps: IOpenLayersMapProps & OpenLayersState): any {
         if (this.props.projectionCode !== nextProps.projectionCode) {
             this.forceRegeneration();
         }

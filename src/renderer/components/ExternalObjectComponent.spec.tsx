@@ -8,12 +8,19 @@ should();
  * HTMLElement mock
  */
 class HTMLElementMock {
+    id?: string;
     nodeName: string;
     children: Array<HTMLElement>;
 
-    constructor(tagName: string) {
+    constructor(tagName: string, id: string) {
         this.nodeName = tagName;
+        this.id = id;
         this.children = [];
+    }
+
+    //noinspection JSUnusedGlobalSymbols
+    contains(child: HTMLElement) {
+        return this.children.indexOf(child) >= 0;
     }
 
     //noinspection JSUnusedGlobalSymbols
@@ -58,7 +65,7 @@ class MyExternalComponent extends ExternalObjectComponent<MyExternalObject, MyEx
     }
 
     newContainer(id: string): HTMLElement {
-        return new HTMLElementMock("div") as any;
+        return new HTMLElementMock("div", 'container-' + id) as any;
     }
 
     newExternalObject(container: HTMLElement): MyExternalObject {
@@ -90,10 +97,10 @@ class MyExternalComponent extends ExternalObjectComponent<MyExternalObject, MyEx
 describe('PermanentComponent', function () {
     it('lets update() method correctly mount/unmount the external object', function () {
         let externalObjectStore = {};
-        let instance1 = new MyExternalComponent({id: "P6", externalObjectStore, foo: 6});
-        let instance2 = new MyExternalComponent({id: "P6", externalObjectStore, foo: 7});
+        let instance1 = new MyExternalComponent({id: "ID6", externalObjectStore, foo: 6});
+        let instance2 = new MyExternalComponent({id: "ID6", externalObjectStore, foo: 7});
 
-        let parentContainer1 = new HTMLElementMock("div");
+        let parentContainer1 = new HTMLElementMock("div", "ID6");
 
         instance1.mount(parentContainer1 as any);
         expect(instance1.trace).to.deep.equal([
@@ -104,23 +111,25 @@ describe('PermanentComponent', function () {
                 method: "externalObjectMounted",
                 object: {
                     foo: 6,
-                    id: "P6",
+                    id: "ID6",
                 }
             },
             {
                 method: "updateExternalComponent",
                 object: {
-                    id: "P6",
+                    id: "ID6",
                     foo: 6,
                 },
                 container: {
                     children: [
                         {
                             children: [],
-                            nodeName: "div"
+                            nodeName: "div",
+                            "id": "container-ID6"
                         }
                     ],
                     nodeName: "div",
+                    id: "ID6"
                 },
                 prevState: undefined,
                 nextState: {
@@ -132,15 +141,8 @@ describe('PermanentComponent', function () {
         instance1.mount(null);
         expect(instance1.trace).to.deep.equal([{
             method: "externalObjectUnmounted",
-            object: {id: "P6", foo: 6}
+            object: {id: "ID6", foo: 6}
         }]);
 
-        let parentContainer2 = new HTMLElementMock("div");
-        instance2.mount(parentContainer2 as any);
-        instance2.mount(null);
-        instance2.componentWillUpdate({id: "P6", externalObjectStore, foo: 8});
-        instance2.mount(parentContainer2 as any);
-        instance2.componentWillUpdate({id: "P7", externalObjectStore, foo: 8});
-        instance2.mount(parentContainer2 as any);
     });
 });

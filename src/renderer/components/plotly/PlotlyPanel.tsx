@@ -31,11 +31,11 @@ export class PlotPanel extends ExternalObjectComponent<Plot, PlotState, IPlotPan
     newContainer(id: string): HTMLElement {
         const div = document.createElement("div");
         div.setAttribute("id", "plotly-container-" + id);
-        div.setAttribute("style", "width: 100%; height: 20em; padding: 1em; margin: 1em;");
+        div.setAttribute("style", "width: 100%; height: 20em; padding: 1em; margin: 0.2em;");
         return div;
     }
 
-    newExternalObject(container: HTMLElement): ExternalObjectRef<Plot, PlotState> {
+    newExternalObject(parentContainer: HTMLElement, container: HTMLElement): ExternalObjectRef<Plot, PlotState> {
         console.log('Plotly', Plotly);
 
         if (this.props.type === 'scatter') {
