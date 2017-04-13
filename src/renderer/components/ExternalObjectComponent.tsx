@@ -70,11 +70,10 @@ export type ExternalObjectStore<E, S> = { [id: string]: ExternalObjectRef<E, S> 
  * Note that the external object is removed from the store only if the "dispose()" method is called.
  *
  * @author Norman Fomferra
- * @version 0.3
+ * @version 0.4
  */
-export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectComponentProps<E, ES>, S> extends React.PureComponent<
-    P
-    & ES, S> {
+export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectComponentProps<E, ES>, S>
+    extends React.PureComponent<P & ES, S> {
     private static readonly DEFAULT_EXTERNAL_OBJECT_CACHE: Object = {};
 
     private parentContainer: HTMLElement | null;
@@ -90,6 +89,12 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
             throw new Error("cannot construct ExternalObjectComponent without id");
         }
     }
+
+    // TODO (forman): we can probably simplify ExternalObjectComponent by getting rid of the intermediate container
+    //                created by newContainer(id), if we add the following methods to be overidden by clients,
+    //                in case this is needed. The default impls would do nothing:
+    //                     attachExternalObject(parentContainer, object)
+    //                     detachExternalObject(parentContainer, object)
 
     /**
      * Create a new container for the external object.
@@ -217,11 +222,6 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
     }
 
     private mountNewExternalObject(parentContainer: HTMLElement) {
-        // TODO (forman): we can probably simplify this class by getting rid of the intermediate container used here
-        //                created by newContainer(id), if we add the following methods to be overidden by clients,
-        //                in case this is needed. The default impls do nothing:
-        //                     attachExternalObject(parentContainer, object)
-        //                     detachExternalObject(parentContainer, object)
         const container = this.newContainer(this.props.id);
         if (container) {
             if (this.props.debug) {
