@@ -9,6 +9,7 @@ import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import DownloadDatasetDialog from "./DownloadDatasetDialog";
 import OpenDatasetDialog from "./OpenDatasetDialog";
+import AddDatasetDialog from "./AddDatasetDialog";
 import RemoveDatasetDialog from "./RemoveDatasetDialog";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -77,7 +78,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
     }
 
     private handleAddDatasetDialog() {
-        //this.props.showDialog('addDatasetDialog');
+        this.props.showDialog('addDatasetDialog');
     }
 
     private handleRemoveDatasetDialog() {
@@ -130,7 +131,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                     <Button className="pt-intent-primary"
                             onClick={this.handleRemoveDatasetDialog}
                             disabled={!canRemove}
-                            iconName="delete"/>
+                            iconName="trash"/>
                     <Button className="pt-intent-primary"
                             onClick={this.handleShowDownloadDatasetDialog}
                             disabled={!canDownload}
@@ -139,6 +140,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                             onClick={this.handleShowOpenDatasetDialog}
                             disabled={!canOpen}
                             iconName="folder-shared-open"/>
+                    <AddDatasetDialog/>
                     <RemoveDatasetDialog/>
                     <DownloadDatasetDialog/>
                     <OpenDatasetDialog/>

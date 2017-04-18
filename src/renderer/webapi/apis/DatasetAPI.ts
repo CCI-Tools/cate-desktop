@@ -34,8 +34,14 @@ export class DatasetAPI {
         );
     }
 
-    makeDataSourceLocal(dataSourceId: string, localName: string, args: any, onProgress: (progress: JobProgress) => void): JobPromise<DataSourceState[]> {
+    makeDataSourceLocal(dataSourceId: string, localName: string, args: any,
+                        onProgress: (progress: JobProgress) => void): JobPromise<DataSourceState[]> {
         return this.webAPIClient.call('make_ds_local', [dataSourceId, localName, args], onProgress);
+    }
+
+    addLocalDataSource(dataSourceId: string, filePathPattern: string,
+                       onProgress: (progress: JobProgress) => void): JobPromise<DataSourceState[]> {
+        return this.webAPIClient.call('add_local_datasource', [dataSourceId, filePathPattern], onProgress);
     }
 
     removeLocalDataSource(dataSourceId: string, removeFiles: boolean): JobPromise<DataSourceState[]> {

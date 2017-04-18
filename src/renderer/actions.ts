@@ -331,6 +331,19 @@ export function openDataset(dataSourceId: string, args: any) {
     }
 }
 
+export function addLocalDataset(dataSourceId: string, filePathPattern: string) {
+    return (dispatch, getState: GetState) => {
+        function call(onProgress) {
+            return selectors.datasetAPISelector(getState()).addLocalDataSource(dataSourceId, filePathPattern, onProgress);
+        }
+
+        function action(dataSources: DataSourceState[]) {
+            dispatch(updateDataSources('local', dataSources));
+        }
+        callAPI(dispatch, `Adding local data source "${dataSourceId}"`, call, action);
+    }
+}
+
 export function removeLocalDataset(dataSourceId: string, removeFiles: boolean) {
     return (dispatch, getState: GetState) => {
         function call(onProgress) {
