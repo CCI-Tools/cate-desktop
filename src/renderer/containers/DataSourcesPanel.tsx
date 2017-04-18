@@ -1,7 +1,7 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {State, DataStoreState, DataSourceState} from "../state";
-import {Button, InputGroup, Classes, Tag, Tabs2, Tab2} from "@blueprintjs/core";
+import {AnchorButton, InputGroup, Classes, Tag, Tabs2, Tab2} from "@blueprintjs/core";
 import {Table, Column, Cell} from "@blueprintjs/table";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
@@ -14,16 +14,17 @@ import RemoveDatasetDialog from "./RemoveDatasetDialog";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES} from "../messages";
+import {Tooltip} from "@blueprintjs/core";
 
 
 interface IDataSourcesPanelProps {
     hasWorkspace: boolean;
     dataStores: Array<DataStoreState>;
     dataSourceFilterExpr: string;
-    selectedDataStore: DataStoreState|null;
-    selectedDataSource: DataSourceState|null;
-    selectedDataSources: DataSourceState[]|null;
-    filteredDataSources: DataSourceState[]|null;
+    selectedDataStore: DataStoreState | null;
+    selectedDataSource: DataSourceState | null;
+    selectedDataSources: DataSourceState[] | null;
+    filteredDataSources: DataSourceState[] | null;
     showDataSourceDetails: boolean;
 }
 
@@ -119,27 +120,35 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             const isLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id === 'local';
             const isNonLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id !== 'local';
             const canAdd = isLocalStore;
-            const canRemove = isLocalStore && hasSelection;
-            const canDownload = isNonLocalStore && hasSelection;
+            const canRemove = hasSelection && isLocalStore;
+            const canDownload = hasSelection;
             const canOpen = hasSelection && this.props.hasWorkspace;
             const actionComponent = (
                 <div className="pt-button-group">
-                    <Button className="pt-intent-primary"
-                            onClick={this.handleAddDatasetDialog}
-                            disabled={!canAdd}
-                            iconName="add"/>
-                    <Button className="pt-intent-primary"
-                            onClick={this.handleRemoveDatasetDialog}
-                            disabled={!canRemove}
-                            iconName="trash"/>
-                    <Button className="pt-intent-primary"
-                            onClick={this.handleShowDownloadDatasetDialog}
-                            disabled={!canDownload}
-                            iconName="cloud-download"/>
-                    <Button className="pt-intent-primary"
-                            onClick={this.handleShowOpenDatasetDialog}
-                            disabled={!canOpen}
-                            iconName="folder-shared-open"/>
+                    <Tooltip content="Add local data source">
+                        <AnchorButton
+                                      onClick={this.handleAddDatasetDialog}
+                                      disabled={!canAdd}
+                                      iconName="add"/>
+                    </Tooltip>
+                    <Tooltip content="Remove local data source">
+                        <AnchorButton
+                                      onClick={this.handleRemoveDatasetDialog}
+                                      disabled={!canRemove}
+                                      iconName="trash"/>
+                    </Tooltip>
+                    <Tooltip content="Copy data source local">
+                        <AnchorButton className={isNonLocalStore ? "pt-intent-primary" : ""}
+                                      onClick={this.handleShowDownloadDatasetDialog}
+                                      disabled={!canDownload}
+                                      iconName="cloud-download"/>
+                    </Tooltip>
+                    <Tooltip content="Open data source">
+                        <AnchorButton className={isLocalStore ? "pt-intent-primary" : ""}
+                                      onClick={this.handleShowOpenDatasetDialog}
+                                      disabled={!canOpen}
+                                      iconName="folder-shared-open"/>
+                    </Tooltip>
                     <AddDatasetDialog/>
                     <RemoveDatasetDialog/>
                     <DownloadDatasetDialog/>
@@ -235,7 +244,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
 
 interface IDataSourcesListProps {
     dataSources: DataSourceState[];
-    selectedDataSourceId: string|null;
+    selectedDataSourceId: string | null;
     setSelectedDataSourceId: (selectedDataSourceId: string) => void;
 }
 class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
@@ -272,7 +281,7 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
         const iconName = ((dataSource.meta_info && dataSource.meta_info.cci_project) || 'cci').toLowerCase();
         const displayName = dataSource.name.replace('esacci', '').replace(/\./g, ' ');
         return (
-            <div style={{display:'flex', alignItems: 'center'}}>
+            <div style={{display: 'flex', alignItems: 'center'}}>
                 <img src={`resources/images/data-sources/esacci/${iconName}.png`}
                      style={{width: imageSize, height: imageSize, flex: 'none', marginRight: 6}}
                      onError={this.handleIconLoadError}/>
