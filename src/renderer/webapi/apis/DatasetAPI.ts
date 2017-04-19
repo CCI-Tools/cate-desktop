@@ -3,11 +3,11 @@ import {JobPromise, JobProgress} from "../Job";
 import {DataStoreState, DataSourceState} from "../../state";
 
 
-function responseToTemporalCoverage(temporalCoverageResponse: any): [string, string]|null {
-    if (!temporalCoverageResponse) {
-        return null;
+function responseToTemporalCoverage(response: any): [string, string]|null {
+    if (response && response.temporal_coverage_start && response.temporal_coverage_end) {
+        return [response.temporal_coverage_start, response.temporal_coverage_end];
     }
-    return [temporalCoverageResponse.temporal_coverage_start, temporalCoverageResponse.temporal_coverage_end];
+    return null;
 }
 
 export class DatasetAPI {
