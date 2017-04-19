@@ -266,4 +266,3 @@ const ViewManagerPanel = connect(mapStateToPropsView)(ViewManagerPanelComponent)
 
 
 
-

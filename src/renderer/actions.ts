@@ -293,8 +293,8 @@ export function downloadDataset(dataSourceId: string, localName: string, args: a
         }
 
         function action(dataSources: DataSourceState[]) {
+            dispatch(updateDataSources('local', dataSources));
             if (dataSources && dataSources.length) {
-                dispatch(updateDataSources('local', dataSources));
                 dispatch(setSelectedDataStoreIdImpl('local'));
                 dispatch(setDataSourceFilterExpr(''));
                 const localDSName = dataSources.find(ds => ds.name === localName || ds.name === `local.${localName}`);
@@ -331,6 +331,31 @@ export function openDataset(dataSourceId: string, args: any) {
     }
 }
 
+export function addLocalDataset(dataSourceId: string, filePathPattern: string) {
+    return (dispatch, getState: GetState) => {
+        function call(onProgress) {
+            return selectors.datasetAPISelector(getState()).addLocalDataSource(dataSourceId, filePathPattern, onProgress);
+        }
+
+        function action(dataSources: DataSourceState[]) {
+            dispatch(updateDataSources('local', dataSources));
+        }
+        callAPI(dispatch, `Adding local data source "${dataSourceId}"`, call, action);
+    }
+}
+
+export function removeLocalDataset(dataSourceId: string, removeFiles: boolean) {
+    return (dispatch, getState: GetState) => {
+        function call(onProgress) {
+            return selectors.datasetAPISelector(getState()).removeLocalDataSource(dataSourceId, removeFiles);
+        }
+
+        function action(dataSources: DataSourceState[]) {
+            dispatch(updateDataSources('local', dataSources));
+        }
+        callAPI(dispatch, `Removing local copy of data source "${dataSourceId}"`, call, action);
+    }
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation actions
 
