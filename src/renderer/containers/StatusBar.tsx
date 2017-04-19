@@ -78,7 +78,13 @@ class StatusBar extends React.Component<IStatusBarProps, null> {
             <div
                 style={{display:"flex", flexFlow: "row nowrap", height: "1.5em", fontSize: "small", backgroundColor: "#2B95D6"}}>
                 <div style={{flex: "80 0 auto", padding: "1px 1px 1px 1px"}}>{message}</div>
-                <div style={{flex: "9 0 auto", padding: "1px 1px 1px 1px"}}>{tasksState}</div>
+                <div style={{
+                    flex: "9 0 auto",
+                    padding: "1px 1px 1px 1px",
+                    display: "flex",
+                    flexFlow: "column",
+                    justifyContent: "center"
+                }}>{tasksState}</div>
                 <div style={{flex: "9 0 auto", padding: "1px 1px 1px 1px"}}>{cursor}</div>
                 <div style={{flex: "2 0 auto", padding: "1px 1px 1px 1px"}}>{backendState}</div>
             </div>
