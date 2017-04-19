@@ -47,6 +47,7 @@ function mapStateToProps(state: State): IDownloadDatasetDialogProps {
     };
 }
 
+// TODO mz OpenDatasetDialog and DownloadDatasetDialog are very similar !
 class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps, IDownloadDatasetDialogState> {
     static readonly DIALOG_ID = 'downloadDatasetDialog';
 
@@ -145,7 +146,7 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
         let validVariableNames = true;
         const variableNames = this.state.variableNames;
         const dataSource = this.props.dataSource;
-        const variables: any[] = dataSource.meta_info.variables;
+        const variables: any[] = dataSource.meta_info && dataSource.meta_info.variables;
         if (variableNames && variables) {
             const validNames = new Set(variables.map(variable => variable.name));
             validVariableNames = variableNames.every(name => validNames.has(name));
@@ -247,7 +248,7 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
                 <p>You are about to download a dataset from data source <strong>{this.props.dataSource.name}</strong>.
                 </p>
 
-                <Checkbox style={{marginTop: '1em'}} checked={hasTimeConstraint} label="Time constraint"
+                <Checkbox style={{marginTop: '1em'}} disabled={!temporalCoverage} checked={hasTimeConstraint} label="Time constraint"
                           onChange={this.onHasTimeConstraintChange}/>
                 <div style={{marginLeft: '2em'}}>
                     <DateRangeInput
@@ -280,8 +281,8 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
                                         onChange={this.onVariableNamesChange} resource={res} multi={true}/>
                 </div>
 
-                <p style={{marginTop: '1em'}}>A new <strong>local</strong>
-                    data source will be created using the following name:</p>
+                <p style={{marginTop: '1em'}}>
+                    A new <strong>local</strong> data source will be created using the following name:</p>
                 <input className="pt-input"
                        style={{width: '100%', marginLeft: '1em'}}
                        type="text"
@@ -294,9 +295,10 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
     private assembleArguments() {
         let args = {};
         if (this.state.hasTimeConstraint && this.state.timeRange) {
+            const t0 = formatDateAsISODateString(this.state.timeRange[0]);
+            const t1 = formatDateAsISODateString(this.state.timeRange[1]);
             args = {
-                start_date: formatDateAsISODateString(this.state.timeRange[0]),
-                end_date: formatDateAsISODateString(this.state.timeRange[1]),
+                time_range: `${t0}, ${t1}`,
             };
         }
         if (this.state.hasRegionConstraint && this.state.region) {
@@ -308,7 +310,7 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
         }
         if (this.state.hasVariablesConstraint && this.state.variableNames.length) {
             let variableNames = this.state.variableNames;
-            args = {...args, 'var': variableNames.join(',')};
+            args = {...args, 'var_names': variableNames.join(',')};
         }
         return args;
     }
