@@ -1,7 +1,7 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {State, DataStoreState, DataSourceState} from "../state";
-import {AnchorButton, InputGroup, Classes, Tag, Tabs2, Tab2} from "@blueprintjs/core";
+import {AnchorButton, InputGroup, Classes, Tag, Tabs2, Tab2, Tooltip} from "@blueprintjs/core";
 import {Table, Column, Cell} from "@blueprintjs/table";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
@@ -14,7 +14,6 @@ import RemoveDatasetDialog from "./RemoveDatasetDialog";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES} from "../messages";
-import {Tooltip} from "@blueprintjs/core";
 
 
 interface IDataSourcesPanelProps {
