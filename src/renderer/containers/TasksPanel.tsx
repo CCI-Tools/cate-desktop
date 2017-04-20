@@ -9,11 +9,12 @@ import {Card} from "../components/Card";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 interface ITaskPanelProps {
-    tasks: {[jobId: number]: TaskState};
+    tasks: { [jobId: number]: TaskState };
 }
 
 interface ITaskPanelDispatch {
     cancelJob(number): void;
+    removeJob(number): void;
 }
 
 function mapStateToProps(state: State): ITaskPanelProps {
@@ -22,7 +23,10 @@ function mapStateToProps(state: State): ITaskPanelProps {
     };
 }
 
-const mapDispatchToProps = {cancelJob: actions.cancelJob};
+const mapDispatchToProps = {
+    cancelJob: actions.cancelJob,
+    removeJob: actions.removeJob
+};
 
 /**
  * The TasksPanel is used display all tasks originating from cate desktop,
@@ -65,37 +69,49 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, n
         const renderItem = (jobId: number, itemIndex: number) => {
             const taskState = taskStateList[itemIndex];
             let activity = null;
-            if (TasksPanel.isActive(taskState) && TasksPanel.isMakingProgress(taskState)) {
-                // cancel is only possible, if we have a progress monitor
-                const cancelJob = () => this.props.cancelJob(jobId);
-                const cancelButton = <Button type="button"
-                                             className="pt-intent-primary"
-                                             onClick={cancelJob}
-                                             iconName="pt-icon-cross">Cancel</Button>;
+            if (TasksPanel.isActive(taskState)) {
+                if (TasksPanel.isMakingProgress(taskState)) {
+                    const progress = <ProgressBar intent={Intent.SUCCESS}
+                                                  value={taskState.progress.worked / taskState.progress.total}/>;
+                    // cancel is only possible, if we have a progress monitor
+                    const cancelJob = () => this.props.cancelJob(jobId);
+                    const cancelButton = <Button type="button"
+                                                 className="pt-intent-primary"
+                                                 onClick={cancelJob}
+                                                 iconName="pt-icon-cross">Cancel</Button>;
 
-                const progress = <div style={{padding: '0.5em'}}>
-                    <ProgressBar intent={Intent.SUCCESS}
-                                 value={taskState.progress.worked / taskState.progress.total}/>
-                </div>;
 
-                let message = null;
-                if (taskState.progress && taskState.progress.message) {
-                    message = <div style={{fontSize: '0.8em'}}>{taskState.progress.message}</div>;
+                    const cancelableProgress = <div style={{display: "flex", flexFlow: "row nowrap", width: "100%"}}>
+                        <div style={{
+                            flex: "3 1 auto",
+                            display: "flex",
+                            flexFlow: "column",
+                            justifyContent: "center",
+                            padding: "1px 1px 1px 1px"
+                        }}>{progress}</div>
+                        <div style={{flex: "0 1 auto"}}>{cancelButton}</div>
+                    </div>;
+
+                    let progressMag = null;
+                    if (taskState.progress && taskState.progress.message) {
+                        progressMag = <div style={{fontSize: '0.8em'}}>{taskState.progress.message}</div>;
+                    }
+                    activity = <div>{cancelableProgress}{progressMag}</div>
+                } else {
+                    activity = <ProgressBar/>
                 }
-
-                // TODO (marcoz): styling issue: place progress bar and cancel button on a single line
-                activity = <div>
-                    {progress}
-                    {cancelButton}
-                    {message}
-                </div>
             }
-            let error = null;
+            let errorMsg = null;
             if (taskState.failure && taskState.failure.message) {
-                error = <div style={{color: 'rgb(255, 0, 0)', fontSize: '0.8em'}}>{taskState.failure.message}</div>;
+                const removeJob = () => this.props.removeJob(jobId);
+                errorMsg = <div style={{display: "flex", flexFlow: "row nowrap", width: "100%"}}>
+                    <div className="pt-intent-danger" style={{flex: "0 1 auto", color: 'rgb(255, 0, 0)', fontSize: '0.8em'}}>{taskState.failure.message}</div>
+                    <div style={{flex: "10 1 auto"}}/>
+                    <Button style={{flex: "0 1 auto"}} iconName="cross" onClick={removeJob}/>
+                </div>;
             }
             const title = taskState.title || visibleTaskIds[itemIndex];
-            return (<div>{title}{activity}{error}</div>);
+            return (<div>{title}{activity}{errorMsg}</div>);
         };
 
         let panelContents;
