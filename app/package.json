@@ -13,6 +13,7 @@
     "@blueprintjs/table": "~1.10.x",
     "cesium": "~1.30.x",
     "classnames": "~2.2.x",
+    "d3": "~3.5.x",
     "deep-equal": "~1.0.x",
     "electron-devtools-installer": "~2.1.x",
     "oboe": "~2.1.x",
