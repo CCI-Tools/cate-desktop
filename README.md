@@ -12,12 +12,12 @@
 Note that `cate-desktop` requires [cate-core](https://github.com/CCI-Tools/cate-core) to be installed on your system.
 Follow the instruction in `cate-core`'s [README](https://github.com/CCI-Tools/cate-core/blob/master/README.md) first.
 
-Once `cate-core` is ready to be used, get the source code for cate-desktop:
+Once `cate-core` is ready to be used, get the source code for `cate-desktop`:
 
     $ git clone https://github.com/CCI-Tools/cate-desktop.git
     $ cd cate-desktop
 
-Now copy file `cate-config.template.js` to a file named `cate-config.js`. Then adjust the "command" parameter 
+Now copy file `cate-config.template.js` to a file named `cate-config.js`. Then adjust the `command` parameter 
 in `cate-config.js` to match the `cate-webapi` executable located in the Python environment in which you've installed 
 `cate-core`.
 
@@ -28,7 +28,7 @@ On Linux and Darwin the value for `command` may look like
             command: "/home/bibo/apps/miniconda3/envs/cate/bin/cate-webapi",
             ...
 
-while on Windows, the value may look like (note the double backslashes!)
+while on Windows the value may be similar to (note the double backslashes!)
 
     module.exports = {
         webAPIConfig: {
@@ -36,9 +36,7 @@ while on Windows, the value may look like (note the double backslashes!)
             ...
 
 The only development tool initially required to build cate-desktop is the latest version [Node.js](https://nodejs.org/).
-After installing Node.js, we use its Package Manager `npm` to install all other required project dependencies.
-
-Next step is to install all `cate-desktop` package dependencies using Node.js' package manager tool `npm`:
+After installing Node.js, we use its package manager `npm` to install all other package dependencies.
 
     $ npm install
 
