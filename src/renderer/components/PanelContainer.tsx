@@ -146,7 +146,6 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
 
     render() {
         const panelBar = <PanelBar panels={React.Children.toArray(this.props.children) as JSX.Element[]}
-                                   barSize={PanelContainer.PANEL_BAR_SIZE}
                                    position={this.props.position}
                                    selectedTopPanelId={this.state.selectedTopPanelId}
                                    selectedBottomPanelId={this.state.selectedBottomPanelId}
@@ -355,6 +354,28 @@ const PANEL_BAR_ITEM_SELECTED_STYLE = {
 // This is Colors.DARK_GRAY5 with 0.5 opacity
 const PANEL_UNDOCKED_BACKGROUND_COLOR = "rgba(57, 75, 89, 0.5)";
 
+const TOP_PANEL_BAR_STYLE = {flex: "none", listStyleType: "none", padding: 0, margin: 0, border: "none"};
+const BOTTOM_PANEL_BAR_STYLE = {flex: "none", listStyleType: "none", padding: 0, margin: 0, border: "none"};
+const SPACER_STYLE = {flex: "auto"};
+const CONTAINER_STYLE = {
+    display: "flex",
+    flexDirection: "column",
+    flex: "none",
+    maxHeight: "100%",
+    minWidth: PanelContainer.PANEL_BAR_SIZE,
+    overflow: "hidden",
+    backgroundColor: Colors.DARK_GRAY2,
+    paddingTop: PanelContainer.PANEL_BAR_PADDING,
+    paddingBottom: PanelContainer.PANEL_BAR_PADDING,
+};
+const PANEL_BUTTON_STYLE = {textAlign: "center", verticalAlign: "middle"};
+
+const PANEL_BODY_CONTAINER_STYLE = {
+    flex: 1,
+    padding: PanelContainer.PANEL_BODY_PADDING,
+    overflow: "auto",
+};
+
 
 interface IPanelBarProps {
     panels: JSX.Element[];
@@ -362,14 +383,12 @@ interface IPanelBarProps {
     selectedBottomPanelId: string | null;
     onTopPanelSelected: (panelId: string) => void;
     onBottomPanelSelected: (panelId: string) => void;
-    barSize: number;
     position: "left" | "right";
 }
 
 function PanelBar(props: IPanelBarProps) {
     const position = props.position || "left";
     const tooltipPos = position === "left" ? Position.RIGHT : Position.LEFT;
-    const barSize = props.barSize;
     const panels = props.panels || [];
 
     function renderPanelButton(panel, selectedPanelId: string) {
@@ -386,7 +405,7 @@ function PanelBar(props: IPanelBarProps) {
                 style={style}>
                 <Tooltip content={panelTitle} position={tooltipPos} hoverOpenDelay={1500}>
                     <span className={"pt-icon-large " + panelIconName}
-                          style={{textAlign: "center", verticalAlign: "middle"}}/>
+                          style={PANEL_BUTTON_STYLE}/>
                 </Tooltip>
             </li>
         );
@@ -410,23 +429,12 @@ function PanelBar(props: IPanelBarProps) {
     }
 
     return (
-        <div
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                flex: "none",
-                maxHeight: "100%",
-                minWidth: barSize,
-                overflow: "hidden",
-                backgroundColor: Colors.DARK_GRAY2,
-                paddingTop: PanelContainer.PANEL_BAR_PADDING,
-                paddingBottom: PanelContainer.PANEL_BAR_PADDING,
-            }}>
-            <ul style={{flex: "none", listStyleType: "none", padding: 0, margin: 0, border: "none"}}>
+        <div style={CONTAINER_STYLE}>
+            <ul style={TOP_PANEL_BAR_STYLE}>
                 {topPanelButtons}
             </ul>
-            <div style={{flex: "auto"}}/>
-            <ul style={{flex: "none", listStyleType: "none", padding: 0, margin: 0, border: "none"}}>
+            <div style={SPACER_STYLE}/>
+            <ul style={BOTTOM_PANEL_BAR_STYLE}>
                 {bottomPanelButtons}
             </ul>
         </div>
@@ -456,12 +464,6 @@ function PanelPane(props: IPanelPaneProps) {
         ...props.style,
     };
 
-    const bodyContainerStyle = {
-        flex: 1,
-        padding: PanelContainer.PANEL_BODY_PADDING,
-        overflow: "auto",
-    };
-
     return (
         <div style={panelParentStyle}>
             <PanelHeader
@@ -470,7 +472,7 @@ function PanelPane(props: IPanelPaneProps) {
                 iconName={panel.props.iconName}
                 onClose={() => props.onClose(panelId)}
             />
-            <div style={bodyContainerStyle}>
+            <div style={PANEL_BODY_CONTAINER_STYLE}>
                 {panelBody}
             </div>
         </div>

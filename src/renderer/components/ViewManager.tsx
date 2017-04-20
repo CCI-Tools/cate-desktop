@@ -9,20 +9,20 @@ import {
 /**
  * Mapping from view type name to ViewRenderer
  */
-export type ViewRenderMap = {[viewType: string]: ViewRenderer<any>};
+export type ViewRenderMap = { [viewType: string]: ViewRenderer<any> };
 /**
  * Mapping from view id to ViewState
  */
-export type ViewMap = {[viewId: string]: ViewState<any>};
+export type ViewMap = { [viewId: string]: ViewState<any> };
 
 interface IViewManagerProps {
     viewRenderMap: ViewRenderMap;
     viewLayout: ViewLayoutState;
     views: ViewState<any>[];
-    activeView: ViewState<any>|null;
-    noViewsDescription?: string|null;
-    noViewsAction?: JSX.Element|null;
-    noViewsVisual?: string|JSX.Element;
+    activeView: ViewState<any> | null;
+    noViewsDescription?: string | null;
+    noViewsAction?: JSX.Element | null;
+    noViewsVisual?: string | JSX.Element;
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
     onCloseView: (viewPath: ViewPath, viewId: string) => void;
     onCloseAllViews: (viewPath: ViewPath) => void;
@@ -34,6 +34,25 @@ interface IViewManagerState {
 }
 
 export class ViewManager extends React.PureComponent<IViewManagerProps, IViewManagerState> {
+    static readonly NO_VIEW_CONTAINER_STYLE = {
+        width: "100%",
+        height: "100%",
+        flex: "auto"
+    };
+    static readonly HOR_SPLIT_CONTAINER_STYLE = {
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexFlow: "row nowrap",
+        flex: "auto",
+    };
+    static readonly VER_SPLIT_CONTAINER_STYLE = {
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexFlow: "column nowrap",
+        flex: "auto",
+    };
 
     private viewMap: ViewMap;
 
@@ -67,7 +86,7 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
 
     renderNoViews() {
         return (
-            <div style={{width:"100%", maxHeight:"100%", flex: "auto"}}>
+            <div style={ViewManager.NO_VIEW_CONTAINER_STYLE}>
                 <NonIdealState
                     title="No views"
                     description={this.props.noViewsDescription}
@@ -103,25 +122,13 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
             let childContainer2Style;
             const splitterSize = 4; // px
             if (viewSplit.dir === 'hor') {
-                containerStyle = {
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    flexFlow: "row nowrap",
-                    flex: "auto",
-                };
+                containerStyle = ViewManager.HOR_SPLIT_CONTAINER_STYLE;
                 let width1 = viewSplit.pos;
                 let width2 = `calc(100% - ${width1 + splitterSize}px)`;
                 childContainer1Style = {flex: 'none', width: width1, height: '100%'};
                 childContainer2Style = {flex: 'auto', width: width2, height: '100%'};
             } else {
-                containerStyle = {
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    flexFlow: "column nowrap",
-                    flex: "auto",
-                };
+                containerStyle = ViewManager.VER_SPLIT_CONTAINER_STYLE;
                 let height1 = viewSplit.pos;
                 let height2 = `calc(100% - ${height1 + splitterSize}px)`;
                 childContainer1Style = {flex: 'none', width: '100%', height: height1};
@@ -172,10 +179,10 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
 interface IViewPanelProps {
     viewRenderMap: ViewRenderMap;
     viewMap: ViewMap;
-    activeView: ViewState<any>|null;
+    activeView: ViewState<any> | null;
     viewPath: ViewPath;
     viewIds: string[];
-    selectedViewId: string|null;
+    selectedViewId: string | null;
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
     onCloseView: (viewPath: ViewPath, viewId: string) => void;
     onCloseAllViews: (viewPath: ViewPath) => void;
@@ -202,6 +209,39 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
     static readonly CLOSE_ICON_STYLE_NORMAL = {marginLeft: 6, fontSize: 12};
 
     static readonly MENU_ICON_STYLE = {color: Colors.GRAY5, marginLeft: 5, fontSize: 12};
+
+    static readonly TABS_STYLE = {flex: "none", display: "flex", flexDirection: "row"};
+    static readonly SPACER_STYLE = {flex: "auto"};
+    static readonly MENU_STYLE = {flex: "none", height: "100%"};
+
+    static readonly VIEW_HEADER_STYLE = {
+        display: "flex",
+        flexDirection: "row",
+        flex: "none",
+        width: "100%",
+        marginTop: 2,
+        fontSize: "12px",
+        fontWeight: "lighter" as any,
+        borderBottomStyle: "solid",
+        borderBottomWidth: 2,
+        borderBottomColor: ViewPanel.SELECTED_BG_COLOR
+    };
+
+    static readonly VIEW_BODY_STYLE = {
+        display: "flex",
+        flexDirection: "column",
+        flex: 'auto',
+        width: "100%",
+        height: "100%"
+    };
+
+    static readonly CONTAINER_STYLE = {
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        height: "100%"
+    };
+
 
     private contentElement: HTMLDivElement;
 
@@ -285,14 +325,14 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
             );
         }
 
-        const tabs = (<div style={{flex: "none", display: "flex", flexDirection: "row"}}>{tabItems}</div>);
-        const spacer = (<div key="spacer" style={{flex: "auto"}}/>);
+        const tabs = (<div style={ViewPanel.TABS_STYLE}>{tabItems}</div>);
+        const spacer = (<div key="spacer" style={ViewPanel.SPACER_STYLE}/>);
 
         let menu;
         if (views.length > 1) {
             const menuIconStyle = ViewPanel.MENU_ICON_STYLE;
             menu = (
-                <div style={{flex: "none", height: "100%"}}>
+                <div style={ViewPanel.MENU_STYLE}>
                     <span key="splitHor" style={menuIconStyle} className="pt-icon-standard pt-icon-add-column-right"
                           onClick={this.onSplitHor}/>
                     <span key="splitVer" style={menuIconStyle} className="pt-icon-standard pt-icon-add-row-bottom"
@@ -302,27 +342,14 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
             );
         }
 
-        let headerStyle = {
-            display: "flex",
-            flexDirection: "row",
-            flex: "none",
-            width: "100%",
-            marginTop: 2,
-            fontSize: "12px",
-            fontWeight: "lighter",
-            borderBottomStyle: "solid",
-            borderBottomWidth: 2,
-            borderBottomColor: ViewPanel.SELECTED_BG_COLOR
-        };
-
         return (
-            <div style={{display: "flex", flexDirection: "column", width:"100%", height:"100%"}}>
-                <div style={headerStyle as any}>
+            <div style={ViewPanel.CONTAINER_STYLE}>
+                <div style={ViewPanel.VIEW_HEADER_STYLE}>
                     {tabs}
                     {spacer}
                     {menu}
                 </div>
-                <div style={{display: "flex", flexDirection: "column", flex: 'auto', width:"100%", height:"100%"}}
+                <div style={ViewPanel.VIEW_BODY_STYLE}
                      ref={this.onContentDivRef}>
                     {renderedViewContent}
                 </div>
