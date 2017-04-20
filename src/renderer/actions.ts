@@ -27,6 +27,7 @@ export const UPDATE_INITIAL_STATE = 'UPDATE_INITIAL_STATE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const UPDATE_DIALOG_STATE = 'UPDATE_DIALOG_STATE';
 export const UPDATE_TASK_STATE = 'UPDATE_TASK_STATE';
+export const REMOVE_TASK_STATE = 'REMOVE_TASK_STATE';
 export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 
@@ -101,6 +102,10 @@ export function storeBackendConfig(backendConfig: BackendConfigState) {
 
         callAPI(dispatch, 'Storing backend configuration', call);
     };
+}
+
+export function removeJob(jobId: number) {
+    return {type: REMOVE_TASK_STATE, payload: {jobId}};
 }
 
 export function cancelJob(jobId: number) {

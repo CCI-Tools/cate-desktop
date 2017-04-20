@@ -501,6 +501,11 @@ const communicationReducer = (state: CommunicationState = initialCommunicationSt
             return updateObject(state, {
                 tasks: updatePropertyObject(state.tasks, action.payload.jobId, action.payload.taskState)
             });
+        case actions.REMOVE_TASK_STATE: {
+            const tasks = Object.assign({}, state.tasks);
+            delete tasks[action.payload.jobId];
+            return updateObject(state, {tasks: tasks});
+        }
     }
     return state;
 };
