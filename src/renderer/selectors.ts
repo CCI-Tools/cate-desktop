@@ -20,6 +20,7 @@ export const EMPTY_ARRAY = [];
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remote API selectors
 
+export const webAPIRestUrlSelector = (state: State): string => state.data.appConfig.webAPIConfig.restUrl;
 export const webAPIClientSelector = (state: State): WebAPIClient => state.data.appConfig.webAPIClient;
 
 
@@ -260,14 +261,21 @@ export const selectedDataSourceTemporalCoverageMillisSelector = createSelector<S
 export const workspaceSelector = (state: State): WorkspaceState | null => state.data.workspace;
 export const workspaceBaseDirSelector = (state: State): string
     | null => state.data.workspace && state.data.workspace.baseDir;
-export const resourcesSelector = (state: State): ResourceState[] => state.data.workspace ? state.data.workspace.resources : [];
-export const workflowStepsSelector = (state: State): WorkflowStepState[] => state.data.workspace ? state.data.workspace.workflow.steps : [];
+export const resourcesSelector = (state: State): ResourceState[] => state.data.workspace ? state.data.workspace.resources : EMPTY_ARRAY;
+export const workflowStepsSelector = (state: State): WorkflowStepState[] => state.data.workspace ? state.data.workspace.workflow.steps : EMPTY_ARRAY;
 export const showResourceDetailsSelector = (state: State): boolean => state.control.showResourceDetails;
 export const selectedResourceIdSelector = (state: State): string | null => state.control.selectedWorkspaceResourceId;
 export const showWorkflowStepDetailsSelector = (state: State): boolean => state.control.showWorkflowStepDetails;
 export const selectedWorkflowStepIdSelector = (state: State): string | null => state.control.selectedWorkflowStepId;
 export const selectedVariableNameSelector = (state: State): string | null => state.control.selectedVariableName;
 export const resourceNamePrefixSelector = (state: State): string => state.session.resourceNamePrefix;
+
+export const resourceNamesSelector = createSelector<State, string[], ResourceState[]>(
+    resourcesSelector,
+    (resources: ResourceState[]) => {
+        return resources.map(r => r.name)
+    }
+);
 
 export const selectedResourceSelector = createSelector<State, ResourceState | null, ResourceState[], string>(
     resourcesSelector,

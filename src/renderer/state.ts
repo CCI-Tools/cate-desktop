@@ -319,6 +319,15 @@ export interface ChartViewDataState {
     selectedChartId: string|null;
 }
 
+export interface TableViewDataState {
+    resName: string|null;
+    varName: string|null;
+    dataRows: any[]|null;
+    error?: any;
+    isLoading?: boolean;
+}
+
+
 export interface VariableChartState extends PlotState, VariableRefState {
     varIndex: (number|null)[];
 }

@@ -58,13 +58,11 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
     }
 
     onAddChartView() {
-        // TODO (forman/marcoz): implement chart view
         this.props.dispatch(actions.addChartView(this.props.activeView ? this.props.activeView.id : null));
     }
 
     onAddTableView() {
-        // TODO (forman/marcoz): implement table view
-        //this.props.dispatch(actions.addTableView());
+        this.props.dispatch(actions.addTableView(this.props.activeView ? this.props.activeView.id : null));
     }
 
     render() {

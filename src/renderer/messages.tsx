@@ -112,3 +112,10 @@ export const NO_CHARTS = (
         description={<span>Press the <span className="pt-icon-add"/> button to add a new chart.</span>}
         visual={ICON_EMPTY}/>
 );
+
+export const NO_TABLE_DATA = (
+    <NonIdealState
+        title="No table data"
+        description={<span>Click <em>Load Data</em> to display data after the selection changed. There may also be no data or an error occurred.</span>}
+        visual={ICON_EMPTY}/>
+);

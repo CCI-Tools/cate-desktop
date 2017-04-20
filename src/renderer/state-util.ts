@@ -1,6 +1,7 @@
 import {
     VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
-    VariableImageLayerState, State, OperationState, WorldViewDataState, ChartViewDataState, VariableChartState
+    VariableImageLayerState, State, OperationState, WorldViewDataState, ChartViewDataState, VariableChartState,
+    TableViewDataState
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
@@ -30,10 +31,12 @@ export function getGeoJSONUrl(baseUrl: string, baseDir: string, layer: VariableV
         + `&max=${encodeURIComponent(layer.displayMax + '')}`;
 }
 
-export function getChartCsvUrl(baseUrl: string, baseDir: string, chart: VariableChartState): string {
-    return baseUrl + `ws/res/csv/${encodeURIComponent(baseDir)}/${encodeURIComponent(chart.resName)}?`
-        + `&var=${encodeURIComponent(chart.varName)}`
-        + `&index=${encodeURIComponent((chart.varIndex || []).join())}`;
+export function getCsvUrl(baseUrl: string, baseDir: string, resName: string, varName?: string|null): string {
+    let varPart = '';
+    if (varName) {
+        varPart = `?var=${encodeURIComponent(varName)}`;
+    }
+    return baseUrl + `ws/res/csv/${encodeURIComponent(baseDir)}/${encodeURIComponent(resName)}${varPart}`;
 }
 
 export function getGeoJSONCountriesUrl(baseUrl: string): string {
@@ -142,6 +145,10 @@ function newInitialChartViewData(): ChartViewDataState {
     } as ChartViewDataState;
 }
 
+function newInitialTableViewData(resName: string|null, varName: string|null): TableViewDataState {
+    return {resName, varName, dataRows: null};
+}
+
 let WORLD_VIEW_COUNTER = 0
 
 export function newWorldView(): ViewState<WorldViewDataState> {
@@ -163,8 +170,21 @@ export function newChartView(): ViewState<ChartViewDataState> {
         title: `Chart (${viewNumber})`,
         id: genSimpleId('chart-'),
         type: 'chart',
-        iconName: "timeline-area-chart",
+        iconName: "pt-icon-timeline-area-chart",
         data: newInitialChartViewData(),
+    };
+}
+
+let TABLE_VIEW_COUNTER = 0;
+
+export function newTableView(resName: string|null, varName: string|null): ViewState<TableViewDataState> {
+    const viewNumber = ++TABLE_VIEW_COUNTER;
+    return {
+        title: `Table (${viewNumber})`,
+        id: genSimpleId('table-'),
+        type: 'table',
+        iconName: "pt-icon-th",
+        data: newInitialTableViewData(resName, varName),
     };
 }
 

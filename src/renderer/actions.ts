@@ -2,7 +2,7 @@ import {
     WorkspaceState, DataStoreState, TaskState, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState, VariableImageLayerState,
-    OperationKWArgs, WorldViewMode, SavedVariableLayers
+    OperationKWArgs, WorldViewMode, SavedVariableLayers, TableViewDataState
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
@@ -10,13 +10,13 @@ import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     isSpatialImageVariable, isSpatialVectorVariable, genLayerId,
-    GetState, newVariableLayer
+    GetState, newVariableLayer, getCsvUrl
 } from "./state-util";
 import {isNumber} from "../common/types";
-import {ViewPath} from "./components/ViewState";
+import {ViewPath, ViewState} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
-
+import * as d3 from "d3";
 
 const CANCELLED_CODE = 999;
 
@@ -34,7 +34,7 @@ export function updateInitialState(initialState: Object) {
     return {type: UPDATE_INITIAL_STATE, payload: initialState};
 }
 
-export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting'|'open'|'error'|'closed') {
+export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting' | 'open' | 'error' | 'closed') {
     return {type: SET_WEBAPI_STATUS, payload: {webAPIClient, webAPIStatus}};
 }
 
@@ -240,7 +240,7 @@ export function updateDataSources(dataStoreId: string, dataSources) {
     return {type: UPDATE_DATA_SOURCES, payload: {dataStoreId, dataSources}};
 }
 
-export function setSelectedDataStoreId(selectedDataStoreId: string|null) {
+export function setSelectedDataStoreId(selectedDataStoreId: string | null) {
     return (dispatch, getState: GetState) => {
         if (getState().control.selectedDataStoreId === selectedDataStoreId) {
             return;
@@ -255,11 +255,11 @@ export function setSelectedDataStoreId(selectedDataStoreId: string|null) {
     }
 }
 
-export function setSelectedDataStoreIdImpl(selectedDataStoreId: string|null) {
+export function setSelectedDataStoreIdImpl(selectedDataStoreId: string | null) {
     return updateControlState({selectedDataStoreId});
 }
 
-export function setSelectedDataSourceId(selectedDataSourceId: string|null) {
+export function setSelectedDataSourceId(selectedDataSourceId: string | null) {
     return updateControlState({selectedDataSourceId});
 }
 
@@ -282,7 +282,9 @@ export function loadTemporalCoverage(dataStoreId: string, dataSourceId: string) 
     };
 }
 
-export function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: string, temporalCoverage: [string, string]|null) {
+export function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: string, temporalCoverage:
+    [string, string]
+    | null) {
     return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
 }
 
@@ -303,6 +305,7 @@ export function downloadDataset(dataSourceId: string, localName: string, args: a
                 }
             }
         }
+
         callAPI(dispatch, `Creating local copy for data source "${dataSourceId}" as "${localName}""`, call, action);
     }
 }
@@ -340,6 +343,7 @@ export function addLocalDataset(dataSourceId: string, filePathPattern: string) {
         function action(dataSources: DataSourceState[]) {
             dispatch(updateDataSources('local', dataSources));
         }
+
         callAPI(dispatch, `Adding local data source "${dataSourceId}"`, call, action);
     }
 }
@@ -353,6 +357,7 @@ export function removeLocalDataset(dataSourceId: string, removeFiles: boolean) {
         function action(dataSources: DataSourceState[]) {
             dispatch(updateDataSources('local', dataSources));
         }
+
         callAPI(dispatch, `Removing local copy of data source "${dataSourceId}"`, call, action);
     }
 }
@@ -380,7 +385,7 @@ export function updateOperations(operations) {
     return {type: UPDATE_OPERATIONS, payload: {operations}};
 }
 
-export function setSelectedOperationName(selectedOperationName: string|null) {
+export function setSelectedOperationName(selectedOperationName: string | null) {
     return updateControlState({selectedOperationName});
 }
 
@@ -436,7 +441,7 @@ export function loadInitialWorkspace() {
  * @param workspacePath workspace path, if null, a new scratch workspace will be created
  * @returns a Redux thunk action
  */
-export function newWorkspace(workspacePath: string|null) {
+export function newWorkspace(workspacePath: string | null) {
     return (dispatch, getState: GetState) => {
         function call() {
             return selectors.workspaceAPISelector(getState()).newWorkspace(workspacePath);
@@ -461,7 +466,7 @@ export function newWorkspace(workspacePath: string|null) {
  * @param workspacePath workspace path
  * @returns a Redux thunk action
  */
-export function openWorkspace(workspacePath?: string|null) {
+export function openWorkspace(workspacePath?: string | null) {
     return (dispatch, getState: GetState) => {
         function call(onProgress) {
             return selectors.workspaceAPISelector(getState()).openWorkspace(workspacePath, onProgress);
@@ -801,7 +806,9 @@ export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean)
     return {type: SET_SHOW_SELECTED_VARIABLE_LAYER, payload: {showSelectedVariableLayer}};
 }
 
-export function setSelectedVariable(resource: ResourceState, selectedVariable: VariableState|null, savedLayers?: SavedVariableLayers) {
+export function setSelectedVariable(resource: ResourceState, selectedVariable:
+    VariableState
+    | null, savedLayers?: SavedVariableLayers) {
     return {type: SET_SELECTED_VARIABLE, payload: {resource, selectedVariable, savedLayers}};
 }
 
@@ -809,7 +816,7 @@ export function addVariableLayer(viewId: string,
                                  resource: ResourceState,
                                  variable: VariableState,
                                  selectLayer: boolean,
-                                 savedLayers?: {[name: string]: LayerState}) {
+                                 savedLayers?: { [name: string]: LayerState }) {
     let layer = newVariableLayer(resource, variable, savedLayers);
     return addLayer(viewId, layer, selectLayer);
 }
@@ -840,19 +847,19 @@ export function setRightPanelContainerLayout(rightPanelContainerLayout: PanelCon
     return updateSessionState({rightPanelContainerLayout});
 }
 
-export function setSelectedLeftTopPanelId(selectedLeftTopPanelId: string|null) {
+export function setSelectedLeftTopPanelId(selectedLeftTopPanelId: string | null) {
     return updateSessionState({selectedLeftTopPanelId});
 }
 
-export function setSelectedLeftBottomPanelId(selectedLeftBottomPanelId: string|null) {
+export function setSelectedLeftBottomPanelId(selectedLeftBottomPanelId: string | null) {
     return updateSessionState({selectedLeftBottomPanelId});
 }
 
-export function setSelectedRightTopPanelId(selectedRightTopPanelId: string|null) {
+export function setSelectedRightTopPanelId(selectedRightTopPanelId: string | null) {
     return updateSessionState({selectedRightTopPanelId});
 }
 
-export function setSelectedRightBottomPanelId(selectedRightBottomPanelId: string|null) {
+export function setSelectedRightBottomPanelId(selectedRightBottomPanelId: string | null) {
     return updateSessionState({selectedRightBottomPanelId});
 }
 
@@ -861,6 +868,7 @@ export function setSelectedRightBottomPanelId(selectedRightBottomPanelId: string
 
 export const ADD_WORLD_VIEW = "ADD_WORLD_VIEW";
 export const ADD_CHART_VIEW = "ADD_CHART_VIEW";
+export const ADD_TABLE_VIEW = "ADD_TABLE_VIEW";
 export const SELECT_VIEW = "SELECT_VIEW";
 export const CLOSE_VIEW = "CLOSE_VIEW";
 export const CLOSE_ALL_VIEWS = "CLOSE_ALL_VIEWS";
@@ -868,12 +876,16 @@ export const SPLIT_VIEW_PANEL = "SPLIT_VIEW_PANEL";
 export const CHANGE_VIEW_SPLIT_POS = "CHANGE_VIEW_SPLIT_POS";
 
 
-export function addWorldView(placeAfterViewId: string|null) {
+export function addWorldView(placeAfterViewId: string | null) {
     return {type: ADD_WORLD_VIEW, payload: {placeAfterViewId}};
 }
 
-export function addChartView(placeAfterViewId: string|null) {
+export function addChartView(placeAfterViewId: string | null) {
     return {type: ADD_CHART_VIEW, payload: {placeAfterViewId}};
+}
+
+export function addTableView(placeAfterViewId: string | null) {
+    return {type: ADD_TABLE_VIEW, payload: {placeAfterViewId}};
 }
 
 export function selectView(viewPath: ViewPath, viewId: string) {
@@ -897,7 +909,7 @@ export function changeViewSplitPos(viewPath: ViewPath, delta: number) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// View actions
+// World view actions
 
 export const SET_VIEW_MODE = 'SET_VIEW_MODE';
 export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
@@ -910,6 +922,36 @@ export function setProjectionCode(viewId: string, projectionCode: string) {
     return {type: SET_PROJECTION_CODE, payload: {viewId, projectionCode}};
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Table view actions
+
+export const UPDATE_TABLE_VIEW_DATA = "UPDATE_TABLE_VIEW_DATA";
+
+export function updateTableViewData(viewId: string,
+                                    resName: string | null,
+                                    varName: string | null,
+                                    dataRows?: any[] | null,
+                                    error?: any,
+                                    isLoading?: boolean) {
+    dataRows = dataRows || null;
+    error = error || null;
+    isLoading = isLoading || false;
+    return {type: UPDATE_TABLE_VIEW_DATA, payload: {viewId, resName, varName, dataRows, error, isLoading}};
+}
+
+export function loadTableViewData(viewId: string, resName: string, varName: string | null) {
+    return (dispatch, getState: GetState) => {
+        const restUrl = selectors.webAPIRestUrlSelector(getState());
+        const baseDir = selectors.workspaceBaseDirSelector(getState());
+        const csvUrl = getCsvUrl(restUrl, baseDir, resName, varName);
+        dispatch(updateTableViewData(viewId, resName, varName, null, null, true));
+        d3.csv(csvUrl, (dataRows: any[]) => {
+            dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
+        }).on('error', (error: any) => {
+            dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
+        });
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer actions
@@ -923,7 +965,7 @@ export const MOVE_LAYER_UP = 'MOVE_LAYER_UP';
 export const MOVE_LAYER_DOWN = 'MOVE_LAYER_DOWN';
 export const SAVE_LAYER = 'SAVE_LAYER';
 
-export function setSelectedLayerId(viewId: string, selectedLayerId: string|null) {
+export function setSelectedLayerId(viewId: string, selectedLayerId: string | null) {
     return {type: SET_SELECTED_LAYER_ID, payload: {viewId, selectedLayerId}};
 }
 
@@ -1010,7 +1052,12 @@ export interface FileFilter {
     extensions: string[];
 }
 
-export type OpenDialogProperty = 'openFile'|'openDirectory'|'multiSelections'|'createDirectory'|'showHiddenFiles';
+export type OpenDialogProperty =
+    'openFile'
+    | 'openDirectory'
+    | 'multiSelections'
+    | 'createDirectory'
+    | 'showHiddenFiles';
 
 /**
  * See dialog.showSaveDialog() in https://github.com/electron/electron/blob/master/docs/api/dialog.md
@@ -1057,7 +1104,7 @@ export interface MessageBoxOptions {
     /**
      * Can be "none", "info", "error", "question" or "warning". On Windows, "question" displays the same icon as "info", unless you set an icon using the "icon" option.
      */
-        type?: string;
+    type?: string;
 
     /**
      * Array of texts for buttons. On Windows, an empty array will result in one button labeled "OK".
@@ -1113,7 +1160,7 @@ export interface MessageBoxOptions {
  * @returns the selected file path or null, if no file path was selected or the callback function is defined
  */
 export function showSingleFileOpenDialog(openDialogOptions: OpenDialogOptions,
-                                         callback?: (filePath: string) => void): string|null {
+                                         callback?: (filePath: string) => void): string | null {
     const getFirstFile = (filePaths: string[]) => (filePaths && filePaths.length) ? filePaths[0] : null;
     let callbackThunk;
     if (callback) {
@@ -1134,7 +1181,7 @@ export function showSingleFileOpenDialog(openDialogOptions: OpenDialogOptions,
  * @returns the selected file path or null, if no file path was selected or the callback function is defined
  */
 export function showMultiFileOpenDialog(openDialogOptions: OpenDialogOptions,
-                                        callback?: (filePaths: string[]) => void): string[]|null {
+                                        callback?: (filePaths: string[]) => void): string[] | null {
     if (openDialogOptions.properties && !openDialogOptions.properties.find((p) => p === 'multiSelections')) {
         const properties = openDialogOptions.properties.slice();
         properties.push('multiSelections');
@@ -1151,7 +1198,7 @@ export function showMultiFileOpenDialog(openDialogOptions: OpenDialogOptions,
  * @returns the array of selected file paths or null, if no file path was selected or the callback function is defined
  */
 export function showFileOpenDialog(openDialogOptions: OpenDialogOptions,
-                                   callback?: (filePaths: string[]) => void): string[]|null {
+                                   callback?: (filePaths: string[]) => void): string[] | null {
     const electron = require('electron');
     if (!electron) {
         console.warn('showFileOpenDialog() cannot be executed, electron not available from renderer process');
@@ -1176,7 +1223,9 @@ export function showFileOpenDialog(openDialogOptions: OpenDialogOptions,
  * @param callback an optional function which is called with the selected file path
  * @returns the selected filePath or null, if no file path was selected or the callback function is defined
  */
-export function showFileSaveDialog(saveDialogOptions: SaveDialogOptions, callback?: (filePath: string) => void): string|null {
+export function showFileSaveDialog(saveDialogOptions: SaveDialogOptions, callback?: (filePath: string) => void):
+    string
+    | null {
     const electron = require('electron');
     if (!electron) {
         console.warn('showFileSaveDialog() cannot be executed, electron not available from renderer process');
@@ -1205,7 +1254,9 @@ export const MESSAGE_BOX_NO_REPLY = () => {
  * @param callback an optional function which is called with the selected button index
  * @returns the selected button index or null, if no button was selected or the callback function is defined
  */
-export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: (index: number) => void): number|null {
+export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: (index: number) => void):
+    number
+    | null {
     const electron = require('electron');
     if (!electron) {
         console.warn('showMessageBox() cannot be executed, electron not available from renderer process');

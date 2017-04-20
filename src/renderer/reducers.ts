@@ -6,7 +6,10 @@ import * as actions from './actions';
 import * as assert from "../common/assert";
 import {combineReducers} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
-import {SELECTED_VARIABLE_LAYER_ID, newWorldView, updateSelectedVariableLayer, newChartView} from "./state-util";
+import {
+    SELECTED_VARIABLE_LAYER_ID, newWorldView, updateSelectedVariableLayer, newChartView,
+    newTableView
+} from "./state-util";
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
     addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos, addViewToPanel
@@ -181,35 +184,17 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         }
         case actions.ADD_WORLD_VIEW: {
             const view = newWorldView();
-            const placeAfterViewId = action.payload.placeAfterViewId;
-            const newId = view.id;
-            const newViews = addViewToViewArray(state.views, view);
-            const oldViewLayout = state.viewLayout;
-            let newViewLayout;
-            if (placeAfterViewId) {
-                newViewLayout = addViewToPanel(oldViewLayout, placeAfterViewId, newId);
-            }
-            if (!newViewLayout || newViewLayout === oldViewLayout) {
-                // Could not be inserted, so use following call which will always succeed.
-                newViewLayout = addViewToLayout(oldViewLayout, newId);
-            }
-            return {...state, viewLayout: newViewLayout, views: newViews, activeViewId: newId};
+            return addView(state, view, action.payload.placeAfterViewId);
         }
         case actions.ADD_CHART_VIEW: {
             const view = newChartView();
-            const placeAfterViewId = action.payload.placeAfterViewId;
-            const newId = view.id;
-            const newViews = addViewToViewArray(state.views, view);
-            const oldViewLayout = state.viewLayout;
-            let newViewLayout;
-            if (placeAfterViewId) {
-                newViewLayout = addViewToPanel(oldViewLayout, placeAfterViewId, newId);
-            }
-            if (!newViewLayout || newViewLayout === oldViewLayout) {
-                // Could not be inserted, so use following call which will always succeed.
-                newViewLayout = addViewToLayout(oldViewLayout, newId);
-            }
-            return {...state, viewLayout: newViewLayout, views: newViews, activeViewId: newId};
+            return addView(state, view, action.payload.placeAfterViewId);
+        }
+        case actions.ADD_TABLE_VIEW: {
+            const resName = state.selectedWorkspaceResourceId;
+            const varName = state.selectedVariableName;
+            const view = newTableView(resName, varName);
+            return addView(state, view, action.payload.placeAfterViewId);
         }
         case actions.SELECT_VIEW: {
             const viewPath = action.payload.viewPath;
@@ -260,6 +245,22 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
 
     return state;
 };
+
+
+function addView(state: ControlState, view: ViewState<any>, placeAfterViewId: string|null) {
+    const newId = view.id;
+    const newViews = addViewToViewArray(state.views, view);
+    const oldViewLayout = state.viewLayout;
+    let newViewLayout;
+    if (placeAfterViewId) {
+        newViewLayout = addViewToPanel(oldViewLayout, placeAfterViewId, newId);
+    }
+    if (!newViewLayout || newViewLayout === oldViewLayout) {
+        // Could not be inserted, so use following call which will always succeed.
+        newViewLayout = addViewToLayout(oldViewLayout, newId);
+    }
+    return {...state, viewLayout: newViewLayout, views: newViews, activeViewId: newId};
+}
 
 
 const viewsReducer = (state: ViewState<any>[], action) => {
@@ -401,6 +402,15 @@ const viewReducer = (state: ViewState<any>, action) => {
                 assert.ok(layerIndex >= 0, "layerIndex >= 0");
                 layers[layerIndex] = updateObject(layers[layerIndex], layer);
                 return {...state, data: {...state.data, layers}};
+            }
+            break;
+        }
+        case actions.UPDATE_TABLE_VIEW_DATA: {
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'table');
+                const data = {...state.data, ...action.payload};
+                return {...state, data};
             }
             break;
         }

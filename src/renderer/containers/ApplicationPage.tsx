@@ -2,6 +2,7 @@ import * as React from 'react';
 import GlobeView from './GlobeView'
 import MapView from "./MapView";
 import ChartView from "./ChartView";
+import TableView from "./TableView";
 import DataSourcesPanel from "./DataSourcesPanel";
 import OperationsPanel from "./OperationsPanel";
 import WorkspacePanel from "./WorkspacePanel";
@@ -15,7 +16,7 @@ import PreferencesDialog from "./PreferencesDialog";
 import {PanelContainer, PanelContainerLayout} from "../components/PanelContainer";
 import {Panel} from "../components/Panel";
 import {connect, Dispatch} from "react-redux";
-import {State, WorldViewDataState, ChartViewDataState} from "../state";
+import {State, WorldViewDataState, ChartViewDataState, TableViewDataState} from "../state";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ViewManager, ViewRenderMap} from "../components/ViewManager";
@@ -30,9 +31,14 @@ function renderChartView(view: ViewState<ChartViewDataState>) {
     return <ChartView view={view}/>;
 }
 
+function renderTableView(view: ViewState<TableViewDataState>) {
+    return <TableView view={view}/>;
+}
+
 const VIEW_TYPE_RENDERERS: ViewRenderMap = {
     world: renderWorldView,
     chart: renderChartView,
+    table: renderTableView,
 };
 
 interface IDispatch {
