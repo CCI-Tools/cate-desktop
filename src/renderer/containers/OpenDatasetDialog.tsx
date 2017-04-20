@@ -17,18 +17,18 @@ type DateRangeValue = [Date, Date];
 interface IOpenDatasetDialogProps {
     dispatch?: Dispatch<State>;
     isOpen: boolean;
-    dataStore: DataStoreState|null;
-    dataSource: DataSourceState|null;
-    temporalCoverage: TimeRangeValue|null;
-    timeRange: TimeRangeValue|null;
+    dataStore: DataStoreState | null;
+    dataSource: DataSourceState | null;
+    temporalCoverage: TimeRangeValue | null;
+    timeRange: TimeRangeValue | null;
     region: RegionValue;
     variableNames: string[];
 }
 
 interface IOpenDatasetDialogState extends DialogState {
-    temporalCoverage: DateRangeValue|null;
+    temporalCoverage: DateRangeValue | null;
     hasTimeConstraint: boolean;
-    timeRange: DateRangeValue|null;
+    timeRange: DateRangeValue | null;
     hasRegionConstraint: boolean;
     region: RegionValue;
     hasVariablesConstraint: boolean;
@@ -229,17 +229,23 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
 
         let remoteMsg = null;
         if (isNonLocalStore) {
-            remoteMsg = <div className="pt-callout pt-intent-warning pt-icon-warning-sign">
-                This data source is located on a remote data store.
-                Opening it without constrains can take a long time.</div>;
+            // className="pt-callout pt-intent-warning pt-icon-warning-sign"
+            remoteMsg = (
+                <div className="pt-form-helper-text" style={{marginTop: '1em'}}>
+                    Note that this is a remote data source that will be be opened using the <em>OPeNDAP protocol</em>.
+                    Opening it without sufficient constraints may cause large amounts of data to be downloaded and
+                    memory to be allocated, which in turn may also take considerable time, depending on current
+                    network conditions.
+                </div>
+            );
         }
 
         return (
-            <div>
+            <div className="pt-form-group">
                 <p>You are about to open a dataset from data source <strong>{this.props.dataSource.name}</strong>.</p>
-                {remoteMsg}
 
-                <Checkbox style={{marginTop: '1em'}} disabled={!temporalCoverage} checked={hasTimeConstraint} label="Time constraint"
+                <Checkbox style={{marginTop: '1em'}} disabled={!temporalCoverage} checked={hasTimeConstraint}
+                          label="Time constraint"
                           onChange={this.onHasTimeConstraintChange}/>
                 <div style={{marginLeft: '2em'}}>
                     <DateRangeInput
@@ -271,6 +277,8 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
                     <VarNameValueEditor input={null} value={this.state.variableNames.join(',')}
                                         onChange={this.onVariableNamesChange} resource={res} multi={true}/>
                 </div>
+
+                {remoteMsg}
             </div>
         );
     }
