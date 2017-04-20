@@ -11,6 +11,7 @@ import {
     COUNTRIES_LAYER_ID
 } from "../state-util";
 import {ViewState} from "../components/ViewState";
+import * as selectors from "../selectors";
 
 interface IMapViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -25,8 +26,8 @@ interface IMapViewProps extends IMapViewOwnProps {
 function mapStateToProps(state: State, ownProps: IMapViewOwnProps): IMapViewProps {
     return {
         view: ownProps.view,
-        baseUrl: state.data.appConfig.webAPIConfig.restUrl,
-        workspace: state.data.workspace,
+        baseUrl: selectors.webAPIRestUrlSelector(state),
+        workspace: selectors.workspaceSelector(state),
         offlineMode: state.session.offlineMode,
     };
 }

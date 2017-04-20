@@ -13,6 +13,8 @@ import {
     COUNTRIES_LAYER_ID
 } from "../state-util";
 import {ViewState} from "../components/ViewState";
+import * as selectors from "../selectors";
+
 const Cesium: any = require('cesium');
 
 
@@ -29,8 +31,8 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
     return {
         view: ownProps.view,
-        baseUrl: state.data.appConfig.webAPIConfig.restUrl,
-        workspace: state.data.workspace,
+        baseUrl: selectors.webAPIRestUrlSelector(state),
+        workspace: selectors.workspaceSelector(state),
         offlineMode: state.session.offlineMode,
     };
 }

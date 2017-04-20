@@ -4,6 +4,7 @@ import {connect} from "react-redux";
 import {ViewState} from "../components/ViewState";
 import {PlotPanel} from "../components/plotly/PlotlyPanel";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
+import * as selectors from "../selectors";
 
 
 interface IChartViewOwnProps {
@@ -18,8 +19,8 @@ interface IChartViewProps extends IChartViewOwnProps {
 function mapStateToProps(state: State, ownProps: IChartViewOwnProps): IChartViewProps {
     return {
         view: ownProps.view,
-        baseUrl: state.data.appConfig.webAPIConfig.restUrl,
-        workspace: state.data.workspace,
+        baseUrl: selectors.webAPIRestUrlSelector(state),
+        workspace: selectors.workspaceSelector(state),
     };
 }
 
