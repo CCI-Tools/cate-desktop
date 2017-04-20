@@ -35,7 +35,7 @@ while on Windows the value may be similar to (note the double backslashes!)
             command: "C:\\Users\\Bibo\\Miniconda3\\envs\\cate\\Scripts\\cate-webapi.exe",
             ...
 
-The only development tool initially required to build cate-desktop is the latest version [Node.js](https://nodejs.org/).
+The only development tool initially required to build cate-desktop is the latest version of [Node.js](https://nodejs.org/).
 After installing Node.js, we use its package manager `npm` to install all other package dependencies.
 
     $ npm install
