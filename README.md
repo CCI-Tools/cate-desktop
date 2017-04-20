@@ -9,57 +9,61 @@
 
 ## Building from Sources
 
-Note that cate-desktop requires [cate-core](https://github.com/CCI-Tools/cate-core) to be installed on your system.
-Follow the instruction in cate-core's [README](https://github.com/CCI-Tools/cate-core/blob/master/README.md) first.
+Note that `cate-desktop` requires [cate-core](https://github.com/CCI-Tools/cate-core) to be installed on your system.
+Follow the instruction in `cate-core`'s [README](https://github.com/CCI-Tools/cate-core/blob/master/README.md) first.
 
-Once cate-core is ready to be used, `cd`back into cate-dektop and copy file `cate-config.template.js` to a file
-named `cate-config.js`. Then adjust the "command" parameter in `cate-config.js` to match
-the `cate-webapi` executable located in the Python environment in which you've installed cate-core.
+Once `cate-core` is ready to be used, get the source code for `cate-desktop`:
 
-On Linux and Darwin the "command" setting may look like
+    $ git clone https://github.com/CCI-Tools/cate-desktop.git
+    $ cd cate-desktop
+
+Now copy file `cate-config.template.js` to a file named `cate-config.js`. Then adjust the `command` parameter 
+in `cate-config.js` to match the `cate-webapi` executable located in the Python environment in which you've installed 
+`cate-core`.
+
+On Linux and Darwin the value for `command` may look like
 
     module.exports = {
         webAPIConfig: {
             command: "/home/bibo/apps/miniconda3/envs/cate/bin/cate-webapi",
             ...
 
-On Windows the "command" setting may look like
+while on Windows the value may be similar to (note the double backslashes!)
 
     module.exports = {
         webAPIConfig: {
             command: "C:\\Users\\Bibo\\Miniconda3\\envs\\cate\\Scripts\\cate-webapi.exe",
             ...
 
-The only development tool initially required to build cate-desktop is the latest version [Node.js](https://nodejs.org/).
-After installing Node.js, we use its Package Manager `npm` to install all other required project dependencies.
+The only development tool initially required to build cate-desktop is the latest version of [Node.js](https://nodejs.org/).
+After installing Node.js, we use its package manager `npm` to install all other package dependencies.
 
-Get the source code and locally install dependencies:
-
-    $ git clone https://github.com/CCI-Tools/cate-desktop.git
-    $ cd cate-desktop
     $ npm install
 
-To compile TypeScript to JavaScript:
+The project `cate-desktop` is programmed in [TypeScript](https://www.typescriptlang.org/). Therefore all TypeScript 
+sources must be compiled to JavaScript first:
 
     $ npm run compile
 
-To run the application:
+To finally run the application:
     
     $ npm start
 
-To execute the unit-tests:
+The following commands are of interest for developers.
+
+This is how you can execute all unit-level tests (optional):
 
     $ npm test
 
-To perform end-to-end tests:
+and this is how to perform end-to-end tests (optional):
 
     $ npm run test:e2e
 
-To build platform installer executables:
+To build the installer executables for the current platform:
 
     $ npm run dist
 
-To build binary packages:
+And to build binary packages:
 
     $ npm run pack
 

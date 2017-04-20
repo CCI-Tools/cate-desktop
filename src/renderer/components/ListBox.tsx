@@ -34,26 +34,26 @@ export class ListBox extends React.PureComponent<IListBoxProps, any> {
 
     handleClick(itemIndex, key: string|number) {
         if (this.props.onSelection) {
-            const selection = toSelectionArray(this.props.selection);
+            const oldSelection = toSelectionArray(this.props.selection);
             let newSelection;
             if (this.props.selection) {
                 const selectionMode = this.props.selectionMode || ListBoxSelectionMode.SINGLE;
-                const itemIndex = selection.findIndex(k => k === key);
+                const itemIndex = oldSelection.findIndex(k => k === key);
                 if (itemIndex >= 0) {
-                    newSelection = selection.slice();
-                    delete newSelection[itemIndex];
+                    newSelection = oldSelection.slice();
+                    newSelection.splice(itemIndex, 1);
                 } else {
                     if (selectionMode === ListBoxSelectionMode.SINGLE) {
                         newSelection = [key];
                     } else if (selectionMode === ListBoxSelectionMode.MULTIPLE) {
-                        newSelection = selection.slice();
+                        newSelection = oldSelection.slice();
                         newSelection.push(key);
                     }
                 }
             } else {
                 newSelection = [key];
             }
-            this.props.onSelection(newSelection, selection);
+            this.props.onSelection(newSelection, oldSelection);
         }
         if (this.props.onItemClick) {
             this.props.onItemClick(key, this.props.items[itemIndex], itemIndex);

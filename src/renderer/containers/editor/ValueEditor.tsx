@@ -9,6 +9,7 @@ import {FileValueEditor} from "./FileValueEditor";
 import {GeometryValueEditor} from "./GeometryValueEditor";
 import {TimeRangeValueEditor} from "./TimeRangeValueEditor";
 import {VarNameValueEditor} from "./VarNameValueEditor";
+import {DictValueEditor} from "./DictValueEditor";
 import * as types from "../../../common/cate-types";
 
 export interface InputAssignment {
@@ -106,6 +107,10 @@ function renderVarNamesLikeValueEditor(props: IValueEditorProps<string>) {
     return <VarNameValueEditor input={props.input} value={props.value} onChange={props.onChange} resource={findResource(props)} multi={true}/>;
 }
 
+function renderDictLikeValueEditor(props: IValueEditorProps<string>) {
+    return <DictValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
+}
+
 const VALUE_EDITOR_FACTORIES = {
     [types.BOOL_TYPE]: renderBoolValueEditor,
     [types.INT_TYPE]: renderIntValueEditor,
@@ -117,6 +122,7 @@ const VALUE_EDITOR_FACTORIES = {
     [types.TIME_RANGE_LIKE_TYPE]: renderTimeRangeLikeValueEditor,
     [types.VAR_NAME_LIKE_TYPE]: renderVarNameLikeValueEditor,
     [types.VAR_NAMES_LIKE_TYPE]: renderVarNamesLikeValueEditor,
+    [types.DICT_LIKE_TYPE]: renderDictLikeValueEditor,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////
