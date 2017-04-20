@@ -40,8 +40,8 @@ After installing Node.js, we use its package manager `npm` to install all other 
 
     $ npm install
 
-For the development of `cate-desktop` we use [TypeScript](https://www.typescriptlang.org/), which must be compiled to 
-JavaScript first:
+The project `cate-desktop` is programmed in [TypeScript](https://www.typescriptlang.org/). Therefore all TypeScript 
+sources must be compiled to JavaScript first:
 
     $ npm run compile
 
