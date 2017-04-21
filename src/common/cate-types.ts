@@ -16,6 +16,7 @@ export const SERIES_TYPE = 'pandas.core.series.Series';
 export const POINT_LIKE_TYPE = 'cate.core.types.PointLike';
 export const POLYGON_LIKE_TYPE = 'cate.core.types.PolygonLike';
 export const GEOMETRY_LIKE_TYPE = 'cate.core.types.GeometryLike';
+export const TIME_LIKE_TYPE = 'cate.core.types.TimeLike';
 export const TIME_RANGE_LIKE_TYPE = 'cate.core.types.TimeRangeLike';
 export const VAR_NAME_LIKE_TYPE = 'cate.core.types.VarName';
 export const VAR_NAMES_LIKE_TYPE = 'cate.core.types.VarNamesLike';
@@ -53,6 +54,10 @@ export function isAssignableFrom(targetDataType: string, sourceDataType: string)
         case VAR_NAME_LIKE_TYPE:
             return sourceDataType === STR_TYPE;
         case VAR_NAMES_LIKE_TYPE:
+            return sourceDataType === STR_TYPE;
+        case DICT_LIKE_TYPE:
+            return sourceDataType === STR_TYPE;
+        case TIME_LIKE_TYPE:
             return sourceDataType === STR_TYPE;
         case TIME_RANGE_LIKE_TYPE:
             return sourceDataType === STR_TYPE;

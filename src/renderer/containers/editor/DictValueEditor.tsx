@@ -32,7 +32,10 @@ export class DictValueEditor extends React.Component<IDictValueEditorProps, null
     }
 }
 
-export function validateDictText(value: string) {
+export function validateDictText(value: string|null) {
+    if (!value || value.trim() === '') {
+        return;
+    }
     // Define Python eval context:
     //
     //noinspection JSUnusedLocalSymbols
@@ -42,6 +45,7 @@ export function validateDictText(value: string) {
     //noinspection JSUnusedLocalSymbols
     const False = false;
     //
-    // To validate, try eval() which should succeed if value is fine
-    eval(value);
+    // To validate, e.g. "layers=3, time=19", try eval("var layers=3, time=19;")
+    // which should succeed if value is fine
+    eval(`var ${value};`);
 }

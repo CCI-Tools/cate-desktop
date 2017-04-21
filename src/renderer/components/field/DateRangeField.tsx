@@ -1,18 +1,14 @@
 import * as React from 'react';
-import {DateRangeInput, DateRange, DateInput} from "@blueprintjs/datetime";
+import {DateRange, DateInput} from "@blueprintjs/datetime";
 import {Field, IFieldProps} from "./Field";
-import {formatDateAsISODateString} from "../../../common/format";
 import {isUndefinedOrNull} from "../../../common/types";
+import {DEFAULT_MAX_DATE, DEFAULT_MIN_DATE, formatDate, parseDate, validateDate} from "./DateField";
 
 
 interface IDateRangeFieldProps extends IFieldProps<DateRange> {
     min?: Date;
     max?: Date;
 }
-
-export const DEFAULT_MIN_DATE = new Date('1980-01-01');
-export const DEFAULT_MAX_DATE = new Date(Date.now());
-export const DEFAULT_DATE_RANGE: DateRange = [DEFAULT_MIN_DATE, DEFAULT_MAX_DATE];
 
 export class DateRangeField extends Field<DateRange, IDateRangeFieldProps> {
 
@@ -59,22 +55,13 @@ export class DateRangeField extends Field<DateRange, IDateRangeFieldProps> {
         const date1 = value[0];
         const date2 = value[1];
         if (date1) {
-            this.validateDate(date1, "First date");
+            validateDate(date1, this.props.min, this.props.max, "First date");
         }
         if (date2) {
-            this.validateDate(date2, "Second date");
+            validateDate(date2, this.props.min, this.props.max, "Second date");
         }
         if (date1 && date2 && date1.getDate() > date2.getDate()) {
             throw new Error('First date must not be after second date.');
-        }
-    }
-
-    private validateDate(date: Date, name:string) {
-        if (this.props.min && date.getDate() < this.props.min.getDate()) {
-            throw new Error(`${name} must not be before ${formatDate(this.props.min)}.`);
-        }
-        if (this.props.max && date.getDate() > this.props.max.getDate()) {
-            throw new Error(`${name} must not be after ${formatDate(this.props.max)}.`);
         }
     }
 
@@ -84,7 +71,7 @@ export class DateRangeField extends Field<DateRange, IDateRangeFieldProps> {
         const value2 = value && value[1];
         const minDate = this.props.min || DEFAULT_MIN_DATE;
         const maxDate = this.props.max || DEFAULT_MAX_DATE;
-        console.log('DateRangeInput props', value, minDate, maxDate);
+        //console.log('DateRangeInput props', value, minDate, maxDate);
         const error = this.getError();
 
         return (
@@ -115,22 +102,6 @@ export class DateRangeField extends Field<DateRange, IDateRangeFieldProps> {
 }
 
 
-export function parseDate(textValue: string, nullable: boolean, name: string): Date|null {
-    if (!textValue || textValue.trim() === '') {
-        if (nullable) {
-            return null;
-        }
-        throw new Error('Date must be given.');
-    }
-    let millis;
-    try {
-        millis = Date.parse(textValue.trim());
-    } catch (e) {
-        throw new Error(`Invalid ${name}.`);
-    }
-    return new Date(millis);
-}
-
 export function parseDateRange(textValue: string, nullable: boolean): DateRange|null {
     if (!textValue || textValue.trim() === '') {
         if (nullable) {
@@ -148,13 +119,6 @@ export function parseDateRange(textValue: string, nullable: boolean): DateRange|
         return null;
     }
     return [date1, date2];
-}
-
-export function formatDate(value: Date|null): string {
-    if (isUndefinedOrNull(value)) {
-        return '';
-    }
-    return formatDateAsISODateString(value);
 }
 
 export function formatDateRange(value: DateRange|null): string {

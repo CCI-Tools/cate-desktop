@@ -2,20 +2,19 @@ import * as React from 'react';
 import {IValueEditorProps} from "./ValueEditor";
 import {DateRange} from "@blueprintjs/datetime";
 import {FieldValue, toTextValue} from "../../components/field/Field";
-import {DateRangeField, parseDateRange} from "../../components/field/DateRangeField";
-import {DEFAULT_DATE_RANGE, parseDate} from "../../components/field/DateField";
+import {DEFAULT_DATE_RANGE, DateField, parseDate} from "../../components/field/DateField";
 
-interface ITimeRangeValueEditorProps extends IValueEditorProps<string>  {
+interface ITimeValueEditorProps extends IValueEditorProps<string>  {
 }
 
-export class TimeRangeValueEditor extends React.PureComponent<ITimeRangeValueEditorProps, null> {
+export class TimeValueEditor extends React.PureComponent<ITimeValueEditorProps, null> {
 
-    constructor(props: ITimeRangeValueEditorProps) {
+    constructor(props: ITimeValueEditorProps) {
         super(props);
         this.onChange = this.onChange.bind(this);
     }
 
-    onChange(value: FieldValue<DateRange>) {
+    onChange(value: FieldValue<Date>) {
         const textValue = value.textValue;
         const error = value.error;
         this.props.onChange(this.props.input, {textValue, value: textValue, error});
@@ -25,7 +24,7 @@ export class TimeRangeValueEditor extends React.PureComponent<ITimeRangeValueEdi
         const value = this.getValue();
         const valueMinMax = this.getValueMinMax();
         return (
-            <DateRangeField
+            <DateField
                 min={valueMinMax[0]}
                 max={valueMinMax[1]}
                 value={value}
@@ -34,11 +33,11 @@ export class TimeRangeValueEditor extends React.PureComponent<ITimeRangeValueEdi
         );
     }
 
-    private getValue(): DateRange {
+    private getValue(): Date {
         try {
-            return parseDateRange(toTextValue(this.props.value), true);
+            return parseDate(toTextValue(this.props.value), true);
         } catch (e) {
-            return DEFAULT_DATE_RANGE;
+            return null;
         }
     }
 
@@ -50,7 +49,8 @@ export class TimeRangeValueEditor extends React.PureComponent<ITimeRangeValueEdi
                 min = parseDate(valueRange[0], true);
                 max = parseDate(valueRange[1], true);
             } catch (e) {
-                // ok
+                min = DEFAULT_DATE_RANGE[0];
+                max = DEFAULT_DATE_RANGE[1];
             }
         }
         return [min, max];

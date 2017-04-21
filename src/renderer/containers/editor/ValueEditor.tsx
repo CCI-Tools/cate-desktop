@@ -11,6 +11,7 @@ import {TimeRangeValueEditor} from "./TimeRangeValueEditor";
 import {VarNameValueEditor} from "./VarNameValueEditor";
 import {DictValueEditor} from "./DictValueEditor";
 import * as types from "../../../common/cate-types";
+import {TimeValueEditor} from "./TimeValueEditor";
 
 export interface InputAssignment {
     constantValue: FieldValue<any> | any;
@@ -95,6 +96,10 @@ function renderGeometryLikeValueEditor(props: IValueEditorProps<string>) {
     return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Geometry" fieldSize={32}/>;
 }
 
+function renderTimeLikeValueEditor(props: IValueEditorProps<string>) {
+    return <TimeValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
+}
+
 function renderTimeRangeLikeValueEditor(props: IValueEditorProps<string>) {
     return <TimeRangeValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
 }
@@ -119,6 +124,7 @@ const VALUE_EDITOR_FACTORIES = {
     [types.POINT_LIKE_TYPE]: renderPointLikeValueEditor,
     [types.POLYGON_LIKE_TYPE]: renderPolygonLikeValueEditor,
     [types.GEOMETRY_LIKE_TYPE]: renderGeometryLikeValueEditor,
+    [types.TIME_LIKE_TYPE]: renderTimeLikeValueEditor,
     [types.TIME_RANGE_LIKE_TYPE]: renderTimeRangeLikeValueEditor,
     [types.VAR_NAME_LIKE_TYPE]: renderVarNameLikeValueEditor,
     [types.VAR_NAMES_LIKE_TYPE]: renderVarNamesLikeValueEditor,
