@@ -38,7 +38,7 @@ interface ITableViewDispatch {
 /**
  * This component displays a 2D map with a number of layers.
  */
-class TableView extends React.Component<ITableViewProps & ITableViewDispatch, null> {
+class TableView extends React.Component<ITableViewProps & ITableViewOwnProps & ITableViewDispatch, null> {
     static readonly CONTAINER_STYLE = {width: '100%', maxWidth: '100%', height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column'};
     static readonly ACTION_ITEM_STYLE = {padding: '0.2em'};
     static readonly ACTION_GROUP_STYLE = {display: 'flex'};
