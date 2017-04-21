@@ -120,13 +120,14 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                 value={operationFilterExpr}
             />);
 
+            const canApplyOperation = this.props.selectedOperation && this.props.workspace;
             const actionComponent = (
                 <div className="pt-button-group">
                     <Button className="pt-intent-primary"
                             onClick={this.handleAddOperationStepButtonClicked}
-                            disabled={!this.props.selectedOperationName || !this.props.workspace}
+                            disabled={!canApplyOperation}
                             iconName="play">Apply...</Button>
-                    <OperationStepDialog isAddDialog={true}/>
+                    {canApplyOperation ? <OperationStepDialog isAddDialog={true}/> : null}
                 </div>
             );
 
