@@ -114,7 +114,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         const hasDataStores = this.props.dataStores && this.props.dataStores.length;
         const hasDataSources = this.props.selectedDataSources && this.props.selectedDataSources.length;
         let body;
-        if (hasDataStores && hasDataSources) {
+        if (hasDataStores) {
             const hasSelection = this.props.selectedDataSource;
             const isLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id === 'local';
             const isNonLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id !== 'local';
@@ -125,7 +125,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             const actionComponent = (
                 <div className="pt-button-group">
                     <Tooltip content="Add local data source">
-                        <AnchorButton
+                        <AnchorButton className={(isLocalStore && !hasDataSources) ? "pt-intent-primary" : ""}
                                       onClick={this.handleAddDatasetDialog}
                                       disabled={!canAdd}
                                       iconName="add"/>
@@ -143,7 +143,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                                       iconName="cloud-download"/>
                     </Tooltip>
                     <Tooltip content="Open data source">
-                        <AnchorButton className={isLocalStore ? "pt-intent-primary" : ""}
+                        <AnchorButton className={(isLocalStore && hasDataSources) ? "pt-intent-primary" : ""}
                                       onClick={this.handleShowOpenDatasetDialog}
                                       disabled={!canOpen}
                                       iconName="folder-shared-open"/>
@@ -185,7 +185,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
     private renderDataSourceFilterExprInput() {
         const resultsTag = (
             <Tag className={Classes.MINIMAL}>
-                {this.props.filteredDataSources.length}
+                {this.props.filteredDataSources && this.props.filteredDataSources.length}
             </Tag>
         );
 
