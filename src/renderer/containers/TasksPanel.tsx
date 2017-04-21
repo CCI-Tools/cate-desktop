@@ -1,7 +1,7 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {State, TaskState} from "../state";
-import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
+import {ListBox} from "../components/ListBox";
 import {JobStatusEnum} from "../webapi/Job";
 import * as actions from "../actions";
 import {Card} from "../components/Card";
