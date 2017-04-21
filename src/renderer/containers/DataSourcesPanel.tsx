@@ -184,7 +184,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
 
     private renderDataSourceFilterExprInput() {
         const resultsTag = (
-            <Tag className={Classes.MINIMAL}>
+            <Tag className={Classes.MINIMAL} onRemove={(event) => this.props.setDataSourceFilterExpr("")}>
                 {this.props.filteredDataSources && this.props.filteredDataSources.length}
             </Tag>
         );
@@ -212,8 +212,9 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         }
 
         const selectedDataStore = this.props.selectedDataStore;
+        //  a label has by default a 15px margin at the bottom
         return (
-            <label className="pt-label pt-inline">
+            <label className="pt-label pt-inline" style={{margin: "0 0 0 0"}}>
                 Data store:
                 <div className="pt-select" style={{padding: '0.2em'}}>
                     <select value={selectedDataStore ? selectedDataStore.id : ''}

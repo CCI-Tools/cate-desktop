@@ -54,6 +54,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     constructor(props: IOperationsPanelProps, context: any) {
         super(props, context);
         this.handleOperationSelection = this.handleOperationSelection.bind(this);
+        this.handleOperationFilterExprCleared = this.handleOperationFilterExprCleared.bind(this);
         this.handleOperationFilterExprChange = this.handleOperationFilterExprChange.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleAddOperationStepButtonClicked = this.handleAddOperationStepButtonClicked.bind(this);
@@ -69,6 +70,10 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         } else {
             this.props.dispatch(actions.setSelectedOperationName(null));
         }
+    }
+
+    private handleOperationFilterExprCleared(event) {
+        this.props.dispatch(actions.setOperationFilterExpr(""));
     }
 
     private handleOperationFilterExprChange(event) {
@@ -106,7 +111,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             const operationDetailsCard = this.renderOperationDetailsCard();
 
             const resultsTag = (
-                <Tag className={Classes.MINIMAL}>
+                <Tag className={Classes.MINIMAL}  onRemove={this.handleOperationFilterExprCleared}>
                     {this.props.filteredOperations.length}
                 </Tag>
             );
