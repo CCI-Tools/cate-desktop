@@ -54,7 +54,6 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch, nu
                 visibleTaskIds.push(taskId);
             }
         }
-        console.log("numRunningTasks", numRunningTasks);
         const renderItem = (jobId: number, itemIndex: number) => <TaskComponent
             jobId={jobId}
             task={this.props.tasks[jobId]}
