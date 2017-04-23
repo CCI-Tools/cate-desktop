@@ -22,10 +22,7 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
     }
 
     private static isMakingProgress(tastState: TaskState): boolean {
-        return tastState.status === JobStatusEnum.IN_PROGRESS &&
-            tastState.progress &&
-            tastState.progress.worked &&
-            tastState.progress.total > 0;
+        return tastState.status === JobStatusEnum.IN_PROGRESS && !!tastState.progress;
     }
 
     render() {
@@ -36,8 +33,12 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
         if (TaskComponent.isRunning(taskState)) {
             if (TaskComponent.isMakingProgress(taskState)) {
                 // cancel is only possible, if we have a progress monitor
+                let progressValue = 0;
+                if (taskState.progress.total > 0 && taskState.progress.worked > 0) {
+                    progressValue = taskState.progress.worked / taskState.progress.total;
+                }
                 const progress = <ProgressBar intent={Intent.SUCCESS}
-                                              value={taskState.progress.worked / taskState.progress.total}/>;
+                                              value={progressValue}/>;
                 const cancelJob = () => this.props.onCancelJob(jobId);
                 const cancelButton = <Button type="button"
                                              className="pt-intent-primary"
