@@ -112,6 +112,14 @@
     "dmg": {
       "icon": "app/resources/darwin/icon.icns",
       "background": "app/resources/darwin/dmg-background.png"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "tar.gz",
+        "apk",
+        "zip"
+      ]
     }
   }
 }
