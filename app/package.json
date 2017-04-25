@@ -1,7 +1,7 @@
 {
   "name": "cate-desktop",
   "productName": "Cate",
-  "version": "0.0.1",
+  "version": "0.8.0rc1",
   "description": "ESA CCI Toolbox (Cate)",
   "main": "main.js",
   "author": "Norman Fomferra, Marco Zühlke (Brockmann Consult GmbH)",
