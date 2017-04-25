@@ -33,7 +33,7 @@ const WEBAPI_BAD_EXIT = 6;
 const WEBAPI_TIMEOUT = 7;
 const WEBAPI_MISSING = 8;
 
-const WEBAPI_VERSION = '0.7';
+const WEBAPI_VERSION = '0.8';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
