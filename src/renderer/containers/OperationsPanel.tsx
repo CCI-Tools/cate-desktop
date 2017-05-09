@@ -19,12 +19,12 @@ import {NO_OPERATIONS_FOUND} from "../messages";
 interface IOperationsPanelProps {
     dispatch?: Dispatch<State>;
     workspace: WorkspaceState;
-    operations: OperationState[]|null;
-    selectedOperationName: string|null;
-    selectedOperation: OperationState|null;
+    operations: OperationState[] | null;
+    selectedOperationName: string | null;
+    selectedOperation: OperationState | null;
     filteredOperations: OperationState[];
     operationFilterTags: string[];
-    operationFilterExpr: string|null;
+    operationFilterExpr: string | null;
     operationsTagCounts: Map<string, number>,
     showOperationDetails: boolean;
 }
@@ -111,7 +111,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             const operationDetailsCard = this.renderOperationDetailsCard();
 
             const resultsTag = (
-                <Tag className={Classes.MINIMAL}  onRemove={this.handleOperationFilterExprCleared}>
+                <Tag className={Classes.MINIMAL} onRemove={this.handleOperationFilterExprCleared}>
                     {this.props.filteredOperations.length}
                 </Tag>
             );
@@ -280,12 +280,12 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                     </li>
                 ));
                 outputs = (
-                    <p>
+                    <div>
                         <p>
                             <strong>{OperationsPanel.getMultiplicityText(operation.outputs.length, 'Output') + ":"}</strong>
                         </p>
                         <ul>{outputElems}</ul>
-                    </p>
+                    </div>
                 );
             }
 
@@ -298,11 +298,12 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                     </li>
                 ));
                 inputs = (
-                    <p><p>
-                        <strong>{OperationsPanel.getMultiplicityText(operation.outputs.length, 'Input') + ":"}</strong>
-                    </p>
+                    <div>
+                        <p>
+                            <strong>{OperationsPanel.getMultiplicityText(operation.outputs.length, 'Input') + ":"}</strong>
+                        </p>
                         <ul>{inputElems}</ul>
-                    </p>
+                    </div>
                 );
             }
         }
