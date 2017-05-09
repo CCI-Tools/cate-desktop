@@ -1283,6 +1283,32 @@ export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: 
 }
 
 /**
+ * Show the given file in a file manager. If possible, select the file.
+ * @param fullPath
+ */
+export function showItemInFolder(fullPath: string): boolean {
+    const electron = require('electron');
+    if (!electron) {
+        console.warn('showItemInFolder() cannot be executed, electron not available from renderer process');
+        return false;
+    }
+    return electron.shell.showItemInFolder(fullPath);
+}
+
+/**
+ * Open the given file in the desktop's default manner.
+ * @param fullPath
+ */
+export function openItem(fullPath: string): boolean {
+    const electron = require('electron');
+    if (!electron) {
+        console.warn('openItem() cannot be executed, electron not available from renderer process');
+        return false;
+    }
+    return electron.shell.openItem(fullPath);
+}
+
+/**
  * Update frontend preferences (but not backend configuration).
  *
  * @param callback an optional function which is called with the selected button index

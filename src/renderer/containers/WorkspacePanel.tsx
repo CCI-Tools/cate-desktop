@@ -4,7 +4,7 @@ import {
     State, WorkspaceState, WorkflowStepState, ResourceState, WorkflowPortState, OperationState,
     OperationIOBaseState
 } from "../state";
-import {Button, Tabs2, Tab2} from "@blueprintjs/core";
+import {Button, Tabs2, Tab2, Tooltip, Position} from "@blueprintjs/core";
 import {Table, Column, Cell} from "@blueprintjs/table";
 import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
@@ -15,6 +15,7 @@ import * as actions from '../actions'
 import * as selectors from '../selectors'
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messages";
+import {AbstractButton} from "../../../app/node_modules/@blueprintjs/core/dist/components/button/abstractButton";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
@@ -123,12 +124,32 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         const resources = workspace.resources;
         assert.ok(resources);
 
+        const workspaceName = (workspace.isScratch || !workspace.baseDir)
+            ? '<unnamed>'
+            : workspace.baseDir.split(/[\\\/]/).pop();
+        const workspaceLabel = (
+            <Tooltip content={workspace.baseDir} position={Position.RIGHT}>
+                <strong>{workspaceName}</strong>
+            </Tooltip>
+        );
+        let workspaceState = null;
+        if (workspace.isModified) {
+            workspaceState = <span key={0} className="pt-tag pt-intent-warning pt-minimal">Modified</span>;
+        } else if (!workspace.isSaved) {
+            workspaceState = <span key={1} className="pt-tag pt-intent-success pt-minimal">Not saved</span>;
+        }
+        const openItemButton = <Button onClick={() => actions.openItem(workspace.baseDir)} iconName="folder-open"/>
+
         //const resourcesTooltip = "Workspace resources that result from workflow steps";
         //const workflowTooltip = "Workflow steps that generate workspace resources";
-
         return (
             <ScrollablePanelContent>
-                <span>Path: <code>{workspace.baseDir}</code></span>
+                <div style={{display: "flex"}}>
+                    {workspaceLabel}
+                    <span style={{flex: 1}}/>
+                    {workspaceState}
+                    {openItemButton}
+                </div>
                 <Tabs2 id="workflow">
                     <Tab2 id="resources" title={`Resources (${resources.length})`} panel={this.renderResourcesPanel()}/>
                     <Tab2 id="steps" title={`Steps (${steps.length})`} panel={this.renderWorkflowStepsPanel()}/>
