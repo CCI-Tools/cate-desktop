@@ -51,6 +51,10 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
  */
 class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
+    private static readonly STATE_TAG_STYLE = {margin: 2};
+    private static readonly FLEX_ROW_STYLE = {display: "flex", alignItems: "center"};
+    private static readonly SPACER_STYLE = {flex: 1};
+
     constructor(props, context) {
         super(props, context);
         this.handleShowResourceDetailsChanged = this.handleShowResourceDetailsChanged.bind(this);
@@ -58,6 +62,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         this.handleShowWorkflowStepDetailsChanged = this.handleShowWorkflowStepDetailsChanged.bind(this);
         this.handleWorkflowStepIdSelected = this.handleWorkflowStepIdSelected.bind(this);
         this.handleResourceRenameButtonClicked = this.handleResourceRenameButtonClicked.bind(this);
+        this.handleOpenWorkspaceDirectoryClicked = this.handleOpenWorkspaceDirectoryClicked.bind(this);
         this.renderStepItem = this.renderStepItem.bind(this);
         this.renderResourceAttrName = this.renderResourceAttrName.bind(this);
         this.renderResourceAttrValue = this.renderResourceAttrValue.bind(this);
@@ -93,6 +98,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
     private handleResourceRenameButtonClicked() {
         this.props.dispatch(actions.showDialog('resourceRenameDialog'));
+    }
+
+    private handleOpenWorkspaceDirectoryClicked() {
+        actions.openItem(this.props.workspace.baseDir);
     }
 
     private static getResourceItemKey(resource: ResourceState) {
@@ -134,19 +143,23 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         );
         let workspaceState = null;
         if (workspace.isModified) {
-            workspaceState = <span key={0} className="pt-tag pt-intent-warning pt-minimal">Modified</span>;
+            workspaceState = <span key={0} style={WorkspacePanel.STATE_TAG_STYLE} className="pt-tag pt-intent-warning pt-minimal">Modified</span>;
         } else if (!workspace.isSaved) {
-            workspaceState = <span key={1} className="pt-tag pt-intent-success pt-minimal">Not saved</span>;
+            workspaceState = <span key={1} style={WorkspacePanel.STATE_TAG_STYLE} className="pt-tag pt-intent-success pt-minimal">Not saved</span>;
         }
-        const openItemButton = <Button onClick={() => actions.openItem(workspace.baseDir)} iconName="folder-open"/>
+        const openItemButton = (
+            <Tooltip content="Open workspace directory">
+                <Button onClick={this.handleOpenWorkspaceDirectoryClicked} iconName="folder-open"/>
+            </Tooltip>
+        );
 
         //const resourcesTooltip = "Workspace resources that result from workflow steps";
         //const workflowTooltip = "Workflow steps that generate workspace resources";
         return (
             <ScrollablePanelContent>
-                <div style={{display: "flex"}}>
+                <div style={WorkspacePanel.FLEX_ROW_STYLE}>
                     {workspaceLabel}
-                    <span style={{flex: 1}}/>
+                    <span style={WorkspacePanel.SPACER_STYLE}/>
                     {workspaceState}
                     {openItemButton}
                 </div>
