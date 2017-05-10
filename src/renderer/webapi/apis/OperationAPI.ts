@@ -9,9 +9,9 @@ function responseToOperation(operationsResponse: any): OperationState[] {
 function responseOperationToOperation(op: any): OperationState {
     return {
         qualifiedName: op.qualified_name,
-        name: (op.name || op.qualified_name),
-        description: (op.header.description || null),
-        tags: (op.header.tags || []),
+        name: op.name || op.qualified_name,
+        description: (op.header && op.header.description) || null,
+        tags: (op.header && op.header.tags) || [],
         hasMonitor: (op.has_monitor || false),
         inputs: op.input.map(responseInputToOperationInput),
         outputs: op.output.map(responseOutputToOperationOutput),
