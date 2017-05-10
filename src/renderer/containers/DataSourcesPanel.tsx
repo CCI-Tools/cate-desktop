@@ -136,7 +136,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                                       disabled={!canRemove}
                                       iconName="trash"/>
                     </Tooltip>
-                    <Tooltip content="Copy data source local">
+                    <Tooltip content="Make remote data source local">
                         <AnchorButton className={isNonLocalStore ? "pt-intent-primary" : ""}
                                       onClick={this.handleShowDownloadDatasetDialog}
                                       disabled={!canDownload}
