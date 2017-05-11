@@ -72,7 +72,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
         }
     }
 
-    private handleOperationFilterExprCleared(event) {
+    private handleOperationFilterExprCleared() {
         this.props.dispatch(actions.setOperationFilterExpr(""));
     }
 
@@ -81,7 +81,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
     }
 
     private handleAddOperationStepButtonClicked() {
-        this.props.dispatch(actions.showOperationStepDialog());
+        this.props.dispatch(actions.showOperationStepDialog('newOperationStepDialog'));
     }
 
     private static getItemKey(operation: OperationState) {
@@ -132,7 +132,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                             onClick={this.handleAddOperationStepButtonClicked}
                             disabled={!canApplyOperation}
                             iconName="play">Apply...</Button>
-                    {canApplyOperation ? <OperationStepDialog isAddDialog={true}/> : null}
+                    {canApplyOperation ? <OperationStepDialog id="newOperationStepDialog"/> : null}
                 </div>
             );
 
@@ -265,11 +265,11 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             title = operation.name;
 
             if (operation.description) {
-                description = (<p><i>{operation.description}</i></p>);
+                description = (<p><em>{operation.description}</em></p>);
             }
 
             if (operation.tags) {
-                tags = (<p><b>Tags:</b> {operation.tags.join(', ')}</p>);
+                tags = (<p><strong>Tags:</strong> {operation.tags.join(', ')}</p>);
             }
 
             if (operation.outputs && operation.outputs.length) {

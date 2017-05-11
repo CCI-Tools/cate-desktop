@@ -402,17 +402,17 @@ export function setOperationFilterExpr(operationFilterExpr: string) {
     return updateControlState({operationFilterExpr});
 }
 
-export function showOperationStepDialog() {
-    return showDialog('operationStepDialog');
+export function showOperationStepDialog(dialogId: string) {
+    return showDialog(dialogId);
 }
 
-export function hideOperationStepDialog(inputAssignments?) {
+export function hideOperationStepDialog(dialogId: string, inputAssignments?) {
     return (dispatch, getState: GetState) => {
         if (inputAssignments) {
-            const dialogState = getState().control.dialogs['operationStepDialog'] as any;
+            const dialogState = getState().control.dialogs[dialogId] as any;
             inputAssignments = Object.assign({}, dialogState.inputAssignments, inputAssignments)
         }
-        dispatch(hideDialog('operationStepDialog', {inputAssignments}));
+        dispatch(hideDialog(dialogId, {inputAssignments}));
     };
 }
 

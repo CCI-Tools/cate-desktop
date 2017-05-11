@@ -3,7 +3,7 @@ import {connect} from "react-redux";
 import {Button} from "@blueprintjs/core";
 import {
     OperationState, WorkspaceState, OperationInputState, State, DialogState, OperationKWArgs,
-    ResourceState
+    ResourceState, WorkflowStepState
 } from "../state";
 import FormEvent = React.FormEvent;
 import {InputEditor} from "./editor/InputEditor";
@@ -14,6 +14,7 @@ import {hasValueEditorFactory, InputAssignment, InputAssignments, renderValueEdi
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {isDefined, isUndefinedOrNull} from "../../common/types";
+import {isUndefined} from "util";
 
 
 type InputErrors = { [inputName: string]: Error };
@@ -21,15 +22,17 @@ type InputErrors = { [inputName: string]: Error };
 type OpInputAssignments = { [opName: string]: InputAssignments };
 
 interface IOperationStepDialogOwnProps {
-    isAddDialog?: boolean;
+    id: string;
+    operationStep?: WorkflowStepState | null;
 }
 
 interface IOperationStepDialogProps extends DialogState, IOperationStepDialogOwnProps {
     dispatch?: any;
+    isEditMode: boolean;
     inputAssignments: OpInputAssignments;
     workspace: WorkspaceState;
     operation: OperationState;
-    newResourceName: string,
+    resName: string,
 }
 
 interface IOperationStepDialogState {
@@ -39,15 +42,29 @@ interface IOperationStepDialogState {
 }
 
 function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): IOperationStepDialogProps {
-    const dialogStateSelector = selectors.dialogStateSelector(OperationStepDialog.DIALOG_ID);
+    let operation: OperationState | null;
+    let resName;
+    let inputAssignments;
+    let operationStep = ownProps.operationStep;
+    if (operationStep) {
+        resName = operationStep.id;
+        const opName = operationStep.op;
+        operation = (selectors.operationsSelector(state) || []).find(op => op.qualifiedName === opName);
+        if (operation) {
+            inputAssignments = getInputAssignmentsFromOperationStep(operation, operationStep);
+        }
+    }
+
+    const dialogStateSelector = selectors.dialogStateSelector(ownProps.id);
     const dialogState = dialogStateSelector(state);
     return {
-        isAddDialog: ownProps.isAddDialog,
-        isOpen: dialogState.isOpen,
-        inputAssignments: (dialogState as any).inputAssignments,
+        id: ownProps.id,
+        isEditMode: !!operationStep,
         workspace: selectors.workspaceSelector(state),
-        operation: selectors.selectedOperationSelector(state),
-        newResourceName: selectors.newResourceNameSelector(state),
+        isOpen: dialogState.isOpen,
+        inputAssignments: inputAssignments || (dialogState as any).inputAssignments,
+        operation: operation || selectors.selectedOperationSelector(state),
+        resName: resName || selectors.newResourceNameSelector(state),
     };
 }
 
@@ -82,11 +99,13 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
 
     private onConfirm() {
         const operation = this.props.operation;
-        const resName = this.props.newResourceName;
+        const resName = this.props.resName;
         const opName = operation.name;
         const opArgs = this.getInputArguments();
         console.log(`OperationStepDialog: handleConfirm: op="${opName}", args=${opArgs}`);
-        this.props.dispatch(actions.hideOperationStepDialog({[opName]: this.state.inputAssignments}));
+        if (!this.props.isEditMode) {
+            this.props.dispatch(actions.hideOperationStepDialog(this.props.id, {[opName]: this.state.inputAssignments}));
+        }
         this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, `Applying operation "${opName}"`));
     }
 
@@ -95,7 +114,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
     }
 
     private onCancel() {
-        this.props.dispatch(actions.hideOperationStepDialog());
+        this.props.dispatch(actions.hideOperationStepDialog(this.props.id));
     }
 
     private onValidate() {
@@ -141,8 +160,14 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
     }
 
     render() {
-        const dialogTitle = this.props.isAddDialog ? "Add Operation Step" : "Change Operation Step";
-        const tooltipText = this.props.isAddDialog ? 'Add a new operation step to the workflow' : 'Change the operation step parameters.';
+        let dialogTitle, tooltipText;
+        if (this.props.isEditMode) {
+            dialogTitle = "Edit Operation Step";
+            tooltipText = 'Edit operation step parameters and re-apply operation.';
+        } else {
+            dialogTitle = "New Operation Step";
+            tooltipText = 'Add a new operation step to the workflow and apply it.';
+        }
 
         return (
             <ModalDialog
@@ -229,9 +254,24 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
 
 export default connect(mapStateToProps)(OperationStepDialog);
 
+function getInputAssignmentsFromOperationStep(operation: OperationState, operationStep: WorkflowStepState): InputAssignments {
+    const inputAssignments = {};
+    for (let input of operation.inputs) {
+        const inputPort = operationStep.input[input.name];
+        if (inputPort) {
+            if (inputPort.source) {
+                inputAssignments[input.name] = {resourceName: inputPort.source, isValueUsed: false};
+            } else if (!isUndefined(inputPort.value)) {
+                inputAssignments[input.name] = {constantValue: inputPort.value, isValueUsed: true};
+            }
+        }
+    }
+    return inputAssignments;
+}
+
 function getInitialInputAssignments(inputs: OperationInputState[],
                                     lastInputAssignments?: InputAssignments,
-                                    forceDefaults?: boolean) {
+                                    forceDefaults?: boolean): InputAssignments {
     const inputAssignments = {};
     inputs.forEach((input: OperationInputState) => {
         const isValueUsed = hasValueEditorFactory(input.dataType);
@@ -259,7 +299,13 @@ function renderInputEditors(inputs: OperationInputState[],
     return inputs.map((input: OperationInputState) => {
         const inputAssignment = inputAssignments[input.name];
         const constantValue = inputAssignment.constantValue;
-        const valueEditor = renderValueEditor({input, inputAssignments, resources, value: constantValue, onChange: onConstantValueChange});
+        const valueEditor = renderValueEditor({
+            input,
+            inputAssignments,
+            resources,
+            value: constantValue,
+            onChange: onConstantValueChange
+        });
         return (
             <InputEditor key={input.name}
                          resources={resources}
@@ -394,9 +440,9 @@ class ValidationDialog extends React.Component<IValidationDialogProps, null> {
 
         const resourceProblems = this.countResourceProblems();
         const footerText = resourceProblems > 0 ? (<p>This operation has
-               parameter(s) which require specifying a <em>resource</em>. When there are no compatible resources yet,
-               you may consider opening a data source or use one of the <code>read_...</code> operations first.
-            </p>) : null;
+            parameter(s) which require specifying a <em>resource</em>. When there are no compatible resources yet,
+            you may consider opening a data source or use one of the <code>read_...</code> operations first.
+        </p>) : null;
 
         return (
             <div className="pt-form-group">

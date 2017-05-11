@@ -528,24 +528,24 @@ describe('Actions', () => {
 
         it('show/hideOperationStepDialog', () => {
             let inputAssignments;
-            dispatch(actions.showOperationStepDialog());
+            dispatch(actions.showOperationStepDialog('operationStepDialog'));
             expect(getState().control.dialogs['operationStepDialog']).to.deep.equal({
                 isOpen: true
             });
-            dispatch(actions.hideOperationStepDialog());
+            dispatch(actions.hideOperationStepDialog('operationStepDialog'));
             //noinspection JSUnusedAssignment
             expect(getState().control.dialogs['operationStepDialog']).to.deep.equal({
                 isOpen: false,
                 inputAssignments
             });
-            dispatch(actions.hideOperationStepDialog({op1: {a: 3, b: 8}}));
+            dispatch(actions.hideOperationStepDialog('operationStepDialog', {op1: {a: 3, b: 8}}));
             expect(getState().control.dialogs['operationStepDialog']).to.deep.equal({
                 isOpen: false,
                 inputAssignments: {
                     op1: {a: 3, b: 8}
                 }
             });
-            dispatch(actions.hideOperationStepDialog({op2: {x: 2, y: 1}}));
+            dispatch(actions.hideOperationStepDialog('operationStepDialog', {op2: {x: 2, y: 1}}));
             expect(getState().control.dialogs['operationStepDialog']).to.deep.equal({
                 isOpen: false,
                 inputAssignments: {

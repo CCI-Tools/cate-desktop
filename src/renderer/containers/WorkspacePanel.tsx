@@ -9,13 +9,13 @@ import {Table, Column, Cell} from "@blueprintjs/table";
 import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
 import ResourceRenameDialog from "./ResourceRenameDialog";
+import OperationStepDialog from "./OperationStepDialog";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import * as assert from "../../common/assert";
 import * as actions from '../actions'
 import * as selectors from '../selectors'
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messages";
-import {AbstractButton} from "../../../app/node_modules/@blueprintjs/core/dist/components/button/abstractButton";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
@@ -63,6 +63,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         this.handleWorkflowStepIdSelected = this.handleWorkflowStepIdSelected.bind(this);
         this.handleResourceRenameButtonClicked = this.handleResourceRenameButtonClicked.bind(this);
         this.handleOpenWorkspaceDirectoryClicked = this.handleOpenWorkspaceDirectoryClicked.bind(this);
+        this.handleEditOperationStepButtonClicked = this.handleEditOperationStepButtonClicked.bind(this);
         this.renderStepItem = this.renderStepItem.bind(this);
         this.renderResourceAttrName = this.renderResourceAttrName.bind(this);
         this.renderResourceAttrValue = this.renderResourceAttrValue.bind(this);
@@ -102,6 +103,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
     private handleOpenWorkspaceDirectoryClicked() {
         actions.openItem(this.props.workspace.baseDir);
+    }
+
+    private handleEditOperationStepButtonClicked() {
+        this.props.dispatch(actions.showOperationStepDialog('editOperationStepDialog'));
     }
 
     private static getResourceItemKey(resource: ResourceState) {
@@ -265,12 +270,20 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     private renderWorkflowStepActions() {
-        const selectedWorkflowStep = this.props.selectedWorkflowStep;
+        const workflowStep = this.props.selectedWorkflowStep;
+        const isStepSelected = !!workflowStep;
+        const isOperationStepSelected = workflowStep && workflowStep.op;
         return (
             <div className="pt-button-group">
-                <Button disabled={!selectedWorkflowStep} iconName="duplicate"/>
-                <Button disabled={!selectedWorkflowStep} iconName="edit"/>
-                <Button disabled={!selectedWorkflowStep} iconName="delete"/>
+                <Button disabled={!isOperationStepSelected}
+                        iconName="duplicate"/>
+                <Button disabled={!isOperationStepSelected}
+                        iconName="edit"
+                        onClick={this.handleEditOperationStepButtonClicked}/>
+                <Button disabled={!isStepSelected}
+                        iconName="delete"/>
+                {isOperationStepSelected ?
+                    <OperationStepDialog id="editOperationStepDialog" operationStep={workflowStep}/> : null}
             </div>
         );
     }

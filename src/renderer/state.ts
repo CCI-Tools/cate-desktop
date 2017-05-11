@@ -182,7 +182,7 @@ export interface WorkflowStepState {
     id: string;
 
     /**
-     * Step type.
+     * Step type (not used yet).
      */
     type: 'operation'|'workflow'|'python-expression'|'python-script'|'executable';
 
