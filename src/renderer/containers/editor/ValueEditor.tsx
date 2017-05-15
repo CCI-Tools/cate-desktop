@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as types from "../../../common/cate-types";
 import {OperationInputState, ResourceState} from "../../state";
 import {FieldValue} from "../../components/field/Field";
 import {BooleanValueEditor} from "./BooleanValueEditor";
@@ -10,7 +11,7 @@ import {GeometryValueEditor} from "./GeometryValueEditor";
 import {TimeRangeValueEditor} from "./TimeRangeValueEditor";
 import {VarNameValueEditor} from "./VarNameValueEditor";
 import {DictValueEditor} from "./DictValueEditor";
-import * as types from "../../../common/cate-types";
+import {LiteralValueEditor} from "./LiteralValueEditor";
 import {TimeValueEditor} from "./TimeValueEditor";
 
 export interface InputAssignment {
@@ -116,6 +117,10 @@ function renderDictLikeValueEditor(props: IValueEditorProps<string>) {
     return <DictValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
 }
 
+function renderLiteralValueEditor(props: IValueEditorProps<string>) {
+    return <LiteralValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
+}
+
 const VALUE_EDITOR_FACTORIES = {
     [types.BOOL_TYPE]: renderBoolValueEditor,
     [types.INT_TYPE]: renderIntValueEditor,
@@ -129,6 +134,7 @@ const VALUE_EDITOR_FACTORIES = {
     [types.VAR_NAME_LIKE_TYPE]: renderVarNameLikeValueEditor,
     [types.VAR_NAMES_LIKE_TYPE]: renderVarNamesLikeValueEditor,
     [types.DICT_LIKE_TYPE]: renderDictLikeValueEditor,
+    [types.LITERAL_TYPE]: renderLiteralValueEditor,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////

@@ -13,6 +13,8 @@ export const GEO_DATA_FRAME_TYPE = 'geopandas.geodataframe.GeoDataFrame';
 export const GEO_SERIES_TYPE = 'geopandas.geoseries.GeoSeries';
 export const SERIES_TYPE = 'pandas.core.series.Series';
 
+export const DATASET_LIKE_TYPE = 'cate.core.types.DatasetLike';
+export const DATA_FRAME_LIKE_TYPE = 'cate.core.types.DataFrameLike';
 export const POINT_LIKE_TYPE = 'cate.core.types.PointLike';
 export const POLYGON_LIKE_TYPE = 'cate.core.types.PolygonLike';
 export const GEOMETRY_LIKE_TYPE = 'cate.core.types.GeometryLike';
@@ -21,6 +23,8 @@ export const TIME_RANGE_LIKE_TYPE = 'cate.core.types.TimeRangeLike';
 export const VAR_NAME_LIKE_TYPE = 'cate.core.types.VarName';
 export const VAR_NAMES_LIKE_TYPE = 'cate.core.types.VarNamesLike';
 export const DICT_LIKE_TYPE = 'cate.core.types.DictLike';
+export const ARBITRARY_TYPE = 'cate.core.types.Arbitrary';
+export const LITERAL_TYPE = 'cate.core.types.Literal';
 
 /**
  * Naive test if a targetDataType is assignable from a given sourceDataType.
@@ -38,7 +42,10 @@ export function isAssignableFrom(targetDataType: string, sourceDataType: string)
     }
     switch (targetDataType) {
         case OBJECT_TYPE:
+        case ARBITRARY_TYPE:
             return true;
+        case LITERAL_TYPE:
+            return sourceDataType === STR_TYPE;
         case BOOL_TYPE:
             return sourceDataType !== ND_ARRAY_TYPE; // Non-empty numpy arrays don't work as booleans
         case INT_TYPE:
@@ -48,7 +55,13 @@ export function isAssignableFrom(targetDataType: string, sourceDataType: string)
         case ND_ARRAY_TYPE:
             return sourceDataType === DATA_ARRAY_TYPE;
         case DATA_FRAME_TYPE:
-            return sourceDataType === GEO_DATA_FRAME_TYPE;
+            return sourceDataType === DATA_FRAME_LIKE_TYPE || sourceDataType === GEO_DATA_FRAME_TYPE;
+        case DATA_FRAME_LIKE_TYPE:
+            return sourceDataType === DATA_FRAME_TYPE || sourceDataType === GEO_DATA_FRAME_TYPE;
+        case DATASET_TYPE:
+            return sourceDataType === DATASET_LIKE_TYPE;
+        case DATASET_LIKE_TYPE:
+            return sourceDataType === DATASET_TYPE;
         case SERIES_TYPE:
             return sourceDataType === GEO_SERIES_TYPE;
         case VAR_NAME_LIKE_TYPE:

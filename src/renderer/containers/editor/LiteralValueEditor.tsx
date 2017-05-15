@@ -3,14 +3,16 @@ import {IValueEditorProps} from "./ValueEditor";
 import {FieldValue, toTextValue} from "../../components/field/Field";
 import {TextField} from "../../components/field/TextField";
 
-// Note: DictValueEditor and ArbitraryValueEditor are almost the same - use the React HLC pattern
+// Note: DictValueEditor and LiteralValueEditor are almost the same - use the React HLC pattern
 
-interface IDictValueEditorProps extends IValueEditorProps<string> {
+interface ILiteralValueEditorProps extends IValueEditorProps<string> {
+    placeholder?: string;
+    validator?: (value: any) => void;
 }
 
-export class DictValueEditor extends React.Component<IDictValueEditorProps, null> {
+export class LiteralValueEditor extends React.Component<ILiteralValueEditorProps, null> {
 
-    constructor(props: IDictValueEditorProps) {
+    constructor(props: ILiteralValueEditorProps) {
         super(props);
         this.onChange = this.onChange.bind(this);
     }
@@ -24,9 +26,9 @@ export class DictValueEditor extends React.Component<IDictValueEditorProps, null
         return (
             <TextField
                 value={textValue}
-                validator={validateDictText}
+                validator={this.props.validator || validatePythonLiteralText}
                 size={36}
-                placeholder='Enter key-value pairs (Python), separated by comma'
+                placeholder={this.props.placeholder || 'Enter constant (Python) literal'}
                 onChange={this.onChange}
                 style={{flexGrow: 1}}
             />
@@ -34,7 +36,7 @@ export class DictValueEditor extends React.Component<IDictValueEditorProps, null
     }
 }
 
-export function validateDictText(value: string|null) {
+export function validatePythonLiteralText(value: string|null) {
     if (!value || value.trim() === '') {
         return;
     }
@@ -47,7 +49,7 @@ export function validateDictText(value: string|null) {
     //noinspection JSUnusedLocalSymbols
     const False = false;
     //
-    // To validate, e.g. "layers=3, time=19", try eval("var layers=3, time=19;")
-    // which should succeed if value is fine
-    eval(`var ${value};`);
+    // Use JavaScript's eval() to validate Python literals.
+    // This is not exact, but works for most literals.
+    eval(value);
 }
