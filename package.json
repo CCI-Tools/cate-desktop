@@ -1,8 +1,8 @@
 {
   "name": "cate-desktop",
-  "productName": "Cate",
+  "productName": "Cate Desktop",
   "version": "0.8.0-rc.3",
-  "description": "ESA CCI Toolbox (Cate)",
+  "description": "A graphical user interface for the ESA CCI Toolbox (Cate)",
   "private": true,
   "scripts": {
     "start": "electron app",
