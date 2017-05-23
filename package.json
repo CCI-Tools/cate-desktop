@@ -1,7 +1,7 @@
 {
   "name": "cate-desktop",
   "productName": "Cate",
-  "version": "0.8.0rc1",
+  "version": "0.8.0-rc.3",
   "description": "ESA CCI Toolbox (Cate)",
   "private": true,
   "scripts": {
@@ -88,6 +88,7 @@
     "redux-thunk": "~2.2.x",
     "reselect": "~2.5.x",
     "rimraf": "~2.5.x",
+    "semver": "^5.3.0",
     "spectron": "~3.4.x",
     "ts-node": "~1.7.x",
     "typescript": "~2.1.x"

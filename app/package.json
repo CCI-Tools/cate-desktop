@@ -1,7 +1,7 @@
 {
   "name": "cate-desktop",
   "productName": "Cate",
-  "version": "0.8.0rc1",
+  "version": "0.8.0-rc.3",
   "description": "ESA CCI Toolbox (Cate)",
   "main": "main.js",
   "author": "Norman Fomferra, Marco Zühlke (Brockmann Consult GmbH)",
@@ -27,6 +27,7 @@
     "redux": "~3.6.x",
     "redux-logger": "~2.8.x",
     "redux-thunk": "~2.2.x",
-     "reselect": "~2.5.x"
+    "reselect": "~2.5.x",
+    "semver": "~5.3.x"
   }
 }
