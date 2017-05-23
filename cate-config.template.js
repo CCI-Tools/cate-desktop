@@ -25,11 +25,6 @@ module.exports = {
          * For details refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
          */
         processOptions: {},
-
-        /**
-         * Ignore all setting above and use a mock service instead, useful for development.
-         */
-        useMockService: false,
     },
 
     /**
