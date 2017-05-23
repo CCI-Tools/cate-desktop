@@ -6,7 +6,7 @@ import thunkMiddleware from 'redux-thunk';
 import {Provider} from 'react-redux';
 import {ipcRenderer} from 'electron';
 import ApplicationPage from './containers/ApplicationPage'
-import {newWebAPIClient, WebSocketMock, WebAPIServiceMock} from './webapi'
+import {newWebAPIClient} from './webapi'
 import {State} from './state';
 import * as actions from './actions'
 import {stateReducer} from './reducers';
@@ -60,12 +60,7 @@ function connectWebAPIClient(store: Store<State>) {
 
     const webAPIConfig = store.getState().data.appConfig.webAPIConfig;
     console.log('webAPIConfig:', webAPIConfig);
-    let webAPIClient;
-    if (!webAPIConfig.useMockService && webAPIConfig.webSocketUrl) {
-        webAPIClient = newWebAPIClient(webAPIConfig.webSocketUrl);
-    } else {
-        webAPIClient = newWebAPIClient('ws://mock', 0, new WebSocketMock(100, new WebAPIServiceMock(), true));
-    }
+    const webAPIClient = newWebAPIClient(webAPIConfig.webSocketUrl);
 
     webAPIClient.onOpen = () => {
         store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
