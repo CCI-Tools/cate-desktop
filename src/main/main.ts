@@ -140,7 +140,7 @@ function loadBackendLocation() {
     }
 
     let descendingVersions = Object.getOwnPropertyNames(backendLocations);
-    descendingVersions.sort((v1: string, v2:string) => semver.compare(v2, v1, true));
+    descendingVersions.sort((v1: string, v2: string) => semver.compare(v2, v1, true));
 
     console.log('------------------->', descendingVersions);
 
@@ -232,29 +232,30 @@ export function init() {
 
     let webAPIProcess = null;
 
+    const processOptions = {
+        //detached: false,
+        //stdio: 'inherit',
+        ...webAPIConfig.processOptions
+    };
+    if (process.platform === 'win32') {
+        // For Conda executables to run on Windows, we must activate the environment.
+        // We emulate this, by setting creating an equivalent environment
+        const scriptsPath = path.dirname(webAPIConfig.command);
+        const pythonPath = path.dirname(scriptsPath);
+        const env = {};
+        env['GDAL_DATA'] = `${pythonPath}\\Library\\share\\gdal`;
+        env['PROJ_LIB='] = `${pythonPath}\\Library\\share`;
+        env['PATH'] = `${pythonPath};${pythonPath}\\Library\\bin;${scriptsPath};${process.env.PATH}`;
+        processOptions.env = {...processOptions.env, ...env};
+    }
+
     function startWebapiService(): child_process.ChildProcess {
         const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
-        console.log(CATE_WEBAPI_PREFIX, `starting Cate WebAPI service using arguments: ${webAPIStartArgs}`);
-
-        const processOptions = {
-            detached: false,
-            stdio: 'inherit',
-            ...webAPIConfig.processOptions
-        };
-        if (process.platform === 'win32') {
-            // For Conda executables to run on Windows, we must activate the environment.
-            // We emulate this, by setting creating an equivalent environment
-            const scriptsPath = path.dirname(webAPIConfig.command);
-            const pythonPath = path.dirname(scriptsPath);
-            const env = {};
-            env['GDAL_DATA'] = `${pythonPath}\\Library\\share\\gdal`;
-            env['PROJ_LIB='] = `${pythonPath}\\Library\\share`;
-            env['PATH'] = `${pythonPath};${pythonPath}\\Library\\bin;${scriptsPath};${process.env.PATH}`;
-            processOptions.env = {...processOptions.env, ...env};
-        }
+        console.log(CATE_DESKTOP_PREFIX, `Starting Cate WebAPI service using arguments: ${webAPIStartArgs}`);
 
         const webAPIProcess = child_process.spawn(webAPIConfig.command, webAPIStartArgs, processOptions);
         webAPIStarted = true;
+        console.log(CATE_DESKTOP_PREFIX, 'Cate WebAPI service started:', webAPIProcess);
         webAPIProcess.stdout.on('data', (data: any) => {
             console.log(CATE_WEBAPI_PREFIX, `${data}`);
         });
@@ -262,10 +263,10 @@ export function init() {
             console.error(CATE_WEBAPI_PREFIX, `${data}`);
         });
         webAPIProcess.on('error', (err: Error) => {
-            let message = 'Failed to start Cate WebAPI service.';
-            console.log(CATE_WEBAPI_PREFIX, message, err);
+            console.error(CATE_WEBAPI_PREFIX, err);
             if (!webAPIError) {
-                electron.dialog.showErrorBox(`${app.getName()} - Internal Error`, message);
+                electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
+                    'Failed to start Cate WebAPI service.');
             }
             webAPIError = err;
             app.exit(WEBAPI_ERROR); // exit immediately
@@ -290,7 +291,8 @@ export function init() {
         }
         // Note we are async here, because sync can take a lot of time...
         const webAPIStopArgs = getWebAPIStopArgs(webAPIConfig);
-        child_process.spawn(webAPIConfig.command, webAPIStopArgs, webAPIConfig.processOptions);
+        console.log(CATE_DESKTOP_PREFIX, `Stopping Cate WebAPI service using arguments: ${webAPIStopArgs}`);
+        child_process.spawn(webAPIConfig.command, webAPIStopArgs, processOptions);
         // child_process.spawnSync(webAPIConfig.command, webAPIStopArgs, webAPIConfig.options);
     }
 
@@ -301,21 +303,21 @@ export function init() {
         let msSpend = 0; // ms
         let webAPIRestUrl = getWebAPIRestUrl(_config.data.webAPIConfig);
         console.log(CATE_DESKTOP_PREFIX, `Waiting for response from ${webAPIRestUrl}`);
-        showSplashMessage('Starting back-end...');
+        showSplashMessage('Waiting for Cate backend response...');
         request(webAPIRestUrl, msServiceAccessTimeout)
             .then((response: string) => {
-                console.log(CATE_WEBAPI_PREFIX, `Response: ${response}`);
+                console.log(CATE_WEBAPI_PREFIX, response);
                 createMainWindow();
             })
             .catch((err) => {
-                console.log(`Waiting for Cate WebAPI service to respond after ${msSpend} ms`);
+                console.log(CATE_DESKTOP_PREFIX, `Waiting for Cate WebAPI service to respond after ${msSpend} ms`);
                 if (!webAPIStarted) {
                     webAPIProcess = startWebapiService();
                 }
                 if (msSpend > msServiceStartTimeout) {
-                    console.error(CATE_WEBAPI_PREFIX, `Failed to start Cate WebAPI service within ${msSpend} ms.`, err);
+                    console.error(CATE_DESKTOP_PREFIX, `Failed to start Cate WebAPI service within ${msSpend} ms.`, err);
                     if (!webAPIError) {
-                        electron.dialog.showErrorBox(`${app.getName()} - Internal Error`, `Failed to start backend within ${msSpend} ms.`);
+                        electron.dialog.showErrorBox(`${app.getName()} - Internal Error`, `Failed to start Cate backend within ${msSpend} ms.`);
                     }
                     app.exit(WEBAPI_TIMEOUT);
                 } else {
@@ -340,7 +342,7 @@ export function init() {
     // Emitted when all windows have been closed and the application will quit.
     app.on('quit', () => {
         console.log(CATE_DESKTOP_PREFIX, 'Quit.');
-            stopWebapiService(webAPIProcess);
+        stopWebapiService(webAPIProcess);
     });
 
     // Emitted when all windows have been closed.
@@ -391,7 +393,7 @@ function createSplashWindow(callback: () => void) {
 }
 
 function showSplashMessage(message: string) {
-    console.log(CATE_DESKTOP_PREFIX, message);
+    console.log(CATE_DESKTOP_PREFIX, 'Splash should say:', message);
     if (_splashWindow && _splashWindow.isVisible()) {
         _splashWindow.webContents.send('update-splash-message', message);
     } else {
