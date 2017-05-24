@@ -2,7 +2,7 @@
 # build is disabled because it expects MS Visual Studio solution file
 build: off
 
-version: '0.0.1.dev.{build}'
+version: '{build}'
 
 environment:
   nodejs_version: "6.9.0"
