@@ -115,6 +115,11 @@ function storeConfiguration(config: Configuration, options: string[], defaultCon
 
 function loadBackendLocation() {
     const dataDir = getAppDataDir();
+    if (!fs.existsSync(dataDir)) {
+        // Return immediately if there is no dataDir (yet).
+        return null;
+    }
+
     const fileNames = fs.readdirSync(dataDir);
     const backendLocations = {};
     for (let fileName of fileNames) {
@@ -129,8 +134,7 @@ function loadBackendLocation() {
                     if (semver.valid(version, true)) {
                         // Return immediately if the versions are equal.
                         if (semver.eq(version, app.getVersion(), true)) {
-                            console.log('~~~~~~~~~~~~~~~~~~~~~~>', webApiExe);
-                            //return webApiExe;
+                            return webApiExe;
                         }
                         backendLocations[version] = webApiExe;
                     }
@@ -142,11 +146,8 @@ function loadBackendLocation() {
     let descendingVersions = Object.getOwnPropertyNames(backendLocations);
     descendingVersions.sort((v1: string, v2: string) => semver.compare(v2, v1, true));
 
-    console.log('------------------->', descendingVersions);
-
     for (let version of descendingVersions) {
         if (semver.satisfies(version, WEBAPI_VERSION_RANGE, true)) {
-            console.log('===================>', backendLocations[version]);
             return backendLocations[version];
         }
     }
