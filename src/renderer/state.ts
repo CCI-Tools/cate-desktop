@@ -52,7 +52,8 @@ export interface WebAPIConfig {
     useMockService?: boolean;
     // Values computed in main.ts
     restUrl: string;
-    webSocketUrl: string;
+    apiWebSocketUrl: string;
+    mplWebSocketUrl: string;
 }
 
 export interface DataStoreState {

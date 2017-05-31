@@ -197,10 +197,13 @@ function getWebAPIRestUrl(webAPIConfig) {
     return `http://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/`;
 }
 
-function getWebAPIWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/app`;
+function getAPIWebSocketsUrl(webAPIConfig) {
+    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/api`;
 }
 
+function getMPLWebSocketsUrl(webAPIConfig) {
+    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/mpl`;
+}
 
 export function init() {
 
@@ -447,7 +450,8 @@ function createMainWindow() {
                     appPath: app.getAppPath(),
                     webAPIConfig: Object.assign({}, webAPIConfig, {
                         restUrl: getWebAPIRestUrl(webAPIConfig),
-                        webSocketUrl: getWebAPIWebSocketsUrl(webAPIConfig),
+                        apiWebSocketUrl: getAPIWebSocketsUrl(webAPIConfig),
+                        mplWebSocketUrl: getMPLWebSocketsUrl(webAPIConfig),
                     }),
                 })
             });

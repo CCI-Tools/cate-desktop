@@ -60,7 +60,8 @@ function connectWebAPIClient(store: Store<State>) {
 
     const webAPIConfig = store.getState().data.appConfig.webAPIConfig;
     console.log('webAPIConfig:', webAPIConfig);
-    const webAPIClient = newWebAPIClient(webAPIConfig.webSocketUrl);
+    const webAPIClient = newWebAPIClient(webAPIConfig.apiWebSocketUrl);
+    const mplWebSocket = new WebSocket(webAPIConfig.mplWebSocketUrl);
 
     webAPIClient.onOpen = () => {
         store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
@@ -88,6 +89,12 @@ function connectWebAPIClient(store: Store<State>) {
     webAPIClient.onWarning = (event) => {
         console.warn(`cate-desktop: warning from cate-webapi: ${event.message}`);
     };
+
+    mplWebSocket.onopen = (event) => {
+        console.log("MPL WebSocket opened!");
+        //store.dispatch(actions.setMPLWebSocket(mplWebSocket);
+    };
 }
+
 
 

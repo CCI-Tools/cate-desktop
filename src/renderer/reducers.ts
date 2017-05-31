@@ -27,7 +27,8 @@ const initialDataState: DataState = {
             servicePort: -1,
             serviceAddress: '',
             restUrl: '',
-            webSocketUrl: '',
+            apiWebSocketUrl: '',
+            mplWebSocketUrl: '',
         }
     },
     dataStores: null,
