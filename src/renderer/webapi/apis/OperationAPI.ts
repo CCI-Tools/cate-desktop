@@ -33,6 +33,7 @@ function responseInputToOperationInput(input: any): OperationInputState {
         fileOpenMode: input.file_open_mode,
         fileFilters: input.file_filters,
         fileProps: input.file_props,
+        noUI: input.no_ui || input.step_id,
     };
 }
 

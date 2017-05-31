@@ -296,7 +296,9 @@ function renderInputEditors(inputs: OperationInputState[],
                             resources: ResourceState[],
                             onConstantValueChange,
                             onResourceNameChange): JSX.Element[] {
-    return inputs.map((input: OperationInputState) => {
+    return inputs
+        .filter(input => !input.noUI)
+        .map((input: OperationInputState) => {
         const inputAssignment = inputAssignments[input.name];
         const constantValue = inputAssignment.constantValue;
         const valueEditor = renderValueEditor({

@@ -103,6 +103,7 @@ export interface OperationInputState extends OperationIOBaseState {
     fileOpenMode?: 'w' | 'r' | 'rw';
     fileFilters?: FileFilterState[];
     fileProps?: string;
+    noUI?: boolean;
 }
 
 export interface OperationOutputState extends OperationIOBaseState {
