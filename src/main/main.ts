@@ -202,7 +202,7 @@ function getAPIWebSocketsUrl(webAPIConfig) {
 }
 
 function getMPLWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/mpl`;
+    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/mpl/figures/`;
 }
 
 export function init() {

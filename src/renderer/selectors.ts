@@ -13,6 +13,7 @@ import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {isSpatialVectorVariable, isSpatialImageVariable, findOperation} from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
+import {isDefinedAndNotNull, isNumber} from "../common/types";
 
 const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -346,10 +347,17 @@ export function newResourceName(resources: ResourceState[], namePrefix: string):
     return `${namePrefix}${maxNameIndex + 1}`;
 }
 
+export const figuresSelector = createSelector<State, ResourceState[], ResourceState[]>(
+    resourcesSelector,
+    (resources: ResourceState[]) => {
+        return resources.filter(r => isNumber(r.figureId))
+    }
+);
+
 export const variablesSelector = createSelector<State, VariableState[] | null, ResourceState | null>(
     selectedResourceSelector,
     (selectedResource: ResourceState | null) => {
-        return selectedResource ? selectedResource.variables : null;
+        return selectedResource ? (selectedResource.variables || null) : null;
     }
 );
 

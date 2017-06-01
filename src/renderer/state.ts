@@ -231,7 +231,8 @@ export interface ResourceState {
     dataType: string;
     dims?: DimSizes;
     attrs?: Attribute[];
-    variables: VariableState[];
+    variables?: VariableState[];
+    figureId?: number;
 }
 
 export interface VariableState {

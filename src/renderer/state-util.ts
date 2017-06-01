@@ -43,6 +43,14 @@ export function getGeoJSONCountriesUrl(baseUrl: string): string {
     return baseUrl + 'ws/countries/0';
 }
 
+export function getMPLWebSocketUrl(baseUrl: string, baseDir: string): string {
+    return `${baseUrl}${encodeURIComponent(baseDir)}`;
+}
+
+export function getMPLDownloadUrl(baseUrl: string, baseDir: string, figureId: number, formatName: string): string {
+    return `${baseUrl}${encodeURIComponent(baseDir)}/${encodeURIComponent('' + figureId)}/${encodeURIComponent(formatName)}`;
+}
+
 export function isSpatialImageVariable(variable: VariableState): boolean {
     return variable.ndim && variable.ndim >= 2 && !!variable.imageLayout;
 }
@@ -84,7 +92,7 @@ export function findResource(resources: ResourceState[], ref: VariableRefState):
 
 export function findVariable(resources: ResourceState[], ref: VariableRefState): VariableState | null {
     const resource = findResource(resources, ref);
-    return resource && resource.variables.find(v => v.name === ref.varName);
+    return resource && resource.variables && resource.variables.find(v => v.name === ref.varName);
 }
 
 export function findOperation(operations: OperationState[], name: string): OperationState | null {
