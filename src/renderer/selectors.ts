@@ -1,7 +1,7 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
-    WorkflowStepState, VariableVectorLayerState, LayerVariableState, SavedVariableLayers
+    WorkflowStepState, VariableVectorLayerState, LayerVariableState, SavedVariableLayers, MplModuleState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient} from "./webapi/WebAPIClient";
@@ -21,8 +21,11 @@ export const EMPTY_ARRAY = [];
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remote API selectors
 
-export const webAPIRestUrlSelector = (state: State): string => state.data.appConfig.webAPIConfig.restUrl;
 export const webAPIClientSelector = (state: State): WebAPIClient => state.data.appConfig.webAPIClient;
+export const webAPIRestUrlSelector = (state: State): string => state.data.appConfig.webAPIConfig.restUrl;
+export const mplWebSocketUrlSelector = (state: State): string => state.data.appConfig.webAPIConfig.mplWebSocketUrl;
+export const mplWebSocketSelector = (state: State): WebSocket|null => state.data.appConfig.mplWebSocket;
+export const mplModuleSelector = (state: State): MplModuleState => state.data.appConfig.mplModule;
 
 
 export const backendConfigAPISelector = createSelector(
@@ -347,7 +350,7 @@ export function newResourceName(resources: ResourceState[], namePrefix: string):
     return `${namePrefix}${maxNameIndex + 1}`;
 }
 
-export const figuresSelector = createSelector<State, ResourceState[], ResourceState[]>(
+export const figureResourcesSelector = createSelector<State, ResourceState[], ResourceState[]>(
     resourcesSelector,
     (resources: ResourceState[]) => {
         return resources.filter(r => isNumber(r.figureId))

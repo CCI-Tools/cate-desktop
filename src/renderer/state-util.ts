@@ -1,7 +1,7 @@
 import {
     VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
-    VariableImageLayerState, State, OperationState, WorldViewDataState, ChartViewDataState, VariableChartState,
-    TableViewDataState
+    VariableImageLayerState, State, OperationState, WorldViewDataState, ChartViewDataState,
+    TableViewDataState, FigureViewDataState
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
@@ -153,11 +153,18 @@ function newInitialChartViewData(): ChartViewDataState {
     } as ChartViewDataState;
 }
 
+function newInitialFigureViewData(): FigureViewDataState {
+    return {
+        figureResourceIds: null,
+        selectedFigureResourceId: null,
+    };
+}
+
 function newInitialTableViewData(resName: string|null, varName: string|null): TableViewDataState {
     return {resName, varName, dataRows: null};
 }
 
-let WORLD_VIEW_COUNTER = 0
+let WORLD_VIEW_COUNTER = 0;
 
 export function newWorldView(): ViewState<WorldViewDataState> {
     const viewNumber = ++WORLD_VIEW_COUNTER;
@@ -170,7 +177,7 @@ export function newWorldView(): ViewState<WorldViewDataState> {
     };
 }
 
-let CHART_VIEW_COUNTER = 0
+let CHART_VIEW_COUNTER = 0;
 
 export function newChartView(): ViewState<ChartViewDataState> {
     const viewNumber = ++CHART_VIEW_COUNTER;
@@ -180,6 +187,19 @@ export function newChartView(): ViewState<ChartViewDataState> {
         type: 'chart',
         iconName: "pt-icon-timeline-area-chart",
         data: newInitialChartViewData(),
+    };
+}
+
+let FIGURE_VIEW_COUNTER = 0;
+
+export function newFigureView(): ViewState<FigureViewDataState> {
+    const viewNumber = ++FIGURE_VIEW_COUNTER;
+    return {
+        title: `Figures (${viewNumber})`,
+        id: genSimpleId('fig-'),
+        type: 'figure',
+        iconName: "pt-icon-timeline-area-chart",
+        data: newInitialFigureViewData(),
     };
 }
 

@@ -17,7 +17,7 @@ interface IChartSettingsPanelProps {
 
 function mapStateToProps(state: State): IChartSettingsPanelProps {
     return {
-        figureResources: selectors.figuresSelector(state),
+        figureResources: selectors.figureResourcesSelector(state),
     };
 }
 

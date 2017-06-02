@@ -13,7 +13,7 @@ export interface ViewState<T> {
     /**
      * The view type is used to lookup the renderer for this kind of view, e.g. "world".
      */
-        type: string;
+    type: string;
     /**
      * Type T of 'data' property depends on 'type' property, e.g. if type is "world",
      * data may contains a layer list, the selected layer, and a projection code.

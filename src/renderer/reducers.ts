@@ -8,7 +8,7 @@ import {combineReducers} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     SELECTED_VARIABLE_LAYER_ID, newWorldView, updateSelectedVariableLayer, newChartView,
-    newTableView
+    newTableView, getMPLWebSocketUrl, newFigureView
 } from "./state-util";
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
@@ -22,14 +22,20 @@ import {
 
 const initialDataState: DataState = {
     appConfig: {
-        webAPIClient: null,
         webAPIConfig: {
             servicePort: -1,
             serviceAddress: '',
             restUrl: '',
             apiWebSocketUrl: '',
             mplWebSocketUrl: '',
-        }
+        },
+        webAPIClient: null,
+        mplWebSocket: null,
+        mplModule: {
+            mpl: null,
+            status: null,
+            message: null,
+        },
     },
     dataStores: null,
     operations: null,
@@ -67,7 +73,28 @@ const dataReducer = (state: DataState = initialDataState, action) => {
         }
         case actions.SET_CURRENT_WORKSPACE: {
             const workspace = action.payload.workspace;
-            return updateObject(state, {workspace});
+
+            let appConfig = state.appConfig;
+            if (workspace.baseDir) {
+                if (!state.workspace || state.workspace.baseDir !== workspace.baseDir) {
+                    let mplWebSocket = appConfig.mplWebSocket;
+                    if (mplWebSocket) {
+                        mplWebSocket.close();
+                        console.log("old mplWebSocket for workspace closed");
+                    }
+                    let mplWebSocketUrl = getMPLWebSocketUrl(appConfig.webAPIConfig.mplWebSocketUrl, workspace.baseDir);
+                    mplWebSocket = null;
+                    try {
+                        mplWebSocket = new WebSocket(mplWebSocketUrl);
+                        console.log(`new mplWebSocket opened for workspace from ${mplWebSocketUrl}`);
+                    } catch (e) {
+                        console.error(`error opening new mplWebSocket for workspace from ${mplWebSocketUrl}`);
+                    }
+                    appConfig = {...appConfig, mplWebSocket};
+                }
+            }
+
+            return {...state, workspace, appConfig};
         }
         case actions.UPDATE_COLOR_MAPS: {
             const colorMaps = action.payload.colorMaps;
@@ -81,6 +108,10 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             return updateDataStores(state, action, () => {
                 return action.payload.dataSources.slice();
             });
+        }
+        case actions.UPDATE_MPL_MODULE: {
+            let appConfig = {...state.appConfig, mplModule: action.payload};
+            return {...state, appConfig};
         }
         case actions.UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE: {
             return updateDataStores(state, action, dataStore => {
@@ -189,6 +220,10 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         }
         case actions.ADD_CHART_VIEW: {
             const view = newChartView();
+            return addView(state, view, action.payload.placeAfterViewId);
+        }
+        case actions.ADD_FIGURE_VIEW: {
+            const view = newFigureView();
             return addView(state, view, action.payload.placeAfterViewId);
         }
         case actions.ADD_TABLE_VIEW: {

@@ -72,6 +72,7 @@
     "electron-builder": "~17.10.x",
     "electron-devtools-installer": "~2.2.x",
     "enzyme": "~2.6.x",
+    "loadjs": "^3.5.0",
     "mocha": "~3.2.x",
     "oboe": "~2.1.x",
     "openlayers": "~4.0.x",

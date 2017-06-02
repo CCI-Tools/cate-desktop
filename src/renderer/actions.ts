@@ -2,7 +2,7 @@ import {
     WorkspaceState, DataStoreState, TaskState, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState, VariableImageLayerState,
-    OperationKWArgs, WorldViewMode, SavedVariableLayers, TableViewDataState
+    OperationKWArgs, WorldViewMode, SavedVariableLayers, TableViewDataState, State
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
@@ -287,8 +287,7 @@ export function loadTemporalCoverage(dataStoreId: string, dataSourceId: string) 
     };
 }
 
-export function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: string, temporalCoverage:
-    [string, string]
+export function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: string, temporalCoverage: [string, string]
     | null) {
     return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
 }
@@ -811,8 +810,7 @@ export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean)
     return {type: SET_SHOW_SELECTED_VARIABLE_LAYER, payload: {showSelectedVariableLayer}};
 }
 
-export function setSelectedVariable(resource: ResourceState, selectedVariable:
-    VariableState
+export function setSelectedVariable(resource: ResourceState, selectedVariable: VariableState
     | null, savedLayers?: SavedVariableLayers) {
     return {type: SET_SELECTED_VARIABLE, payload: {resource, selectedVariable, savedLayers}};
 }
@@ -873,6 +871,7 @@ export function setSelectedRightBottomPanelId(selectedRightBottomPanelId: string
 
 export const ADD_WORLD_VIEW = "ADD_WORLD_VIEW";
 export const ADD_CHART_VIEW = "ADD_CHART_VIEW";
+export const ADD_FIGURE_VIEW = "ADD_FIGURE_VIEW";
 export const ADD_TABLE_VIEW = "ADD_TABLE_VIEW";
 export const SELECT_VIEW = "SELECT_VIEW";
 export const CLOSE_VIEW = "CLOSE_VIEW";
@@ -887,6 +886,10 @@ export function addWorldView(placeAfterViewId: string | null) {
 
 export function addChartView(placeAfterViewId: string | null) {
     return {type: ADD_CHART_VIEW, payload: {placeAfterViewId}};
+}
+
+export function addFigureView(placeAfterViewId: string | null) {
+    return {type: ADD_FIGURE_VIEW, payload: {placeAfterViewId}};
 }
 
 export function addTableView(placeAfterViewId: string | null) {
@@ -925,6 +928,59 @@ export function setViewMode(viewId: string, viewMode: WorldViewMode) {
 
 export function setProjectionCode(viewId: string, projectionCode: string) {
     return {type: SET_PROJECTION_CODE, payload: {viewId, projectionCode}};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Figure view actions
+
+export const UPDATE_MPL_MODULE = "SET_MATPLOTLIB_STATE";
+
+const MPL_20_WEBAGG_REQUIREMENTS = [
+    "_static/css/page.css",
+    "_static/css/boilerplate.css",
+    "_static/css/fbm.css",
+    "_static/jquery/css/themes/base/jquery-ui.min.css",
+    "_static/jquery/js/jquery-1.11.3.min.js",
+    "_static/jquery/js/jquery-ui.min.js",
+    "mpl.js",
+];
+
+// Note: use import stmt once we have @types/loadjs
+const loadjs = require('loadjs') as any;
+
+function updateMplModule(mpl, status, message) {
+    return {type: UPDATE_MPL_MODULE, payload: {mpl, status, message}};
+}
+
+/**
+ * Asynchronously load required Matplotlib CSS and JavaScript files.
+ *
+ * @returns a Redux thunk action
+ */
+export function loadMplModule() {
+    return (dispatch, getState: GetState) => {
+        let status = getState().data.appConfig.mplModule.status;
+        if (!status && !loadjs.isDefined('mpl')) {
+            let restUrl = getState().data.appConfig.webAPIConfig.restUrl;
+            dispatch(updateMplModule(null, 'loading', null));
+            const mplRequirements = MPL_20_WEBAGG_REQUIREMENTS.map(path => restUrl + path);
+            console.log("mpl requirements: ", mplRequirements);
+            loadjs(mplRequirements, 'mpl', {
+                async: false,
+                success: () => {
+                    const module = (window as any).mpl;
+                    if (module) {
+                        dispatch(updateMplModule(module, 'done', null));
+                    } else {
+                        dispatch(updateMplModule(module, 'error', `window.mpl is ${module}`));
+                    }
+                },
+                error: (e) => {
+                    dispatch(updateMplModule(null, 'error', e));
+                },
+            });
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1217,7 +1273,7 @@ export function showFileOpenDialog(openDialogOptions: OpenDialogOptions,
         });
         return null;
     } else {
-        return electron.ipcRenderer.sendSync(actionName, openDialogOptions, true);
+        return electron.ipcRenderer.sendSync(actionName, openDialogOptions, true) as any;
     }
 }
 
@@ -1228,8 +1284,7 @@ export function showFileOpenDialog(openDialogOptions: OpenDialogOptions,
  * @param callback an optional function which is called with the selected file path
  * @returns the selected filePath or null, if no file path was selected or the callback function is defined
  */
-export function showFileSaveDialog(saveDialogOptions: SaveDialogOptions, callback?: (filePath: string) => void):
-    string
+export function showFileSaveDialog(saveDialogOptions: SaveDialogOptions, callback?: (filePath: string) => void): string
     | null {
     const electron = require('electron');
     if (!electron) {
@@ -1244,7 +1299,7 @@ export function showFileSaveDialog(saveDialogOptions: SaveDialogOptions, callbac
         });
         return null;
     } else {
-        return electron.ipcRenderer.sendSync(actionName, saveDialogOptions, true);
+        return electron.ipcRenderer.sendSync(actionName, saveDialogOptions, true) as any;
     }
 }
 
@@ -1259,9 +1314,7 @@ export const MESSAGE_BOX_NO_REPLY = () => {
  * @param callback an optional function which is called with the selected button index
  * @returns the selected button index or null, if no button was selected or the callback function is defined
  */
-export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: (index: number) => void):
-    number
-    | null {
+export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: (index: number) => void): number | null {
     const electron = require('electron');
     if (!electron) {
         console.warn('showMessageBox() cannot be executed, electron not available from renderer process');
@@ -1278,7 +1331,7 @@ export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: 
         });
         return null;
     } else {
-        return electron.ipcRenderer.sendSync(actionName, messageBoxOptions, true);
+        return electron.ipcRenderer.sendSync(actionName, messageBoxOptions, true) as any;
     }
 }
 

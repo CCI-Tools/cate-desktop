@@ -41,6 +41,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         this.onProjectionCodeChange = this.onProjectionCodeChange.bind(this);
         this.onAddWorldView = this.onAddWorldView.bind(this);
         this.onAddChartView = this.onAddChartView.bind(this);
+        this.onAddFigureView = this.onAddFigureView.bind(this);
         this.onAddTableView = this.onAddTableView.bind(this);
         this.state = {isProjectionsDialogOpen: false};
     }
@@ -61,6 +62,10 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         this.props.dispatch(actions.addChartView(this.props.activeView ? this.props.activeView.id : null));
     }
 
+    onAddFigureView() {
+        this.props.dispatch(actions.addFigureView(this.props.activeView ? this.props.activeView.id : null));
+    }
+
     onAddTableView() {
         this.props.dispatch(actions.addTableView(this.props.activeView ? this.props.activeView.id : null));
     }
@@ -72,7 +77,8 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                     Add new view&nbsp;
                     <div className="pt-button-group">
                         <Button iconName="globe" onClick={this.onAddWorldView}>World</Button>
-                        <Button iconName="timeline-area-chart" onClick={this.onAddChartView}>Chart</Button>
+                        {/*<Button iconName="timeline-area-chart" onClick={this.onAddChartView}>Chart</Button>*/}
+                        <Button iconName="timeline-area-chart" onClick={this.onAddFigureView}>Figures</Button>
                         <Button iconName="th" onClick={this.onAddTableView}>Table</Button>
                     </div>
                 </label>

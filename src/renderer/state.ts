@@ -35,11 +35,21 @@ export interface DataState {
     colorMaps: ColorMapCategoryState[] | null;
 }
 
+// Maybe put it into the communication state, see http://jamesknelson.com/5-types-react-application-state/
+// and see https://github.com/trbngr/react-example-pusher
 export interface AppConfigState {
-    // Maybe put it into the communication state, see http://jamesknelson.com/5-types-react-application-state/
-    // and see https://github.com/trbngr/react-example-pusher
-    webAPIClient: WebAPIClient | null;
     webAPIConfig: WebAPIConfig;
+    webAPIClient: WebAPIClient | null;
+    // A WebSocket used for communication with matplotlib's web backend
+    mplWebSocket: WebSocket | null;
+    // State of the mpl.js module loaded from matplotlib
+    mplModule: MplModuleState;
+}
+
+export interface MplModuleState {
+    mpl: any;
+    status: string;
+    message: any;
 }
 
 export interface WebAPIConfig {
@@ -317,9 +327,21 @@ export interface ChartViewDataState {
     charts: VariableChartState[];
 
     /**
-     * The ID of the selected layer.
+     * The ID of the selected chart.
      */
     selectedChartId: string|null;
+}
+
+export interface FigureViewDataState {
+    /**
+     * The names of the figure resources shown in a view.
+     */
+    figureResourceIds: string[];
+
+    /**
+     * The ID of the selected figure resource.
+     */
+    selectedFigureResourceId: string|null;
 }
 
 export interface TableViewDataState {
@@ -334,7 +356,6 @@ export interface TableViewDataState {
 export interface VariableChartState extends PlotState, VariableRefState {
     varIndex: (number|null)[];
 }
-
 
 /**
  * State of a layer.

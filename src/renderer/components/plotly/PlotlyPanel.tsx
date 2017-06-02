@@ -35,7 +35,7 @@ export class PlotPanel extends ExternalObjectComponent<Plot, PlotState, IPlotPan
         return graphDiv;
     }
 
-    newExternalObject(parentContainer: HTMLElement, graphDiv: HTMLElement): ExternalObjectRef<Plot, PlotState> {
+    newExternalObject(parentContainer: HTMLElement, graphDiv: HTMLElement): Plot {
         return null;
     }
 
