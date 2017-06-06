@@ -1217,7 +1217,7 @@ export function showFileOpenDialog(openDialogOptions: OpenDialogOptions,
         });
         return null;
     } else {
-        return electron.ipcRenderer.sendSync(actionName, openDialogOptions, true);
+        return electron.ipcRenderer.sendSync(actionName, openDialogOptions, true) as any;
     }
 }
 
@@ -1244,7 +1244,7 @@ export function showFileSaveDialog(saveDialogOptions: SaveDialogOptions, callbac
         });
         return null;
     } else {
-        return electron.ipcRenderer.sendSync(actionName, saveDialogOptions, true);
+        return electron.ipcRenderer.sendSync(actionName, saveDialogOptions, true) as any;
     }
 }
 
@@ -1278,7 +1278,7 @@ export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: 
         });
         return null;
     } else {
-        return electron.ipcRenderer.sendSync(actionName, messageBoxOptions, true);
+        return electron.ipcRenderer.sendSync(actionName, messageBoxOptions, true) as any;
     }
 }
 
