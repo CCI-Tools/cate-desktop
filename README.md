@@ -17,6 +17,10 @@ Once `cate-core` is ready to be used, get the source code for `cate-desktop`:
     $ git clone https://github.com/CCI-Tools/cate-desktop.git
     $ cd cate-desktop
 
+If you've already cloned the repo, you make it up-to-date by pulling in the latest changes:
+
+    $ git pull
+
 Now copy file `cate-config.template.js` to a file named `cate-config.js`. Then adjust the `command` parameter 
 in `cate-config.js` to match the `cate-webapi` executable located in the Python environment in which you've installed 
 `cate-core`.
@@ -36,12 +40,13 @@ while on Windows the value may be similar to (note the double backslashes!)
             ...
 
 The only development tool initially required to build cate-desktop is the latest version of [Node.js](https://nodejs.org/).
-After installing Node.js, we use its package manager `npm` to install all other package dependencies.
+After installing Node.js, we use its package manager `npm` to install all other package dependencies. 
+This step is also required if a file named `package.json` was updated during a `git pull` command (see above).
 
     $ npm install
 
 The project `cate-desktop` is programmed in [TypeScript](https://www.typescriptlang.org/). Therefore all TypeScript 
-sources must be compiled to JavaScript first:
+sources must be compiled to JavaScript first. This step is required if there are any changes during a `git pull` command (see above).
 
     $ npm run compile
 
