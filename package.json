@@ -57,7 +57,7 @@
     "@types/react": "~0.14.x",
     "@types/react-addons-test-utils": "~0.14.x",
     "@types/react-dom": "~0.14.x",
-    "@types/react-redux": "~4.4.x",
+    "@types/react-redux": "4.4.40",
     "@types/redux-logger": "~2.6.x",
     "@types/reselect": "~2.0.x",
     "@types/tether": "~1.1.x",
