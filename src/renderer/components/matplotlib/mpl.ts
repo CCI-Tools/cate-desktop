@@ -1,7 +1,6 @@
-/* Put everything inside the global mpl namespace */
+/* IMPORTANT NOTE: This file is a port of mpl.js from matplotlib's web_agg. */
 const mpl = {} as any;
 export default mpl;
-//let $;
 
 mpl.get_websocket_type = function () {
     return WebSocket;
@@ -35,13 +34,10 @@ mpl.figure = function (figure_id, websocket, ondownload, parent_element) {
 
     this.image_mode = 'full';
 
-    //this.root = $('<div/>');
     this.root = document.createElement('div') as HTMLDivElement;
     this._root_extra_style(this.root);
-    //this.root.attr('style', 'display: inline-block');
     this.root.setAttribute('style', 'display: inline-block');
 
-    //$(parent_element).append(this.root);
     parent_element.appendChild(this.root);
 
     this._init_header(this);
@@ -52,11 +48,9 @@ mpl.figure = function (figure_id, websocket, ondownload, parent_element) {
 
     this.waiting = false;
 
-    this.ws.onopen = function () {
-        fig.send_message("supports_binary", {value: fig.supports_binary});
-        fig.send_message("send_image_mode", {});
-        fig.send_message("refresh", {});
-    };
+    fig.send_message("supports_binary", {value: fig.supports_binary});
+    fig.send_message("send_image_mode", {});
+    fig.send_message("refresh", {});
 
     this.imageObj.onload = function () {
         if (fig.image_mode == 'full') {
@@ -69,7 +63,7 @@ mpl.figure = function (figure_id, websocket, ondownload, parent_element) {
     };
 
     this.imageObj.onunload = function () {
-        fig.ws.close();
+        //fig.ws.close();
     };
 
     this.ws.onmessage = this._make_on_message_function(this);
@@ -116,7 +110,7 @@ mpl.figure.prototype._init_canvas = function () {
     canvas_div.onkeyup = wrapEvent('key_release', canvas_keyboard_event);
     this.canvas_div = canvas_div;
     this._canvas_extra_style(canvas_div);
-    this.root.append(canvas_div);
+    this.root.appendChild(canvas_div);
 
     let canvas = document.createElement('canvas');
     canvas.className = 'mpl-canvas';
@@ -130,7 +124,9 @@ mpl.figure.prototype._init_canvas = function () {
 
     let pass_mouse_events = true;
 
-    // TODO (forman): translate the below
+    // TODO (forman): translate the below.
+    //                see https://codepen.io/adammertel/pen/yyzPrj
+    //                see http://www.coffeegnome.net/draggable-resizable-without-jqueryui/
     // canvas_div.resizable({
     //     start: function(event, ui) {
     //         pass_mouse_events = false;
@@ -171,9 +167,8 @@ mpl.figure.prototype._init_canvas = function () {
     canvas_div.appendChild(canvas);
     canvas_div.appendChild(rubberband);
 
-    this.rubberband = rubberband;
-    this.rubberband_canvas = rubberband[0];
-    this.rubberband_context = rubberband[0].getContext("2d");
+    this.rubberband_canvas = rubberband;
+    this.rubberband_context = rubberband.getContext("2d");
     this.rubberband_context.strokeStyle = "#000000";
 
     this._resize_canvas = function (width, height) {
@@ -224,9 +219,13 @@ mpl.figure.prototype._init_toolbar = function () {
     }
 
     for (let toolbar_ind in mpl.toolbar_items) {
+        //noinspection JSUnfilteredForInLoop
         let name = mpl.toolbar_items[toolbar_ind][0];
+        //noinspection JSUnfilteredForInLoop
         let tooltip = mpl.toolbar_items[toolbar_ind][1];
+        //noinspection JSUnfilteredForInLoop
         let image = mpl.toolbar_items[toolbar_ind][2];
+        //noinspection JSUnfilteredForInLoop
         let method_name = mpl.toolbar_items[toolbar_ind][3];
 
         if (!name) {
@@ -241,9 +240,7 @@ mpl.figure.prototype._init_toolbar = function () {
         button.onmouseover = wrapEvent(tooltip, toolbar_mouse_event);
 
         let icon_img = document.createElement('span') as HTMLSpanElement;
-        icon_img.className = 'ui-button-icon-primary ui-icon';
-        icon_img.className += image;
-        icon_img.className += 'ui-corner-all';
+        icon_img.className = 'ui-button-icon-primary ui-icon ' + image + ' ui-corner-all';
 
         let tooltip_span = document.createElement('span') as HTMLSpanElement;
         tooltip_span.className = 'ui-button-text';
@@ -264,6 +261,7 @@ mpl.figure.prototype._init_toolbar = function () {
     this.format_dropdown = fmt_picker;
 
     for (let ind in mpl.extensions) {
+        //noinspection JSUnfilteredForInLoop
         let fmt = mpl.extensions[ind];
         let option = document.createElement('option') as HTMLOptionElement;
         option.setAttribute('selected', (fmt === mpl.default_extension) + "");
@@ -276,10 +274,10 @@ mpl.figure.prototype._init_toolbar = function () {
     for (let i = 0; i < buttons.length; i++) {
         let button = buttons.item(i);
         button.onmouseenter = function () {
-            button.className += "ui-state-hover";
+            button.classList.add("ui-state-hover");
         };
         button.onmouseleave = function () {
-            button.className = button.className.replace(/(?:^|\s)ui-state-hover(?!\S)/g, '');
+            button.classList.remove("ui-state-hover");
         };
     }
 
@@ -288,8 +286,6 @@ mpl.figure.prototype._init_toolbar = function () {
     nav_element.appendChild(status_bar);
     this.message = status_bar;
 };
-
-// TODO (forman) - continue here
 
 mpl.figure.prototype.request_resize = function (x_pixels, y_pixels) {
     // Request matplotlib to resize the figure. Matplotlib will then trigger a resize in the client,
@@ -300,7 +296,8 @@ mpl.figure.prototype.request_resize = function (x_pixels, y_pixels) {
 mpl.figure.prototype.send_message = function (type, properties) {
     properties['type'] = type;
     properties['figure_id'] = this.id;
-    this.ws.send(JSON.stringify(properties));
+    const jsonData = JSON.stringify(properties);
+    this.ws.send(jsonData);
 };
 
 mpl.figure.prototype.send_draw_message = function () {
@@ -311,6 +308,7 @@ mpl.figure.prototype.send_draw_message = function () {
 };
 
 
+//noinspection JSUnusedLocalSymbols
 mpl.figure.prototype.handle_save = function (fig, msg) {
     let format_dropdown = fig.format_dropdown;
     let format = format_dropdown.options[format_dropdown.selectedIndex].value;
@@ -332,8 +330,10 @@ mpl.figure.prototype.handle_rubberband = function (fig, msg) {
     let x1 = msg['x1'];
     let y1 = fig.canvas.height - msg['y1'];
     x0 = Math.floor(x0) + 0.5;
+    //noinspection JSSuspiciousNameCombination
     y0 = Math.floor(y0) + 0.5;
     x1 = Math.floor(x1) + 0.5;
+    //noinspection JSSuspiciousNameCombination
     y1 = Math.floor(y1) + 0.5;
     let min_x = Math.min(x0, x1);
     let min_y = Math.min(y0, y1);
@@ -374,6 +374,7 @@ mpl.figure.prototype.handle_message = function (fig, msg) {
     fig.message.textContent = msg['message'];
 };
 
+//noinspection JSUnusedLocalSymbols
 mpl.figure.prototype.handle_draw = function (fig, msg) {
     // Request the server to send over a new figure.
     fig.send_draw_message();
@@ -391,22 +392,16 @@ mpl.figure.prototype.updated_canvas_event = function () {
 // A function to construct a web socket function for onmessage handling.
 // Called in the figure constructor.
 mpl.figure.prototype._make_on_message_function = function (fig) {
-    return function socket_on_message(evt) {
+    return function socket_on_message(evt: MessageEvent) {
         if (evt.data instanceof Blob) {
-            /* FIXME: We get "Resource interpreted as Image but
-             * transferred with MIME type text/plain:" errors on
-             * Chrome.  But how to set the MIME type?  It doesn't seem
-             * to be part of the websocket stream */
-            evt.data.type = "image/png";
+            const blobData = evt.data as any;
 
             /* Free the memory for the previous frames */
             if (fig.imageObj.src) {
-                (window.URL || window['webkitURL']).revokeObjectURL(
-                    fig.imageObj.src);
+                (window.URL || window['webkitURL']).revokeObjectURL(fig.imageObj.src);
             }
 
-            fig.imageObj.src = (window.URL || window['webkitURL']).createObjectURL(
-                evt.data);
+            fig.imageObj.src = (window.URL || window['webkitURL']).createObjectURL(blobData);
             fig.updated_canvas_event();
             fig.waiting = false;
             return;
@@ -427,7 +422,7 @@ mpl.figure.prototype._make_on_message_function = function (fig) {
         try {
             callback = fig["handle_" + msg_type];
         } catch (e) {
-            console.log("No handler for the '" + msg_type + "' message type: ", msg);
+            console.error("No handler for the '" + msg_type + "' message type: ", msg);
             return;
         }
 
@@ -436,18 +431,16 @@ mpl.figure.prototype._make_on_message_function = function (fig) {
                 // console.log("Handling '" + msg_type + "' message: ", msg);
                 callback(fig, msg);
             } catch (e) {
-                console.log("Exception inside the 'handler_" + msg_type + "' callback:", e, e.stack, msg);
+                console.error("Exception inside the 'handler_" + msg_type + "' callback:", e, e.stack, msg);
             }
         }
     };
 };
 
 // from http://stackoverflow.com/questions/1114465/getting-mouse-location-in-canvas
-mpl.findpos = function (e) {
+mpl.findpos = function (e: MouseEvent) {
     //this section is from http://www.quirksmode.org/js/events_properties.html
     let targ;
-    if (!e)
-        e = window.event;
     if (e.target)
         targ = e.target;
     else if (e.srcElement)
@@ -455,11 +448,13 @@ mpl.findpos = function (e) {
     if (targ.nodeType == 3) // defeat Safari bug
         targ = targ.parentNode;
 
-    // jQuery normalizes the pageX and pageY
-    // pageX,Y are the mouse positions relative to the document
-    // offset() returns the position of the element relative to the document
-    let x = e.pageX - $(targ).offset().left;
-    let y = e.pageY - $(targ).offset().top;
+    const bodyRect = document.body.getBoundingClientRect();
+    const elemRect = targ.getBoundingClientRect();
+    const offsetX = elemRect.left - bodyRect.left;
+    const offsetY = elemRect.top - bodyRect.top;
+
+    const x = e.pageX - offsetX;
+    const y = e.pageY - offsetY;
 
     return {"x": x, "y": y};
 };
@@ -477,7 +472,7 @@ function simpleKeys(original) {
     }, {});
 }
 
-mpl.figure.prototype.mouse_event = function (event, name) {
+mpl.figure.prototype.mouse_event = function (event: MouseEvent, name) {
     let canvas_pos = mpl.findpos(event);
 
     if (name === 'button_press') {
@@ -490,7 +485,7 @@ mpl.figure.prototype.mouse_event = function (event, name) {
 
     this.send_message(name, {
         x: x, y: y, button: event.button,
-        step: event.step,
+        step: event['step'], // event['step'] has been set by caller
         guiEvent: simpleKeys(event)
     });
 
@@ -502,11 +497,12 @@ mpl.figure.prototype.mouse_event = function (event, name) {
     return false;
 };
 
-mpl.figure.prototype._key_event_extra = function (event, name) {
+//noinspection JSUnusedLocalSymbols
+mpl.figure.prototype._key_event_extra = function (event: KeyboardEvent, name) {
     // Handle any extra behaviour associated with a key event
 };
 
-mpl.figure.prototype.key_event = function (event, name) {
+mpl.figure.prototype.key_event = function (event: KeyboardEvent, name) {
 
     // Prevent repeat events
     if (name == 'key_press') {
@@ -558,6 +554,7 @@ mpl.default_extension = "png";
 
 function wrapEvent<E extends Event>(userData: any, callback: (event: E, userData: any) => void): (event: E) => void {
     function new_callback(event: E) {
+        event['data'] = userData;
         callback(event, userData);
     }
 

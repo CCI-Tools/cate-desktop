@@ -32,7 +32,6 @@ const initialDataState: DataState = {
         webAPIClient: null,
         mplWebSocket: null,
         mplModule: {
-            mpl: null,
             status: null,
             message: null,
         },

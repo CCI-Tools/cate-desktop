@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
+import mpl from './mpl';
 
 /**
  * Follows the figure class definition in mpl.js
@@ -19,7 +20,6 @@ interface IFigurePanelProps extends IExternalObjectComponentProps<Figure, Figure
     baseUrl: string;
     webSocket: WebSocket | null;
     onDownload: (figure: Figure, format: string) => void;
-    mpl: any;
 }
 
 /**
@@ -41,11 +41,6 @@ export class MplFigurePanel extends ExternalObjectComponent<Figure, FigureState,
     }
 
     newExternalObject(parentContainer: HTMLElement, figureDiv: HTMLElement): Figure {
-        let mpl = this.props.mpl;
-        if (!mpl) {
-            throw Error("Matplotlib module 'mpl' is not defined");
-        }
-
         const figure = new mpl.figure(this.props.figureId,
             this.props.webSocket,
             this.props.onDownload,

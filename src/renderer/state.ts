@@ -47,7 +47,6 @@ export interface AppConfigState {
 }
 
 export interface MplModuleState {
-    mpl: any;
     status: string;
     message: any;
 }

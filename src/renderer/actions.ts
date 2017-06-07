@@ -940,16 +940,16 @@ const MPL_20_WEBAGG_REQUIREMENTS = [
     "_static/css/boilerplate.css",
     "_static/css/fbm.css",
     "_static/jquery/css/themes/base/jquery-ui.min.css",
-    "_static/jquery/js/jquery-1.11.3.min.js",
-    "_static/jquery/js/jquery-ui.min.js",
-    "mpl.js",
+    //"_static/jquery/js/jquery-1.11.3.min.js",
+    //"_static/jquery/js/jquery-ui.min.js",
+    //"mpl.js",
 ];
 
 // Note: use import stmt once we have @types/loadjs
 const loadjs = require('loadjs') as any;
 
-function updateMplModule(mpl, status, message) {
-    return {type: UPDATE_MPL_MODULE, payload: {mpl, status, message}};
+function updateMplModule(status, message) {
+    return {type: UPDATE_MPL_MODULE, payload: {status, message}};
 }
 
 /**
@@ -962,21 +962,16 @@ export function loadMplModule() {
         let status = getState().data.appConfig.mplModule.status;
         if (!status && !loadjs.isDefined('mpl')) {
             let restUrl = getState().data.appConfig.webAPIConfig.restUrl;
-            dispatch(updateMplModule(null, 'loading', null));
+            dispatch(updateMplModule('loading', null));
             const mplRequirements = MPL_20_WEBAGG_REQUIREMENTS.map(path => restUrl + path);
             console.log("mpl requirements: ", mplRequirements);
             loadjs(mplRequirements, 'mpl', {
                 async: false,
                 success: () => {
-                    const module = (window as any).mpl;
-                    if (module) {
-                        dispatch(updateMplModule(module, 'done', null));
-                    } else {
-                        dispatch(updateMplModule(module, 'error', `window.mpl is ${module}`));
-                    }
+                    dispatch(updateMplModule('done', null));
                 },
                 error: (e) => {
-                    dispatch(updateMplModule(null, 'error', e));
+                    dispatch(updateMplModule('error', e));
                 },
             });
         }

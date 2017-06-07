@@ -52,7 +52,7 @@ class FigureView extends React.Component<IFigureViewProps, null> {
 
 
     componentWillMount(): void {
-        if (!this.props.mplModule.mpl && !this.props.mplModule.status) {
+        if (!this.props.mplModule.status) {
             this.props.dispatch(actions.loadMplModule());
         }
     }
@@ -63,7 +63,7 @@ class FigureView extends React.Component<IFigureViewProps, null> {
         }
 
         let mplModule = this.props.mplModule;
-        if (mplModule.mpl) {
+        if (mplModule.status === 'done') {
             const plots = [];
             const view = this.props.view;
             const figureResources = this.getFigureResources();
@@ -77,19 +77,16 @@ class FigureView extends React.Component<IFigureViewProps, null> {
                         baseUrl={this.props.baseUrl}
                         webSocket={this.props.mplWebSocket}
                         onDownload={this.onDownload}
-                        mpl={mplModule.mpl}
                     />
                 );
             }
             return (<div style={FigureView.DIV_STYLE}>{plots}</div>);
+        } else if (mplModule.status === 'loading') {
+            return (<p>{"Loading matplotlib module..."}</p>);
+        } else if (mplModule.status === 'error') {
+            return (<p>{`Matplotlib module load error: ${mplModule.message}`}</p>);
         } else {
-            if (mplModule.status === 'loading') {
-                return (<p>{"Loading matplotlib module..."}</p>);
-            } else if (mplModule.status === 'error') {
-                return (<p>{`Matplotlib module load error: ${mplModule.message}`}</p>);
-            } else {
-                return (<p>{`Matplotlib module status=${mplModule.status}, message=${mplModule.message}`}</p>);
-            }
+            return (<p>{`Matplotlib module status=${mplModule.status}, message=${mplModule.message}`}</p>);
         }
     }
 
