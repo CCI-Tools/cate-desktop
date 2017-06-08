@@ -20,7 +20,7 @@ const DEFAULT_EXTENSION = "png";
 export class MplFigure {
 
     readonly id: number;
-    private ws: WebSocket;
+    private webSocket: WebSocket;
     private supports_binary: boolean;
     private imageObj: any;
     private canvas: HTMLCanvasElement;
@@ -41,21 +41,9 @@ export class MplFigure {
     constructor(figureId: number, webSocketUrl: string, downloadCallback: DownloadCallback, parentElement: HTMLElement) {
 
         this.id = figureId;
-
-        this.supports_binary = (this.ws.binaryType != undefined);
-
-        if (!this.supports_binary) {
-            const warnings = document.getElementById("mpl-warnings");
-            if (warnings) {
-                warnings.style.display = 'block';
-                warnings.textContent = (
-                "This browser does not support binary websocket messages. " +
-                "Figure update performance may be slow.");
-            }
-        }
-
-        this.imageObj = new Image();
+        this.ondownload = downloadCallback;
         this.image_mode = 'full';
+        this.imageObj = new Image();
 
         // TODO (forman): this.root = parentElement;
         this.root = document.createElement('div') as HTMLDivElement;
@@ -81,18 +69,28 @@ export class MplFigure {
 
         const handleWebSocketMessage = this.processMessage.bind(this);
         this.imageObj.onunload = function () {
-            this.ws.removeEventListener('message', handleWebSocketMessage);
+            this.webSocket.removeEventListener('message', handleWebSocketMessage);
         };
 
-        this.ws = new WebSocket(webSocketUrl);
-        this.ws.onopen = () => {
-            this.ws.addEventListener('message', handleWebSocketMessage);
-            this.sendMessage("supports_binary", {value: this.supports_binary});
+        this.webSocket = new WebSocket(webSocketUrl);
+        this.webSocket.onopen = () => {
+
+            this.webSocket.addEventListener('message', handleWebSocketMessage);
+
+            const supports_binary = !!this.webSocket.binaryType;
+            if (!supports_binary) {
+                const warnings = document.getElementById("mpl-warnings");
+                if (warnings) {
+                    warnings.style.display = 'block';
+                    warnings.textContent = (
+                    "This browser does not support binary websocket messages. " +
+                    "Figure update performance may be slow.");
+                }
+            }
+            this.sendMessage("supports_binary", {value: supports_binary});
             this.sendMessage("send_image_mode");
             this.sendMessage("refresh");
         };
-
-        this.ondownload = downloadCallback;
     }
 
     private _init_header() {
@@ -304,7 +302,7 @@ export class MplFigure {
     sendMessage(type: string, properties?: any) {
         const jsonText = JSON.stringify({...properties, type, figure_id: this.id});
         console.log(`MplFigure.sendMessage: ${jsonText}`);
-        this.ws.send(jsonText);
+        this.webSocket.send(jsonText);
     }
 
     // Outgoing messages
@@ -316,11 +314,7 @@ export class MplFigure {
      * @param evt The WebSocket message event
      */
     private processMessage(evt: MessageEvent) {
-        console.log(`MplFigure.processMessage: ${evt.data}`);
-        if (evt.data.figure_id !== this.id) {
-            // This is not for us!
-            return;
-        }
+        // console.log(`MplFigure.processMessage: ${evt.data}`);
         if (evt.data instanceof Blob) {
             const blobData = evt.data as any;
 
