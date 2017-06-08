@@ -8,7 +8,7 @@ import {combineReducers} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     SELECTED_VARIABLE_LAYER_ID, newWorldView, updateSelectedVariableLayer, newChartView,
-    newTableView, getMPLWebSocketUrl, newFigureView
+    newTableView, newFigureView
 } from "./state-util";
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
@@ -30,7 +30,6 @@ const initialDataState: DataState = {
             mplWebSocketUrl: '',
         },
         webAPIClient: null,
-        mplWebSocket: null,
         mplModule: {
             status: null,
             message: null,
@@ -74,24 +73,24 @@ const dataReducer = (state: DataState = initialDataState, action) => {
             const workspace = action.payload.workspace;
 
             let appConfig = state.appConfig;
-            if (workspace.baseDir) {
-                if (!state.workspace || state.workspace.baseDir !== workspace.baseDir) {
-                    let mplWebSocket = appConfig.mplWebSocket;
-                    if (mplWebSocket) {
-                        mplWebSocket.close();
-                        console.log("old mplWebSocket for workspace closed");
-                    }
-                    let mplWebSocketUrl = getMPLWebSocketUrl(appConfig.webAPIConfig.mplWebSocketUrl, workspace.baseDir);
-                    mplWebSocket = null;
-                    try {
-                        mplWebSocket = new WebSocket(mplWebSocketUrl);
-                        console.log(`new mplWebSocket opened for workspace from ${mplWebSocketUrl}`);
-                    } catch (e) {
-                        console.error(`error opening new mplWebSocket for workspace from ${mplWebSocketUrl}`);
-                    }
-                    appConfig = {...appConfig, mplWebSocket};
-                }
-            }
+            // if (workspace.baseDir) {
+            //     if (!state.workspace || state.workspace.baseDir !== workspace.baseDir) {
+            //         let mplWebSocket = appConfig.mplWebSocket;
+            //         if (mplWebSocket) {
+            //             mplWebSocket.close();
+            //             console.log("old mplWebSocket for workspace closed");
+            //         }
+            //         let mplWebSocketUrl = getMPLWebSocketUrl(appConfig.webAPIConfig.mplWebSocketUrl, workspace.baseDir);
+            //         mplWebSocket = null;
+            //         try {
+            //             mplWebSocket = new WebSocket(mplWebSocketUrl);
+            //             console.log(`new mplWebSocket opened for workspace from ${mplWebSocketUrl}`);
+            //         } catch (e) {
+            //             console.error(`error opening new mplWebSocket for workspace from ${mplWebSocketUrl}`);
+            //         }
+            //         appConfig = {...appConfig, mplWebSocket};
+            //     }
+            // }
 
             return {...state, workspace, appConfig};
         }

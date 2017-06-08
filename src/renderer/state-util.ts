@@ -43,8 +43,8 @@ export function getGeoJSONCountriesUrl(baseUrl: string): string {
     return baseUrl + 'ws/countries/0';
 }
 
-export function getMPLWebSocketUrl(baseUrl: string, baseDir: string): string {
-    return `${baseUrl}${encodeURIComponent(baseDir)}`;
+export function getMPLWebSocketUrl(baseUrl: string, baseDir: string, figureId: number): string {
+    return `${baseUrl}${encodeURIComponent(baseDir)}/${encodeURIComponent('' + figureId)}`;
 }
 
 export function getMPLDownloadUrl(baseUrl: string, baseDir: string, figureId: number, formatName: string): string {

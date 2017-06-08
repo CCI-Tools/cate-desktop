@@ -8,8 +8,7 @@ export interface FigureState {
 
 interface IFigurePanelProps extends IExternalObjectComponentProps<MplFigure, FigureState>, FigureState {
     figureId: number;
-    baseUrl: string;
-    webSocket: WebSocket | null;
+    webSocketUrl: string;
     onDownload: (figure: MplFigure, format: string) => void;
 }
 
@@ -33,7 +32,7 @@ export class MplFigurePanel extends ExternalObjectComponent<MplFigure, FigureSta
 
     newExternalObject(parentContainer: HTMLElement, figureDiv: HTMLElement): MplFigure {
         const figure = new MplFigure(this.props.figureId,
-            this.props.webSocket,
+            this.props.webSocketUrl,
             this.props.onDownload,
             figureDiv);
 

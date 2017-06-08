@@ -5,7 +5,7 @@ import {ViewState} from "../components/ViewState";
 import * as selectors from "../selectors";
 import {MplFigure} from "../components/matplotlib/MplFigure";
 import {MplFigurePanel} from "../components/matplotlib/MplFigurePanel";
-import {getMPLDownloadUrl} from "../state-util";
+import {getMPLDownloadUrl, getMPLWebSocketUrl} from "../state-util";
 import * as actions from "../actions";
 
 
@@ -17,8 +17,8 @@ interface IFigureViewProps extends IFigureViewOwnProps {
     dispatch?: Dispatch<State>;
     baseUrl: string;
     baseDir: string | null;
-    mplWebSocket: WebSocket | null;
     figureResources: ResourceState[];
+    mplWebSocketUrl: string;
     mplModule: MplModuleState;
 }
 
@@ -27,8 +27,8 @@ function mapStateToProps(state: State, ownProps: IFigureViewOwnProps): IFigureVi
         view: ownProps.view,
         baseUrl: selectors.webAPIRestUrlSelector(state),
         baseDir: selectors.workspaceBaseDirSelector(state),
-        mplWebSocket: selectors.mplWebSocketSelector(state),
         figureResources: selectors.figureResourcesSelector(state),
+        mplWebSocketUrl: selectors.mplWebSocketUrlSelector(state),
         mplModule: selectors.mplModuleSelector(state),
     };
 }
@@ -58,10 +58,6 @@ class FigureView extends React.Component<IFigureViewProps, null> {
     }
 
     render() {
-        if (!this.props.mplWebSocket) {
-            return (<p>{"Internal error, no WebSocket available for connection to Matplotlib backend"}</p>);
-        }
-
         let mplModule = this.props.mplModule;
         if (mplModule.status === 'done') {
             const plots = [];
@@ -74,8 +70,7 @@ class FigureView extends React.Component<IFigureViewProps, null> {
                         key={id}
                         id={id}
                         figureId={figureResource.figureId}
-                        baseUrl={this.props.baseUrl}
-                        webSocket={this.props.mplWebSocket}
+                        webSocketUrl={getMPLWebSocketUrl(this.props.mplWebSocketUrl, this.props.baseDir, figureResource.figureId)}
                         onDownload={this.onDownload}
                     />
                 );

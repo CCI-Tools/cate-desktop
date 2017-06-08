@@ -36,11 +36,11 @@ export class MplFigure {
     private ondownload: DownloadCallback;
     private header: HTMLDivElement;
     private _key: number | null;
+    private ready: boolean;
 
-    constructor(figureId: number, webSocket: WebSocket, downloadCallback: DownloadCallback, parentElement: HTMLElement) {
+    constructor(figureId: number, webSocketUrl: string, downloadCallback: DownloadCallback, parentElement: HTMLElement) {
 
         this.id = figureId;
-        this.ws = webSocket;
 
         this.supports_binary = (this.ws.binaryType != undefined);
 
@@ -67,22 +67,16 @@ export class MplFigure {
         this._init_canvas();
         this._init_toolbar();
 
-        let fig = this;
-
         this.waiting = false;
 
-        fig.sendMessage("supports_binary", {value: fig.supports_binary});
-        fig.sendMessage("send_image_mode");
-        fig.sendMessage("refresh");
-
-        this.imageObj.onload = function () {
-            if (fig.image_mode == 'full') {
+        this.imageObj.onload = () => {
+            if (this.image_mode == 'full') {
                 // Full images could contain transparency (where diff images
                 // almost always do), so we need to clear the canvas so that
                 // there is no ghosting.
-                fig.context.clearRect(0, 0, fig.canvas.width, fig.canvas.height);
+                this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             }
-            fig.context.drawImage(fig.imageObj, 0, 0);
+            this.context.drawImage(this.imageObj, 0, 0);
         };
 
         const handleWebSocketMessage = this.processMessage.bind(this);
@@ -90,7 +84,13 @@ export class MplFigure {
             this.ws.removeEventListener('message', handleWebSocketMessage);
         };
 
-        this.ws.addEventListener('message', handleWebSocketMessage);
+        this.ws = new WebSocket(webSocketUrl);
+        this.ws.onopen = () => {
+            this.ws.addEventListener('message', handleWebSocketMessage);
+            this.sendMessage("supports_binary", {value: this.supports_binary});
+            this.sendMessage("send_image_mode");
+            this.sendMessage("refresh");
+        };
 
         this.ondownload = downloadCallback;
     }

@@ -40,8 +40,6 @@ export interface DataState {
 export interface AppConfigState {
     webAPIConfig: WebAPIConfig;
     webAPIClient: WebAPIClient | null;
-    // A WebSocket used for communication with matplotlib's web backend
-    mplWebSocket: WebSocket | null;
     // State of the mpl.js module loaded from matplotlib
     mplModule: MplModuleState;
 }
