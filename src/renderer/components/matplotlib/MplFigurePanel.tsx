@@ -1,25 +1,16 @@
 import * as React from 'react';
 import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
-import mpl from './mpl';
+import {MplFigure} from './MplFigure';
 
-/**
- * Follows the figure class definition in mpl.js
- */
-export interface Figure {
-    id: number;
-    ws: WebSocket;
-    supports_binary: boolean;
-    imageObj: any; // Image;
-}
 
 export interface FigureState {
 }
 
-interface IFigurePanelProps extends IExternalObjectComponentProps<Figure, FigureState>, FigureState {
+interface IFigurePanelProps extends IExternalObjectComponentProps<MplFigure, FigureState>, FigureState {
     figureId: number;
     baseUrl: string;
     webSocket: WebSocket | null;
-    onDownload: (figure: Figure, format: string) => void;
+    onDownload: (figure: MplFigure, format: string) => void;
 }
 
 /**
@@ -27,7 +18,7 @@ interface IFigurePanelProps extends IExternalObjectComponentProps<Figure, Figure
  *
  * @author Norman Fomferra
  */
-export class MplFigurePanel extends ExternalObjectComponent<Figure, FigureState, IFigurePanelProps, null> {
+export class MplFigurePanel extends ExternalObjectComponent<MplFigure, FigureState, IFigurePanelProps, null> {
 
     propsToExternalObjectState(props: IFigurePanelProps & FigureState): FigureState {
         return {};
@@ -40,8 +31,8 @@ export class MplFigurePanel extends ExternalObjectComponent<Figure, FigureState,
         return figureDiv;
     }
 
-    newExternalObject(parentContainer: HTMLElement, figureDiv: HTMLElement): Figure {
-        const figure = new mpl.figure(this.props.figureId,
+    newExternalObject(parentContainer: HTMLElement, figureDiv: HTMLElement): MplFigure {
+        const figure = new MplFigure(this.props.figureId,
             this.props.webSocket,
             this.props.onDownload,
             figureDiv);
@@ -51,7 +42,7 @@ export class MplFigurePanel extends ExternalObjectComponent<Figure, FigureState,
         return figure;
     }
 
-    updateExternalObject(object: Figure,
+    updateExternalObject(object: MplFigure,
                          prevState: FigureState,
                          nextState: FigureState,
                          parentContainer: HTMLElement,

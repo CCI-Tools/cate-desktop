@@ -3,7 +3,8 @@ import {State, ResourceState, FigureViewDataState, MplModuleState} from "../stat
 import {connect, Dispatch} from "react-redux";
 import {ViewState} from "../components/ViewState";
 import * as selectors from "../selectors";
-import {Figure, MplFigurePanel} from "../components/matplotlib/MplFigurePanel";
+import {MplFigure} from "../components/matplotlib/MplFigure";
+import {MplFigurePanel} from "../components/matplotlib/MplFigurePanel";
 import {getMPLDownloadUrl} from "../state-util";
 import * as actions from "../actions";
 
@@ -43,13 +44,12 @@ class FigureView extends React.Component<IFigureViewProps, null> {
         this.onDownload = this.onDownload.bind(this);
     }
 
-    private onDownload(figure: Figure, format: string) {
+    private onDownload(figure: MplFigure, format: string) {
         console.log("FigureView: onDownload:", figure, format, this);
         const downloadUrl = getMPLDownloadUrl(this.props.baseUrl, this.props.baseDir, figure.id, format);
         console.log("FigureView: downloadUrl:", downloadUrl);
         // TODO: download
     }
-
 
     componentWillMount(): void {
         if (!this.props.mplModule.status) {
