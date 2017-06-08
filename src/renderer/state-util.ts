@@ -48,7 +48,7 @@ export function getMPLWebSocketUrl(baseUrl: string, baseDir: string): string {
 }
 
 export function getMPLDownloadUrl(baseUrl: string, baseDir: string, figureId: number, formatName: string): string {
-    return `${baseUrl}${encodeURIComponent(baseDir)}/${encodeURIComponent('' + figureId)}/${encodeURIComponent(formatName)}`;
+    return `${baseUrl}mpl/download/${encodeURIComponent(baseDir)}/${encodeURIComponent('' + figureId)}/${encodeURIComponent(formatName)}`;
 }
 
 export function isSpatialImageVariable(variable: VariableState): boolean {
