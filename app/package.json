@@ -16,7 +16,6 @@
     "d3": "~3.5.x",
     "deep-equal": "~1.0.x",
     "electron-devtools-installer": "~2.2.x",
-    "loadjs": "~3.5.x",
     "oboe": "~2.1.x",
     "openlayers": "~4.0.x",
     "plotly.js": "~1.25.x",

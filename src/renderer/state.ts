@@ -40,8 +40,6 @@ export interface DataState {
 export interface AppConfigState {
     webAPIConfig: WebAPIConfig;
     webAPIClient: WebAPIClient | null;
-    // State of the mpl.js module loaded from matplotlib
-    mplModule: MplModuleState;
 }
 
 export interface MplModuleState {

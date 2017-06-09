@@ -24,7 +24,6 @@ export const EMPTY_ARRAY = [];
 export const webAPIClientSelector = (state: State): WebAPIClient => state.data.appConfig.webAPIClient;
 export const webAPIRestUrlSelector = (state: State): string => state.data.appConfig.webAPIConfig.restUrl;
 export const mplWebSocketUrlSelector = (state: State): string => state.data.appConfig.webAPIConfig.mplWebSocketUrl;
-export const mplModuleSelector = (state: State): MplModuleState => state.data.appConfig.mplModule;
 
 
 export const backendConfigAPISelector = createSelector(
