@@ -1,59 +1,101 @@
-/* IMPORTANT NOTE: This file is a port of mpl.js from matplotlib's web_agg. */
+const _DEBUG_WEB_SOCKET_RPC = false;
 
-export type DownloadCallback = (figure: MplFigure, format: string) => any;
+export type MplFigureCommandData = {name: string};
+export type MplFigureCommandListener = (figureId: number, commandData: MplFigureCommandData) => void;
 
-const TOOLBAR_ITEMS = [
-    ["Home", "Reset original view", "ui-icon ui-icon-home", "home"],
-    ["Back", "Back to  previous view", "ui-icon ui-icon-circle-arrow-w", "back"],
-    ["Forward", "Forward to next view", "ui-icon ui-icon-circle-arrow-e", "forward"],
-    ["", "", "", ""],
-    ["Pan", "Pan axes with left mouse, zoom with right", "ui-icon ui-icon-arrow-4", "pan"],
-    ["Zoom", "Zoom to rectangle", "ui-icon ui-icon-search", "zoom"],
-    ["", "", "", ""],
-    ["Download", "Download plot", "ui-icon ui-icon-disk", "download"]];
+/**
+ * A source for figure commands.
+ */
+export interface MplFigureCommandSource {
+    addCommandListener(figureId: number, listener: MplFigureCommandListener): void;
+    removeCommandListener(figureId: number, listener: MplFigureCommandListener): void;
+    removeCommandListeners(figureId: number): void;
+}
 
-const EXTENSIONS = ["eps", "jpeg", "pdf", "png", "ps", "raw", "svg", "tif"];
+/**
+ * Default impl. of MplFigureCommandSource interface
+ */
+export class MplFigureCommandSourceImpl implements MplFigureCommandSource {
+    private listenersMap: {[id: number]: Set<MplFigureCommandListener>};
 
-const DEFAULT_EXTENSION = "png";
+    constructor() {
+        this.listenersMap = {};
+        this.dispatchCommand = this.dispatchCommand.bind(this);
+    }
 
+    addCommandListener(figureId: number, listener: MplFigureCommandListener): void {
+        let listeners = this.listenersMap[figureId];
+        if (!listeners) {
+            listeners = new Set<MplFigureCommandListener>();
+            this.listenersMap[figureId] = listeners;
+        }
+        listeners.add(listener);
+        console.log('MplFigureCommandSourceImpl.addCommandListener', figureId, listener);
+    }
 
+    removeCommandListener(figureId: number, listener: MplFigureCommandListener): void {
+        console.log('MplFigureCommandSourceImpl.removeCommandListener', figureId, listener);
+        const listeners = this.listenersMap[figureId];
+        if (listeners) {
+            listeners.delete(listener);
+            if (listeners.size == 0) {
+                delete this.listenersMap[figureId];
+            }
+        }
+    }
+
+    removeCommandListeners(figureId: number): void {
+        console.log('MplFigureCommandSourceImpl.removeCommandListeners', figureId);
+        delete this.listenersMap[figureId];
+    }
+
+    dispatchCommand(figureId: number, commandData: MplFigureCommandData) {
+        const listeners = this.listenersMap[figureId];
+        if (listeners) {
+            for (let listener of listeners) {
+                listener(figureId, commandData);
+            }
+        }
+    }
+}
+
+/**
+ * Represents a figure in matplotlib's web backend.
+ * This class is a port of "mpl.js" from matplotlib's web_agg.
+ *
+ * @author Norman Fomferra
+ */
 export class MplFigure {
 
     readonly id: number;
     private webSocket: WebSocket;
-    private supports_binary: boolean;
-    private imageObj: any;
+    private commandSource?: MplFigureCommandSource;
+    private root: HTMLElement;
     private canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D;
-    private canvas_div: HTMLDivElement;
-    private message: HTMLSpanElement;
-    private rubberband_canvas: HTMLCanvasElement;
-    private rubberband_context: CanvasRenderingContext2D;
-    private format_dropdown: HTMLSelectElement;
-    private image_mode: string;
-    private root: HTMLElement;
+    private rubberBandCanvas: HTMLCanvasElement;
+    private rubberBandContext: CanvasRenderingContext2D;
+    private canvasDiv: HTMLDivElement;
+    private supports_binary: boolean;
+    private imageObj: any;
+    private imageMode: string;
     private waiting: boolean;
-    private ondownload: DownloadCallback;
-    private header: HTMLDivElement;
-    private _key: number | null;
-    private ready: boolean;
+    private lastKey: number | null;
 
-    constructor(figureId: number, webSocketUrl: string, downloadCallback: DownloadCallback, parentElement: HTMLElement) {
+    constructor(figureId: number, webSocketUrl: string, parentElement: HTMLElement, commandSource?: MplFigureCommandSource) {
 
         this.id = figureId;
-        this.ondownload = downloadCallback;
         this.root = parentElement;
-        this.image_mode = 'full';
+        this.commandSource = commandSource;
+        this.imageMode = 'full';
         this.imageObj = new Image();
 
-        this._init_header();
-        this._init_canvas();
-        this._init_toolbar();
+        this.initCanvas();
 
         this.waiting = false;
 
         this.imageObj.onload = () => {
-            if (this.image_mode == 'full') {
+            if (this.imageMode == 'full') {
                 // Full images could contain transparency (where diff images
                 // almost always do), so we need to clear the canvas so that
                 // there is no ghosting.
@@ -69,7 +111,6 @@ export class MplFigure {
 
         this.webSocket = new WebSocket(webSocketUrl);
         this.webSocket.onopen = () => {
-
             this.webSocket.addEventListener('message', handleWebSocketMessage);
 
             const supports_binary = !!this.webSocket.binaryType;
@@ -85,31 +126,37 @@ export class MplFigure {
             this.sendMessage("supports_binary", {value: supports_binary});
             this.sendMessage("send_image_mode");
             this.sendMessage("refresh");
-            this.sendResize(this.root.clientWidth, this.root.clientHeight)
+            this.sendResize(this.root.clientWidth, this.root.clientHeight);
+            if (this.commandSource) {
+                const commandListener = this.handleCommand.bind(this);
+                this.commandSource.addCommandListener(this.id, commandListener);
+            }
         };
     }
 
-    private _init_header() {
-        let titlebar = document.createElement('div') as HTMLDivElement;
-        titlebar.className = "ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix";
-        titlebar.setAttribute('style', "width: 100%; text-align: center; padding: 3px;");
-        let titletext = document.createElement('div') as HTMLDivElement;
-        titletext.className = "ui-dialog-title";
-        titletext.setAttribute('style', "width: 100%; text-align: center; padding: 3px;");
-        titlebar.appendChild(titletext);
-        this.root.appendChild(titlebar);
-        this.header = titletext;
+    /**
+     * Calls a command on this figure.
+     *
+     * @param figureId An object that must have a property "name" of type string.
+     * @param commandData An object that must have a property "name" of type string.
+     */
+    private handleCommand(figureId: number, commandData: MplFigureCommandData): void {
+        if (figureId === this.id) {
+            this.sendMessage("toolbar_button", commandData);
+        } else {
+            console.warn(`received invalid figure ID: expected #${this.id}, got #${figureId} for data ${commandData}`);
+        }
     }
 
-    private _init_canvas() {
-        const canvas_div = document.createElement('div') as HTMLDivElement;
-        canvas_div.setAttribute('style', 'position: relative; clear: both; outline: 0');
+    private initCanvas() {
+        const canvasDiv = document.createElement('div') as HTMLDivElement;
+        canvasDiv.setAttribute('style', 'position: relative; clear: both; outline: 0');
 
         const handleKeyboardEvent = this.handleKeyboardEvent.bind(this);
-        canvas_div.onkeydown = wrapEvent('key_press', handleKeyboardEvent);
-        canvas_div.onkeyup = wrapEvent('key_release', handleKeyboardEvent);
-        this.canvas_div = canvas_div;
-        this.root.appendChild(canvas_div);
+        canvasDiv.onkeydown = wrapEvent('key_press', handleKeyboardEvent);
+        canvasDiv.onkeyup = wrapEvent('key_release', handleKeyboardEvent);
+        this.canvasDiv = canvasDiv;
+        this.root.appendChild(canvasDiv);
 
         const canvas = document.createElement('canvas');
         canvas.className = 'mpl-canvas';
@@ -118,8 +165,8 @@ export class MplFigure {
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
 
-        const rubberband = document.createElement('canvas');
-        rubberband.setAttribute('style', "position: absolute; left: 0; top: 0; z-index: 1;");
+        const rubberBand = document.createElement('canvas');
+        rubberBand.setAttribute('style', "position: absolute; left: 0; top: 0; z-index: 1;");
 
         // TODO (forman): translate the below.
         //                see https://codepen.io/adammertel/pen/yyzPrj
@@ -139,15 +186,15 @@ export class MplFigure {
 
         const handleMouseEvent = this.handleMouseEvent.bind(this);
 
-        rubberband.onmousedown = wrapEvent('button_press', handleMouseEvent);
-        rubberband.onmouseup = wrapEvent('button_release', handleMouseEvent);
+        rubberBand.onmousedown = wrapEvent('button_press', handleMouseEvent);
+        rubberBand.onmouseup = wrapEvent('button_release', handleMouseEvent);
         // Throttle sequential mouse events to 1 every 20ms.
-        rubberband.onmousemove = wrapEvent('motion_notify', handleMouseEvent);
+        rubberBand.onmousemove = wrapEvent('motion_notify', handleMouseEvent);
 
-        rubberband.onmouseenter = wrapEvent('figure_enter', handleMouseEvent);
-        rubberband.onmouseleave = wrapEvent('figure_leave', handleMouseEvent);
+        rubberBand.onmouseenter = wrapEvent('figure_enter', handleMouseEvent);
+        rubberBand.onmouseleave = wrapEvent('figure_leave', handleMouseEvent);
 
-        canvas_div.onwheel = (event: WheelEvent) => {
+        canvasDiv.onwheel = (event: WheelEvent) => {
             //event = event.originalEvent;
             const name = 'scroll';
             let step;
@@ -159,119 +206,37 @@ export class MplFigure {
             this.handleMouseEvent(event, {name, step});
         };
 
-        canvas_div.appendChild(canvas);
-        canvas_div.appendChild(rubberband);
+        canvasDiv.appendChild(canvas);
+        canvasDiv.appendChild(rubberBand);
 
-        this.rubberband_canvas = rubberband;
-        this.rubberband_context = rubberband.getContext("2d");
-        this.rubberband_context.strokeStyle = "#000000";
+        this.rubberBandCanvas = rubberBand;
+        this.rubberBandContext = rubberBand.getContext("2d");
+        this.rubberBandContext.strokeStyle = "#000000";
 
         // Set the figure to an initial 600x600px, this will subsequently be updated
         // upon first draw.
-        this._resize_canvas(600, 600);
+        this.resizeCanvas(600, 600);
 
-        // TODO (forman): translate the below
-        // // Disable right mouse context menu.
-        // $(this.rubberband_canvas).bind("contextmenu",function(e){
-        //     return false;
-        // });
-
-        function set_focus() {
+        function setFocus() {
             canvas.focus();
-            canvas_div.focus();
+            canvasDiv.focus();
         }
 
-        window.setTimeout(set_focus, 100);
+        window.setTimeout(setFocus, 100);
     }
 
-    private _resize_canvas(width, height) {
+    private resizeCanvas(width, height) {
         // Keep the size of the canvas, canvas container, and rubber band
         // canvas in sync.
-        this.canvas_div.style.width = width;
-        this.canvas_div.style.height = height;
+        this.canvasDiv.style.width = width;
+        this.canvasDiv.style.height = height;
 
         this.canvas.setAttribute('width', width);
         this.canvas.setAttribute('height', height);
 
-        this.rubberband_canvas.setAttribute('width', width);
-        this.rubberband_canvas.setAttribute('height', height);
+        this.rubberBandCanvas.setAttribute('width', width);
+        this.rubberBandCanvas.setAttribute('height', height);
     };
-
-    private _init_toolbar() {
-        const nav_element = document.createElement('div') as HTMLDivElement;
-        nav_element.setAttribute('style', 'width: 100%');
-        this.root.appendChild(nav_element);
-
-        const handleToolbarButtonClick = this.handleToolbarButtonClick.bind(this);
-        const handleToolbarButtonMouseOver = this.handleToolbarButtonMouseOver.bind(this);
-
-        for (let toolbar_ind in TOOLBAR_ITEMS) {
-            //noinspection JSUnfilteredForInLoop
-            let name = TOOLBAR_ITEMS[toolbar_ind][0];
-            //noinspection JSUnfilteredForInLoop
-            let tooltip = TOOLBAR_ITEMS[toolbar_ind][1];
-            //noinspection JSUnfilteredForInLoop
-            let image = TOOLBAR_ITEMS[toolbar_ind][2];
-            //noinspection JSUnfilteredForInLoop
-            let method_name = TOOLBAR_ITEMS[toolbar_ind][3];
-
-            if (!name) {
-                // put a spacer in here.
-                continue;
-            }
-            let button = document.createElement('button') as HTMLButtonElement;
-            button.className = 'ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only';
-            button.setAttribute('role', 'button');
-            button.setAttribute('aria-disabled', 'false');
-            button.onclick = wrapEvent(method_name, handleToolbarButtonClick);
-            button.onmouseover = wrapEvent(tooltip, handleToolbarButtonMouseOver);
-
-            const icon_img = document.createElement('span') as HTMLSpanElement;
-            icon_img.className = 'ui-button-icon-primary ui-icon ' + image + ' ui-corner-all';
-
-            const tooltip_span = document.createElement('span') as HTMLSpanElement;
-            tooltip_span.className = 'ui-button-text';
-            tooltip_span.innerHTML = tooltip;
-
-            button.appendChild(icon_img);
-            button.appendChild(tooltip_span);
-
-            nav_element.appendChild(button);
-        }
-
-        const fmt_picker_span = document.createElement('span') as HTMLSpanElement;
-
-        const fmt_picker = document.createElement('select') as HTMLSelectElement;
-        fmt_picker.className = 'mpl-toolbar-option ui-widget ui-widget-content';
-        fmt_picker_span.appendChild(fmt_picker);
-        nav_element.appendChild(fmt_picker_span);
-        this.format_dropdown = fmt_picker;
-
-        for (let ind in EXTENSIONS) {
-            const fmt = EXTENSIONS[ind];
-            const option = document.createElement('option') as HTMLOptionElement;
-            option.setAttribute('selected', (fmt === DEFAULT_EXTENSION) + "");
-            option.innerHTML = fmt;
-            fmt_picker.appendChild(option)
-        }
-
-        // Add hover states to the ui-buttons
-        const buttons = document.getElementsByClassName('ui-button') as HTMLCollectionOf<HTMLButtonElement>;
-        for (let i = 0; i < buttons.length; i++) {
-            const button = buttons.item(i);
-            button.onmouseenter = function () {
-                button.classList.add("ui-state-hover");
-            };
-            button.onmouseleave = function () {
-                button.classList.remove("ui-state-hover");
-            };
-        }
-
-        const status_bar = document.createElement('span') as HTMLSpanElement;
-        status_bar.className = "mpl-message";
-        nav_element.appendChild(status_bar);
-        this.message = status_bar;
-    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // Outgoing messages
@@ -297,7 +262,9 @@ export class MplFigure {
 
     sendMessage(type: string, properties?: any) {
         const jsonText = JSON.stringify({...properties, type, figure_id: this.id});
-        console.log(`MplFigure.sendMessage: ${jsonText}`);
+        if (_DEBUG_WEB_SOCKET_RPC) {
+            console.log(`MplFigure.sendMessage: ${jsonText}`);
+        }
         this.webSocket.send(jsonText);
     }
 
@@ -354,23 +321,16 @@ export class MplFigure {
     ///////////////////////////////////////////////////////////////////////////////
     // Handlers for incoming messages
 
-    //noinspection JSUnusedGlobalSymbols
-    private handle_save() {
-        const format_dropdown = this.format_dropdown;
-        const format = format_dropdown.options[format_dropdown.selectedIndex].value;
-        this.ondownload(this, format);
-    }
-
-    //noinspection JSUnusedGlobalSymbols
+    //noinspection JSUnusedLocalSymbols
     private handle_resize(msg) {
         const size = msg['size'];
         if (size[0] != this.canvas.width || size[1] != this.canvas.height) {
-            this._resize_canvas(size[0], size[1]);
+            this.resizeCanvas(size[0], size[1]);
             this.sendMessage("refresh");
         }
     }
 
-    //noinspection JSUnusedGlobalSymbols
+    //noinspection JSUnusedLocalSymbols
     private handle_rubberband(msg) {
         let x0 = msg['x0'];
         let y0 = this.canvas.height - msg['y0'];
@@ -387,17 +347,22 @@ export class MplFigure {
         const width = Math.abs(x1 - x0);
         const height = Math.abs(y1 - y0);
 
-        this.rubberband_context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.rubberband_context.strokeRect(min_x, min_y, width, height);
+        this.rubberBandContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.rubberBandContext.strokeRect(min_x, min_y, width, height);
     }
 
-    //noinspection JSUnusedGlobalSymbols
+    //noinspection JSUnusedLocalSymbols
     private handle_figure_label(msg) {
         // Updates the figure title.
-        this.header.textContent = msg['label'];
+        //this.header.textContent = msg['label'];
     }
 
-    //noinspection JSUnusedGlobalSymbols
+    //noinspection JSUnusedLocalSymbols
+    private handle_message(msg) {
+        //this.message.textContent = msg['message'];
+    }
+
+    //noinspection JSUnusedLocalSymbols
     private handle_cursor(msg) {
         let cursor = msg['cursor'];
         switch (cursor) {
@@ -414,23 +379,18 @@ export class MplFigure {
                 cursor = 'move';
                 break;
         }
-        this.rubberband_canvas.style.cursor = cursor;
+        this.rubberBandCanvas.style.cursor = cursor;
     }
 
-    //noinspection JSUnusedGlobalSymbols
-    private handle_message(msg) {
-        this.message.textContent = msg['message'];
-    }
-
-    //noinspection JSUnusedGlobalSymbols
+    //noinspection JSUnusedLocalSymbols
     private handle_draw() {
         // Request the server to send over a new figure.
         this.sendDrawMessage();
     }
 
-    //noinspection JSUnusedGlobalSymbols
+    //noinspection JSUnusedLocalSymbols
     private handle_image_mode(msg) {
-        this.image_mode = msg['mode'];
+        this.imageMode = msg['mode'];
     }
 
     // Handlers for incoming messages
@@ -443,7 +403,7 @@ export class MplFigure {
 
         if (name === 'button_press') {
             this.canvas.focus();
-            this.canvas_div.focus();
+            this.canvasDiv.focus();
         }
 
         const x = canvas_pos.x;
@@ -469,13 +429,13 @@ export class MplFigure {
 
         // Prevent repeat events
         if (name == 'key_press') {
-            if (event.which === this._key)
+            if (event.which === this.lastKey)
                 return;
             else
-                this._key = event.which;
+                this.lastKey = event.which;
         }
         if (name == 'key_release')
-            this._key = null;
+            this.lastKey = null;
 
         let value = '';
         if (event.ctrlKey && event.which != 17)
@@ -492,20 +452,6 @@ export class MplFigure {
             key: value,
             guiEvent: simpleKeys(event)
         });
-    }
-
-    //noinspection JSUnusedLocalSymbols
-    private handleToolbarButtonClick(event: MouseEvent, extraData) {
-        if (extraData.name == 'download') {
-            this.handle_save();
-        } else {
-            this.sendMessage("toolbar_button", extraData);
-        }
-    }
-
-    //noinspection JSUnusedLocalSymbols
-    private handleToolbarButtonMouseOver(event: MouseEvent, extraData) {
-        this.message.textContent = extraData.name;
     }
 }
 

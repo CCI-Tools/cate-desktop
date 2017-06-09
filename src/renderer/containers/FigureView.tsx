@@ -44,9 +44,9 @@ class FigureView extends React.Component<IFigureViewProps, null> {
         this.onDownload = this.onDownload.bind(this);
     }
 
-    private onDownload(figure: MplFigure, format: string) {
-        console.log("FigureView: onDownload:", figure, format, this);
-        const downloadUrl = getMPLDownloadUrl(this.props.baseUrl, this.props.baseDir, figure.id, format);
+    private onDownload(figureId: number) {
+        console.log("FigureView: onDownload:", figureId);
+        const downloadUrl = getMPLDownloadUrl(this.props.baseUrl, this.props.baseDir, figureId, 'png');
         console.log("FigureView: downloadUrl:", downloadUrl);
         // TODO: download
     }
@@ -70,6 +70,7 @@ class FigureView extends React.Component<IFigureViewProps, null> {
                         key={id}
                         id={id}
                         figureId={figureResource.figureId}
+                        figureName={figureResource.name}
                         webSocketUrl={getMPLWebSocketUrl(this.props.mplWebSocketUrl, this.props.baseDir, figureResource.figureId)}
                         onDownload={this.onDownload}
                     />
