@@ -31,7 +31,7 @@ export class MplFigure {
     private rubberband_context: CanvasRenderingContext2D;
     private format_dropdown: HTMLSelectElement;
     private image_mode: string;
-    private root: HTMLDivElement;
+    private root: HTMLElement;
     private waiting: boolean;
     private ondownload: DownloadCallback;
     private header: HTMLDivElement;
@@ -42,14 +42,9 @@ export class MplFigure {
 
         this.id = figureId;
         this.ondownload = downloadCallback;
+        this.root = parentElement;
         this.image_mode = 'full';
         this.imageObj = new Image();
-
-        // TODO (forman): this.root = parentElement;
-        this.root = document.createElement('div') as HTMLDivElement;
-        this.root.setAttribute('style', 'display: inline-block');
-
-        parentElement.appendChild(this.root);
 
         this._init_header();
         this._init_canvas();
@@ -90,6 +85,7 @@ export class MplFigure {
             this.sendMessage("supports_binary", {value: supports_binary});
             this.sendMessage("send_image_mode");
             this.sendMessage("refresh");
+            this.sendResize(this.root.clientWidth, this.root.clientHeight)
         };
     }
 
