@@ -1,5 +1,6 @@
-const _DEBUG_WEB_SOCKET_RPC = false;
+const _DEBUG_WEB_SOCKET_RPC = true;
 
+export type MplFigureMessageCallback = (message: string) => any;
 export type MplFigureCommandData = {name: string};
 export type MplFigureCommandListener = (figureId: number, commandData: MplFigureCommandData) => void;
 
@@ -70,68 +71,99 @@ export class MplFigure {
     readonly id: number;
     private webSocket: WebSocket;
     private commandSource?: MplFigureCommandSource;
-    private root: HTMLElement;
-    private canvas: HTMLCanvasElement;
-    private context: CanvasRenderingContext2D;
+    private onMessage?: MplFigureMessageCallback;
+    private parentElement: HTMLDivElement;
+    private figureImageCanvas: HTMLCanvasElement;
     private rubberBandCanvas: HTMLCanvasElement;
-    private rubberBandContext: CanvasRenderingContext2D;
-    private canvasDiv: HTMLDivElement;
-    private supports_binary: boolean;
     private imageObj: any;
     private imageMode: string;
     private waiting: boolean;
     private lastKey: number | null;
+    private resizeTimer: number | null;
+    private lastSize: {width: number; height: number};
 
-    constructor(figureId: number, webSocketUrl: string, parentElement: HTMLElement, commandSource?: MplFigureCommandSource) {
+    constructor(figureId: number,
+                webSocketUrl: string,
+                parentElement: HTMLDivElement,
+                commandSource?: MplFigureCommandSource,
+                onMessage?: MplFigureMessageCallback) {
 
         this.id = figureId;
-        this.root = parentElement;
+        this.parentElement = parentElement;
         this.commandSource = commandSource;
+        this.onMessage = onMessage;
         this.imageMode = 'full';
         this.imageObj = new Image();
+        this.lastSize = {width: 0, height: 0};
+
+        this.handleCommand = this.handleCommand.bind(this);
+        this.processMessage = this.processMessage.bind(this);
 
         this.initCanvas();
 
         this.waiting = false;
 
         this.imageObj.onload = () => {
+            const context = this.figureImageCanvas.getContext("2d");
             if (this.imageMode == 'full') {
                 // Full images could contain transparency (where diff images
                 // almost always do), so we need to clear the canvas so that
                 // there is no ghosting.
-                this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                context.clearRect(0, 0, this.figureImageCanvas.width, this.figureImageCanvas.height);
             }
-            this.context.drawImage(this.imageObj, 0, 0);
+            context.drawImage(this.imageObj, 0, 0);
         };
 
-        const handleWebSocketMessage = this.processMessage.bind(this);
         this.imageObj.onunload = function () {
-            this.webSocket.removeEventListener('message', handleWebSocketMessage);
+            this.webSocket.removeEventListener('message', this.processMessage);
         };
 
         this.webSocket = new WebSocket(webSocketUrl);
         this.webSocket.onopen = () => {
-            this.webSocket.addEventListener('message', handleWebSocketMessage);
-
-            const supports_binary = !!this.webSocket.binaryType;
-            if (!supports_binary) {
-                const warnings = document.getElementById("mpl-warnings");
-                if (warnings) {
-                    warnings.style.display = 'block';
-                    warnings.textContent = (
-                    "This browser does not support binary websocket messages. " +
-                    "Figure update performance may be slow.");
-                }
+            if (this.commandSource) {
+                this.commandSource.addCommandListener(this.id, this.handleCommand);
             }
-            this.sendMessage("supports_binary", {value: supports_binary});
+
+            this.webSocket.addEventListener('message', this.processMessage);
+            const supportsBinary = !!this.webSocket.binaryType;
+            if (!supportsBinary) {
+                console.warn("This browser does not support binary websocket messages. " +
+                             "Figure update performance may be slow.");
+            }
+            this.sendMessage("supports_binary", {value: supportsBinary});
             this.sendMessage("send_image_mode");
             this.sendMessage("refresh");
-            this.sendResize(this.root.clientWidth, this.root.clientHeight);
+            this.sendResize(this.parentElement.clientWidth, this.parentElement.clientHeight);
+
+            this.resizeTimer = window.setInterval(() => {
+                const width = this.parentElement.clientWidth;
+                const height = this.parentElement.clientHeight;
+                if (this.lastSize.width !== width || this.lastSize.height !== height) {
+                    this.lastSize = {width, height};
+                    this.sendResize(width, height);
+                }
+            }, 500);
+        };
+
+        this.webSocket.onclose = () => {
             if (this.commandSource) {
-                const commandListener = this.handleCommand.bind(this);
-                this.commandSource.addCommandListener(this.id, commandListener);
+                this.commandSource.removeCommandListener(this.id, this.handleCommand);
+            }
+            if (this.resizeTimer) {
+                window.clearInterval(this.resizeTimer);
             }
         };
+    }
+
+    onMount() {
+        console.info("MplFigure.onMount(): ", this.id);
+        // if (this.parentElement) {
+        //     this.sendResize(this.parentElement.clientWidth, this.parentElement.clientHeight);
+        // }
+    }
+
+    onUnmount() {
+        console.info("MplFigure.onUnmount(): ", this.id);
     }
 
     /**
@@ -149,91 +181,41 @@ export class MplFigure {
     }
 
     private initCanvas() {
-        const canvasDiv = document.createElement('div') as HTMLDivElement;
-        canvasDiv.setAttribute('style', 'position: relative; clear: both; outline: 0');
-
         const handleKeyboardEvent = this.handleKeyboardEvent.bind(this);
-        canvasDiv.onkeydown = wrapEvent('key_press', handleKeyboardEvent);
-        canvasDiv.onkeyup = wrapEvent('key_release', handleKeyboardEvent);
-        this.canvasDiv = canvasDiv;
-        this.root.appendChild(canvasDiv);
-
-        const canvas = document.createElement('canvas');
-        canvas.className = 'mpl-canvas';
-        canvas.setAttribute('style', "left: 0; top: 0; z-index: 0; outline: 0");
-
-        this.canvas = canvas;
-        this.context = canvas.getContext("2d");
-
-        const rubberBand = document.createElement('canvas');
-        rubberBand.setAttribute('style', "position: absolute; left: 0; top: 0; z-index: 1;");
-
-        // TODO (forman): translate the below.
-        //                see https://codepen.io/adammertel/pen/yyzPrj
-        //                see http://www.coffeegnome.net/draggable-resizable-without-jqueryui/
-        // canvas_div.resizable({
-        //     start: function(event, ui) {
-        //         pass_mouse_events = false;
-        //     },
-        //     resize: function(event, ui) {
-        //         fig.request_resize(ui.size.width, ui.size.height);
-        //     },
-        //     stop: function(event, ui) {
-        //         pass_mouse_events = true;
-        //         fig.request_resize(ui.size.width, ui.size.height);
-        //     },
-        // });
-
-        const handleMouseEvent = this.handleMouseEvent.bind(this);
-
-        rubberBand.onmousedown = wrapEvent('button_press', handleMouseEvent);
-        rubberBand.onmouseup = wrapEvent('button_release', handleMouseEvent);
-        // Throttle sequential mouse events to 1 every 20ms.
-        rubberBand.onmousemove = wrapEvent('motion_notify', handleMouseEvent);
-
-        rubberBand.onmouseenter = wrapEvent('figure_enter', handleMouseEvent);
-        rubberBand.onmouseleave = wrapEvent('figure_leave', handleMouseEvent);
-
-        canvasDiv.onwheel = (event: WheelEvent) => {
-            //event = event.originalEvent;
+        this.parentElement.onkeydown = wrapEvent('key_press', handleKeyboardEvent);
+        this.parentElement.onkeyup = wrapEvent('key_release', handleKeyboardEvent);
+        this.parentElement.onwheel = (event: WheelEvent) => {
             const name = 'scroll';
-            let step;
-            if (event.deltaY < 0) {
-                step = 1;
-            } else {
-                step = -1;
-            }
+            const step = (event.deltaY < 0) ? 1 : -1;
             this.handleMouseEvent(event, {name, step});
         };
 
-        canvasDiv.appendChild(canvas);
-        canvasDiv.appendChild(rubberBand);
+        const figureImageCanvas = document.createElement('canvas');
+        figureImageCanvas.id = 'mpl-figure-image-' + this.id;
+        figureImageCanvas.setAttribute('style', "left: 0; top: 0; z-index: 0; outline: 0");
+        this.figureImageCanvas = figureImageCanvas;
 
-        this.rubberBandCanvas = rubberBand;
-        this.rubberBandContext = rubberBand.getContext("2d");
-        this.rubberBandContext.strokeStyle = "#000000";
+        const rubberBandCanvas = document.createElement('canvas');
+        rubberBandCanvas.id = 'mpl-rubber-band-' + this.id;
+        rubberBandCanvas.setAttribute('style', "position: absolute; left: 0; top: 0; z-index: 1;");
+        const handleMouseEvent = this.handleMouseEvent.bind(this);
+        rubberBandCanvas.onmousedown = wrapEvent('button_press', handleMouseEvent);
+        rubberBandCanvas.onmouseup = wrapEvent('button_release', handleMouseEvent);
+        rubberBandCanvas.onmousemove = wrapEvent('motion_notify', handleMouseEvent);
+        rubberBandCanvas.onmouseenter = wrapEvent('figure_enter', handleMouseEvent);
+        rubberBandCanvas.onmouseleave = wrapEvent('figure_leave', handleMouseEvent);
+        const rubberBandContext = rubberBandCanvas.getContext("2d");
+        rubberBandContext.strokeStyle = "#000000";
+        this.rubberBandCanvas = rubberBandCanvas;
 
-        // Set the figure to an initial 600x600px, this will subsequently be updated
-        // upon first draw.
-        this.resizeCanvas(600, 600);
-
-        function setFocus() {
-            canvas.focus();
-            canvasDiv.focus();
-        }
-
-        window.setTimeout(setFocus, 100);
+        this.parentElement.appendChild(figureImageCanvas);
+        this.parentElement.appendChild(rubberBandCanvas);
     }
 
     private resizeCanvas(width, height) {
-        // Keep the size of the canvas, canvas container, and rubber band
-        // canvas in sync.
-        this.canvasDiv.style.width = width;
-        this.canvasDiv.style.height = height;
-
-        this.canvas.setAttribute('width', width);
-        this.canvas.setAttribute('height', height);
-
+        // Keep the size of the figure image canvas and rubber band canvas in sync.
+        this.figureImageCanvas.setAttribute('width', width);
+        this.figureImageCanvas.setAttribute('height', height);
         this.rubberBandCanvas.setAttribute('width', width);
         this.rubberBandCanvas.setAttribute('height', height);
     };
@@ -299,22 +281,22 @@ export class MplFigure {
 
         const jsonText = evt.data;
         const msg = JSON.parse(jsonText);
-        const msg_type = msg['type'];
+        const msgType = msg['type'];
 
-        // Call the  "handle_{type}" callback, which takes
+        // Call the  "handle_${msgType}" callback, which takes
         // the JSON message as its only argument.
         try {
-            const callback = this["handle_" + msg_type];
+            const callback = this["handle_" + msgType];
             if (callback) {
                 try {
                     // console.log(`Calling: handle_${msg_type}(${jsonText})`);
                     callback.bind(this)(msg);
                 } catch (e) {
-                    console.error("Exception inside the 'handler_" + msg_type + "' callback:", e, e.stack, msg);
+                    console.error("Exception inside the 'handler_" + msgType + "' callback:", e, e.stack, msg);
                 }
             }
         } catch (e) {
-            console.error("No handler for the '" + msg_type + "' message type: ", msg);
+            console.error("No handler for the '" + msgType + "' message type: ", msg);
         }
     }
 
@@ -324,7 +306,7 @@ export class MplFigure {
     //noinspection JSUnusedLocalSymbols
     private handle_resize(msg) {
         const size = msg['size'];
-        if (size[0] != this.canvas.width || size[1] != this.canvas.height) {
+        if (size[0] !== this.figureImageCanvas.width || size[1] !== this.figureImageCanvas.height) {
             this.resizeCanvas(size[0], size[1]);
             this.sendMessage("refresh");
         }
@@ -333,53 +315,41 @@ export class MplFigure {
     //noinspection JSUnusedLocalSymbols
     private handle_rubberband(msg) {
         let x0 = msg['x0'];
-        let y0 = this.canvas.height - msg['y0'];
+        let y0 = this.figureImageCanvas.height - msg['y0'];
         let x1 = msg['x1'];
-        let y1 = this.canvas.height - msg['y1'];
+        let y1 = this.figureImageCanvas.height - msg['y1'];
         x0 = Math.floor(x0) + 0.5;
         //noinspection JSSuspiciousNameCombination
         y0 = Math.floor(y0) + 0.5;
         x1 = Math.floor(x1) + 0.5;
         //noinspection JSSuspiciousNameCombination
         y1 = Math.floor(y1) + 0.5;
-        const min_x = Math.min(x0, x1);
-        const min_y = Math.min(y0, y1);
+        const xMin = Math.min(x0, x1);
+        const yMin = Math.min(y0, y1);
         const width = Math.abs(x1 - x0);
         const height = Math.abs(y1 - y0);
 
-        this.rubberBandContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.rubberBandContext.strokeRect(min_x, min_y, width, height);
+        const context = this.rubberBandCanvas.getContext("2d");
+        context.clearRect(0, 0, this.figureImageCanvas.width, this.figureImageCanvas.height);
+        context.strokeRect(xMin, yMin, width, height);
     }
 
     //noinspection JSUnusedLocalSymbols
     private handle_figure_label(msg) {
-        // Updates the figure title.
-        //this.header.textContent = msg['label'];
+        console.warn(`MplFigure.handle_figure_label() - unhandled, figure #${this.id}`, msg);
     }
 
     //noinspection JSUnusedLocalSymbols
     private handle_message(msg) {
-        //this.message.textContent = msg['message'];
+        if (this.onMessage) {
+            this.onMessage(msg['message']);
+        }
     }
 
     //noinspection JSUnusedLocalSymbols
     private handle_cursor(msg) {
-        let cursor = msg['cursor'];
-        switch (cursor) {
-            case 0:
-                cursor = 'pointer';
-                break;
-            case 1:
-                cursor = 'default';
-                break;
-            case 2:
-                cursor = 'crosshair';
-                break;
-            case 3:
-                cursor = 'move';
-                break;
-        }
-        this.rubberBandCanvas.style.cursor = cursor;
+        const cursor = msg['cursor'];
+        this.rubberBandCanvas.style.cursor = {0: 'pointer', 1: 'default', 2: 'crosshair', 3: 'move'}[cursor];
     }
 
     //noinspection JSUnusedLocalSymbols
@@ -402,8 +372,8 @@ export class MplFigure {
         const canvas_pos = findpos(event);
 
         if (name === 'button_press') {
-            this.canvas.focus();
-            this.canvasDiv.focus();
+            this.figureImageCanvas.focus();
+            this.parentElement.focus();
         }
 
         const x = canvas_pos.x;

@@ -1,15 +1,20 @@
 import * as React from 'react';
-import {MplFigure, MplFigureCommandData, MplFigureCommandListener, MplFigureCommandSourceImpl} from './MplFigure';
+import {MplFigureCommandListener, MplFigureCommandSourceImpl} from './MplFigure';
 import {MplFigureContainer} from './MplFigureContainer';
-import {Button, Tooltip} from "@blueprintjs/core";
+import {Button, Tag, Tooltip} from "@blueprintjs/core";
 
 
 interface IFigurePanelProps {
     id: string;
     figureName: string;
     figureId: number;
+    figureHeight?: any;
     webSocketUrl: string;
     onDownload: MplFigureCommandListener;
+}
+
+interface IFigurePanelState {
+    message?: string;
 }
 
 const FIGURE_COMMAND_SOURCE = new MplFigureCommandSourceImpl();
@@ -20,15 +25,22 @@ const FIGURE_COMMAND_SOURCE = new MplFigureCommandSourceImpl();
  *
  * @author Norman Fomferra
  */
-export class MplFigurePanel extends React.PureComponent<IFigurePanelProps, null> {
-    static readonly DIV_STYLE = {width: '100%'};
+export class MplFigurePanel extends React.PureComponent<IFigurePanelProps, IFigurePanelState> {
+    static readonly DIV_STYLE = {width: '100%', overflow: 'hidden'};
+    static readonly CONTAINER_DIV_STYLE = {width: '100%', overflow: 'hidden'};
 
-    static handleCommand(figureId: number, commandData: MplFigureCommandData) {
-        FIGURE_COMMAND_SOURCE.dispatchCommand(figureId, commandData);
+    constructor(props: IFigurePanelProps) {
+        super(props);
+        this.state = {};
+        this.handleFigureMessage = this.handleFigureMessage.bind(this);
     }
 
     static handleClose(figureId: number) {
         FIGURE_COMMAND_SOURCE.removeCommandListeners(figureId);
+    }
+
+    handleFigureMessage(message: string) {
+        this.setState({message});
     }
 
     render() {
@@ -38,11 +50,14 @@ export class MplFigurePanel extends React.PureComponent<IFigurePanelProps, null>
                                  title={`${this.props.figureName} (#${this.props.figureId})`}
                                  onClose={MplFigurePanel.handleClose}/>
                 <MplFigureContainer figureId={this.props.figureId}
+                                    figureHeight={this.props.figureHeight || '25em'}
                                     id={this.props.id}
                                     webSocketUrl={this.props.webSocketUrl}
-                                    style={{width: '100%', height: 'calc(100% - 2em - 2em', overflow: 'auto'}}
-                                    commandSource={FIGURE_COMMAND_SOURCE}/>
+                                    style={MplFigurePanel.CONTAINER_DIV_STYLE}
+                                    commandSource={FIGURE_COMMAND_SOURCE}
+                                    onMessage={this.handleFigureMessage}/>
                 <MplFigureToolbar figureId={this.props.figureId}
+                                  message={this.state.message}
                                   onCommand={FIGURE_COMMAND_SOURCE.dispatchCommand}
                                   onDownload={this.props.onDownload}/>
             </div>
@@ -57,6 +72,9 @@ interface IMplFigureHeaderProps {
 }
 
 class MplFigureHeader extends React.PureComponent<IMplFigureHeaderProps, null> {
+
+    static readonly DIV_STYLE = {display: "flex", padding: '0.2em'};
+
     constructor(props: IMplFigureHeaderProps) {
         super(props);
         this.handleClose = this.handleClose.bind(this);
@@ -68,9 +86,9 @@ class MplFigureHeader extends React.PureComponent<IMplFigureHeaderProps, null> {
 
     render() {
         return (
-            <div style={{height: '2em'}}>
-                <span>{this.props.title}</span>
-                <Button iconName="small-cross" onClick={this.handleClose}/>
+            <div style={MplFigureHeader.DIV_STYLE}>
+                <span style={{flex: "auto"}}>{this.props.title}</span>
+                <Button style={{flex: "none"}} iconName="small-cross" onClick={this.handleClose}/>
             </div>
         );
     }
@@ -78,11 +96,14 @@ class MplFigureHeader extends React.PureComponent<IMplFigureHeaderProps, null> {
 
 interface IMplFigureToolbarProps {
     figureId: number;
+    message: string;
     onCommand: MplFigureCommandListener;
     onDownload: MplFigureCommandListener;
 }
 
 class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null> {
+
+    static readonly DIV_STYLE = {display: 'flex', alignItems: 'center', padding: 2};
 
     commands: any[];
 
@@ -108,7 +129,6 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
                 icon: "chevron-right",
                 name: "forward",
             },
-            {},
             {
                 label: "Pan",
                 tooltip: "Pan axes with left mouse, zoom with right",
@@ -121,7 +141,6 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
                 icon: "zoom-in",
                 name: "zoom",
             },
-            {},
             {
                 label: "Download",
                 tooltip: "Download plot",
@@ -162,14 +181,16 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
                         <Button iconName={iconName} onClick={onClick}/>
                     </Tooltip>
                 );
-            } else {
-                buttons.push(
-                    <span key={i}>&nbsp;&nbsp;</span>
-                );
             }
         }
 
-        return (<div className="pt-button-group pt-minimal" style={{height: '2em'}}>{buttons}</div>);
+        return (
+            <div style={MplFigureToolbar.DIV_STYLE}>
+                <Tag className="pt-minimal">{this.props.message}</Tag>
+                <span style={{flex: 'auto'}}/>
+                <div className="pt-button-group" >{buttons}</div>
+            </div>
+        );
     }
 }
 
