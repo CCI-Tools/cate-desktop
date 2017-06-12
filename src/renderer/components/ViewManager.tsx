@@ -45,6 +45,7 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
         display: "flex",
         flexFlow: "row nowrap",
         flex: "auto",
+        boxSizing: "border-box",
     };
     static readonly VER_SPLIT_CONTAINER_STYLE = {
         width: "100%",
@@ -52,6 +53,7 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
         display: "flex",
         flexFlow: "column nowrap",
         flex: "auto",
+        boxSizing: "border-box",
     };
 
     private viewMap: ViewMap;
@@ -116,7 +118,6 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
         }
 
         if (renderedLayout1 && renderedLayout2) {
-            // TODO (forman/marcoz): code duplication here, use <SplitPane/> instead
             let containerStyle;
             let childContainer1Style;
             let childContainer2Style;
@@ -224,7 +225,9 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
         fontWeight: "lighter" as any,
         borderBottomStyle: "solid",
         borderBottomWidth: 2,
-        borderBottomColor: ViewPanel.SELECTED_BG_COLOR
+        borderBottomColor: ViewPanel.SELECTED_BG_COLOR,
+        boxSizing: "border-box",
+        overflow: "hidden",
     };
 
     static readonly VIEW_BODY_STYLE = {
@@ -232,14 +235,16 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
         flexDirection: "column",
         flex: 'auto',
         width: "100%",
-        height: "100%"
+        height: "100%",
+        overflow: "hidden",
     };
 
     static readonly CONTAINER_STYLE = {
         display: "flex",
         flexDirection: "column",
         width: "100%",
-        height: "100%"
+        height: "100%",
+        overflow: "hidden",
     };
 
 
