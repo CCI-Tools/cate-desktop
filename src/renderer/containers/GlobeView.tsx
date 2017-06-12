@@ -41,6 +41,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
  * This component displays a 3D globe with a number of layers.
  */
 class GlobeView extends React.Component<IGlobeViewProps&IGlobeViewOwnProps, null> {
+    static readonly CESIUM_GLOBE_STYLE = {width:"100%", height:"100%", overflow: "hidden"};
 
     render() {
         const layers = [];
@@ -75,7 +76,7 @@ class GlobeView extends React.Component<IGlobeViewProps&IGlobeViewOwnProps, null
                          layers={layers}
                          dataSources={dataSources}
                          offlineMode={this.props.offlineMode}
-                         style={{width:"100%", height:"100%", overflow: "none"}}/>
+                         style={GlobeView.CESIUM_GLOBE_STYLE}/>
         );
     }
 
