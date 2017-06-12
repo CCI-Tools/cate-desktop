@@ -7,8 +7,8 @@ import * as assert from "../common/assert";
 import {combineReducers} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
-    SELECTED_VARIABLE_LAYER_ID, newWorldView, updateSelectedVariableLayer, newChartView,
-    newTableView, newFigureView
+    SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
+    newWorldView, newTableView, newFigureView
 } from "./state-util";
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,

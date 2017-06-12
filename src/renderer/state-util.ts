@@ -1,6 +1,6 @@
 import {
     VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
-    VariableImageLayerState, State, OperationState, WorldViewDataState, ChartViewDataState,
+    VariableImageLayerState, State, OperationState, WorldViewDataState,
     TableViewDataState, FigureViewDataState
 } from "./state";
 import {ViewState} from "./components/ViewState";
