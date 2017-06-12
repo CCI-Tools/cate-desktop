@@ -36,6 +36,17 @@ const mapDispatchToProps = {
  * @author Marco Zuehlke
  */
 class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch, null> {
+
+    static readonly DIV_STYLE = {
+        flex: "none",
+        display: "flex",
+        flexFlow: "row nowrap",
+        height: "1.5em",
+        fontSize: "small",
+        backgroundColor: "#2B95D6",
+        overflow: "hidden",
+    };
+
     constructor(props: IStatusBarProps) {
         super(props);
     }
@@ -99,7 +110,7 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch, nu
         }
     }
 
-    private renderBackend() {
+    private renderBackendStatus() {
         let iconName = null;
         let tooltipText = null;
         if (this.props.webAPIStatus === 'connecting') {
@@ -119,13 +130,13 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch, nu
             tooltipText = "Unknown";
         }
         return <Tooltip content={tooltipText} hoverOpenDelay={1500} position={Position.LEFT_TOP}>
-            <span className={`pt-icon-standard ${iconName}` }/>
+            <span className={`pt-icon-small ${iconName}` }/>
         </Tooltip>;
     };
 
     render() {
         // TODO dummy
-        const message = "";
+        const message = "Ready.";
 
         // TODO dummy
         const lat = 22.22;
@@ -133,18 +144,14 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch, nu
         const cursor = `LAT = ${lat.toFixed(2)} LON = ${lon.toFixed(2)}`;
 
         return (
-            <div
-                style={{
-                    display: "flex",
-                    flexFlow: "row nowrap",
-                    height: "1.5em",
-                    fontSize: "small",
-                    backgroundColor: "#2B95D6"
-                }}>
-                <div style={{flex: "80 1 auto", padding: "1px 1px 1px 1px"}}>{message}</div>
-                <div style={{flex: "20 1 auto", padding: "1px 1px 1px 1px"}}>{this.renderTasks()}</div>
+            <div style={StatusBar.DIV_STYLE}>
+                <div style={{flex: "80 1 auto", padding: 2}}>{message}</div>
+                <div style={{flex: "20 1 auto", padding: 2}}>{this.renderTasks()}</div>
                 {/*<div style={{flex: "9 1 auto", padding: "1px 1px 1px 1px"}}>{cursor}</div>*/}
-                <div style={{flex: "0 1 auto", marginLeft: "auto", padding: "1px 1px 1px 1px"}}>{this.renderBackend()}</div>
+                <div style={{
+                    flex: "0 1 auto",
+                    padding: 2
+                }}>{this.renderBackendStatus()}</div>
             </div>
         );
     }
