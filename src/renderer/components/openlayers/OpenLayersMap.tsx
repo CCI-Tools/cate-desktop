@@ -60,7 +60,7 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
     newContainer(id: string): HTMLElement {
         const div = document.createElement("div");
         div.setAttribute("id", "olmap-container-" + id);
-        div.setAttribute("style", "width: 100%; height: 100%;");
+        div.setAttribute("style", "width: 100%; height: 100%; overflow: hidden;");
         return div;
     }
 

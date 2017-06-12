@@ -158,7 +158,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
     newContainer(id: string): HTMLElement {
         const div = document.createElement("div");
         div.setAttribute("id", "cesium-container-" + id);
-        div.setAttribute("class", "cesium-container");
+        div.setAttribute("style", "width: 100%; height: 100%; overflow: hidden;");
         return div;
     }
 
