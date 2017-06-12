@@ -1,6 +1,6 @@
 import {
     VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
-    VariableImageLayerState, State, OperationState, WorldViewDataState, ChartViewDataState, VariableChartState,
+    VariableImageLayerState, State, OperationState, WorldViewDataState,
     TableViewDataState
 } from "./state";
 import {ViewState} from "./components/ViewState";
@@ -113,43 +113,11 @@ function newInitialWorldViewData(): WorldViewDataState {
     } as WorldViewDataState;
 }
 
-function newInitialChartViewData(): ChartViewDataState {
-    return {
-        charts: [
-            {
-                id: "1",
-                type: 'line_test',
-                layout: {},
-                data: {},
-            },
-            {
-                id: "2",
-                type: 'scatter_test',
-                layout: {},
-                data: {},
-            },
-            {
-                id: "3",
-                type: 'line_test',
-                layout: {},
-                data: {},
-            },
-            {
-                id: "4",
-                type: 'scatter_test',
-                layout: {},
-                data: {},
-            },
-        ],
-        selectedChartId: "1",
-    } as ChartViewDataState;
-}
-
 function newInitialTableViewData(resName: string|null, varName: string|null): TableViewDataState {
     return {resName, varName, dataRows: null};
 }
 
-let WORLD_VIEW_COUNTER = 0
+let WORLD_VIEW_COUNTER = 0;
 
 export function newWorldView(): ViewState<WorldViewDataState> {
     const viewNumber = ++WORLD_VIEW_COUNTER;
@@ -159,19 +127,6 @@ export function newWorldView(): ViewState<WorldViewDataState> {
         type: 'world',
         iconName: "pt-icon-globe",
         data: newInitialWorldViewData(),
-    };
-}
-
-let CHART_VIEW_COUNTER = 0
-
-export function newChartView(): ViewState<ChartViewDataState> {
-    const viewNumber = ++CHART_VIEW_COUNTER;
-    return {
-        title: `Chart (${viewNumber})`,
-        id: genSimpleId('chart-'),
-        type: 'chart',
-        iconName: "pt-icon-timeline-area-chart",
-        data: newInitialChartViewData(),
     };
 }
 

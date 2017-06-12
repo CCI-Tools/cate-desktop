@@ -7,7 +7,7 @@ import * as assert from "../common/assert";
 import {combineReducers} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
-    SELECTED_VARIABLE_LAYER_ID, newWorldView, updateSelectedVariableLayer, newChartView,
+    SELECTED_VARIABLE_LAYER_ID, newWorldView, updateSelectedVariableLayer,
     newTableView
 } from "./state-util";
 import {
@@ -184,10 +184,6 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         }
         case actions.ADD_WORLD_VIEW: {
             const view = newWorldView();
-            return addView(state, view, action.payload.placeAfterViewId);
-        }
-        case actions.ADD_CHART_VIEW: {
-            const view = newChartView();
             return addView(state, view, action.payload.placeAfterViewId);
         }
         case actions.ADD_TABLE_VIEW: {
