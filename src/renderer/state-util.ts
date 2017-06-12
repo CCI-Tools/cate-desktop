@@ -121,38 +121,6 @@ function newInitialWorldViewData(): WorldViewDataState {
     } as WorldViewDataState;
 }
 
-function newInitialChartViewData(): ChartViewDataState {
-    return {
-        charts: [
-            {
-                id: "1",
-                type: 'line_test',
-                layout: {},
-                data: {},
-            },
-            {
-                id: "2",
-                type: 'scatter_test',
-                layout: {},
-                data: {},
-            },
-            {
-                id: "3",
-                type: 'line_test',
-                layout: {},
-                data: {},
-            },
-            {
-                id: "4",
-                type: 'scatter_test',
-                layout: {},
-                data: {},
-            },
-        ],
-        selectedChartId: "1",
-    } as ChartViewDataState;
-}
-
 function newInitialFigureViewData(): FigureViewDataState {
     return {
         figureResourceIds: null,
@@ -174,19 +142,6 @@ export function newWorldView(): ViewState<WorldViewDataState> {
         type: 'world',
         iconName: "pt-icon-globe",
         data: newInitialWorldViewData(),
-    };
-}
-
-let CHART_VIEW_COUNTER = 0;
-
-export function newChartView(): ViewState<ChartViewDataState> {
-    const viewNumber = ++CHART_VIEW_COUNTER;
-    return {
-        title: `Chart (${viewNumber})`,
-        id: genSimpleId('chart-'),
-        type: 'chart',
-        iconName: "pt-icon-timeline-area-chart",
-        data: newInitialChartViewData(),
     };
 }
 

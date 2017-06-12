@@ -187,10 +187,6 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             const view = newWorldView();
             return addView(state, view, action.payload.placeAfterViewId);
         }
-        case actions.ADD_CHART_VIEW: {
-            const view = newChartView();
-            return addView(state, view, action.payload.placeAfterViewId);
-        }
         case actions.ADD_FIGURE_VIEW: {
             const view = newFigureView();
             return addView(state, view, action.payload.placeAfterViewId);

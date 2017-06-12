@@ -17,7 +17,7 @@ import PreferencesDialog from "./PreferencesDialog";
 import {PanelContainer, PanelContainerLayout} from "../components/PanelContainer";
 import {Panel} from "../components/Panel";
 import {connect, Dispatch} from "react-redux";
-import {State, WorldViewDataState, ChartViewDataState, TableViewDataState, FigureViewDataState} from "../state";
+import {State, WorldViewDataState, TableViewDataState} from "../state";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ViewManager, ViewRenderMap} from "../components/ViewManager";
@@ -32,10 +32,6 @@ function renderFigureView(view: ViewState<FigureViewDataState>) {
     return <FigureView view={view}/>;
 }
 
-function renderChartView(view: ViewState<ChartViewDataState>) {
-    return <ChartView view={view}/>;
-}
-
 function renderTableView(view: ViewState<TableViewDataState>) {
     return <TableView view={view}/>;
 }
@@ -43,7 +39,6 @@ function renderTableView(view: ViewState<TableViewDataState>) {
 const VIEW_TYPE_RENDERERS: ViewRenderMap = {
     world: renderWorldView,
     figure: renderFigureView,
-    chart: renderChartView,
     table: renderTableView,
 };
 
