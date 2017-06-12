@@ -33,7 +33,7 @@ function mapStateToProps(state: State, ownProps: IFigureViewOwnProps): IFigureVi
  * This component displays a 2D map with a number of layers.
  */
 class FigureView extends React.Component<IFigureViewProps, null> {
-    static readonly DIV_STYLE = {width: '100%', minWidth: '100%', maxWidth: '100%', height: '100%', overflowY: 'auto'};
+    static readonly DIV_STYLE = {width: '100%', height: '100%', overflowX: 'hidden', overflowY: 'auto'};
 
     constructor(props: IFigureViewProps) {
         super(props);
