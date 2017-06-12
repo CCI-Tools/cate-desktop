@@ -47,27 +47,40 @@ interface IDispatch {
 
 //noinspection JSUnusedLocalSymbols
 export default class ApplicationPage extends React.PureComponent<null, null> {
+    static readonly ROOT_DIV_STYLE = {
+        display: "flex",
+        flexFlow: "column nowrap",
+        width: "100%",
+        height: "100%",
+        overflow: "hidden"
+    };
+    static readonly MAIN_DIV_STYLE = {
+        display: "flex",
+        flexFlow: "row nowrap",
+        flex: "auto",
+        height: "100%",
+        overflow: "hidden"
+    };
+    static readonly CREDITS_DIV_STYLE = {
+        minWidth: "10em",
+        minHeight: "4em",
+        position: "relative",
+        overflow: "auto",
+        display: "none"
+    };
 
     render() {
-
-        const centerStyle = {
-            flex: "auto",
-            maxHeight: "100%",
-        };
-
         return (
-            <div style={{display: "flex", flexFlow: "column nowrap", width: "100%", height: "100%", }}>
-                <div style={{flex: "auto", padding: 0, display:"flex", flexFlow: "row nowrap"}}>
+            <div style={ApplicationPage.ROOT_DIV_STYLE}>
+                <div style={ApplicationPage.MAIN_DIV_STYLE}>
                     <LeftPanel/>
-                    <div style={centerStyle}>
-                        <ViewManagerPanel/>
-                    </div>
+                    <CenterPanel/>
                     <RightPanel/>
                 </div>
                 <StatusBar/>
                 <PreferencesDialog/>
                 <div id="creditContainer"
-                     style={{minWidth: "10em", minHeight: "4em", position: "relative", overflow: "auto", display: "none"}}/>
+                     style={ApplicationPage.CREDITS_DIV_STYLE}/>
 
             </div>
         );
@@ -90,8 +103,7 @@ function mapStateToPropsLeft(state: State): ILeftPanelProps {
     };
 }
 
-//noinspection JSUnusedLocalSymbols
-class LeftPanelComponent extends React.PureComponent<ILeftPanelProps & IDispatch, null> {
+class _LeftPanel extends React.PureComponent<ILeftPanelProps & IDispatch, null> {
 
     constructor(props: ILeftPanelProps & IDispatch) {
         super(props);
@@ -109,16 +121,15 @@ class LeftPanelComponent extends React.PureComponent<ILeftPanelProps & IDispatch
         this.props.dispatch(actions.setRightPanelContainerLayout(layout));
     }
 
-    onSelectedLeftTopPanelChange(id: string|null) {
+    onSelectedLeftTopPanelChange(id: string | null) {
         this.props.dispatch(actions.setSelectedLeftTopPanelId(id));
     }
 
-    onSelectedLeftBottomPanelChange(id: string|null) {
+    onSelectedLeftBottomPanelChange(id: string | null) {
         this.props.dispatch(actions.setSelectedLeftBottomPanelId(id));
     }
 
     render() {
-
         return (
             <PanelContainer position="left"
                             undockedMode={this.props.panelContainerUndockedMode}
@@ -139,7 +150,7 @@ class LeftPanelComponent extends React.PureComponent<ILeftPanelProps & IDispatch
         );
     }
 }
-const LeftPanel = connect(mapStateToPropsLeft)(LeftPanelComponent);
+const LeftPanel = connect(mapStateToPropsLeft)(_LeftPanel);
 
 interface IRightPanelProps {
     panelContainerUndockedMode: boolean;
@@ -157,8 +168,7 @@ function mapStateToPropsRight(state: State): IRightPanelProps {
     };
 }
 
-//noinspection JSUnusedLocalSymbols
-class RightPanelComponent extends React.PureComponent<IRightPanelProps & IDispatch, null> {
+class _RightPanel extends React.PureComponent<IRightPanelProps & IDispatch, null> {
 
     constructor(props: IRightPanelProps & IDispatch) {
         super(props);
@@ -171,11 +181,11 @@ class RightPanelComponent extends React.PureComponent<IRightPanelProps & IDispat
         this.props.dispatch(actions.setRightPanelContainerLayout(layout));
     }
 
-    onSelectedRightTopPanelChange(id: string|null) {
+    onSelectedRightTopPanelChange(id: string | null) {
         this.props.dispatch(actions.setSelectedRightTopPanelId(id));
     }
 
-    onSelectedRightBottomPanelChange(id: string|null) {
+    onSelectedRightBottomPanelChange(id: string | null) {
         this.props.dispatch(actions.setSelectedRightBottomPanelId(id));
     }
 
@@ -203,7 +213,7 @@ class RightPanelComponent extends React.PureComponent<IRightPanelProps & IDispat
         );
     }
 }
-const RightPanel = connect(mapStateToPropsRight)(RightPanelComponent);
+const RightPanel = connect(mapStateToPropsRight)(_RightPanel);
 
 interface IViewManagerPanelProps {
     viewLayout: ViewLayoutState;
@@ -219,8 +229,8 @@ function mapStateToPropsView(state: State): IViewManagerPanelProps {
     };
 }
 
-//noinspection JSUnusedLocalSymbols
-class ViewManagerPanelComponent extends React.PureComponent<IViewManagerPanelProps & IDispatch, null> {
+class _CenterPanel extends React.PureComponent<IViewManagerPanelProps & IDispatch, null> {
+    static readonly DIV_STYLE = {flex: "auto", height: "100%", overflow: "hidden"};
 
     constructor(props: IViewManagerPanelProps & IDispatch) {
         super(props);
@@ -253,22 +263,24 @@ class ViewManagerPanelComponent extends React.PureComponent<IViewManagerPanelPro
 
     render() {
         return (
-            <ViewManager viewRenderMap={VIEW_TYPE_RENDERERS}
-                         viewLayout={this.props.viewLayout}
-                         views={this.props.views}
-                         activeView={this.props.activeView}
-                         noViewsDescription="You can create a new view in the VIEW panel."
-                         noViewsVisual="pt-icon-eye-open"
-                         onSelectView={this.onSelectView}
-                         onCloseView={this.onCloseView}
-                         onCloseAllViews={this.onCloseAllViews}
-                         onChangeViewSplitPos={this.onChangeViewSplitPos}
-                         onSplitViewPanel={this.onSplitViewPanel}
-            />
+            <div style={_CenterPanel.DIV_STYLE}>
+                <ViewManager viewRenderMap={VIEW_TYPE_RENDERERS}
+                             viewLayout={this.props.viewLayout}
+                             views={this.props.views}
+                             activeView={this.props.activeView}
+                             noViewsDescription="You can create new views from the Views menu."
+                             noViewsVisual="pt-icon-eye-open"
+                             onSelectView={this.onSelectView}
+                             onCloseView={this.onCloseView}
+                             onCloseAllViews={this.onCloseAllViews}
+                             onChangeViewSplitPos={this.onChangeViewSplitPos}
+                             onSplitViewPanel={this.onSplitViewPanel}
+                />
+            </div>
         );
     }
 }
-const ViewManagerPanel = connect(mapStateToPropsView)(ViewManagerPanelComponent);
+const CenterPanel = connect(mapStateToPropsView)(_CenterPanel);
 
 
 
