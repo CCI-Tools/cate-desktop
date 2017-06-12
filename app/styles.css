@@ -29,26 +29,29 @@ input, button, textarea, :focus {
 }
 
 ::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 0.4em rgba(0, 0, 0, 0.3);
+    /* blueprint's @gray5 */
+    background: rgba(191, 204, 214, 0.2);
+    /*-webkit-box-shadow: inset 0 0 0.4em rgba(0, 0, 0, 0.3);*/
     -webkit-border-radius: 0.8em;
     border-radius: 0.8em;
 }
+
 
 ::-webkit-scrollbar-thumb {
+    /* blueprint's @gray5 */
+    background: rgba(191, 204, 214, 0.6);
+    /*-webkit-box-shadow: inset 0 0 0.4em rgba(0, 0, 0, 0.5);*/
     -webkit-border-radius: 0.8em;
     border-radius: 0.8em;
-    /* blueprint's @gray5 */
-    background: rgba(191, 204, 214, 1.0);
-    -webkit-box-shadow: inset 0 0 0.4em rgba(0, 0, 0, 0.5);
-}
-
-::-webkit-scrollbar-corner {
-    background: rgba(0, 0, 0, 0)
 }
 
 ::-webkit-scrollbar-thumb:window-inactive {
     /* blueprint's @gray5 */
-    background: rgba(191, 204, 214, 0.5);
+    background: rgba(191, 204, 214, 0.4);
+}
+
+::-webkit-scrollbar-corner {
+    background: rgba(0, 0, 0, 0)
 }
 
 .cate-color-bars-popover  .pt-popover-content {
@@ -144,7 +147,6 @@ ul.cate-list-box li.cate-selected {
     margin-right: 0.1em;
 }
 
-/* TODO (forman): Apply to elements within a div with class .cate-panel-header */
 .cate-panel-text {
     flex: 1 0 auto;
     text-align: left;
@@ -152,7 +154,6 @@ ul.cate-list-box li.cate-selected {
     margin-right: 0.5em;
 }
 
-/* TODO (forman): Apply to right buttons (spans) within a div with class .cate-panel-header */
 span.cate-icon-small {
     font-size: 12px;
     font-weight: lighter;
@@ -162,7 +163,6 @@ span.cate-icon-small {
     color: rgba(43, 149, 214, 0.1);
 }
 
-/* TODO (forman): Apply to right buttons (spans) within a div with class .cate-panel-header */
 span.cate-icon-small:hover {
     /* blueprint's @blue4 used for selection in pt-dark */
     color: rgba(43, 149, 214, 1.0);
