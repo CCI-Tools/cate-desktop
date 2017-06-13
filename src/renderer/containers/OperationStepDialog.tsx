@@ -19,8 +19,6 @@ import {isUndefined} from "util";
 
 type InputErrors = { [inputName: string]: Error };
 
-type OpInputAssignments = { [opName: string]: InputAssignments };
-
 interface IOperationStepDialogOwnProps {
     id: string;
     operationStep?: WorkflowStepState | null;
@@ -29,7 +27,7 @@ interface IOperationStepDialogOwnProps {
 interface IOperationStepDialogProps extends DialogState, IOperationStepDialogOwnProps {
     dispatch?: any;
     isEditMode: boolean;
-    inputAssignments: OpInputAssignments;
+    inputAssignments: InputAssignments;
     workspace: WorkspaceState;
     operation: OperationState;
     resName: string,
@@ -44,12 +42,13 @@ interface IOperationStepDialogState {
 function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): IOperationStepDialogProps {
     let operation: OperationState | null;
     let resName;
+    let operationName;
     let inputAssignments;
     let operationStep = ownProps.operationStep;
     if (operationStep) {
         resName = operationStep.id;
-        const opName = operationStep.op;
-        operation = (selectors.operationsSelector(state) || []).find(op => op.qualifiedName === opName);
+        operationName = operationStep.op;
+        operation = (selectors.operationsSelector(state) || []).find(op => op.qualifiedName === operationName);
         if (operation) {
             inputAssignments = getInputAssignmentsFromOperationStep(operation, operationStep);
         }
@@ -57,12 +56,19 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
 
     const dialogStateSelector = selectors.dialogStateSelector(ownProps.id);
     const dialogState = dialogStateSelector(state);
+    if (operationName && !inputAssignments) {
+        const inputAssignmentsMap = (dialogState as any).inputAssignments;
+        if (inputAssignmentsMap) {
+            inputAssignments = inputAssignmentsMap[operationName];
+        }
+    }
+
     return {
         id: ownProps.id,
         isEditMode: !!operationStep,
         workspace: selectors.workspaceSelector(state),
         isOpen: dialogState.isOpen,
-        inputAssignments: inputAssignments || (dialogState as any).inputAssignments,
+        inputAssignments,
         operation: operation || selectors.selectedOperationSelector(state),
         resName: resName || selectors.newResourceNameSelector(state),
     };
@@ -92,9 +98,11 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
 
     static mapPropsToState(props: IOperationStepDialogProps): IOperationStepDialogState {
         const operation = props.operation;
-        const inputAssignments = (props.inputAssignments && props.inputAssignments[operation.name])
-            || getInitialInputAssignments(operation.inputs);
-        return {inputAssignments} as any;
+        console.log("OperationStepDialog: mapPropsToState: operation.inputs=", operation.inputs);
+        console.log("OperationStepDialog: mapPropsToState: props.inputAssignments=", props.inputAssignments);
+        const inputAssignments = getInitialInputAssignments(operation.inputs, props.inputAssignments, false);
+        console.log("OperationStepDialog: mapPropsToState: inputAssignments=", inputAssignments);
+        return {inputAssignments};
     }
 
     private onConfirm() {
@@ -105,6 +113,8 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
         console.log(`OperationStepDialog: handleConfirm: op="${opName}", args=${opArgs}`);
         if (!this.props.isEditMode) {
             this.props.dispatch(actions.hideOperationStepDialog(this.props.id, {[opName]: this.state.inputAssignments}));
+        } else {
+            this.props.dispatch(actions.hideOperationStepDialog(this.props.id));
         }
         this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, `Applying operation "${opName}"`));
     }
@@ -119,8 +129,6 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
 
     private onValidate() {
         let inputErrors = this.getInputErrors();
-        console.log('onValidate: inputErrors: ', inputErrors);
-
         this.setState({isValidationDialogOpen: true, inputErrors} as any);
     }
 
@@ -260,9 +268,14 @@ function getInputAssignmentsFromOperationStep(operation: OperationState, operati
         const inputPort = operationStep.input[input.name];
         if (inputPort) {
             if (inputPort.source) {
-                inputAssignments[input.name] = {resourceName: inputPort.source, isValueUsed: false};
+                let resourceName = inputPort.source;
+                if (resourceName.endsWith('.return')) {
+                    resourceName = resourceName.substr(0, resourceName.length - '.return'.length)
+                }
+                inputAssignments[input.name] = {resourceName, isValueUsed: false};
             } else if (!isUndefined(inputPort.value)) {
-                inputAssignments[input.name] = {constantValue: inputPort.value, isValueUsed: true};
+                let constantValue = inputPort.value;
+                inputAssignments[input.name] = {constantValue, isValueUsed: true};
             }
         }
     }
@@ -299,28 +312,28 @@ function renderInputEditors(inputs: OperationInputState[],
     return inputs
         .filter(input => !input.noUI)
         .map((input: OperationInputState) => {
-        const inputAssignment = inputAssignments[input.name];
-        const constantValue = inputAssignment.constantValue;
-        const valueEditor = renderValueEditor({
-            input,
-            inputAssignments,
-            resources,
-            value: constantValue,
-            onChange: onConstantValueChange
+            const inputAssignment = inputAssignments[input.name];
+            const constantValue = inputAssignment.constantValue;
+            const valueEditor = renderValueEditor({
+                input,
+                inputAssignments,
+                resources,
+                value: constantValue,
+                onChange: onConstantValueChange
+            });
+            return (
+                <InputEditor key={input.name}
+                             resources={resources}
+                             name={input.name}
+                             dataType={input.dataType}
+                             units={input.units}
+                             tooltipText={input.description}
+                             onChange={(resourceName, isValueUsed) => onResourceNameChange(input, resourceName, isValueUsed)}
+                             isValueEditorShown={inputAssignment.isValueUsed}
+                             resourceName={inputAssignment.resourceName}
+                             valueEditor={valueEditor}/>
+            );
         });
-        return (
-            <InputEditor key={input.name}
-                         resources={resources}
-                         name={input.name}
-                         dataType={input.dataType}
-                         units={input.units}
-                         tooltipText={input.description}
-                         onChange={(resourceName, isValueUsed) => onResourceNameChange(input, resourceName, isValueUsed)}
-                         isValueEditorShown={inputAssignment.isValueUsed}
-                         resourceName={inputAssignment.resourceName}
-                         valueEditor={valueEditor}/>
-        );
-    });
 }
 
 function getInputArguments(inputs: OperationInputState[],
@@ -340,6 +353,7 @@ function getInputArguments(inputs: OperationInputState[],
             inputArguments[input.name] = inputArgument;
         }
     });
+    console.log('getInputArguments: inputArguments: ', inputArguments);
     return inputArguments;
 }
 
@@ -349,7 +363,6 @@ function getInputErrors(inputs: OperationInputState[],
     let hasInputErrors = false;
     inputs.forEach((input) => {
         const inputAssignment = inputAssignments[input.name];
-        console.log('inputAssignment: ', inputAssignment);
         if (inputAssignment) {
             if (inputAssignment.isValueUsed) {
                 const constantValue = inputAssignment.constantValue;
