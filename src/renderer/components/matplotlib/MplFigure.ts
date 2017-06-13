@@ -239,6 +239,10 @@ export class MplFigure {
         }
     }
 
+    sendRefreshMessage() {
+        this.sendMessage("refresh");
+    }
+
     sendCanvasUpdated() {
         // Called whenever the canvas gets updated.
         this.sendMessage("ack");
@@ -310,7 +314,7 @@ export class MplFigure {
         const size = msg['size'];
         if (size[0] !== this.figureImageCanvas.width || size[1] !== this.figureImageCanvas.height) {
             this.resizeCanvas(size[0], size[1]);
-            this.sendMessage("refresh");
+            this.sendRefreshMessage();
         }
     }
 
