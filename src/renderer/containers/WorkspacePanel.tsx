@@ -123,7 +123,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     private renderStepItem(step: WorkflowStepState) {
-        return ( <span>{this.getWorkflowStepLabel(step)}</span>);
+        return (<span>{this.getWorkflowStepLabel(step)}</span>);
     }
 
     render() {
@@ -292,7 +292,6 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     private renderWorkflowStepDetails() {
 
         const selectedWorkflowStepOp = this.props.selectedWorkflowStepOp;
-        console.log('selectedWorkflowStepOp', selectedWorkflowStepOp);
         if (!selectedWorkflowStepOp) {
             return null;
         }
