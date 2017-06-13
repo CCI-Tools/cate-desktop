@@ -243,6 +243,7 @@ export type Attribute = [string, any];
  */
 export interface ResourceState {
     id: number;
+    updateCount: number;
     name: string;
     dataType: string;
     dims?: DimSizes;

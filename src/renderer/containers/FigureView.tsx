@@ -52,12 +52,13 @@ class FigureView extends React.Component<IFigureViewProps, null> {
         const view = this.props.view;
         const figureResources = this.getFigureResources();
         for (let figureResource of figureResources) {
-            let compId = `MplFigurePanel-${figureResource.name}-${view.id}`;
+            let compId = `MplFigurePanel-${figureResource.id}-${view.id}`;
             plots.push(
                 <MplFigurePanel
                     key={compId}
                     id={compId}
                     figureId={figureResource.id}
+                    figureUpdateCount={figureResource.updateCount}
                     figureName={figureResource.name}
                     webSocketUrl={getMPLWebSocketUrl(this.props.mplWebSocketUrl, this.props.baseDir, figureResource.id)}
                     onDownload={this.onDownload}

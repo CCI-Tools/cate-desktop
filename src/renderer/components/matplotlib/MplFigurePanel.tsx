@@ -6,8 +6,9 @@ import {Button, Tag, Tooltip} from "@blueprintjs/core";
 
 interface IFigurePanelProps {
     id: string;
-    figureName: string;
     figureId: number;
+    figureUpdateCount: number;
+    figureName: string;
     figureHeight?: any;
     webSocketUrl: string;
     onDownload: MplFigureCommandListener;
@@ -50,8 +51,10 @@ export class MplFigurePanel extends React.PureComponent<IFigurePanelProps, IFigu
                                  title={`${this.props.figureName} (#${this.props.figureId})`}
                                  onClose={MplFigurePanel.handleClose}/>
                 <MplFigureContainer figureId={this.props.figureId}
+                                    figureUpdateCount={this.props.figureUpdateCount}
                                     figureHeight={this.props.figureHeight || '25em'}
                                     id={this.props.id}
+                                    debug={true}
                                     webSocketUrl={this.props.webSocketUrl}
                                     style={MplFigurePanel.CONTAINER_DIV_STYLE}
                                     commandSource={FIGURE_COMMAND_SOURCE}
@@ -184,9 +187,14 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
             }
         }
 
+        let messageTag;
+        if (this.props.message) {
+            messageTag = (<Tag className="pt-minimal">{this.props.message}</Tag>);
+        }
+
         return (
             <div style={MplFigureToolbar.DIV_STYLE}>
-                <Tag className="pt-minimal">{this.props.message}</Tag>
+                {messageTag}
                 <span style={{flex: 'auto'}}/>
                 <div className="pt-button-group" >{buttons}</div>
             </div>

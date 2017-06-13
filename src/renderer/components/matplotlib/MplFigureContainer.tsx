@@ -4,10 +4,12 @@ import {MplFigure, MplFigureCommandSource, MplFigureMessageCallback} from './Mpl
 
 
 export interface FigureState {
+    figureUpdateCount: number;
 }
 
 interface IFigureContainerProps extends IExternalObjectComponentProps<MplFigure, FigureState>, FigureState {
     figureId: number;
+    figureUpdateCount: number;
     figureHeight?: any;
     webSocketUrl: string;
     commandSource?: MplFigureCommandSource;
@@ -22,7 +24,7 @@ interface IFigureContainerProps extends IExternalObjectComponentProps<MplFigure,
 export class MplFigureContainer extends ExternalObjectComponent<MplFigure, FigureState, IFigureContainerProps, null> {
 
     propsToExternalObjectState(props: IFigureContainerProps & FigureState): FigureState {
-        return {};
+        return {figureUpdateCount: props.figureUpdateCount};
     }
 
     newContainer(id: string): HTMLDivElement {
@@ -32,7 +34,9 @@ export class MplFigureContainer extends ExternalObjectComponent<MplFigure, Figur
         if (this.props.figureHeight) {
             figureDiv.style.height = this.props.figureHeight;
         }
-        console.log("MplFigureContainer.newContainer:", figureDiv);
+        if (this.props.debug) {
+            console.log("MplFigureContainer.newContainer:", figureDiv);
+        }
         return figureDiv;
     }
 
@@ -45,21 +49,29 @@ export class MplFigureContainer extends ExternalObjectComponent<MplFigure, Figur
     }
 
     externalObjectMounted(figure: MplFigure, parentContainer: HTMLElement, container: HTMLElement): void {
-        console.log("MplFigureContainer.externalObjectMounted:", figure, parentContainer, container);
+        if (this.props.debug) {
+            console.log("MplFigureContainer.externalObjectMounted:", figure, parentContainer, container);
+        }
         figure.onMount();
     }
 
     externalObjectUnmounted(figure: MplFigure, parentContainer: HTMLElement, container: HTMLElement): void {
-        console.log("MplFigureContainer.externalObjectUnmounted:", figure, parentContainer, container);
+        if (this.props.debug) {
+            console.log("MplFigureContainer.externalObjectUnmounted:", figure, parentContainer, container);
+        }
         figure.onUnmount();
     }
 
-
-    updateExternalObject(object: MplFigure,
+    updateExternalObject(figure: MplFigure,
                          prevState: FigureState,
                          nextState: FigureState,
                          parentContainer: HTMLElement,
                          container: HTMLElement): void {
-        // No changes expected
+        if (this.props.debug) {
+            console.log("MplFigureContainer.updateExternalObject: ", figure, prevState, nextState);
+        }
+        if (!prevState || prevState.figureUpdateCount !== nextState.figureUpdateCount) {
+            figure.sendRefresh();
+        }
     }
 }

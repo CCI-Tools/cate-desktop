@@ -132,7 +132,7 @@ export class MplFigure {
             }
             this.sendMessage("supports_binary", {value: supportsBinary});
             this.sendMessage("send_image_mode");
-            this.sendMessage("refresh");
+            this.sendRefresh();
             this.sendResize(this.parentElement.clientWidth, this.parentElement.clientHeight);
 
             this.resizeTimer = window.setInterval(() => {
@@ -239,7 +239,7 @@ export class MplFigure {
         }
     }
 
-    sendRefreshMessage() {
+    sendRefresh() {
         this.sendMessage("refresh");
     }
 
@@ -314,7 +314,7 @@ export class MplFigure {
         const size = msg['size'];
         if (size[0] !== this.figureImageCanvas.width || size[1] !== this.figureImageCanvas.height) {
             this.resizeCanvas(size[0], size[1]);
-            this.sendRefreshMessage();
+            this.sendRefresh();
         }
     }
 
