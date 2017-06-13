@@ -138,7 +138,9 @@ export class MplFigure {
             this.resizeTimer = window.setInterval(() => {
                 const width = this.parentElement.clientWidth;
                 const height = this.parentElement.clientHeight;
-                if (this.lastSize.width !== width || this.lastSize.height !== height) {
+                const validSize = width > 0 && height > 0;
+                const sizeChange = this.lastSize.width !== width || this.lastSize.height !== height;
+                if (validSize && sizeChange) {
                     this.lastSize = {width, height};
                     this.sendResize(width, height);
                 }
