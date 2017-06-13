@@ -351,7 +351,7 @@ export function newResourceName(resources: ResourceState[], namePrefix: string):
 export const figureResourcesSelector = createSelector<State, ResourceState[], ResourceState[]>(
     resourcesSelector,
     (resources: ResourceState[]) => {
-        return resources.filter(r => isNumber(r.figureId))
+        return resources.filter(r => isNumber(r.id) && r.dataType.endsWith('.Figure'))
     }
 );
 

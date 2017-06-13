@@ -57,9 +57,9 @@ class FigureView extends React.Component<IFigureViewProps, null> {
                 <MplFigurePanel
                     key={id}
                     id={id}
-                    figureId={figureResource.figureId}
+                    figureId={figureResource.id}
                     figureName={figureResource.name}
-                    webSocketUrl={getMPLWebSocketUrl(this.props.mplWebSocketUrl, this.props.baseDir, figureResource.figureId)}
+                    webSocketUrl={getMPLWebSocketUrl(this.props.mplWebSocketUrl, this.props.baseDir, figureResource.id)}
                     onDownload={this.onDownload}
                 />
             );

@@ -146,6 +146,9 @@ export type OperationArg = OperationArgumentValue|OperationArgumentSource;
  */
 export type OperationKWArgs = {[name: string]: OperationArg};
 
+/**
+ * IMPORTANT: WorkspaceState must reflect what is returned by cate.core.workspace.Workspace.to_json_dict()
+ */
 export interface WorkspaceState {
     /**
      * The workspace's base directory path.
@@ -177,10 +180,16 @@ export interface WorkspaceState {
     resources: ResourceState[];
 }
 
+/**
+ * IMPORTANT: WorkflowState must reflect what is returned by cate.core.workflow.Workflow.to_json_dict()
+ */
 export interface WorkflowState {
     steps: WorkflowStepState[];
 }
 
+/**
+ * IMPORTANT: WorkflowStepState must reflect what is returned by cate.core.workflow.Step.to_json_dict()
+ */
 export interface WorkflowStepState {
     /**
      * Step ID. The ID will be used as Workspace's resource name.
@@ -203,7 +212,7 @@ export interface WorkflowStepState {
 }
 
 /**
- * See cate-core/cate/core/workspace.py, class NodePort
+ * IMPORTANT: WorkflowStepState must reflect what is returned by cate.core.workflow.NodePort.to_json_dict()
  */
 export interface WorkflowPortState {
     /**
@@ -229,16 +238,21 @@ export type Attribute = [string, any];
 //                2. ResourceState has-zero-or-more VariableStates
 //                3. VariableState also has a path name
 
-
+/**
+ * IMPORTANT: ResourceState must reflect what is returned by cate.core.workspace.Workspace.to_json_dict()
+ */
 export interface ResourceState {
+    id: number;
     name: string;
     dataType: string;
     dims?: DimSizes;
     attrs?: Attribute[];
     variables?: VariableState[];
-    figureId?: number;
 }
 
+/**
+ * IMPORTANT: VariableState must reflect what is returned by cate.core.workspace.Workspace.to_json_dict()
+ */
 export interface VariableState {
     name : string;
     dataType: string;

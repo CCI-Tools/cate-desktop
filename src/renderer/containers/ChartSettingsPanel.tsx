@@ -46,7 +46,7 @@ class ChartSettingsPanel extends React.Component<IChartSettingsPanelProps & IDis
     }
 
     private static renderItem(figureResource: ResourceState) {
-        return (<span>{`${figureResource.name} (${figureResource.figureId})`}</span>);
+        return (<span>{`${figureResource.name} (${figureResource.id})`}</span>);
     }
 
     private renderChartList() {
