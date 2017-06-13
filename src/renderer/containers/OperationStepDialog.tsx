@@ -98,10 +98,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
 
     static mapPropsToState(props: IOperationStepDialogProps): IOperationStepDialogState {
         const operation = props.operation;
-        console.log("OperationStepDialog: mapPropsToState: operation.inputs=", operation.inputs);
-        console.log("OperationStepDialog: mapPropsToState: props.inputAssignments=", props.inputAssignments);
         const inputAssignments = getInitialInputAssignments(operation.inputs, props.inputAssignments, false);
-        console.log("OperationStepDialog: mapPropsToState: inputAssignments=", inputAssignments);
         return {inputAssignments};
     }
 
@@ -110,13 +107,13 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
         const resName = this.props.resName;
         const opName = operation.name;
         const opArgs = this.getInputArguments();
-        console.log(`OperationStepDialog: handleConfirm: op="${opName}", args=${opArgs}`);
+        console.log(`OperationStepDialog: handleConfirm: op="${opName}", args=`, opArgs);
         if (!this.props.isEditMode) {
             this.props.dispatch(actions.hideOperationStepDialog(this.props.id, {[opName]: this.state.inputAssignments}));
         } else {
             this.props.dispatch(actions.hideOperationStepDialog(this.props.id));
         }
-        this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, `Applying operation "${opName}"`));
+        this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, `Executing operation "${opName}"`));
     }
 
     private canConfirm() {
@@ -353,7 +350,6 @@ function getInputArguments(inputs: OperationInputState[],
             inputArguments[input.name] = inputArgument;
         }
     });
-    console.log('getInputArguments: inputArguments: ', inputArguments);
     return inputArguments;
 }
 
