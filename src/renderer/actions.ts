@@ -144,6 +144,7 @@ function jobFailed(jobId: number, failure: JobFailure) {
 
 export type JobPromiseFactory<T> = (jobProgressHandler: JobProgressHandler) => JobPromise<T>;
 export type JobPromiseAction<T> = (jobResult: T) => void;
+export type JobPromisePlanB = (jobFailure: JobFailure) => void;
 
 /**
  * Call some (remote) API asynchronously.
@@ -151,12 +152,14 @@ export type JobPromiseAction<T> = (jobResult: T) => void;
  * @param dispatch Redux' dispatch() function.
  * @param title A human-readable title for the job that is being created
  * @param call The API call which must produce a JobPromise
- * @param action The action to be performed when the call succeeds.
+ * @param action The action to be performed when the API call succeeds.
+ * @param planB The action to be performed when the API call fails.
  */
 export function callAPI<T>(dispatch,
                            title: string,
                            call: JobPromiseFactory<T>,
-                           action?: JobPromiseAction<T>): void {
+                           action?: JobPromiseAction<T>,
+                           planB?: JobPromisePlanB): void {
     const onProgress = (progress: JobProgress) => {
         dispatch(jobProgress(progress));
     };
@@ -172,6 +175,9 @@ export function callAPI<T>(dispatch,
     };
     const onFailure = jobFailure => {
         dispatch(jobFailed(jobPromise.getJobId(), jobFailure));
+        if (planB) {
+            planB(jobFailure);
+        }
     };
 
     jobPromise.then(onDone, onFailure);
@@ -485,7 +491,14 @@ export function openWorkspace(workspacePath?: string | null) {
             }
         }
 
-        callAPI(dispatch, `Open workspace "${workspacePath}"`, call, action);
+        function planB() {
+            let workspace = getState().data.workspace;
+            if (!workspace) {
+                dispatch(newWorkspace(null));
+            }
+        }
+
+        callAPI(dispatch, `Open workspace "${workspacePath}"`, call, action, planB);
     }
 }
 
@@ -574,7 +587,7 @@ export function newWorkspaceInteractive() {
             properties: ['openDirectory', 'createDirectory'],
         });
         if (workspacePath) {
-            const ok = maybeSaveWorkspace(dispatch, getState,
+            const ok = maybeSaveCurrentWorkspace(dispatch, getState,
                 "New Workspace",
                 "Would you like to save the current workspace before creating a new one?",
                 "Press \"Cancel\" to cancel creating a new workspace."
@@ -600,18 +613,21 @@ export function openWorkspaceInteractive() {
         });
         if (workspacePath) {
             const workspace = getState().data.workspace;
-            assert.ok(workspace);
-
-            if (workspace.baseDir === workspacePath) {
-                showMessageBox({title: 'Open Workspace', message: 'Workspace is already open.'}, MESSAGE_BOX_NO_REPLY);
-                return;
+            let ok = true;
+            if (workspace) {
+                if (workspace.baseDir === workspacePath) {
+                    showMessageBox({
+                        title: 'Open Workspace',
+                        message: 'Workspace is already open.'
+                    }, MESSAGE_BOX_NO_REPLY);
+                    return;
+                }
+                ok = maybeSaveCurrentWorkspace(dispatch, getState,
+                    "Open Workspace",
+                    "Would you like to save the current workspace before opening the new one?",
+                    "Press \"Cancel\" to cancel opening a new workspace."
+                );
             }
-
-            const ok = maybeSaveWorkspace(dispatch, getState,
-                "Open Workspace",
-                "Would you like to save the current workspace before opening the new one?",
-                "Press \"Cancel\" to cancel opening a new workspace."
-            );
             if (ok) {
                 dispatch(openWorkspace(workspacePath));
             }
@@ -626,7 +642,7 @@ export function openWorkspaceInteractive() {
  */
 export function closeWorkspaceInteractive() {
     return (dispatch, getState: GetState) => {
-        const ok = maybeSaveWorkspace(dispatch, getState,
+        const ok = maybeSaveCurrentWorkspace(dispatch, getState,
             "Close Workspace",
             "Would you like to save the current workspace before closing it?",
             "Press \"Cancel\" to cancel closing the workspace."
@@ -672,30 +688,32 @@ export function saveWorkspaceAsInteractive() {
 }
 
 /**
- * Show a question box asking whether to save current workspace.
+ * Save workspace after asking user whether to do so.
  *
- * @returns a Redux thunk action
+ * @returns false, if action was cancelled, otherwise true
  */
-const maybeSaveWorkspace = function (dispatch, getState: GetState, title: string, message: string, detail?: string): boolean {
+const maybeSaveCurrentWorkspace = function (dispatch, getState: GetState, title: string, message: string, detail?: string): boolean {
     const workspace = getState().data.workspace;
-    const maySave = workspace.workflow.steps.length && (workspace.isModified || !workspace.isSaved);
-    if (maySave) {
-        const answer = showMessageBox({
-            title,
-            message,
-            detail,
-            buttons: ["Yes", "No", "Cancel"],
-            defaultId: 0,
-            cancelId: 2,
-        });
-        if (answer == 0) {
-            if (workspace.isScratch) {
-                dispatch(saveWorkspaceAsInteractive());
-            } else {
-                dispatch(saveWorkspace());
+    if (workspace) {
+        const maySave = workspace.workflow.steps.length && (workspace.isModified || !workspace.isSaved);
+        if (maySave) {
+            const answer = showMessageBox({
+                title,
+                message,
+                detail,
+                buttons: ["Yes", "No", "Cancel"],
+                defaultId: 0,
+                cancelId: 2,
+            });
+            if (answer == 0) {
+                if (workspace.isScratch) {
+                    dispatch(saveWorkspaceAsInteractive());
+                } else {
+                    dispatch(saveWorkspace());
+                }
+            } else if (answer === 2) {
+                return false;
             }
-        } else if (answer === 2) {
-            return false;
         }
     }
     return true;
