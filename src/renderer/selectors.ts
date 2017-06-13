@@ -266,7 +266,7 @@ export const workspaceBaseDirSelector = (state: State): string
 export const resourcesSelector = (state: State): ResourceState[] => state.data.workspace ? state.data.workspace.resources : EMPTY_ARRAY;
 export const workflowStepsSelector = (state: State): WorkflowStepState[] => state.data.workspace ? state.data.workspace.workflow.steps : EMPTY_ARRAY;
 export const showResourceDetailsSelector = (state: State): boolean => state.control.showResourceDetails;
-export const selectedResourceIdSelector = (state: State): string | null => state.control.selectedWorkspaceResourceId;
+export const selectedResourceNameSelector = (state: State): string | null => state.control.selectedWorkspaceResourceName;
 export const showWorkflowStepDetailsSelector = (state: State): boolean => state.control.showWorkflowStepDetails;
 export const selectedWorkflowStepIdSelector = (state: State): string | null => state.control.selectedWorkflowStepId;
 export const selectedVariableNameSelector = (state: State): string | null => state.control.selectedVariableName;
@@ -281,10 +281,10 @@ export const resourceNamesSelector = createSelector<State, string[], ResourceSta
 
 export const selectedResourceSelector = createSelector<State, ResourceState | null, ResourceState[], string>(
     resourcesSelector,
-    selectedResourceIdSelector,
-    (resources: ResourceState[], selectedResourceId: string) => {
-        if (canFind(resources, selectedResourceId)) {
-            return resources.find(r => r.name === selectedResourceId);
+    selectedResourceNameSelector,
+    (resources: ResourceState[], selectedResourceName: string) => {
+        if (canFind(resources, selectedResourceName)) {
+            return resources.find(r => r.name === selectedResourceName);
         }
         return null;
     }

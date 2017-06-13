@@ -217,7 +217,7 @@ describe('Actions', () => {
             expect(getState().session.lastWorkspacePath).to.equal('/uh/oh/ah');
         });
 
-        it('setSelectedWorkspaceResourceId - w/o variables', () => {
+        it('setSelectedWorkspaceResourceName - w/o variables', () => {
             dispatch(actions.setCurrentWorkspace({
                 baseDir: '/uh/oh/ah',
                 isScratch: false,
@@ -226,12 +226,12 @@ describe('Actions', () => {
                     {name: 'res_2', variables: []}
                 ]
             } as any));
-            dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
-            expect(getState().control.selectedWorkspaceResourceId).to.equal('res_2');
+            dispatch(actions.setSelectedWorkspaceResourceName('res_2'));
+            expect(getState().control.selectedWorkspaceResourceName).to.equal('res_2');
             expect(getState().control.selectedVariableName).to.be.null;
         });
 
-        it('setSelectedWorkspaceResourceId - with variables', () => {
+        it('setSelectedWorkspaceResourceName - with variables', () => {
             dispatch(actions.setCurrentWorkspace({
                 baseDir: '/uh/oh/ah',
                 isScratch: false,
@@ -240,8 +240,8 @@ describe('Actions', () => {
                     {name: 'res_2', variables: [{name: 'var_1'}, {name: 'var_2'}]}
                 ]
             } as any));
-            dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
-            expect(getState().control.selectedWorkspaceResourceId).to.equal('res_2');
+            dispatch(actions.setSelectedWorkspaceResourceName('res_2'));
+            expect(getState().control.selectedWorkspaceResourceName).to.equal('res_2');
             expect(getState().control.selectedVariableName).to.equal('var_1');
         });
 
@@ -319,7 +319,7 @@ describe('Actions', () => {
 
         it('setSelectedVariable - with image variable', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
-            dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+            dispatch(actions.setSelectedWorkspaceResourceName('res_1'));
             dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst')));
             expect(getActiveView().data.layers).to.deep.equal([
                 {
@@ -347,7 +347,7 @@ describe('Actions', () => {
 
         it('setSelectedVariable - with non-image variable selection', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
-            dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+            dispatch(actions.setSelectedWorkspaceResourceName('res_1'));
             dispatch(actions.setSelectedVariable(getRes(), getVar('profile')));
             expect(getActiveView().data.layers).to.deep.equal([
                 {
@@ -403,7 +403,7 @@ describe('Actions', () => {
         //     };
         //
         //     dispatch(actions.setCurrentWorkspace(workspace as any));
-        //     dispatch(actions.setSelectedWorkspaceResourceId('res_1'));
+        //     dispatch(actions.setSelectedWorkspaceResourceName('res_1'));
         //     dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst')));
         //     dispatch(actions.updateLayer('world-1', {
         //         id: SELECTED_VARIABLE_LAYER_ID,
@@ -511,7 +511,7 @@ describe('Actions', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.addLayer(getActiveViewId(), {id: 'L1', resName: 'res_1', varName: 'X'} as any, false));
             dispatch(actions.addLayer(getActiveViewId(), {id: 'L2', resName: 'res_2', varName: 'X'} as any, false));
-            dispatch(actions.setSelectedWorkspaceResourceId('res_2'));
+            dispatch(actions.setSelectedWorkspaceResourceName('res_2'));
             dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
             expect(getActiveView().data.layers).to.deep.equal([
                 {id: SELECTED_VARIABLE_LAYER_ID, visible: true, type: "Unknown"},
@@ -519,7 +519,7 @@ describe('Actions', () => {
                 {id: 'L1', resName: 'res_1', varName: 'X'},
                 {id: 'L2', resName: 'bert', varName: 'X'},
             ]);
-            expect(getState().control.selectedWorkspaceResourceId).to.equal('bert');
+            expect(getState().control.selectedWorkspaceResourceName).to.equal('bert');
         });
 
     });

@@ -460,9 +460,9 @@ export function newWorkspace(workspacePath: string | null) {
         function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
             if (workspace && workspace.workflow.steps.length > 0) {
-                dispatch(setSelectedWorkspaceResourceId(workspace.workflow.steps[0].id));
+                dispatch(setSelectedWorkspaceResourceName(workspace.workflow.steps[0].id));
             } else {
-                dispatch(setSelectedWorkspaceResourceId(null));
+                dispatch(setSelectedWorkspaceResourceName(null));
             }
         }
 
@@ -485,9 +485,9 @@ export function openWorkspace(workspacePath?: string | null) {
         function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
             if (workspace && workspace.workflow.steps.length > 0) {
-                dispatch(setSelectedWorkspaceResourceId(workspace.workflow.steps[0].id));
+                dispatch(setSelectedWorkspaceResourceName(workspace.workflow.steps[0].id));
             } else {
-                dispatch(setSelectedWorkspaceResourceId(null));
+                dispatch(setSelectedWorkspaceResourceName(null));
             }
         }
 
@@ -734,13 +734,13 @@ function setCurrentWorkspaceImpl(workspace: WorkspaceState) {
     return {type: SET_CURRENT_WORKSPACE, payload: {workspace}};
 }
 
-export function setSelectedWorkspaceResourceId(selectedWorkspaceResourceId: string) {
+export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: string) {
     return (dispatch, getState: GetState) => {
-        dispatch(setSelectedWorkspaceResourceIdImpl(selectedWorkspaceResourceId));
-        if (selectedWorkspaceResourceId && getState().data.workspace) {
+        dispatch(setSelectedWorkspaceResourceNameImpl(selectedWorkspaceResourceName));
+        if (selectedWorkspaceResourceName && getState().data.workspace) {
             const resources: Array<ResourceState> = getState().data.workspace.resources;
             if (resources) {
-                const resource = resources.find(res => res.name === selectedWorkspaceResourceId);
+                const resource = resources.find(res => res.name === selectedWorkspaceResourceName);
                 if (resource && resource.variables && resource.variables.length) {
                     dispatch(setSelectedVariable(resource, resource.variables[0], selectors.savedLayersSelector(getState())));
                 }
@@ -749,8 +749,8 @@ export function setSelectedWorkspaceResourceId(selectedWorkspaceResourceId: stri
     }
 }
 
-function setSelectedWorkspaceResourceIdImpl(selectedWorkspaceResourceId: string) {
-    return updateControlState({selectedWorkspaceResourceId});
+function setSelectedWorkspaceResourceNameImpl(selectedWorkspaceResourceName: string) {
+    return updateControlState({selectedWorkspaceResourceName});
 }
 
 //noinspection JSUnusedGlobalSymbols
@@ -769,7 +769,7 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: Op
 
         function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
-            dispatch(setSelectedWorkspaceResourceId(resName));
+            dispatch(setSelectedWorkspaceResourceName(resName));
         }
 
         callAPI(dispatch, title, call, action);

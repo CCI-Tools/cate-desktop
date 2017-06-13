@@ -332,12 +332,12 @@ export interface FigureViewDataState {
     /**
      * The names of the figure resources shown in a view.
      */
-    figureResourceIds: string[];
+    figureResourceNames: string[];
 
     /**
      * The ID of the selected figure resource.
      */
-    selectedFigureResourceId: string|null;
+    selectedFigureResourceName: string|null;
 }
 
 export interface TableViewDataState {
@@ -593,7 +593,7 @@ export interface ControlState {
 
     // WorkspacePanel
     showResourceDetails: boolean;
-    selectedWorkspaceResourceId: string|null;
+    selectedWorkspaceResourceName: string|null;
     showWorkflowStepDetails: boolean;
     selectedWorkflowStepId: string|null;
 

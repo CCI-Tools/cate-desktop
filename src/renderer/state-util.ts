@@ -123,8 +123,8 @@ function newInitialWorldViewData(): WorldViewDataState {
 
 function newInitialFigureViewData(): FigureViewDataState {
     return {
-        figureResourceIds: null,
-        selectedFigureResourceId: null,
+        figureResourceNames: null,
+        selectedFigureResourceName: null,
     };
 }
 

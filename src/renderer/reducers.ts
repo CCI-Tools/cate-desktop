@@ -114,7 +114,7 @@ const initialControlState: ControlState = {
     operationFilterTags: [],
     operationFilterExpr: '',
     selectedWorkflowStepId: null,
-    selectedWorkspaceResourceId: null,
+    selectedWorkspaceResourceName: null,
     selectedVariableName: null,
     savedLayers: {},
     dialogs: {},
@@ -141,13 +141,13 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
         case actions.RENAME_RESOURCE: {
             const resName = action.payload.resName;
             const newResName = action.payload.newResName;
-            let selectedWorkspaceResourceId = state.selectedWorkspaceResourceId;
-            if (selectedWorkspaceResourceId === resName) {
-                selectedWorkspaceResourceId = newResName;
+            let selectedWorkspaceResourceName = state.selectedWorkspaceResourceName;
+            if (selectedWorkspaceResourceName === resName) {
+                selectedWorkspaceResourceName = newResName;
             }
             const views = viewsReducer(state.views, action);
-            if (selectedWorkspaceResourceId !== state.selectedWorkspaceResourceId || views !== state.views) {
-                return {...state, selectedWorkspaceResourceId, views};
+            if (selectedWorkspaceResourceName !== state.selectedWorkspaceResourceName || views !== state.views) {
+                return {...state, selectedWorkspaceResourceName, views};
             }
             return state;
         }
@@ -192,7 +192,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             return addView(state, view, action.payload.placeAfterViewId);
         }
         case actions.ADD_TABLE_VIEW: {
-            const resName = state.selectedWorkspaceResourceId;
+            const resName = state.selectedWorkspaceResourceName;
             const varName = state.selectedVariableName;
             const view = newTableView(resName, varName);
             return addView(state, view, action.payload.placeAfterViewId);

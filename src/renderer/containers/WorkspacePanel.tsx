@@ -22,7 +22,7 @@ interface IWorkspacePanelProps {
     workspace: WorkspaceState;
     showResourceDetails: boolean;
     selectedResource: ResourceState | null;
-    selectedResourceId: string | null;
+    selectedResourceName: string | null;
     showWorkflowStepDetails: boolean;
     selectedWorkflowStep: WorkflowStepState | null;
     selectedWorkflowStepId: string | null;
@@ -34,7 +34,7 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
         workspace: selectors.workspaceSelector(state),
         showResourceDetails: selectors.showResourceDetailsSelector(state),
         selectedResource: selectors.selectedResourceSelector(state),
-        selectedResourceId: selectors.selectedResourceIdSelector(state),
+        selectedResourceName: selectors.selectedResourceNameSelector(state),
         showWorkflowStepDetails: selectors.showWorkflowStepDetailsSelector(state),
         selectedWorkflowStep: selectors.selectedWorkflowStepSelector(state),
         selectedWorkflowStepId: selectors.selectedWorkflowStepIdSelector(state),
@@ -58,7 +58,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     constructor(props, context) {
         super(props, context);
         this.handleShowResourceDetailsChanged = this.handleShowResourceDetailsChanged.bind(this);
-        this.handleResourceIdSelected = this.handleResourceIdSelected.bind(this);
+        this.handleResourceNameSelected = this.handleResourceNameSelected.bind(this);
         this.handleShowWorkflowStepDetailsChanged = this.handleShowWorkflowStepDetailsChanged.bind(this);
         this.handleWorkflowStepIdSelected = this.handleWorkflowStepIdSelected.bind(this);
         this.handleResourceRenameButtonClicked = this.handleResourceRenameButtonClicked.bind(this);
@@ -73,11 +73,11 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         this.renderOperationStepOutputValue = this.renderOperationStepOutputValue.bind(this);
     }
 
-    private handleResourceIdSelected(newSelection: Array<React.Key>) {
+    private handleResourceNameSelected(newSelection: Array<React.Key>) {
         if (newSelection && newSelection.length) {
-            this.props.dispatch(actions.setSelectedWorkspaceResourceId(newSelection[0] as string));
+            this.props.dispatch(actions.setSelectedWorkspaceResourceName(newSelection[0] as string));
         } else {
-            this.props.dispatch(actions.setSelectedWorkspaceResourceId(null));
+            this.props.dispatch(actions.setSelectedWorkspaceResourceName(null));
         }
     }
 
@@ -200,8 +200,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                 <ListBox items={resources}
                          getItemKey={WorkspacePanel.getResourceItemKey}
                          renderItem={WorkspacePanel.renderResourceItem}
-                         selection={this.props.selectedResourceId}
-                         onSelection={this.handleResourceIdSelected}/>
+                         selection={this.props.selectedResourceName}
+                         onSelection={this.handleResourceNameSelected}/>
             </ScrollablePanelContent>
         );
     }

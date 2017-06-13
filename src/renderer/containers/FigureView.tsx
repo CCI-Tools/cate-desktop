@@ -52,11 +52,11 @@ class FigureView extends React.Component<IFigureViewProps, null> {
         const view = this.props.view;
         const figureResources = this.getFigureResources();
         for (let figureResource of figureResources) {
-            let id = `MplFigurePanel-${figureResource.name}-${view.id}`;
+            let compId = `MplFigurePanel-${figureResource.name}-${view.id}`;
             plots.push(
                 <MplFigurePanel
-                    key={id}
-                    id={id}
+                    key={compId}
+                    id={compId}
                     figureId={figureResource.id}
                     figureName={figureResource.name}
                     webSocketUrl={getMPLWebSocketUrl(this.props.mplWebSocketUrl, this.props.baseDir, figureResource.id)}
@@ -69,12 +69,12 @@ class FigureView extends React.Component<IFigureViewProps, null> {
 
     getFigureResources(): ResourceState[] {
         const view = this.props.view;
-        if (view.data.figureResourceIds) {
+        if (view.data.figureResourceNames) {
             const figureResourceMap = {};
             for (let figureResource of this.props.figureResources) {
                 figureResourceMap[figureResource.name] = figureResource;
             }
-            return view.data.figureResourceIds.map(name => figureResourceMap[name]);
+            return view.data.figureResourceNames.map(name => figureResourceMap[name]);
         } else {
             return this.props.figureResources;
         }
