@@ -210,12 +210,11 @@ export function init() {
     _config = loadAppConfig();
     _prefs = loadUserPrefs();
 
-
     let webAPIConfig = _config.get('webAPIConfig', {});
     webAPIConfig = updateConditionally(webAPIConfig, {
         servicePort: 9090,
         serviceAddress: '',
-        serviceFile: 'cate-webapi.json',
+        serviceFile: path.join(getAppDataDir(), 'webapi-info.json'),
         // Refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
         processOptions: {},
     });
