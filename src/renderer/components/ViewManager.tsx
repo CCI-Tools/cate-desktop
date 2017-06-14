@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Colors, NonIdealState} from "@blueprintjs/core";
+import {Colors, Menu, MenuItem, NonIdealState, Popover, Position} from "@blueprintjs/core";
 import {Splitter, SplitDir} from "./Splitter";
 import {
     isViewSplitState, ViewState, ViewSplitState, ViewPanelState, ViewLayoutState, ViewPath,
@@ -26,6 +26,7 @@ interface IViewManagerProps {
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
     onCloseView: (viewPath: ViewPath, viewId: string) => void;
     onCloseAllViews: (viewPath: ViewPath) => void;
+    onMoveView: (viewPath: ViewPath, sourceViewId: string, targetViewId: string, placeBefore: boolean) => void;
     onSplitViewPanel: (viewPath: ViewPath, dir: SplitDir, pos: number) => void;
     onChangeViewSplitPos: (viewPath: ViewPath, delta: number) => void;
 }
@@ -69,8 +70,8 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
 
     static createViewMap(views: ViewState<any>[]) {
         const map = {};
-        views.forEach(w => {
-            map[w.id] = w;
+        views.forEach(view => {
+            map[view.id] = view;
         });
         return map;
     }
@@ -159,6 +160,7 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
     renderViewPanel(viewPanel: ViewPanelState, viewPath: ViewPath) {
         return (
             <ViewPanel
+                viewLayout={this.props.viewLayout}
                 viewRenderMap={this.props.viewRenderMap}
                 viewMap={this.viewMap}
                 activeView={this.props.activeView}
@@ -168,6 +170,7 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
                 onSelectView={this.props.onSelectView}
                 onCloseView={this.props.onCloseView}
                 onCloseAllViews={this.props.onCloseAllViews}
+                onMoveView={this.props.onMoveView}
                 onSplitViewPanel={this.props.onSplitViewPanel}
             />
         );
@@ -178,6 +181,7 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
 // ViewPanel
 
 interface IViewPanelProps {
+    viewLayout: ViewLayoutState;
     viewRenderMap: ViewRenderMap;
     viewMap: ViewMap;
     activeView: ViewState<any> | null;
@@ -187,6 +191,7 @@ interface IViewPanelProps {
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
     onCloseView: (viewPath: ViewPath, viewId: string) => void;
     onCloseAllViews: (viewPath: ViewPath) => void;
+    onMoveView: (viewPath: ViewPath, sourceViewId: string, targetViewId: string, placeBefore: boolean) => void;
     onSplitViewPanel: (viewPath: ViewPath, dir: SplitDir, pos: number) => void;
 }
 
@@ -302,7 +307,7 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
                 let viewRenderer = this.props.viewRenderMap[view.type];
                 renderedViewContent = viewRenderer(view);
                 tabStyle = ViewPanel.TAB_STYLE_SELECTED;
-                titleStyle = selectedView === this.props.activeView ? ViewPanel.TITLE_STYLE_ACTIVE : ViewPanel.TITLE_STYLE_SELECTED;
+                titleStyle = (selectedView === this.props.activeView) ? ViewPanel.TITLE_STYLE_ACTIVE : ViewPanel.TITLE_STYLE_SELECTED;
                 closeIconStyle = ViewPanel.CLOSE_ICON_STYLE_SELECTED;
             } else {
                 tabStyle = ViewPanel.TAB_STYLE_NORMAL;
@@ -333,19 +338,64 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
         const tabs = (<div style={ViewPanel.TABS_STYLE}>{tabItems}</div>);
         const spacer = (<div key="spacer" style={ViewPanel.SPACER_STYLE}/>);
 
-        let menu;
+        const menuIconStyle = ViewPanel.MENU_ICON_STYLE;
+
+        let splitHorEntry;
+        let splitVerEntry;
+
         if (views.length > 1) {
-            const menuIconStyle = ViewPanel.MENU_ICON_STYLE;
-            menu = (
-                <div style={ViewPanel.MENU_STYLE}>
-                    <span key="splitHor" style={menuIconStyle} className="pt-icon-standard pt-icon-add-column-right"
-                          onClick={this.onSplitHor}/>
-                    <span key="splitVer" style={menuIconStyle} className="pt-icon-standard pt-icon-add-row-bottom"
-                          onClick={this.onSplitVer}/>
-                    <span key="more" style={menuIconStyle} className="pt-icon-standard pt-icon-more"/>
-                </div>
+            splitHorEntry = (
+                <span key="splitHor" style={menuIconStyle} className="pt-icon-standard pt-icon-add-column-right"
+                      onClick={this.onSplitHor}/>
+            );
+            splitVerEntry = (
+                <span key="splitVer" style={menuIconStyle} className="pt-icon-standard pt-icon-add-row-bottom"
+                      onClick={this.onSplitVer}/>
             );
         }
+
+        let moreMenuEntry;
+        if (selectedView) {
+            const result = findMoveTargetViewIds(this.props.viewLayout, selectedViewId);
+
+            const moveBeforeMenuItems = result.before.map(viewId => {
+                const view = this.props.viewMap[viewId];
+                return (<MenuItem key={viewId} text={view.title}/>);
+            });
+            const moveAfterMenuItems = result.after.map(viewId => {
+                const view = this.props.viewMap[viewId];
+                return (<MenuItem key={viewId} text={view.title}/>);
+            });
+
+            let moveBeforeMenuItem;
+            if (moveBeforeMenuItems.length) {
+                moveBeforeMenuItem = (
+                    <MenuItem key="before" text="Move Before">{moveBeforeMenuItems}</MenuItem>
+                );
+            }
+            let moveAfterMenuItem;
+            if (moveAfterMenuItems.length) {
+                moveAfterMenuItem = (
+                    <MenuItem key="after" text="Move After">{moveAfterMenuItems}</MenuItem>
+                );
+            }
+            if (moveBeforeMenuItem || moveAfterMenuItem) {
+                const moreMenu = (<Menu>{moveBeforeMenuItem}{moveAfterMenuItem}</Menu>);
+                moreMenuEntry = (
+                    <Popover content={moreMenu} position={Position.BOTTOM}>
+                        <span key="more" style={menuIconStyle} className="pt-icon-standard pt-icon-more"/>
+                    </Popover>
+                );
+            }
+        }
+
+        const menu = (
+            <div style={ViewPanel.MENU_STYLE}>
+                {splitHorEntry}
+                {splitVerEntry}
+                {moreMenuEntry}
+            </div>
+        );
 
         return (
             <div style={ViewPanel.CONTAINER_STYLE}>
@@ -360,6 +410,38 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
                 </div>
             </div>
         );
+    }
+}
+
+function findMoveTargetViewIds(viewLayout: ViewLayoutState, selectedViewId: string): {after: string[]; before: string[]} {
+    const result = {before: [], after: []};
+    collectMoveTargetViewIds(viewLayout, selectedViewId, result);
+    return result;
+}
+
+function collectMoveTargetViewIds(viewLayout: ViewLayoutState, selectedViewId: string, result: {after: string[]; before: string[]}) {
+    const viewIds = (viewLayout as ViewPanelState).viewIds;
+    if (viewIds) {
+        let lastViewId = null;
+        for (let i = 0; i < viewIds.length; i++) {
+            const viewId = viewIds[i];
+            if (viewId !== selectedViewId) {
+                const nextViewId = i < viewIds.length + 1 ? viewIds[i + 1] : null;
+                if (nextViewId === null || nextViewId !== selectedViewId) {
+                    result.after.push(viewId);
+                }
+                if (lastViewId === null || lastViewId !== selectedViewId) {
+                    result.before.push(viewId);
+                }
+            }
+            lastViewId = viewId;
+        }
+    }
+    const layouts = (viewLayout as ViewSplitState).layouts;
+    if (layouts) {
+        for (let layout of layouts) {
+            this.collectMoveTargetViewIds(layout, selectedViewId, result);
+        }
     }
 }
 

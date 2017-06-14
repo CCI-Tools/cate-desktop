@@ -237,6 +237,7 @@ class _CenterPanel extends React.PureComponent<IViewManagerPanelProps & IDispatc
         this.onSelectView = this.onSelectView.bind(this);
         this.onCloseView = this.onCloseView.bind(this);
         this.onCloseAllViews = this.onCloseAllViews.bind(this);
+        this.onMoveView = this.onMoveView.bind(this);
         this.onChangeViewSplitPos = this.onChangeViewSplitPos.bind(this);
         this.onSplitViewPanel = this.onSplitViewPanel.bind(this);
     }
@@ -251,6 +252,11 @@ class _CenterPanel extends React.PureComponent<IViewManagerPanelProps & IDispatc
 
     onCloseAllViews(viewPath: ViewPath) {
         this.props.dispatch(actions.closeAllViews(viewPath));
+    }
+
+    onMoveView(viewPath: ViewPath, sourceViewId: string, targetViewId: string, placeBefore: boolean) {
+        console.log("onMoveView:", viewPath, sourceViewId, targetViewId, placeBefore);
+        //this.props.dispatch(actions.stackView(viewPath, sourceViewId, targetViewId, placeBefore));
     }
 
     onSplitViewPanel(viewPath: ViewPath, dir: SplitDir, pos: number) {
@@ -273,6 +279,7 @@ class _CenterPanel extends React.PureComponent<IViewManagerPanelProps & IDispatc
                              onSelectView={this.onSelectView}
                              onCloseView={this.onCloseView}
                              onCloseAllViews={this.onCloseAllViews}
+                             onMoveView={this.onMoveView}
                              onChangeViewSplitPos={this.onChangeViewSplitPos}
                              onSplitViewPanel={this.onSplitViewPanel}
                 />
