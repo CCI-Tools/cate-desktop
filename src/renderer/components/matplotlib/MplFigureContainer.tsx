@@ -70,7 +70,7 @@ export class MplFigureContainer extends ExternalObjectComponent<MplFigure, Figur
         if (this.props.debug) {
             console.log("MplFigureContainer.updateExternalObject: ", figure, prevState, nextState);
         }
-        if (!prevState || prevState.figureUpdateCount !== nextState.figureUpdateCount) {
+        if (prevState && prevState.figureUpdateCount !== nextState.figureUpdateCount) {
             figure.sendRefresh();
             figure.sendResize();
         }
