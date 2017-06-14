@@ -114,8 +114,8 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
                 name: "zoom",
             },
             {
-                label: "Download",
-                tooltip: "Download plot",
+                label: "Save As",
+                tooltip: "Save as image",
                 icon: "download",
                 name: "download",
             }

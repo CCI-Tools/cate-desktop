@@ -818,6 +818,24 @@ export function getWorkspaceVariableStatistics(resName: string,
     }
 }
 
+export function saveFigureImageAs(imageUrl: string, figureId: number) {
+    return (dispatch, getState: GetState) => {
+        console.log("saveFigureImageAs: ", imageUrl, figureId);
+        const electron = require('electron');
+        electron.shell.openExternal(imageUrl + "/png");
+
+        // showFileSaveDialog({
+        //     title: "Save Figure As",
+        //     filters: [
+        //         {name: 'Images', extensions: ["png", "jpeg", "tif"]},
+        //         {name: 'Other', extensions: ["eps", "pdf", "ps", "raw", "svg"]},
+        //     ]
+        // }, (filePath: string) => {
+        //     console.log("saveFigureImageAs:", filePath);
+        // });
+    };
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Variable actions
 

@@ -2,6 +2,7 @@ import * as React from 'react';
 import {State, ResourceState, FigureViewDataState} from "../state";
 import {connect, Dispatch} from "react-redux";
 import {ViewState} from "../components/ViewState";
+import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {MplFigurePanel} from "../components/matplotlib/MplFigurePanel";
 import {getMPLDownloadUrl, getMPLWebSocketUrl} from "../state-util";
@@ -42,10 +43,8 @@ class FigureView extends React.Component<IFigureViewProps, null> {
     }
 
     onDownload(figureId: number) {
-        console.log("FigureView: onDownload:", figureId);
-        const downloadUrl = getMPLDownloadUrl(this.props.baseUrl, this.props.baseDir, figureId, 'png');
-        console.log("FigureView: downloadUrl:", downloadUrl);
-        // TODO: download
+        const imageBaseUrl = getMPLDownloadUrl(this.props.baseUrl, this.props.baseDir, figureId);
+        this.props.dispatch(actions.saveFigureImageAs(imageBaseUrl, figureId));
     }
 
     render() {
