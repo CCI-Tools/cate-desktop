@@ -396,7 +396,7 @@ function createSplashWindow(callback: () => void) {
 }
 
 function showSplashMessage(message: string) {
-    console.log(CATE_DESKTOP_PREFIX, 'Splash should say:', message);
+    console.log(CATE_DESKTOP_PREFIX, 'Splash says:', message);
     if (_splashWindow && _splashWindow.isVisible()) {
         _splashWindow.webContents.send('update-splash-message', message);
     } else {
