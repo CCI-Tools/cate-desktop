@@ -133,7 +133,7 @@ export class MplFigure {
             this.sendMessage("supports_binary", {value: supportsBinary});
             this.sendMessage("send_image_mode");
             this.sendRefresh();
-            this.sendResize(this.parentElement.clientWidth, this.parentElement.clientHeight);
+            this.sendResize();
 
             this.resizeTimer = window.setInterval(() => {
                 const width = this.parentElement.clientWidth;
@@ -225,8 +225,9 @@ export class MplFigure {
     ///////////////////////////////////////////////////////////////////////////////
     // Outgoing messages
 
-    //noinspection JSUnusedGlobalSymbols
-    sendResize(width, height) {
+    sendResize(width?: number, height?: number) {
+        width = width || this.parentElement.clientWidth;
+        height = height || this.parentElement.clientHeight;
         // Request matplotlib to resize the figure. Matplotlib will then trigger a resize in the client,
         // which will in turn request a refresh of the image.
         this.sendMessage('resize', {width, height});

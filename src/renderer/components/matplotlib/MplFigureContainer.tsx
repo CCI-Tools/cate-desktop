@@ -72,6 +72,7 @@ export class MplFigureContainer extends ExternalObjectComponent<MplFigure, Figur
         }
         if (!prevState || prevState.figureUpdateCount !== nextState.figureUpdateCount) {
             figure.sendRefresh();
+            figure.sendResize();
         }
     }
 }
