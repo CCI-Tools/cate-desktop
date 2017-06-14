@@ -32,8 +32,8 @@ input, button, textarea, :focus {
     /* blueprint's @gray5 */
     background: rgba(191, 204, 214, 0.2);
     /*-webkit-box-shadow: inset 0 0 0.4em rgba(0, 0, 0, 0.3);*/
-    -webkit-border-radius: 0.8em;
-    border-radius: 0.8em;
+    /*-webkit-border-radius: 0.8em;*/
+    /*border-radius: 0.8em;*/
 }
 
 
@@ -41,8 +41,8 @@ input, button, textarea, :focus {
     /* blueprint's @gray5 */
     background: rgba(191, 204, 214, 0.6);
     /*-webkit-box-shadow: inset 0 0 0.4em rgba(0, 0, 0, 0.5);*/
-    -webkit-border-radius: 0.8em;
-    border-radius: 0.8em;
+    /*-webkit-border-radius: 0.8em;*/
+    /*border-radius: 0.8em;*/
 }
 
 ::-webkit-scrollbar-thumb:window-inactive {
