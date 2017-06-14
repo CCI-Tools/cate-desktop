@@ -31,7 +31,7 @@ export function getGeoJSONUrl(baseUrl: string, baseDir: string, layer: VariableV
         + `&max=${encodeURIComponent(layer.displayMax + '')}`;
 }
 
-export function getCsvUrl(baseUrl: string, baseDir: string, resName: string, varName?: string|null): string {
+export function getCsvUrl(baseUrl: string, baseDir: string, resName: string, varName?: string | null): string {
     let varPart = '';
     if (varName) {
         varPart = `?var=${encodeURIComponent(varName)}`;
@@ -65,6 +65,10 @@ export function genSimpleId(prefix: string): string {
 
 export function genLayerId() {
     return genSimpleId('layer-');
+}
+
+export function isFigureResource(resource: ResourceState | null): boolean {
+    return resource && isNumber(resource.id) && resource.dataType.endsWith('.Figure');
 }
 
 export function getLayerDisplayName(layer: LayerState): string {
@@ -121,14 +125,14 @@ function newInitialWorldViewData(): WorldViewDataState {
     } as WorldViewDataState;
 }
 
-function newInitialFigureViewData(): FigureViewDataState {
+function newInitialFigureViewData(resourceId: number): FigureViewDataState {
     return {
-        figureResourceNames: null,
-        selectedFigureResourceName: null,
+        resourceId: resourceId,
+        fixedSize: false,
     };
 }
 
-function newInitialTableViewData(resName: string|null, varName: string|null): TableViewDataState {
+function newInitialTableViewData(resName: string | null, varName: string | null): TableViewDataState {
     return {resName, varName, dataRows: null};
 }
 
@@ -145,22 +149,24 @@ export function newWorldView(): ViewState<WorldViewDataState> {
     };
 }
 
-let FIGURE_VIEW_COUNTER = 0;
 
-export function newFigureView(): ViewState<FigureViewDataState> {
-    const viewNumber = ++FIGURE_VIEW_COUNTER;
+export function newFigureView(resource: ResourceState): ViewState<FigureViewDataState> {
     return {
-        title: `Figures (${viewNumber})`,
-        id: genSimpleId('fig-'),
+        title:getFigureViewTitle(resource.name),
+        id: `fig-${resource.id}`,
         type: 'figure',
         iconName: "pt-icon-timeline-area-chart",
-        data: newInitialFigureViewData(),
+        data: newInitialFigureViewData(resource.id),
     };
+}
+
+export function getFigureViewTitle(resourceName: string): string {
+    return `Figure - ${resourceName}`;
 }
 
 let TABLE_VIEW_COUNTER = 0;
 
-export function newTableView(resName: string|null, varName: string|null): ViewState<TableViewDataState> {
+export function newTableView(resName: string | null, varName: string | null): ViewState<TableViewDataState> {
     const viewNumber = ++TABLE_VIEW_COUNTER;
     return {
         title: `Table (${viewNumber})`,

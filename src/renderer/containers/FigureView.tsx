@@ -5,6 +5,7 @@ import {ViewState} from "../components/ViewState";
 import * as selectors from "../selectors";
 import {MplFigurePanel} from "../components/matplotlib/MplFigurePanel";
 import {getMPLDownloadUrl, getMPLWebSocketUrl} from "../state-util";
+import {Card} from "../components/Card";
 
 
 interface IFigureViewOwnProps {
@@ -40,7 +41,7 @@ class FigureView extends React.Component<IFigureViewProps, null> {
         this.onDownload = this.onDownload.bind(this);
     }
 
-    private onDownload(figureId: number) {
+    onDownload(figureId: number) {
         console.log("FigureView: onDownload:", figureId);
         const downloadUrl = getMPLDownloadUrl(this.props.baseUrl, this.props.baseDir, figureId, 'png');
         console.log("FigureView: downloadUrl:", downloadUrl);
@@ -50,35 +51,27 @@ class FigureView extends React.Component<IFigureViewProps, null> {
     render() {
         const plots = [];
         const view = this.props.view;
-        const figureResources = this.getFigureResources();
-        for (let figureResource of figureResources) {
-            let compId = `MplFigurePanel-${figureResource.id}-${view.id}`;
-            plots.push(
-                <MplFigurePanel
-                    key={compId}
-                    id={compId}
-                    figureId={figureResource.id}
-                    figureUpdateCount={figureResource.updateCount}
-                    figureName={figureResource.name}
-                    webSocketUrl={getMPLWebSocketUrl(this.props.mplWebSocketUrl, this.props.baseDir, figureResource.id)}
-                    onDownload={this.onDownload}
-                />
-            );
+        const figureResource = this.getFigureResource();
+        if (!figureResource) {
+            return (<Card>Figure not found.</Card>);
         }
-        return (<div style={FigureView.DIV_STYLE}>{plots}</div>);
+        const compId = `MplFigurePanel-${figureResource.id}-${view.id}`;
+        return (
+            <MplFigurePanel
+                key={compId}
+                id={compId}
+                figureId={figureResource.id}
+                figureUpdateCount={figureResource.updateCount}
+                figureName={figureResource.name}
+                webSocketUrl={getMPLWebSocketUrl(this.props.mplWebSocketUrl, this.props.baseDir, figureResource.id)}
+                onDownload={this.onDownload}
+            />
+        );
     }
 
-    getFigureResources(): ResourceState[] {
-        const view = this.props.view;
-        if (view.data.figureResourceNames) {
-            const figureResourceMap = {};
-            for (let figureResource of this.props.figureResources) {
-                figureResourceMap[figureResource.name] = figureResource;
-            }
-            return view.data.figureResourceNames.map(name => figureResourceMap[name]);
-        } else {
-            return this.props.figureResources;
-        }
+    getFigureResource(): ResourceState | null {
+        const figureViewData = this.props.view.data;
+        return this.props.figureResources.find(r => r.id === figureViewData.resourceId);
     }
 }
 

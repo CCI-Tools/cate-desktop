@@ -331,14 +331,13 @@ export interface WorldViewDataState {
 
 export interface FigureViewDataState {
     /**
-     * The names of the figure resources shown in a view.
+     * The resource identifier.
      */
-    figureResourceNames: string[];
-
+    resourceId: number;
     /**
-     * The ID of the selected figure resource.
+     * Whether the figure has a fixed size or it adapts to the current container size.
      */
-    selectedFigureResourceName: string|null;
+    fixedSize: boolean;
 }
 
 export interface TableViewDataState {

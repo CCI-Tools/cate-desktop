@@ -906,8 +906,8 @@ export function addChartView(placeAfterViewId: string | null) {
     return {type: ADD_CHART_VIEW, payload: {placeAfterViewId}};
 }
 
-export function addFigureView(placeAfterViewId: string | null) {
-    return {type: ADD_FIGURE_VIEW, payload: {placeAfterViewId}};
+export function addFigureView(placeAfterViewId: string | null, resource: ResourceState) {
+    return {type: ADD_FIGURE_VIEW, payload: {placeAfterViewId, resource}};
 }
 
 export function addTableView(placeAfterViewId: string | null) {

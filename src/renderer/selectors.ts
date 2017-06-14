@@ -1,7 +1,8 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
-    WorkflowStepState, VariableVectorLayerState, LayerVariableState, SavedVariableLayers, MplModuleState
+    WorkflowStepState, VariableVectorLayerState, LayerVariableState, SavedVariableLayers, MplModuleState,
+    FigureViewDataState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient} from "./webapi/WebAPIClient";
@@ -11,9 +12,10 @@ import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import {PanelContainerLayout} from "./components/PanelContainer";
-import {isSpatialVectorVariable, isSpatialImageVariable, findOperation} from "./state-util";
+import {isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource} from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isDefinedAndNotNull, isNumber} from "../common/types";
+import {FigureState} from "./components/matplotlib/MplFigureContainer";
 
 const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -374,6 +376,13 @@ export const figureResourcesSelector = createSelector<State, ResourceState[], Re
     }
 );
 
+export const selectedFigureResourceSelector = createSelector<State, ResourceState|null, ResourceState|null>(
+    selectedResourceSelector,
+    (resource: ResourceState|null) => {
+        return resource && isFigureResource(resource) ? resource : null;
+    }
+);
+
 export const variablesSelector = createSelector<State, VariableState[] | null, ResourceState | null>(
     selectedResourceSelector,
     (selectedResource: ResourceState | null) => {
@@ -401,6 +410,13 @@ export const selectedVariableSelector = createSelector<State, VariableState | nu
 export const viewLayoutSelector = (state: State): ViewLayoutState => state.control.viewLayout;
 export const viewsSelector = (state: State): ViewState<any>[] => state.control.views;
 export const activeViewIdSelector = (state: State): string | null => state.control.activeViewId;
+
+export const figureViewsSelector = createSelector<State, ViewState<FigureViewDataState>[], ViewState<any>[]>(
+    viewsSelector,
+    (views: ViewState<any>[]) => {
+        return (views ? views.filter(view => view.type === 'figure') : EMPTY_ARRAY) as ViewState<FigureViewDataState>[];
+    }
+);
 
 export const activeViewSelector = createSelector<State, ViewState<any> | null, ViewState<any>[], string | null>(
     viewsSelector,

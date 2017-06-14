@@ -8,17 +8,18 @@ import * as React from 'react';
  * @author Norman Fomferra
  */
 export class Card extends React.PureComponent<any, any> {
+    static readonly DIV_STYLE = {
+        overflowY: 'auto', flex: 'auto', maxHeight: '100%',
+        padding: '0.4em', margin: '4px'
+    };
+
     constructor(props) {
         super(props);
     }
 
     render() {
-        const cardStyle = {
-            overflowY: 'auto', flex: 'auto', maxHeight: '100%',
-            padding: '0.4em', margin: '4px'
-        };
         return (
-            <div className="pt-elevation-2" style={cardStyle}>
+            <div className="pt-elevation-2" style={Card.DIV_STYLE}>
                 {this.props.children}
             </div>
         );

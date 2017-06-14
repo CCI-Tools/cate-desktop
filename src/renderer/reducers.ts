@@ -8,7 +8,7 @@ import {combineReducers} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
-    newWorldView, newTableView, newFigureView
+    newWorldView, newTableView, newFigureView, getFigureViewTitle
 } from "./state-util";
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
@@ -188,7 +188,8 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             return addView(state, view, action.payload.placeAfterViewId);
         }
         case actions.ADD_FIGURE_VIEW: {
-            const view = newFigureView();
+            const resource = action.payload.resource;
+            const view = newFigureView(resource);
             return addView(state, view, action.payload.placeAfterViewId);
         }
         case actions.ADD_TABLE_VIEW: {
@@ -290,6 +291,12 @@ const viewReducer = (state: ViewState<any>, action) => {
                 const layers = layersReducer(state.data.layers, action);
                 if (layers !== state.data.layers) {
                     return {...state, data: {...state.data, layers}};
+                }
+            } else if (state.type === 'figure') {
+                let title = getFigureViewTitle(action.payload.resName);
+                if (state.title === title) {
+                    title = getFigureViewTitle(action.payload.newResName);
+                    return {...state, title};
                 }
             }
             break;

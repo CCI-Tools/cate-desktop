@@ -28,7 +28,7 @@ const FIGURE_COMMAND_SOURCE = new MplFigureCommandSourceImpl();
  */
 export class MplFigurePanel extends React.PureComponent<IFigurePanelProps, IFigurePanelState> {
     static readonly DIV_STYLE = {width: '100%', overflow: 'hidden'};
-    static readonly CONTAINER_DIV_STYLE = {width: '100%', overflow: 'hidden'};
+    static readonly CONTAINER_DIV_STYLE = {width: '100%', overflow: 'hidden', padding: '0.2em 0.2em 0 0.2em'};
 
     constructor(props: IFigurePanelProps) {
         super(props);
@@ -36,6 +36,7 @@ export class MplFigurePanel extends React.PureComponent<IFigurePanelProps, IFigu
         this.handleFigureMessage = this.handleFigureMessage.bind(this);
     }
 
+    // TODO (forman): inform MplFigurePanel if view is closed!
     static handleClose(figureId: number) {
         FIGURE_COMMAND_SOURCE.removeCommandListeners(figureId);
     }
@@ -47,9 +48,6 @@ export class MplFigurePanel extends React.PureComponent<IFigurePanelProps, IFigu
     render() {
         return (
             <div style={MplFigurePanel.DIV_STYLE}>
-                <MplFigureHeader figureId={this.props.figureId}
-                                 title={`${this.props.figureName} (#${this.props.figureId})`}
-                                 onClose={MplFigurePanel.handleClose}/>
                 <MplFigureContainer figureId={this.props.figureId}
                                     figureUpdateCount={this.props.figureUpdateCount}
                                     figureHeight={this.props.figureHeight || '25em'}
@@ -68,35 +66,6 @@ export class MplFigurePanel extends React.PureComponent<IFigurePanelProps, IFigu
     }
 }
 
-interface IMplFigureHeaderProps {
-    title: string;
-    figureId: number;
-    onClose: (figureId: number) => any;
-}
-
-class MplFigureHeader extends React.PureComponent<IMplFigureHeaderProps, null> {
-
-    static readonly DIV_STYLE = {display: "flex", padding: '0.2em'};
-
-    constructor(props: IMplFigureHeaderProps) {
-        super(props);
-        this.handleClose = this.handleClose.bind(this);
-    }
-
-    handleClose() {
-        this.props.onClose(this.props.figureId);
-    }
-
-    render() {
-        return (
-            <div style={MplFigureHeader.DIV_STYLE}>
-                <span style={{flex: "auto"}}>{this.props.title}</span>
-                <Button style={{flex: "none"}} iconName="small-cross" onClick={this.handleClose}/>
-            </div>
-        );
-    }
-}
-
 interface IMplFigureToolbarProps {
     figureId: number;
     message: string;
@@ -106,7 +75,7 @@ interface IMplFigureToolbarProps {
 
 class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null> {
 
-    static readonly DIV_STYLE = {display: 'flex', alignItems: 'center', padding: 2};
+    static readonly DIV_STYLE = {display: 'flex', alignItems: 'center', padding: '0.2em'};
 
     commands: any[];
 
@@ -196,7 +165,7 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
             <div style={MplFigureToolbar.DIV_STYLE}>
                 {messageTag}
                 <span style={{flex: 'auto'}}/>
-                <div className="pt-button-group" >{buttons}</div>
+                <div className="pt-button-group">{buttons}</div>
             </div>
         );
     }

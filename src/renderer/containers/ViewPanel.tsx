@@ -1,14 +1,16 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
-import {State, WorldViewDataState} from "../state";
+import {FigureViewDataState, ResourceState, State, WorldViewDataState} from "../state";
 import {RadioGroup, Radio, Button} from "@blueprintjs/core";
 import {ProjectionField} from "../components/field/ProjectionField";
 import {FieldValue} from "../components/field/Field";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
+import * as assert from "../../common/assert";
 import {ViewState} from "../components/ViewState";
 import {Card} from "../components/Card";
 import {NO_ACTIVE_VIEW, NO_VIEW_PROPS} from "../messages";
+import {FigureState} from "../components/matplotlib/MplFigureContainer";
 
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
@@ -16,6 +18,9 @@ interface IViewPanelDispatch {
 
 interface IViewPanelProps {
     activeView: ViewState<any>;
+    figureViews: ViewState<FigureViewDataState>[];
+    figureResources: ResourceState[];
+    selectedFigureResource: ResourceState|null;
 }
 
 interface IViewPanelState {
@@ -25,6 +30,9 @@ interface IViewPanelState {
 function mapStateToProps(state: State): IViewPanelProps {
     return {
         activeView: selectors.activeViewSelector(state),
+        figureViews: selectors.figureViewsSelector(state),
+        figureResources: selectors.figureResourcesSelector(state),
+        selectedFigureResource: selectors.selectedFigureResourceSelector(state),
     };
 }
 
@@ -40,7 +48,6 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         this.onViewModeChange = this.onViewModeChange.bind(this);
         this.onProjectionCodeChange = this.onProjectionCodeChange.bind(this);
         this.onAddWorldView = this.onAddWorldView.bind(this);
-        this.onAddChartView = this.onAddChartView.bind(this);
         this.onAddFigureView = this.onAddFigureView.bind(this);
         this.onAddTableView = this.onAddTableView.bind(this);
         this.state = {isProjectionsDialogOpen: false};
@@ -55,22 +62,33 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
     }
 
     onAddWorldView() {
-        this.props.dispatch(actions.addWorldView(this.props.activeView ? this.props.activeView.id : null));
-    }
-
-    onAddChartView() {
-        this.props.dispatch(actions.addChartView(this.props.activeView ? this.props.activeView.id : null));
+        this.props.dispatch(actions.addWorldView(this.getViewIdToPlaceAfter()));
     }
 
     onAddFigureView() {
-        this.props.dispatch(actions.addFigureView(this.props.activeView ? this.props.activeView.id : null));
+        let selectedFigureResource = this.props.selectedFigureResource;
+        assert.ok(selectedFigureResource);
+        this.props.dispatch(actions.addFigureView(this.getViewIdToPlaceAfter(), selectedFigureResource));
     }
 
     onAddTableView() {
-        this.props.dispatch(actions.addTableView(this.props.activeView ? this.props.activeView.id : null));
+        this.props.dispatch(actions.addTableView(this.getViewIdToPlaceAfter()));
+    }
+
+    getViewIdToPlaceAfter() {
+        return this.props.activeView ? this.props.activeView.id : null;
     }
 
     render() {
+        let canAddFigure = false;
+        if (this.props.selectedFigureResource) {
+            canAddFigure = true;
+            if (this.props.figureViews) {
+                const figureView = this.props.figureViews.find(v => v.data.resourceId == this.props.selectedFigureResource.id);
+                canAddFigure = !figureView;
+            }
+        }
+
         return (
             <div>
                 <label className="pt-label">
@@ -78,7 +96,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                     <div className="pt-button-group">
                         <Button iconName="globe" onClick={this.onAddWorldView}>World</Button>
                         {/*<Button iconName="timeline-area-chart" onClick={this.onAddChartView}>Chart</Button>*/}
-                        <Button iconName="timeline-area-chart" onClick={this.onAddFigureView}>Figures</Button>
+                        <Button iconName="timeline-area-chart" onClick={this.onAddFigureView} disabled={!canAddFigure}>Figure</Button>
                         <Button iconName="th" onClick={this.onAddTableView}>Table</Button>
                     </div>
                 </label>
