@@ -3,7 +3,7 @@ import {Colors, Menu, MenuItem, NonIdealState, Popover, Position} from "@bluepri
 import {Splitter, SplitDir} from "./Splitter";
 import {
     isViewSplitState, ViewState, ViewSplitState, ViewPanelState, ViewLayoutState, ViewPath,
-    ViewRenderer
+    ViewRenderer, findMoveTargetViewIds
 } from "./ViewState";
 
 /**
@@ -26,7 +26,7 @@ interface IViewManagerProps {
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
     onCloseView: (viewPath: ViewPath, viewId: string) => void;
     onCloseAllViews: (viewPath: ViewPath) => void;
-    onMoveView: (viewPath: ViewPath, sourceViewId: string, targetViewId: string, placeBefore: boolean) => void;
+    onMoveView: (sourceViewId: string, targetViewId: string, placeBefore: boolean) => void;
     onSplitViewPanel: (viewPath: ViewPath, dir: SplitDir, pos: number) => void;
     onChangeViewSplitPos: (viewPath: ViewPath, delta: number) => void;
 }
@@ -191,7 +191,7 @@ interface IViewPanelProps {
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
     onCloseView: (viewPath: ViewPath, viewId: string) => void;
     onCloseAllViews: (viewPath: ViewPath) => void;
-    onMoveView: (viewPath: ViewPath, sourceViewId: string, targetViewId: string, placeBefore: boolean) => void;
+    onMoveView: (sourceViewId: string, targetViewId: string, placeBefore: boolean) => void;
     onSplitViewPanel: (viewPath: ViewPath, dir: SplitDir, pos: number) => void;
 }
 
@@ -360,10 +360,12 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
 
             const moveBeforeMenuItems = result.before.map(viewId => {
                 const view = this.props.viewMap[viewId];
-                return (<MenuItem key={viewId} text={view.title}/>);
+                const onClick = () => this.props.onMoveView(view.id, selectedViewId, true);
+                return (<MenuItem key={viewId} onClick={onClick} text={view.title}/>);
             });
             const moveAfterMenuItems = result.after.map(viewId => {
                 const view = this.props.viewMap[viewId];
+                const onClick = () => this.props.onMoveView(view.id, selectedViewId, false);
                 return (<MenuItem key={viewId} text={view.title}/>);
             });
 
@@ -413,37 +415,6 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
     }
 }
 
-function findMoveTargetViewIds(viewLayout: ViewLayoutState, selectedViewId: string): {after: string[]; before: string[]} {
-    const result = {before: [], after: []};
-    collectMoveTargetViewIds(viewLayout, selectedViewId, result);
-    return result;
-}
-
-function collectMoveTargetViewIds(viewLayout: ViewLayoutState, selectedViewId: string, result: {after: string[]; before: string[]}) {
-    const viewIds = (viewLayout as ViewPanelState).viewIds;
-    if (viewIds) {
-        let lastViewId = null;
-        for (let i = 0; i < viewIds.length; i++) {
-            const viewId = viewIds[i];
-            if (viewId !== selectedViewId) {
-                const nextViewId = i < viewIds.length + 1 ? viewIds[i + 1] : null;
-                if (nextViewId === null || nextViewId !== selectedViewId) {
-                    result.after.push(viewId);
-                }
-                if (lastViewId === null || lastViewId !== selectedViewId) {
-                    result.before.push(viewId);
-                }
-            }
-            lastViewId = viewId;
-        }
-    }
-    const layouts = (viewLayout as ViewSplitState).layouts;
-    if (layouts) {
-        for (let layout of layouts) {
-            this.collectMoveTargetViewIds(layout, selectedViewId, result);
-        }
-    }
-}
 
 
 

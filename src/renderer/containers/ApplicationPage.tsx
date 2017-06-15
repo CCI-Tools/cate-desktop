@@ -254,9 +254,8 @@ class _CenterPanel extends React.PureComponent<IViewManagerPanelProps & IDispatc
         this.props.dispatch(actions.closeAllViews(viewPath));
     }
 
-    onMoveView(viewPath: ViewPath, sourceViewId: string, targetViewId: string, placeBefore: boolean) {
-        console.log("onMoveView:", viewPath, sourceViewId, targetViewId, placeBefore);
-        //this.props.dispatch(actions.stackView(viewPath, sourceViewId, targetViewId, placeBefore));
+    onMoveView(sourceViewId: string, targetViewId: string, placeBefore: boolean) {
+        this.props.dispatch(actions.moveViewToPanel(sourceViewId, targetViewId, placeBefore));
     }
 
     onSplitViewPanel(viewPath: ViewPath, dir: SplitDir, pos: number) {

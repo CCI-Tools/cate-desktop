@@ -914,6 +914,7 @@ export const CLOSE_VIEW = "CLOSE_VIEW";
 export const CLOSE_ALL_VIEWS = "CLOSE_ALL_VIEWS";
 export const SPLIT_VIEW_PANEL = "SPLIT_VIEW_PANEL";
 export const CHANGE_VIEW_SPLIT_POS = "CHANGE_VIEW_SPLIT_POS";
+export const MOVE_VIEW = "MOVE_VIEW";
 
 
 export function addWorldView(placeAfterViewId: string | null) {
@@ -951,6 +952,11 @@ export function splitViewPanel(viewPath: ViewPath, dir: SplitDir, pos: number) {
 export function changeViewSplitPos(viewPath: ViewPath, delta: number) {
     return {type: CHANGE_VIEW_SPLIT_POS, payload: {viewPath, delta}};
 }
+
+export function moveViewToPanel(sourceViewId: string, targetViewId: string, placeBefore: boolean) {
+    return {type: MOVE_VIEW, payload: {sourceViewId, targetViewId, placeBefore}};
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // World view actions

@@ -68,7 +68,7 @@ export function getViewPanel(viewLayout: ViewLayoutState, viewPath: ViewPath): V
 }
 
 export function findViewPanel(viewLayout: ViewLayoutState,
-                              filter: (viewPanel: ViewPanelState) => boolean): ViewPanelState|null {
+                              filter: (viewPanel: ViewPanelState) => boolean): ViewPanelState | null {
     if (isViewPanelState(viewLayout)) {
         const viewPanel = viewLayout as ViewPanelState;
         return filter && filter(viewPanel) ? viewPanel : null;
@@ -76,6 +76,19 @@ export function findViewPanel(viewLayout: ViewLayoutState,
     assert.ok(isViewSplitState(viewLayout), "ViewSplitState expected");
     const viewSplit = viewLayout as ViewSplitState;
     return findViewPanel(viewSplit.layouts[0], filter) || findViewPanel(viewSplit.layouts[1], filter);
+}
+
+export function findMoveTargetViewIds(viewLayout: ViewLayoutState, sourceViewId: string): { after: string[]; before: string[] } {
+    const result = {before: [], after: []};
+    _collectMoveTargetViewIds(viewLayout, sourceViewId, result);
+    return result;
+}
+
+export function moveViewToPanel(viewLayout: ViewLayoutState,
+                                sourceViewId: string,
+                                targetViewId: string,
+                                placeBefore: boolean): ViewLayoutState {
+    return _moveViewToPanel(viewLayout, sourceViewId, targetViewId, placeBefore);
 }
 
 export function addViewToPanel(viewLayout: ViewLayoutState,
@@ -165,6 +178,70 @@ function _getViewPanel(viewLayout: ViewLayoutState,
 }
 
 
+export function _moveViewToPanel(viewLayout: ViewLayoutState,
+                                 sourceViewId: string,
+                                 targetViewId: string,
+                                 placeBefore: boolean): ViewLayoutState {
+    if (isViewSplitState(viewLayout)) {
+        const viewSplit = viewLayout as ViewSplitState;
+        let oldLayout1 = viewSplit.layouts[0];
+        let oldLayout2 = viewSplit.layouts[1];
+        let newLayout1 = _moveViewToPanel(oldLayout1, sourceViewId, targetViewId, placeBefore);
+        let newLayout2 = _moveViewToPanel(oldLayout2, sourceViewId, targetViewId, placeBefore);
+        if (oldLayout1 === newLayout1 && oldLayout2 === newLayout2) {
+            // no change!
+            return viewSplit;
+        }
+        if (newLayout1 === null) {
+            assert.ok(newLayout2);
+            return newLayout2;
+        }
+        if (newLayout2 === null) {
+            return newLayout1;
+        }
+        return {...viewSplit, layouts: [newLayout1, newLayout2]} as ViewSplitState;
+    } else {
+        const viewPanel = viewLayout as ViewPanelState;
+        let viewIds = viewPanel.viewIds;
+        let selectedViewId = viewPanel.selectedViewId;
+
+        const sourceViewIndex = viewIds.findIndex(id => id === sourceViewId);
+        if (sourceViewIndex >= 0) {
+            // remove sourceViewId
+            viewIds = viewIds.slice();
+            viewIds.splice(sourceViewIndex, 1);
+            if (viewIds.length === 0) {
+                // sourceViewId was the last one, so close this panel
+                return null;
+            }
+            if (selectedViewId === sourceViewId && viewIds.length) {
+                // the removed view was the selected view, select some other view now
+                const selectedViewIndex = sourceViewIndex < viewIds.length ? sourceViewIndex : viewIds.length - 1;
+                selectedViewId = viewIds[selectedViewIndex];
+            }
+        }
+
+        const targetViewIndex = viewIds.findIndex(id => id === targetViewId);
+        if (targetViewIndex >= 0) {
+            if (placeBefore) {
+                // insert sourceViewId before
+                viewIds = viewIds.slice(0, targetViewIndex).concat([sourceViewId].concat(viewIds.slice(targetViewIndex)));
+            } else {
+                // insert sourceViewId after
+                viewIds = viewIds.slice(0, targetViewIndex + 1).concat([sourceViewId].concat(viewIds.slice(targetViewIndex + 1)));
+            }
+            selectedViewId = sourceViewId;
+        }
+        if (viewIds !== viewPanel.viewIds) {
+            return {viewIds, selectedViewId};
+        }
+    }
+    // no change!
+    return viewLayout;
+}
+
+
+// TODO (forman): refactor out similar code with _moveViewToPanel()
 function _addViewToPanel(viewLayout: ViewLayoutState,
                          placeAfterViewId: string,
                          viewId: string): ViewLayoutState {
@@ -378,3 +455,28 @@ function _removeViewFromLayout(viewLayout: ViewLayoutState,
     }
 }
 
+function _collectMoveTargetViewIds(viewLayout: ViewLayoutState, sourceViewId: string, result: { after: string[]; before: string[] }) {
+    const viewIds = (viewLayout as ViewPanelState).viewIds;
+    if (viewIds) {
+        let lastViewId = null;
+        for (let i = 0; i < viewIds.length; i++) {
+            const viewId = viewIds[i];
+            if (viewId !== sourceViewId) {
+                const nextViewId = i < viewIds.length + 1 ? viewIds[i + 1] : null;
+                if (nextViewId === null || nextViewId !== sourceViewId) {
+                    result.after.push(viewId);
+                }
+                if (lastViewId === null || lastViewId !== sourceViewId) {
+                    result.before.push(viewId);
+                }
+            }
+            lastViewId = viewId;
+        }
+    }
+    const layouts = (viewLayout as ViewSplitState).layouts;
+    if (layouts) {
+        for (let layout of layouts) {
+            _collectMoveTargetViewIds(layout, sourceViewId, result);
+        }
+    }
+}

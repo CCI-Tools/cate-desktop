@@ -8,7 +8,7 @@ import {
     removeAllViewsFromLayout,
     removeViewFromViewArray,
     ViewLayoutState,
-    ViewState,
+    ViewState, moveViewToPanel, ViewSplitState, ViewPanelState,
 } from "./ViewState";
 
 describe('function manipulating a ViewLayout', () => {
@@ -18,28 +18,168 @@ describe('function manipulating a ViewLayout', () => {
         selectedViewId: 'c'
     } as ViewLayoutState;
 
-    const viewPanel1 = {
-        viewIds: ['a', 'b', 'c'],
-        selectedViewId: 'b'
-    } as ViewLayoutState;
-    const viewPanel2 = {
-        viewIds: ['d', 'e', 'f'],
-        selectedViewId: 'f'
-    } as ViewLayoutState;
-    const viewPanel3 = {
-        viewIds: ['g', 'h', 'i'],
-        selectedViewId: 'g'
-    } as ViewLayoutState;
-    const viewSplit2 = {
-        dir: "ver",
-        pos: 120,
-        layouts: [viewPanel2, viewPanel3],
-    } as ViewLayoutState;
     const viewSplit1 = {
         dir: "hor",
         pos: 80,
-        layouts: [viewSplit2, viewPanel1],
-    } as ViewLayoutState;
+        layouts: [
+            {
+                dir: "ver",
+                pos: 120,
+                layouts: [
+                    {
+                        viewIds: ["d", "e", "f"],
+                        selectedViewId: "f",
+                    },
+                    {
+                        viewIds: ["g", "h", "i"],
+                        selectedViewId: "g",
+                    }
+                ],
+            },
+            {
+                viewIds: ["a", "b", "c"],
+                selectedViewId: "b",
+            }
+        ],
+    } as ViewSplitState;
+
+    const viewSplit2 = viewSplit1.layouts[0] as ViewSplitState;
+    const viewPanel1 = viewSplit1.layouts[1] as ViewPanelState;
+    const viewPanel2 = viewSplit2.layouts[0] as ViewPanelState;
+    const viewPanel3 = viewSplit2.layouts[1] as ViewPanelState;
+
+    describe('moveViewToPanel()', () => {
+        it('can move view before another first one', () => {
+            expect(moveViewToPanel(viewSplit1, 'h', 'a', true)).to.deep.equal({
+                dir: "hor",
+                layouts: [
+                    {
+                        dir: "ver",
+                        layouts: [
+                            {
+                                selectedViewId: "f",
+                                viewIds: ["d", "e", "f"]
+                            },
+                            {
+                                selectedViewId: "g",
+                                viewIds: ["g", "i"]
+                            }
+                        ],
+                        "pos": 120
+                    },
+                    {
+                        selectedViewId: "h",
+                        viewIds: ["h", "a", "b", "c"]
+                    }
+                ],
+                "pos": 80
+            });
+        });
+        it('can move view before another last one', () => {
+            expect(moveViewToPanel(viewSplit1, 'h', 'c', true)).to.deep.equal({
+                dir: "hor",
+                pos: 80,
+                layouts: [
+                    {
+                        dir: "ver",
+                        pos: 120,
+                        layouts: [
+                            {
+                                viewIds: ["d", "e", "f"],
+                                selectedViewId: "f",
+                            },
+                            {
+                                viewIds: ["g", "i"],
+                                selectedViewId: "g",
+                            }
+                        ],
+                    },
+                    {
+                        viewIds: ["a", "b", "h", "c"],
+                        selectedViewId: "h",
+                    }
+                ],
+            });
+        });
+        it('can move view after another first one', () => {
+            expect(moveViewToPanel(viewSplit1, 'h', 'a', false)).to.deep.equal({
+                dir: "hor",
+                pos: 80,
+                layouts: [
+                    {
+                        dir: "ver",
+                        pos: 120,
+                        layouts: [
+                            {
+                                viewIds: ["d", "e", "f"],
+                                selectedViewId: "f",
+                            },
+                            {
+                                viewIds: ["g", "i"],
+                                selectedViewId: "g",
+                            }
+                        ],
+                    },
+                    {
+                        viewIds: ["a", "h", "b", "c"],
+                        selectedViewId: "h",
+                    }
+                ],
+            });
+        });
+        it('can move view after another last one', () => {
+            expect(moveViewToPanel(viewSplit1, 'h', 'c', false)).to.deep.equal({
+                dir: "hor",
+                pos: 80,
+                layouts: [
+                    {
+                        dir: "ver",
+                        pos: 120,
+                        layouts: [
+                            {
+                                viewIds: ["d", "e", "f"],
+                                selectedViewId: "f",
+                            },
+                            {
+                                viewIds: ["g", "i"],
+                                selectedViewId: "g",
+                            }
+                        ],
+                    },
+                    {
+                        viewIds: ["a", "b", "c", "h"],
+                        selectedViewId: "h",
+                    }
+                ],
+            });
+        });
+        it('can move view within others', () => {
+            expect(moveViewToPanel(viewSplit1, 'b', 'e', true)).to.deep.equal({
+                dir: "hor",
+                pos: 80,
+                layouts: [
+                    {
+                        dir: "ver",
+                        pos: 120,
+                        layouts: [
+                            {
+                                viewIds: ["d", "b", "e", "f"],
+                                selectedViewId: "b",
+                            },
+                            {
+                                viewIds: ["g", "h", "i"],
+                                selectedViewId: "g",
+                            }
+                        ],
+                    },
+                    {
+                        viewIds: ["a", "c"],
+                        selectedViewId: "c",
+                    }
+                ],
+            });
+        });
+    });
 
     describe('addViewToLayout()', () => {
         it('can add view to top-level view panel', () => {
@@ -208,7 +348,8 @@ describe('function manipulating a ViewLayout', () => {
             expect(removeViewFromViewArray(views, 'b')).to.deep.equal([{id: 'a'}, {id: 'c'}]);
         });
     });
-});
+})
+;
 
 
 
