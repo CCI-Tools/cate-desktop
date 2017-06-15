@@ -146,7 +146,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             if (selectedWorkspaceResourceName === resName) {
                 selectedWorkspaceResourceName = newResName;
             }
-            const views = viewsReducer(state.views, action);
+            const views = viewsReducer(state.views, action, state.activeViewId);
             if (selectedWorkspaceResourceName !== state.selectedWorkspaceResourceName || views !== state.views) {
                 return {...state, selectedWorkspaceResourceName, views};
             }
@@ -172,7 +172,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             const selectedVariable = action.payload.selectedVariable;
             const selectedVariableName = selectedVariable ? selectedVariable.name : null;
             let views = state.views;
-            const newViews = viewsReducer(state.views, action);
+            const newViews = viewsReducer(state.views, action, state.activeViewId);
             if (newViews !== views) {
                 views = newViews;
             }
@@ -252,7 +252,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             return {...state, viewLayout};
         }
         default: {
-            const newViews = viewsReducer(state.views, action);
+            const newViews = viewsReducer(state.views, action, state.activeViewId);
             if (newViews !== state.views) {
                 return {...state, views: newViews};
             }
@@ -279,12 +279,12 @@ function addView(state: ControlState, view: ViewState<any>, placeAfterViewId: st
 }
 
 
-const viewsReducer = (state: ViewState<any>[], action) => {
+const viewsReducer = (state: ViewState<any>[], action, activeViewId: string) => {
     // delegate action to all children
     let newViews = null;
     for (let i = 0; i < state.length; i++) {
         const oldView = state[i];
-        const newView = viewReducer(oldView, action);
+        const newView = viewReducer(oldView, action, activeViewId);
         if (oldView !== newView) {
             if (!newViews) {
                 newViews = state.slice(0, i);
@@ -295,14 +295,15 @@ const viewsReducer = (state: ViewState<any>[], action) => {
         }
     }
     return newViews || state;
-};
+}
 
 
-const viewReducer = (state: ViewState<any>, action) => {
+const viewReducer = (state: ViewState<any>, action, activeViewId: string) => {
+    const isActiveView = state.id === activeViewId;
     switch (action.type) {
         case actions.RENAME_RESOURCE: {
             if (state.type === 'world') {
-                const layers = layersReducer(state.data.layers, action);
+                const layers = layersReducer(state.data.layers, action, isActiveView);
                 if (layers !== state.data.layers) {
                     return {...state, data: {...state.data, layers}};
                 }
@@ -317,7 +318,7 @@ const viewReducer = (state: ViewState<any>, action) => {
         }
         case actions.SET_SHOW_SELECTED_VARIABLE_LAYER: {
             if (state.type === 'world') {
-                const layers = layersReducer(state.data.layers, action);
+                const layers = layersReducer(state.data.layers, action, isActiveView);
                 if (layers !== state.data.layers) {
                     return {...state, data: {...state.data, layers}};
                 }
@@ -438,7 +439,7 @@ const viewReducer = (state: ViewState<any>, action) => {
         }
         default: {
             if (state.type === 'world') {
-                const layers = layersReducer(state.data.layers, action);
+                const layers = layersReducer(state.data.layers, action, isActiveView);
                 if (layers !== state.data.layers) {
                     return {...state, data: {...state.data, layers}};
                 }
@@ -448,12 +449,12 @@ const viewReducer = (state: ViewState<any>, action) => {
     return state;
 };
 
-const layersReducer = (state: LayerState[], action) => {
+const layersReducer = (state: LayerState[], action, isActiveView: boolean) => {
     // delegate action to all children
     let newLayers;
     for (let i = 0; i < state.length; i++) {
         const oldLayer = state[i];
-        const newLayer = layerReducer(oldLayer, action);
+        const newLayer = layerReducer(oldLayer, action, isActiveView);
         if (oldLayer !== newLayer) {
             if (!newLayers) {
                 newLayers = state.slice(0, i);
@@ -466,7 +467,7 @@ const layersReducer = (state: LayerState[], action) => {
     return newLayers || state;
 };
 
-const layerReducer = (state: LayerState, action) => {
+const layerReducer = (state: LayerState, action, isActiveView: boolean) => {
     switch (action.type) {
         case actions.RENAME_RESOURCE: {
             const resName = action.payload.resName;
@@ -484,7 +485,7 @@ const layerReducer = (state: LayerState, action) => {
             break;
         }
         case actions.SET_SELECTED_VARIABLE: {
-            if (state.id === SELECTED_VARIABLE_LAYER_ID) {
+            if (state.id === SELECTED_VARIABLE_LAYER_ID && isActiveView) {
                 const resource = action.payload.resource;
                 const selectedVariable = action.payload.selectedVariable;
                 const savedLayers = action.payload.savedLayers;
