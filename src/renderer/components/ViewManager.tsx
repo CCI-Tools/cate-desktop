@@ -357,15 +357,15 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
         let moreMenuEntry;
         if (selectedView) {
             const result = findMoveTargetViewIds(this.props.viewLayout, selectedViewId);
-
+            const viewMap = this.props.viewMap;
             const moveBeforeMenuItems = result.before.map(viewId => {
-                const view = this.props.viewMap[viewId];
-                const onClick = () => this.props.onMoveView(view.id, 'before', selectedViewId);
+                const view = viewMap[viewId];
+                const onClick = () => this.props.onMoveView(selectedViewId, 'before', view.id);
                 return (<MenuItem key={viewId} onClick={onClick} text={view.title}/>);
             });
             const moveAfterMenuItems = result.after.map(viewId => {
-                const view = this.props.viewMap[viewId];
-                const onClick = () => this.props.onMoveView(view.id, 'after', selectedViewId);
+                const view = viewMap[viewId];
+                const onClick = () => this.props.onMoveView(selectedViewId, 'after', view.id);
                 return (<MenuItem key={viewId} onClick={onClick} text={view.title}/>);
             });
 

@@ -180,25 +180,58 @@ describe('function manipulating a ViewLayout', () => {
             });
         });
 
-        it('can move view within panel', () => {
-            const viewPanel = {
+        it('can move view within same panel with 4 views', () => {
+            const viewPanelD = {
                 viewIds: ["a", "b", "c", "d"],
-                selectedViewId: "a",
+                selectedViewId: "d",
             };
-            expect(moveView(viewPanel, 'd', 'before', 'a')).to.deep.equal({
+            expect(moveView(viewPanelD, 'd', 'before', 'a')).to.deep.equal({
                 viewIds: ["d", "a", "b", "c"],
                 selectedViewId: "d",
             });
-            expect(moveView(viewPanel, 'd', 'after', 'a')).to.deep.equal({
+            expect(moveView(viewPanelD, 'd', 'after', 'a')).to.deep.equal({
                 viewIds: ["a", "d", "b", "c"],
                 selectedViewId: "d",
             });
-            expect(moveView(viewPanel, 'a', 'before', 'd')).to.deep.equal({
+
+            const viewPanelA = {
+                viewIds: ["a", "b", "c", "d"],
+                selectedViewId: "a",
+            };
+            expect(moveView(viewPanelA, 'a', 'before', 'd')).to.deep.equal({
                 viewIds: ["b", "c", "a", "d"],
                 selectedViewId: "a",
             });
-            expect(moveView(viewPanel, 'a', 'after', 'd')).to.deep.equal({
+            expect(moveView(viewPanelA, 'a', 'after', 'd')).to.deep.equal({
                 viewIds: ["b", "c", "d", "a"],
+                selectedViewId: "a",
+            });
+        });
+
+        it('can move view within same panel with 3 views', () => {
+            const viewPanelC = {
+                viewIds: ["a", "b", "c"],
+                selectedViewId: "c",
+            };
+            expect(moveView(viewPanelC, 'c', 'before', 'a')).to.deep.equal({
+                viewIds: ["c", "a", "b"],
+                selectedViewId: "c",
+            });
+            expect(moveView(viewPanelC, 'c', 'after', 'a')).to.deep.equal({
+                viewIds: ["a", "c", "b"],
+                selectedViewId: "c",
+            });
+
+            const viewPanelA = {
+                viewIds: ["a", "b", "c"],
+                selectedViewId: "a",
+            };
+            expect(moveView(viewPanelA, 'a', 'before', 'c')).to.deep.equal({
+                viewIds: ["b", "a", "c"],
+                selectedViewId: "a",
+            });
+            expect(moveView(viewPanelA, 'a', 'after', 'c')).to.deep.equal({
+                viewIds: ["b", "c", "a"],
                 selectedViewId: "a",
             });
         });

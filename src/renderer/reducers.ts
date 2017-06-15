@@ -205,6 +205,19 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             const viewLayout = selectViewInLayout(state.viewLayout, viewPath, viewId);
             return {...state, viewLayout, activeViewId: viewId};
         }
+        case actions.MOVE_VIEW:{
+            const {sourceViewId, placement, targetViewId} = action.payload;
+            const viewLayout = moveView(state.viewLayout, sourceViewId, placement, targetViewId);
+            let activeViewId = state.activeViewId;
+            if (activeViewId) {
+                const containsActiveId = viewPanel => viewPanel.viewIds.indexOf(activeViewId) >= 0;
+                const activeViewPanel = findViewPanel(viewLayout, containsActiveId);
+                if (activeViewPanel && activeViewPanel.selectedViewId !== activeViewId) {
+                    activeViewId = activeViewPanel.selectedViewId;
+                }
+            }
+            return {...state, viewLayout, activeViewId};
+        }
         case actions.CLOSE_VIEW: {
             const viewPath = action.payload.viewPath;
             const viewId = action.payload.viewId;
@@ -236,11 +249,6 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             const viewPath = action.payload.viewPath;
             const delta = action.payload.delta;
             const viewLayout = changeViewSplitPos(state.viewLayout, viewPath, delta);
-            return {...state, viewLayout};
-        }
-        case actions.MOVE_VIEW:{
-            const {sourceViewId, placement, targetViewId} = action.payload;
-            const viewLayout = moveView(state.viewLayout, sourceViewId, placement, targetViewId);
             return {...state, viewLayout};
         }
         default: {
