@@ -1,7 +1,7 @@
 import {
     VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
     VariableImageLayerState, State, OperationState, WorldViewDataState,
-    TableViewDataState, FigureViewDataState
+    TableViewDataState, FigureViewDataState, SavedLayers
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
@@ -202,7 +202,7 @@ export function newVariableLayer(resource: ResourceState,
 export function updateSelectedVariableLayer(selectedVariableLayer: LayerState,
                                             resource: ResourceState,
                                             variable: VariableState,
-                                            savedLayers?: { [name: string]: LayerState }): LayerState {
+                                            savedLayers?: SavedLayers): LayerState {
     assert.ok(selectedVariableLayer);
     assert.ok(selectedVariableLayer.id === SELECTED_VARIABLE_LAYER_ID);
     const spatialImageVariable = variable && isSpatialImageVariable(variable);
@@ -210,6 +210,7 @@ export function updateSelectedVariableLayer(selectedVariableLayer: LayerState,
     if (spatialImageVariable || spatialVectorVariable) {
         const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
         const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
+        console.log("updateSelectedVariableLayer: ", variable.name, savedLayers, restoredLayer, layerDisplayProperties);
         return {
             ...selectedVariableLayer,
             ...restoredLayer,
@@ -240,8 +241,8 @@ export function updateSelectedVariableLayer(selectedVariableLayer: LayerState,
  * @param restoredLayer
  * @returns {{varIndex: any}}
  */
-function updateVariableLayerVarIndex(variable?: VariableState,
-                                     restoredLayer?: VariableImageLayerState) {
+function updateVariableLayerVarIndex(variable: VariableState | null,
+                                     restoredLayer: VariableImageLayerState | null) {
     let layerDisplayProperties;
     let varIndex;
     if (restoredLayer) {

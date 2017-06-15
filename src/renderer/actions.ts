@@ -1,19 +1,18 @@
 import {
     WorkspaceState, DataStoreState, TaskState, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
-    OperationState, BackendConfigState, VariableState, VariableImageLayerState,
-    OperationKWArgs, WorldViewMode, SavedVariableLayers, TableViewDataState, State
+    OperationState, BackendConfigState, VariableState,
+    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
-    isSpatialImageVariable, isSpatialVectorVariable, genLayerId,
-    GetState, newVariableLayer, getCsvUrl
+    GetState, newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID
 } from "./state-util";
 import {isNumber} from "../common/types";
-import {ViewPath, ViewState} from "./components/ViewState";
+import {ViewPath} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
 import * as d3 from "d3";
@@ -846,8 +845,9 @@ export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean)
     return {type: SET_SHOW_SELECTED_VARIABLE_LAYER, payload: {showSelectedVariableLayer}};
 }
 
-export function setSelectedVariable(resource: ResourceState, selectedVariable: VariableState
-    | null, savedLayers?: SavedVariableLayers) {
+export function setSelectedVariable(resource: ResourceState,
+                                    selectedVariable: VariableState | null,
+                                    savedLayers?: SavedLayers) {
     return {type: SET_SELECTED_VARIABLE, payload: {resource, selectedVariable, savedLayers}};
 }
 
@@ -1036,21 +1036,32 @@ export function moveLayerDown(viewId: string, id: string) {
 }
 
 export function updateLayer(viewId: string, layer: LayerState, ...layerProperties) {
-    if (layerProperties.length) {
-        layer = updateObject({}, layer, ...layerProperties);
-    }
+    return (dispatch) => {
+        if (layerProperties.length) {
+            layer = updateObject({}, layer, ...layerProperties);
+        }
+        dispatch(updateLayerImpl(viewId, layer));
+        if (layer.id === SELECTED_VARIABLE_LAYER_ID) {
+            const varName = (layer as VariableLayerBase).varName;
+            if (varName) {
+                dispatch(saveLayer(varName, layer));
+            }
+        }
+    };
+}
+
+function updateLayerImpl(viewId: string, layer: LayerState) {
     return {type: UPDATE_LAYER, payload: {viewId, layer}};
 }
 
-
 /**
- * Save layer (in state.control), so it can later be restored.
+ * Save layer (in state.session), so it can later be restored.
  *
- * @param key
- * @param layer
+ * @param key a key
+ * @param layer layer data
  * @returns {{type: string, payload: {key: string, layer: LayerState}}}
  */
-export function saveVariableLayer(key: string, layer: LayerState) {
+export function saveLayer(key: string, layer: LayerState) {
     return {type: SAVE_LAYER, payload: {key, layer}};
 }
 

@@ -117,10 +117,8 @@ const initialControlState: ControlState = {
     selectedWorkflowStepId: null,
     selectedWorkspaceResourceName: null,
     selectedVariableName: null,
-    savedLayers: {},
     dialogs: {},
 
-    // TODO (forman): move to session, so they are stored in preferences
     showDataSourceDetails: true,
     showResourceDetails: true,
     showWorkflowStepDetails: true,
@@ -161,12 +159,6 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             const operations = action.payload.operations;
             const selectedOperationName = (operations && operations.length) ? operations[0].name : null;
             return {...state, selectedOperationName};
-        }
-        case actions.SAVE_LAYER: {
-            const key = action.payload.key;
-            const layer = action.payload.layer;
-            const savedLayers = updateObject(state.savedLayers, {[key]: updateObject(layer, {})});
-            return {...state, savedLayers};
         }
         case actions.SET_SELECTED_VARIABLE: {
             const selectedVariable = action.payload.selectedVariable;
@@ -295,7 +287,7 @@ const viewsReducer = (state: ViewState<any>[], action, activeViewId: string) => 
         }
     }
     return newViews || state;
-}
+};
 
 
 const viewReducer = (state: ViewState<any>, action, activeViewId: string) => {
@@ -507,6 +499,7 @@ const initialSessionState: SessionState = {
     resourceNamePrefix: 'res_',
     offlineMode: false,
     showSelectedVariableLayer: true,
+    savedLayers: {},
 
     panelContainerUndockedMode: false,
     leftPanelContainerLayout: {horPos: 300, verPos: 600},
@@ -530,6 +523,11 @@ const sessionReducer = (state: SessionState = initialSessionState, action) => {
             return {...state, ...action.payload};
         case actions.SET_SHOW_SELECTED_VARIABLE_LAYER:
             return {...state, ...action.payload};
+        case actions.SAVE_LAYER: {
+            const {key, layer} = action.payload;
+            const savedLayers = updateObject(state.savedLayers, {[key]: layer});
+            return {...state, savedLayers};
+        }
     }
     return state;
 };

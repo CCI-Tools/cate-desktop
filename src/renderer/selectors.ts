@@ -1,7 +1,7 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
-    WorkflowStepState, VariableVectorLayerState, LayerVariableState, SavedVariableLayers, MplModuleState,
+    WorkflowStepState, VariableVectorLayerState, LayerVariableState, SavedLayers,
     FigureViewDataState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
@@ -14,10 +14,9 @@ import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource} from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
-import {isDefinedAndNotNull, isNumber} from "../common/types";
-import {FigureState} from "./components/matplotlib/MplFigureContainer";
+import {isNumber} from "../common/types";
 
-const EMPTY_OBJECT = {};
+export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -221,40 +220,12 @@ export const selectedDataSourceSelector = createSelector<State, DataSourceState 
     }
 );
 
-export const protocolNameSelector = createSelector<State, string | null, DataSourceState | null>(
-    selectedDataSourceSelector,
-    (dataSource: DataSourceState | null) => {
-        let protocolName = null;
-        if (dataSource && dataSource.meta_info) {
-            const protocols = dataSource.meta_info.protocols;
-            if (protocols && protocols.length > 1) {
-                protocolName = protocols[0];
-            }
-        }
-        return protocolName;
-    }
-);
-
 export const selectedDataSourceTemporalCoverageSelector = createSelector<State, [string, string] | null,
     DataSourceState
     | null>(
     selectedDataSourceSelector,
     (selectedDataSource: DataSourceState): [string, string] | null => {
         return selectedDataSource ? selectedDataSource.temporalCoverage : null;
-    }
-);
-
-export const selectedDataSourceTemporalCoverageMillisSelector = createSelector<State, [number, number] | null,
-    [string, string]
-    | null>(
-    selectedDataSourceTemporalCoverageSelector,
-    (temporalCoverage: [string, string] | null): [number, number] | null => {
-        if (temporalCoverage) {
-            let ms1 = Date.parse(temporalCoverage[0]);
-            let ms2 = Date.parse(temporalCoverage[1]);
-            return [ms1, ms2];
-        }
-        return null;
     }
 );
 
@@ -439,7 +410,7 @@ export const activeViewTypeSelector = createSelector<State, string | null, ViewS
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer selectors
 
-export const savedLayersSelector = (state: State): SavedVariableLayers => state.control.savedLayers;
+export const savedLayersSelector = (state: State): SavedLayers => state.session.savedLayers;
 
 export const selectedLayerIdSelector = createSelector<State, string | null, ViewState<any> | null>(
     activeViewSelector,

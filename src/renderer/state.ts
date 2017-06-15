@@ -41,11 +41,6 @@ export interface AppConfigState {
     webAPIClient: WebAPIClient | null;
 }
 
-export interface MplModuleState {
-    status: string;
-    message: any;
-}
-
 export interface WebAPIConfig {
     // Values read by main.ts from ./cate-config.js
     command?: string;
@@ -572,13 +567,14 @@ export interface TaskState {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ControlState
 
-export type SavedVariableLayers = {[key: string]: VariableImageLayerState|VariableVectorLayerState};
-
 /**
  * Control State is state which is specific to a given container component, and which is not stored in the screen’s
  * URL or in the HTML5 History API.
  */
 export interface ControlState {
+    // TODO (forman): move some global view properties into session, so they are stored in preferences
+    // TODO (forman): Move some local selection properties into workspace so they can be stored.
+
     // DataSourcesPanel
     selectedDataStoreId: string|null;
     selectedDataSourceId: string|null;
@@ -603,12 +599,10 @@ export interface ControlState {
 
     // LayersPanel
     showLayerDetails: boolean;
-    savedLayers: SavedVariableLayers;
 
     // A map that stores the last state of any dialog given a dialogId
     dialogs: {[dialogId: string]: DialogState};
 
-    // TODO (forman): Move view properties into workspace so they can be stored.
     // Take care, workspace objects come from Python back-end, therefore must preserve view settings.
     viewLayout: ViewLayoutState;
     views: ViewState<any>[];
@@ -622,6 +616,7 @@ export interface DialogState {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SessionState
 
+export type SavedLayers = {[key: string]: LayerState};
 
 /**
  * Backend-configuration settings.
@@ -648,6 +643,7 @@ export interface SessionState {
     resourceNamePrefix: string;
     offlineMode: boolean;
     showSelectedVariableLayer: boolean;
+    savedLayers: SavedLayers;
 
     // ApplicationPage
     panelContainerUndockedMode: boolean;

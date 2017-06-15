@@ -1,6 +1,6 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {State, VariableState, ResourceState, SavedVariableLayers} from "../state";
+import {State, VariableState, ResourceState, SavedLayers} from "../state";
 import * as assert from "../../common/assert";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -22,7 +22,7 @@ interface IVariablesPanelProps {
     showSelectedVariableLayer: boolean;
     activeViewId: string;
     activeViewType: string;
-    savedLayers: SavedVariableLayers;
+    savedLayers: SavedLayers;
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
@@ -63,7 +63,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
             assert.ok(selectedVariable);
             this.props.dispatch(actions.setSelectedVariable(resource, selectedVariable, this.props.savedLayers));
         } else {
-            this.props.dispatch(actions.setSelectedVariable(resource, null, null));
+            this.props.dispatch(actions.setSelectedVariable(resource, null));
         }
     }
 
