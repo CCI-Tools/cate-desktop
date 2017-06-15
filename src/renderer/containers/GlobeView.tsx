@@ -72,7 +72,7 @@ class GlobeView extends React.Component<IGlobeViewProps&IGlobeViewOwnProps, null
 
         return (
             <CesiumGlobe id={'CesiumGlobe-' + this.props.view.id}
-                         debug={true}
+                         debug={false}
                          layers={layers}
                          dataSources={dataSources}
                          offlineMode={this.props.offlineMode}

@@ -52,7 +52,7 @@ export class MplFigurePanel extends React.PureComponent<IFigurePanelProps, IFigu
                                     figureUpdateCount={this.props.figureUpdateCount}
                                     figureHeight={this.props.figureHeight || '25em'}
                                     id={this.props.id}
-                                    debug={true}
+                                    debug={false}
                                     webSocketUrl={this.props.webSocketUrl}
                                     style={MplFigurePanel.CONTAINER_DIV_STYLE}
                                     commandSource={FIGURE_COMMAND_SOURCE}

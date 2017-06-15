@@ -1,4 +1,4 @@
-const _DEBUG_WEB_SOCKET_RPC = true;
+const _DEBUG_WEB_SOCKET_RPC = false;
 
 export type MplFigureMessageCallback = (message: string) => any;
 export type MplFigureCommandData = {name: string};

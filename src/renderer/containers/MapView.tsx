@@ -63,7 +63,7 @@ class MapView extends React.Component<IMapViewProps, null> {
 
         return (
             <OpenLayersMap id={'OpenLayersMap-' + this.props.view.id}
-                           debug={true}
+                           debug={false}
                            projectionCode={this.props.view.data.projectionCode}
                            layers={mapLayers}
                            offlineMode={this.props.offlineMode}
