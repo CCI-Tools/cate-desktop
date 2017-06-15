@@ -13,7 +13,7 @@ import {
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
     addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos,
-    addViewToPanel, moveViewToPanel
+    addViewToPanel, moveView
 } from "./components/ViewState";
 
 // Note: reducers are unit-tested through actions.spec.ts
@@ -239,8 +239,8 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             return {...state, viewLayout};
         }
         case actions.MOVE_VIEW:{
-            const {sourceViewId, targetViewId, placeBefore} = action.payload;
-            const viewLayout = moveViewToPanel(state.viewLayout, sourceViewId, targetViewId, placeBefore);
+            const {sourceViewId, placement, targetViewId} = action.payload;
+            const viewLayout = moveView(state.viewLayout, sourceViewId, placement, targetViewId);
             return {...state, viewLayout};
         }
         default: {

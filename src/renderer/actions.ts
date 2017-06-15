@@ -953,8 +953,8 @@ export function changeViewSplitPos(viewPath: ViewPath, delta: number) {
     return {type: CHANGE_VIEW_SPLIT_POS, payload: {viewPath, delta}};
 }
 
-export function moveViewToPanel(sourceViewId: string, targetViewId: string, placeBefore: boolean) {
-    return {type: MOVE_VIEW, payload: {sourceViewId, targetViewId, placeBefore}};
+export function moveView(sourceViewId: string, placement: "before" | "after", targetViewId: string) {
+    return {type: MOVE_VIEW, payload: {sourceViewId, placement, targetViewId}};
 }
 
 

@@ -26,7 +26,7 @@ interface IViewManagerProps {
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
     onCloseView: (viewPath: ViewPath, viewId: string) => void;
     onCloseAllViews: (viewPath: ViewPath) => void;
-    onMoveView: (sourceViewId: string, targetViewId: string, placeBefore: boolean) => void;
+    onMoveView: (sourceViewId: string, placement: "before"|"after", targetViewId: string) => void;
     onSplitViewPanel: (viewPath: ViewPath, dir: SplitDir, pos: number) => void;
     onChangeViewSplitPos: (viewPath: ViewPath, delta: number) => void;
 }
@@ -191,7 +191,7 @@ interface IViewPanelProps {
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
     onCloseView: (viewPath: ViewPath, viewId: string) => void;
     onCloseAllViews: (viewPath: ViewPath) => void;
-    onMoveView: (sourceViewId: string, targetViewId: string, placeBefore: boolean) => void;
+    onMoveView: (sourceViewId: string, placement: "before"|"after", targetViewId: string) => void;
     onSplitViewPanel: (viewPath: ViewPath, dir: SplitDir, pos: number) => void;
 }
 
@@ -360,13 +360,13 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
 
             const moveBeforeMenuItems = result.before.map(viewId => {
                 const view = this.props.viewMap[viewId];
-                const onClick = () => this.props.onMoveView(view.id, selectedViewId, true);
+                const onClick = () => this.props.onMoveView(view.id, 'before', selectedViewId);
                 return (<MenuItem key={viewId} onClick={onClick} text={view.title}/>);
             });
             const moveAfterMenuItems = result.after.map(viewId => {
                 const view = this.props.viewMap[viewId];
-                const onClick = () => this.props.onMoveView(view.id, selectedViewId, false);
-                return (<MenuItem key={viewId} text={view.title}/>);
+                const onClick = () => this.props.onMoveView(view.id, 'after', selectedViewId);
+                return (<MenuItem key={viewId} onClick={onClick} text={view.title}/>);
             });
 
             let moveBeforeMenuItem;

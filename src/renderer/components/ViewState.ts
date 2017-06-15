@@ -84,11 +84,11 @@ export function findMoveTargetViewIds(viewLayout: ViewLayoutState, sourceViewId:
     return result;
 }
 
-export function moveViewToPanel(viewLayout: ViewLayoutState,
-                                sourceViewId: string,
-                                targetViewId: string,
-                                placeBefore: boolean): ViewLayoutState {
-    return _moveViewToPanel(viewLayout, sourceViewId, targetViewId, placeBefore);
+export function moveView(viewLayout: ViewLayoutState,
+                         sourceViewId: string,
+                         placement: "before" | "after",
+                         targetViewId: string): ViewLayoutState {
+    return _moveView(viewLayout, sourceViewId, placement, targetViewId);
 }
 
 export function addViewToPanel(viewLayout: ViewLayoutState,
@@ -178,16 +178,16 @@ function _getViewPanel(viewLayout: ViewLayoutState,
 }
 
 
-export function _moveViewToPanel(viewLayout: ViewLayoutState,
-                                 sourceViewId: string,
-                                 targetViewId: string,
-                                 placeBefore: boolean): ViewLayoutState {
+export function _moveView(viewLayout: ViewLayoutState,
+                          sourceViewId: string,
+                          placement: "before" | "after",
+                          targetViewId: string): ViewLayoutState {
     if (isViewSplitState(viewLayout)) {
         const viewSplit = viewLayout as ViewSplitState;
         let oldLayout1 = viewSplit.layouts[0];
         let oldLayout2 = viewSplit.layouts[1];
-        let newLayout1 = _moveViewToPanel(oldLayout1, sourceViewId, targetViewId, placeBefore);
-        let newLayout2 = _moveViewToPanel(oldLayout2, sourceViewId, targetViewId, placeBefore);
+        let newLayout1 = _moveView(oldLayout1, sourceViewId, placement, targetViewId);
+        let newLayout2 = _moveView(oldLayout2, sourceViewId, placement, targetViewId);
         if (oldLayout1 === newLayout1 && oldLayout2 === newLayout2) {
             // no change!
             return viewSplit;
@@ -223,7 +223,7 @@ export function _moveViewToPanel(viewLayout: ViewLayoutState,
 
         const targetViewIndex = viewIds.findIndex(id => id === targetViewId);
         if (targetViewIndex >= 0) {
-            if (placeBefore) {
+            if (placement === 'before') {
                 // insert sourceViewId before
                 viewIds = viewIds.slice(0, targetViewIndex).concat([sourceViewId].concat(viewIds.slice(targetViewIndex)));
             } else {

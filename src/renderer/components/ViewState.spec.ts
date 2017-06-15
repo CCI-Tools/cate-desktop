@@ -8,7 +8,7 @@ import {
     removeAllViewsFromLayout,
     removeViewFromViewArray,
     ViewLayoutState,
-    ViewState, moveViewToPanel, ViewSplitState, ViewPanelState,
+    ViewState, moveView, ViewSplitState, ViewPanelState,
 } from "./ViewState";
 
 describe('function manipulating a ViewLayout', () => {
@@ -50,7 +50,7 @@ describe('function manipulating a ViewLayout', () => {
 
     describe('moveViewToPanel()', () => {
         it('can move view before another first one', () => {
-            expect(moveViewToPanel(viewSplit1, 'h', 'a', true)).to.deep.equal({
+            expect(moveView(viewSplit1, 'h', 'before', 'a')).to.deep.equal({
                 dir: "hor",
                 layouts: [
                     {
@@ -76,7 +76,7 @@ describe('function manipulating a ViewLayout', () => {
             });
         });
         it('can move view before another last one', () => {
-            expect(moveViewToPanel(viewSplit1, 'h', 'c', true)).to.deep.equal({
+            expect(moveView(viewSplit1, 'h', 'before', 'c')).to.deep.equal({
                 dir: "hor",
                 pos: 80,
                 layouts: [
@@ -102,7 +102,7 @@ describe('function manipulating a ViewLayout', () => {
             });
         });
         it('can move view after another first one', () => {
-            expect(moveViewToPanel(viewSplit1, 'h', 'a', false)).to.deep.equal({
+            expect(moveView(viewSplit1, 'h', 'after', 'a')).to.deep.equal({
                 dir: "hor",
                 pos: 80,
                 layouts: [
@@ -128,7 +128,7 @@ describe('function manipulating a ViewLayout', () => {
             });
         });
         it('can move view after another last one', () => {
-            expect(moveViewToPanel(viewSplit1, 'h', 'c', false)).to.deep.equal({
+            expect(moveView(viewSplit1, 'h', 'after', 'c')).to.deep.equal({
                 dir: "hor",
                 pos: 80,
                 layouts: [
@@ -154,7 +154,7 @@ describe('function manipulating a ViewLayout', () => {
             });
         });
         it('can move view within others', () => {
-            expect(moveViewToPanel(viewSplit1, 'b', 'e', true)).to.deep.equal({
+            expect(moveView(viewSplit1, 'b', 'before', 'e')).to.deep.equal({
                 dir: "hor",
                 pos: 80,
                 layouts: [
@@ -177,6 +177,29 @@ describe('function manipulating a ViewLayout', () => {
                         selectedViewId: "c",
                     }
                 ],
+            });
+        });
+
+        it('can move view within panel', () => {
+            const viewPanel = {
+                viewIds: ["a", "b", "c", "d"],
+                selectedViewId: "a",
+            };
+            expect(moveView(viewPanel, 'd', 'before', 'a')).to.deep.equal({
+                viewIds: ["d", "a", "b", "c"],
+                selectedViewId: "d",
+            });
+            expect(moveView(viewPanel, 'd', 'after', 'a')).to.deep.equal({
+                viewIds: ["a", "d", "b", "c"],
+                selectedViewId: "d",
+            });
+            expect(moveView(viewPanel, 'a', 'before', 'd')).to.deep.equal({
+                viewIds: ["b", "c", "a", "d"],
+                selectedViewId: "a",
+            });
+            expect(moveView(viewPanel, 'a', 'after', 'd')).to.deep.equal({
+                viewIds: ["b", "c", "d", "a"],
+                selectedViewId: "a",
             });
         });
     });
