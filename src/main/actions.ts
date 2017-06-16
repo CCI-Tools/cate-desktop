@@ -1,4 +1,5 @@
 import * as electron from 'electron';
+import {getAppDataDir, getAppIconPath} from "./appenv";
 
 const app = electron.app;
 
@@ -280,8 +281,21 @@ export const actions = {
     },
 
     openAboutWindow: {
-        label: 'About ' + electron.app.getName(),
+        label: 'About ' + app.getName(),
         role: 'about',
         category: 'help',
+        click: () => {
+            const iconPath = getAppIconPath();
+            const iconImage = electron.nativeImage.createFromPath(iconPath);
+            electron.dialog.showMessageBox({
+                title: `About ${app.getName()}`,
+                message: `${app.getName()}, version ${app.getVersion()}`,
+                detail: `Program: ${app.getAppPath()}\nData: ${getAppDataDir()}\n\n${app.getName()} is open source software distributed under the MIT license.`,
+                icon: iconImage,
+            });
+        },
     },
 };
+
+
+

@@ -53,7 +53,8 @@ if (OS_IS_DARWIN) {
 }
 
 let viewSubMenu = [
-    actions.reload,
+    // TODO (forman): we currently can't reload - why?
+    // actions.reload,
     actions.toggleDevTools,
     ________________,
     actions.resetPageZoom,

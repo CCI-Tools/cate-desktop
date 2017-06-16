@@ -12,6 +12,7 @@ import {menuTemplate} from "./menu";
 import {error} from "util";
 import * as semver from "semver";
 import {pep440ToSemver} from "../common/version";
+import {getAppDataDir, getAppIconPath} from "./appenv";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -51,19 +52,6 @@ let _config: Configuration;
 let _prefsUpdateRequestedOnClose = false;
 let _prefsUpdatedOnClose = false;
 
-function getAppIconPath() {
-    let icon_file = "cate-icon.png";
-    if (process.platform === "darwin") {
-        icon_file = "darwin/icon.icns";
-    } else if (process.platform === "win32") {
-        icon_file = "win32/cate-icon.ico";
-    }
-    return path.join(app.getAppPath(), 'resources', icon_file);
-}
-
-function getAppDataDir() {
-    return path.join(app.getPath('home'), '.cate');
-}
 
 function getOptionArg(options: string[]) {
     let args: Array<string> = process.argv.slice(1);
