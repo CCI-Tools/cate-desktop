@@ -26,7 +26,7 @@ function mapStateToProps(state: State): IStatusBarProps {
 
 const mapDispatchToProps = {
     cancelJob: actions.cancelJob,
-    removeJob: actions.removeJob
+    removeJob: actions.removeTaskState
 };
 
 /**

@@ -81,6 +81,10 @@ export function updateTaskState(jobId: number, taskState: TaskState): Action {
     return {type: UPDATE_TASK_STATE, payload: {jobId, taskState}};
 }
 
+export function removeTaskState(jobId: number): Action {
+    return {type: REMOVE_TASK_STATE, payload: {jobId}};
+}
+
 export function setControlProperty(propertyName: string, value: any): Action {
     return updateControlState({[propertyName]: value});
 }
@@ -128,10 +132,6 @@ export function storeBackendConfig(backendConfig: BackendConfigState): ThunkActi
 
         callAPI(dispatch, 'Storing backend configuration', call);
     };
-}
-
-export function removeJob(jobId: number): Action {
-    return {type: REMOVE_TASK_STATE, payload: {jobId}};
 }
 
 export function cancelJob(jobId: number): ThunkAction {
