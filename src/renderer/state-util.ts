@@ -1,13 +1,11 @@
 import {
     VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
-    VariableImageLayerState, State, OperationState, WorldViewDataState,
+    VariableImageLayerState, OperationState, WorldViewDataState,
     TableViewDataState, FigureViewDataState, SavedLayers
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
 import {isNumber} from "../common/types";
-
-export type GetState = () => State;
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 export const COUNTRIES_LAYER_ID = 'countries';

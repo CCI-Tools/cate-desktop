@@ -2,22 +2,49 @@ import {
     WorkspaceState, DataStoreState, TaskState, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
-    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase
+    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
-    GetState, newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID
+    newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID
 } from "./state-util";
-import {isNumber} from "../common/types";
 import {ViewPath} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
 import * as d3 from "d3";
 
 const CANCELLED_CODE = 999;
+
+
+/**
+ * The fundamental Action type as it is used here.
+ * All actions must have a "type" and a "payload" property.
+ * Basic structure (i.e. the "type" property) is prescribed by "redux" module.
+ */
+export type Action = { type: string; payload: any; }
+
+/**
+ * Signature of the Action dispatcher as used here.
+ * Basic call interface is prescribed by "redux" module.
+ */
+export type Dispatch = (action: Action|ThunkAction) => void;
+
+/**
+ * Signature of a function that returns the current application state object.
+ * Call interface is prescribed by "redux" module.
+ */
+export type GetState = () => State;
+
+/**
+ * Signature of a "thunk" action function as used here.
+ * A thunk is piece of code that is executed later.
+ * Basic call interface is prescribed by "redux-thunk" module.
+ */
+export type ThunkAction = (dispatch?: Dispatch, getState?: GetState) => void;
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application-level actions
@@ -30,51 +57,51 @@ export const REMOVE_TASK_STATE = 'REMOVE_TASK_STATE';
 export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 
-export function updateInitialState(initialState: Object) {
+export function updateInitialState(initialState: Object): Action {
     return {type: UPDATE_INITIAL_STATE, payload: initialState};
 }
 
-export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting' | 'open' | 'error' | 'closed') {
+export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting' | 'open' | 'error' | 'closed'): Action {
     return {type: SET_WEBAPI_STATUS, payload: {webAPIClient, webAPIStatus}};
 }
 
-export function updateDialogState(dialogId: string, ...dialogState) {
+export function updateDialogState(dialogId: string, ...dialogState): Action {
     return {type: UPDATE_DIALOG_STATE, payload: {dialogId, dialogState: Object.assign({}, ...dialogState)}};
 }
 
-export function showDialog(dialogId: string) {
+export function showDialog(dialogId: string): Action {
     return updateDialogState(dialogId, {isOpen: true});
 }
 
-export function hideDialog(dialogId: string, dialogState?: any) {
+export function hideDialog(dialogId: string, dialogState?: any): Action {
     return updateDialogState(dialogId, dialogState, {isOpen: false});
 }
 
-export function updateTaskState(jobId: number, taskState: TaskState) {
+export function updateTaskState(jobId: number, taskState: TaskState): Action {
     return {type: UPDATE_TASK_STATE, payload: {jobId, taskState}};
 }
 
-export function setControlProperty(propertyName: string, value: any) {
+export function setControlProperty(propertyName: string, value: any): Action {
     return updateControlState({[propertyName]: value});
 }
 
-export function updateControlState(controlState: any) {
+export function updateControlState(controlState: any): Action {
     return {type: UPDATE_CONTROL_STATE, payload: controlState};
 }
 
-export function updatePreferences(session: any) {
-    return (dispatch) => {
+export function updatePreferences(session: any): ThunkAction {
+    return (dispatch: Dispatch) => {
         dispatch(updateSessionState(session));
         dispatch(sendPreferencesToMain());
     };
 }
 
-export function updateSessionState(sessionState: any) {
+export function updateSessionState(sessionState: any): Action {
     return {type: UPDATE_SESSION_STATE, payload: sessionState};
 }
 
-export function loadBackendConfig() {
-    return (dispatch, getState: GetState) => {
+export function loadBackendConfig(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         function call() {
             // Get state from the Python back-end
             return selectors.backendConfigAPISelector(getState()).getBackendConfig();
@@ -88,12 +115,12 @@ export function loadBackendConfig() {
     };
 }
 
-export function updateBackendConfig(backendConfig: BackendConfigState) {
+export function updateBackendConfig(backendConfig: BackendConfigState): Action {
     return updateSessionState({backendConfig});
 }
 
-export function storeBackendConfig(backendConfig: BackendConfigState) {
-    return (dispatch, getState: GetState) => {
+export function storeBackendConfig(backendConfig: BackendConfigState): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         function call() {
             // Store state changes to the Python back-end
             return selectors.backendConfigAPISelector(getState()).setBackendConfig(backendConfig);
@@ -103,30 +130,36 @@ export function storeBackendConfig(backendConfig: BackendConfigState) {
     };
 }
 
-export function removeJob(jobId: number) {
+export function removeJob(jobId: number): Action {
     return {type: REMOVE_TASK_STATE, payload: {jobId}};
 }
 
-export function cancelJob(jobId: number) {
-    return (dispatch, getState: GetState) => {
+export function cancelJob(jobId: number): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const webAPIClient = selectors.webAPIClientSelector(getState());
         webAPIClient.cancel(jobId);
     }
 }
 
-function jobSubmitted(jobId: number, title: string) {
+/**
+ * Private action dispatched from callAPI() function.
+ * @param jobId the job ID
+ * @param title a job title
+ * @returns an action
+ */
+function jobSubmitted(jobId: number, title: string): Action {
     return updateTaskState(jobId, {status: JobStatusEnum.SUBMITTED, title: title});
 }
 
-function jobProgress(progress: JobProgress) {
+function jobProgress(progress: JobProgress): Action {
     return updateTaskState(progress.id, {status: JobStatusEnum.IN_PROGRESS, progress});
 }
 
-function jobDone(jobId: number) {
+function jobDone(jobId: number): Action {
     return updateTaskState(jobId, {status: JobStatusEnum.DONE});
 }
 
-function jobFailed(jobId: number, failure: JobFailure) {
+function jobFailed(jobId: number, failure: JobFailure): Action {
     const status = failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED;
     if (status === JobStatusEnum.FAILED) {
         console.error(failure);
@@ -154,7 +187,7 @@ export type JobPromisePlanB = (jobFailure: JobFailure) => void;
  * @param action The action to be performed when the API call succeeds.
  * @param planB The action to be performed when the API call fails.
  */
-export function callAPI<T>(dispatch,
+export function callAPI<T>(dispatch: (action: Action) => void,
                            title: string,
                            call: JobPromiseFactory<T>,
                            action?: JobPromiseAction<T>,
@@ -196,8 +229,8 @@ export const UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE = 'UPDATE_DATA_SOURCE_TEMPORAL
  *
  * @returns a Redux thunk action
  */
-export function loadDataStores() {
-    return (dispatch, getState: GetState) => {
+export function loadDataStores(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         function call() {
             return selectors.datasetAPISelector(getState()).getDataStores();
         }
@@ -216,7 +249,7 @@ export function loadDataStores() {
 }
 
 
-export function updateDataStores(dataStores: Array<DataStoreState>) {
+export function updateDataStores(dataStores: Array<DataStoreState>): Action {
     return {type: UPDATE_DATA_STORES, payload: {dataStores}};
 }
 
@@ -226,8 +259,8 @@ export function updateDataStores(dataStores: Array<DataStoreState>) {
  * @param dataStoreId
  * @returns a Redux thunk action
  */
-export function loadDataSources(dataStoreId: string) {
-    return (dispatch, getState: GetState) => {
+export function loadDataSources(dataStoreId: string): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         function call(onProgress) {
             return selectors.datasetAPISelector(getState()).getDataSources(dataStoreId, onProgress);
         }
@@ -246,12 +279,12 @@ export function loadDataSources(dataStoreId: string) {
     }
 }
 
-export function updateDataSources(dataStoreId: string, dataSources) {
+export function updateDataSources(dataStoreId: string, dataSources): Action {
     return {type: UPDATE_DATA_SOURCES, payload: {dataStoreId, dataSources}};
 }
 
-export function setSelectedDataStoreId(selectedDataStoreId: string | null) {
-    return (dispatch, getState: GetState) => {
+export function setSelectedDataStoreId(selectedDataStoreId: string | null): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         if (getState().control.selectedDataStoreId === selectedDataStoreId) {
             return;
         }
@@ -277,8 +310,8 @@ export function setDataSourceFilterExpr(dataSourceFilterExpr: string) {
     return updateControlState({dataSourceFilterExpr});
 }
 
-export function loadTemporalCoverage(dataStoreId: string, dataSourceId: string) {
-    return (dispatch, getState: GetState) => {
+export function loadTemporalCoverage(dataStoreId: string, dataSourceId: string): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
 
         function call(onProgress) {
             return selectors.datasetAPISelector(getState()).getTemporalCoverage(dataStoreId, dataSourceId, onProgress);
@@ -292,13 +325,14 @@ export function loadTemporalCoverage(dataStoreId: string, dataSourceId: string) 
     };
 }
 
-export function updateDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: string, temporalCoverage: [string, string]
-    | null) {
+export function updateDataSourceTemporalCoverage(dataStoreId: string,
+                                                 dataSourceId: string,
+                                                 temporalCoverage: [string, string] | null): Action {
     return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
 }
 
-export function downloadDataset(dataSourceId: string, localName: string, args: any) {
-    return (dispatch, getState: GetState) => {
+export function downloadDataset(dataSourceId: string, localName: string, args: any): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         function call(onProgress) {
             return selectors.datasetAPISelector(getState()).makeDataSourceLocal(dataSourceId, localName, args, onProgress);
         }
@@ -318,8 +352,8 @@ export function downloadDataset(dataSourceId: string, localName: string, args: a
         callAPI(dispatch, `Creating local copy for data source "${dataSourceId}" as "${localName}""`, call, action);
     }
 }
-export function openDataset(dataSourceId: string, args: any) {
-    return (dispatch, getState: GetState) => {
+export function openDataset(dataSourceId: string, args: any): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
 
         // TODO (forman): Handle case where action is called twice without completing the first.
         //                In this case the same resource name will be generated :(
@@ -343,8 +377,8 @@ export function openDataset(dataSourceId: string, args: any) {
     }
 }
 
-export function addLocalDataset(dataSourceId: string, filePathPattern: string) {
-    return (dispatch, getState: GetState) => {
+export function addLocalDataset(dataSourceId: string, filePathPattern: string): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         function call(onProgress) {
             return selectors.datasetAPISelector(getState()).addLocalDataSource(dataSourceId, filePathPattern, onProgress);
         }
@@ -357,9 +391,9 @@ export function addLocalDataset(dataSourceId: string, filePathPattern: string) {
     }
 }
 
-export function removeLocalDataset(dataSourceId: string, removeFiles: boolean) {
-    return (dispatch, getState: GetState) => {
-        function call(onProgress) {
+export function removeLocalDataset(dataSourceId: string, removeFiles: boolean): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        function call() {
             return selectors.datasetAPISelector(getState()).removeLocalDataSource(dataSourceId, removeFiles);
         }
 
@@ -375,8 +409,8 @@ export function removeLocalDataset(dataSourceId: string, removeFiles: boolean) {
 
 export const UPDATE_OPERATIONS = 'UPDATE_OPERATIONS';
 
-export function loadOperations() {
-    return (dispatch, getState: GetState) => {
+export function loadOperations(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
 
         function call() {
             return selectors.operationAPISelector(getState()).getOperations();
@@ -390,7 +424,7 @@ export function loadOperations() {
     };
 }
 
-export function updateOperations(operations) {
+export function updateOperations(operations): Action {
     return {type: UPDATE_OPERATIONS, payload: {operations}};
 }
 
@@ -410,8 +444,8 @@ export function showOperationStepDialog(dialogId: string) {
     return showDialog(dialogId);
 }
 
-export function hideOperationStepDialog(dialogId: string, inputAssignments?) {
-    return (dispatch, getState: GetState) => {
+export function hideOperationStepDialog(dialogId: string, inputAssignments?): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         if (inputAssignments) {
             const dialogState = getState().control.dialogs[dialogId] as any;
             inputAssignments = Object.assign({}, dialogState.inputAssignments, inputAssignments)
@@ -432,8 +466,8 @@ export const RENAME_RESOURCE = 'RENAME_RESOURCE';
  *
  * @returns a Redux thunk action
  */
-export function loadInitialWorkspace() {
-    return (dispatch, getState: GetState) => {
+export function loadInitialWorkspace(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const reopenLastWorkspace = getState().session.reopenLastWorkspace;
         const lastWorkspacePath = getState().session.lastWorkspacePath;
         if (reopenLastWorkspace && lastWorkspacePath) {
@@ -450,8 +484,8 @@ export function loadInitialWorkspace() {
  * @param workspacePath workspace path, if null, a new scratch workspace will be created
  * @returns a Redux thunk action
  */
-export function newWorkspace(workspacePath: string | null) {
-    return (dispatch, getState: GetState) => {
+export function newWorkspace(workspacePath: string | null): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         function call() {
             return selectors.workspaceAPISelector(getState()).newWorkspace(workspacePath);
         }
@@ -475,8 +509,8 @@ export function newWorkspace(workspacePath: string | null) {
  * @param workspacePath workspace path
  * @returns a Redux thunk action
  */
-export function openWorkspace(workspacePath?: string | null) {
-    return (dispatch, getState: GetState) => {
+export function openWorkspace(workspacePath?: string | null): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         function call(onProgress) {
             return selectors.workspaceAPISelector(getState()).openWorkspace(workspacePath, onProgress);
         }
@@ -506,8 +540,8 @@ export function openWorkspace(workspacePath?: string | null) {
  *
  * @returns a Redux thunk action
  */
-export function closeWorkspace() {
-    return (dispatch, getState: GetState) => {
+export function closeWorkspace(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
@@ -528,8 +562,8 @@ export function closeWorkspace() {
  *
  * @returns a Redux thunk action
  */
-export function saveWorkspace() {
-    return (dispatch, getState: GetState) => {
+export function saveWorkspace(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         let workspace = getState().data.workspace;
         assert.ok(workspace);
 
@@ -556,8 +590,8 @@ export function saveWorkspace() {
  *
  * @returns a Redux thunk action
  */
-export function saveWorkspaceAs(workspacePath: string) {
-    return (dispatch, getState: GetState) => {
+export function saveWorkspaceAs(workspacePath: string): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
@@ -578,8 +612,8 @@ export function saveWorkspaceAs(workspacePath: string) {
  *
  * @returns a Redux thunk action
  */
-export function newWorkspaceInteractive() {
-    return (dispatch, getState: GetState) => {
+export function newWorkspaceInteractive(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const workspacePath = showSingleFileOpenDialog({
             title: "New Workspace - Select Directory",
             buttonLabel: "Select",
@@ -603,8 +637,8 @@ export function newWorkspaceInteractive() {
  *
  * @returns a Redux thunk action
  */
-export function openWorkspaceInteractive() {
-    return (dispatch, getState: GetState) => {
+export function openWorkspaceInteractive(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const workspacePath = showSingleFileOpenDialog({
             title: "Open Workspace - Select Directory",
             buttonLabel: "Open",
@@ -639,8 +673,8 @@ export function openWorkspaceInteractive() {
  *
  * @returns a Redux thunk action
  */
-export function closeWorkspaceInteractive() {
-    return (dispatch, getState: GetState) => {
+export function closeWorkspaceInteractive(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const ok = maybeSaveCurrentWorkspace(dispatch, getState,
             "Close Workspace",
             "Would you like to save the current workspace before closing it?",
@@ -657,8 +691,8 @@ export function closeWorkspaceInteractive() {
  *
  * @returns a Redux thunk action
  */
-export function saveWorkspaceInteractive() {
-    return (dispatch, getState: GetState) => {
+export function saveWorkspaceInteractive(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const workspace = getState().data.workspace;
         if (workspace.isScratch) {
             dispatch(saveWorkspaceAsInteractive());
@@ -673,8 +707,8 @@ export function saveWorkspaceInteractive() {
  *
  * @returns a Redux thunk action
  */
-export function saveWorkspaceAsInteractive() {
-    return (dispatch) => {
+export function saveWorkspaceAsInteractive(): ThunkAction {
+    return (dispatch: Dispatch) => {
         const workspacePath = showSingleFileOpenDialog({
             title: "Save Workspace As - Select Directory",
             buttonLabel: "Select",
@@ -691,7 +725,7 @@ export function saveWorkspaceAsInteractive() {
  *
  * @returns false, if action was cancelled, otherwise true
  */
-const maybeSaveCurrentWorkspace = function (dispatch, getState: GetState, title: string, message: string, detail?: string): boolean {
+function maybeSaveCurrentWorkspace(dispatch, getState: GetState, title: string, message: string, detail?: string): boolean {
     const workspace = getState().data.workspace;
     if (workspace) {
         const maySave = workspace.workflow.steps.length && (workspace.isModified || !workspace.isSaved);
@@ -716,12 +750,10 @@ const maybeSaveCurrentWorkspace = function (dispatch, getState: GetState, title:
         }
     }
     return true;
-};
+}
 
-// setPreferencesProperty(
-
-export function setCurrentWorkspace(workspace: WorkspaceState) {
-    return (dispatch) => {
+export function setCurrentWorkspace(workspace: WorkspaceState): ThunkAction {
+    return (dispatch: Dispatch) => {
         dispatch(setCurrentWorkspaceImpl(workspace));
         if (!workspace.isScratch) {
             dispatch(updatePreferences({lastWorkspacePath: workspace.baseDir} as any));
@@ -729,12 +761,12 @@ export function setCurrentWorkspace(workspace: WorkspaceState) {
     }
 }
 
-function setCurrentWorkspaceImpl(workspace: WorkspaceState) {
+function setCurrentWorkspaceImpl(workspace: WorkspaceState): Action {
     return {type: SET_CURRENT_WORKSPACE, payload: {workspace}};
 }
 
-export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: string) {
-    return (dispatch, getState: GetState) => {
+export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: string): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         dispatch(setSelectedWorkspaceResourceNameImpl(selectedWorkspaceResourceName));
         if (selectedWorkspaceResourceName && getState().data.workspace) {
             const resources: Array<ResourceState> = getState().data.workspace.resources;
@@ -748,17 +780,17 @@ export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: 
     }
 }
 
-function setSelectedWorkspaceResourceNameImpl(selectedWorkspaceResourceName: string) {
+function setSelectedWorkspaceResourceNameImpl(selectedWorkspaceResourceName: string): Action {
     return updateControlState({selectedWorkspaceResourceName});
 }
 
 //noinspection JSUnusedGlobalSymbols
-export function setSelectedWorkflowStepId(selectedWorkflowStepId: string) {
+export function setSelectedWorkflowStepId(selectedWorkflowStepId: string): Action {
     return updateControlState({selectedWorkflowStepId});
 }
 
-export function setWorkspaceResource(resName: string, opName: string, opArgs: OperationKWArgs, title: string) {
-    return (dispatch, getState: GetState) => {
+export function setWorkspaceResource(resName: string, opName: string, opArgs: OperationKWArgs, title: string): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
@@ -775,8 +807,8 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: Op
     }
 }
 
-export function renameWorkspaceResource(resName: string, newResName: string) {
-    return (dispatch, getState: GetState) => {
+export function renameWorkspaceResource(resName: string, newResName: string): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
@@ -793,15 +825,15 @@ export function renameWorkspaceResource(resName: string, newResName: string) {
     }
 }
 
-export function renameWorkspaceResourceImpl(resName: string, newResName: string) {
+export function renameWorkspaceResourceImpl(resName: string, newResName: string): Action {
     return {type: RENAME_RESOURCE, payload: {resName, newResName}};
 }
 
 export function getWorkspaceVariableStatistics(resName: string,
                                                varName: string,
                                                varIndex: Array<number>,
-                                               action: (statistics: ImageStatisticsState) => any) {
-    return (dispatch, getState: GetState) => {
+                                               action: (statistics: ImageStatisticsState) => any): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
@@ -817,8 +849,8 @@ export function getWorkspaceVariableStatistics(resName: string,
     }
 }
 
-export function saveFigureImageAs(imageUrl: string, figureId: number) {
-    return (dispatch, getState: GetState) => {
+export function saveFigureImageAs(imageUrl: string, figureId: number): ThunkAction {
+    return () => {
         console.log("saveFigureImageAs: ", imageUrl, figureId);
         const electron = require('electron');
         electron.shell.openExternal(imageUrl + "/png");
@@ -841,13 +873,13 @@ export function saveFigureImageAs(imageUrl: string, figureId: number) {
 export const SET_SHOW_SELECTED_VARIABLE_LAYER = 'SET_SHOW_SELECTED_VARIABLE_LAYER';
 export const SET_SELECTED_VARIABLE = 'SET_SELECTED_VARIABLE';
 
-export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean) {
+export function setShowSelectedVariableLayer(showSelectedVariableLayer: boolean): Action {
     return {type: SET_SHOW_SELECTED_VARIABLE_LAYER, payload: {showSelectedVariableLayer}};
 }
 
 export function setSelectedVariable(resource: ResourceState,
                                     selectedVariable: VariableState | null,
-                                    savedLayers?: SavedLayers) {
+                                    savedLayers?: SavedLayers): Action {
     return {type: SET_SELECTED_VARIABLE, payload: {resource, selectedVariable, savedLayers}};
 }
 
@@ -858,21 +890,6 @@ export function addVariableLayer(viewId: string,
                                  savedLayers?: { [name: string]: LayerState }) {
     let layer = newVariableLayer(resource, variable, savedLayers);
     return addLayer(viewId, layer, selectLayer);
-}
-
-function createVariableLayerDisplayProperties(variable: VariableState) {
-    return {
-        colorMapName: 'jet',
-        displayMin: isNumber(variable.valid_min) ? variable.valid_min : 0.,
-        displayMax: isNumber(variable.valid_max) ? variable.valid_max : 1.,
-        alphaBlending: false,
-        opacity: 1.0,
-        brightness: 1.0,
-        contrast: 1.0,
-        hue: 0.0,
-        saturation: 1.0,
-        gamma: 1.0,
-    };
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -917,43 +934,39 @@ export const CHANGE_VIEW_SPLIT_POS = "CHANGE_VIEW_SPLIT_POS";
 export const MOVE_VIEW = "MOVE_VIEW";
 
 
-export function addWorldView(placeAfterViewId: string | null) {
+export function addWorldView(placeAfterViewId: string | null): Action {
     return {type: ADD_WORLD_VIEW, payload: {placeAfterViewId}};
 }
 
-export function addChartView(placeAfterViewId: string | null) {
-    return {type: ADD_CHART_VIEW, payload: {placeAfterViewId}};
-}
-
-export function addFigureView(placeAfterViewId: string | null, resource: ResourceState) {
+export function addFigureView(placeAfterViewId: string | null, resource: ResourceState): Action {
     return {type: ADD_FIGURE_VIEW, payload: {placeAfterViewId, resource}};
 }
 
-export function addTableView(placeAfterViewId: string | null) {
+export function addTableView(placeAfterViewId: string | null): Action {
     return {type: ADD_TABLE_VIEW, payload: {placeAfterViewId}};
 }
 
-export function selectView(viewPath: ViewPath, viewId: string) {
+export function selectView(viewPath: ViewPath, viewId: string): Action {
     return {type: SELECT_VIEW, payload: {viewPath, viewId}};
 }
 
-export function closeView(viewPath: ViewPath, viewId: string) {
+export function closeView(viewPath: ViewPath, viewId: string): Action {
     return {type: CLOSE_VIEW, payload: {viewPath, viewId}};
 }
 
-export function closeAllViews(viewPath: ViewPath) {
+export function closeAllViews(viewPath: ViewPath): Action {
     return {type: CLOSE_ALL_VIEWS, payload: {viewPath}};
 }
 
-export function splitViewPanel(viewPath: ViewPath, dir: SplitDir, pos: number) {
+export function splitViewPanel(viewPath: ViewPath, dir: SplitDir, pos: number): Action {
     return {type: SPLIT_VIEW_PANEL, payload: {viewPath, dir, pos}};
 }
 
-export function changeViewSplitPos(viewPath: ViewPath, delta: number) {
+export function changeViewSplitPos(viewPath: ViewPath, delta: number): Action {
     return {type: CHANGE_VIEW_SPLIT_POS, payload: {viewPath, delta}};
 }
 
-export function moveView(sourceViewId: string, placement: "before" | "after", targetViewId: string) {
+export function moveView(sourceViewId: string, placement: "before" | "after", targetViewId: string): Action {
     return {type: MOVE_VIEW, payload: {sourceViewId, placement, targetViewId}};
 }
 
@@ -964,11 +977,11 @@ export function moveView(sourceViewId: string, placement: "before" | "after", ta
 export const SET_VIEW_MODE = 'SET_VIEW_MODE';
 export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
 
-export function setViewMode(viewId: string, viewMode: WorldViewMode) {
+export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
 }
 
-export function setProjectionCode(viewId: string, projectionCode: string) {
+export function setProjectionCode(viewId: string, projectionCode: string): Action {
     return {type: SET_PROJECTION_CODE, payload: {viewId, projectionCode}};
 }
 
@@ -982,15 +995,15 @@ export function updateTableViewData(viewId: string,
                                     varName: string | null,
                                     dataRows?: any[] | null,
                                     error?: any,
-                                    isLoading?: boolean) {
+                                    isLoading?: boolean): Action {
     dataRows = dataRows || null;
     error = error || null;
     isLoading = isLoading || false;
     return {type: UPDATE_TABLE_VIEW_DATA, payload: {viewId, resName, varName, dataRows, error, isLoading}};
 }
 
-export function loadTableViewData(viewId: string, resName: string, varName: string | null) {
-    return (dispatch, getState: GetState) => {
+export function loadTableViewData(viewId: string, resName: string, varName: string | null): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const restUrl = selectors.webAPIRestUrlSelector(getState());
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         const csvUrl = getCsvUrl(restUrl, baseDir, resName, varName);
@@ -1015,28 +1028,28 @@ export const MOVE_LAYER_UP = 'MOVE_LAYER_UP';
 export const MOVE_LAYER_DOWN = 'MOVE_LAYER_DOWN';
 export const SAVE_LAYER = 'SAVE_LAYER';
 
-export function setSelectedLayerId(viewId: string, selectedLayerId: string | null) {
+export function setSelectedLayerId(viewId: string, selectedLayerId: string | null): Action {
     return {type: SET_SELECTED_LAYER_ID, payload: {viewId, selectedLayerId}};
 }
 
-export function addLayer(viewId: string, layer: LayerState, selectLayer: boolean) {
+export function addLayer(viewId: string, layer: LayerState, selectLayer: boolean): Action {
     return {type: ADD_LAYER, payload: {viewId, layer, selectLayer}};
 }
 
-export function removeLayer(viewId: string, id: string) {
+export function removeLayer(viewId: string, id: string): Action {
     return {type: REMOVE_LAYER, payload: {viewId, id}};
 }
 
-export function moveLayerUp(viewId: string, id: string) {
+export function moveLayerUp(viewId: string, id: string): Action {
     return {type: MOVE_LAYER_UP, payload: {viewId, id}};
 }
 
-export function moveLayerDown(viewId: string, id: string) {
+export function moveLayerDown(viewId: string, id: string): Action {
     return {type: MOVE_LAYER_DOWN, payload: {viewId, id}};
 }
 
-export function updateLayer(viewId: string, layer: LayerState, ...layerProperties) {
-    return (dispatch) => {
+export function updateLayer(viewId: string, layer: LayerState, ...layerProperties): ThunkAction {
+    return (dispatch: Dispatch) => {
         if (layerProperties.length) {
             layer = updateObject({}, layer, ...layerProperties);
         }
@@ -1050,7 +1063,7 @@ export function updateLayer(viewId: string, layer: LayerState, ...layerPropertie
     };
 }
 
-function updateLayerImpl(viewId: string, layer: LayerState) {
+function updateLayerImpl(viewId: string, layer: LayerState): Action {
     return {type: UPDATE_LAYER, payload: {viewId, layer}};
 }
 
@@ -1061,7 +1074,7 @@ function updateLayerImpl(viewId: string, layer: LayerState) {
  * @param layer layer data
  * @returns {{type: string, payload: {key: string, layer: LayerState}}}
  */
-export function saveLayer(key: string, layer: LayerState) {
+export function saveLayer(key: string, layer: LayerState): Action {
     return {type: SAVE_LAYER, payload: {key, layer}};
 }
 
@@ -1076,8 +1089,8 @@ export const UPDATE_COLOR_MAPS = 'UPDATE_COLOR_MAPS';
  *
  * @returns a Redux thunk action
  */
-export function loadColorMaps() {
-    return (dispatch, getState: GetState) => {
+export function loadColorMaps(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         function call() {
             return selectors.colorMapsAPISelector(getState()).getColorMaps();
         }
@@ -1090,7 +1103,7 @@ export function loadColorMaps() {
     }
 }
 
-function updateColorMaps(colorMaps: Array<ColorMapCategoryState>) {
+function updateColorMaps(colorMaps: Array<ColorMapCategoryState>): Action {
     return {type: UPDATE_COLOR_MAPS, payload: {colorMaps}};
 }
 
@@ -1314,7 +1327,8 @@ export const MESSAGE_BOX_NO_REPLY = () => {
  * @param callback an optional function which is called with the selected button index
  * @returns the selected button index or null, if no button was selected or the callback function is defined
  */
-export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: (index: number) => void): number | null {
+export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: (index: number) => void): number
+    | null {
     const electron = require('electron');
     if (!electron) {
         console.warn('showMessageBox() cannot be executed, electron not available from renderer process');
@@ -1335,6 +1349,7 @@ export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: 
     }
 }
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Show the given file in a file manager. If possible, select the file.
  * @param fullPath
@@ -1367,8 +1382,8 @@ export function openItem(fullPath: string): boolean {
  * @param callback an optional function which is called with the selected button index
  * @returns the selected button index or null, if no button was selected or the callback function is defined
  */
-export function sendPreferencesToMain(callback?: (error: any) => void) {
-    return (dispatch, getState: GetState) => {
+export function sendPreferencesToMain(callback?: (error: any) => void): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
         const electron = require('electron');
         if (!electron || !electron.ipcRenderer) {
             console.warn('sendPreferencesToMain() cannot be executed, electron/electron.ipcRenderer not available from renderer process');
