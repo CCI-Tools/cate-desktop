@@ -1,4 +1,11 @@
-### 0.8.0-rc.5.dev.0
+### 0.8.0-rc.6.dev.1
+
+1. Cate now displays messages in *toasts* - lightweight, ephemeral notices in direct response 
+   to a user's action.   
+2. The details part of an error message (e.g. Python stack traceback) can now be copied to clipboard.   
+
+
+### 0.8.0-rc.5
 
 1. Operation step inputs can now be edited an re-executed: 
    In **WORKSPACE** panel, select **Steps**, select a step, and click the **Edit** button.   

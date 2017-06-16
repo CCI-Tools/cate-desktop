@@ -8,6 +8,7 @@ import {TextField} from "../components/field/TextField";
 import {OpenDialogProperty} from "../actions";
 import * as deepEqual from 'deep-equal';
 import {ModalDialog} from "../components/ModalDialog";
+import {showToast} from "../toast";
 
 interface IPreferencesDialogProps {
     dispatch?: any;
@@ -48,15 +49,23 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
             this.props.dispatch(actions.updatePreferences(this.state));
             if (backendChangesDetected) {
                 this.props.dispatch(actions.storeBackendConfig(backendConfig));
-                actions.showMessageBox({
-                    title: PreferencesDialog.DIALOG_TITLE,
-                    message: "Some changes will be effective only after restart."
+                // actions.showMessageBox({
+                //     title: PreferencesDialog.DIALOG_TITLE,
+                //     message: "Some changes will be effective only after restart."
+                // });
+                showToast({
+                    type: 'info',
+                    text: 'Some changes will be effective only after restart.'
                 });
             }
         } else {
-            actions.showMessageBox({
-                title: PreferencesDialog.DIALOG_TITLE,
-                message: "No changes detected."
+            // actions.showMessageBox({
+            //     title: PreferencesDialog.DIALOG_TITLE,
+            //     message: "No changes detected."
+            // });
+            showToast({
+                type: 'info',
+                text: 'No changes detected.'
             });
         }
     }

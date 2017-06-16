@@ -668,3 +668,20 @@ export interface SessionState {
  */
 export interface LocationState {
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MessageState
+
+export interface MessageActionState {
+    text: string;
+    onClick?: (...actionArgs) => void;
+    href?: string;
+    iconName?: string;
+}
+
+export interface MessageState {
+    type: 'info' | 'success' | 'notification' | 'warning' | 'error';
+    text: string | JSX.Element;
+    action?: MessageActionState;
+}
+

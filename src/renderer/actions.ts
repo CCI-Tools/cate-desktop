@@ -14,6 +14,7 @@ import {
 import {ViewPath} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
+import {showToast} from "./toast";
 import * as d3 from "d3";
 
 const CANCELLED_CODE = 999;
@@ -129,7 +130,6 @@ export function storeBackendConfig(backendConfig: BackendConfigState): ThunkActi
             // Store state changes to the Python back-end
             return selectors.backendConfigAPISelector(getState()).setBackendConfig(backendConfig);
         }
-
         callAPI(dispatch, 'Storing backend configuration', call);
     };
 }
@@ -141,36 +141,47 @@ export function cancelJob(jobId: number): ThunkAction {
     }
 }
 
-/**
- * Private action dispatched from callAPI() function.
- * @param jobId the job ID
- * @param title a job title
- * @returns an action
- */
-function jobSubmitted(jobId: number, title: string): Action {
-    return updateTaskState(jobId, {status: JobStatusEnum.SUBMITTED, title: title});
+function jobSubmitted(jobId: number, jobTitle: string): Action {
+    showToast({
+        type: 'notification',
+        text: 'Started: ' + jobTitle,
+    });
+    return updateTaskState(jobId, {status: JobStatusEnum.SUBMITTED, title: jobTitle});
 }
 
 function jobProgress(progress: JobProgress): Action {
     return updateTaskState(progress.id, {status: JobStatusEnum.IN_PROGRESS, progress});
 }
 
-function jobDone(jobId: number): Action {
+function jobDone(jobId: number, jobTitle: string): Action {
+    showToast({
+        type: 'success',
+        text: 'Done: ' + jobTitle,
+    });
     return updateTaskState(jobId, {status: JobStatusEnum.DONE});
 }
 
-function jobFailed(jobId: number, failure: JobFailure): Action {
+function jobFailed(jobId: number, jobTitle: string, failure: JobFailure): Action {
     const status = failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED;
     if (status === JobStatusEnum.FAILED) {
         console.error(failure);
     }
-    showMessageBox({
-        type: "error",
-        title: "Cate - Error",
-        message: failure.message,
-        detail: `An error (code ${failure.code}) occurred while executing a background process:\n\n${failure.data}`,
-        buttons: [],
-    }, MESSAGE_BOX_NO_REPLY);
+    showToast({
+        type: 'error',
+        text: `Failed: ${jobTitle} (error #${failure.code})\n${failure.message}`,
+        action: {
+            text: 'Details',
+            onClick: () => {
+                showMessageBox({
+                    type: "error",
+                    title: "Cate - Error",
+                    message: failure.message,
+                    detail: `An error (code ${failure.code}) occurred while executing a backend process:\n\n${failure.data}`,
+                    buttons: [],
+                }, MESSAGE_BOX_NO_REPLY);
+            }
+        },
+    });
     return updateTaskState(jobId, {status, failure});
 }
 
@@ -200,13 +211,13 @@ export function callAPI<T>(dispatch: (action: Action) => void,
     dispatch(jobSubmitted(jobPromise.getJobId(), title));
 
     const onDone = (jobResult: T) => {
-        dispatch(jobDone(jobPromise.getJobId()));
+        dispatch(jobDone(jobPromise.getJobId(), title));
         if (action) {
             action(jobResult);
         }
     };
     const onFailure = jobFailure => {
-        dispatch(jobFailed(jobPromise.getJobId(), jobFailure));
+        dispatch(jobFailed(jobPromise.getJobId(), title, jobFailure));
         if (planB) {
             planB(jobFailure);
         }
@@ -649,10 +660,14 @@ export function openWorkspaceInteractive(): ThunkAction {
             let ok = true;
             if (workspace) {
                 if (workspace.baseDir === workspacePath) {
-                    showMessageBox({
-                        title: 'Open Workspace',
-                        message: 'Workspace is already open.'
-                    }, MESSAGE_BOX_NO_REPLY);
+                    // showMessageBox({
+                    //     title: 'Open Workspace',
+                    //     message: 'Workspace is already open.'
+                    // }, MESSAGE_BOX_NO_REPLY);
+                    showToast({
+                        type: 'warning',
+                        text: 'Workspace is already open.',
+                    });
                     return;
                 }
                 ok = maybeSaveCurrentWorkspace(dispatch, getState,
@@ -1223,6 +1238,8 @@ export interface MessageBoxOptions {
      * Windows apps. If you don't like this behavior, you can set noLink to true.
      */
     noLink?: boolean;
+
+
 }
 
 /**
