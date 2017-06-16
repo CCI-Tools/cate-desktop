@@ -516,12 +516,22 @@ function createMainWindow() {
     });
 
     ipcMain.on('show-message-box', (event, messageBoxOptions, synchronous?: boolean) => {
-        dialog.showMessageBox(_mainWindow, messageBoxOptions, (index: number) => {
-            // console.log('show-message-box: index =', index);
+        if (messageBoxOptions.detail) {
+            messageBoxOptions = {
+                ...messageBoxOptions,
+                checkboxLabel: 'Copy details to clipboard',
+                checkboxChecked: false,
+            };
+        }
+        dialog.showMessageBox(_mainWindow, messageBoxOptions, (buttonIndex: number, checkboxChecked: boolean) => {
+            if (checkboxChecked) {
+                electron.clipboard.writeText(`${messageBoxOptions.detail}`);
+            }
+            // console.log('show-message-box: buttonIndex =', buttonIndex);
             if (synchronous) {
-                event.returnValue = index;
+                event.returnValue = buttonIndex;
             } else {
-                event.sender.send('show-message-box-reply', index);
+                event.sender.send('show-message-box-reply', buttonIndex);
             }
         });
     });
