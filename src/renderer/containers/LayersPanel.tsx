@@ -42,19 +42,19 @@ interface ILayersPanelDispatch {
 }
 
 interface ILayersPanelProps {
-    selectedResource: ResourceState|null;
-    selectedVariable: VariableState|null,
-    activeView: ViewState<any>|null;
+    selectedResource: ResourceState | null;
+    selectedVariable: VariableState | null,
+    activeView: ViewState<any> | null;
     layers: Array<LayerState>;
-    selectedLayerId: string|null;
+    selectedLayerId: string | null;
     selectedLayerIndex: number;
-    selectedLayer: LayerState|null;
-    selectedImageLayer: ImageLayerState|null;
-    selectedVariableImageLayer: VariableImageLayerState|null;
-    selectedVariableVectorLayer: VariableVectorLayerState|null;
+    selectedLayer: LayerState | null;
+    selectedImageLayer: ImageLayerState | null;
+    selectedVariableImageLayer: VariableImageLayerState | null;
+    selectedVariableVectorLayer: VariableVectorLayerState | null;
     showLayerDetails: boolean;
     colorMapCategories: Array<ColorMapCategoryState>;
-    selectedColorMap: ColorMapState|null;
+    selectedColorMap: ColorMapState | null;
 }
 
 function mapStateToProps(state: State): ILayersPanelProps {
@@ -86,6 +86,9 @@ interface ILayersPanelState {
  */
 class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispatch, ILayersPanelState> {
 
+    static readonly SLIDER_DIV_STYLE_05 = {width: '100%', paddingLeft: '0.5em', paddingRight: '0.5em'};
+    static readonly SLIDER_DIV_STYLE_15 = {width: '100%', paddingLeft: '1.5em', paddingRight: '1.5em'};
+
     constructor(props: ILayersPanelProps & ILayersPanelDispatch, context: any) {
         super(props, context);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
@@ -115,7 +118,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         return {displayMinMax};
     }
 
-    componentWillReceiveProps(nextProps: ILayersPanelProps&ILayersPanelDispatch): void {
+    componentWillReceiveProps(nextProps: ILayersPanelProps & ILayersPanelDispatch): void {
         this.setState(LayersPanel.mapPropsToState(nextProps));
     }
 
@@ -220,7 +223,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             <div>
                 <input type="checkbox"
                        checked={layer.visible}
-                       onChange={(event:any) => this.handleChangedLayerVisibility(layer, event.target.checked)}
+                       onChange={(event: any) => this.handleChangedLayerVisibility(layer, event.target.checked)}
                 />
                 <span style={{marginLeft: "0.5em"}} className="pt-icon-layout-grid"/>
                 <span style={{marginLeft: "0.5em"}}>{getLayerDisplayName(layer)}</span>
@@ -235,7 +238,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         }
 
         return (
-            <div>
+            <div style={{width: '100%'}}>
                 <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
                                          onShowDetailsChange={this.handleShowDetailsChanged}
                                          isSplitPanel={true}
@@ -303,8 +306,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         }
 
         return (
-            <table cellPadding={4}>
-                <tbody>
+            <div style={{width: '100%'}}>
+                <label key="spacer" className="pt-label"> </label>
                 {this.renderFormDisplayMinMax()}
                 {this.renderFormDisplayColorBar()}
                 {this.renderFormAlphaBlending()}
@@ -315,8 +318,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                 {this.renderFormImageEnhancement('hue', 'Hue', 0., 1.)}
                 {this.renderFormImageEnhancement('saturation', 'Saturation', 0., 2.)}
                 {this.renderFormImageEnhancement('gamma', 'Gamma', 1., 2.)}
-                </tbody>
-            </table>
+            </div>
         );
     }
 
@@ -342,10 +344,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         }
 
         return (
-            <tr key="colorMapName">
-                <td>Colour bar</td>
-                <td style={{width: "100%"}}>{colorBarButton}</td>
-            </tr>
+            <label key="cmap" className="pt-label pt-inline">
+                Colour bar
+                {colorBarButton}
+            </label>
         );
     }
 
@@ -356,23 +358,27 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         }
 
         return (
-            <tr key="displayMinMax">
-                <td>Display range</td>
-                <td>
-                    <div className="pt-control-group">
-                        <NumericRangeField value={this.state.displayMinMax}
-                                           onChange={this.handleChangedDisplayMinMax}
-                        />
-                        <Tooltip content="Compute valid min/max">
-                            <Button className="pt-intent-primary" iconName="arrows-horizontal"
-                                    onClick={this.handleUpdateDisplayStatistics}/>
-                        </Tooltip>
-                    </div>
+            <div style={{width: '100%'}}>
+                <label key="drange" className="pt-label">
+                    Display range
                     <div>
-                        {this.renderDisplayRangeSlider()}
+                        <div style={{width: '100%', display: 'flex', alignItems: 'center'}}>
+                            <NumericRangeField value={this.state.displayMinMax}
+                                               style={{flex: 'auto'}}
+                                               onChange={this.handleChangedDisplayMinMax}
+                            />
+                            <Tooltip content="Compute valid min/max" position={Position.LEFT}>
+                                <Button className="pt-intent-primary" iconName="arrows-horizontal"
+                                        style={{flex: 'none'}}
+                                        onClick={this.handleUpdateDisplayStatistics}/>
+                            </Tooltip>
+                        </div>
                     </div>
-                </td>
-            </tr>
+                </label>
+                <div style={LayersPanel.SLIDER_DIV_STYLE_15}>
+                    {this.renderDisplayRangeSlider()}
+                </div>
+            </div>
         );
     }
 
@@ -381,15 +387,11 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         if (!layer) {
             return null;
         }
-
         return (
-            <tr key="alphaBlending">
-                <td>Alpha blending</td>
-                <td>
-                    <Switch checked={layer.alphaBlending}
-                            onChange={this.handleChangedDisplayAlphaBlend}/>
-                </td>
-            </tr>
+            <Switch key="alpha"
+                    checked={layer.alphaBlending}
+                    label="Alpha blending"
+                    onChange={this.handleChangedDisplayAlphaBlend}/>
         );
     }
 
@@ -414,9 +416,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             if (max > 0) {
                 const value = layer.varIndex[i];
                 dimensionRows.push(
-                    <tr key={dimension + "_index"}>
-                        <td>{"Index into " + dimension}</td>
-                        <td>
+                    <label key={dimension + "_index"} className="pt-label pt-inline">
+                        {"Index into " + dimension}
+                        <div style={LayersPanel.SLIDER_DIV_STYLE_05}>
                             <Slider min={0}
                                     max={max}
                                     stepSize={1}
@@ -424,8 +426,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                                     value={value}
                                     onChange={(value: number) => handleChangedLayerVarIndex(i, value)}
                             />
-                        </td>
-                    </tr>
+                        </div>
+                    </label>
                 );
             }
         }
@@ -443,9 +445,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         };
 
         return (
-            <tr key={key}>
-                <td>{label}</td>
-                <td style={{padding: 2}}>
+            <label key={key} className="pt-label">
+                {label}
+                <div style={LayersPanel.SLIDER_DIV_STYLE_05}>
                     <Slider min={min}
                             max={max}
                             stepSize={(max - min) / 10.}
@@ -453,8 +455,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                             renderLabel={(x) => formatNumber(x, 1)}
                             value={layer[key]}
                             onChange={(value: number) => handleChangedImageEnhancement(key, value)}/>
-                </td>
-            </tr>
+                </div>
+            </label>
         );
     }
 
@@ -527,7 +529,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                 <Tooltip content={colorMap.name}>
                     <img src={`data:image/png;base64,${colorMap.imageData}`}
                          alt={colorMap.name}
-                         style={{width:"100%", height: "1em"}}/>
+                         style={{width: "100%", height: "1em"}}/>
                 </Tooltip>
             );
         }

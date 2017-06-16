@@ -5,6 +5,7 @@
 2. The **details part of an error message** (e.g. Python stack traceback) can now be **copied to clipboard**.  
 3. For easier access, `matplotlib` figure views can now be opened from the **WORKSPACE** panel.
 4. Added simple **About Box**.
+5. Fixed layout problem in ''LAYERS** panel, where sliders where outside visible panel area. 
 
 
 ### 0.8.0-rc.5
