@@ -16,6 +16,8 @@ import * as actions from '../actions'
 import * as selectors from '../selectors'
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messages";
+import {isFigureResource} from "../state-util";
+import {ViewState} from "../components/ViewState";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
@@ -27,6 +29,7 @@ interface IWorkspacePanelProps {
     selectedWorkflowStep: WorkflowStepState | null;
     selectedWorkflowStepId: string | null;
     selectedWorkflowStepOp: OperationState | null;
+    activeViewId: string | null;
 }
 
 function mapStateToProps(state: State): IWorkspacePanelProps {
@@ -39,6 +42,7 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
         selectedWorkflowStep: selectors.selectedWorkflowStepSelector(state),
         selectedWorkflowStepId: selectors.selectedWorkflowStepIdSelector(state),
         selectedWorkflowStepOp: selectors.selectedWorkflowStepOpSelector(state),
+        activeViewId: selectors.activeViewIdSelector(state),
     };
 }
 
@@ -61,6 +65,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         this.handleResourceNameSelected = this.handleResourceNameSelected.bind(this);
         this.handleShowWorkflowStepDetailsChanged = this.handleShowWorkflowStepDetailsChanged.bind(this);
         this.handleWorkflowStepIdSelected = this.handleWorkflowStepIdSelected.bind(this);
+        this.handleShowFigureButtonClicked = this.handleShowFigureButtonClicked.bind(this);
         this.handleResourceRenameButtonClicked = this.handleResourceRenameButtonClicked.bind(this);
         this.handleOpenWorkspaceDirectoryClicked = this.handleOpenWorkspaceDirectoryClicked.bind(this);
         this.handleEditOperationStepButtonClicked = this.handleEditOperationStepButtonClicked.bind(this);
@@ -95,6 +100,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
     private handleShowWorkflowStepDetailsChanged(value: boolean) {
         this.props.dispatch(actions.setControlProperty('showWorkflowStepDetails', value));
+    }
+
+    private handleShowFigureButtonClicked() {
+        this.props.dispatch(actions.showFigureView(this.props.selectedResource, this.props.activeViewId));
     }
 
     private handleResourceRenameButtonClicked() {
@@ -229,10 +238,13 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     private renderResourcesActions() {
-        const selectedResource = this.props.selectedResource;
+        const isResourceSelected = this.props.selectedResource;
+        const isFigureSelected = isFigureResource(this.props.selectedResource);
         return (
             <div className="pt-button-group">
-                <Button disabled={!selectedResource} iconName="label"
+                <Button disabled={!isFigureSelected} iconName="eye-open"
+                        onClick={this.handleShowFigureButtonClicked}/>
+                <Button disabled={!isResourceSelected} iconName="label"
                         onClick={this.handleResourceRenameButtonClicked}/>
                 <ResourceRenameDialog/>
             </div>

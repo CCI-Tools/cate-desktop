@@ -1,8 +1,9 @@
 ### 0.8.0-rc.6.dev.1
 
-1. Cate now displays messages in *toasts* - lightweight, ephemeral notices in direct response 
+1. Cate now displays messages in **toasts** - lightweight, ephemeral notices in direct response 
    to a user's action.   
-2. The details part of an error message (e.g. Python stack traceback) can now be copied to clipboard.   
+2. The **details part of an error message** (e.g. Python stack traceback) can now be **copied to clipboard**.  
+3. For easier access, figures views can now be opened from the **WORKSPACE** panel.
 
 
 ### 0.8.0-rc.5

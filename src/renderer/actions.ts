@@ -470,6 +470,7 @@ export function hideOperationStepDialog(dialogId: string, inputAssignments?): Th
 
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
 export const RENAME_RESOURCE = 'RENAME_RESOURCE';
+export const SHOW_FIGURE_VIEW = 'SHOW_FIGURE_VIEW';
 
 /**
  * Asynchronously load the initial workspace.
@@ -862,6 +863,10 @@ export function getWorkspaceVariableStatistics(resName: string,
 
         callAPI(dispatch, `Computing statistics for variable "${varName}"`, call, action2);
     }
+}
+
+export function showFigureView(resource: ResourceState, placeAfterViewId: string|null): Action {
+    return {type: SHOW_FIGURE_VIEW, payload: {resource, placeAfterViewId}};
 }
 
 export function saveFigureImageAs(imageUrl: string, figureId: number): ThunkAction {

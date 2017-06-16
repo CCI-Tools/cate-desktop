@@ -90,7 +90,7 @@ class ResourceRenameDialog extends React.Component<IResourceRenameDialogProps, I
                     New resource name
                     <span className="pt-text-muted"> (must be unique within the workspace)</span>
                     <input className="pt-input"
-                           style={{width: '100%'}}
+                           style={{width: '100%', margin: '0.2em'}}
                            type="text"
                            value={this.state.newName}
                            onChange={(ev: any) => this.setState({newName: ev.target.value})}/>

@@ -401,6 +401,31 @@ function _selectViewInLayout(viewLayout: ViewLayoutState,
     }
 }
 
+export function selectView(viewLayout: ViewLayoutState, viewId: string): ViewLayoutState {
+    if (isViewSplitState(viewLayout)) {
+        const viewSplit = viewLayout as ViewSplitState;
+        const oldLayout1 = viewSplit.layouts[0];
+        const oldLayout2 = viewSplit.layouts[1];
+        const newLayout1 = selectView(oldLayout1, viewId);
+        const newLayout2 = selectView(oldLayout2, viewId);
+        if (oldLayout1 !== newLayout1 || oldLayout2 !== newLayout2) {
+            return {...viewSplit, layouts: [newLayout1, newLayout2]} as ViewSplitState;
+        }
+    } else {
+        const viewPanel = viewLayout as ViewPanelState;
+        if (viewId !== viewPanel.selectedViewId) {
+            const viewIds = viewPanel.viewIds;
+            const selectedViewIndex = viewIds.findIndex(id => id === viewId);
+            if (selectedViewIndex >= 0) {
+                return {viewIds, selectedViewId: viewId};
+            }
+        }
+    }
+    // no change
+    return viewLayout;
+}
+
+
 function _removeViewFromLayout(viewLayout: ViewLayoutState,
                                viewPath: ViewPath,
                                viewId: string | null,

@@ -13,7 +13,7 @@ import {
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
     addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos,
-    addViewToPanel, moveView
+    addViewToPanel, moveView, selectView
 } from "./components/ViewState";
 
 // Note: reducers are unit-tested through actions.spec.ts
@@ -181,9 +181,20 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             return addView(state, view, action.payload.placeAfterViewId);
         }
         case actions.ADD_FIGURE_VIEW: {
-            const resource = action.payload.resource;
+            const {resource, placeAfterViewId} = action.payload;
             const view = newFigureView(resource);
-            return addView(state, view, action.payload.placeAfterViewId);
+            return addView(state, view, placeAfterViewId);
+        }
+        case actions.SHOW_FIGURE_VIEW: {
+            const {resource, placeAfterViewId} = action.payload;
+            const figureView = state.views.find(v => v.type === 'figure' && resource.id === v.data.resourceId);
+            if (figureView) {
+                const viewLayout = selectView(state.viewLayout, figureView.id);
+                return {...state, viewLayout};
+            } else {
+                const view = newFigureView(resource);
+                return addView(state, view, placeAfterViewId);
+            }
         }
         case actions.ADD_TABLE_VIEW: {
             const resName = state.selectedWorkspaceResourceName;

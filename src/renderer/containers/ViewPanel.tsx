@@ -17,7 +17,8 @@ interface IViewPanelDispatch {
 }
 
 interface IViewPanelProps {
-    activeView: ViewState<any>;
+    activeView: ViewState<any> | null;
+    activeViewId: string | null;
     figureViews: ViewState<FigureViewDataState>[];
     figureResources: ResourceState[];
     selectedFigureResource: ResourceState|null;
@@ -30,6 +31,7 @@ interface IViewPanelState {
 function mapStateToProps(state: State): IViewPanelProps {
     return {
         activeView: selectors.activeViewSelector(state),
+        activeViewId: selectors.activeViewIdSelector(state),
         figureViews: selectors.figureViewsSelector(state),
         figureResources: selectors.figureResourcesSelector(state),
         selectedFigureResource: selectors.selectedFigureResourceSelector(state),
@@ -48,55 +50,42 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         this.onViewModeChange = this.onViewModeChange.bind(this);
         this.onProjectionCodeChange = this.onProjectionCodeChange.bind(this);
         this.onAddWorldView = this.onAddWorldView.bind(this);
-        this.onAddFigureView = this.onAddFigureView.bind(this);
+        this.onShowFigureView = this.onShowFigureView.bind(this);
         this.onAddTableView = this.onAddTableView.bind(this);
         this.state = {isProjectionsDialogOpen: false};
     }
 
     onViewModeChange(ev: any) {
-        this.props.dispatch(actions.setViewMode(this.props.activeView.id, ev.target.value));
+        this.props.dispatch(actions.setViewMode(this.props.activeViewId, ev.target.value));
     }
 
     onProjectionCodeChange(projectionCode: FieldValue<string>) {
-        this.props.dispatch(actions.setProjectionCode(this.props.activeView.id, projectionCode.textValue));
+        this.props.dispatch(actions.setProjectionCode(this.props.activeViewId, projectionCode.textValue));
     }
 
     onAddWorldView() {
-        this.props.dispatch(actions.addWorldView(this.getViewIdToPlaceAfter()));
+        this.props.dispatch(actions.addWorldView(this.props.activeViewId));
     }
 
-    onAddFigureView() {
+    onShowFigureView() {
         let selectedFigureResource = this.props.selectedFigureResource;
         assert.ok(selectedFigureResource);
-        this.props.dispatch(actions.addFigureView(this.getViewIdToPlaceAfter(), selectedFigureResource));
+        this.props.dispatch(actions.showFigureView(selectedFigureResource, this.props.activeViewId));
     }
 
     onAddTableView() {
-        this.props.dispatch(actions.addTableView(this.getViewIdToPlaceAfter()));
-    }
-
-    getViewIdToPlaceAfter() {
-        return this.props.activeView ? this.props.activeView.id : null;
+        this.props.dispatch(actions.addTableView(this.props.activeViewId));
     }
 
     render() {
-        let canAddFigure = false;
-        if (this.props.selectedFigureResource) {
-            canAddFigure = true;
-            if (this.props.figureViews) {
-                const figureView = this.props.figureViews.find(v => v.data.resourceId == this.props.selectedFigureResource.id);
-                canAddFigure = !figureView;
-            }
-        }
-
+        const canShowFigure = !!this.props.selectedFigureResource;
         return (
             <div>
                 <label className="pt-label">
                     Add new view&nbsp;
                     <div className="pt-button-group">
                         <Button iconName="globe" onClick={this.onAddWorldView}>World</Button>
-                        {/*<Button iconName="timeline-area-chart" onClick={this.onAddChartView}>Chart</Button>*/}
-                        <Button iconName="timeline-area-chart" onClick={this.onAddFigureView} disabled={!canAddFigure}>Figure</Button>
+                        <Button iconName="timeline-area-chart" onClick={this.onShowFigureView} disabled={!canShowFigure}>Figure</Button>
                         <Button iconName="th" onClick={this.onAddTableView}>Table</Button>
                     </div>
                 </label>
@@ -158,7 +147,12 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                 </div>
             );
         } else {
-            return NO_VIEW_PROPS;
+            return (
+                <div>
+                    {titleField}
+                    {NO_VIEW_PROPS}
+                </div>
+            );
         }
     }
 }
