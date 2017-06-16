@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 
-*Copyright &copy; 2016 Brockmann Consult GmbH*
+*Copyright &copy; 2016, 2017 Brockmann Consult GmbH*
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation the 
