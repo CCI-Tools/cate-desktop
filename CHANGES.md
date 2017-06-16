@@ -3,7 +3,7 @@
 1. Cate now displays messages in **toasts** - lightweight, ephemeral notices in direct response 
    to a user's action.   
 2. The **details part of an error message** (e.g. Python stack traceback) can now be **copied to clipboard**.  
-3. For easier access, figures views can now be opened from the **WORKSPACE** panel.
+3. For easier access, `matplotlib` figure views can now be opened from the **WORKSPACE** panel.
 
 
 ### 0.8.0-rc.5
@@ -13,7 +13,7 @@
 2. `matplotlib` figures returned from various `plot` operations can now be displayed with some limited interactions 
    like zooming and panning:
    1. In **OPERATIONS** panel, select a `plot()` operation step, and press **Apply**
-   2. In **VIEW** panel, click  **New Figures** view
+   2. In **VIEW** panel, click new view **Figure** button
 3. Views can now be positioned. Click a view's **More Menu (...)** and select *Move Before* or *Move After*. 
    Later on, this will be possible via drag and drop.
 4. Fixed problem where existence of `~/.cate` was not checked before it was accessed.
