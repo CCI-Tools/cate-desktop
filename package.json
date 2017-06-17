@@ -67,7 +67,7 @@
     "classnames": "~2.2.x",
     "d3": "~3.5.x",
     "deep-equal": "~1.0.x",
-    "electron": "1.6.x",
+    "electron": "1.6.11",
     "electron-builder": "~17.10.x",
     "electron-devtools-installer": "~2.2.x",
     "enzyme": "~2.6.x",
