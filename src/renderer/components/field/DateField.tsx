@@ -30,7 +30,7 @@ export class DateField extends Field<Date, IDateFieldProps> {
     }
 
     onDateChange(date: Date) {
-        this.props.onChange({textValue: this.formatValue(date), value: date});
+        this.props.onChange({textValue: this.getFormattedValue(date), value: date});
     }
 
     onDateError(date: Date) {

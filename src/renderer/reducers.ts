@@ -1,6 +1,6 @@
 import {
     State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
-    LayerState
+    LayerState, Placemark
 } from './state';
 import * as actions from './actions';
 import * as assert from "../common/assert";
@@ -8,13 +8,15 @@ import {combineReducers} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
-    newWorldView, newTableView, newFigureView, getFigureViewTitle
+    newWorldView, newTableView, newFigureView, getFigureViewTitle, genPlacemarkId
 } from "./state-util";
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
     addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos,
     addViewToPanel, moveView, selectView
 } from "./components/ViewState";
+import {Action, SET_GLOBE_MOUSE_POSITION, SET_GLOBE_VIEW_POSITION} from "./actions";
+import {Point} from "geojson";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -38,7 +40,7 @@ const initialDataState: DataState = {
     colorMaps: null
 };
 
-const updateDataStores = (state: DataState, action, createDataSources: (dataStore: DataStoreState) => void): DataStoreState[] => {
+const updateDataStores = (state: DataState, action: Action, createDataSources: (dataStore: DataStoreState) => void): DataStoreState[] => {
     const dataStoreId = action.payload.dataStoreId;
     const dataStoreIndex = state.dataStores.findIndex(dataStore => dataStore.id === dataStoreId);
     if (dataStoreIndex < 0) {
@@ -52,7 +54,7 @@ const updateDataStores = (state: DataState, action, createDataSources: (dataStor
     return updateObject(state, {dataStores: newDataStores});
 };
 
-const dataReducer = (state: DataState = initialDataState, action) => {
+const dataReducer = (state: DataState = initialDataState, action: Action) => {
     switch (action.type) {
         case actions.UPDATE_INITIAL_STATE:
             const appConfig = updateObject(state.appConfig, action.payload.appConfig);
@@ -132,10 +134,12 @@ const initialControlState: ControlState = {
         selectedViewId: initialView.id,
     },
     activeViewId: initialView.id,
+
+    worldViewClickAction: null,
 };
 
 
-const controlReducer = (state: ControlState = initialControlState, action) => {
+const controlReducer = (state: ControlState = initialControlState, action: Action) => {
     switch (action.type) {
         case actions.RENAME_RESOURCE: {
             const resName = action.payload.resName;
@@ -208,7 +212,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             const viewLayout = selectViewInLayout(state.viewLayout, viewPath, viewId);
             return {...state, viewLayout, activeViewId: viewId};
         }
-        case actions.MOVE_VIEW:{
+        case actions.MOVE_VIEW: {
             const {sourceViewId, placement, targetViewId} = action.payload;
             const viewLayout = moveView(state.viewLayout, sourceViewId, placement, targetViewId);
             let activeViewId = state.activeViewId;
@@ -248,7 +252,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
             const viewLayout = splitViewPanel(state.viewLayout, viewPath, dir, pos);
             return {...state, viewLayout};
         }
-        case actions.CHANGE_VIEW_SPLIT_POS:{
+        case actions.CHANGE_VIEW_SPLIT_POS: {
             const viewPath = action.payload.viewPath;
             const delta = action.payload.delta;
             const viewLayout = changeViewSplitPos(state.viewLayout, viewPath, delta);
@@ -266,7 +270,7 @@ const controlReducer = (state: ControlState = initialControlState, action) => {
 };
 
 
-function addView(state: ControlState, view: ViewState<any>, placeAfterViewId: string|null) {
+function addView(state: ControlState, view: ViewState<any>, placeAfterViewId: string | null) {
     const newId = view.id;
     const newViews = addViewToViewArray(state.views, view);
     const oldViewLayout = state.viewLayout;
@@ -282,7 +286,7 @@ function addView(state: ControlState, view: ViewState<any>, placeAfterViewId: st
 }
 
 
-const viewsReducer = (state: ViewState<any>[], action, activeViewId: string) => {
+const viewsReducer = (state: ViewState<any>[], action: Action, activeViewId: string) => {
     // delegate action to all children
     let newViews = null;
     for (let i = 0; i < state.length; i++) {
@@ -301,7 +305,7 @@ const viewsReducer = (state: ViewState<any>[], action, activeViewId: string) => 
 };
 
 
-const viewReducer = (state: ViewState<any>, action, activeViewId: string) => {
+const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string) => {
     const isActiveView = state.id === activeViewId;
     switch (action.type) {
         case actions.RENAME_RESOURCE: {
@@ -452,7 +456,7 @@ const viewReducer = (state: ViewState<any>, action, activeViewId: string) => {
     return state;
 };
 
-const layersReducer = (state: LayerState[], action, isActiveView: boolean) => {
+const layersReducer = (state: LayerState[], action: Action, isActiveView: boolean) => {
     // delegate action to all children
     let newLayers;
     for (let i = 0; i < state.length; i++) {
@@ -470,7 +474,7 @@ const layersReducer = (state: LayerState[], action, isActiveView: boolean) => {
     return newLayers || state;
 };
 
-const layerReducer = (state: LayerState, action, isActiveView: boolean) => {
+const layerReducer = (state: LayerState, action: Action, isActiveView: boolean) => {
     switch (action.type) {
         case actions.RENAME_RESOURCE: {
             const resName = action.payload.resName;
@@ -520,6 +524,12 @@ const initialSessionState: SessionState = {
     selectedLeftBottomPanelId: 'workspace',
     selectedRightTopPanelId: 'variables',
     selectedRightBottomPanelId: 'layers',
+    placemarkCollection: {
+        type: 'FeatureCollection',
+        features: []
+    },
+    selectedPlacemarkId: null,
+    showPlacemarkDetails: null,
 
     backendConfig: {
         dataStoresPath: null,
@@ -527,7 +537,9 @@ const initialSessionState: SessionState = {
     }
 };
 
-const sessionReducer = (state: SessionState = initialSessionState, action) => {
+
+let placemarkCounter = 0;
+const sessionReducer = (state: SessionState = initialSessionState, action: Action) => {
     switch (action.type) {
         case actions.UPDATE_INITIAL_STATE:
             return {...state, ...action.payload.session};
@@ -540,6 +552,58 @@ const sessionReducer = (state: SessionState = initialSessionState, action) => {
             const savedLayers = updateObject(state.savedLayers, {[key]: layer});
             return {...state, savedLayers};
         }
+        case actions.ADD_PLACEMARK: {
+            const position = action.payload.position;
+            placemarkCounter++;
+            const features = state.placemarkCollection.features.slice();
+            const newPlacemark = {
+                type: 'Feature',
+                id: genPlacemarkId(),
+                properties: {
+                    name: 'Pin ' + placemarkCounter,
+                    visible: true,
+                },
+                geometry: {
+                    type: 'Point',
+                    coordinates: position ? [position.longitude, position.latitude] : [0, 0]
+                }
+            } as Placemark;
+            features.push(newPlacemark);
+            const placemarkCollection = {...state.placemarkCollection, features};
+            return {...state, placemarkCollection, selectedPlacemarkId: newPlacemark.id};
+        }
+        case actions.REMOVE_PLACEMARK: {
+            const placemarkId = action.payload.placemarkId;
+            let features = state.placemarkCollection.features;
+            const removedFeatureIndex = features.findIndex(f => f.id === placemarkId);
+            if (removedFeatureIndex >= 0) {
+                features = features.slice();
+                features.splice(removedFeatureIndex, 1);
+                let selectedPlacemarkId = null;
+                if (removedFeatureIndex < features.length) {
+                    selectedPlacemarkId = features[removedFeatureIndex].id;
+                } else if (features.length > 0) {
+                    selectedPlacemarkId = features[features.length - 1].id;
+                }
+                const placemarkCollection = {...state.placemarkCollection, features};
+                return {...state, placemarkCollection, selectedPlacemarkId};
+            }
+            break;
+        }
+        case actions.UPDATE_PLACEMARK: {
+            const placemark = action.payload.placemark;
+            const placemarkId = placemark.id;
+            let features = state.placemarkCollection.features;
+            const featureIndex = features.findIndex(f => f.id === placemarkId);
+            if (featureIndex >= 0) {
+                features = features.slice();
+                const feature = features[featureIndex];
+                features[featureIndex] = {...feature, ...placemark};
+                const placemarkCollection = {...state.placemarkCollection, features};
+                return {...state, placemarkCollection};
+            }
+        }
+
     }
     return state;
 };
@@ -552,7 +616,7 @@ const initialCommunicationState: CommunicationState = {
     tasks: {}
 };
 
-const communicationReducer = (state: CommunicationState = initialCommunicationState, action) => {
+const communicationReducer = (state: CommunicationState = initialCommunicationState, action: Action) => {
     switch (action.type) {
         case actions.SET_WEBAPI_STATUS:
             return updateObject(state, {webAPIStatus: action.payload.webAPIStatus});
@@ -574,11 +638,19 @@ const communicationReducer = (state: CommunicationState = initialCommunicationSt
 
 
 const initialLocationState: LocationState = {
-    webAPIStatus: null
+    globeMousePosition: null,
+    globeViewPosition: null,
 };
 
 //noinspection JSUnusedLocalSymbols
-const locationReducer = (state: LocationState = initialLocationState, action) => {
+const locationReducer = (state: LocationState = initialLocationState, action: Action) => {
+    if (action.type === SET_GLOBE_MOUSE_POSITION) {
+        const globeMousePosition = action.payload.position;
+        return {...state, globeMousePosition};
+    } else if (action.type === SET_GLOBE_VIEW_POSITION) {
+        const globeViewPosition = action.payload.position;
+        return {...state, globeViewPosition};
+    }
     return state;
 };
 

@@ -2,7 +2,7 @@ import {
     WorkspaceState, DataStoreState, TaskState, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
-    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State
+    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, Placemark
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
@@ -16,7 +16,7 @@ import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
 import {showToast} from "./toast";
 import * as d3 from "d3";
-import {actions} from "../main/actions";
+import * as redux from 'redux';
 
 const CANCELLED_CODE = 999;
 
@@ -26,13 +26,16 @@ const CANCELLED_CODE = 999;
  * All actions must have a "type" and a "payload" property.
  * Basic structure (i.e. the "type" property) is prescribed by "redux" module.
  */
-export type Action = { type: string; payload: any; }
+export interface Action extends redux.Action {
+    type: string;
+    payload: any;
+}
 
 /**
  * Signature of the Action dispatcher as used here.
  * Basic call interface is prescribed by "redux" module.
  */
-export type Dispatch = (action: Action|ThunkAction) => void;
+export type Dispatch = (action: Action | ThunkAction) => void;
 
 /**
  * Signature of a function that returns the current application state object.
@@ -47,6 +50,26 @@ export type GetState = () => State;
  */
 export type ThunkAction = (dispatch?: Dispatch, getState?: GetState) => void;
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Placemark actions
+
+export const ADD_PLACEMARK = 'ADD_PLACEMARK';
+export const REMOVE_PLACEMARK = 'REMOVE_PLACEMARK';
+export const UPDATE_PLACEMARK = 'UPDATE_PLACEMARK';
+
+export function addPlacemark(position?: GeographicPosition): Action {
+    return {type: ADD_PLACEMARK, payload: {position}};
+}
+
+export function removePlacemark(placemarkId: string): Action {
+    return {type: REMOVE_PLACEMARK, payload: {placemarkId}};
+}
+
+export function updatePlacemark(placemark: Placemark): Action {
+    return {type: UPDATE_PLACEMARK, payload: {placemark}};
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application-level actions
@@ -58,6 +81,16 @@ export const UPDATE_TASK_STATE = 'UPDATE_TASK_STATE';
 export const REMOVE_TASK_STATE = 'REMOVE_TASK_STATE';
 export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
+export const SET_GLOBE_MOUSE_POSITION = 'SET_GLOBE_MOUSE_POSITION';
+export const SET_GLOBE_VIEW_POSITION = 'SET_GLOBE_VIEW_POSITION';
+
+export function setGlobeMousePosition(position: GeographicPosition): Action {
+    return {type: SET_GLOBE_MOUSE_POSITION, payload: {position}};
+}
+
+export function setGlobeViewPosition(position: GeographicPosition): Action {
+    return {type: SET_GLOBE_VIEW_POSITION, payload: {position}};
+}
 
 export function updateInitialState(initialState: Object): Action {
     return {type: UPDATE_INITIAL_STATE, payload: initialState};
@@ -131,6 +164,7 @@ export function storeBackendConfig(backendConfig: BackendConfigState): ThunkActi
             // Store state changes to the Python back-end
             return selectors.backendConfigAPISelector(getState()).setBackendConfig(backendConfig);
         }
+
         callAPI(dispatch, 'Storing backend configuration', call);
     };
 }
@@ -872,7 +906,7 @@ export function getWorkspaceVariableStatistics(resName: string,
     }
 }
 
-export function showFigureView(resource: ResourceState, placeAfterViewId: string|null): Action {
+export function showFigureView(resource: ResourceState, placeAfterViewId: string | null): Action {
     return {type: SHOW_FIGURE_VIEW, payload: {resource, placeAfterViewId}};
 }
 

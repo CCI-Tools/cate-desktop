@@ -7,7 +7,7 @@ import DataSourcesPanel from "./DataSourcesPanel";
 import OperationsPanel from "./OperationsPanel";
 import WorkspacePanel from "./WorkspacePanel";
 import VariablePanel from "./VariablesPanel";
-import ChartSettingsPanel from "./ChartSettingsPanel";
+import PlacemarksPanel from "./PlacemarksPanel";
 import ViewPanel from "./ViewPanel";
 import TaskPanel from "./TasksPanel";
 import StatusBar from "./StatusBar";
@@ -202,8 +202,8 @@ class _RightPanel extends React.PureComponent<IRightPanelProps & IDispatch, null
             >
                 <Panel id="variables" position="top" iconName="pt-icon-variable" title="Variables"
                        body={<VariablePanel/>}/>
-                <Panel id="analysis" position="top" iconName="pt-icon-timeline-area-chart" title="Charts"
-                       body={<ChartSettingsPanel/>}/>
+                <Panel id="placemarks" position="top" iconName="pt-icon-map-marker" title="My Places"
+                       body={<PlacemarksPanel/>}/>
                 <Panel id="view" position="bottom" iconName="pt-icon-eye-open" title="View"
                        body={<ViewPanel/>}/>
                 <Panel id="layers" position="bottom" iconName="pt-icon-layers" title="Layers"

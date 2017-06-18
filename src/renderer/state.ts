@@ -2,6 +2,7 @@ import  {WebAPIClient} from './webapi';
 import {JobStatus, JobFailure, JobProgress} from "./webapi/Job";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
+import {Feature, FeatureCollection, Point} from "geojson";
 
 /**
  * Interface describing Cate's application state structure.
@@ -17,7 +18,7 @@ export interface State {
     communication: CommunicationState;
     control: ControlState;
     session: SessionState;
-    location: LocationState; // not used
+    location: LocationState;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +74,7 @@ export interface OperationState {
     name: string;
     qualifiedName: string;
     hasMonitor: boolean;
-    description: string|null;
+    description: string | null;
     tags: Array<string>;
     inputs: OperationInputState[];
     outputs: OperationOutputState[];
@@ -89,8 +90,8 @@ export interface FileFilterState {
 export interface OperationIOBaseState {
     name: string;
     dataType: string;
-    description: string|null;
-    units?: string|null;
+    description: string | null;
+    units?: string | null;
 }
 
 export interface OperationInputState extends OperationIOBaseState {
@@ -99,7 +100,7 @@ export interface OperationInputState extends OperationIOBaseState {
     nullable?: boolean;
     valueSet?: any[];
     valueSetSource?: string;
-    valueRange?: [number, number]|[string, string];
+    valueRange?: [number, number] | [string, string];
     fileOpenMode?: 'w' | 'r' | 'rw';
     fileFilters?: FileFilterState[];
     fileProps?: string;
@@ -129,7 +130,7 @@ export interface OperationArgumentSource {
 /**
  * Operation argument.
  */
-export type OperationArg = OperationArgumentValue|OperationArgumentSource;
+export type OperationArg = OperationArgumentValue | OperationArgumentSource;
 
 /**
  * Positional operation argument list.
@@ -139,7 +140,7 @@ export type OperationArg = OperationArgumentValue|OperationArgumentSource;
 /**
  * Non-positional operation keyword-arguments.
  */
-export type OperationKWArgs = {[name: string]: OperationArg};
+export type OperationKWArgs = { [name: string]: OperationArg };
 
 /**
  * IMPORTANT: WorkspaceState must reflect what is returned by cate.core.workspace.Workspace.to_json_dict()
@@ -152,7 +153,7 @@ export interface WorkspaceState {
     /**
      * The workspace's description.
      */
-    description: string|null;
+    description: string | null;
     /**
      * Is it a scratch workspace? Scratch workspaces must be saved-as to some real location.
      */
@@ -194,7 +195,7 @@ export interface WorkflowStepState {
     /**
      * Step type (not used yet).
      */
-    type: 'operation'|'workflow'|'python-expression'|'python-script'|'executable';
+    type: 'operation' | 'workflow' | 'python-expression' | 'python-script' | 'executable';
 
     /**
      * The actual action to be performed. Allowed values depend on 'type'.
@@ -202,8 +203,8 @@ export interface WorkflowStepState {
      */
     op: string;
 
-    input: {[name:string]: WorkflowPortState};
-    output: {[name:string]: WorkflowPortState};
+    input: { [name: string]: WorkflowPortState };
+    output: { [name: string]: WorkflowPortState };
 }
 
 /**
@@ -214,7 +215,7 @@ export interface WorkflowPortState {
      * A constant value.
      * Constraint: value!==undefined, if sourceRef===null.
      */
-    value: any|undefined;
+    value: any | undefined;
     /**
      * Reference to a step which provides the value of this port.
      * Constraint: sourceRef!==null, if value===undefined.
@@ -222,10 +223,10 @@ export interface WorkflowPortState {
      * Source reference can either be the ID of another (single-output) step or it can have the form
      * "stepId.outputPort" if it refers to specific output of a (multi-output) step.
      */
-    source: string|null;
+    source: string | null;
 }
 
-export type DimSizes = {[dimName: string]: number};
+export type DimSizes = { [dimName: string]: number };
 export type Attribute = [string, any];
 
 // TODO (forman): harmonize ResourceState + VariableState, in the end
@@ -250,7 +251,7 @@ export interface ResourceState {
  * IMPORTANT: VariableState must reflect what is returned by cate.core.workspace.Workspace.to_json_dict()
  */
 export interface VariableState {
-    name : string;
+    name: string;
     dataType: string;
     ndim?: number;
     shape?: number[];
@@ -321,7 +322,7 @@ export interface WorldViewDataState {
     /**
      * The ID of the selected layer.
      */
-    selectedLayerId: string|null;
+    selectedLayerId: string | null;
 }
 
 export interface FigureViewDataState {
@@ -336,9 +337,9 @@ export interface FigureViewDataState {
 }
 
 export interface TableViewDataState {
-    resName: string|null;
-    varName: string|null;
-    dataRows: any[]|null;
+    resName: string | null;
+    varName: string | null;
+    dataRows: any[] | null;
     error?: any;
     isLoading?: boolean;
 }
@@ -356,12 +357,12 @@ export interface LayerState {
     /**
      * Layer type
      */
-    type: 'VariableImage'|'VariableVector'|'Image'|'Vector'|'Unknown';
+    type: 'VariableImage' | 'VariableVector' | 'Image' | 'Vector' | 'Unknown';
 
     /**
      * Layer name.
      */
-    name?: string|null;
+    name?: string | null;
 
     /**
      * True if the layer is visible and shown; otherwise, false.
@@ -551,10 +552,10 @@ export interface ColorMapCategoryState {
  * Communication state is the status of any not-yet-complete requests to other services.
  */
 export interface CommunicationState {
-    webAPIStatus: 'connecting'|'open'|'error'|'closed'|null;
+    webAPIStatus: 'connecting' | 'open' | 'error' | 'closed' | null;
 
     // A map that stores the current state of any tasks (e.g. data fetch jobs from remote API) given a jobId
-    tasks: {[jobId: number]: TaskState;};
+    tasks: { [jobId: number]: TaskState; };
 }
 
 export interface TaskState {
@@ -576,37 +577,39 @@ export interface ControlState {
     // TODO (forman): Move some local selection properties into workspace so they can be stored.
 
     // DataSourcesPanel
-    selectedDataStoreId: string|null;
-    selectedDataSourceId: string|null;
+    selectedDataStoreId: string | null;
+    selectedDataSourceId: string | null;
     dataSourceFilterExpr: string;
     showDataSourceDetails: boolean;
 
     // OperationsPanel
-    selectedOperationName: string|null;
+    selectedOperationName: string | null;
     operationFilterTags: string[];
     operationFilterExpr: string;
     showOperationDetails: boolean;
 
     // WorkspacePanel
     showResourceDetails: boolean;
-    selectedWorkspaceResourceName: string|null;
+    selectedWorkspaceResourceName: string | null;
     showWorkflowStepDetails: boolean;
-    selectedWorkflowStepId: string|null;
+    selectedWorkflowStepId: string | null;
 
     // VariablesPanel
-    selectedVariableName: string|null;
+    selectedVariableName: string | null;
     showVariableDetails: boolean;
 
     // LayersPanel
     showLayerDetails: boolean;
 
     // A map that stores the last state of any dialog given a dialogId
-    dialogs: {[dialogId: string]: DialogState};
+    dialogs: { [dialogId: string]: DialogState };
 
     // Take care, workspace objects come from Python back-end, therefore must preserve view settings.
     viewLayout: ViewLayoutState;
     views: ViewState<any>[];
     activeViewId: string | null;
+
+    worldViewClickAction: string | null;
 }
 
 export interface DialogState {
@@ -616,7 +619,7 @@ export interface DialogState {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SessionState
 
-export type SavedLayers = {[key: string]: LayerState};
+export type SavedLayers = { [key: string]: LayerState };
 
 /**
  * Backend-configuration settings.
@@ -626,6 +629,10 @@ export interface BackendConfigState {
     useWorkspaceImageryCache: boolean;
 }
 
+export type PlacemarkCollection = FeatureCollection<Point>;
+export type Placemark = Feature<Point>;
+
+
 /**
  * Session state contains information about the human being which is currently using Cate.
  * Session state is only ever read when a component is mounted.
@@ -633,7 +640,7 @@ export interface BackendConfigState {
  */
 export interface SessionState {
     lastDir?: string;
-    mainWindowBounds?: {x: number; y: number; width: number; height: number};
+    mainWindowBounds?: { x: number; y: number; width: number; height: number };
     devToolsOpened?: boolean;
     /**
      * lastWorkspacePath != null, only if it is not a scratch-workspace
@@ -650,10 +657,14 @@ export interface SessionState {
     panelContainerUndockedMode: boolean;
     leftPanelContainerLayout: PanelContainerLayout;
     rightPanelContainerLayout: PanelContainerLayout;
-    selectedLeftTopPanelId: string|null;
-    selectedLeftBottomPanelId: string|null;
-    selectedRightTopPanelId: string|null;
-    selectedRightBottomPanelId: string|null;
+    selectedLeftTopPanelId: string | null;
+    selectedLeftBottomPanelId: string | null;
+    selectedRightTopPanelId: string | null;
+    selectedRightBottomPanelId: string | null;
+
+    placemarkCollection: PlacemarkCollection | null;
+    selectedPlacemarkId: string | null;
+    showPlacemarkDetails: boolean;
 
     /**
      * backendConfig settings are applied on restart (of the WebAPI) only.
@@ -664,10 +675,19 @@ export interface SessionState {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // LocationState
 
+export class GeographicPosition {
+    longitude: number;
+    latitude: number;
+    height?: number;
+}
+
 /**
- * Location state is the information stored in the URL and the HTML5 History state object.
+ * Location state stores information about the current locationin space and time.
+ * Information in this object may change frequently, e.g. due to mouse moves on a Globe.
  */
 export interface LocationState {
+    globeMousePosition: GeographicPosition | null;
+    globeViewPosition: GeographicPosition | null;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

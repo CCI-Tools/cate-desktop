@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
     State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
-    VariableState, VariableRefState, VectorLayerState, ResourceState, WorldViewDataState
+    VariableState, VariableRefState, VectorLayerState, ResourceState, WorldViewDataState, GeographicPosition
 } from "../state";
 import {
     CesiumGlobe, LayerDescriptor, ImageryProvider, DataSourceDescriptor,
@@ -14,18 +14,20 @@ import {
 } from "../state-util";
 import {ViewState} from "../components/ViewState";
 import * as selectors from "../selectors";
+import * as actions from "../actions";
 
 const Cesium: any = require('cesium');
-
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
 }
 
 interface IGlobeViewProps extends IGlobeViewOwnProps {
+    dispatch?: (action: any) => void;
     baseUrl: string;
     workspace: WorkspaceState | null;
     offlineMode: boolean;
+    worldViewClickAction: string | null;
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -34,14 +36,37 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         baseUrl: selectors.webAPIRestUrlSelector(state),
         workspace: selectors.workspaceSelector(state),
         offlineMode: state.session.offlineMode,
+        worldViewClickAction: state.control.worldViewClickAction,
     };
 }
 
 /**
  * This component displays a 3D globe with a number of layers.
  */
-class GlobeView extends React.Component<IGlobeViewProps&IGlobeViewOwnProps, null> {
-    static readonly CESIUM_GLOBE_STYLE = {width:"100%", height:"100%", overflow: "hidden"};
+class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, null> {
+    static readonly CESIUM_GLOBE_STYLE = {width: "100%", height: "100%", overflow: "hidden"};
+
+    constructor(props: IGlobeViewProps & IGlobeViewOwnProps) {
+        super(props);
+        this.handleMouseMoved = this.handleMouseMoved.bind(this);
+        this.handleMouseClicked = this.handleMouseClicked.bind(this);
+        this.handleLeftUp = this.handleLeftUp.bind(this);
+    }
+
+    handleMouseMoved(position: GeographicPosition) {
+        this.props.dispatch(actions.setGlobeMousePosition(position));
+    }
+
+    handleMouseClicked(position: GeographicPosition) {
+        if (this.props.worldViewClickAction === actions.ADD_PLACEMARK && position) {
+            this.props.dispatch(actions.addPlacemark(position));
+            this.props.dispatch(actions.updateControlState({worldViewClickAction: null}));
+        }
+    }
+
+    handleLeftUp(position: GeographicPosition) {
+        this.props.dispatch(actions.setGlobeViewPosition(position));
+    }
 
     render() {
         const layers = [];
@@ -76,7 +101,9 @@ class GlobeView extends React.Component<IGlobeViewProps&IGlobeViewOwnProps, null
                          layers={layers}
                          dataSources={dataSources}
                          offlineMode={this.props.offlineMode}
-                         style={GlobeView.CESIUM_GLOBE_STYLE}/>
+                         style={GlobeView.CESIUM_GLOBE_STYLE}
+                         onMouseMoved={this.handleMouseMoved}
+                         onMouseClicked={this.handleMouseClicked}/>
         );
     }
 
@@ -88,7 +115,7 @@ class GlobeView extends React.Component<IGlobeViewProps&IGlobeViewOwnProps, null
         return findVariable(this.props.workspace.resources, ref);
     }
 
-    private convertVariableImageLayerToLayerDescriptor(layer: VariableImageLayerState): LayerDescriptor|null {
+    private convertVariableImageLayerToLayerDescriptor(layer: VariableImageLayerState): LayerDescriptor | null {
         const resource = this.getResource(layer);
         const variable = this.getVariable(layer);
         if (!variable) {
@@ -125,7 +152,7 @@ class GlobeView extends React.Component<IGlobeViewProps&IGlobeViewOwnProps, null
         });
     }
 
-    private convertVariableVectorLayerToDataSourceDescriptor(layer: VariableVectorLayerState): DataSourceDescriptor|null {
+    private convertVariableVectorLayerToDataSourceDescriptor(layer: VariableVectorLayerState): DataSourceDescriptor | null {
         const resource = this.getResource(layer);
         const variable = this.getVariable(layer);
         if (!variable) {
@@ -186,7 +213,7 @@ class GlobeView extends React.Component<IGlobeViewProps&IGlobeViewOwnProps, null
         };
     }
 
-    private convertVectorLayerToDataSourceDescriptor(layer: VectorLayerState): DataSourceDescriptor|null {
+    private convertVectorLayerToDataSourceDescriptor(layer: VectorLayerState): DataSourceDescriptor | null {
         let url = layer.url;
         if (layer.id === COUNTRIES_LAYER_ID) {
             url = getGeoJSONCountriesUrl(this.props.baseUrl);

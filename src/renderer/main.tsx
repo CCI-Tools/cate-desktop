@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import {Store, createStore, applyMiddleware} from 'redux';
-import * as loggerMiddleware from 'redux-logger';
+import {Store, createStore, Middleware, applyMiddleware} from 'redux';
+import * as createLogger from 'redux-logger';
 import thunkMiddleware from 'redux-thunk';
 import {Provider} from 'react-redux';
 import {ipcRenderer} from 'electron';
@@ -13,12 +13,20 @@ import {stateReducer} from './reducers';
 
 
 export function main() {
+    const middlewares: Middleware[] = [thunkMiddleware];
 
-    const middleware = applyMiddleware(
-        thunkMiddleware,
-        loggerMiddleware({level: 'info', collapsed: true, diff: true})
-    );
+    if (process.env.NODE_ENV === 'development') {
+        const nonLoggedActionTypes = [actions.SET_GLOBE_MOUSE_POSITION];
+        let loggerOptions = {
+            level: 'info',
+            collapsed: true,
+            diff: true,
+            predicate: (getState, action) => !(action.type in nonLoggedActionTypes)
+        };
+        middlewares.push(createLogger(loggerOptions));
+    }
 
+    const middleware = applyMiddleware(...middlewares);
     const store = createStore(stateReducer, middleware);
 
     ipcRenderer.on('apply-initial-state', (event, initialState) => {

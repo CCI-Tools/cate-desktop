@@ -1,6 +1,7 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {State, TaskState} from "../state";
+import {GeographicPosition, State, TaskState} from "../state";
+import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {Classes, Intent, Popover, PopoverInteractionKind, Position, Spinner, Tooltip} from "@blueprintjs/core";
 import {JobStatusEnum} from "../webapi/Job";
@@ -10,6 +11,7 @@ import {ListBox} from "../components/ListBox";
 interface IStatusBarProps {
     webAPIStatus: 'connecting' | 'open' | 'error' | 'closed' | null;
     tasks: { [jobId: number]: TaskState };
+    globePosition: GeographicPosition|null;
 }
 
 interface IStatusBarDispatch {
@@ -20,7 +22,8 @@ interface IStatusBarDispatch {
 function mapStateToProps(state: State): IStatusBarProps {
     return {
         webAPIStatus: state.communication.webAPIStatus,
-        tasks: state.communication.tasks
+        tasks: state.communication.tasks,
+        globePosition: selectors.globeMousePositionSelector(state) || selectors.globeViewPositionSelector(state),
     };
 }
 
@@ -138,16 +141,19 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch, nu
         // TODO dummy
         const message = "Ready.";
 
-        // TODO dummy
-        const lat = 22.22;
-        const lon = 11.11;
-        const cursor = `LAT = ${lat.toFixed(2)} LON = ${lon.toFixed(2)}`;
+        let cursor;
+        let position = this.props.globePosition;
+        if (position) {
+            cursor = `lon=${position.longitude.toFixed(2)}, lat=${position.latitude.toFixed(2)}`
+        } else {
+            cursor = '';
+        }
 
         return (
             <div style={StatusBar.DIV_STYLE}>
-                <div style={{flex: "80 1 auto", padding: 2}}>{message}</div>
+                <div style={{flex: "60 1 auto", padding: 2}}>{message}</div>
                 <div style={{flex: "20 1 auto", padding: 2}}>{this.renderTasks()}</div>
-                {/*<div style={{flex: "9 1 auto", padding: "1px 1px 1px 1px"}}>{cursor}</div>*/}
+                <div style={{flex: "20 1 auto", padding: 1}}>{cursor}</div>
                 <div style={{
                     flex: "0 1 auto",
                     padding: 2

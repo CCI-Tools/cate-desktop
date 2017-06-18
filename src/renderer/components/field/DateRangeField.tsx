@@ -31,13 +31,13 @@ export class DateRangeField extends Field<DateRange, IDateRangeFieldProps> {
     onDate1Change(date: Date) {
         const oldDateRange = this.getValue();
         const newDateRange: DateRange = [date, oldDateRange && oldDateRange[1]];
-        this.props.onChange({textValue: this.formatValue(newDateRange), value: newDateRange});
+        this.props.onChange({textValue: this.getFormattedValue(newDateRange), value: newDateRange});
     }
 
     onDate2Change(date: Date) {
         const oldDateRange = this.getValue();
         const newDateRange: DateRange = [oldDateRange && oldDateRange[0], date];
-        this.props.onChange({textValue: this.formatValue(newDateRange), value: newDateRange});
+        this.props.onChange({textValue: this.getFormattedValue(newDateRange), value: newDateRange});
     }
 
     onDate1Error(date: Date) {

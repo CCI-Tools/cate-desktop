@@ -85,6 +85,20 @@ export const NO_VIEW_PROPS = (
         visual={ICON_EMPTY}/>
 );
 
+export const NO_PLACEMARKS = (
+    <NonIdealState
+        title="No placemarks"
+        description={<span>Press the <span className="pt-icon-selection"/> or <span className="pt-icon-add"/> button to add a placemark.</span>}
+        visual={ICON_EMPTY}/>
+);
+
+export const NO_PLACEMARK_SELECTED = (
+    <NonIdealState
+        title="No placemark selected"
+        description="Select a placemark to browse and edit its details."
+        visual={ICON_EMPTY}/>
+);
+
 export const NO_LAYERS_NO_VIEW = (
     <NonIdealState
         title="No layers"

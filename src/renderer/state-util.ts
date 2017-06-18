@@ -65,6 +65,10 @@ export function genLayerId() {
     return genSimpleId('layer-');
 }
 
+export function genPlacemarkId() {
+    return genSimpleId('placemark-');
+}
+
 export function isFigureResource(resource: ResourceState | null): boolean {
     return resource && isNumber(resource.id) && resource.dataType.endsWith('.Figure');
 }

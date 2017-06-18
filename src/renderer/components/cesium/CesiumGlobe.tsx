@@ -65,11 +65,23 @@ export type CesiumScene = {
 
 export type CesiumViewer = {
     container: HTMLElement;
+    canvas:HTMLCanvasElement
     entities: any;
     imageryLayers: ImageryLayerCollection;
     dataSources: DataSourceCollection;
     scene: CesiumScene;
     camera: any;
+};
+
+export type Cartesian2 = {
+    x: number;
+    y: number;
+};
+
+export type Cartographic = {
+    longitude: number;
+    latitude: number;
+    height?: number;
 };
 
 // >> end @types/Cesium
@@ -135,8 +147,12 @@ interface CesiumGlobeState {
 export interface ICesiumGlobeProps extends IExternalObjectComponentProps<CesiumViewer, CesiumGlobeState>, CesiumGlobeState {
     offlineMode?: boolean;
     dataSources?: DataSourceDescriptor[];
+    onMouseClicked?: (point: {latitude: number, longitude: number, height?: number}) => void;
+    onMouseMoved?: (point: {latitude: number, longitude: number, height?: number}) => void;
+    onLeftUp?: (point: {latitude: number, longitude: number, height?: number}) => void;
     onViewerMounted?: (id: string, viewer: CesiumViewer) => void;
     onViewerUnmounted?: (id: string, viewer: CesiumViewer) => void;
+
 }
 
 const CENTRAL_EUROPE_BOX = Cesium.Rectangle.fromDegrees(-30, 20, 40, 80);
@@ -150,6 +166,9 @@ Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
  * @author Norman Fomferra
  */
 export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlobeState, ICesiumGlobeProps, null> {
+    private mouseClickHandler: any;
+    private mouseMoveHandler: any;
+    private leftUpHandler: any;
 
     constructor(props: ICesiumGlobeProps) {
         super(props);
@@ -247,14 +266,55 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
     }
 
     externalObjectMounted(viewer: CesiumViewer): void {
-        //getViewerPosition(viewer);
+        this.mouseClickHandler = new Cesium.ScreenSpaceEventHandler();
+        this.mouseClickHandler.setInputAction(
+            (event) => {
+                const cartographic = screenToCartographic(viewer, event.position, true);
+                if (this.props.onMouseClicked) {
+                    this.props.onMouseClicked(cartographic);
+                }
+            },
+            Cesium.ScreenSpaceEventType.LEFT_CLICK
+        );
+
+
+        this.mouseMoveHandler = new Cesium.ScreenSpaceEventHandler();
+        this.mouseMoveHandler.setInputAction(
+            (movement) => {
+                const point = movement.endPosition;
+                const cartographic = screenToCartographic(viewer, point, true);
+                if (this.props.onMouseMoved) {
+                    this.props.onMouseMoved(cartographic);
+                }
+            },
+            Cesium.ScreenSpaceEventType.MOUSE_MOVE
+        );
+
+        this.leftUpHandler = new Cesium.ScreenSpaceEventHandler();
+        this.leftUpHandler.setInputAction(
+            (movement) => {
+                const point = movement.endPosition;
+                const cartographic = screenToCartographic(viewer, null, true);
+                if (this.props.onLeftUp) {
+                    this.props.onLeftUp(cartographic);
+                }
+            },
+            Cesium.ScreenSpaceEventType.LEFT_UP
+        );
+
         if (this.props.onViewerMounted) {
             this.props.onViewerMounted(this.props.id, viewer);
         }
     }
 
     externalObjectUnmounted(viewer: CesiumViewer): void {
-        //getViewerPosition(viewer);
+        this.mouseClickHandler = this.mouseClickHandler && this.mouseClickHandler.destroy();
+        this.mouseClickHandler = null;
+        this.mouseMoveHandler = this.mouseMoveHandler && this.mouseMoveHandler.destroy();
+        this.mouseMoveHandler = null;
+        this.leftUpHandler = this.leftUpHandler && this.leftUpHandler.destroy();
+        this.leftUpHandler = null;
+
         if (this.props.onViewerUnmounted) {
             this.props.onViewerUnmounted(this.props.id, viewer);
         }
@@ -467,23 +527,23 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
 
 }
 
-function getViewerPosition(viewer: CesiumViewer) {
-    let coord;
-    let windowPosition = new Cesium.Cartesian2(viewer.container.clientWidth / 2, viewer.container.clientHeight / 2);
-    if (windowPosition) {
-        try {
-            let pickPosition = viewer.camera.pickEllipsoid(windowPosition);
-            if (pickPosition) {
-                let pickPositionCartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(pickPosition);
-                coord = [
-                    pickPositionCartographic.longitude * (180 / Math.PI),
-                    pickPositionCartographic.latitude * (180 / Math.PI)
-                ];
-            }
-        } catch (e) {
-            // console.error('getViewerPosition: e =', e);
-        }
+function screenToCartographic(viewer: CesiumViewer, screenPoint?: Cartesian2, degrees?: boolean): Cartographic {
+    let canvasPoint;
+    if (screenPoint) {
+        const rect = viewer.canvas.getBoundingClientRect();
+        canvasPoint = new Cesium.Cartesian2(screenPoint.x - rect.left, screenPoint.y - rect.top);
+    }else {
+        canvasPoint = new Cesium.Cartesian2(viewer.canvas.clientWidth / 2, viewer.canvas.clientHeight / 2);
     }
-    console.log('getViewerPosition: coord =', coord);
-    return coord;
+    const ellipsoid = viewer.scene.globe.ellipsoid;
+    const cartesian = viewer.camera.pickEllipsoid(canvasPoint, ellipsoid);
+    if (cartesian) {
+        const cartographic = ellipsoid.cartesianToCartographic(cartesian);
+        if (cartographic && degrees) {
+            const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+            const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+            return {longitude, latitude, height: cartographic.height};
+        }
+        return cartographic;
+    }
 }

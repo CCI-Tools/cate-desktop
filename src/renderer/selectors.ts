@@ -2,7 +2,7 @@ import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
     WorkflowStepState, VariableVectorLayerState, LayerVariableState, SavedLayers,
-    FigureViewDataState
+    FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient} from "./webapi/WebAPIClient";
@@ -94,6 +94,34 @@ export const selectedLeftBottomPanelIdSelector = (state: State): string
 export const selectedRightTopPanelIdSelector = (state: State): string | null => state.session.selectedRightTopPanelId;
 export const selectedRightBottomPanelIdSelector = (state: State): string
     | null => state.session.selectedRightBottomPanelId;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Placemark selectors
+
+export const placemarkCollectionSelector = (state: State): PlacemarkCollection => state.session.placemarkCollection;
+export const placemarksSelector = (state: State): Placemark[] => state.session.placemarkCollection.features;
+export const selectedPlacemarkIdSelector = (state: State): string | null => state.session.selectedPlacemarkId;
+export const showPlacemarkDetailsSelector = (state: State): boolean => state.session.showPlacemarkDetails;
+
+export const selectedPlacemarkSelector = createSelector<State,
+                                                        Placemark | null,
+                                                        Placemark[],
+                                                        string | null>(
+    placemarksSelector,
+    selectedPlacemarkIdSelector,
+    (placemarks: Placemark[], selectedPlacemarkId: string | null) => {
+        if (canFind(placemarks, selectedPlacemarkId)) {
+            return placemarks.find(placemark => placemark.id === selectedPlacemarkId);
+        }
+        return null;
+    }
+);
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Location selectors
+
+export const globeMousePositionSelector = (state: State): GeographicPosition|null => state.location.globeMousePosition;
+export const globeViewPositionSelector = (state: State): GeographicPosition|null => state.location.globeViewPosition;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation selectors

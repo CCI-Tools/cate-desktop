@@ -13,6 +13,8 @@ export interface IFieldProps<T> {
     value: FieldValue<T> | any;
     onChange: FieldChangeHandler<T>;
     placeholder?: string;
+    parser?: (textValue: string) => T;
+    formatter?: (value: T) => string;
     validator?: (value: T) => void;
     cols?: number;
     size?: number;
@@ -68,6 +70,22 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
         }
     }
 
+    protected getParsedValue(textValue: string): T | null {
+        if (this.props.parser) {
+            return this.props.parser(textValue);
+        } else {
+            this.parseValue(textValue);
+        }
+    }
+
+    protected getFormattedValue(value: T | null): string {
+        if (this.props.formatter) {
+            return this.props.formatter(value);
+        } else {
+            this.formatValue(value);
+        }
+    }
+
     protected validateValue(value: T | null): void {
         if (isUndefinedOrNull(value)) {
             if (this.props.nullable) {
@@ -84,7 +102,7 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
         const textValue = event.target.value;
         let value;
         try {
-            value = this.parseValue(textValue);
+            value = this.getParsedValue(textValue);
             this.notifyValueChange(textValue, value);
         } catch (error) {
             value = this.props.value.value;
@@ -109,11 +127,11 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
     getTextValue(value?: any): string {
         value = isDefined(value) ? value : this.props.value;
         if (Field.isFieldValue(value)) {
-            return isDefinedAndNotNull(value.textValue) ? value.textValue : this.formatValue(value.value);
+            return isDefinedAndNotNull(value.textValue) ? value.textValue : this.getFormattedValue(value.value);
         } else if (isString(value)) {
             return value;
         }
-        return this.formatValue(value);
+        return this.getFormattedValue(value);
     }
 
     getValue(value?: any): T {
