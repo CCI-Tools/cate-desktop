@@ -508,6 +508,7 @@ const initialSessionState: SessionState = {
     reopenLastWorkspace: false,
     lastWorkspacePath: null,
     resourceNamePrefix: 'res_',
+    autoShowNewFigures: true,
     offlineMode: false,
     showSelectedVariableLayer: true,
     savedLayers: {},

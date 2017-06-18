@@ -642,6 +642,7 @@ export interface SessionState {
     reopenLastWorkspace?: boolean;
     resourceNamePrefix: string;
     offlineMode: boolean;
+    autoShowNewFigures: boolean;
     showSelectedVariableLayer: boolean;
     savedLayers: SavedLayers;
 

@@ -16,6 +16,7 @@ import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
 import {showToast} from "./toast";
 import * as d3 from "d3";
+import {actions} from "../main/actions";
 
 const CANCELLED_CODE = 999;
 
@@ -817,6 +818,12 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: Op
         function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
             dispatch(setSelectedWorkspaceResourceName(resName));
+            if (getState().session.autoShowNewFigures) {
+                const figureResource = selectors.selectedFigureResourceSelector(getState());
+                if (figureResource) {
+                    dispatch(addFigureView(selectors.activeViewIdSelector(getState()), figureResource))
+                }
+            }
         }
 
         callAPI(dispatch, title, call, action);

@@ -49,20 +49,12 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
             this.props.dispatch(actions.updatePreferences(this.state));
             if (backendChangesDetected) {
                 this.props.dispatch(actions.storeBackendConfig(backendConfig));
-                // actions.showMessageBox({
-                //     title: PreferencesDialog.DIALOG_TITLE,
-                //     message: "Some changes will be effective only after restart."
-                // });
                 showToast({
                     type: 'info',
                     text: 'Some changes will be effective only after restart.'
                 });
             }
         } else {
-            // actions.showMessageBox({
-            //     title: PreferencesDialog.DIALOG_TITLE,
-            //     message: "No changes detected."
-            // });
             showToast({
                 type: 'info',
                 text: 'No changes detected.'
@@ -112,6 +104,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
             <div style={{width: '100%', marginTop:'1em'}}>
                 {this.renderReopenLastWorkspace()}
                 {this.renderResourceNamePrefix()}
+                {this.renderAutoShowNewFigures()}
                 {this.renderOfflineMode()}
                 {this.renderPanelContainerUndockedMode()}
             </div>
@@ -140,6 +133,14 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
             'resourceNamePrefix',
             false,
             'Resource name prefix'
+        );
+    }
+
+    private renderAutoShowNewFigures() {
+        return this.renderBooleanValue(
+            'autoShowNewFigures',
+            false,
+            "Open plot view for new Figure resources"
         );
     }
 

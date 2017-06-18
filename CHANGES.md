@@ -1,11 +1,13 @@
 ### 0.8.0-rc.6.dev.1
 
-1. Cate now displays messages in **toasts** - lightweight, ephemeral notices in direct response 
+1. If an operation produces a resource of type `Figure`, it will be initially **shown in a plot view**.
+   This default behaviour can be disabled from main menu under *File/Preferences*.
+2. Cate now displays messages in **toasts** - lightweight, ephemeral notices in direct response 
    to a user's action.   
-2. The **details part of an error message** (e.g. Python stack traceback) can now be **copied to clipboard**.  
-3. For easier access, `matplotlib` figure views can now be opened from the **WORKSPACE** panel.
-4. Added simple **About Box**.
-5. Fixed layout problem in ''LAYERS** panel, where sliders where outside visible panel area. 
+3. The **details part of an error message** (e.g. Python stack traceback) can now be **copied to clipboard**.  
+4. For easier access, `matplotlib` figure views can now be opened from the **WORKSPACE** panel.
+5. Added simple **About Box**.
+6. Fixed layout problem in ''LAYERS** panel, where sliders where outside visible panel area. 
 
 
 ### 0.8.0-rc.5
