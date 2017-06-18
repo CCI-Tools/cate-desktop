@@ -1420,9 +1420,16 @@ export function sendPreferencesToMain(callback?: (error: any) => void): ThunkAct
         }
         const session = getState().session;
         const preferences = Object.assign({}, session);
-        if (preferences.hasOwnProperty('backendConfig')) {
-            delete preferences.backendConfig;
-        }
+        const excludedPreferenceNames = [
+            'backendConfig',     // treated differently, see storeBackendConfig
+            'mainWindowBounds',  // use current value from main process
+            'devToolsOpened',    // use current value from main process
+        ];
+        excludedPreferenceNames.forEach(propertyName => {
+            if (preferences.hasOwnProperty(propertyName)) {
+                delete preferences[propertyName];
+            }
+        });
         const actionName = 'set-preferences';
         electron.ipcRenderer.send(actionName, preferences);
         if (callback) {
