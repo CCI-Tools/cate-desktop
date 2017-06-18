@@ -53,15 +53,15 @@ if (OS_IS_DARWIN) {
 }
 
 let viewSubMenu = [
-    // TODO (forman): we currently can't reload - why?
-    // actions.reload,
-    actions.toggleDevTools,
+    actions.toggleFullScreen,
     ________________,
     actions.resetPageZoom,
     actions.zoomInPage,
     actions.zoomOutPage,
     ________________,
-    actions.toggleFullScreen,
+    // TODO (forman): we currently can't reload - why?
+    // actions.reload,
+    actions.toggleDevTools,
 ];
 
 let toolsSubMenu = [

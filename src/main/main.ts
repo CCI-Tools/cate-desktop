@@ -445,7 +445,7 @@ function createMainWindow() {
         }
     });
 
-    if (_config.data.devToolsOpened) {
+    if (_prefs.data.devToolsOpened) {
         // Open the DevTools.
         _mainWindow.webContents.openDevTools();
     }

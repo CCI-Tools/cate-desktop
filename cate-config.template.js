@@ -33,11 +33,6 @@ module.exports = {
     prefsFile: null,
 
     /**
-     * Set whether or not DevTools are initially opened.
-     */
-    devToolsOpened: true,
-
-    /**
      * List of Chrome DevTools extensions. See
      * - https://developer.chrome.com/devtools
      * - https://github.com/MarshallOfSound/electron-devtools-installer
