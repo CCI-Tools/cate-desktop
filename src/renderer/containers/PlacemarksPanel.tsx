@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Button, Colors, Menu, MenuItem, Popover, Position} from "@blueprintjs/core";
+import {Button, Colors, ContextMenuTarget, Menu, MenuItem, Popover, Position, Tooltip} from "@blueprintjs/core";
 import {connect, Dispatch} from 'react-redux';
 import {State, PlacemarkCollection, Placemark, GeographicPosition} from "../state";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
@@ -12,7 +12,6 @@ import {ViewState} from "../components/ViewState";
 import {NO_PLACEMARK_SELECTED, NO_PLACEMARKS} from "../messages";
 import {Field, FieldValue, IFieldProps} from "../components/field/Field";
 import {TextField} from "../components/field/TextField";
-import {Tooltip} from "@blueprintjs/core/src/components/tooltip/tooltip";
 
 interface IPlacemarksPanelDispatch {
     dispatch: Dispatch<State>;
@@ -61,8 +60,9 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         this.handleChangedPlacemarkSelection = this.handleChangedPlacemarkSelection.bind(this);
         this.handleChangedPlacemarkName = this.handleChangedPlacemarkName.bind(this);
         this.handleChangedPlacemarkPosition = this.handleChangedPlacemarkPosition.bind(this);
-        this.handleCopyName = this.handleCopyName.bind(this);
-        this.handleCopyPosition = this.handleCopyPosition.bind(this);
+        this.handleCopySelectedName = this.handleCopySelectedName.bind(this);
+        this.handleCopySelectedPosition = this.handleCopySelectedName.bind(this);
+        this.renderPlacemarkItem = this.renderPlacemarkItem.bind(this);
     }
 
     private handleShowDetailsChanged(value: boolean) {
@@ -104,17 +104,27 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         this.props.dispatch(actions.updateSessionState({selectedPlacemarkId}));
     }
 
-    private handleCopyName() {
-        const electron = require('electron');
-        const placemark = this.props.selectedPlacemark;
-        electron.clipboard.writeText(placemark.properties['name']);
+    private handleCopySelectedName() {
+        PlacemarksPanel.handleCopyName(this.props.selectedPlacemark);
     }
 
-    private handleCopyPosition() {
+    private handleCopySelectedPosition() {
+        PlacemarksPanel.handleCopyPosition(this.props.selectedPlacemark);
+    }
+
+    private static handleCopyName(placemark: Placemark) {
         const electron = require('electron');
-        const placemark = this.props.selectedPlacemark;
+        const text = placemark.properties['name'];
+        electron.clipboard.writeText(text);
+        console.log(`copied to clipboard [${text}]`);
+    }
+
+    private static handleCopyPosition(placemark: Placemark) {
+        const electron = require('electron');
         const position = placemark.geometry.coordinates;
-        electron.clipboard.writeText(position[0] + ', ' + position[1]);
+        const text = position[0] + ', ' + position[1];
+        electron.clipboard.writeText(text);
+        console.log(`copied to clipboard [${text}]`);
     }
 
     private static getPlacemarkItemKey(placemark: Placemark) {
@@ -160,8 +170,8 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                     <Button disabled={!this.props.selectedPlacemarkId}
                             iconName="clipboard"/>
                     <Menu>
-                        <MenuItem onClick={this.handleCopyName} text="Copy name"/>
-                        <MenuItem onClick={this.handleCopyPosition} text="Copy position"/>
+                        <MenuItem onClick={this.handleCopySelectedName} text="Copy name"/>
+                        <MenuItem onClick={this.handleCopySelectedPosition} text="Copy position"/>
                     </Menu>
                 </Popover>
                 <LayerSourcesDialog/>
@@ -188,7 +198,11 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     }
 
     private renderPlacemarkItem(placemark: Placemark) {
-        return <PlacemarkItem placemark={placemark} onVisibilityChange={this.handleChangedPlacemarkVisibility}/>;
+        return <PlacemarkItem placemark={placemark}
+                              onVisibilityChange={this.handleChangedPlacemarkVisibility}
+                              onCopyName={PlacemarksPanel.handleCopyName}
+                              onCopyPosition={PlacemarksPanel.handleCopyPosition}
+        />;
     }
 
     private renderPlacemarkDetails() {
@@ -283,8 +297,11 @@ export default connect(mapStateToProps)(PlacemarksPanel);
 interface IPlacemarkItemProps {
     placemark: Placemark;
     onVisibilityChange: (placemark: Placemark, visible?) => void;
+    onCopyName: (placemark: Placemark) => void;
+    onCopyPosition: (placemark: Placemark) => void;
 }
 
+@ContextMenuTarget
 class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
 
     static readonly ICON_STYLE = {marginLeft: "0.5em"};
@@ -294,6 +311,16 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
     constructor(props: IPlacemarkItemProps) {
         super(props);
         this.handleVisibilityChanged = this.handleVisibilityChanged.bind(this);
+        this.handleCopyName = this.handleCopyName.bind(this);
+        this.handleCopyPosition = this.handleCopyPosition.bind(this);
+    }
+
+    handleCopyName() {
+        this.props.onCopyName(this.props.placemark);
+    }
+
+    handleCopyPosition() {
+        this.props.onCopyPosition(this.props.placemark);
     }
 
     handleVisibilityChanged(event) {
@@ -318,81 +345,21 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
             </div>
         );
     }
+
+    //noinspection JSUnusedGlobalSymbols
+    renderContextMenu() {
+        // return a single element, or nothing to use default browser behavior
+        return (
+            <Menu>
+                <MenuItem onClick={this.handleCopyName} text="Copy name"/>
+                <MenuItem onClick={this.handleCopyPosition} text="Copy position"/>
+            </Menu>
+        );
+    }
+
+    //noinspection JSUnusedGlobalSymbols
+    onContextMenuClose() {
+        // Optional method called once the context menu is closed.
+    }
 }
 
-
-// TODO (forman): The following didn't compile with TS 2.2, gives weird compoiler errors which I couldn't resolve:
-// > cate-desktop@0.8.0-rc.6.dev.1 compile C:\Users\norma\WebstormProjects\cate-desktop
-// > tsc
-//
-// node_modules/@blueprintjs/core/src/common/abstractComponent.ts(46,30): error TS2345: Argument of type 'Timer' is not assignable to parameter of type 'number'.
-// node_modules/@blueprintjs/core/src/components/overlay/overlay.tsx(301,55): error TS2339: Property 'query' does not exist on type 'HTMLElement'.
-// node_modules/@blueprintjs/core/src/components/overlay/overlay.tsx(302,53): error TS2339: Property 'query' does not exist on type 'HTMLElement'.
-//
-// see also https://github.com/WebReflection/dom4
-//
-/*
- @ContextMenuTarget
- class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
-
- static readonly ICON_STYLE = {marginLeft: "0.5em"};
- static readonly NAME_STYLE = {marginLeft: "0.5em"};
- static readonly POSITION_STYLE = {marginLeft: "0.5em", color: Colors.VIOLET5};
-
- constructor(props: IPlacemarkItemProps) {
- super(props);
- this.handleVisibilityChanged = this.handleVisibilityChanged.bind(this);
- }
-
- handleCopyName() {
- const electron = require('electron');
- const placemark = this.props.placemark;
- electron.clipboard.writeText(placemark.properties['name']);
- }
-
- handleCopyPosition() {
- const electron = require('electron');
- const placemark = this.props.placemark;
- const position = placemark.geometry.coordinates;
- electron.clipboard.writeText(position[0] + ', ' + position[1]);
- }
-
- handleVisibilityChanged(event) {
- this.props.onVisibilityChange(this.props.placemark, event.target.checked)
- }
-
- public render() {
- const placemark = this.props.placemark;
- const visible = placemark.properties['visible'];
- const name = placemark.properties['name'];
- const position = placemark.geometry.coordinates;
- return (
- <div>
- <input type="checkbox"
- checked={visible}
- onChange={this.handleVisibilityChanged}
- />
- <span style={PlacemarkItem.ICON_STYLE} className="pt-icon-dot"/>
- <span style={PlacemarkItem.NAME_STYLE}>{name}</span>
- <span style={PlacemarkItem.POSITION_STYLE}>{` ${position[0].toFixed(3)}, ${position[1].toFixed(3)}`}</span>
- </div>
- );
- }
-
- //noinspection JSUnusedGlobalSymbols
- renderContextMenu() {
- // return a single element, or nothing to use default browser behavior
- return (
- <Menu>
- <MenuItem onClick={this.handleCopyName} text="Copy name"/>
- <MenuItem onClick={this.handleCopyPosition} text="Copy position"/>
- </Menu>
- );
- }
-
- //noinspection JSUnusedGlobalSymbols
- onContextMenuClose() {
- // Optional method called once the context menu is closed.
- }
- }
- */

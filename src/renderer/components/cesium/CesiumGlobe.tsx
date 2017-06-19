@@ -540,8 +540,9 @@ function screenToCartographic(viewer: CesiumViewer, screenPoint?: Cartesian2, de
     if (cartesian) {
         const cartographic = ellipsoid.cartesianToCartographic(cartesian);
         if (cartographic && degrees) {
-            const longitude = Cesium.Math.toDegrees(cartographic.longitude);
-            const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+            const factor = 10000.;
+            const longitude = Math.round(factor * Cesium.Math.toDegrees(cartographic.longitude)) / factor;
+            const latitude = Math.round(factor * Cesium.Math.toDegrees(cartographic.latitude)) / factor;
             return {longitude, latitude, height: cartographic.height};
         }
         return cartographic;

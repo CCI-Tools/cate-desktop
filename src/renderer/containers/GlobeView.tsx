@@ -103,7 +103,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
                          offlineMode={this.props.offlineMode}
                          style={GlobeView.CESIUM_GLOBE_STYLE}
                          onMouseMoved={this.handleMouseMoved}
-                         onMouseClicked={this.handleMouseClicked}/>
+                         onMouseClicked={this.handleMouseClicked}
+                         onLeftUp={this.handleLeftUp}/>
         );
     }
 
