@@ -31,13 +31,22 @@ export type ImageryLayerCollection = {
 };
 
 export interface Entity {
+    id?: string;
+    name?: string;
+    description?: string;
+    show?: boolean;
+    position?: Cartesian3;
+    billboard?: any;
 }
 
 export interface EntityCollection {
     readonly id: string;
     values: Entity[];
+    show: boolean;
+    getById(id: string): Entity;
     add(entity: Entity): Entity;
     remove(entity: Entity): boolean;
+    removeById(entity: Entity): boolean;
     removeAll(): void;
     suspendEvents(): void;
     resumeEvents(): void;
@@ -75,26 +84,9 @@ export type CesiumViewer = {
     dataSources: DataSourceCollection;
     scene: CesiumScene;
     camera: any;
+    selectedEntity : Entity | null;
     selectedEntityChanged: any;
 };
-
-export interface Entity {
-    id?: string;
-    name?: string;
-    description?: string;
-    show?: boolean;
-    position?: Cartesian3;
-    billboard?: any;
-}
-
-export interface EntityCollection {
-    values: Entity[];
-    show: boolean;
-    getById(id: string): Entity;
-    add(entity: Entity): Entity;
-    remove(entity: Entity): boolean;
-    removeById(entity: Entity): boolean;
-}
 
 export type Cartesian2 = {
     x: number;
@@ -155,6 +147,7 @@ Cesium.BingMapsApi.defaultKey = 'AnCcpOxnAAgq-KyFcczSZYZ_iFvCOmWl0Mx-6QzQ_rzMtpg
 
 
 interface CesiumGlobeState {
+    selectedPlacemarkId?: string;
     placemarks?: Placemark[];
     layers?: LayerDescriptor[];
     dataSources?: DataSourceDescriptor[];
@@ -166,6 +159,7 @@ export interface ICesiumGlobeProps extends IExternalObjectComponentProps<CesiumV
     onMouseClicked?: (point: {latitude: number, longitude: number, height?: number}) => void;
     onMouseMoved?: (point: {latitude: number, longitude: number, height?: number}) => void;
     onLeftUp?: (point: {latitude: number, longitude: number, height?: number}) => void;
+    onPlacemarkSelected?: (placemarkId: string | null) => void;
     onViewerMounted?: (id: string, viewer: CesiumViewer) => void;
     onViewerUnmounted?: (id: string, viewer: CesiumViewer) => void;
 
@@ -185,6 +179,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
     private mouseClickHandler: any;
     private mouseMoveHandler: any;
     private leftUpHandler: any;
+    private selectedEntityHandler: any;
 
     constructor(props: ICesiumGlobeProps) {
         super(props);
@@ -237,18 +232,16 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         //noinspection UnnecessaryLocalVariableJS
         const viewer = new Cesium.Viewer(container, cesiumViewerOptions);
 
-        viewer.selectedEntityChanged.addEventListener((arg) => {
-            console.log("viewer.selectedEntityChanged: ", arg);
-        });
-
         return viewer;
     }
 
     propsToExternalObjectState(props: ICesiumGlobeProps&CesiumGlobeState): CesiumGlobeState {
+        const selectedPlacemarkId = this.props.selectedPlacemarkId;
         const placemarks = this.props.placemarks || EMPTY_ARRAY;
         const layers = this.props.layers || EMPTY_ARRAY;
         const dataSources = this.props.dataSources || EMPTY_ARRAY;
         return {
+            selectedPlacemarkId,
             placemarks,
             layers,
             dataSources
@@ -257,10 +250,12 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
 
     updateExternalObject(viewer: CesiumViewer, prevState: CesiumGlobeState, nextState: CesiumGlobeState): void {
 
+        const prevSelectedPlacemarkId = (prevState && prevState.selectedPlacemarkId) || null;
         const prevPlacemarks = (prevState && prevState.placemarks) || EMPTY_ARRAY;
         const prevLayers = (prevState && prevState.layers) || EMPTY_ARRAY;
         const prevDataSources = (prevState && prevState.dataSources) || EMPTY_ARRAY;
 
+        const nextSelectedPlacemarkId = nextState.selectedPlacemarkId || null;
         const nextPlacemarks = nextState.placemarks || EMPTY_ARRAY;
         const nextLayers = nextState.layers || EMPTY_ARRAY;
         const nextDataSources = nextState.dataSources || EMPTY_ARRAY;
@@ -273,6 +268,9 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         }
         if (prevDataSources !== nextDataSources) {
             this.updateGlobeDataSources(viewer, prevDataSources, nextDataSources);
+        }
+        if (prevSelectedPlacemarkId !== nextSelectedPlacemarkId) {
+            this.updateGlobeSelectedPlacemark(viewer, nextSelectedPlacemarkId);
         }
     }
 
@@ -287,7 +285,6 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
             },
             Cesium.ScreenSpaceEventType.LEFT_CLICK
         );
-
 
         this.mouseMoveHandler = new Cesium.ScreenSpaceEventHandler();
         this.mouseMoveHandler.setInputAction(
@@ -314,6 +311,14 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
             Cesium.ScreenSpaceEventType.LEFT_UP
         );
 
+        this.selectedEntityHandler = (selectedEntity: Entity) => {
+            if (this.props.onPlacemarkSelected) {
+                const placemarkId = selectedEntity ? selectedEntity.id : null;
+                this.props.onPlacemarkSelected(placemarkId);
+            }
+        };
+        viewer.selectedEntityChanged.addEventListener(this.selectedEntityHandler);
+
         if (this.props.onViewerMounted) {
             this.props.onViewerMounted(this.props.id, viewer);
         }
@@ -327,9 +332,24 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         this.leftUpHandler = this.leftUpHandler && this.leftUpHandler.destroy();
         this.leftUpHandler = null;
 
+        viewer.selectedEntityChanged.removeEventListener(this.selectedEntityHandler);
+        this.selectedEntityHandler = null;
+
         if (this.props.onViewerUnmounted) {
             this.props.onViewerUnmounted(this.props.id, viewer);
         }
+    }
+
+    //noinspection JSMethodCanBeStatic
+    private updateGlobeSelectedPlacemark(viewer: CesiumViewer, selectedPlacemarkId: string | null) {
+        const selectedEntity = selectedPlacemarkId ? viewer.entities.getById(selectedPlacemarkId) : null;
+        if (!selectedEntity && !viewer.selectedEntity) {
+            return;
+        }
+        if (selectedEntity && viewer.selectedEntity && selectedEntity.id === viewer.selectedEntity.id) {
+            return;
+        }
+        viewer.selectedEntity = selectedEntity;
     }
 
     private updateGlobePlacemarks(viewer: CesiumViewer, currentPlacemarks: Placemark[], nextPlacemarks: Placemark[]) {

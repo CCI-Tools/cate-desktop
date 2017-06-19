@@ -69,6 +69,9 @@ export function updatePlacemark(placemark: Placemark): Action {
     return {type: UPDATE_PLACEMARK, payload: {placemark}};
 }
 
+export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Action {
+    return updateSessionState({selectedPlacemarkId});
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

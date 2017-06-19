@@ -29,6 +29,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     offlineMode: boolean;
     worldViewClickAction: string | null;
     placemarks: Placemark[];
+    selectedPlacemarkId: string | null;
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -39,6 +40,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         offlineMode: state.session.offlineMode,
         worldViewClickAction: state.control.worldViewClickAction,
         placemarks: selectors.placemarksSelector(state),
+        selectedPlacemarkId: selectors.selectedPlacemarkIdSelector(state),
     };
 }
 
@@ -53,6 +55,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
         this.handleMouseMoved = this.handleMouseMoved.bind(this);
         this.handleMouseClicked = this.handleMouseClicked.bind(this);
         this.handleLeftUp = this.handleLeftUp.bind(this);
+        this.handlePlacemarkSelected = this.handlePlacemarkSelected.bind(this);
     }
 
     handleMouseMoved(position: GeographicPosition) {
@@ -68,6 +71,10 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
 
     handleLeftUp(position: GeographicPosition) {
         this.props.dispatch(actions.setGlobeViewPosition(position));
+    }
+
+    handlePlacemarkSelected(selectedPlacemarkId: string | null) {
+        this.props.dispatch(actions.setSelectedPlacemarkId(selectedPlacemarkId));
     }
 
     render() {
@@ -102,6 +109,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
         return (
             <CesiumGlobe id={'CesiumGlobe-' + this.props.view.id}
                          debug={false}
+                         selectedPlacemarkId={this.props.selectedPlacemarkId}
                          placemarks={placemarks}
                          layers={layers}
                          dataSources={dataSources}
@@ -109,7 +117,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
                          style={GlobeView.CESIUM_GLOBE_STYLE}
                          onMouseMoved={this.handleMouseMoved}
                          onMouseClicked={this.handleMouseClicked}
-                         onLeftUp={this.handleLeftUp}/>
+                         onLeftUp={this.handleLeftUp}
+                         onPlacemarkSelected={this.handlePlacemarkSelected}/>
         );
     }
 
