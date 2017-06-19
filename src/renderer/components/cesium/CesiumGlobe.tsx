@@ -347,12 +347,12 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
                     const placemark = action.newElement;
                     const id = placemark.id;
                     const show = placemark.properties['visible'];
-                    const name = placemark.properties['name'];
+                    const name = placemark.properties['name'] || '';
                     const positionCoords = placemark.geometry.coordinates;
                     const position = new Cesium.Cartesian3.fromDegrees(positionCoords[0], positionCoords[1]);
                     // see http://cesiumjs.org/Cesium/Apps/Sandcastle/index.html?src=Map%20Pins.html&label=All
                     const billboard = {
-                        image: pinBuilder.fromColor(Cesium.Color.ROYALBLUE, 48).toDataURL(),
+                        image: pinBuilder.fromColor(Cesium.Color.GOLD, 30).toDataURL(),
                         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
                     };
                     viewer.entities.add(new Cesium.Entity({
@@ -377,7 +377,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
                     if (entity) {
                         console.log('Entity change: ', change, oldPlacemark, newPlacemark);
                         const show = newPlacemark.properties['visible'];
-                        const name = newPlacemark.properties['name'];
+                        const name = newPlacemark.properties['name'] || '';
                         const positionCoords = newPlacemark.geometry.coordinates;
                         const position = new Cesium.Cartesian3.fromDegrees(positionCoords[0], positionCoords[1]);
                         entity.show = show;
