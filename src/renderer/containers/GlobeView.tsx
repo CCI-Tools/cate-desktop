@@ -10,7 +10,7 @@ import {
 import {connect} from "react-redux";
 import {
     findVariable, findResource, getTileUrl, getGeoJSONUrl, getGeoJSONCountriesUrl,
-    COUNTRIES_LAYER_ID
+    COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID
 } from "../state-util";
 import {ViewState} from "../components/ViewState";
 import * as selectors from "../selectors";
@@ -79,7 +79,6 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
 
     render() {
         const placemarks = this.props.placemarks;
-        console.log('GlobeView.render(): placemarks=', placemarks);
         const layers = [];
         const dataSources = [];
         if (this.props.workspace && this.props.workspace.resources && this.props.view.data.layers) {
@@ -100,8 +99,12 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
                         dataSources.push(dataSourceDescriptor);
                         break;
                     }
-                    default:
-                        console.warn(`GlobeView: layer with ID "${layer.id}" will not be rendered`);
+                    default: {
+                        if (layer.id !== SELECTED_VARIABLE_LAYER_ID) {
+                            console.warn(`GlobeView: layer with ID "${layer.id}" will not be rendered`);
+                        }
+                        break;
+                    }
                 }
             }
         }
