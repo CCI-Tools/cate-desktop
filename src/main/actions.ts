@@ -209,31 +209,31 @@ export const actions = {
 
     addPOI: {
         label: 'Add POI',
-        role: 'add_poi',
+        role: 'add_placemark',
         accelerator: 'CmdOrCtrl+P',
         click: function (item, window) {
             if (window)
-                window.webContents.send('add-point-of-interest');
+                window.webContents.send('add-placemark');
         },
         category: 'tools',
     },
 
     removePOI: {
-        label: 'Remove POI',
-        role: 'remove_poi',
+        label: 'Remove Placemark',
+        role: 'remove_placemark',
         click: function (item, window) {
             if (window)
-                window.webContents.send('remove-point-of-interest');
+                window.webContents.send('remove-placemark');
         },
         category: 'tools',
     },
 
     removeAllPOIs: {
-        label: 'Remove All POIs',
-        role: 'remove_all_pois',
+        label: 'Remove All Placemarks',
+        role: 'remove_all_placemarks',
         click: function (item, window) {
             if (window)
-                window.webContents.send('remove-all-points-of-interest');
+                window.webContents.send('remove-all-placemarks');
         },
         category: 'tools',
     },
@@ -268,6 +268,14 @@ export const actions = {
         label: 'User Guide',
         click: function () {
             electron.shell.openExternal('http://ect-core.readthedocs.io/en/latest/')
+        },
+        category: 'help',
+    },
+
+    openIssueTracker: {
+        label: 'Issue Tracker',
+        click: function () {
+            electron.shell.openExternal('https://github.com/CCI-Tools/cate-core/issues')
         },
         category: 'help',
     },

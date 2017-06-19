@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
     State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
-    VariableState, VariableRefState, VectorLayerState, ResourceState, WorldViewDataState, GeographicPosition
+    VariableState, VariableRefState, VectorLayerState, ResourceState, WorldViewDataState, GeographicPosition, Placemark
 } from "../state";
 import {
     CesiumGlobe, LayerDescriptor, ImageryProvider, DataSourceDescriptor,
@@ -28,6 +28,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     workspace: WorkspaceState | null;
     offlineMode: boolean;
     worldViewClickAction: string | null;
+    placemarks: Placemark[];
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -37,6 +38,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         workspace: selectors.workspaceSelector(state),
         offlineMode: state.session.offlineMode,
         worldViewClickAction: state.control.worldViewClickAction,
+        placemarks: selectors.placemarksSelector(state),
     };
 }
 
@@ -69,6 +71,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
     }
 
     render() {
+        const placemarks = this.props.placemarks;
+        console.log('GlobeView.render(): placemarks=', placemarks);
         const layers = [];
         const dataSources = [];
         if (this.props.workspace && this.props.workspace.resources && this.props.view.data.layers) {
@@ -98,6 +102,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
         return (
             <CesiumGlobe id={'CesiumGlobe-' + this.props.view.id}
                          debug={false}
+                         placemarks={placemarks}
                          layers={layers}
                          dataSources={dataSources}
                          offlineMode={this.props.offlineMode}

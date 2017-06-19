@@ -2,6 +2,11 @@ import * as React from 'react';
 import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
 import {arrayDiff} from "../../../common/array-diff";
 import * as assert from "../../../common/assert";
+import {Feature, Point} from "geojson";
+
+interface Placemark extends Feature<Point> {
+    id: string;
+}
 
 // console.log(Cesium);
 const Cesium: any = require('cesium');
@@ -65,16 +70,41 @@ export type CesiumScene = {
 export type CesiumViewer = {
     container: HTMLElement;
     canvas:HTMLCanvasElement
-    entities: any;
+    entities: EntityCollection;
     imageryLayers: ImageryLayerCollection;
     dataSources: DataSourceCollection;
     scene: CesiumScene;
     camera: any;
+    selectedEntityChanged: any;
 };
+
+export interface Entity {
+    id?: string;
+    name?: string;
+    description?: string;
+    show?: boolean;
+    position?: Cartesian3;
+    billboard?: any;
+}
+
+export interface EntityCollection {
+    values: Entity[];
+    show: boolean;
+    getById(id: string): Entity;
+    add(entity: Entity): Entity;
+    remove(entity: Entity): boolean;
+    removeById(entity: Entity): boolean;
+}
 
 export type Cartesian2 = {
     x: number;
     y: number;
+};
+
+export type Cartesian3 = {
+    x: number;
+    y: number;
+    z: number;
 };
 
 export type Cartographic = {
@@ -85,20 +115,6 @@ export type Cartographic = {
 
 // >> end @types/Cesium
 ////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-/**
- * Describes a "pin" to be displayed on the Cesium globe.
- */
-export interface PinDescriptor {
-    id: string;
-    name?: string | null;
-    visible: boolean;
-    image: string;
-    state: string;
-    latitude: number;
-    longitude: number;
-}
 
 /**
  * Describes an image layer to be displayed on the Cesium globe.
@@ -137,8 +153,9 @@ export interface DataSourceDescriptor {
 //
 Cesium.BingMapsApi.defaultKey = 'AnCcpOxnAAgq-KyFcczSZYZ_iFvCOmWl0Mx-6QzQ_rzMtpgxZrPZZNxa8_9ZNXci';
 
+
 interface CesiumGlobeState {
-    pins?: PinDescriptor[];
+    placemarks?: Placemark[];
     layers?: LayerDescriptor[];
     dataSources?: DataSourceDescriptor[];
 }
@@ -220,42 +237,37 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         //noinspection UnnecessaryLocalVariableJS
         const viewer = new Cesium.Viewer(container, cesiumViewerOptions);
 
-        // // Add the initial points
-        // const pins = this.props.pins || EMPTY_ARRAY;
-        // pins.forEach((pin) => {
-        //     //noinspection JSFileReferences
-        //     let billboard = {
-        //         image: pin.image,
-        //         width: 30,
-        //         height: 30
-        //     };
-        //     viewer.entities.add(new Cesium.Entity({
-        //         id: pin.id,
-        //         show: pin.visible,
-        //         position: new Cesium.Cartesian3.fromDegrees(pin.longitude, pin.latitude),
-        //         billboard: billboard
-        //     }));
-        // });
+        viewer.selectedEntityChanged.addEventListener((arg) => {
+            console.log("viewer.selectedEntityChanged: ", arg);
+        });
 
         return viewer;
     }
 
     propsToExternalObjectState(props: ICesiumGlobeProps&CesiumGlobeState): CesiumGlobeState {
+        const placemarks = this.props.placemarks || EMPTY_ARRAY;
         const layers = this.props.layers || EMPTY_ARRAY;
         const dataSources = this.props.dataSources || EMPTY_ARRAY;
         return {
+            placemarks,
             layers,
             dataSources
         };
     }
 
     updateExternalObject(viewer: CesiumViewer, prevState: CesiumGlobeState, nextState: CesiumGlobeState): void {
+
+        const prevPlacemarks = (prevState && prevState.placemarks) || EMPTY_ARRAY;
         const prevLayers = (prevState && prevState.layers) || EMPTY_ARRAY;
         const prevDataSources = (prevState && prevState.dataSources) || EMPTY_ARRAY;
 
+        const nextPlacemarks = nextState.placemarks || EMPTY_ARRAY;
         const nextLayers = nextState.layers || EMPTY_ARRAY;
         const nextDataSources = nextState.dataSources || EMPTY_ARRAY;
 
+        if (prevPlacemarks !== nextPlacemarks) {
+            this.updateGlobePlacemarks(viewer, prevPlacemarks, nextPlacemarks);
+        }
         if (prevLayers !== nextLayers) {
             this.updateGlobeLayers(viewer, prevLayers, nextLayers);
         }
@@ -279,8 +291,8 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
 
         this.mouseMoveHandler = new Cesium.ScreenSpaceEventHandler();
         this.mouseMoveHandler.setInputAction(
-            (movement) => {
-                const point = movement.endPosition;
+            (event) => {
+                const point = event.endPosition;
                 const cartographic = screenToCartographic(viewer, point, true);
                 if (this.props.onMouseMoved) {
                     this.props.onMouseMoved(cartographic);
@@ -291,9 +303,10 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
 
         this.leftUpHandler = new Cesium.ScreenSpaceEventHandler();
         this.leftUpHandler.setInputAction(
-            (movement) => {
-                const point = movement.endPosition;
-                const cartographic = screenToCartographic(viewer, null, true);
+            () => {
+                let point; // = undefined, good.
+                //noinspection JSUnusedAssignment
+                const cartographic = screenToCartographic(viewer, point, true);
                 if (this.props.onLeftUp) {
                     this.props.onLeftUp(cartographic);
                 }
@@ -316,6 +329,65 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
 
         if (this.props.onViewerUnmounted) {
             this.props.onViewerUnmounted(this.props.id, viewer);
+        }
+    }
+
+    private updateGlobePlacemarks(viewer: CesiumViewer, currentPlacemarks: Placemark[], nextPlacemarks: Placemark[]) {
+        if (this.props.debug) {
+            console.log('CesiumGlobe: updating placemarks');
+        }
+        const pinBuilder = new Cesium.PinBuilder();
+        const actions = arrayDiff<Placemark>(currentPlacemarks, nextPlacemarks);
+        for (let action of actions) {
+            if (this.props.debug) {
+                console.log('CesiumGlobe: next placemark action', action);
+            }
+            switch (action.type) {
+                case 'ADD': {
+                    const placemark = action.newElement;
+                    const id = placemark.id;
+                    const show = placemark.properties['visible'];
+                    const name = placemark.properties['name'];
+                    const positionCoords = placemark.geometry.coordinates;
+                    const position = new Cesium.Cartesian3.fromDegrees(positionCoords[0], positionCoords[1]);
+                    // see http://cesiumjs.org/Cesium/Apps/Sandcastle/index.html?src=Map%20Pins.html&label=All
+                    const billboard = {
+                        image: pinBuilder.fromColor(Cesium.Color.ROYALBLUE, 48).toDataURL(),
+                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    };
+                    viewer.entities.add(new Cesium.Entity({
+                        id,
+                        name,
+                        show,
+                        position,
+                        billboard,
+                    }));
+                    break;
+                }
+                case 'REMOVE': {
+                    let placemark = action.oldElement;
+                    viewer.entities.removeById(placemark.id);
+                    break;
+                }
+                case 'UPDATE':
+                    let oldPlacemark = action.oldElement;
+                    let newPlacemark = action.newElement;
+                    let change = action.change;
+                    let entity = viewer.entities.getById(oldPlacemark.id);
+                    if (entity) {
+                        console.log('Entity change: ', change, oldPlacemark, newPlacemark);
+                        const show = newPlacemark.properties['visible'];
+                        const name = newPlacemark.properties['name'];
+                        const positionCoords = newPlacemark.geometry.coordinates;
+                        const position = new Cesium.Cartesian3.fromDegrees(positionCoords[0], positionCoords[1]);
+                        entity.show = show;
+                        entity.name = name;
+                        entity.position = position;
+                    }
+                    break;
+                default:
+                    console.error(`CesiumGlobe: unhandled placemark action type "${action.type}"`);
+            }
         }
     }
 
