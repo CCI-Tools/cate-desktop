@@ -342,14 +342,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
 
     //noinspection JSMethodCanBeStatic
     private updateGlobeSelectedPlacemark(viewer: CesiumViewer, selectedPlacemarkId: string | null) {
-        const selectedEntity = selectedPlacemarkId ? viewer.entities.getById(selectedPlacemarkId) : null;
-        if (!selectedEntity && !viewer.selectedEntity) {
-            return;
-        }
-        if (selectedEntity && viewer.selectedEntity && selectedEntity.id === viewer.selectedEntity.id) {
-            return;
-        }
-        viewer.selectedEntity = selectedEntity;
+        viewer.selectedEntity = (selectedPlacemarkId && viewer.entities.getById(selectedPlacemarkId)) || null;
     }
 
     private updateGlobePlacemarks(viewer: CesiumViewer, currentPlacemarks: Placemark[], nextPlacemarks: Placemark[]) {
@@ -372,7 +365,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
                     const position = new Cesium.Cartesian3.fromDegrees(positionCoords[0], positionCoords[1]);
                     // see http://cesiumjs.org/Cesium/Apps/Sandcastle/index.html?src=Map%20Pins.html&label=All
                     const billboard = {
-                        image: pinBuilder.fromColor(Cesium.Color.GOLD, 30).toDataURL(),
+                        image: pinBuilder.fromText(name && name.length ? name[0].toUpperCase() : '?', Cesium.Color.ROYALBLUE, 32).toDataURL(),
                         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
                     };
                     viewer.entities.add(new Cesium.Entity({
@@ -400,9 +393,14 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
                         const name = newPlacemark.properties['name'] || '';
                         const positionCoords = newPlacemark.geometry.coordinates;
                         const position = new Cesium.Cartesian3.fromDegrees(positionCoords[0], positionCoords[1]);
+                        const billboard = {
+                            image: pinBuilder.fromText(name && name.length ? name[0].toUpperCase() : '?', Cesium.Color.ROYALBLUE, 32).toDataURL(),
+                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                        };
                         entity.show = show;
                         entity.name = name;
                         entity.position = position;
+                        entity.billboard = billboard;
                     }
                     break;
                 default:
