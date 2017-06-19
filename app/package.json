@@ -8,9 +8,9 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@blueprintjs/core": "~1.13.x",
-    "@blueprintjs/datetime": "~1.11.x",
-    "@blueprintjs/table": "~1.10.x",
+    "@blueprintjs/core": "~1.20.x",
+    "@blueprintjs/datetime": "~1.17.x",
+    "@blueprintjs/table": "~1.17.x",
     "cesium": "~1.30.x",
     "classnames": "~2.2.x",
     "d3": "~3.5.x",
