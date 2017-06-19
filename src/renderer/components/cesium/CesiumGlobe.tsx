@@ -1,8 +1,7 @@
 import * as React from 'react';
 import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
-import {getLayerDiff} from "../../../common/layer-diff";
+import {arrayDiff} from "../../../common/array-diff";
 import * as assert from "../../../common/assert";
-
 
 // console.log(Cesium);
 const Cesium: any = require('cesium');
@@ -324,7 +323,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         if (this.props.debug) {
             console.log('CesiumGlobe: updating layers');
         }
-        const actions = getLayerDiff<LayerDescriptor>(currentLayers, nextLayers);
+        const actions = arrayDiff<LayerDescriptor>(currentLayers, nextLayers);
         let imageryLayer: ImageryLayer;
         let newLayer: LayerDescriptor;
         let oldLayer: LayerDescriptor;
@@ -336,7 +335,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
             const cesiumIndex = action.index + 1;
             switch (action.type) {
                 case 'ADD':
-                    imageryLayer = this.addLayer(viewer, action.newLayer, cesiumIndex);
+                    imageryLayer = this.addLayer(viewer, action.newElement, cesiumIndex);
                     // TODO (forman): FIXME! Keep assertion here and below, but they currently fail.
                     //                Possible reason, new globe views may not have their
                     //                'selectedVariable' layer correctly initialized. Same problem in OpenLayersMap!
@@ -345,7 +344,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
                         console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
                         break;
                     }
-                    CesiumGlobe.setLayerProps(imageryLayer, action.newLayer);
+                    CesiumGlobe.setLayerProps(imageryLayer, action.newElement);
                     break;
                 case 'REMOVE':
                     imageryLayer = viewer.imageryLayers.get(cesiumIndex);
@@ -363,8 +362,8 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
                         console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
                         break;
                     }
-                    oldLayer = action.oldLayer;
-                    newLayer = action.newLayer;
+                    oldLayer = action.oldElement;
+                    newLayer = action.newElement;
                     if (oldLayer.imageryProviderOptions.url !== newLayer.imageryProviderOptions.url) {
                         // It is a pitty that Cesium API does not allow for changing the
                         // URL in place. The current approach, namely remove/add, causes flickering.
@@ -374,15 +373,21 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
                     // update imageryLayer
                     CesiumGlobe.setLayerProps(imageryLayer, newLayer);
                     break;
-                case 'MOVE_DOWN':
+                case 'MOVE':
                     imageryLayer = viewer.imageryLayers.get(cesiumIndex);
                     //assert.ok(imageryLayer);
                     if (!imageryLayer) {
                         console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
                         break;
                     }
-                    for (let i = 0; i < action.numSteps; i++) {
-                        viewer.imageryLayers.lower(imageryLayer);
+                    if (action.numSteps < 0) {
+                        for (let i = 0; i < -action.numSteps; i++) {
+                            viewer.imageryLayers.lower(imageryLayer);
+                        }
+                    } else {
+                        for (let i = 0; i < action.numSteps; i++) {
+                            viewer.imageryLayers.raise(imageryLayer);
+                        }
                     }
                     break;
                 default:
@@ -392,7 +397,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
     }
 
     private updateGlobeDataSources(viewer: CesiumViewer, currentLayers: DataSourceDescriptor[], nextLayers: DataSourceDescriptor[]) {
-        const actions = getLayerDiff<DataSourceDescriptor>(currentLayers, nextLayers);
+        const actions = arrayDiff<DataSourceDescriptor>(currentLayers, nextLayers);
         let dataSource: DataSource;
         let newLayer: DataSourceDescriptor;
         let oldLayer: DataSourceDescriptor;
@@ -403,9 +408,9 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
             const index = action.index;
             switch (action.type) {
                 case 'ADD':
-                    dataSource = this.addDataSource(viewer, action.newLayer, index);
+                    dataSource = this.addDataSource(viewer, action.newElement, index);
                     assert.ok(dataSource);
-                    CesiumGlobe.setDataSourceProps(dataSource, action.newLayer);
+                    CesiumGlobe.setDataSourceProps(dataSource, action.newElement);
                     break;
                 case 'REMOVE':
                     dataSource = viewer.dataSources.get(index);
@@ -415,8 +420,8 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
                 case 'UPDATE':
                     dataSource = viewer.dataSources.get(index);
                     assert.ok(dataSource);
-                    oldLayer = action.oldLayer;
-                    newLayer = action.newLayer;
+                    oldLayer = action.oldElement;
+                    newLayer = action.newElement;
                     if (oldLayer.dataSourceOptions.url !== newLayer.dataSourceOptions.url) {
                         // It is a pitty that Cesium API does not allow for changing the
                         // URL in place. The current approach, namely remove/add, causes flickering.
@@ -426,10 +431,10 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
                     // update imageryLayer
                     CesiumGlobe.setDataSourceProps(dataSource, newLayer);
                     break;
-                case 'MOVE_DOWN': {
+                case 'MOVE': {
                     dataSource = viewer.dataSources.get(index);
                     assert.ok(dataSource);
-                    this.insertDataSource(viewer, dataSource, index - action.numSteps);
+                    this.insertDataSource(viewer, dataSource, index + action.numSteps);
                     break;
                 }
                 default:

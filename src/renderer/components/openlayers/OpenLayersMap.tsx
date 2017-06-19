@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ol from 'openlayers';
 import * as proj4 from 'proj4';
 import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
-import {getLayerDiff} from "../../../common/layer-diff";
+import {arrayDiff} from "../../../common/array-diff";
 
 ol.proj.setProj4(proj4);
 
@@ -136,7 +136,7 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
         if (this.props.debug) {
             console.log('OpenLayersMap: updating layers');
         }
-        const actions = getLayerDiff<LayerDescriptor>(currentLayers, nextLayers);
+        const actions = arrayDiff<LayerDescriptor>(currentLayers, nextLayers);
         let olLayer: ol.layer.Layer;
         let newLayer: LayerDescriptor;
         let oldLayer: LayerDescriptor;
@@ -148,7 +148,7 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
             const olIndex = action.index + 1;
             switch (action.type) {
                 case 'ADD':
-                    olLayer = this.addLayer(map, action.newLayer, olIndex);
+                    olLayer = this.addLayer(map, action.newElement, olIndex);
                     // TODO (forman): FIXME! Keep assertion here and below, but they currently fail.
                     //                Possible reason, new map views may not have their
                     //                'selectedVariable' layer correctly initialized. Same problem in CesiumGlobe!
@@ -157,7 +157,7 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
                         console.error('OpenLayersMap: no olLayer at index ' + olIndex);
                         break;
                     }
-                    OpenLayersMap.setLayerProps(olLayer, action.newLayer);
+                    OpenLayersMap.setLayerProps(olLayer, action.newElement);
                     break;
                 case 'REMOVE':
                     olLayer = map.getLayers().item(olIndex) as ol.layer.Tile;
@@ -175,8 +175,8 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
                         console.error('OpenLayersMap: no olLayer at index ' + olIndex);
                         break;
                     }
-                    oldLayer = action.oldLayer;
-                    newLayer = action.newLayer;
+                    oldLayer = action.oldElement;
+                    newLayer = action.newElement;
                     if (oldLayer.layerSourceOptions.url !== newLayer.layerSourceOptions.url) {
                         if (oldLayer.name === newLayer.name && typeof((olLayer.getSource() as any).setUrl) === 'function') {
                             if (this.props.debug) {
@@ -193,9 +193,9 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
                             olLayer = this.addLayer(map, newLayer, olIndex);
                         }
                     }
-                    OpenLayersMap.setLayerProps(olLayer, action.newLayer, action.oldLayer);
+                    OpenLayersMap.setLayerProps(olLayer, action.newElement, action.oldElement);
                     break;
-                case 'MOVE_DOWN':
+                case 'MOVE':
                     olLayer = map.getLayers().item(olIndex) as ol.layer.Layer;
                     //assert.ok(olLayer);
                     if (!olLayer) {
@@ -203,7 +203,7 @@ export class OpenLayersMap extends ExternalObjectComponent<ol.Map, OpenLayersSta
                         break;
                     }
                     map.getLayers().removeAt(olIndex);
-                    map.getLayers().insertAt(olIndex - action.numSteps, olLayer);
+                    map.getLayers().insertAt(olIndex + action.numSteps, olLayer);
                     break;
                 default:
                     console.error(`OpenLayersMap: unhandled layer action type "${action.type}"`);
