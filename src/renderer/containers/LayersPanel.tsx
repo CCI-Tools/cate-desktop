@@ -5,7 +5,7 @@ import {
     VariableImageLayerState, VariableState, ResourceState, ColorMapState, VariableVectorLayerState
 } from "../state";
 import {
-    Button, Slider, Popover, Position, PopoverInteractionKind, Switch,
+    AnchorButton, Button, Slider, Popover, Position, PopoverInteractionKind, Switch,
     RangeSlider, NumberRange, Tooltip
 } from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
@@ -260,18 +260,30 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         const canMoveLayerDown = selectedLayerIndex >= 0 && selectedLayerIndex < layerCount - 1;
         return (
             <div className="pt-button-group">
-                <Button className="pt-intent-primary"
+                <Tooltip content="Add layer">
+                    <AnchorButton
+                        className="pt-intent-primary"
                         onClick={this.handleAddLayerButtonClicked}
                         iconName="add"/>
-                <Button disabled={!canRemoveLayer}
+                </Tooltip>
+                <Tooltip content="Remove layer">
+                    <AnchorButton
+                        disabled={!canRemoveLayer}
                         onClick={this.handleRemoveLayerButtonClicked}
                         iconName="remove"/>
-                <Button disabled={!canMoveLayerUp}
+                </Tooltip>
+                <Tooltip content="Move layer up">
+                    <AnchorButton
+                        disabled={!canMoveLayerUp}
                         onClick={this.handleMoveLayerUpButtonClicked}
                         iconName="arrow-up"/>
-                <Button disabled={!canMoveLayerDown}
+                </Tooltip>
+                <Tooltip content="Move layer down">
+                    <AnchorButton
+                        disabled={!canMoveLayerDown}
                         onClick={this.handleMoveLayerDownButtonClicked}
                         iconName="arrow-down"/>
+                </Tooltip>
                 <LayerSourcesDialog/>
             </div>
         );
