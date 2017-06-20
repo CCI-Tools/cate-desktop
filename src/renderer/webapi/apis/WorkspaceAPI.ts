@@ -46,6 +46,10 @@ export class WorkspaceAPI {
         return this.webAPIClient.call('save_workspace_as', [baseDir, toDir], onProgress, responseToWorkspace);
     }
 
+    cleanWorkspace(baseDir: string): JobPromise<WorkspaceState> {
+        return this.webAPIClient.call('clean_workspace', [baseDir], null, responseToWorkspace);
+    }
+
     setWorkspaceResource(baseDir: string, resName: string, opName: string, opArgs: OperationKWArgs,
                          onProgress: (progress: JobProgress) => void): JobPromise<WorkspaceState> {
         return this.webAPIClient.call('set_workspace_resource', [baseDir, resName, opName, opArgs],
@@ -54,6 +58,10 @@ export class WorkspaceAPI {
 
     renameWorkspaceResource(baseDir: string, resName: string, newResName: string): JobPromise<WorkspaceState> {
         return this.webAPIClient.call('rename_workspace_resource', [baseDir, resName, newResName], null, responseToWorkspace);
+    }
+
+    deleteWorkspaceResource(baseDir: string, resName: string): JobPromise<WorkspaceState> {
+        return this.webAPIClient.call('delete_workspace_resource', [baseDir, resName], null, responseToWorkspace);
     }
 
     getWorkspaceVariableStatistics(baseDir: string, resName: string,

@@ -4,7 +4,7 @@ import {
     State, WorkspaceState, WorkflowStepState, ResourceState, WorkflowPortState, OperationState,
     OperationIOBaseState
 } from "../state";
-import {AnchorButton, Button, Tabs2, Tab2, Tooltip, Position} from "@blueprintjs/core";
+import {Button, Tabs2, Tab2, Tooltip, Position} from "@blueprintjs/core";
 import {Table, Column, Cell} from "@blueprintjs/table";
 import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
@@ -17,7 +17,6 @@ import * as selectors from '../selectors'
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messages";
 import {isFigureResource} from "../state-util";
-import {ViewState} from "../components/ViewState";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
@@ -25,11 +24,14 @@ interface IWorkspacePanelProps {
     showResourceDetails: boolean;
     selectedResource: ResourceState | null;
     selectedResourceName: string | null;
+    selectedResourceWorkflowStep: WorkflowStepState | null;
     showWorkflowStepDetails: boolean;
     selectedWorkflowStep: WorkflowStepState | null;
     selectedWorkflowStepId: string | null;
     selectedWorkflowStepOp: OperationState | null;
+    selectedWorkflowStepResource: ResourceState | null;
     activeViewId: string | null;
+    workspacePanelMode: 'resources' | 'steps';
 }
 
 function mapStateToProps(state: State): IWorkspacePanelProps {
@@ -38,11 +40,14 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
         showResourceDetails: selectors.showResourceDetailsSelector(state),
         selectedResource: selectors.selectedResourceSelector(state),
         selectedResourceName: selectors.selectedResourceNameSelector(state),
+        selectedResourceWorkflowStep: selectors.selectedResourceWorkflowStepSelector(state),
         showWorkflowStepDetails: selectors.showWorkflowStepDetailsSelector(state),
         selectedWorkflowStep: selectors.selectedWorkflowStepSelector(state),
         selectedWorkflowStepId: selectors.selectedWorkflowStepIdSelector(state),
         selectedWorkflowStepOp: selectors.selectedWorkflowStepOpSelector(state),
+        selectedWorkflowStepResource: selectors.selectedWorkflowStepResourceSelector(state),
         activeViewId: selectors.activeViewIdSelector(state),
+        workspacePanelMode: state.session.workspacePanelMode,
     };
 }
 
@@ -66,7 +71,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         this.handleShowWorkflowStepDetailsChanged = this.handleShowWorkflowStepDetailsChanged.bind(this);
         this.handleWorkflowStepIdSelected = this.handleWorkflowStepIdSelected.bind(this);
         this.handleShowFigureButtonClicked = this.handleShowFigureButtonClicked.bind(this);
-        this.handleResourceRenameButtonClicked = this.handleResourceRenameButtonClicked.bind(this);
+        this.handleRenameResourceButtonClicked = this.handleRenameResourceButtonClicked.bind(this);
         this.handleOpenWorkspaceDirectoryClicked = this.handleOpenWorkspaceDirectoryClicked.bind(this);
         this.handleEditOperationStepButtonClicked = this.handleEditOperationStepButtonClicked.bind(this);
         this.renderStepItem = this.renderStepItem.bind(this);
@@ -76,6 +81,9 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         this.renderOperationStepInputValue = this.renderOperationStepInputValue.bind(this);
         this.renderOperationStepOutputName = this.renderOperationStepOutputName.bind(this);
         this.renderOperationStepOutputValue = this.renderOperationStepOutputValue.bind(this);
+        this.handleWorkspacePanelModeChanged = this.handleWorkspacePanelModeChanged.bind(this);
+        this.handleRemoveOperationStepButtonClicked = this.handleRemoveOperationStepButtonClicked.bind(this);
+        this.handleCleanWorkflowButtonClicked = this.handleCleanWorkflowButtonClicked.bind(this);
     }
 
     private handleResourceNameSelected(newSelection: Array<React.Key>) {
@@ -103,10 +111,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     private handleShowFigureButtonClicked() {
-        this.props.dispatch(actions.showFigureView(this.props.selectedResource, this.props.activeViewId));
+        this.props.dispatch(actions.showFigureView(this.getEffectiveResource(), this.props.activeViewId));
     }
 
-    private handleResourceRenameButtonClicked() {
+    private handleRenameResourceButtonClicked() {
         this.props.dispatch(actions.showDialog('resourceRenameDialog'));
     }
 
@@ -116,6 +124,28 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
     private handleEditOperationStepButtonClicked() {
         this.props.dispatch(actions.showOperationStepDialog('editOperationStepDialog'));
+    }
+
+    private handleRemoveOperationStepButtonClicked() {
+        this.props.dispatch(actions.deleteResourceInteractive(this.getEffectiveResource()));
+    }
+
+    private handleCleanWorkflowButtonClicked() {
+        this.props.dispatch(actions.cleanWorkspaceInteractive());
+    }
+
+    private handleWorkspacePanelModeChanged(workspacePanelMode: string) {
+        this.props.dispatch(actions.updateSessionState({workspacePanelMode}));
+    }
+
+    private getEffectiveWorkflowStep() {
+        return this.props.workspacePanelMode === 'steps'
+            ? this.props.selectedWorkflowStep : this.props.selectedResourceWorkflowStep;
+    }
+
+    private getEffectiveResource() {
+        return this.props.workspacePanelMode === 'resources'
+            ? this.props.selectedResource : this.props.selectedWorkflowStepResource;
     }
 
     private static getResourceItemKey(resource: ResourceState) {
@@ -177,11 +207,58 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                     {workspaceState}
                     {openItemButton}
                 </div>
-                <Tabs2 id="workflow" renderActiveTabPanelOnly={true}>
+                <Tabs2 id="workflow"
+                       renderActiveTabPanelOnly={true}
+                       selectedTabId={this.props.workspacePanelMode}
+                       onChange={this.handleWorkspacePanelModeChanged}>
                     <Tab2 id="resources" title={`Resources (${resources.length})`} panel={this.renderResourcesPanel()}/>
                     <Tab2 id="steps" title={`Steps (${steps.length})`} panel={this.renderWorkflowStepsPanel()}/>
                 </Tabs2>
             </ScrollablePanelContent>
+        );
+    }
+
+    private renderWorkspaceActions() {
+        const resource = this.getEffectiveResource();
+        const workflowStep = this.getEffectiveWorkflowStep();
+        const isFigureSelected = isFigureResource(resource);
+        const isOperationStepSelected = workflowStep && workflowStep.op;
+        const hasSteps = this.props.workspace && this.props.workspace.workflow.steps.length;
+        return (
+            <div className="pt-button-group">
+                <Tooltip content="Show figure">
+                    <Button
+                        disabled={!isFigureSelected}
+                        iconName="eye-open"
+                        onClick={this.handleShowFigureButtonClicked}/>
+                </Tooltip>
+                <Tooltip content="Rename resource">
+                    <Button
+                        disabled={!resource}
+                        iconName="label"
+                        onClick={this.handleRenameResourceButtonClicked}/>
+                </Tooltip>
+                <Tooltip content="Edit workflow step">
+                    <Button
+                        disabled={!workflowStep}
+                        iconName="edit"
+                        onClick={this.handleEditOperationStepButtonClicked}/>
+                </Tooltip>
+                <Tooltip content="Remove workflow step and its resource">
+                    <Button
+                        disabled={!workflowStep}
+                        iconName="remove"
+                        onClick={this.handleRemoveOperationStepButtonClicked}/>
+                </Tooltip>
+                <Tooltip content="Clean workspace, remove all steps and resources">
+                    <Button
+                        disabled={!hasSteps}
+                        iconName="delete"
+                        onClick={this.handleCleanWorkflowButtonClicked}/>
+                </Tooltip>
+                {resource ? <ResourceRenameDialog selectedResource={resource}/> : null}
+                {isOperationStepSelected ? <OperationStepDialog id="editOperationStepDialog" operationStep={workflowStep}/> : null}
+            </div>
         );
     }
 
@@ -195,7 +272,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                                      onShowDetailsChange={this.handleShowResourceDetailsChanged}
                                      isSplitPanel={true}
                                      initialContentHeight={100}
-                                     actionComponent={this.renderResourcesActions()}>
+                                     actionComponent={this.renderWorkspaceActions()}>
                 {this.renderResourcesList()}
                 {this.renderResourceDetails()}
             </ContentWithDetailsPanel>
@@ -237,28 +314,6 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         );
     }
 
-    private renderResourcesActions() {
-        const isResourceSelected = this.props.selectedResource;
-        const isFigureSelected = isFigureResource(this.props.selectedResource);
-        return (
-            <div className="pt-button-group">
-                <Tooltip content="Show figure">
-                    <AnchorButton
-                        disabled={!isFigureSelected}
-                        iconName="eye-open"
-                        onClick={this.handleShowFigureButtonClicked}/>
-                </Tooltip>
-                <Tooltip content="Rename resource">
-                    <AnchorButton
-                        disabled={!isResourceSelected}
-                        iconName="label"
-                        onClick={this.handleResourceRenameButtonClicked}/>
-                </Tooltip>
-                <ResourceRenameDialog/>
-            </div>
-        );
-    }
-
     private renderWorkflowStepsPanel() {
         const workflowSteps = this.props.workspace.workflow.steps;
         if (!workflowSteps || !workflowSteps.length) {
@@ -269,7 +324,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                                      onShowDetailsChange={this.handleShowWorkflowStepDetailsChanged}
                                      isSplitPanel={true}
                                      initialContentHeight={100}
-                                     actionComponent={this.renderWorkflowStepActions()}>
+                                     actionComponent={this.renderWorkspaceActions()}>
                 {this.renderWorkflowStepsList()}
                 {this.renderWorkflowStepDetails()}
             </ContentWithDetailsPanel>
@@ -289,36 +344,6 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         );
     }
 
-    private renderWorkflowStepActions() {
-        const workflowStep = this.props.selectedWorkflowStep;
-        const isStepSelected = !!workflowStep;
-        const isOperationStepSelected = workflowStep && workflowStep.op;
-        const NOT_IMPLEMENTED_YET = true;
-        return (
-            <div className="pt-button-group">
-                <Tooltip content="Copy step">
-                    <AnchorButton
-                        disabled={NOT_IMPLEMENTED_YET || !isOperationStepSelected}
-                        iconName="duplicate"/>
-                </Tooltip>
-                <Tooltip content="Edit workflow step">
-                    <AnchorButton
-                        disabled={!isOperationStepSelected}
-                        iconName="edit"
-                        onClick={this.handleEditOperationStepButtonClicked}/>
-                </Tooltip>
-                <Tooltip content="Remove workflow step from workspace">
-                    <AnchorButton
-                        disabled={NOT_IMPLEMENTED_YET || !isStepSelected}
-                        iconName="delete"/>
-                </Tooltip>
-
-                {isOperationStepSelected ?
-                    <OperationStepDialog id="editOperationStepDialog" operationStep={workflowStep}/> : null}
-            </div>
-        );
-    }
-
     //noinspection JSMethodCanBeStatic
     private renderWorkflowStepDetails() {
 
@@ -327,10 +352,12 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
             return null;
         }
 
-        let stepInputPanel = WorkspacePanel.renderWorkflowStepPorts(selectedWorkflowStepOp.inputs,
+        let stepInputPanel = WorkspacePanel.renderWorkflowStepPorts(
+            selectedWorkflowStepOp.inputs,
             "Step inputs:", "No step inputs.",
             this.renderOperationStepInputName,
-            this.renderOperationStepInputValue);
+            this.renderOperationStepInputValue
+        );
 
         let stepOutputPanel = null;
         // let stepOutputPanel = WorkspacePanel.renderWorkflowStepPorts(selectedWorkflowStepOp.outputs,
@@ -408,8 +435,16 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
     //noinspection JSMethodCanBeStatic
     private getWorkflowStepLabel(step: WorkflowStepState) {
-        if (step.op) {
-            return <span>{step.op} &rarr; {step.id}</span>;
+        let opName;
+        if (step && step.op) {
+            opName = step.op;
+            const index = opName.lastIndexOf('.');
+            if (index > 0) {
+                opName = opName.slice(index + 1);
+            }
+        }
+        if (opName) {
+            return <span><code>{opName}()</code> &rarr; {step.id}</span>;
         } else {
             return <span>? &rarr; {step.id}</span>;
         }

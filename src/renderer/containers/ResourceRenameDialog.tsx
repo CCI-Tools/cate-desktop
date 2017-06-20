@@ -1,5 +1,4 @@
 import * as React from 'react';
-import {Dialog, Classes, Button} from "@blueprintjs/core";
 import {State, ResourceState, DialogState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
@@ -7,7 +6,11 @@ import * as selectors from "../selectors";
 import {ModalDialog} from "../components/ModalDialog";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 
-interface IResourceRenameDialogProps extends DialogState {
+interface IResourceRenameDialogOwnProps {
+    selectedResource: ResourceState;
+}
+
+interface IResourceRenameDialogProps extends IResourceRenameDialogOwnProps, DialogState {
     dispatch?: any;
     resources: ResourceState[];
     selectedResource: ResourceState;
@@ -17,11 +20,11 @@ interface IResourceRenameDialogState {
     newName: string;
 }
 
-function mapStateToProps(state: State): IResourceRenameDialogProps {
+function mapStateToProps(state: State, ownProps: IResourceRenameDialogOwnProps): IResourceRenameDialogProps {
     return {
+        selectedResource: ownProps.selectedResource,
         isOpen: selectors.dialogStateSelector(ResourceRenameDialog.DIALOG_ID)(state).isOpen,
         resources: selectors.resourcesSelector(state),
-        selectedResource: selectors.selectedResourceSelector(state),
     };
 }
 

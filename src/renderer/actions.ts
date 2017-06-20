@@ -9,7 +9,7 @@ import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
-    newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResource, findResourceByName
+    newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName
 } from "./state-util";
 import {ViewPath} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
@@ -636,7 +636,7 @@ export function saveWorkspace(): ThunkAction {
 }
 
 /**
- * Asynchronously close the current workspace.
+ * Asynchronously save the current workspace using a new name.
  *
  * @returns a Redux thunk action
  */
@@ -656,6 +656,55 @@ export function saveWorkspaceAs(workspacePath: string): ThunkAction {
         callAPI(dispatch, `Save workspace as "${workspacePath}"`, call, action);
     }
 }
+
+/**
+ * Asynchronously clean the current workspace.
+ *
+ * @returns a Redux thunk action
+ */
+export function cleanWorkspace(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        let workspace = getState().data.workspace;
+        assert.ok(workspace);
+        const baseDir = workspace.baseDir;
+
+        function call() {
+            return selectors.workspaceAPISelector(getState()).cleanWorkspace(baseDir);
+        }
+
+        function action(workspace: WorkspaceState) {
+            dispatch(setCurrentWorkspace(workspace));
+        }
+
+        callAPI(dispatch, `Clean workspace "${baseDir}"`, call, action);
+    }
+}
+
+
+/**
+ * Asynchronously delete the given resource.
+ *
+ * @returns a Redux thunk action
+ */
+export function deleteResource(resource: ResourceState): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        let workspace = getState().data.workspace;
+        assert.ok(workspace);
+        const baseDir = workspace.baseDir;
+
+        function call() {
+            return selectors.workspaceAPISelector(getState()).deleteWorkspaceResource(baseDir, resource.name);
+        }
+
+        function action(workspace: WorkspaceState) {
+            dispatch(setCurrentWorkspace(workspace));
+        }
+
+        callAPI(dispatch, `Deleting resource "${resource.name}"`, call, action);
+    }
+}
+
+
 
 /**
  * Asynchronously close the current workspace.
@@ -736,6 +785,48 @@ export function closeWorkspaceInteractive(): ThunkAction {
         );
         if (ok) {
             dispatch(closeWorkspace())
+        }
+    };
+}
+
+/**
+ * Ask user whether to clean workspace, then clean it.
+ *
+ * @returns a Redux thunk action
+ */
+export function cleanWorkspaceInteractive(): ThunkAction {
+    return (dispatch: Dispatch) => {
+        const answer = showMessageBox({
+            title: 'Clean Workspace',
+            message: 'Do you really want to clean this workspace?',
+            detail: 'This will delete all resources and workflow steps.\nYou will not be able to undo this operation.',
+            buttons: ["Yes", "No"],
+            defaultId: 1,
+            cancelId: 1,
+        });
+        if (answer === 0) {
+            dispatch(cleanWorkspace());
+        }
+    };
+}
+
+/**
+ * Ask user whether to delete a resoure/step, then delete it.
+ *
+ * @returns a Redux thunk action
+ */
+export function deleteResourceInteractive(resource: ResourceState): ThunkAction {
+    return (dispatch: Dispatch) => {
+        const answer = showMessageBox({
+            title: 'Remove Resource / Workflow Step',
+            message: `Do you really want to delete resource "${resource.name}"?`,
+            detail: 'This will also delete the workflow step that created it.\nYou will not be able to undo this operation.',
+            buttons: ["Yes", "No"],
+            defaultId: 1,
+            cancelId: 1,
+        });
+        if (answer === 0) {
+            dispatch(deleteResource(resource));
         }
     };
 }

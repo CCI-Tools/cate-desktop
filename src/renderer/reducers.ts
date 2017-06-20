@@ -531,6 +531,8 @@ const initialSessionState: SessionState = {
     selectedPlacemarkId: null,
     showPlacemarkDetails: null,
 
+    workspacePanelMode: 'resources',
+
     backendConfig: {
         dataStoresPath: null,
         useWorkspaceImageryCache: false,

@@ -309,6 +309,17 @@ export const selectedResourceSelector = createSelector<State, ResourceState | nu
     }
 );
 
+export const selectedWorkflowStepResourceSelector = createSelector<State, ResourceState | null, ResourceState[], string>(
+    resourcesSelector,
+    selectedWorkflowStepIdSelector,
+    (resources: ResourceState[], selectedWorkflowStepId: string) => {
+        if (canFind(resources, selectedWorkflowStepId)) {
+            return resources.find(r => r.name === selectedWorkflowStepId);
+        }
+        return null;
+    }
+);
+
 export const selectedWorkflowStepSelector = createSelector<State,
     WorkflowStepState | null,
     WorkflowStepState[],
@@ -318,6 +329,20 @@ export const selectedWorkflowStepSelector = createSelector<State,
     (workflowSteps: WorkflowStepState[], selectedWorkflowStepId: string) => {
         if (canFind(workflowSteps, selectedWorkflowStepId)) {
             return workflowSteps.find(r => r.id === selectedWorkflowStepId);
+        }
+        return null;
+    }
+);
+
+export const selectedResourceWorkflowStepSelector = createSelector<State,
+    WorkflowStepState | null,
+    WorkflowStepState[],
+    string>(
+    workflowStepsSelector,
+    selectedResourceNameSelector,
+    (workflowSteps: WorkflowStepState[], selectedResourceName: string) => {
+        if (canFind(workflowSteps, selectedResourceName)) {
+            return workflowSteps.find(r => r.id === selectedResourceName);
         }
         return null;
     }

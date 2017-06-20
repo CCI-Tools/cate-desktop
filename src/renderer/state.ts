@@ -670,6 +670,8 @@ export interface SessionState {
     selectedPlacemarkId: string | null;
     showPlacemarkDetails: boolean;
 
+    workspacePanelMode: 'resources' | 'steps';
+
     /**
      * backendConfig settings are applied on restart (of the WebAPI) only.
      */
