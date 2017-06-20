@@ -629,9 +629,13 @@ export interface BackendConfigState {
     useWorkspaceImageryCache: boolean;
 }
 
-export type PlacemarkCollection = FeatureCollection<Point>;
-export type Placemark = Feature<Point>;
+export interface Placemark extends Feature<Point> {
+    id: string;
+}
 
+export interface PlacemarkCollection extends FeatureCollection<Point> {
+    features: Placemark[];
+}
 
 /**
  * Session state contains information about the human being which is currently using Cate.

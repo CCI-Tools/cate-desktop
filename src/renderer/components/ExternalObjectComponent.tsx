@@ -159,6 +159,10 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
     externalObjectUnmounted(object: E, parentContainer: HTMLElement, container: HTMLElement): void {
     }
 
+
+    // TODO (forman): optimize me: don't override componentWillUpdate(), instead override...
+    // - componentWillReceiveProps() to do what componentWillUpdate() currently does AND set whether render() does need to be called
+    // - shouldComponentUpdate() to return whether render() need to be called
     /**
      * Invoked by React immediately before rendering when new props or state are being received.
      * This method is not called for the initial render.

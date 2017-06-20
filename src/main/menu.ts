@@ -86,6 +86,7 @@ if (OS_IS_DARWIN) {
 
 const helpSubMenu: Array<any> = [
     actions.openUserGuide,
+    actions.openIssueTracker,
     actions.openEsaCCI,
 ];
 if (OS_IS_NOT_DARWIN) {
@@ -133,9 +134,9 @@ const helpMenu = {
 
 export const menuTemplate: Array<any> = [
     fileMenu,
-    editMenu,
+    // editMenu,
     viewMenu,
-    toolsMenu,
+    // toolsMenu,
     windowMenu,
     helpMenu,
 ];

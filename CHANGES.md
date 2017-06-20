@@ -1,8 +1,12 @@
 ### 0.8.0-rc.6.dev.1
 
-1. If an operation produces a resource of type `Figure`, it will be initially **shown in a plot view**.
+1. Added **MY PLACES** panel providing a simple placemark management
+   * add placemark (by clicking on globe)
+   * add placemark (by globe center coordinate)
+   * remove selected placemark
+   * copy name + coordinate to clipboard
+2. If an operation produces a resource of type `Figure`, it will be initially **shown in a plot view**.
    This default behaviour can be disabled from main menu under *File/Preferences*.
-2. Added new **MY PLACES** panel providing a simple placemark management.
 3. Cate now displays messages in **toasts** - lightweight, ephemeral notices in direct response 
    to a user's action.   
 4. The **details part of an error message** (e.g. Python stack traceback) can now be **copied to clipboard**.  

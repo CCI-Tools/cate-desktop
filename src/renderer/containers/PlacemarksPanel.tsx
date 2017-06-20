@@ -101,7 +101,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
 
     private handleChangedPlacemarkSelection(newSelection: string[]) {
         const selectedPlacemarkId = newSelection.length ? newSelection[0] : null;
-        this.props.dispatch(actions.updateSessionState({selectedPlacemarkId}));
+        this.props.dispatch(actions.setSelectedPlacemarkId(selectedPlacemarkId));
     }
 
     private handleCopySelectedName() {

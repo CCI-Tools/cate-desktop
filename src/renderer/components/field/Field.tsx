@@ -74,7 +74,7 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
         if (this.props.parser) {
             return this.props.parser(textValue);
         } else {
-            this.parseValue(textValue);
+            return this.parseValue(textValue);
         }
     }
 
@@ -82,7 +82,7 @@ export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, n
         if (this.props.formatter) {
             return this.props.formatter(value);
         } else {
-            this.formatValue(value);
+            return this.formatValue(value);
         }
     }
 

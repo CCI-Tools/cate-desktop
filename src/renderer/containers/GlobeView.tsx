@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
     State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
-    VariableState, VariableRefState, VectorLayerState, ResourceState, WorldViewDataState, GeographicPosition
+    VariableState, VariableRefState, VectorLayerState, ResourceState, WorldViewDataState, GeographicPosition, Placemark
 } from "../state";
 import {
     CesiumGlobe, LayerDescriptor, ImageryProvider, DataSourceDescriptor,
@@ -10,7 +10,7 @@ import {
 import {connect} from "react-redux";
 import {
     findVariable, findResource, getTileUrl, getGeoJSONUrl, getGeoJSONCountriesUrl,
-    COUNTRIES_LAYER_ID
+    COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID
 } from "../state-util";
 import {ViewState} from "../components/ViewState";
 import * as selectors from "../selectors";
@@ -28,6 +28,8 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     workspace: WorkspaceState | null;
     offlineMode: boolean;
     worldViewClickAction: string | null;
+    placemarks: Placemark[];
+    selectedPlacemarkId: string | null;
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -37,6 +39,8 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         workspace: selectors.workspaceSelector(state),
         offlineMode: state.session.offlineMode,
         worldViewClickAction: state.control.worldViewClickAction,
+        placemarks: selectors.placemarksSelector(state),
+        selectedPlacemarkId: selectors.selectedPlacemarkIdSelector(state),
     };
 }
 
@@ -51,6 +55,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
         this.handleMouseMoved = this.handleMouseMoved.bind(this);
         this.handleMouseClicked = this.handleMouseClicked.bind(this);
         this.handleLeftUp = this.handleLeftUp.bind(this);
+        this.handlePlacemarkSelected = this.handlePlacemarkSelected.bind(this);
     }
 
     handleMouseMoved(position: GeographicPosition) {
@@ -68,9 +73,15 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
         this.props.dispatch(actions.setGlobeViewPosition(position));
     }
 
+    handlePlacemarkSelected(selectedPlacemarkId: string | null) {
+        this.props.dispatch(actions.setSelectedPlacemarkId(selectedPlacemarkId));
+    }
+
     render() {
+        const placemarks = this.props.placemarks;
         const layers = [];
         const dataSources = [];
+        // TODO (forman): optimize me: increase speed and clean up code by moving the following into selectors.ts
         if (this.props.workspace && this.props.workspace.resources && this.props.view.data.layers) {
             for (let layer of this.props.view.data.layers) {
                 switch (layer.type) {
@@ -89,8 +100,12 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
                         dataSources.push(dataSourceDescriptor);
                         break;
                     }
-                    default:
-                        console.warn(`GlobeView: layer with ID "${layer.id}" will not be rendered`);
+                    default: {
+                        if (layer.id !== SELECTED_VARIABLE_LAYER_ID) {
+                            console.warn(`GlobeView: layer with ID "${layer.id}" will not be rendered`);
+                        }
+                        break;
+                    }
                 }
             }
         }
@@ -98,13 +113,16 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
         return (
             <CesiumGlobe id={'CesiumGlobe-' + this.props.view.id}
                          debug={false}
+                         selectedPlacemarkId={this.props.selectedPlacemarkId}
+                         placemarks={placemarks}
                          layers={layers}
                          dataSources={dataSources}
                          offlineMode={this.props.offlineMode}
                          style={GlobeView.CESIUM_GLOBE_STYLE}
                          onMouseMoved={this.handleMouseMoved}
                          onMouseClicked={this.handleMouseClicked}
-                         onLeftUp={this.handleLeftUp}/>
+                         onLeftUp={this.handleLeftUp}
+                         onPlacemarkSelected={this.handlePlacemarkSelected}/>
         );
     }
 

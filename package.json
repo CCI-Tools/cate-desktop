@@ -60,7 +60,7 @@
     "@types/redux-logger": "~2.6.x",
     "@types/reselect": "~2.0.x",
     "@types/tether": "~1.1.x",
-    "cesium": "~1.30.x",
+    "cesium": "~1.34.x",
     "chai": "~3.5.x",
     "chai-as-promised": "~6.0.x",
     "chai-enzyme": "~0.6.x",
