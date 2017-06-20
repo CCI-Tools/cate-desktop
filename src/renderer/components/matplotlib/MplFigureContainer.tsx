@@ -48,20 +48,6 @@ export class MplFigureContainer extends ExternalObjectComponent<MplFigure, Figur
                              this.props.onMessage);
     }
 
-    externalObjectMounted(figure: MplFigure, parentContainer: HTMLElement, container: HTMLElement): void {
-        if (this.props.debug) {
-            console.log("MplFigureContainer.externalObjectMounted:", figure, parentContainer, container);
-        }
-        figure.onMount();
-    }
-
-    externalObjectUnmounted(figure: MplFigure, parentContainer: HTMLElement, container: HTMLElement): void {
-        if (this.props.debug) {
-            console.log("MplFigureContainer.externalObjectUnmounted:", figure, parentContainer, container);
-        }
-        figure.onUnmount();
-    }
-
     updateExternalObject(figure: MplFigure,
                          prevState: FigureState,
                          nextState: FigureState,
