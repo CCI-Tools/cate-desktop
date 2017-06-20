@@ -96,6 +96,10 @@ export function findResource(resources: ResourceState[], ref: VariableRefState):
     return resources.find(r => r.name === ref.resName);
 }
 
+export function findResourceByName(resources: ResourceState[], name: string): ResourceState | null {
+    return resources.find(r => r.name === name);
+}
+
 export function findVariable(resources: ResourceState[], ref: VariableRefState): VariableState | null {
     const resource = findResource(resources, ref);
     return resource && resource.variables && resource.variables.find(v => v.name === ref.varName);

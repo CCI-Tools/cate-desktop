@@ -9,7 +9,7 @@ import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
-    newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID
+    newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResource, findResourceByName
 } from "./state-util";
 import {ViewPath} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
@@ -854,12 +854,14 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: Op
 
         function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
-            dispatch(setSelectedWorkspaceResourceName(resName));
-            if (getState().session.autoShowNewFigures) {
-                const figureResource = selectors.selectedFigureResourceSelector(getState());
-                if (figureResource) {
-                    dispatch(addFigureView(selectors.activeViewIdSelector(getState()), figureResource))
-                }
+
+            const resource = findResourceByName(selectors.resourcesSelector(getState()), resName);
+            const isFigure = isFigureResource(resource);
+            if (!isFigure) {
+                dispatch(setSelectedWorkspaceResourceName(resName));
+            }
+            if (isFigure && getState().session.autoShowNewFigures) {
+                dispatch(addFigureView(selectors.activeViewIdSelector(getState()), resource))
             }
         }
 
