@@ -1,21 +1,26 @@
 ### 0.8.0-rc.6.dev.1
 
-1. Added **MY PLACES** panel providing a simple placemark management
+1. Added **PLACEMARKS** panel, which provides a simple placemark management
    * add placemark (by clicking on globe)
    * add placemark (by globe center coordinate)
    * remove selected placemark
    * copy name + coordinate to clipboard
-2. If an operation produces a resource of type `Figure`, it will be initially **shown in a plot view**.
+2. **WORKSPACE** panel improvements:
+   * For easier access to plots, `matplotlib` figure views can now be opened using a dedicated button.
+   * Two new buttons added: *Delete* resource and *Clean* workspace.
+   * All action buttons are now available for both resources and workflow steps.  
+3. If an operation produces a resource of type `Figure`, it will be initially **shown in a plot view**.
    This default behaviour can be disabled from main menu under *File/Preferences*.
-3. Cate now displays messages in **toasts** - lightweight, ephemeral notices in direct response 
+4. Cate now displays messages in **toasts** - lightweight, ephemeral notices in direct response 
    to a user's action.   
-4. The **details part of an error message** (e.g. Python stack traceback) can now be **copied to clipboard**.  
-5. For easier access, `matplotlib` figure views can now be opened from the **WORKSPACE** panel.
-6. Added simple **About Box**.
-7. Fixed layout problem in **LAYERS** panel, where sliders where outside visible panel area. 
-8. Fixed problem where **last window size** was not restored from user preferences.
-9. `devToolsOpened` is now a user preference rather than a configuration property.
-10. Fixed a problem where rows were missing in the *Metadata* table of the **DATA SOURCES** panel.
+5. The **details part of an error message** (e.g. Python stack traceback) can now be **copied to clipboard**.  
+7. Added simple **About Box**.
+8. Fixed layout problem in **LAYERS** panel, where sliders where outside visible panel area. 
+9. Fixed problem where **last window size** was not restored from user preferences.
+10. `devToolsOpened` is now a user preference rather than a configuration property.
+11. Fixed a problem where rows were missing in the *Meta-Info* table of the **DATA SOURCES** panel.
+12. Fixed problem where no open dialog was displayed after pressing the *Open* or *Download* buttons 
+    in the **DATA SOURCES** panel (in the logs: `DateRangeInput value cannot be null`).
  
 
 ### 0.8.0-rc.5
