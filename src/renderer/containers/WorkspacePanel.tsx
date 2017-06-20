@@ -4,7 +4,7 @@ import {
     State, WorkspaceState, WorkflowStepState, ResourceState, WorkflowPortState, OperationState,
     OperationIOBaseState
 } from "../state";
-import {Button, Tabs2, Tab2, Tooltip, Position} from "@blueprintjs/core";
+import {AnchorButton, Button, Tabs2, Tab2, Tooltip, Position} from "@blueprintjs/core";
 import {Table, Column, Cell} from "@blueprintjs/table";
 import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
@@ -242,10 +242,18 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         const isFigureSelected = isFigureResource(this.props.selectedResource);
         return (
             <div className="pt-button-group">
-                <Button disabled={!isFigureSelected} iconName="eye-open"
+                <Tooltip content="Show figure">
+                    <AnchorButton
+                        disabled={!isFigureSelected}
+                        iconName="eye-open"
                         onClick={this.handleShowFigureButtonClicked}/>
-                <Button disabled={!isResourceSelected} iconName="label"
+                </Tooltip>
+                <Tooltip content="Rename resource">
+                    <AnchorButton
+                        disabled={!isResourceSelected}
+                        iconName="label"
                         onClick={this.handleResourceRenameButtonClicked}/>
+                </Tooltip>
                 <ResourceRenameDialog/>
             </div>
         );
@@ -285,15 +293,26 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         const workflowStep = this.props.selectedWorkflowStep;
         const isStepSelected = !!workflowStep;
         const isOperationStepSelected = workflowStep && workflowStep.op;
+        const NOT_IMPLEMENTED_YET = true;
         return (
             <div className="pt-button-group">
-                <Button disabled={!isOperationStepSelected}
+                <Tooltip content="Copy step">
+                    <AnchorButton
+                        disabled={NOT_IMPLEMENTED_YET || !isOperationStepSelected}
                         iconName="duplicate"/>
-                <Button disabled={!isOperationStepSelected}
+                </Tooltip>
+                <Tooltip content="Edit workflow step">
+                    <AnchorButton
+                        disabled={!isOperationStepSelected}
                         iconName="edit"
                         onClick={this.handleEditOperationStepButtonClicked}/>
-                <Button disabled={!isStepSelected}
+                </Tooltip>
+                <Tooltip content="Remove workflow step from workspace">
+                    <AnchorButton
+                        disabled={NOT_IMPLEMENTED_YET || !isStepSelected}
                         iconName="delete"/>
+                </Tooltip>
+
                 {isOperationStepSelected ?
                     <OperationStepDialog id="editOperationStepDialog" operationStep={workflowStep}/> : null}
             </div>
