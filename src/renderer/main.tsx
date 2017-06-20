@@ -21,7 +21,7 @@ export function main() {
             level: 'info',
             collapsed: true,
             diff: true,
-            predicate: (getState, action) => (nonLoggedActionTypes.indexOf(action.type) == -1)
+            predicate: (getState, action) => (nonLoggedActionTypes.indexOf(action.type) === -1)
         };
         middlewares.push(createLogger(loggerOptions));
     }
