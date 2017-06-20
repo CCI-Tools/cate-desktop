@@ -17,11 +17,11 @@ export function main() {
 
     if (process.env.NODE_ENV === 'development') {
         const nonLoggedActionTypes = [actions.SET_GLOBE_MOUSE_POSITION];
-        let loggerOptions = {
+        const loggerOptions = {
             level: 'info',
             collapsed: true,
             diff: true,
-            predicate: (getState, action) => !(action.type in nonLoggedActionTypes)
+            predicate: (getState, action) => (nonLoggedActionTypes.indexOf(action.type) == -1)
         };
         middlewares.push(createLogger(loggerOptions));
     }
