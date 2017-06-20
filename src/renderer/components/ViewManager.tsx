@@ -204,7 +204,7 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
         color: Colors.WHITE,
         backgroundColor: ViewPanel.SELECTED_BG_COLOR
     };
-    static readonly TAB_STYLE_NORMAL = {padding: 2, color: Colors.GRAY3};
+    static readonly TAB_STYLE_NORMAL = {padding: 2, color: Colors.LIGHT_GRAY1};
 
     static readonly TITLE_STYLE_BASE = {paddingLeft: 4, paddingRight: 4};
     static readonly TITLE_STYLE_ACTIVE = {...ViewPanel.TITLE_STYLE_BASE, color: Colors.BLUE5};
@@ -226,8 +226,6 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
         flex: "none",
         width: "100%",
         marginTop: 2,
-        fontSize: "12px",
-        fontWeight: "lighter" as any,
         borderBottomStyle: "solid",
         borderBottomWidth: 2,
         borderBottomColor: ViewPanel.SELECTED_BG_COLOR,
