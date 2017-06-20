@@ -254,7 +254,7 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
                         maxDate={maxDate}
                         locale={'en'}
                         format="YYYY-MM-DD"
-                        value={timeRange}
+                        value={timeRange || [null, null]}
                         onChange={this.onTimeRangeChange}/>
                 </div>
 
