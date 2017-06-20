@@ -15,8 +15,8 @@
 7. Fixed layout problem in **LAYERS** panel, where sliders where outside visible panel area. 
 8. Fixed problem where **last window size** was not restored from user preferences.
 9. `devToolsOpened` is now a user preference rather than a configuration property.
-10. Fixed table rendering bug, where tables where on other than the first tab.
-
+10. Fixed a problem were rows were missing in the *Metadata* table of the **DATA SOURCES** panel.
+ 
 
 ### 0.8.0-rc.5
 
