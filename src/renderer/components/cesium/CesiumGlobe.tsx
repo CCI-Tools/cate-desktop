@@ -70,22 +70,23 @@ export type DataSourceCollection = {
     remove: (dataSource: DataSource, destroy?: boolean) => boolean;
 };
 
-export type CesiumScene = {
+export type Scene = {
     camera: any;
     globe: any;
     mode: any;
 };
 
-export type CesiumViewer = {
+export type Viewer = {
     container: HTMLElement;
     canvas:HTMLCanvasElement
     entities: EntityCollection;
     imageryLayers: ImageryLayerCollection;
     dataSources: DataSourceCollection;
-    scene: CesiumScene;
+    scene: Scene;
     camera: any;
     selectedEntity : Entity | null;
     selectedEntityChanged: any;
+    forceResize();
 };
 
 export type Cartesian2 = {
@@ -153,15 +154,15 @@ interface CesiumGlobeState {
     dataSources?: DataSourceDescriptor[];
 }
 
-export interface ICesiumGlobeProps extends IExternalObjectComponentProps<CesiumViewer, CesiumGlobeState>, CesiumGlobeState {
+export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Viewer, CesiumGlobeState>, CesiumGlobeState {
     offlineMode?: boolean;
     dataSources?: DataSourceDescriptor[];
     onMouseClicked?: (point: {latitude: number, longitude: number, height?: number}) => void;
     onMouseMoved?: (point: {latitude: number, longitude: number, height?: number}) => void;
     onLeftUp?: (point: {latitude: number, longitude: number, height?: number}) => void;
     onPlacemarkSelected?: (placemarkId: string | null) => void;
-    onViewerMounted?: (id: string, viewer: CesiumViewer) => void;
-    onViewerUnmounted?: (id: string, viewer: CesiumViewer) => void;
+    onViewerMounted?: (id: string, viewer: Viewer) => void;
+    onViewerUnmounted?: (id: string, viewer: Viewer) => void;
 
 }
 
@@ -175,7 +176,7 @@ Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
  *
  * @author Norman Fomferra
  */
-export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlobeState, ICesiumGlobeProps, null> {
+export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeState, ICesiumGlobeProps, null> {
     private mouseClickHandler: any;
     private mouseMoveHandler: any;
     private leftUpHandler: any;
@@ -192,7 +193,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         return div;
     }
 
-    newExternalObject(parentContainer: HTMLElement, container: HTMLElement): CesiumViewer {
+    newExternalObject(parentContainer: HTMLElement, container: HTMLElement): Viewer {
 
         let baseLayerImageryProvider;
         if (this.props.offlineMode) {
@@ -219,7 +220,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
             geocoder: false,
             homeButton: false,
             infoBox: false,
-            sceneModePicker: false,
+            sceneModePicker: true,
             timeline: false,
             navigationHelpButton: false,
             creditContainer: 'creditContainer',
@@ -248,7 +249,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         };
     }
 
-    updateExternalObject(viewer: CesiumViewer, prevState: CesiumGlobeState, nextState: CesiumGlobeState): void {
+    updateExternalObject(viewer: Viewer, prevState: CesiumGlobeState, nextState: CesiumGlobeState): void {
 
         const prevSelectedPlacemarkId = (prevState && prevState.selectedPlacemarkId) || null;
         const prevPlacemarks = (prevState && prevState.placemarks) || EMPTY_ARRAY;
@@ -274,7 +275,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         }
     }
 
-    externalObjectMounted(viewer: CesiumViewer): void {
+    externalObjectMounted(viewer: Viewer): void {
         this.mouseClickHandler = new Cesium.ScreenSpaceEventHandler();
         this.mouseClickHandler.setInputAction(
             (event) => {
@@ -324,7 +325,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         }
     }
 
-    externalObjectUnmounted(viewer: CesiumViewer): void {
+    externalObjectUnmounted(viewer: Viewer): void {
         this.mouseClickHandler = this.mouseClickHandler && this.mouseClickHandler.destroy();
         this.mouseClickHandler = null;
         this.mouseMoveHandler = this.mouseMoveHandler && this.mouseMoveHandler.destroy();
@@ -341,11 +342,18 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
     }
 
     //noinspection JSMethodCanBeStatic
-    private updateGlobeSelectedPlacemark(viewer: CesiumViewer, selectedPlacemarkId: string | null) {
-        viewer.selectedEntity = (selectedPlacemarkId && viewer.entities.getById(selectedPlacemarkId)) || null;
+    private updateGlobeSelectedPlacemark(viewer: Viewer, selectedPlacemarkId: string | null) {
+        let selectedEntity = (selectedPlacemarkId && viewer.entities.getById(selectedPlacemarkId)) || null;
+        if (this.props.debug) {
+            console.log('CesiumGlobe: updating selected entity: ', viewer.selectedEntity, selectedEntity);
+        }
+        if (viewer.selectedEntity === selectedEntity) {
+            return;
+        }
+        viewer.selectedEntity = selectedEntity;
     }
 
-    private updateGlobePlacemarks(viewer: CesiumViewer, currentPlacemarks: Placemark[], nextPlacemarks: Placemark[]) {
+    private updateGlobePlacemarks(viewer: Viewer, currentPlacemarks: Placemark[], nextPlacemarks: Placemark[]) {
         if (this.props.debug) {
             console.log('CesiumGlobe: updating placemarks');
         }
@@ -388,7 +396,9 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
                     let change = action.change;
                     let entity = viewer.entities.getById(oldPlacemark.id);
                     if (entity) {
-                        console.log('Entity change: ', change, oldPlacemark, newPlacemark);
+                        if (this.props.debug) {
+                            console.log('Entity change: ', change, oldPlacemark, newPlacemark);
+                        }
                         const show = newPlacemark.properties['visible'];
                         const name = newPlacemark.properties['name'] || '';
                         const positionCoords = newPlacemark.geometry.coordinates;
@@ -409,7 +419,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         }
     }
 
-    private updateGlobeLayers(viewer: CesiumViewer, currentLayers: LayerDescriptor[], nextLayers: LayerDescriptor[]) {
+    private updateGlobeLayers(viewer: Viewer, currentLayers: LayerDescriptor[], nextLayers: LayerDescriptor[]) {
         if (this.props.debug) {
             console.log('CesiumGlobe: updating layers');
         }
@@ -486,7 +496,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         }
     }
 
-    private updateGlobeDataSources(viewer: CesiumViewer, currentLayers: DataSourceDescriptor[], nextLayers: DataSourceDescriptor[]) {
+    private updateGlobeDataSources(viewer: Viewer, currentLayers: DataSourceDescriptor[], nextLayers: DataSourceDescriptor[]) {
         const actions = arrayDiff<DataSourceDescriptor>(currentLayers, nextLayers);
         let dataSource: DataSource;
         let newLayer: DataSourceDescriptor;
@@ -556,7 +566,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         return null;
     }
 
-    private addDataSource(viewer: CesiumViewer, layerDescriptor: DataSourceDescriptor, layerIndex: number): ImageryLayer {
+    private addDataSource(viewer: Viewer, layerDescriptor: DataSourceDescriptor, layerIndex: number): ImageryLayer {
         const dataSource = CesiumGlobe.getDataSource(layerDescriptor);
         this.insertDataSource(viewer, dataSource, layerIndex);
         if (this.props.debug) {
@@ -565,7 +575,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         return dataSource;
     }
 
-    private insertDataSource(viewer: CesiumViewer, dataSource: DataSource, index: number) {
+    private insertDataSource(viewer: Viewer, dataSource: DataSource, index: number) {
         const dataSources: DataSource[] = [];
         // Save all data sources from index to end in dataSources
         for (let i = index; i < viewer.dataSources.length; i++) {
@@ -585,7 +595,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         });
     }
 
-    private addLayer(viewer: CesiumViewer, layerDescriptor: LayerDescriptor, layerIndex: number): ImageryLayer {
+    private addLayer(viewer: Viewer, layerDescriptor: LayerDescriptor, layerIndex: number): ImageryLayer {
         const imageryProvider = CesiumGlobe.getImageryProvider(layerDescriptor);
         const imageryLayer = viewer.imageryLayers.addImageryProvider(imageryProvider, layerIndex);
         if (this.props.debug) {
@@ -594,7 +604,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
         return imageryLayer;
     }
 
-    private removeLayer(viewer: CesiumViewer, imageryLayer: ImageryLayer, layerIndex: number): void {
+    private removeLayer(viewer: Viewer, imageryLayer: ImageryLayer, layerIndex: number): void {
         viewer.imageryLayers.remove(imageryLayer, true);
         if (this.props.debug) {
             console.log(`CesiumGlobe: removed imagery layer #${layerIndex}`);
@@ -622,7 +632,7 @@ export class CesiumGlobe extends ExternalObjectComponent<CesiumViewer, CesiumGlo
 
 }
 
-function screenToCartographic(viewer: CesiumViewer, screenPoint?: Cartesian2, degrees?: boolean): Cartographic {
+function screenToCartographic(viewer: Viewer, screenPoint?: Cartesian2, degrees?: boolean): Cartographic {
     let canvasPoint;
     if (screenPoint) {
         const rect = viewer.canvas.getBoundingClientRect();

@@ -81,6 +81,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
         const placemarks = this.props.placemarks;
         const layers = [];
         const dataSources = [];
+        // TODO (forman): optimize me: increase speed and clean up code by moving the following into selectors.ts
         if (this.props.workspace && this.props.workspace.resources && this.props.view.data.layers) {
             for (let layer of this.props.view.data.layers) {
                 switch (layer.type) {
