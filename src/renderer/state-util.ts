@@ -212,7 +212,7 @@ export function updateSelectedVariableLayer(selectedVariableLayer: LayerState,
     if (spatialImageVariable || spatialVectorVariable) {
         const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
         const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
-        console.log("updateSelectedVariableLayer: ", variable.name, savedLayers, restoredLayer, layerDisplayProperties);
+        // console.log("updateSelectedVariableLayer: ", variable.name, savedLayers, restoredLayer, layerDisplayProperties);
         return {
             ...selectedVariableLayer,
             ...restoredLayer,
