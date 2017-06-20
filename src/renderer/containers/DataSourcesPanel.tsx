@@ -374,7 +374,7 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         if (metaInfoTable && variablesTable) {
             return (
 
-                <Tabs2 id="dsDetails">
+                <Tabs2 id="dsDetails" renderActiveTabPanelOnly={true}>
                     <Tab2 id="vars" title="Variables" panel={variablesTable}/>
                     <Tab2 id="meta" title="Meta-Info" panel={metaInfoTable}/>
                 </Tabs2>

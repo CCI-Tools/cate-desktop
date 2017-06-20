@@ -177,7 +177,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                     {workspaceState}
                     {openItemButton}
                 </div>
-                <Tabs2 id="workflow">
+                <Tabs2 id="workflow" renderActiveTabPanelOnly={true}>
                     <Tab2 id="resources" title={`Resources (${resources.length})`} panel={this.renderResourcesPanel()}/>
                     <Tab2 id="steps" title={`Steps (${steps.length})`} panel={this.renderWorkflowStepsPanel()}/>
                 </Tabs2>
