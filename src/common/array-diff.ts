@@ -57,8 +57,9 @@ export function arrayDiff<T extends ObjectWithId>(oldArray: T[], newArray: T[], 
     // REMOVE first, so we have less actions afterwards
     const newIds = new Set<string>(newArray.map(l => l.id));
     for (let oldIndex = oldArray.length - 1; oldIndex >= 0; oldIndex--) {
-        if (!newIds.has(oldArray[oldIndex].id)) {
-            actions.push({type: 'REMOVE', index: oldIndex});
+        const oldElement = oldArray[oldIndex];
+        if (!newIds.has(oldElement.id)) {
+            actions.push({type: 'REMOVE', index: oldIndex, oldElement});
             currentArray.splice(oldIndex, 1);
         }
     }
