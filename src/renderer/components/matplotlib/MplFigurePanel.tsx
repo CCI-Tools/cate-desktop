@@ -26,7 +26,7 @@ const FIGURE_COMMAND_SOURCE = new MplFigureCommandSourceImpl();
  *
  * @author Norman Fomferra
  */
-export class MplFigurePanel extends React.PureComponent<IFigurePanelProps, IFigurePanelState> {
+export class MplFigurePanel extends React.Component<IFigurePanelProps, IFigurePanelState> {
     static readonly DIV_STYLE = {width: '100%', overflow: 'hidden'};
     static readonly CONTAINER_DIV_STYLE = {width: '100%', overflow: 'hidden', padding: '0.2em 0.2em 0 0.2em'};
 
@@ -126,12 +126,12 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
             let callback;
             if (name === 'download') {
                 callback = () => {
-                    console.log(`MplFigureToolbar: "${name}" clicked for figure #${this.props.figureId}!`);
+                    // console.log(`MplFigureToolbar: "${name}" clicked for figure #${this.props.figureId}!`);
                     this.props.onDownload(this.props.figureId, {name});
                 };
             } else {
                 callback = () => {
-                    console.log(`MplFigureToolbar: "${name}" clicked for figure #${this.props.figureId}!`);
+                    // console.log(`MplFigureToolbar: "${name}" clicked for figure #${this.props.figureId}!`);
                     this.props.onCommand(this.props.figureId, {name});
                 };
             }

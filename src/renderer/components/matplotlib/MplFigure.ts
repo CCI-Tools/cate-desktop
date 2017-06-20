@@ -31,11 +31,11 @@ export class MplFigureCommandSourceImpl implements MplFigureCommandSource {
             this.listenersMap[figureId] = listeners;
         }
         listeners.add(listener);
-        console.log('MplFigureCommandSourceImpl.addCommandListener', figureId, listener);
+        // console.log('MplFigureCommandSourceImpl.addCommandListener', figureId, listener);
     }
 
     removeCommandListener(figureId: number, listener: MplFigureCommandListener): void {
-        console.log('MplFigureCommandSourceImpl.removeCommandListener', figureId, listener);
+        // console.log('MplFigureCommandSourceImpl.removeCommandListener', figureId, listener);
         const listeners = this.listenersMap[figureId];
         if (listeners) {
             listeners.delete(listener);
@@ -46,7 +46,7 @@ export class MplFigureCommandSourceImpl implements MplFigureCommandSource {
     }
 
     removeCommandListeners(figureId: number): void {
-        console.log('MplFigureCommandSourceImpl.removeCommandListeners', figureId);
+        // console.log('MplFigureCommandSourceImpl.removeCommandListeners', figureId);
         delete this.listenersMap[figureId];
     }
 
@@ -155,17 +155,6 @@ export class MplFigure {
                 window.clearInterval(this.resizeTimer);
             }
         };
-    }
-
-    onMount() {
-        console.info("MplFigure.onMount(): ", this.id);
-        // if (this.parentElement) {
-        //     this.sendResize(this.parentElement.clientWidth, this.parentElement.clientHeight);
-        // }
-    }
-
-    onUnmount() {
-        console.info("MplFigure.onUnmount(): ", this.id);
     }
 
     /**
