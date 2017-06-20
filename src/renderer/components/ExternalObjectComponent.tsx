@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as assert from "../../common/assert";
+import {shallowEqual} from "../../common/shallow-equal";
 
 export interface IExternalObjectComponentProps<E, ES> {
     id: string;
@@ -269,7 +270,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         this.externalObjectUnmounted(externalObjectRef.object, parentContainer, container);
     }
 
-    private updateExternalComponentAndSaveProps(nextProps: P & ES) {
+    private updateExternalComponentAndSaveProps(nextProps: P & ES): void {
         const externalObjectRef = this.externalObjectStore[nextProps.id];
         assert.ok(externalObjectRef);
         // Get previous props
@@ -278,12 +279,21 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         if (this.props.debug) {
             console.log("ExternalObjectComponent: updating existing external object with id =", this.props.id, prevState, nextState);
         }
-        // TODO (forman): optimize me: perform shallow comparison here: if equal, do not call this.updateExternalObject()
-        this.updateExternalObject(externalObjectRef.object,
-            prevState, nextState,
-            this.parentContainer, externalObjectRef.container);
+        if (this.shouldExternalObjectUpdate(prevState, nextState)) {
+            this.updateExternalObject(
+                externalObjectRef.object,
+                prevState, nextState,
+                this.parentContainer,
+                externalObjectRef.container
+            );
+        }
         // Remember new state
         externalObjectRef.state = nextState;
+    }
+
+    //noinspection JSMethodCanBeStatic
+    protected shouldExternalObjectUpdate(prevState: ES, nextState: ES): boolean {
+        return !shallowEqual(prevState, nextState);
     }
 
     private get externalObjectStore(): ExternalObjectStore<E, ES> {
