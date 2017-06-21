@@ -21,6 +21,7 @@
 11. Fixed a problem where rows were missing in the *Meta-Info* table of the **DATA SOURCES** panel.
 12. Fixed problem where no open dialog was displayed after pressing the *Open* or *Download* buttons 
     in the **DATA SOURCES** panel (in the logs: `DateRangeInput value cannot be null`).
+13. Fixed bug where the selected placemark is misplaced after CesiumView is remounted
  
 
 ### 0.8.0-rc.5

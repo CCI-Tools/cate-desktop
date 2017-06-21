@@ -233,6 +233,18 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         //noinspection UnnecessaryLocalVariableJS
         const viewer = new Cesium.Viewer(container, cesiumViewerOptions);
 
+        // knockout is used by Cesium to update the style attributes of the selectionIndicator
+        // when using multiple views this breaks, for unknown reason
+        // to get this working we update the 'style' attribute of the selectionIndicatorElement manually
+        // https://github.com/AnalyticalGraphicsInc/cesium/blob/master/Source/Widgets/SelectionIndicator/SelectionIndicatorViewModel.js
+        const viewModel = viewer.selectionIndicator.viewModel;
+        const originalUpdate = viewModel.update;
+        viewModel.update = function() {
+            originalUpdate.apply(this);
+            const styleValue = `top : ${viewModel._screenPositionY}; left : ${viewModel._screenPositionX};`;
+            viewModel._selectionIndicatorElement.setAttribute('style', styleValue);
+        };
+
         return viewer;
     }
 
