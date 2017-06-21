@@ -17,7 +17,7 @@
     "deep-equal": "~1.0.x",
     "electron-devtools-installer": "~2.2.x",
     "oboe": "~2.1.x",
-    "openlayers": "~4.0.x",
+    "openlayers": "~4.2.x",
     "proj4": "~2.4.x",
     "react": "~15.4.x",
     "react-addons-css-transition-group": "~15.4.x",
