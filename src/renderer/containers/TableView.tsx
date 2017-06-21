@@ -2,14 +2,12 @@ import * as React from 'react';
 import {State, TableViewDataState, ResourceState} from "../state";
 import {connect, Dispatch} from "react-redux";
 import {ViewState} from "../components/ViewState";
-import {Button, Spinner} from "@blueprintjs/core";
+import {Spinner} from "@blueprintjs/core";
 import {Cell, Column, Table} from "@blueprintjs/table";
-import {Select} from "../components/Select";
 import * as assert from "../../common/assert";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import {NO_TABLE_DATA} from "../messages";
-
+import {LOADING_TABLE_DATA_FAILED, NO_TABLE_DATA} from "../messages";
 
 interface ITableViewOwnProps {
     view: ViewState<TableViewDataState>;
@@ -38,38 +36,27 @@ interface ITableViewDispatch {
 /**
  * This component displays a 2D map with a number of layers.
  */
-class TableView extends React.Component<ITableViewProps & ITableViewOwnProps & ITableViewDispatch, null> {
-    static readonly CONTAINER_STYLE = {width: '100%', maxWidth: '100%', height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column'};
+class TableView extends React.PureComponent<ITableViewProps & ITableViewOwnProps & ITableViewDispatch, null> {
+    static readonly TABLE_CONTAINER_STYLE = {width: '100%', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column'};
+    static readonly LOADING_CONTAINER_STYLE = {width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' as any};
     static readonly ACTION_ITEM_STYLE = {padding: '0.2em'};
     static readonly ACTION_GROUP_STYLE = {display: 'flex'};
 
     constructor(props: ITableViewProps, context: any) {
         super(props, context);
-        this.onResourceNameChange = this.onResourceNameChange.bind(this);
-        this.onVariableNameChange = this.onVariableNameChange.bind(this);
-        this.onLoadTableViewData = this.onLoadTableViewData.bind(this);
     }
 
-    onResourceNameChange(resName: string | null) {
-        this.props.dispatch(actions.updateTableViewData(this.props.viewId, resName, this.props.viewData.varName, null));
-    }
-
-    onVariableNameChange(varName: string | null) {
-        this.props.dispatch(actions.updateTableViewData(this.props.viewId, this.props.viewData.resName, varName, null));
-    }
-
-    onLoadTableViewData() {
-        this.props.dispatch(actions.loadTableViewData(this.props.viewId, this.props.viewData.resName, this.props.viewData.varName));
+    componentWillMount(): void {
+        const viewData = this.props.viewData;
+        if (!viewData.dataRows && !viewData.isLoading && !viewData.error) {
+            this.props.dispatch(actions.loadTableViewData(this.props.viewId, viewData.resName, viewData.varName));
+        }
     }
 
     render() {
+        console.log("render, render!");
         return (
-            <div style={TableView.CONTAINER_STYLE}>
-                <div style={TableView.ACTION_GROUP_STYLE}>
-                    {this.renderResourceSelector()}
-                    {this.renderVariableSelector()}
-                    {this.renderLoadDataAction()}
-                </div>
+            <div style={TableView.TABLE_CONTAINER_STYLE}>
                 {this.renderDataTable()}
             </div>
         );
@@ -81,11 +68,15 @@ class TableView extends React.Component<ITableViewProps & ITableViewOwnProps & I
 
         if (viewData.isLoading) {
             return (
-                <div style={TableView.CONTAINER_STYLE}>
+                <div style={TableView.LOADING_CONTAINER_STYLE}>
                     <Spinner className="pt-large"/>
                     <p>Loading table data...</p>
                 </div>
             );
+        }
+
+        if (viewData.error) {
+            return LOADING_TABLE_DATA_FAILED(viewData.error);
         }
 
         const dataRows = viewData.dataRows;
@@ -96,6 +87,7 @@ class TableView extends React.Component<ITableViewProps & ITableViewOwnProps & I
         const firstRow = dataRows[0];
         console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>', firstRow);
         const columnNames = Object.getOwnPropertyNames(firstRow).filter(name => name !== '');
+        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>', columnNames);
 
         const getData = (row: number, col: number) => {
             return dataRows[row][columnNames[col]];
@@ -113,36 +105,6 @@ class TableView extends React.Component<ITableViewProps & ITableViewOwnProps & I
                        isRowHeaderShown={true}
                        getCellClipboardData={getData}
                        children={children as any}/>);
-    }
-
-    renderResourceSelector() {
-        return (<Select values={this.props.resNames}
-                        value={this.props.viewData.resName}
-                        onChange={this.onResourceNameChange}
-                        nullable={true}
-                        nullLabel="Select Resource..."
-                        style={TableView.ACTION_ITEM_STYLE}/>);
-    }
-
-    renderVariableSelector() {
-        const resource = this.props.resources.find(r => r.name === this.props.viewData.resName);
-        const variables = resource && resource.variables;
-        const varNames = variables ? variables.map(v => v.name) : selectors.EMPTY_ARRAY;
-        return (<Select values={varNames}
-                        value={this.props.viewData.varName}
-                        onChange={this.onVariableNameChange}
-                        nullable={true}
-                        nullLabel="<Show All Variables>"
-                        style={TableView.ACTION_ITEM_STYLE}/>);
-    }
-
-    renderLoadDataAction() {
-        const hasData = !!(this.props.viewData.dataRows);
-        return (<div style={TableView.ACTION_ITEM_STYLE}>
-            <Button iconName="download"
-                    onClick={this.onLoadTableViewData}
-                    disabled={hasData}>Load Data</Button>
-        </div>);
     }
 }
 

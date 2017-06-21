@@ -16,7 +16,7 @@ import * as actions from '../actions'
 import * as selectors from '../selectors'
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messages";
-import {isFigureResource} from "../state-util";
+import {isDataResource, isFigureResource} from "../state-util";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
@@ -84,6 +84,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         this.handleWorkspacePanelModeChanged = this.handleWorkspacePanelModeChanged.bind(this);
         this.handleRemoveOperationStepButtonClicked = this.handleRemoveOperationStepButtonClicked.bind(this);
         this.handleCleanWorkflowButtonClicked = this.handleCleanWorkflowButtonClicked.bind(this);
+        this.handleShowResourceTableView = this.handleShowResourceTableView.bind(this);
     }
 
     private handleResourceNameSelected(newSelection: Array<React.Key>) {
@@ -112,6 +113,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
     private handleShowFigureButtonClicked() {
         this.props.dispatch(actions.showFigureView(this.getEffectiveResource(), this.props.activeViewId));
+    }
+
+    private handleShowResourceTableView() {
+        this.props.dispatch(actions.showTableView(this.getEffectiveResource().name, null, this.props.activeViewId));
     }
 
     private handleRenameResourceButtonClicked() {
@@ -221,16 +226,23 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     private renderWorkspaceActions() {
         const resource = this.getEffectiveResource();
         const workflowStep = this.getEffectiveWorkflowStep();
-        const isFigureSelected = isFigureResource(resource);
+        const canShowFigure = isFigureResource(resource);
         const isOperationStepSelected = workflowStep && workflowStep.op;
         const hasSteps = this.props.workspace && this.props.workspace.workflow.steps.length;
+        const canShowTableView = isDataResource(resource);
         return (
             <div className="pt-button-group">
                 <Tooltip content="Show figure">
                     <Button
-                        disabled={!isFigureSelected}
+                        disabled={!canShowFigure}
                         iconName="eye-open"
                         onClick={this.handleShowFigureButtonClicked}/>
+                </Tooltip>
+                <Tooltip content="Show data in table" position={Position.LEFT}>
+                    <Button disabled={!canShowTableView}
+                            iconName="pt-icon-th"
+                            onClick={this.handleShowResourceTableView}
+                    />
                 </Tooltip>
                 <Tooltip content="Rename resource">
                     <Button

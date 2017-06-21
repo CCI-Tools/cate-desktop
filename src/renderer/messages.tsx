@@ -130,6 +130,13 @@ export const NO_CHARTS = (
 export const NO_TABLE_DATA = (
     <NonIdealState
         title="No table data"
-        description={<span>Click <em>Load Data</em> to display data after the selection changed. There may also be no data or an error occurred.</span>}
+        description={<span>The resource seems to be empty or an error occurred.</span>}
+        visual={ICON_EMPTY}/>
+);
+
+export const LOADING_TABLE_DATA_FAILED = (error: any) => (
+    <NonIdealState
+        title="Loading table data failed"
+        description={<span>{`${error}`}</span>}
         visual={ICON_EMPTY}/>
 );

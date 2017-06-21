@@ -509,6 +509,7 @@ export function hideOperationStepDialog(dialogId: string, inputAssignments?): Th
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
 export const RENAME_RESOURCE = 'RENAME_RESOURCE';
 export const SHOW_FIGURE_VIEW = 'SHOW_FIGURE_VIEW';
+export const SHOW_TABLE_VIEW = 'SHOW_TABLE_VIEW';
 
 /**
  * Asynchronously load the initial workspace.
@@ -952,7 +953,7 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: Op
                 dispatch(setSelectedWorkspaceResourceName(resName));
             }
             if (isFigure && getState().session.autoShowNewFigures) {
-                dispatch(addFigureView(selectors.activeViewIdSelector(getState()), resource))
+                dispatch(showFigureView(resource, selectors.activeViewIdSelector(getState())))
             }
         }
 
@@ -1000,6 +1001,10 @@ export function getWorkspaceVariableStatistics(resName: string,
 
         callAPI(dispatch, `Computing statistics for variable "${varName}"`, call, action2);
     }
+}
+
+export function showTableView(resName: string, varName: string|null, placeAfterViewId: string | null): Action {
+    return {type: SHOW_TABLE_VIEW, payload: {resName, varName, placeAfterViewId}};
 }
 
 export function showFigureView(resource: ResourceState, placeAfterViewId: string | null): Action {
@@ -1093,14 +1098,6 @@ export const MOVE_VIEW = "MOVE_VIEW";
 
 export function addWorldView(placeAfterViewId: string | null): Action {
     return {type: ADD_WORLD_VIEW, payload: {placeAfterViewId}};
-}
-
-export function addFigureView(placeAfterViewId: string | null, resource: ResourceState): Action {
-    return {type: ADD_FIGURE_VIEW, payload: {placeAfterViewId, resource}};
-}
-
-export function addTableView(placeAfterViewId: string | null): Action {
-    return {type: ADD_TABLE_VIEW, payload: {placeAfterViewId}};
 }
 
 export function selectView(viewPath: ViewPath, viewId: string): Action {

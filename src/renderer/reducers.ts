@@ -184,11 +184,6 @@ const controlReducer = (state: ControlState = initialControlState, action: Actio
             const view = newWorldView();
             return addView(state, view, action.payload.placeAfterViewId);
         }
-        case actions.ADD_FIGURE_VIEW: {
-            const {resource, placeAfterViewId} = action.payload;
-            const view = newFigureView(resource);
-            return addView(state, view, placeAfterViewId);
-        }
         case actions.SHOW_FIGURE_VIEW: {
             const {resource, placeAfterViewId} = action.payload;
             const figureView = state.views.find(v => v.type === 'figure' && resource.id === v.data.resourceId);
@@ -200,15 +195,25 @@ const controlReducer = (state: ControlState = initialControlState, action: Actio
                 return addView(state, view, placeAfterViewId);
             }
         }
+        case actions.SHOW_TABLE_VIEW: {
+            const {resName, varName, placeAfterViewId} = action.payload;
+            // TODO: use resource.id, not .name!!!
+            const tableView = state.views.find(v => v.type === 'table' && v.data.resName === resName && v.data.varName === varName);
+            if (tableView) {
+                const viewLayout = selectView(state.viewLayout, tableView.id);
+                return {...state, viewLayout};
+            } else {
+                const view = newTableView(resName, varName);
+                return addView(state, view, placeAfterViewId);
+            }
+        }
         case actions.ADD_TABLE_VIEW: {
-            const resName = state.selectedWorkspaceResourceName;
-            const varName = state.selectedVariableName;
+            const {placeAfterViewId, resName, varName} = action.payload;
             const view = newTableView(resName, varName);
-            return addView(state, view, action.payload.placeAfterViewId);
+            return addView(state, view, placeAfterViewId);
         }
         case actions.SELECT_VIEW: {
-            const viewPath = action.payload.viewPath;
-            const viewId = action.payload.viewId;
+            const {viewPath, viewId} = action.payload;
             const viewLayout = selectViewInLayout(state.viewLayout, viewPath, viewId);
             return {...state, viewLayout, activeViewId: viewId};
         }

@@ -73,6 +73,26 @@ export function isFigureResource(resource: ResourceState | null): boolean {
     return resource && isNumber(resource.id) && resource.dataType.endsWith('.Figure');
 }
 
+export function isDatasetResource(resource: ResourceState | null): boolean {
+    return resource && resource.dataType.endsWith('.Dataset');
+}
+
+export function isDataArrayResource(resource: ResourceState | null): boolean {
+    return resource && resource.dataType.endsWith('.DataArray');
+}
+
+export function isDataFrameResource(resource: ResourceState | null): boolean {
+    return resource && (resource.dataType.endsWith('.DataFrame') || resource.dataType.endsWith('.GeoDataFrame'));
+}
+
+export function isSeriesResource(resource: ResourceState | null): boolean {
+    return resource && (resource.dataType.endsWith('.Series') || resource.dataType.endsWith('.GeoSeries'));
+}
+
+export function isDataResource(resource: ResourceState | null): boolean {
+    return isDatasetResource(resource) || isDataArrayResource(resource) || isDataFrameResource(resource) || isSeriesResource(resource);
+}
+
 export function getLayerDisplayName(layer: LayerState): string {
     if (layer.name) {
         return layer.name;
@@ -138,7 +158,7 @@ function newInitialFigureViewData(resourceId: number): FigureViewDataState {
     };
 }
 
-function newInitialTableViewData(resName: string | null, varName: string | null): TableViewDataState {
+function newInitialTableViewData(resName: string, varName: string): TableViewDataState {
     return {resName, varName, dataRows: null};
 }
 
@@ -158,7 +178,7 @@ export function newWorldView(): ViewState<WorldViewDataState> {
 
 export function newFigureView(resource: ResourceState): ViewState<FigureViewDataState> {
     return {
-        title:getFigureViewTitle(resource.name),
+        title: getFigureViewTitle(resource.name),
         id: `fig-${resource.id}`,
         type: 'figure',
         iconName: "pt-icon-timeline-area-chart",
@@ -170,12 +190,10 @@ export function getFigureViewTitle(resourceName: string): string {
     return `Figure - ${resourceName}`;
 }
 
-let TABLE_VIEW_COUNTER = 0;
 
-export function newTableView(resName: string | null, varName: string | null): ViewState<TableViewDataState> {
-    const viewNumber = ++TABLE_VIEW_COUNTER;
+export function newTableView(resName: string, varName: string): ViewState<TableViewDataState> {
     return {
-        title: `Table (${viewNumber})`,
+        title: varName ? `${resName} / ${varName}` : resName,
         id: genSimpleId('table-'),
         type: 'table',
         iconName: "pt-icon-th",

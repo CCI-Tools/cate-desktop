@@ -6,11 +6,9 @@ import {ProjectionField} from "../components/field/ProjectionField";
 import {FieldValue} from "../components/field/Field";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
-import * as assert from "../../common/assert";
 import {ViewState} from "../components/ViewState";
 import {Card} from "../components/Card";
 import {NO_ACTIVE_VIEW, NO_VIEW_PROPS} from "../messages";
-import {FigureState} from "../components/matplotlib/MplFigureContainer";
 
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
@@ -22,6 +20,7 @@ interface IViewPanelProps {
     figureViews: ViewState<FigureViewDataState>[];
     figureResources: ResourceState[];
     selectedFigureResource: ResourceState|null;
+    selectedResourceName: string|null;
 }
 
 interface IViewPanelState {
@@ -35,6 +34,7 @@ function mapStateToProps(state: State): IViewPanelProps {
         figureViews: selectors.figureViewsSelector(state),
         figureResources: selectors.figureResourcesSelector(state),
         selectedFigureResource: selectors.selectedFigureResourceSelector(state),
+        selectedResourceName: selectors.selectedResourceNameSelector(state),
     };
 }
 
@@ -50,8 +50,6 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         this.onViewModeChange = this.onViewModeChange.bind(this);
         this.onProjectionCodeChange = this.onProjectionCodeChange.bind(this);
         this.onAddWorldView = this.onAddWorldView.bind(this);
-        this.onShowFigureView = this.onShowFigureView.bind(this);
-        this.onAddTableView = this.onAddTableView.bind(this);
         this.state = {isProjectionsDialogOpen: false};
     }
 
@@ -67,28 +65,12 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         this.props.dispatch(actions.addWorldView(this.props.activeViewId));
     }
 
-    onShowFigureView() {
-        let selectedFigureResource = this.props.selectedFigureResource;
-        assert.ok(selectedFigureResource);
-        this.props.dispatch(actions.showFigureView(selectedFigureResource, this.props.activeViewId));
-    }
-
-    onAddTableView() {
-        this.props.dispatch(actions.addTableView(this.props.activeViewId));
-    }
-
     render() {
-        const canShowFigure = !!this.props.selectedFigureResource;
         return (
             <div>
-                <label className="pt-label">
-                    Add new view&nbsp;
-                    <div className="pt-button-group">
-                        <Button iconName="globe" onClick={this.onAddWorldView}>World</Button>
-                        <Button iconName="timeline-area-chart" onClick={this.onShowFigureView} disabled={!canShowFigure}>Figure</Button>
-                        <Button iconName="th" onClick={this.onAddTableView}>Table</Button>
-                    </div>
-                </label>
+                <div className="pt-button-group">
+                    <Button iconName="globe" onClick={this.onAddWorldView}>Add World View</Button>
+                </div>
                 {this.renderActiveViewPanel()}
             </div>
         );

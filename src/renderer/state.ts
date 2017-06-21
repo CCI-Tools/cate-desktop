@@ -337,7 +337,7 @@ export interface FigureViewDataState {
 }
 
 export interface TableViewDataState {
-    resName: string | null;
+    resName: string;
     varName: string | null;
     dataRows: any[] | null;
     error?: any;

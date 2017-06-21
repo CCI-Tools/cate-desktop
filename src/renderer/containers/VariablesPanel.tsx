@@ -8,7 +8,7 @@ import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {Card} from "../components/Card";
 import {LabelWithType} from "../components/LabelWithType";
-import {Button, Tooltip} from "@blueprintjs/core";
+import {Button, Tooltip, Position} from "@blueprintjs/core";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE} from "../messages";
 
@@ -55,6 +55,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         this.handleAddVariableLayer = this.handleAddVariableLayer.bind(this);
         this.handleAddVariableTimeSeriesPlot = this.handleAddVariableTimeSeriesPlot.bind(this);
         this.handleAddVariableHistogramPlot = this.handleAddVariableHistogramPlot.bind(this);
+        this.handleShowVariableTableView = this.handleShowVariableTableView.bind(this);
     }
 
     private handleSelectedVariableName(newSelection: Array<React.Key>) {
@@ -116,13 +117,12 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         const resource = this.props.selectedResource;
         const variable = this.props.selectedVariable;
         const placemark = this.props.selectedPlacemark;
-        const placemarkName = placemark.properties['name'] || 'placemark';
-        const newResName = `hist_${resource.name}_${variable.name}_${placemarkName}`;
+        const newResName = `hist_${resource.name}_${variable.name}`;
         const opArgs = {
             ds: {source: resource.name},
             'var': {value: variable.name},
             indexers: {value: null},
-            properties: {value: 'bins=512'},
+            properties: {value: 'bins=250'},
             file: {value: null},
         };
         this.props.dispatch(actions.setWorkspaceResource(
@@ -131,6 +131,14 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
             opArgs,
             `Creating histogram plot "${newResName}"`
         ));
+    }
+
+    private handleShowVariableTableView() {
+        const resource = this.props.selectedResource;
+        const variable = this.props.selectedVariable;
+        assert.ok(resource);
+        assert.ok(variable);
+        this.props.dispatch(actions.showTableView(resource.name, variable.name, this.props.activeViewId));
     }
 
     render() {
@@ -162,26 +170,39 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         const canAddLayer = isSpatialVariable && hasWorldView;
         const canAddTimeSeriesPlot = isSpatialVariable && placemark;
         const canAddHistogramPlot = selectedVariable && selectedVariable.ndim > 0;
+        const size = selectedVariable && selectedVariable.shape && selectedVariable.shape.reduce((a, b) => a * b, 1);
+        const maxSize = 10000;
+        const canShowTableView = selectedVariable && size < maxSize;
         return (
             <div className="pt-button-group">
-                <Button disabled={false}
-                        iconName={this.props.showSelectedVariableLayer ? "eye-open" : "eye-off"}
-                        onClick={this.handleShowSelectedVariableLayer}
-                />
-                <Button disabled={!canAddLayer}
-                        iconName="layer"
-                        onClick={this.handleAddVariableLayer}
-                />
-                <Tooltip content="Create a time series plot from selected placemark">
+                <Tooltip content="Toggle image layer visibility" position={Position.LEFT}>
+                    <Button disabled={false}
+                            iconName={this.props.showSelectedVariableLayer ? "eye-open" : "eye-off"}
+                            onClick={this.handleShowSelectedVariableLayer}
+                    />
+                </Tooltip>
+                <Tooltip content="Add a new image layer" position={Position.LEFT}>
+                    <Button disabled={!canAddLayer}
+                            iconName="layer"
+                            onClick={this.handleAddVariableLayer}
+                    />
+                </Tooltip>
+                <Tooltip content="Create a time series plot from selected placemark" position={Position.LEFT}>
                     <Button disabled={!canAddTimeSeriesPlot}
                             iconName="timeline-line-chart"
                             onClick={this.handleAddVariableTimeSeriesPlot}
                     />
                 </Tooltip>
-                <Tooltip content="Create a histogram plot">
+                <Tooltip content="Create a histogram plot" position={Position.LEFT}>
                     <Button disabled={!canAddHistogramPlot}
                             iconName="timeline-bar-chart"
                             onClick={this.handleAddVariableHistogramPlot}
+                    />
+                </Tooltip>
+                <Tooltip content={canShowTableView ? `Show data in table (for sizes < ${maxSize})` : null} position={Position.LEFT}>
+                    <Button disabled={!canShowTableView}
+                            iconName="pt-icon-th"
+                            onClick={this.handleShowVariableTableView}
                     />
                 </Tooltip>
             </div>
