@@ -262,7 +262,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         const container = externalObjectRef.container;
         if (container && parentContainer.contains(container)) {
             if (this.props.debug) {
-                console.log("ExternalObjectComponent: detaching external object with id =", this.props.id);
+                console.log("ExternalObjectComponent: detaching external object with id =", container.id);
             }
             parentContainer.removeChild(container);
         }
