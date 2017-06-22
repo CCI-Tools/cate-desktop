@@ -4,11 +4,11 @@ import {
     Colors,
     Position,
     Tooltip,
-    MenuItem,
-    MenuDivider,
-    Menu,
-    PopoverInteractionKind,
-    Popover
+    // MenuItem,
+    // MenuDivider,
+    // Menu,
+    // PopoverInteractionKind,
+    // Popover
 } from "@blueprintjs/core";
 import {Splitter} from "./Splitter";
 import ReactElement = React.ReactElement;
@@ -315,20 +315,22 @@ function PanelHeader(props: IPanelHeaderProps): JSX.Element | null {
     const panelTitle = <span
         className={"cate-panel-text cate-panel-header-item"}>{props.title.toUpperCase()}</span>;
 
-    const panelMenu = (
-        <Menu>
-            <MenuItem text="Move up"/>
-            <MenuItem text="Move down"/>
-            <MenuDivider />
-            <MenuItem text="Hide"/>
-        </Menu>
-    );
+    /*
+        const panelMenu = (
+            <Menu>
+                <MenuItem text="Move up"/>
+                <MenuItem text="Move down"/>
+                <MenuDivider />
+                <MenuItem text="Hide"/>
+            </Menu>
+        );
 
-    const panelMenuIcon = (
-        <Popover content={panelMenu} interactionKind={PopoverInteractionKind.CLICK}>
-            <span className={"pt-icon-standard pt-icon-properties cate-icon-small cate-panel-header-item"}/>
-        </Popover>
-    );
+        const panelMenuIcon = (
+            <Popover content={panelMenu} interactionKind={PopoverInteractionKind.CLICK}>
+                <span className={"pt-icon-standard pt-icon-properties cate-icon-small cate-panel-header-item"}/>
+            </Popover>
+        );
+    */
     const panelCloseIcon = (
         <span className={"pt-icon-standard pt-icon-cross cate-icon-small cate-panel-header-item"}
               onClick={props.onClose}/>);
@@ -337,7 +339,7 @@ function PanelHeader(props: IPanelHeaderProps): JSX.Element | null {
         <div className="cate-panel-header" style={{flex: "none"}}>
             {panelIcon}
             {panelTitle}
-            {panelMenuIcon}
+            {/*{panelMenuIcon}*/}
             {panelCloseIcon}
         </div>
     );
