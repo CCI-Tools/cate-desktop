@@ -29,7 +29,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
     }
 
     validate(value: string) {
-        validateVarNamesText(value, this.props.resource, this.props.multi);
+        validateVarNamesText(value, this.props.multi, this.props.resource);
     }
 
     render() {
@@ -67,7 +67,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
     }
 }
 
-export function validateVarNamesText(value: string, resource: ResourceState, multi: boolean) {
+export function validateVarNamesText(value: string, multi: boolean, resource: ResourceState) {
     if (value.trim() === '') {
         return;
     }
@@ -86,10 +86,12 @@ export function validateVarNamesText(value: string, resource: ResourceState, mul
             throw new Error('Value must be a variable name.');
         }
     }
-    const validNames = new Set(resource.variables.map(v => v.name));
-    for (let varName of varNames) {
-        if (!validNames.has(varName)) {
-            throw new Error(`"${varName}" is not a name of any variable in resource ${resource.name}.`);
+    if (resource && resource.variables) {
+        const validNames = new Set(resource.variables.map(v => v.name));
+        for (let varName of varNames) {
+            if (!validNames.has(varName)) {
+                throw new Error(`"${varName}" is not a name of any variable in resource ${resource.name}.`);
+            }
         }
     }
 }
