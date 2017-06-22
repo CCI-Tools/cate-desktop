@@ -10,8 +10,10 @@ import LayerSourcesDialog from "./LayerSourcesDialog";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {ViewState} from "../components/ViewState";
 import {NO_PLACEMARK_SELECTED, NO_PLACEMARKS} from "../messages";
-import {Field, FieldValue, IFieldProps} from "../components/field/Field";
+import {Field, FieldType, FieldValue, IFieldProps} from "../components/field/Field";
 import {TextField} from "../components/field/TextField";
+import {parseNumericPair} from "../components/field/NumericRangeField";
+import {validateGeoCoordinate} from "../../common/geometry-util";
 
 interface IPlacemarksPanelDispatch {
     dispatch: Dispatch<State>;
@@ -39,9 +41,27 @@ function mapStateToProps(state: State): IPlacemarksPanelProps {
     };
 }
 
-// Trick taken from https://github.com/Microsoft/TypeScript/issues/3960
-type PositionField = new () => Field<number[], IFieldProps<number[]>>;
-const PositionField = Field as any as PositionField;
+type GeographicPositionFieldType = FieldType<GeographicPosition>;
+type GeographicPositionFieldValue = FieldValue<GeographicPosition>;
+class GeographicPositionField extends Field<IFieldProps> {
+
+    parseValue(textValue: string): GeographicPositionFieldType {
+        const pair = parseNumericPair(textValue);
+        if (!pair) {
+            throw Error("Longitude, latitude pair in degrees expected");
+        }
+        return {longitude: pair[0], latitude: pair[1]};
+    }
+
+    formatValue(value: GeographicPositionFieldType): string {
+        return `${value.longitude}, ${value.latitude}`;
+    }
+
+    validateValue(value: GeographicPositionFieldType): void {
+        super.validateValue(value);
+        validateGeoCoordinate(value.longitude, value.latitude);
+    }
+}
 
 /**
  * The PlacemarksPanel is used to display, select, and manage user geometries.
@@ -94,10 +114,10 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         this.props.dispatch(actions.updatePlacemark({...placemark, properties}));
     }
 
-    private handleChangedPlacemarkPosition(position: FieldValue<number[]>) {
+    private handleChangedPlacemarkPosition(position: GeographicPositionFieldValue) {
         const placemark = this.props.selectedPlacemark;
-        const coordinates = position.value;
-        const geometry = {...placemark.geometry, coordinates};
+        const lonLat = position.value;
+        const geometry = {...placemark.geometry, coordinates: [lonLat.longitude, lonLat.latitude]};
         this.props.dispatch(actions.updatePlacemark({...placemark, geometry}));
     }
 
@@ -220,7 +240,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
             <div style={{width: '100%'}}>
                 <label key="spacer" className="pt-label"> </label>
                 {this.renderPlacemarkName()}
-                {this.renderPlacemarkCoordinates()}
+                {this.renderPlacemarkPosition()}
             </div>
         );
     }
@@ -232,62 +252,28 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
             <label className="pt-label pt-inline">
                 Name
                 <span className="pt-text-muted"> (optional)</span>
-                <TextField
-                    cols={16}
-                    value={{textValue: name, value: name}}
-                    onChange={this.handleChangedPlacemarkName}
-                    placeholder="Enter placemark name"
+                <TextField value={{textValue: name, value: name}}
+                           onChange={this.handleChangedPlacemarkName}
+                           cols={16}
+                           uncontrolled={true}
+                           placeholder="Enter placemark name"
                 />
             </label>
         );
     }
 
-    private renderPlacemarkCoordinates() {
+    private renderPlacemarkPosition() {
         const placemark = this.props.selectedPlacemark;
         const position = placemark.geometry.coordinates;
-
-        const formatter = (value: number[]): string => {
-            const lon = value[0];
-            const lat = value[1];
-            return `${lon}, ${lat}`;
-        };
-
-        const parser = (textValue: string): number[] => {
-            const coordParts = textValue ? textValue.split(',') : [];
-            if (coordParts.length == 2) {
-                const lon = parseFloat(coordParts[0]);
-                const lat = parseFloat(coordParts[1]);
-                return [lon, lat];
-            }
-            return [parseFloat('nan'), parseFloat('nan')];
-        };
-
-        const validator = (value: number[]) => {
-            const lon = value[0];
-            const lat = value[1];
-            if (!isNaN(lon) && !isNaN(lat)) {
-                const lonOk = lon >= -180 && lon <= 180;
-                const latOk = lat >= -90 && lat <= 90;
-                if (!lonOk)
-                    throw new Error('Longitude must be in the range -180 to +180.');
-                if (!latOk)
-                    throw new Error('Latitude must be in the range -90 to +90.');
-            } else {
-                throw new Error('Longitude, latitude pair expected.');
-            }
-        };
-
         return (
             <label className="pt-label pt-inline">
                 Position
                 <span className="pt-text-muted"> (in degrees)</span>
-                <PositionField value={{textValue: formatter(position), value: position}}
-                               onChange={this.handleChangedPlacemarkPosition}
-                               cols={16}
-                               placeholder="longitude, latitude"
-                               validator={validator}
-                               parser={parser}
-                               formatter={formatter}/>
+                <GeographicPositionField value={{longitude: position[0], latitude: position[1]}}
+                                         onChange={this.handleChangedPlacemarkPosition}
+                                         cols={16}
+                                         uncontrolled={true}
+                                         placeholder="Enter longitude, latitude"/>
             </label>
         );
     }

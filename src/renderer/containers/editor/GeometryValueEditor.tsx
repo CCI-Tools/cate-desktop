@@ -6,8 +6,8 @@ import {GeometryType} from "../../../common/geometry-util";
 
 interface IGeometryValueEditorProps extends IValueEditorProps<string> {
     geometryType: GeometryType;
-    fieldPlaceholder?: string;
-    fieldSize?: number;
+    placeholder?: string;
+    size?: number;
 }
 
 export class GeometryValueEditor extends React.Component<IGeometryValueEditorProps, null> {
@@ -26,8 +26,8 @@ export class GeometryValueEditor extends React.Component<IGeometryValueEditorPro
             <GeometryField
                 value={this.props.value}
                 onChange={this.onChange}
-                fieldPlaceholder={this.props.fieldPlaceholder}
-                fieldSize={this.props.fieldSize}
+                placeholder={this.props.placeholder}
+                size={this.props.size}
                 geometryType={this.props.geometryType}/>
         );
     }

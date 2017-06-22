@@ -534,7 +534,7 @@ const initialSessionState: SessionState = {
         features: []
     },
     selectedPlacemarkId: null,
-    showPlacemarkDetails: null,
+    showPlacemarkDetails: true,
 
     workspacePanelMode: 'resources',
 

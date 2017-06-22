@@ -1,18 +1,19 @@
 import * as React from 'react';
-import {FieldValue} from "./field/Field";
-import {NumericField} from "./field/NumericField";
+import {NumericField, NumericFieldValue} from "./field/NumericField";
+
 
 export interface RegionValue {
-    west: FieldValue<number>;
-    south: FieldValue<number>;
-    east: FieldValue<number>;
-    north: FieldValue<number>;
+    west: NumericFieldValue;
+    south: NumericFieldValue;
+    east: NumericFieldValue;
+    north: NumericFieldValue;
 }
 
 interface IRegionProps {
     value: RegionValue;
     onChange: (region: RegionValue) => void;
     disabled?: boolean;
+    uncontrolled?: boolean;
 }
 
 export const GLOBAL: RegionValue = {
@@ -36,19 +37,19 @@ export class Region extends React.PureComponent<IRegionProps, null> {
         this.onNorthChange = this.onNorthChange.bind(this);
     }
 
-    onWestChange(value: FieldValue<number>) {
+    onWestChange(value: NumericFieldValue) {
         this.props.onChange({...this.props.value, west: value});
     }
 
-    onEastChange(value: FieldValue<number>) {
+    onEastChange(value: NumericFieldValue) {
         this.props.onChange({...this.props.value, east: value});
     }
 
-    onNorthChange(value: FieldValue<number>) {
+    onNorthChange(value: NumericFieldValue) {
         this.props.onChange({...this.props.value, north: value});
     }
 
-    onSouthChange(value: FieldValue<number>) {
+    onSouthChange(value: NumericFieldValue) {
         this.props.onChange({...this.props.value, south: value});
     }
 
@@ -76,7 +77,7 @@ export class Region extends React.PureComponent<IRegionProps, null> {
         );
     }
 
-    renderField(value: FieldValue<number>, min: number, max: number, onChange: (number) => void) {
+    renderField(value: NumericFieldValue, min: number, max: number, onChange: (number) => void) {
         return (<NumericField value={value}
                               style={Region.NUMBER_FIELD_STYLE}
                               min={min}
@@ -85,6 +86,7 @@ export class Region extends React.PureComponent<IRegionProps, null> {
                               onChange={onChange}
                               disabled={this.props.disabled}
                               nullable={true}
+                              uncontrolled={this.props.uncontrolled}
         />);
     }
 }

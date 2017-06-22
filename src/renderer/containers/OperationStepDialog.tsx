@@ -9,7 +9,7 @@ import FormEvent = React.FormEvent;
 import {InputEditor} from "./editor/InputEditor";
 import {updatePropertyObject} from "../../common/objutil";
 import {ModalDialog} from "../components/ModalDialog";
-import {Field} from "../components/field/Field";
+import {Field, isFieldValue} from "../components/field/Field";
 import {hasValueEditorFactory, InputAssignment, InputAssignments, renderValueEditor} from "./editor/ValueEditor";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -342,7 +342,7 @@ function getInputArguments(inputs: OperationInputState[],
             let inputArgument;
             if (inputAssignment.isValueUsed) {
                 const constantValue = inputAssignment.constantValue;
-                const value = Field.isFieldValue(constantValue) ? constantValue.value : constantValue;
+                const value = isFieldValue(constantValue) ? constantValue.value : constantValue;
                 inputArgument = {value};
             } else {
                 inputArgument = {source: inputAssignment.resourceName};
@@ -362,7 +362,7 @@ function getInputErrors(inputs: OperationInputState[],
         if (inputAssignment) {
             if (inputAssignment.isValueUsed) {
                 const constantValue = inputAssignment.constantValue;
-                const error = Field.isFieldValue(constantValue) && constantValue.error;
+                const error = isFieldValue(constantValue) && constantValue.error;
                 if (error) {
                     inputErrors[input.name] = error;
                     hasInputErrors = true;

@@ -1,16 +1,18 @@
 import * as React from 'react';
 import {Button} from "@blueprintjs/core";
-import {FieldValue, IFieldProps, toTextValue} from "./Field";
-import {TextField} from "./TextField";
+import {toTextValue} from "./Field";
+import {TextField, TextFieldValue} from "./TextField";
 import {GeometryDialog} from "../GeometryDialog";
 import {GeometryType, validateGeometryValue} from "../../../common/geometry-util";
 
 
-interface IGeometryFieldProps extends IFieldProps<string> {
+interface IGeometryFieldProps {
+    value: TextFieldValue | any,
+    onChange: (value: TextFieldValue) => void;
     geometryType: GeometryType;
-    fieldPlaceholder?: string;
-    fieldSize?: number;
-    onChange: (value: FieldValue<string>) => void;
+    placeholder?: string;
+    size?: number;
+    disabled?: boolean;
 }
 
 interface IGeometryFieldState {
@@ -21,11 +23,11 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
 
     constructor(props: IGeometryFieldProps) {
         super(props);
-        this.validateText = this.validateText.bind(this);
+        this.validateGeometryText = this.validateGeometryText.bind(this);
         this.state = {isEditorOpen: false};
     }
 
-    validateText(value: string) {
+    validateGeometryText(value: string) {
         validateGeometryValue(value, this.props.geometryType);
     }
 
@@ -34,10 +36,10 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
             <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}} disabled={this.props.disabled}>
                 <TextField
                     value={this.props.value}
-                    size={this.props.fieldSize || 32}
-                    placeholder={this.props.fieldPlaceholder || `Enter ${this.props.geometryType} WKT`}
-                    validator={this.validateText}
                     onChange={this.props.onChange}
+                    size={this.props.size || 32}
+                    placeholder={this.props.placeholder || `Enter ${this.props.geometryType} WKT`}
+                    validator={this.validateGeometryText}
                 />
 
                 <Button className="pt-intent-primary" style={{flex: 'none'}}

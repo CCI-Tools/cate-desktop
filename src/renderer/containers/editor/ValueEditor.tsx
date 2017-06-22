@@ -86,15 +86,15 @@ function renderStrValueEditor(props: IValueEditorProps<string>) {
 }
 
 function renderPointLikeValueEditor(props: IValueEditorProps<string>) {
-    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Point" fieldSize={16}/>;
+    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Point" size={16}/>;
 }
 
 function renderPolygonLikeValueEditor(props: IValueEditorProps<string>) {
-    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Polygon" fieldSize={32}/>;
+    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Polygon" size={32}/>;
 }
 
 function renderGeometryLikeValueEditor(props: IValueEditorProps<string>) {
-    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Geometry" fieldSize={32}/>;
+    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Geometry" size={32}/>;
 }
 
 function renderTimeLikeValueEditor(props: IValueEditorProps<string>) {

@@ -1,29 +1,34 @@
 import * as React from 'react'
 
-import {Field, IFieldProps} from "./Field";
+import {Field, FieldType, FieldValue, IFieldProps} from "./Field";
 import {NumericInput, Intent} from "@blueprintjs/core";
 import {isNumber} from "../../../common/types";
 
 
-interface INumberFieldProps extends IFieldProps<number> {
+export type NumericFieldType = FieldType<number>;
+export type NumericFieldValue = FieldValue<number>;
+
+
+export interface INumericFieldProps extends IFieldProps {
     min?: number;
     max?: number;
     isInt?: boolean;
 }
+
 
 /**
  * A NumberField is an input field that provides a floating point number.
  *
  * @author Norman Fomferra
  */
-export class NumericField extends Field<number, INumberFieldProps> {
+export class NumericField extends Field<INumericFieldProps> {
 
-    constructor(props: INumberFieldProps) {
+    constructor(props: INumericFieldProps) {
         super(props);
-        this.onValueChange = this.onValueChange.bind(this);
+        this.onNumericInputChange = this.onNumericInputChange.bind(this);
     }
 
-    protected parseValue(textValue: string): number|null {
+    parseValue(textValue: string): NumericFieldType {
         if (!textValue || textValue.trim() === '') {
             return null;
         }
@@ -34,45 +39,54 @@ export class NumericField extends Field<number, INumberFieldProps> {
         return value;
     }
 
-    protected validateValue(value: number|null): void {
-        super.validateValue(value);
-        if (value === null) {
-            return;
-        }
-        if (this.props.isInt && value !== Math.floor(value)) {
-            throw new Error('Value must be an integer.');
-        }
-        if (isNumber(this.props.min) && value < this.props.min) {
-            throw new Error(`Value must be >= ${this.props.min}.`);
-        }
-        if (isNumber(this.props.max) && value > this.props.max) {
-            throw new Error(`Value must be <= ${this.props.max}.`);
-        }
-    }
-
-    protected formatValue(value: number|null): string {
+    formatValue(value: NumericFieldType): string {
         if (!value && value !== 0.0) {
             return '';
         }
         return value.toString();
     }
 
-    onValueChange(valueAsNumber: number, valueAsString: string) {
-        super.notifyValueChange(valueAsString, valueAsNumber);
+    validateValue(value: NumericFieldType): void {
+        super.validateValue(value);
+        validateNumber(value, this.props.min, this.props.max, this.props.isInt);
+    }
+
+    private onNumericInputChange(value: number, textValue: string) {
+        this.valueHolder.setValueAndTextValue(value, textValue);
     }
 
     render() {
-        let error = this.getError();
-        return (<NumericInput onValueChange={this.onValueChange}
-                              value={this.getTextValue()}
+        let error = this.fieldValue.error;
+        return (<NumericInput value={this.fieldValue.textValue}
+                              onValueChange={this.onNumericInputChange}
+                              onBlur={this.handleBlur}
+                              onKeyPress={this.handleKeyPress}
                               style={this.props.style}
                               intent={error ? Intent.DANGER : Intent.NONE}
                               min={this.props.min}
                               max={this.props.max}
                               cols={this.props.cols}
                               size={this.props.size}
-                              minorStepSize={this.props.isInt ? 1: 0.1}
+                              minorStepSize={this.props.isInt ? 1 : 0.1}
                               selectAllOnFocus={true}
         />);
+    }
+}
+
+export function validateNumber(value: number | null, min?: number | null, max?: number | null, isInt?: boolean): void {
+    if (value === null) {
+        return;
+    }
+    if (!isNumber(value)) {
+        throw new Error(`Value must be a number.`);
+    }
+    if (isInt && value !== Math.floor(value)) {
+        throw new Error('Value must be an integer.');
+    }
+    if (isNumber(min) && value < min) {
+        throw new Error(`Value must be >= ${this.props.min}.`);
+    }
+    if (isNumber(max) && value > max) {
+        throw new Error(`Value must be <= ${this.props.max}.`);
     }
 }

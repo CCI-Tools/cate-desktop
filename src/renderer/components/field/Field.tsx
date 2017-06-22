@@ -1,31 +1,49 @@
 import * as React from 'react'
 import {isString, isUndefinedOrNull, isDefined, isDefinedAndNotNull} from "../../../common/types";
 
+export type FieldType<T> = T | null;
+
 export interface FieldValue<T> {
     textValue?: string;
-    value?: T | null;
-    error?: Error | null;
+    value?: FieldType<T>;
+    error?: Error | any;
 }
 
-export type FieldChangeHandler<T> = (value: FieldValue<T>) => void;
+type AnyFieldType = FieldType<any>;
+type AnyFieldValue = FieldValue<any>;
 
-export interface IFieldProps<T> {
-    value: FieldValue<T> | any;
-    onChange: FieldChangeHandler<T>;
+export type FieldChangeHandler = (value: AnyFieldValue) => void;
+
+export type FieldValidator = (value: AnyFieldType) => any;
+
+/**
+ * A FieldValueHandler knows how to parse values from text, how to validate a value,
+ * and how to format text from a value.
+ */
+export interface FieldValueHandler {
+    parseValue(textValue: string): AnyFieldType;
+    formatValue(value: AnyFieldType): string;
+    validateValue(value: AnyFieldType): void;
+}
+
+export interface IFieldProps {
+    value: AnyFieldValue | any;
+    onChange: FieldChangeHandler;
+    validator?: FieldValidator;
     placeholder?: string;
-    parser?: (textValue: string) => T;
-    formatter?: (value: T) => string;
-    validator?: (value: T) => void;
     cols?: number;
     size?: number;
     className?: string;
     style?: { [key: string]: any };
     disabled?: boolean;
     nullable?: boolean;
+    uncontrolled?: boolean;
 }
 
-export function toTextValue(value: any) {
-    if (Field.isFieldValue(value)) {
+type IFieldState = AnyFieldValue | null;
+
+export function toTextValue(value: AnyFieldValue | any) {
+    if (isFieldValue(value)) {
         return isDefinedAndNotNull(value.textValue) ? value.textValue : `${value.value}`;
     } else if (isString(value)) {
         return value;
@@ -34,7 +52,7 @@ export function toTextValue(value: any) {
 }
 
 export function toValue(value: any) {
-    if (Field.isFieldValue(value)) {
+    if (isFieldValue(value)) {
         return value.value;
     }
     return value;
@@ -42,134 +60,221 @@ export function toValue(value: any) {
 
 
 /**
- * A Field represents a text input field that provides a value of type T.
+ * A Field represents a text input field that provides a value of some type
+ * characterised by the "valueHandler" property.
  *
  * @author Norman Fomferra
  */
-export class Field<T, P extends IFieldProps<T>> extends React.PureComponent<P, null> {
+export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldState> implements FieldValueHandler {
 
     static readonly NOMINAL_CLASS = "pt-input";
     static readonly ERROR_CLASS = "pt-input pt-intent-danger";
 
-    constructor(props: IFieldProps<T>) {
+    protected _valueHolder: FieldValueHolder;
+
+    constructor(props: IFieldProps) {
         super(props);
-        this.onChange = this.onChange.bind(this);
+        this._valueHolder = this.newValueHolder(props);
+        if (this.props.uncontrolled) {
+            this.state = this._valueHolder.fieldValue;
+        }
+        this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
+        this.notifyFieldValueChange = this.notifyFieldValueChange.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
     }
 
-    protected parseValue(textValue: string): T | null {
-        return textValue as any;
+    get valueHolder(): FieldValueHolder {
+        return this._valueHolder;
     }
 
-    protected formatValue(value: T | null): string {
-        if (value === null) {
-            return '';
-        } else if (typeof(value) === 'string') {
-            return value;
-        } else {
-            return `${value}`;
+    get fieldValue(): AnyFieldValue {
+        return this.props.uncontrolled ? this.state : this._valueHolder.fieldValue;
+    }
+
+    componentWillReceiveProps(nextProps: IFieldProps): void {
+        this._valueHolder = this.newValueHolder(nextProps);
+        if (this.props.uncontrolled) {
+            this.setState(this._valueHolder.fieldValue);
         }
     }
 
-    protected getParsedValue(textValue: string): T | null {
-        if (this.props.parser) {
-            return this.props.parser(textValue);
-        } else {
-            return this.parseValue(textValue);
-        }
+    parseValue(textValue: string): AnyFieldType {
+        return this.props.nullable && (!textValue || textValue === '') ? null : textValue;
     }
 
-    protected getFormattedValue(value: T | null): string {
-        if (this.props.formatter) {
-            return this.props.formatter(value);
-        } else {
-            return this.formatValue(value);
-        }
+    formatValue(value: AnyFieldType): string {
+        return isString(value) ? value : `${value}`;
     }
 
-    protected validateValue(value: T | null): void {
-        if (isUndefinedOrNull(value)) {
-            if (this.props.nullable) {
-                return;
-            }
-            throw new Error('Missing value.');
+    validateValue(value: AnyFieldType): void {
+        if (isUndefinedOrNull(value) && !this.props.nullable) {
+            throw new Error('Value must be provided');
         }
         if (this.props.validator) {
             this.props.validator(value);
         }
     }
 
-    private onChange(event: any) {
+    protected handleKeyPress(event: any) {
+        if (this.props.uncontrolled && event.charCode === 13) {
+            this.props.onChange(this.state);
+        }
+    }
+
+    protected handleBlur() {
+        if (this.props.uncontrolled) {
+            this.props.onChange(this.state);
+        }
+    }
+
+    protected handleInputChange(event: any) {
         const textValue = event.target.value;
-        let value;
-        try {
-            value = this.getParsedValue(textValue);
-            this.notifyValueChange(textValue, value);
-        } catch (error) {
-            value = this.props.value.value;
-            this.props.onChange({textValue, value, error});
+        this._valueHolder.setTextValue(textValue || '');
+    }
+
+    protected notifyFieldValueChange(fieldValue: AnyFieldValue) {
+        if (this.props.uncontrolled) {
+            this.setState(fieldValue);
+        } else {
+            this.props.onChange(fieldValue);
         }
     }
 
-    protected notifyValueChange(textValue: string, value: T) {
-        let error;
-        try {
-            this.validateValue(value);
-        } catch (e) {
-            error = e;
-        }
-        this.props.onChange({textValue, value, error});
-    }
-
-    static isFieldValue(value: any): boolean {
-        return isDefinedAndNotNull(value) && (isDefined(value.textValue) || isDefined(value.value));
-    }
-
-    getTextValue(value?: any): string {
-        value = isDefined(value) ? value : this.props.value;
-        if (Field.isFieldValue(value)) {
-            return isDefinedAndNotNull(value.textValue) ? value.textValue : this.getFormattedValue(value.value);
-        } else if (isString(value)) {
-            return value;
-        }
-        return this.getFormattedValue(value);
-    }
-
-    getValue(value?: any): T {
-        try {
-            value = isDefined(value) ? value : this.props.value;
-            if (Field.isFieldValue(value)) {
-                return isDefinedAndNotNull(value.value) ? value.value : this.parseValue(value.textValue);
-            } else if (!isString(value)) {
-                return value;
-            }
-            return this.parseValue(value);
-        } catch (e) {
-            // Catch errors thrown by parseValue
-            return null;
-        }
-    }
-
-    getError(): Error | null {
-        const value = this.props.value;
-        if (Field.isFieldValue(value)) {
-            return value.error;
-        }
-        return null;
+    private newValueHolder(props: IFieldProps) {
+        return new FieldValueHolder(this, props.value, this.notifyFieldValueChange);
     }
 
     render() {
-        const error = this.getError();
+        const error = this.fieldValue.error;
         return (
-            <input type="text"
+            <input value={this.fieldValue.textValue}
+                   onChange={this.handleInputChange}
+                   onBlur={this.handleBlur}
+                   onKeyPress={this.handleKeyPress}
+                   type="text"
                    className={error ? Field.ERROR_CLASS : Field.NOMINAL_CLASS}
                    style={this.props.style}
-                   value={this.getTextValue()}
                    cols={this.props.cols}
                    size={this.props.size}
-                   onChange={this.onChange}
                    placeholder={this.props.placeholder}
                    disabled={this.props.disabled}
             />
         );
     }
 }
+
+/**
+ * A Field represents a text input field that provides a value of type T.
+ *
+ * @author Norman Fomferra
+ */
+export class FieldValueHolder {
+
+    private readonly valueHandler: FieldValueHandler;
+    private readonly onChange: FieldChangeHandler;
+    private _fieldValue: AnyFieldValue;
+
+    constructor(valueHandler: FieldValueHandler, value: AnyFieldValue, onChange: FieldChangeHandler) {
+        this.valueHandler = valueHandler;
+        this.onChange = onChange;
+        this._fieldValue = this.toFieldValue(value);
+    }
+
+    get fieldValue(): AnyFieldValue {
+        return {...this._fieldValue};
+    }
+
+    get value(): any | null {
+        return this._fieldValue.value;
+    }
+
+    get textValue(): string {
+        return this._fieldValue.textValue;
+    }
+
+    get error(): Error | any {
+        return this._fieldValue.error;
+    }
+
+    setTextValue(textValue: string) {
+        this.setFieldValue(this.newFieldValueFromTextValue(textValue));
+    }
+
+    setValue(value: AnyFieldValue | any | null) {
+        this.setFieldValue(this.newFieldValueFromValue(value));
+    }
+
+    setValueAndTextValue(value: any | null, textValue: string) {
+        this.setFieldValue(this.newFieldValueFromValueAndTextValue(value, textValue));
+    }
+
+    setError(error: Error | null) {
+        this.setFieldValue({...this._fieldValue, error});
+    }
+
+    private newFieldValueFromTextValue(textValue: string): AnyFieldValue {
+        let value;
+        let error;
+        try {
+            value = this.valueHandler.parseValue(textValue);
+            this.valueHandler.validateValue(value);
+        } catch (e) {
+            value = this._fieldValue ? this._fieldValue.value : value;
+            error = e;
+        }
+        return {textValue, value, error};
+    }
+
+    private newFieldValueFromValue(value: AnyFieldValue | any | null): AnyFieldValue {
+        if (isFieldValue(value)) {
+            return {...value as AnyFieldValue};
+        }
+        let textValue;
+        let error;
+        try {
+            textValue = this.valueHandler.formatValue(value);
+        } catch (e) {
+            textValue = '';
+            error = e;
+        }
+        try {
+            this.valueHandler.validateValue(value);
+        } catch (e) {
+            error = e;
+        }
+        return {textValue, value, error};
+    }
+
+    private newFieldValueFromValueAndTextValue(value: any | any, textValue: string): AnyFieldValue {
+        let error;
+        try {
+            this.valueHandler.validateValue(value);
+        } catch (e) {
+            error = e;
+        }
+        return {textValue, value, error};
+    }
+
+    private toFieldValue(value: any): AnyFieldValue {
+        if (isFieldValue(value)) {
+            return value;
+        } else if (isString(value)) {
+            return this.newFieldValueFromTextValue(value as string);
+        } else {
+            return this.newFieldValueFromValue(value);
+        }
+    }
+
+    private setFieldValue(fieldValue: AnyFieldValue) {
+        console.log('setFieldValue:', fieldValue);
+        this._fieldValue = fieldValue;
+        this.onChange(fieldValue);
+    }
+}
+
+
+export function isFieldValue(value: any): boolean {
+    return isDefinedAndNotNull(value) && (isDefined(value.textValue) || isDefined(value.value));
+}
+

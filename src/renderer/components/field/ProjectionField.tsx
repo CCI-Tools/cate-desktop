@@ -6,9 +6,7 @@ import {ProjectionDialog} from "../ProjectionDialog";
 import {validateProjectionCode} from "../../../common/projection-util";
 
 
-interface IProjectionFieldProps extends IFieldProps<string> {
-    fieldPlaceholder?: string;
-    fieldSize?: number;
+interface IProjectionFieldProps extends IFieldProps {
     onChange: (value: FieldValue<string>) => void;
 }
 
@@ -20,12 +18,10 @@ export class ProjectionField extends React.Component<IProjectionFieldProps, IPro
 
     constructor(props: IProjectionFieldProps) {
         super(props);
-        this.validateText = this.validateText.bind(this);
         this.state = {isEditorOpen: false};
     }
 
-    //noinspection JSMethodCanBeStatic
-    validateText(value: string) {
+    static validateProjectionText(value: string) {
         validateProjectionCode(value);
     }
 
@@ -34,9 +30,9 @@ export class ProjectionField extends React.Component<IProjectionFieldProps, IPro
             <div className="pt-control-group">
                 <TextField
                     value={this.props.value}
-                    size={this.props.fieldSize || 12}
-                    placeholder={this.props.fieldPlaceholder || "Enter projection code"}
-                    validator={this.validateText}
+                    size={this.props.size || 12}
+                    placeholder={this.props.placeholder || "Enter projection code"}
+                    validator={ProjectionField.validateProjectionText}
                     onChange={this.props.onChange}
                     disabled={this.props.disabled}
                 />

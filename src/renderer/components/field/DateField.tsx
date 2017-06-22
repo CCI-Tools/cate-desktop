@@ -1,10 +1,12 @@
 import * as React from 'react';
 import {DateInput, DateRange} from "@blueprintjs/datetime";
-import {Field, IFieldProps} from "./Field";
+import {Field, FieldType, FieldValue, IFieldProps} from "./Field";
 import {formatDateAsISODateString} from "../../../common/format";
 import {isUndefinedOrNull} from "../../../common/types";
 
-export interface IDateFieldProps extends IFieldProps<Date> {
+export type DateFieldType = FieldType<Date>;
+
+export interface IDateFieldProps extends IFieldProps {
     min?: Date;
     max?: Date;
 }
@@ -13,31 +15,24 @@ export const DEFAULT_MIN_DATE = new Date('1980-01-01');
 export const DEFAULT_MAX_DATE = new Date(Date.now());
 export const DEFAULT_DATE_RANGE: DateRange = [DEFAULT_MIN_DATE, DEFAULT_MAX_DATE];
 
-export class DateField extends Field<Date, IDateFieldProps> {
+export class DateField extends Field<IDateFieldProps> {
 
     constructor(props: IDateFieldProps) {
         super(props);
-        this.onDateChange = this.onDateChange.bind(this);
-        this.onDateError = this.onDateError.bind(this);
+        this.handleDateInputChange = this.handleDateInputChange.bind(this);
+        this.handleDataInputError = this.handleDataInputError.bind(this);
     }
 
-    protected parseValue(textValue: string): Date|null {
+    parseValue(textValue: string): DateFieldType {
         return parseDate(textValue, this.props.nullable);
     }
 
-    protected formatValue(value: Date|null): string {
+    formatValue(value: DateFieldType): string {
         return formatDate(value);
     }
 
-    onDateChange(date: Date) {
-        this.props.onChange({textValue: this.getFormattedValue(date), value: date});
-    }
-
-    onDateError(date: Date) {
-        this.props.onChange({textValue: '', value: null, error: new Error('Invalid date.')});
-    }
-
-    validateValue(value: Date) {
+    validateValue(value: DateFieldType) {
+        super.validateValue(value);
         if (!value) {
             return;
         }
@@ -47,11 +42,19 @@ export class DateField extends Field<Date, IDateFieldProps> {
         }
     }
 
+    private handleDateInputChange(date: Date) {
+        this.valueHolder.setValue(date);
+    }
+
+    private handleDataInputError(date: Date) {
+        this.valueHolder.setError(new Error('Invalid date.'));
+    }
+
     render() {
-        const value = this.getValue();
+        const error = this.fieldValue.error;
+        const value = this.fieldValue.value;
         const minDate = this.props.min || DEFAULT_MIN_DATE;
         const maxDate = this.props.max || DEFAULT_MAX_DATE;
-        const error = this.getError();
 
         return (
                 <DateInput className={error ? "pt-intent-danger" : null}
@@ -59,8 +62,8 @@ export class DateField extends Field<Date, IDateFieldProps> {
                            format="YYYY-MM-DD"
                            locale={'en'}
                            disabled={this.props.disabled}
-                           onChange={this.onDateChange}
-                           onError={this.onDateError}
+                           onChange={this.handleDateInputChange}
+                           onError={this.handleDataInputError}
                            minDate={minDate}
                            maxDate={maxDate}
                 />

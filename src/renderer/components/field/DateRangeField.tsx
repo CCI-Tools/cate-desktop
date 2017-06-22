@@ -1,54 +1,36 @@
 import * as React from 'react';
 import {DateRange, DateInput} from "@blueprintjs/datetime";
-import {Field, IFieldProps} from "./Field";
+import {Field, FieldType, IFieldProps} from "./Field";
 import {isUndefinedOrNull} from "../../../common/types";
 import {DEFAULT_MAX_DATE, DEFAULT_MIN_DATE, formatDate, parseDate, validateDate} from "./DateField";
 
+export type DateRangeFieldType = FieldType<DateRange>;
 
-interface IDateRangeFieldProps extends IFieldProps<DateRange> {
+interface IDateRangeFieldProps extends IFieldProps {
     min?: Date;
     max?: Date;
 }
 
-export class DateRangeField extends Field<DateRange, IDateRangeFieldProps> {
+export class DateRangeField extends Field<IDateRangeFieldProps> {
 
     constructor(props: IDateRangeFieldProps) {
         super(props);
-        this.onDate1Change = this.onDate1Change.bind(this);
-        this.onDate2Change = this.onDate2Change.bind(this);
-        this.onDate1Error = this.onDate1Error.bind(this);
-        this.onDate2Error = this.onDate2Error.bind(this);
+        this.handleDateInput1Change = this.handleDateInput1Change.bind(this);
+        this.handleDateInput2Change = this.handleDateInput2Change.bind(this);
+        this.handleDateInput1Error = this.handleDateInput1Error.bind(this);
+        this.handleDateInput2Error = this.handleDateInput2Error.bind(this);
     }
 
-    protected parseValue(textValue: string): DateRange|null {
+    parseValue(textValue: string): DateRangeFieldType {
         return parseDateRange(textValue, this.props.nullable);
     }
 
-    protected formatValue(value: DateRange|null): string {
+    formatValue(value: DateRangeFieldType): string {
         return formatDateRange(value);
     }
 
-    onDate1Change(date: Date) {
-        const oldDateRange = this.getValue();
-        const newDateRange: DateRange = [date, oldDateRange && oldDateRange[1]];
-        this.props.onChange({textValue: this.getFormattedValue(newDateRange), value: newDateRange});
-    }
-
-    onDate2Change(date: Date) {
-        const oldDateRange = this.getValue();
-        const newDateRange: DateRange = [oldDateRange && oldDateRange[0], date];
-        this.props.onChange({textValue: this.getFormattedValue(newDateRange), value: newDateRange});
-    }
-
-    onDate1Error(date: Date) {
-        this.props.onChange({textValue: '', value: null, error: new Error('Invalid first date.')});
-    }
-
-    onDate2Error(date: Date) {
-        this.props.onChange({textValue: '', value: null, error: new Error('Invalid second date.')});
-    }
-
-    validateValue(value: DateRange) {
+    validateValue(value: DateRangeFieldType) {
+        super.validateValue(value);
         if (!value) {
             return;
         }
@@ -65,14 +47,34 @@ export class DateRangeField extends Field<DateRange, IDateRangeFieldProps> {
         }
     }
 
+    private handleDateInput1Change(date: Date) {
+        const oldDateRange = this.fieldValue.value;
+        const newDateRange: DateRange = [date, oldDateRange && oldDateRange[1]];
+        this.valueHolder.setValue(newDateRange);
+    }
+
+    private handleDateInput2Change(date: Date) {
+        const oldDateRange = this.fieldValue.value;
+        const newDateRange: DateRange = [oldDateRange && oldDateRange[0], date];
+        this.valueHolder.setValue(newDateRange);
+    }
+
+    private handleDateInput1Error(date: Date) {
+        this.valueHolder.setError(new Error('Invalid first date.'));
+    }
+
+    private handleDateInput2Error(date: Date) {
+        this.valueHolder.setError(new Error('Invalid second date.'));
+    }
+
     render() {
-        const value = this.getValue();
+        //console.log('DateRangeInput props', value, minDate, maxDate);
+        const error = this.fieldValue.error;
+        const value = this.fieldValue.value;
         const value1 = value && value[0];
         const value2 = value && value[1];
         const minDate = this.props.min || DEFAULT_MIN_DATE;
         const maxDate = this.props.max || DEFAULT_MAX_DATE;
-        //console.log('DateRangeInput props', value, minDate, maxDate);
-        const error = this.getError();
 
         return (
             <div disabled={this.props.disabled}>
@@ -81,8 +83,8 @@ export class DateRangeField extends Field<DateRange, IDateRangeFieldProps> {
                            format="YYYY-MM-DD"
                            locale={'en'}
                            disabled={this.props.disabled}
-                           onChange={this.onDate1Change}
-                           onError={this.onDate1Error}
+                           onChange={this.handleDateInput1Change}
+                           onError={this.handleDateInput1Error}
                            minDate={minDate}
                            maxDate={maxDate}
                 />
@@ -91,8 +93,8 @@ export class DateRangeField extends Field<DateRange, IDateRangeFieldProps> {
                            format="YYYY-MM-DD"
                            locale={'en'}
                            disabled={this.props.disabled}
-                           onChange={this.onDate2Change}
-                           onError={this.onDate2Error}
+                           onChange={this.handleDateInput2Change}
+                           onError={this.handleDateInput2Error}
                            minDate={minDate}
                            maxDate={maxDate}
                 />
@@ -102,7 +104,7 @@ export class DateRangeField extends Field<DateRange, IDateRangeFieldProps> {
 }
 
 
-export function parseDateRange(textValue: string, nullable: boolean): DateRange|null {
+export function parseDateRange(textValue: string, nullable: boolean): DateRange | null {
     if (!textValue || textValue.trim() === '') {
         if (nullable) {
             return null;
@@ -121,7 +123,7 @@ export function parseDateRange(textValue: string, nullable: boolean): DateRange|
     return [date1, date2];
 }
 
-export function formatDateRange(value: DateRange|null): string {
+export function formatDateRange(value: DateRange | null): string {
     if (isUndefinedOrNull(value)) {
         return '';
     }
