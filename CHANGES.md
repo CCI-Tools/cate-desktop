@@ -1,4 +1,6 @@
-### 0.8.0-rc.6.dev.1
+### 0.8.0-rc.7.dev.1
+
+### 0.8.0-rc.6
 
 1. Added **PLACEMARKS** panel, which provides a simple placemark management
    * add placemark (by clicking on globe)
@@ -22,7 +24,6 @@
 12. Fixed problem where no open dialog was displayed after pressing the *Open* or *Download* buttons 
     in the **DATA SOURCES** panel (in the logs: `DateRangeInput value cannot be null`).
 13. Fixed bug where the selected placemark is misplaced after CesiumView is remounted
- 
 
 ### 0.8.0-rc.5
 
