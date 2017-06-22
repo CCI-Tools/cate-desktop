@@ -70,6 +70,8 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     }
 
     private handleAddPlacemarkFromPositionButtonClicked() {
+        // remove selection, otherwise two clicks are needed
+        this.props.dispatch(actions.setSelectedPlacemarkId(null));
         this.props.dispatch(actions.updateControlState({worldViewClickAction: actions.ADD_PLACEMARK}));
     }
 

@@ -1,5 +1,7 @@
 ### 0.8.0-rc.7.dev.1
 
+1. Fixed bug where two clicks were required to create a new placemark
+
 ### 0.8.0-rc.6
 
 1. Added **PLACEMARKS** panel, which provides a simple placemark management
