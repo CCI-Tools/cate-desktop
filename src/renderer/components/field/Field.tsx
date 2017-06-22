@@ -100,11 +100,19 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
     }
 
     parseValue(textValue: string): AnyFieldType {
-        return this.props.nullable && (!textValue || textValue === '') ? null : textValue;
+        if ((!textValue || textValue === '') && this.props.nullable) {
+            return null;
+        }
+        return textValue;
     }
 
     formatValue(value: AnyFieldType): string {
-        return isString(value) ? value : `${value}`;
+        if (isUndefinedOrNull(value)) {
+            return '';
+        } else if (isString(value)) {
+            return value;
+        }
+        return `${value}`;
     }
 
     validateValue(value: AnyFieldType): void {
