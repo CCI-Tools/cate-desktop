@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {Button} from "@blueprintjs/core";
-import {toTextValue} from "./Field";
-import {TextField, TextFieldValue} from "./TextField";
+import {AnchorButton} from "@blueprintjs/core";
+import {FieldValue, IFieldProps, toTextValue} from "./Field";
+import {TextField} from "./TextField";
 import {GeometryDialog} from "../GeometryDialog";
 import {GeometryType, validateGeometryValue} from "../../../common/geometry-util";
 
@@ -42,19 +42,19 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
                     validator={this.validateGeometryText}
                 />
 
-                <Button className="pt-intent-primary" style={{flex: 'none'}}
-                        onClick={() => this.setState({isEditorOpen: true})}>...</Button>
+                <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
+                              onClick={() => this.setState({isEditorOpen: true})}>...</AnchorButton>
 
                 <GeometryDialog isOpen={this.state.isEditorOpen}
-                                     value={toTextValue(this.props.value)}
-                                     onConfirm={(value: string) => {
-                                         this.setState({isEditorOpen: false});
-                                         this.props.onChange({textValue: value, value: value});
-                                     }}
-                                     onCancel={() => {
-                                         this.setState({isEditorOpen: false});
-                                     }}
-                                     geometryType={this.props.geometryType}/>
+                                value={toTextValue(this.props.value)}
+                                onConfirm={(value: string) => {
+                                    this.setState({isEditorOpen: false});
+                                    this.props.onChange({textValue: value, value: value});
+                                }}
+                                onCancel={() => {
+                                    this.setState({isEditorOpen: false});
+                                }}
+                                geometryType={this.props.geometryType}/>
             </div>
         );
     }

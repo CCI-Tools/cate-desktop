@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Button} from "@blueprintjs/core";
+import {AnchorButton} from "@blueprintjs/core";
 import {FieldValue, IFieldProps, toTextValue} from "./Field";
 import {TextField} from "./TextField";
 import {ProjectionDialog} from "../ProjectionDialog";
@@ -37,9 +37,9 @@ export class ProjectionField extends React.Component<IProjectionFieldProps, IPro
                     disabled={this.props.disabled}
                 />
 
-                <Button className="pt-intent-primary"
-                        onClick={() => this.setState({isEditorOpen: true})}
-                        disabled={this.props.disabled}>...</Button>
+                <AnchorButton className="pt-intent-primary"
+                              onClick={() => this.setState({isEditorOpen: true})}
+                              disabled={this.props.disabled}>...</AnchorButton>
 
                 <ProjectionDialog isOpen={this.state.isEditorOpen}
                                   projectionCode={toTextValue(this.props.value)}

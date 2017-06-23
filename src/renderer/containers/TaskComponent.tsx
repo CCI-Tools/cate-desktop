@@ -1,6 +1,6 @@
 import * as React from "react";
 import {TaskState} from "../state";
-import {Button, Intent, ProgressBar} from "@blueprintjs/core";
+import {AnchorButton, Intent, ProgressBar} from "@blueprintjs/core";
 import {JobStatusEnum} from "../webapi/Job";
 
 interface ITaskComponentProps {
@@ -40,10 +40,10 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
                 const progress = <ProgressBar intent={Intent.SUCCESS}
                                               value={progressValue}/>;
                 const cancelJob = () => this.props.onCancelJob(jobId);
-                const cancelButton = <Button type="button"
-                                             className="pt-intent-primary"
-                                             onClick={cancelJob}
-                                             iconName="pt-icon-cross">Cancel</Button>;
+                const cancelButton = <AnchorButton type="button"
+                                                   className="pt-intent-primary"
+                                                   onClick={cancelJob}
+                                                   iconName="pt-icon-cross">Cancel</AnchorButton>;
 
                 const cancelableProgress = <div style={{display: "flex", flexFlow: "row nowrap", width: "100%"}}>
                     <div style={{
@@ -75,7 +75,7 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
                     fontSize: '0.8em'
                 }}>{taskState.failure.message}</div>
                 <div style={{flex: "10 1 auto"}}/>
-                <Button style={{flex: "0 1 auto"}} iconName="cross" onClick={removeJob}/>
+                <AnchorButton style={{flex: "0 1 auto"}} iconName="cross" onClick={removeJob}/>
             </div>;
         }
         const title = taskState.title || `Task #${jobId}`;

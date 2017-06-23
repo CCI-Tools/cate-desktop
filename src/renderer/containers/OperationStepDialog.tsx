@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {connect} from "react-redux";
-import {Button} from "@blueprintjs/core";
+import {AnchorButton, Tooltip} from "@blueprintjs/core";
 import {
     OperationState, WorkspaceState, OperationInputState, State, DialogState, OperationKWArgs,
     ResourceState, WorkflowStepState
@@ -236,8 +236,12 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
         }
 
         return [
-            <Button key='validate' onClick={this.onValidate}>Validate</Button>,
-            <Button key='defaults' onClick={this.onDefaults}>Defaults</Button>
+            <Tooltip key='validate' content="Validate current input values">
+                <AnchorButton onClick={this.onValidate}>Validate</AnchorButton>
+            </Tooltip>,
+            <Tooltip key='defaults' content="Set all inputs back to default values">
+                <AnchorButton onClick={this.onDefaults}>Defaults</AnchorButton>
+            </Tooltip>,
         ];
     }
 

@@ -4,7 +4,7 @@ import {
     State, WorkspaceState, WorkflowStepState, ResourceState, WorkflowPortState, OperationState,
     OperationIOBaseState
 } from "../state";
-import {Button, Tabs2, Tab2, Tooltip, Position} from "@blueprintjs/core";
+import {AnchorButton, Tabs2, Tab2, Tooltip, Position} from "@blueprintjs/core";
 import {Table, Column, Cell} from "@blueprintjs/table";
 import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
@@ -192,13 +192,15 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         );
         let workspaceState = null;
         if (workspace.isModified) {
-            workspaceState = <span key={0} style={WorkspacePanel.STATE_TAG_STYLE} className="pt-tag pt-intent-warning pt-minimal">Modified</span>;
+            workspaceState =
+                <span key={0} style={WorkspacePanel.STATE_TAG_STYLE} className="pt-tag pt-intent-warning pt-minimal">Modified</span>;
         } else if (!workspace.isSaved) {
-            workspaceState = <span key={1} style={WorkspacePanel.STATE_TAG_STYLE} className="pt-tag pt-intent-success pt-minimal">Not saved</span>;
+            workspaceState =
+                <span key={1} style={WorkspacePanel.STATE_TAG_STYLE} className="pt-tag pt-intent-success pt-minimal">Not saved</span>;
         }
         const openItemButton = (
             <Tooltip content="Open workspace directory">
-                <Button onClick={this.handleOpenWorkspaceDirectoryClicked} iconName="folder-open"/>
+                <AnchorButton onClick={this.handleOpenWorkspaceDirectoryClicked} iconName="folder-open"/>
             </Tooltip>
         );
 
@@ -232,44 +234,45 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         const canShowTableView = isDataResource(resource);
         return (
             <div className="pt-button-group">
-                <Tooltip content="Show figure">
-                    <Button
+                <Tooltip content="Show figure" position={Position.LEFT}>
+                    <AnchorButton
                         disabled={!canShowFigure}
                         iconName="eye-open"
                         onClick={this.handleShowFigureButtonClicked}/>
                 </Tooltip>
                 <Tooltip content="Show data in table" position={Position.LEFT}>
-                    <Button disabled={!canShowTableView}
-                            iconName="pt-icon-th"
-                            onClick={this.handleShowResourceTableView}
+                    <AnchorButton disabled={!canShowTableView}
+                                  iconName="pt-icon-th"
+                                  onClick={this.handleShowResourceTableView}
                     />
                 </Tooltip>
-                <Tooltip content="Rename resource">
-                    <Button
+                <Tooltip content="Rename resource" position={Position.LEFT}>
+                    <AnchorButton
                         disabled={!resource}
                         iconName="label"
                         onClick={this.handleRenameResourceButtonClicked}/>
                 </Tooltip>
-                <Tooltip content="Edit workflow step">
-                    <Button
+                <Tooltip content="Edit workflow step" position={Position.LEFT}>
+                    <AnchorButton
                         disabled={!workflowStep}
                         iconName="edit"
                         onClick={this.handleEditOperationStepButtonClicked}/>
                 </Tooltip>
-                <Tooltip content="Remove workflow step and its resource">
-                    <Button
+                <Tooltip content="Remove workflow step and its resource" position={Position.LEFT}>
+                    <AnchorButton
                         disabled={!workflowStep}
                         iconName="remove"
                         onClick={this.handleRemoveOperationStepButtonClicked}/>
                 </Tooltip>
-                <Tooltip content="Clean workspace, remove all steps and resources">
-                    <Button
+                <Tooltip content="Clean workspace, remove all steps and resources" position={Position.LEFT}>
+                    <AnchorButton
                         disabled={!hasSteps}
                         iconName="delete"
                         onClick={this.handleCleanWorkflowButtonClicked}/>
                 </Tooltip>
                 {resource ? <ResourceRenameDialog selectedResource={resource}/> : null}
-                {isOperationStepSelected ? <OperationStepDialog id="editOperationStepDialog" operationStep={workflowStep}/> : null}
+                {isOperationStepSelected ?
+                    <OperationStepDialog id="editOperationStepDialog" operationStep={workflowStep}/> : null}
             </div>
         );
     }
