@@ -54,7 +54,6 @@ class TableView extends React.PureComponent<ITableViewProps & ITableViewOwnProps
     }
 
     render() {
-        console.log("render, render!");
         return (
             <div style={TableView.TABLE_CONTAINER_STYLE}>
                 {this.renderDataTable()}
@@ -85,9 +84,7 @@ class TableView extends React.PureComponent<ITableViewProps & ITableViewOwnProps
         }
 
         const firstRow = dataRows[0];
-        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>', firstRow);
         const columnNames = Object.getOwnPropertyNames(firstRow).filter(name => name !== '');
-        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>', columnNames);
 
         const getData = (row: number, col: number) => {
             return dataRows[row][columnNames[col]];

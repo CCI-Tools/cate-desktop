@@ -66,7 +66,7 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
     let isOpen = dialogState.isOpen;
     operation = operation || selectors.selectedOperationSelector(state);
     if (isOpen) {
-        console.log('OperationStepDialog: operation:', operation);
+        // console.log('OperationStepDialog: operation:', operation);
     }
 
     return {

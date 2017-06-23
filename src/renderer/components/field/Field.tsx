@@ -199,7 +199,6 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
 
     private setFieldValue(fieldValue: AnyFieldValue) {
         this._fieldValue = fieldValue;
-        console.log('setFieldValue:', this._fieldValue);
         if (this.props.uncontrolled) {
             this.setState(fieldValue);
         } else {

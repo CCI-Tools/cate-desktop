@@ -1013,7 +1013,7 @@ export function showFigureView(resource: ResourceState, placeAfterViewId: string
 
 export function saveFigureImageAs(imageUrl: string, figureId: number): ThunkAction {
     return () => {
-        console.log("saveFigureImageAs: ", imageUrl, figureId);
+        // console.log("saveFigureImageAs: ", imageUrl, figureId);
         const electron = require('electron');
         electron.shell.openExternal(imageUrl + "/png");
 

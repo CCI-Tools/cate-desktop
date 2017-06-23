@@ -32,7 +32,7 @@ export class InputEditor extends React.PureComponent<IInputEditorProps, null> {
     }
 
     private handleChange(resourceName: string, isValueEditorShown: boolean) {
-        console.log('InputEditor: handleChange', resourceName, isValueEditorShown);
+        // console.log('InputEditor: handleChange', resourceName, isValueEditorShown);
         if (this.props.onChange) {
             this.props.onChange(resourceName, isValueEditorShown);
         }
