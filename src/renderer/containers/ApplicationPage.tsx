@@ -142,10 +142,8 @@ class _LeftPanel extends React.PureComponent<ILeftPanelProps & IDispatch, null> 
             >
                 <Panel id="dataSources" position="top" iconName="pt-icon-database" title="Data Sources"
                        body={<DataSourcesPanel/>}/>
-                <Panel id="operations" position="top" iconName="pt-icon-function" title="Operations"
+                <Panel id="operations" position="bottom" iconName="pt-icon-function" title="Operations"
                        body={<OperationsPanel/>}/>
-                <Panel id="workspace" position="bottom" iconName="pt-icon-folder-close" title="Workspace"
-                       body={<WorkspacePanel/>}/>
             </PanelContainer>
         );
     }
@@ -200,15 +198,18 @@ class _RightPanel extends React.PureComponent<IRightPanelProps & IDispatch, null
                             onSelectedTopPanelChange={this.onSelectedRightTopPanelChange}
                             onSelectedBottomPanelChange={this.onSelectedRightBottomPanelChange}
             >
-                <Panel id="variables" position="top" iconName="pt-icon-variable" title="Variables"
-                       body={<VariablePanel/>}/>
+                <Panel id="workspace" position="top" iconName="pt-icon-folder-close" title="Workspace"
+                       body={<WorkspacePanel/>}/>
+                <Panel id="layers" position="top" iconName="pt-icon-layers" title="Layers"
+                       body={<LayersPanel/>}/>
                 <Panel id="placemarks" position="top" iconName="pt-icon-map-marker" title="Placemarks"
                        body={<PlacemarksPanel/>}/>
+                <Panel id="variables" position="bottom" iconName="pt-icon-variable" title="Variables"
+                       body={<VariablePanel/>}/>
                 <Panel id="view" position="bottom" iconName="pt-icon-eye-open" title="View"
                        body={<ViewPanel/>}/>
-                <Panel id="layers" position="bottom" iconName="pt-icon-layers" title="Layers"
-                       body={<LayersPanel/>}/>
-                <Panel id="tasks" position="bottom" iconName="pt-icon-play" title="Tasks" body={<TaskPanel/>}/>
+                <Panel id="tasks" position="bottom" iconName="pt-icon-play" title="Tasks"
+                       body={<TaskPanel/>}/>
             </PanelContainer>
         );
     }

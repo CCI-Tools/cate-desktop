@@ -523,12 +523,12 @@ const initialSessionState: SessionState = {
     savedLayers: {},
 
     panelContainerUndockedMode: false,
-    leftPanelContainerLayout: {horPos: 300, verPos: 600},
-    rightPanelContainerLayout: {horPos: 300, verPos: 300},
+    leftPanelContainerLayout: {horPos: 300, verPos: 400},
+    rightPanelContainerLayout: {horPos: 300, verPos: 400},
     selectedLeftTopPanelId: 'dataSources',
-    selectedLeftBottomPanelId: 'workspace',
-    selectedRightTopPanelId: 'variables',
-    selectedRightBottomPanelId: 'layers',
+    selectedLeftBottomPanelId: 'operations',
+    selectedRightTopPanelId: 'workspace',
+    selectedRightBottomPanelId: 'variables',
     placemarkCollection: {
         type: 'FeatureCollection',
         features: []
