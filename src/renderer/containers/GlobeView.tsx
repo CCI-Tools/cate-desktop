@@ -30,6 +30,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     worldViewClickAction: string | null;
     placemarks: Placemark[];
     selectedPlacemarkId: string | null;
+    isDialogOpen: boolean;
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -41,6 +42,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         worldViewClickAction: state.control.worldViewClickAction,
         placemarks: selectors.placemarksSelector(state),
         selectedPlacemarkId: selectors.selectedPlacemarkIdSelector(state),
+        isDialogOpen: selectors.isDialogOpenSelector(state),
     };
 }
 
@@ -119,10 +121,11 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
                          dataSources={dataSources}
                          offlineMode={this.props.offlineMode}
                          style={GlobeView.CESIUM_GLOBE_STYLE}
-                         onMouseMoved={this.handleMouseMoved}
-                         onMouseClicked={this.handleMouseClicked}
-                         onLeftUp={this.handleLeftUp}
-                         onPlacemarkSelected={this.handlePlacemarkSelected}/>
+                         onMouseMoved={this.props.isDialogOpen ? null : this.handleMouseMoved}
+                         onMouseClicked={this.props.isDialogOpen ? null : this.handleMouseClicked}
+                         onLeftUp={this.props.isDialogOpen ? null : this.handleLeftUp}
+                         onPlacemarkSelected={this.handlePlacemarkSelected}
+            />
         );
     }
 
