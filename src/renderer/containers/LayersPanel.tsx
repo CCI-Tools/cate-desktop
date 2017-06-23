@@ -5,7 +5,7 @@ import {
     VariableImageLayerState, VariableState, ResourceState, ColorMapState, VariableVectorLayerState
 } from "../state";
 import {
-    AnchorButton, Button, Slider, Popover, Position, PopoverInteractionKind, Switch,
+    AnchorButton, Slider, Popover, Position, PopoverInteractionKind, Switch,
     RangeSlider, NumberRange, Tooltip
 } from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
@@ -260,25 +260,25 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         const canMoveLayerDown = selectedLayerIndex >= 0 && selectedLayerIndex < layerCount - 1;
         return (
             <div className="pt-button-group">
-                <Tooltip content="Add layer">
+                <Tooltip content="Add a new layer" position={Position.LEFT}>
                     <AnchorButton
                         className="pt-intent-primary"
                         onClick={this.handleAddLayerButtonClicked}
                         iconName="add"/>
                 </Tooltip>
-                <Tooltip content="Remove layer">
+                <Tooltip content="Remove selected layer" position={Position.LEFT}>
                     <AnchorButton
                         disabled={!canRemoveLayer}
                         onClick={this.handleRemoveLayerButtonClicked}
                         iconName="remove"/>
                 </Tooltip>
-                <Tooltip content="Move layer up">
+                <Tooltip content="Move layer up" position={Position.LEFT}>
                     <AnchorButton
                         disabled={!canMoveLayerUp}
                         onClick={this.handleMoveLayerUpButtonClicked}
                         iconName="arrow-up"/>
                 </Tooltip>
-                <Tooltip content="Move layer down">
+                <Tooltip content="Move layer down" position={Position.LEFT}>
                     <AnchorButton
                         disabled={!canMoveLayerDown}
                         onClick={this.handleMoveLayerDownButtonClicked}
@@ -380,9 +380,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                                                onChange={this.handleChangedDisplayMinMax}
                             />
                             <Tooltip content="Compute valid min/max" position={Position.LEFT}>
-                                <Button className="pt-intent-primary" iconName="arrows-horizontal"
-                                        style={{flex: 'none'}}
-                                        onClick={this.handleUpdateDisplayStatistics}/>
+                                <AnchorButton className="pt-intent-primary" iconName="arrows-horizontal"
+                                              style={{flex: 'none'}}
+                                              onClick={this.handleUpdateDisplayStatistics}/>
                             </Tooltip>
                         </div>
                     </div>
@@ -505,7 +505,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         const selectedColorMapName = layer.colorMapName;
         const selectedColorMapImage = this.renderColorMapImage(this.props.selectedColorMap);
         const buttonContent = (selectedColorMapImage || (selectedColorMapName || "Select Color Bar"));
-        return (<Button style={{width: "100%"}} disabled={disabled}>{buttonContent}</Button>);
+        return (<AnchorButton style={{width: "100%"}} disabled={disabled}>{buttonContent}</AnchorButton>);
     }
 
     private renderColorBarBox(layer: VariableImageLayerState) {

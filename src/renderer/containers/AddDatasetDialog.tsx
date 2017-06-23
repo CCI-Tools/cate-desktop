@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Button} from "@blueprintjs/core";
+import {AnchorButton} from "@blueprintjs/core";
 import {DialogState, State} from "../state";
 import {ModalDialog} from "../components/ModalDialog";
 import {connect, Dispatch} from "react-redux";
@@ -125,8 +125,8 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps, IAddDatas
                            style={{flex: 'auto'}}
                            value={this.state.filePathPattern}
                            onChange={this.onFilePathPatternChange}/>
-                    <Button className="pt-intent-primary" style={{flex: 'none'}}
-                            onClick={this.showSelectDirectoryDialog}>...</Button>
+                    <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
+                                  onClick={this.showSelectDirectoryDialog}>...</AnchorButton>
                 </div>
             </div>
         );

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {FigureViewDataState, ResourceState, State, WorldViewDataState} from "../state";
-import {RadioGroup, Radio, Button} from "@blueprintjs/core";
+import {RadioGroup, Radio, AnchorButton} from "@blueprintjs/core";
 import {ProjectionField} from "../components/field/ProjectionField";
 import {FieldValue} from "../components/field/Field";
 import * as selectors from "../selectors";
@@ -19,8 +19,8 @@ interface IViewPanelProps {
     activeViewId: string | null;
     figureViews: ViewState<FigureViewDataState>[];
     figureResources: ResourceState[];
-    selectedFigureResource: ResourceState|null;
-    selectedResourceName: string|null;
+    selectedFigureResource: ResourceState | null;
+    selectedResourceName: string | null;
 }
 
 interface IViewPanelState {
@@ -69,7 +69,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         return (
             <div>
                 <div className="pt-button-group">
-                    <Button iconName="globe" onClick={this.onAddWorldView}>Add World View</Button>
+                    <AnchorButton iconName="globe" onClick={this.onAddWorldView}>Add World View</AnchorButton>
                 </div>
                 {this.renderActiveViewPanel()}
             </div>

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Button, Colors, ContextMenuTarget, Menu, MenuItem, Popover, Position, Tooltip} from "@blueprintjs/core";
+import {AnchorButton, Colors, ContextMenuTarget, Menu, MenuItem, Popover, Position, Tooltip} from "@blueprintjs/core";
 import {connect, Dispatch} from 'react-redux';
 import {State, PlacemarkCollection, Placemark, GeographicPosition} from "../state";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
@@ -156,21 +156,25 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         const add2ClassName = !is3DViewActive ? "pt-intent-primary" : null;
         return (
             <div className="pt-button-group">
-                <Tooltip content="Click a point on the 3D globe to add a new placemark">
-                    <Button className={add1ClassName}
-                            onClick={this.handleAddPlacemarkFromPositionButtonClicked}
-                            iconName="pt-icon-selection"
-                            disabled={!canClick}/>
+                <Tooltip content="Click a point on the 3D globe to add a new placemark" position={Position.LEFT}>
+                    <AnchorButton className={add1ClassName}
+                                  onClick={this.handleAddPlacemarkFromPositionButtonClicked}
+                                  iconName="pt-icon-selection"
+                                  disabled={!canClick}/>
                 </Tooltip>
-                <Button className={add2ClassName}
-                        onClick={this.handleAddPlacemarkButtonClicked}
-                        iconName="add"/>
-                <Button disabled={!this.props.selectedPlacemarkId}
-                        onClick={this.handleRemovePlacemarkButtonClicked}
-                        iconName="remove"/>
+                <Tooltip content="Add a new placemark" position={Position.LEFT}>
+                    <AnchorButton className={add2ClassName}
+                                  onClick={this.handleAddPlacemarkButtonClicked}
+                                  iconName="add"/>
+                </Tooltip>
+                <Tooltip content="Remove selected placemark" position={Position.LEFT}>
+                    <AnchorButton disabled={!this.props.selectedPlacemarkId}
+                                  onClick={this.handleRemovePlacemarkButtonClicked}
+                                  iconName="remove"/>
+                </Tooltip>
                 <Popover position={Position.LEFT}>
-                    <Button disabled={!this.props.selectedPlacemarkId}
-                            iconName="clipboard"/>
+                    <AnchorButton disabled={!this.props.selectedPlacemarkId}
+                                  iconName="clipboard"/>
                     <Menu>
                         <MenuItem onClick={this.handleCopySelectedName} text="Copy name"/>
                         <MenuItem onClick={this.handleCopySelectedPosition} text="Copy position"/>

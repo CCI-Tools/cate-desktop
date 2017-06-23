@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {
     Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
-    PopoverInteractionKind, Button
+    PopoverInteractionKind, AnchorButton
 } from "@blueprintjs/core";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
@@ -128,10 +128,10 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
             const canApplyOperation = this.props.selectedOperation && this.props.workspace;
             const actionComponent = (
                 <div className="pt-button-group">
-                    <Button className="pt-intent-primary"
-                            onClick={this.handleAddOperationStepButtonClicked}
-                            disabled={!canApplyOperation}
-                            iconName="play">Apply...</Button>
+                    <AnchorButton className="pt-intent-primary"
+                                  onClick={this.handleAddOperationStepButtonClicked}
+                                  disabled={!canApplyOperation}
+                                  iconName="play">Apply...</AnchorButton>
                     {canApplyOperation ? <OperationStepDialog id="newOperationStepDialog"/> : null}
                 </div>
             );

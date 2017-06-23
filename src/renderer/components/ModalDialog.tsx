@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Dialog, Classes, Button, Tooltip} from "@blueprintjs/core";
+import {Dialog, Classes, AnchorButton, Tooltip} from "@blueprintjs/core";
 
 interface IModalDialogProps {
     isOpen: boolean;
@@ -8,7 +8,7 @@ interface IModalDialogProps {
     confirmTitle?: string;
     confirmTooltip?: string;
     iconName?: string;
-    renderBody: () => JSX.Element|JSX.Element[];
+    renderBody: () => JSX.Element | JSX.Element[];
     renderActions?: () => JSX.Element[];
     renderExtraActions?: () => JSX.Element[];
     onConfirm: () => void;
@@ -65,15 +65,15 @@ export class ModalDialog extends React.Component<IModalDialogProps, IModalDialog
 
         let cancelButton;
         if (!this.props.noCancelButton) {
-            cancelButton = (<Button key="cancel"
-                                    onClick={this.props.onCancel}>Cancel</Button>);
+            cancelButton = (<AnchorButton key="cancel"
+                                          onClick={this.props.onCancel}>Cancel</AnchorButton>);
         }
 
-        let confirmButton = (<Button key="confirm"
-                                     onClick={this.props.onConfirm}
-                                     className="pt-intent-primary"
-                                     disabled={!canConfirm}
-                                     iconName={this.props.confirmIconName}>{this.props.confirmTitle || 'OK'}</Button>);
+        let confirmButton = (<AnchorButton key="confirm"
+                                           onClick={this.props.onConfirm}
+                                           className="pt-intent-primary"
+                                           disabled={!canConfirm}
+                                           iconName={this.props.confirmIconName}>{this.props.confirmTitle || 'OK'}</AnchorButton>);
 
         if (this.props.confirmTooltip) {
             confirmButton = (<Tooltip content={this.props.confirmTooltip} inline>{confirmButton}</Tooltip>);

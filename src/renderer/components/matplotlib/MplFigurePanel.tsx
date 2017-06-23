@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {MplFigureCommandListener, MplFigureCommandSourceImpl} from './MplFigure';
 import {MplFigureContainer} from './MplFigureContainer';
-import {Button, Tag, Tooltip} from "@blueprintjs/core";
+import {AnchorButton, Tag, Tooltip} from "@blueprintjs/core";
 
 
 interface IFigurePanelProps {
@@ -150,7 +150,7 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
                 const onClick = command['callback'];
                 buttons.push(
                     <Tooltip key={i} content={tooltipText}>
-                        <Button iconName={iconName} onClick={onClick}/>
+                        <AnchorButton iconName={iconName} onClick={onClick}/>
                     </Tooltip>
                 );
             }

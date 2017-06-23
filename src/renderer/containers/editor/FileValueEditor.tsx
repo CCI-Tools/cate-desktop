@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {IValueEditorProps, ValueEditorCallback, ValueEditorValue} from "./ValueEditor";
-import {Button} from "@blueprintjs/core";
+import {AnchorButton} from "@blueprintjs/core";
 import * as actions from "../../actions";
 import {OperationInputState} from "../../state";
 import {TextField} from "../../components/field/TextField";
@@ -30,8 +30,8 @@ export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, 
                            placeholder="Enter local file path"
                            onChange={value => onChange(input, value)}
                 />
-                <Button className="pt-intent-primary" style={{flex: 'none'}}
-                        onClick={() => showFileDialogCallback(input, value, onChange)}>...</Button>
+                <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
+                              onClick={() => showFileDialogCallback(input, value, onChange)}>...</AnchorButton>
             </div>
         );
     }

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Button, TabPanel, Tab, TabList, Tabs, Switch, Tabs2, Tab2} from "@blueprintjs/core";
+import {AnchorButton, TabPanel, Tab, TabList, Tabs, Switch, Tabs2, Tab2} from "@blueprintjs/core";
 import {State, SessionState} from "../state";
 import {connect} from "react-redux";
 import * as actions from "../actions";
@@ -101,7 +101,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
 
     private renderGeneralPanel() {
         return (
-            <div style={{width: '100%', marginTop:'1em'}}>
+            <div style={{width: '100%', marginTop: '1em'}}>
                 {this.renderReopenLastWorkspace()}
                 {this.renderResourceNamePrefix()}
                 {this.renderAutoShowNewFigures()}
@@ -113,7 +113,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
 
     private renderDataManagementPanel() {
         return (
-            <div style={{width: '100%', marginTop:'1em'}}>
+            <div style={{width: '100%', marginTop: '1em'}}>
                 {this.renderDataStoresPath()}
                 {this.renderCacheWorkspaceImagery()}
             </div>
@@ -184,7 +184,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
         const initialValue = this.getStateValue(propertyName, isBackend);
         const onChange = this.getChangeHandler(propertyName, isBackend);
         return (
-            <div style={{width: '100%', marginBottom:'1em'}}>
+            <div style={{width: '100%', marginBottom: '1em'}}>
                 <p>{label}:</p>
                 <div className="pt-control-group" style={{display: 'flex', alignItems: 'center'}}>
                     <TextField className="pt-input"
@@ -193,8 +193,8 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
                                placeholder="Enter local directory path"
                                onChange={onChange}
                     />
-                    <Button className="pt-intent-primary" style={{flex: 'none'}}
-                            onClick={() => PreferencesDialog.showOpenDirectoryDialog(initialValue, onChange)}>...</Button>
+                    <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
+                                  onClick={() => PreferencesDialog.showOpenDirectoryDialog(initialValue, onChange)}>...</AnchorButton>
                 </div>
             </div>
         );
@@ -205,7 +205,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
         const onChange = this.getChangeHandler(propertyName, isBackend);
         return (
             <div className="pt-control-group"
-                 style={{width: '100%', marginBottom:'1em', display: 'flex', alignItems: 'center'}}>
+                 style={{width: '100%', marginBottom: '1em', display: 'flex', alignItems: 'center'}}>
                 <span style={{flexGrow: 0.8}}>{label}:</span>
                 <TextField className="pt-input"
                            style={{flexGrow: 0.2}}
@@ -220,7 +220,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps, Session
         const initialValue = this.getStateValue(propertyName, isBackend);
         const onChange = this.getChangeHandler(propertyName, isBackend);
         return (
-            <div style={{width: '100%', marginBottom:'1em'}}>
+            <div style={{width: '100%', marginBottom: '1em'}}>
                 <Switch checked={initialValue}
                         label={label}
                         onChange={(event: any) => onChange(event.target.checked)}/>
