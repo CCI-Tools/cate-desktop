@@ -52,17 +52,16 @@ export class NumericField extends Field<INumericFieldProps> {
     }
 
     private onNumericInputChange(value: number, textValue: string) {
-        this.valueHolder.setValueAndTextValue(value, textValue);
+        this.setValueAndTextValue(value, textValue);
     }
 
     render() {
-        let error = this.fieldValue.error;
-        return (<NumericInput value={this.fieldValue.textValue}
+        return (<NumericInput value={this.getTextValue()}
                               onValueChange={this.onNumericInputChange}
                               onBlur={this.handleBlur}
                               onKeyPress={this.handleKeyPress}
                               style={this.props.style}
-                              intent={error ? Intent.DANGER : Intent.NONE}
+                              intent={this.getError() ? Intent.DANGER : Intent.NONE}
                               min={this.props.min}
                               max={this.props.max}
                               cols={this.props.cols}

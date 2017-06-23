@@ -48,29 +48,29 @@ export class DateRangeField extends Field<IDateRangeFieldProps> {
     }
 
     private handleDateInput1Change(date: Date) {
-        const oldDateRange = this.fieldValue.value;
+        const oldDateRange = this.getValue();
         const newDateRange: DateRange = [date, oldDateRange && oldDateRange[1]];
-        this.valueHolder.setValue(newDateRange);
+        this.setValue(newDateRange);
     }
 
     private handleDateInput2Change(date: Date) {
-        const oldDateRange = this.fieldValue.value;
+        const oldDateRange = this.getValue();
         const newDateRange: DateRange = [oldDateRange && oldDateRange[0], date];
-        this.valueHolder.setValue(newDateRange);
+        this.setValue(newDateRange);
     }
 
     private handleDateInput1Error(date: Date) {
-        this.valueHolder.setError(new Error('Invalid first date.'));
+        this.setError(new Error('Invalid first date.'));
     }
 
     private handleDateInput2Error(date: Date) {
-        this.valueHolder.setError(new Error('Invalid second date.'));
+        this.setError(new Error('Invalid second date.'));
     }
 
     render() {
         //console.log('DateRangeInput props', value, minDate, maxDate);
-        const error = this.fieldValue.error;
-        const value = this.fieldValue.value;
+        const error = this.getError();
+        const value = this.getValue();
         const value1 = value && value[0];
         const value2 = value && value[1];
         const minDate = this.props.min || DEFAULT_MIN_DATE;

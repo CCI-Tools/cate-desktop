@@ -43,16 +43,16 @@ export class DateField extends Field<IDateFieldProps> {
     }
 
     private handleDateInputChange(date: Date) {
-        this.valueHolder.setValue(date);
+        this.setValue(date);
     }
 
     private handleDataInputError(date: Date) {
-        this.valueHolder.setError(new Error('Invalid date.'));
+        this.setError(new Error('Invalid date.'));
     }
 
     render() {
-        const error = this.fieldValue.error;
-        const value = this.fieldValue.value;
+        const error = this.getError();
+        const value = this.getValue();
         const minDate = this.props.min || DEFAULT_MIN_DATE;
         const maxDate = this.props.max || DEFAULT_MAX_DATE;
 

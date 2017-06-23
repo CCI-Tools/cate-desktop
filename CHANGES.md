@@ -1,5 +1,16 @@
 ### 0.8.0-rc.7.dev.1
 
+#### UX Improvements
+
+1. Changed the inital position and visibility of tool panels to better reflect the envisaged cate workflow
+   * DATA SOURCES - top left
+   * OPERATION - bottom left
+   * WORKSPACE - top right
+   * VARIABLES - bottom right
+2. All action buttons now have tooltips
+
+#### Fixes
+
 1. Fixed problem with numeric input fields which accepted only integer values rather than floats (ONGOING) 
 2. Fixed bug where two clicks were required to create a new placemark
 3. Removed the non-functional dummy menu from left/right tool panel headers.
