@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {AnchorButton} from "@blueprintjs/core";
-import {FieldValue, IFieldProps, toTextValue} from "./Field";
-import {TextField} from "./TextField";
+import {toTextValue} from "./Field";
+import {TextField, TextFieldValue} from "./TextField";
 import {GeometryDialog} from "../GeometryDialog";
 import {GeometryType, validateGeometryValue} from "../../../common/geometry-util";
 
