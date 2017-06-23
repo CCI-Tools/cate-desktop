@@ -67,6 +67,7 @@ export const colorMapsAPISelector = createSelector(
 // Dialog state selectors
 
 const DIALOG_STATE_SELECTORS: { [dialogId: string]: Selector<State, DialogState> } = {};
+
 export const dialogStatesSelector = (state: State): { [dialogId: string]: DialogState } => state.control.dialogs;
 
 export const dialogStateSelector = (dialogId: string) => {
@@ -79,6 +80,12 @@ export const dialogStateSelector = (dialogId: string) => {
     return DIALOG_STATE_SELECTORS[dialogId];
 };
 
+export const isDialogOpenSelector = createSelector(
+    dialogStatesSelector,
+    (dialogStates: { [dialogId: string]: DialogState }) => {
+        return Object.getOwnPropertyNames(dialogStates).some(dialogId => dialogStates[dialogId].isOpen);
+    }
+);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ApplicationPage layout selectors
