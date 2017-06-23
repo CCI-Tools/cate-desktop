@@ -1,7 +1,8 @@
 ### 0.8.0-rc.7.dev.1
 
-1. Fixed bug where two clicks were required to create a new placemark
+1. Fixed bug where two clicks were required to create a new placemark.
 2. Removed the non-functional dummy menu from left/right tool panel headers.
+3. Fixed problem where numeric/text inputs in model dialogs where not accepted (root cause was continued 3D globe position display in status bar)
 
 ### 0.8.0-rc.6
 
