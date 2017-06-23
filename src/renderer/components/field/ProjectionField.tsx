@@ -1,13 +1,12 @@
 import * as React from 'react';
 import {AnchorButton} from "@blueprintjs/core";
-import {FieldValue, IFieldProps, toTextValue} from "./Field";
+import {IFieldProps, toTextValue} from "./Field";
 import {TextField} from "./TextField";
 import {ProjectionDialog} from "../ProjectionDialog";
 import {validateProjectionCode} from "../../../common/projection-util";
 
-
 interface IProjectionFieldProps extends IFieldProps {
-    onChange: (value: FieldValue<string>) => void;
+    nullable?: boolean;
 }
 
 interface IProjectionFieldState {
@@ -19,10 +18,11 @@ export class ProjectionField extends React.Component<IProjectionFieldProps, IPro
     constructor(props: IProjectionFieldProps) {
         super(props);
         this.state = {isEditorOpen: false};
+        this.validateProjectionText =  this.validateProjectionText.bind(this);
     }
 
-    static validateProjectionText(value: string) {
-        validateProjectionCode(value);
+    validateProjectionText(value: string|null) {
+        validateProjectionCode(value, this.props.nullable);
     }
 
     render() {
@@ -32,7 +32,7 @@ export class ProjectionField extends React.Component<IProjectionFieldProps, IPro
                     value={this.props.value}
                     size={this.props.size || 12}
                     placeholder={this.props.placeholder || "Enter projection code"}
-                    validator={ProjectionField.validateProjectionText}
+                    validator={this.validateProjectionText}
                     onChange={this.props.onChange}
                     disabled={this.props.disabled}
                     nullable={this.props.nullable}

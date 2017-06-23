@@ -9,6 +9,7 @@ interface IDictValueEditorProps extends IValueEditorProps<string> {
 }
 
 export class DictValueEditor extends React.Component<IDictValueEditorProps, null> {
+    private static TEXT_FIELD_STYLE = {flexGrow: 1};
 
     constructor(props: IDictValueEditorProps) {
         super(props);
@@ -28,8 +29,8 @@ export class DictValueEditor extends React.Component<IDictValueEditorProps, null
                 size={36}
                 placeholder='Enter key-value pairs (Python), separated by comma'
                 onChange={this.onChange}
-                style={{flexGrow: 1}}
-                nullable={true}
+                style={DictValueEditor.TEXT_FIELD_STYLE}
+                nullable={this.props.input.nullable}
             />
         );
     }

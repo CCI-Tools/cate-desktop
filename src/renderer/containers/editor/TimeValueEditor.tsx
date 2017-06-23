@@ -25,6 +25,7 @@ export class TimeValueEditor extends React.PureComponent<ITimeValueEditorProps, 
         const valueMinMax = this.getValueMinMax();
         return (
             <DateField
+                nullable={this.props.input.nullable}
                 min={valueMinMax[0]}
                 max={valueMinMax[1]}
                 value={value}

@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import {Field, FieldType, FieldValue, IFieldProps} from "./Field";
 import {NumericInput, Intent} from "@blueprintjs/core";
-import {isNumber} from "../../../common/types";
+import {isNumber, isUndefinedOrNull} from "../../../common/types";
 
 
 export type NumericFieldType = FieldType<number>;
@@ -10,6 +10,7 @@ export type NumericFieldValue = FieldValue<number>;
 
 
 export interface INumericFieldProps extends IFieldProps {
+    nullable?: boolean;
     min?: number;
     max?: number;
     isInt?: boolean;
@@ -25,7 +26,7 @@ export class NumericField extends Field<INumericFieldProps> {
 
     constructor(props: INumericFieldProps) {
         super(props);
-        this.onNumericInputChange = this.onNumericInputChange.bind(this);
+        this.handleNumericInputChange = this.handleNumericInputChange.bind(this);
     }
 
     parseValue(textValue: string): NumericFieldType {
@@ -40,7 +41,7 @@ export class NumericField extends Field<INumericFieldProps> {
     }
 
     formatValue(value: NumericFieldType): string {
-        if (!value && value !== 0.0) {
+        if (isUndefinedOrNull(value)) {
             return '';
         }
         return value.toString();
@@ -48,16 +49,16 @@ export class NumericField extends Field<INumericFieldProps> {
 
     validateValue(value: NumericFieldType): void {
         super.validateValue(value);
-        validateNumber(value, this.props.min, this.props.max, this.props.isInt);
+        validateNumber(value, this.props.nullable, this.props.min, this.props.max, this.props.isInt);
     }
 
-    private onNumericInputChange(value: number, textValue: string) {
+    private handleNumericInputChange(value: number, textValue: string) {
         this.setValueAndTextValue(value, textValue);
     }
 
     render() {
         return (<NumericInput value={this.getTextValue()}
-                              onValueChange={this.onNumericInputChange}
+                              onValueChange={this.handleNumericInputChange}
                               onBlur={this.handleBlur}
                               onKeyPress={this.handleKeyPress}
                               style={this.props.style}
@@ -72,8 +73,11 @@ export class NumericField extends Field<INumericFieldProps> {
     }
 }
 
-export function validateNumber(value: number | null, min?: number | null, max?: number | null, isInt?: boolean): void {
-    if (value === null) {
+export function validateNumber(value: number | null, nullable?: boolean, min?: number | null, max?: number | null, isInt?: boolean): void {
+    if (isUndefinedOrNull(value)) {
+        if (!nullable) {
+            throw Error('Numeric value expected');
+        }
         return;
     }
     if (!isNumber(value)) {

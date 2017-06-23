@@ -7,6 +7,7 @@ import {isUndefinedOrNull} from "../../../common/types";
 export type DateFieldType = FieldType<Date>;
 
 export interface IDateFieldProps extends IFieldProps {
+    nullable?: boolean;
     min?: Date;
     max?: Date;
 }
@@ -33,13 +34,7 @@ export class DateField extends Field<IDateFieldProps> {
 
     validateValue(value: DateFieldType) {
         super.validateValue(value);
-        if (!value) {
-            return;
-        }
-        const date = value;
-        if (date) {
-            validateDate(date, this.props.min, this.props.max);
-        }
+        validateDate(value, this.props.nullable, this.props.min, this.props.max);
     }
 
     private handleDateInputChange(date: Date) {
@@ -94,7 +89,13 @@ export function formatDate(value: Date|null): string {
     return formatDateAsISODateString(value);
 }
 
-export function validateDate(date: Date, min: Date|null, max: Date|null, name?: string) {
+export function validateDate(date: Date|null, nullable: boolean|null, min: Date|null, max: Date|null, name?: string) {
+    if (!date) {
+        if (!nullable) {
+            throw Error('Date value expected.');
+        }
+        return;
+    }
     if (min && date.getDate() < min.getDate()) {
         throw new Error(`${name || 'Date'} must not be before ${formatDate(min)}.`);
     }

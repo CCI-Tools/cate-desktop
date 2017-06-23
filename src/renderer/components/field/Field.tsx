@@ -12,23 +12,11 @@ export interface FieldValue<T> {
 type AnyFieldType = FieldType<any>;
 type AnyFieldValue = FieldValue<any>;
 
-export type FieldChangeHandler = (value: AnyFieldValue) => void;
-
 export type FieldValidator = (value: AnyFieldType) => any;
-
-/**
- * A FieldValueHandler knows how to parse values from text, how to validate a value,
- * and how to format text from a value.
- */
-export interface FieldValueHandler {
-    parseValue(textValue: string): AnyFieldType;
-    formatValue(value: AnyFieldType): string;
-    validateValue(value: AnyFieldType): void;
-}
 
 export interface IFieldProps {
     value: AnyFieldValue | any;
-    onChange: FieldChangeHandler;
+    onChange: (value: AnyFieldValue) => void;
     validator?: FieldValidator;
     placeholder?: string;
     cols?: number;
@@ -36,7 +24,6 @@ export interface IFieldProps {
     className?: string;
     style?: { [key: string]: any };
     disabled?: boolean;
-    nullable?: boolean;
     uncontrolled?: boolean;
 }
 
@@ -65,7 +52,7 @@ export function toValue(value: any) {
  *
  * @author Norman Fomferra
  */
-export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldState> implements FieldValueHandler {
+export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldState> {
 
     static readonly NOMINAL_CLASS = "pt-input";
     static readonly ERROR_CLASS = "pt-input pt-intent-danger";
@@ -81,10 +68,6 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handleBlur = this.handleBlur.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
-    }
-
-    get fieldValue(): AnyFieldValue {
-        return {...this._fieldValue};
     }
 
     getValue(): AnyFieldType {
@@ -123,7 +106,7 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
     }
 
     parseValue(textValue: string): AnyFieldType {
-        if ((!textValue || textValue === '') && this.props.nullable) {
+        if (!textValue || textValue === '') {
             return null;
         }
         return textValue;
@@ -139,9 +122,6 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
     }
 
     validateValue(value: AnyFieldType): void {
-        if (isUndefinedOrNull(value) && !this.props.nullable) {
-            throw new Error('Value must be provided');
-        }
         if (this.props.validator) {
             this.props.validator(value);
         }
@@ -165,7 +145,7 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
     }
 
     private newFieldValueFromTextValue(textValue: string): AnyFieldValue {
-        let value;
+        let value = null;
         let error;
         try {
             value = this.parseValue(textValue);
@@ -229,7 +209,7 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
 
     render() {
         const error = this.getError();
-        console.log("Field.render: fieldValue = ", this._fieldValue);
+        // console.log("Field.render: fieldValue = ", this._fieldValue);
         return (
             <input value={this.getTextValue()}
                    onChange={this.handleInputChange}

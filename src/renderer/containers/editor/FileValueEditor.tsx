@@ -11,6 +11,11 @@ interface IFileValueEditorProps extends IValueEditorProps<string> {
 // TODO (forman): complete me, i.e. validate file name
 
 export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, null> {
+
+    private static DIV_STYLE = {width: '20em', display: 'flex'};
+    private static TEXT_FIELD_STYLE = {flexGrow: 1};
+    private static BUTTON_STYLE = {flex: 'none'};
+
     render() {
         const input = this.props.input;
         const value = (this.props.value as any) || '';
@@ -24,13 +29,14 @@ export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, 
         }
 
         return (
-            <div className="pt-control-group" style={{width: '20em', display: 'flex'}}>
-                <TextField style={{flexGrow: 1}}
+            <div className="pt-control-group" style={FileValueEditor.DIV_STYLE}>
+                <TextField style={FileValueEditor.TEXT_FIELD_STYLE}
                            value={value}
                            placeholder="Enter local file path"
                            onChange={value => onChange(input, value)}
+                           nullable={this.props.input.nullable}
                 />
-                <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
+                <AnchorButton className="pt-intent-primary" style={FileValueEditor.BUTTON_STYLE}
                               onClick={() => showFileDialogCallback(input, value, onChange)}>...</AnchorButton>
             </div>
         );

@@ -11,6 +11,7 @@ interface ILiteralValueEditorProps extends IValueEditorProps<string> {
 }
 
 export class LiteralValueEditor extends React.Component<ILiteralValueEditorProps, null> {
+    private static TEXT_FIELD_STYLE = {flexGrow: 1};
 
     constructor(props: ILiteralValueEditorProps) {
         super(props);
@@ -30,7 +31,7 @@ export class LiteralValueEditor extends React.Component<ILiteralValueEditorProps
                 size={36}
                 placeholder={this.props.placeholder || 'Enter constant (Python) literal'}
                 onChange={this.onChange}
-                style={{flexGrow: 1}}
+                style={LiteralValueEditor.TEXT_FIELD_STYLE}
             />
         );
     }

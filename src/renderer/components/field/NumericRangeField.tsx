@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {Field, FieldType} from "./Field";
 import {INumericFieldProps, validateNumber} from "./NumericField";
+import {isNullOrUndefined} from "util";
 
 export type NumericRange = [number, number];
 export type NumericRangeFieldType = FieldType<NumericRange>;
@@ -30,14 +31,14 @@ export class NumericRangeField extends Field<INumericRangeFieldProps> {
 
     validateValue(value: NumericRangeFieldType): void {
         super.validateValue(value);
-        if (value === null) {
+        if (isNullOrUndefined(value)) {
+            if (!this.props.nullable) {
+                throw new Error('Numeric range value expected.');
+            }
             return;
         }
-        if (value.length !== 2) {
-            throw new Error('Value must be a pair of numbers.');
-        }
-        validateNumber(value[0], this.props.min, this.props.max, this.props.isInt);
-        validateNumber(value[1], this.props.min, this.props.max, this.props.isInt);
+        validateNumber(value[0], this.props.nullable, this.props.min, this.props.max, this.props.isInt);
+        validateNumber(value[1], this.props.nullable, this.props.min, this.props.max, this.props.isInt);
     }
 
     formatValue(value: NumericRangeFieldType | null): string {

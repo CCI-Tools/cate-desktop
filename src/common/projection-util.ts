@@ -47,7 +47,12 @@ export function getProjection(projectionCode: string): Proj4Projection|null|unde
     return proj4.defs(projectionCode);
 }
 
-export function validateProjectionCode(projectionCode: string) {
+export function validateProjectionCode(projectionCode: string, nullable?: boolean) {
+    if (!projectionCode && projectionCode.trim() === '') {
+        if (!nullable) {
+            throw new Error('Projection code expected.');
+        }
+    }
     if (!getProjection(projectionCode)) {
         throw new Error(`"${projectionCode}" is not a legal projection code.`);
     }

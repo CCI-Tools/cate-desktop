@@ -29,7 +29,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
     }
 
     validate(value: string) {
-        validateVarNamesText(value, this.props.multi, this.props.resource);
+        validateVarNamesText(value, this.props.input.nullable, this.props.multi, this.props.resource);
     }
 
     render() {
@@ -44,7 +44,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
                     size={36}
                     placeholder='Enter variable names, separated by comma'
                     onChange={this.onChange}
-                    nullable={true}
+                    nullable={this.props.input.nullable}
                 />
 
                 <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
@@ -68,8 +68,11 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
     }
 }
 
-export function validateVarNamesText(value: string, multi: boolean, resource: ResourceState) {
-    if (value.trim() === '') {
+export function validateVarNamesText(value: string|null, nullable: boolean, multi: boolean, resource: ResourceState) {
+    if (!value || value.trim() === '') {
+        if (!nullable) {
+            throw new Error(multi ? 'One or more variable names expected.' : 'Variable name expected.');
+        }
         return;
     }
     const varNames = value.split(',');

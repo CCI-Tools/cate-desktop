@@ -26,6 +26,7 @@ export class TimeRangeValueEditor extends React.PureComponent<ITimeRangeValueEdi
         const valueMinMax = this.getValueMinMax();
         return (
             <DateRangeField
+                nullable={this.props.input.nullable}
                 min={valueMinMax[0]}
                 max={valueMinMax[1]}
                 value={value}
