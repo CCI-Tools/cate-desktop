@@ -78,12 +78,6 @@ export const NO_ACTIVE_VIEW = (
         description="Add a new view first."
         visual={ICON_EMPTY}/>
 );
-export const NO_VIEW_PROPS = (
-    <NonIdealState
-        title="No view properties"
-        description="The type of the active view is not yet supported."
-        visual={ICON_EMPTY}/>
-);
 
 export const NO_PLACEMARKS = (
     <NonIdealState

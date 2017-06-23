@@ -8,7 +8,7 @@ import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {ViewState} from "../components/ViewState";
 import {Card} from "../components/Card";
-import {NO_ACTIVE_VIEW, NO_VIEW_PROPS} from "../messages";
+import {NO_ACTIVE_VIEW} from "../messages";
 
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
@@ -45,6 +45,8 @@ function mapStateToProps(state: State): IViewPanelProps {
  */
 class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IViewPanelState> {
 
+    private static ITEM_STYLE = {margin: "0.1em 0.2em 0.1em 0.2em"};
+
     constructor(props: IViewPanelProps & IViewPanelDispatch, context: any) {
         super(props, context);
         this.onViewModeChange = this.onViewModeChange.bind(this);
@@ -67,10 +69,9 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
 
     render() {
         return (
-            <div>
-                <div className="pt-button-group">
-                    <AnchorButton iconName="globe" onClick={this.onAddWorldView}>Add World View</AnchorButton>
-                </div>
+            <div style={ViewPanel.ITEM_STYLE}>
+                <AnchorButton style={{marginBottom: 4}} iconName="globe" onClick={this.onAddWorldView}>New World
+                    View</AnchorButton>
                 {this.renderActiveViewPanel()}
             </div>
         );
@@ -85,7 +86,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
 
         // TODO (forman): make title field editable
         const titleField = (
-            <label className="pt-label">
+            <label className="pt-label" style={ViewPanel.ITEM_STYLE}>
                 View title
                 <div className="pt-input-group">
                     <span className={"pt-icon " + activeView.iconName}/>
@@ -101,15 +102,17 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                 <div>
                     {titleField}
 
-                    <RadioGroup
-                        label="View mode"
-                        onChange={this.onViewModeChange}
-                        selectedValue={worldView.data.viewMode}>
-                        <Radio label="3D Globe" value="3D"/>
-                        <Radio label="2D Map" value="2D"/>
-                    </RadioGroup>
+                    <div style={ViewPanel.ITEM_STYLE}>
+                        <RadioGroup
+                            label="View mode"
+                            onChange={this.onViewModeChange}
+                            selectedValue={worldView.data.viewMode}>
+                            <Radio label="3D Globe" value="3D"/>
+                            <Radio label="2D Map" value="2D"/>
+                        </RadioGroup>
+                    </div>
 
-                    <label className="pt-label">
+                    <label className="pt-label" style={ViewPanel.ITEM_STYLE}>
                         Projection
                         {is3DGlobe ? <span className="pt-text-muted"> (for 2D Map only)</span> : null}
                         <ProjectionField
@@ -119,7 +122,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                         />
                     </label>
 
-                    <label className="pt-label">
+                    <label className="pt-label" style={ViewPanel.ITEM_STYLE}>
                         Imagery layer credits
                         <Card>
                             <div id="creditContainer"
@@ -129,12 +132,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                 </div>
             );
         } else {
-            return (
-                <div>
-                    {titleField}
-                    {NO_VIEW_PROPS}
-                </div>
-            );
+            return titleField;
         }
     }
 }
