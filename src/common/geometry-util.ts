@@ -34,6 +34,9 @@ function parseFloatWithError(textValue: string, errorText?: string) {
 }
 
 export function validateGeometryValue(value: string, geometryType: GeometryType) {
+    if (!value) {
+        return;
+    }
     value = value.trim();
     if (value === '') {
         return;

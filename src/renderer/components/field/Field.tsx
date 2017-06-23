@@ -229,6 +229,7 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
 
     render() {
         const error = this.getError();
+        console.log("Field.render: fieldValue = ", this._fieldValue);
         return (
             <input value={this.getTextValue()}
                    onChange={this.handleInputChange}

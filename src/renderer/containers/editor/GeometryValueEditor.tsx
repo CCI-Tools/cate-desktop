@@ -28,7 +28,8 @@ export class GeometryValueEditor extends React.Component<IGeometryValueEditorPro
                 onChange={this.onChange}
                 placeholder={this.props.placeholder}
                 size={this.props.size}
-                geometryType={this.props.geometryType}/>
+                geometryType={this.props.geometryType}
+                nullable={true}/>
         );
     }
 }

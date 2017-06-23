@@ -12,6 +12,7 @@ interface IGeometryFieldProps {
     geometryType: GeometryType;
     placeholder?: string;
     size?: number;
+    nullable?: boolean;
     disabled?: boolean;
 }
 
@@ -27,7 +28,7 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
         this.state = {isEditorOpen: false};
     }
 
-    validateGeometryText(value: string) {
+    validateGeometryText(value: string  | null) {
         validateGeometryValue(value, this.props.geometryType);
     }
 
@@ -40,6 +41,7 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
                     size={this.props.size || 32}
                     placeholder={this.props.placeholder || `Enter ${this.props.geometryType} WKT`}
                     validator={this.validateGeometryText}
+                    nullable={this.props.nullable}
                 />
 
                 <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}

@@ -35,6 +35,7 @@ export class ProjectionField extends React.Component<IProjectionFieldProps, IPro
                     validator={ProjectionField.validateProjectionText}
                     onChange={this.props.onChange}
                     disabled={this.props.disabled}
+                    nullable={this.props.nullable}
                 />
 
                 <AnchorButton className="pt-intent-primary"

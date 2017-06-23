@@ -29,6 +29,7 @@ export class DictValueEditor extends React.Component<IDictValueEditorProps, null
                 placeholder='Enter key-value pairs (Python), separated by comma'
                 onChange={this.onChange}
                 style={{flexGrow: 1}}
+                nullable={true}
             />
         );
     }

@@ -63,13 +63,19 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
         }
     }
 
+    let isOpen = dialogState.isOpen;
+    operation = operation || selectors.selectedOperationSelector(state);
+    if (isOpen) {
+        console.log('OperationStepDialog: operation:', operation);
+    }
+
     return {
         id: ownProps.id,
         isEditMode: !!operationStep,
         workspace: selectors.workspaceSelector(state),
-        isOpen: dialogState.isOpen,
+        isOpen,
         inputAssignments,
-        operation: operation || selectors.selectedOperationSelector(state),
+        operation,
         resName: resName || selectors.newResourceNameSelector(state),
     };
 }
@@ -385,7 +391,9 @@ function getInputErrors(inputs: OperationInputState[],
             inputErrors[input.name] = new Error('Value must be specified.');
             hasInputErrors = true;
         }
+
     });
+    //console.log('getInputErrors: ', inputErrors);
     return hasInputErrors ? inputErrors : null;
 }
 

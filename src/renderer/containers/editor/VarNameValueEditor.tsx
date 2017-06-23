@@ -44,6 +44,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
                     size={36}
                     placeholder='Enter variable names, separated by comma'
                     onChange={this.onChange}
+                    nullable={true}
                 />
 
                 <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
