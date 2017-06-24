@@ -1,8 +1,6 @@
 import * as electron from 'electron';
 import {actions} from './actions';
 
-const app = electron.app;
-
 const OS_IS_DARWIN = process.platform === 'darwin';
 const OS_IS_NOT_DARWIN = !OS_IS_DARWIN;
 
@@ -26,31 +24,31 @@ if (OS_IS_NOT_DARWIN) {
     );
 }
 
-const editSubMenu: Array<any> = [
-    actions.undo,
-    actions.redo,
-    ________________,
-    actions.cut,
-    actions.copy,
-    actions.paste,
-    actions.pasteAndMatchStyle,
-    actions.deleteSel,
-    ________________,
-    actions.selectAll,
-];
-
-if (OS_IS_DARWIN) {
-    editSubMenu.push(
-        ________________,
-        {
-            label: 'Speech',
-            submenu: [
-                actions.startSpeaking,
-                actions.stopSpeaking,
-            ]
-        }
-    );
-}
+// const editSubMenu: Array<any> = [
+//     actions.undo,
+//     actions.redo,
+//     ________________,
+//     actions.cut,
+//     actions.copy,
+//     actions.paste,
+//     actions.pasteAndMatchStyle,
+//     actions.deleteSel,
+//     ________________,
+//     actions.selectAll,
+// ];
+//
+// if (OS_IS_DARWIN) {
+//     editSubMenu.push(
+//         ________________,
+//         {
+//             label: 'Speech',
+//             submenu: [
+//                 actions.startSpeaking,
+//                 actions.stopSpeaking,
+//             ]
+//         }
+//     );
+// }
 
 let viewSubMenu = [
     actions.toggleFullScreen,
@@ -59,15 +57,8 @@ let viewSubMenu = [
     actions.zoomInPage,
     actions.zoomOutPage,
     ________________,
-    // TODO (forman): we currently can't reload - why?
     // actions.reload,
     actions.toggleDevTools,
-];
-
-let toolsSubMenu = [
-    actions.addPOI,
-    actions.removePOI,
-    actions.removeAllPOIs,
 ];
 
 let windowSubMenu;
@@ -85,7 +76,7 @@ if (OS_IS_DARWIN) {
 }
 
 const helpSubMenu: Array<any> = [
-    actions.openUserGuide,
+    actions.openDocumentation,
     actions.openIssueTracker,
     actions.openEsaCCI,
 ];
@@ -102,22 +93,16 @@ const fileMenu = {
     submenu: fileSubMenu
 };
 
-const editMenu = {
-    label: 'Edit',
-    role: 'edit',
-    submenu: editSubMenu
-};
+// const editMenu = {
+//     label: 'Edit',
+//     role: 'edit',
+//     submenu: editSubMenu
+// };
 
 const viewMenu = {
     label: 'View',
     role: 'view',
     submenu: viewSubMenu
-};
-
-const toolsMenu = {
-    label: 'Tools',
-    role: 'tools',
-    submenu: toolsSubMenu,
 };
 
 const windowMenu = {
@@ -136,7 +121,6 @@ export const menuTemplate: Array<any> = [
     fileMenu,
     // editMenu,
     viewMenu,
-    // toolsMenu,
     windowMenu,
     helpMenu,
 ];

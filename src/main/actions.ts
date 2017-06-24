@@ -205,39 +205,6 @@ export const actions = {
         category: 'view',
     },
 
-    /* tools ###########################################################*/
-
-    addPOI: {
-        label: 'Add POI',
-        role: 'add_placemark',
-        accelerator: 'CmdOrCtrl+P',
-        click: function (item, window) {
-            if (window)
-                window.webContents.send('add-placemark');
-        },
-        category: 'tools',
-    },
-
-    removePOI: {
-        label: 'Remove Placemark',
-        role: 'remove_placemark',
-        click: function (item, window) {
-            if (window)
-                window.webContents.send('remove-placemark');
-        },
-        category: 'tools',
-    },
-
-    removeAllPOIs: {
-        label: 'Remove All Placemarks',
-        role: 'remove_all_placemarks',
-        click: function (item, window) {
-            if (window)
-                window.webContents.send('remove-all-placemarks');
-        },
-        category: 'tools',
-    },
-
     /* window ###########################################################*/
 
     minimize: {
@@ -264,8 +231,8 @@ export const actions = {
 
     /* help #############################################################*/
 
-    openUserGuide: {
-        label: 'User Guide',
+    openDocumentation: {
+        label: 'Documentation',
         click: function () {
             electron.shell.openExternal('http://ect-core.readthedocs.io/en/latest/')
         },
@@ -281,7 +248,7 @@ export const actions = {
     },
 
     openEsaCCI: {
-        label: 'ESA CCI',
+        label: 'ESA Climate Change Initiative',
         click: function () {
             electron.shell.openExternal('http://cci.esa.int/')
         },
