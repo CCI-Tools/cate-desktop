@@ -81,7 +81,9 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         this.handleChangedPlacemarkName = this.handleChangedPlacemarkName.bind(this);
         this.handleChangedPlacemarkPosition = this.handleChangedPlacemarkPosition.bind(this);
         this.handleCopySelectedName = this.handleCopySelectedName.bind(this);
-        this.handleCopySelectedPosition = this.handleCopySelectedName.bind(this);
+        this.handleCopySelectedPosition = this.handleCopySelectedPosition.bind(this);
+        this.handleCopySelectedPositionKW = this.handleCopySelectedPositionKW.bind(this);
+        this.handleCopySelectedPositionWKT = this.handleCopySelectedPositionWKT.bind(this);
         this.renderPlacemarkItem = this.renderPlacemarkItem.bind(this);
     }
 
@@ -134,6 +136,14 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         PlacemarksPanel.handleCopyPosition(this.props.selectedPlacemark);
     }
 
+    private handleCopySelectedPositionKW() {
+        PlacemarksPanel.handleCopyPositionKW(this.props.selectedPlacemark);
+    }
+
+    private handleCopySelectedPositionWKT() {
+        PlacemarksPanel.handleCopyPositionWKT(this.props.selectedPlacemark);
+    }
+
     private static handleCopyName(placemark: Placemark) {
         const electron = require('electron');
         const text = placemark.properties['name'];
@@ -142,9 +152,22 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     }
 
     private static handleCopyPosition(placemark: Placemark) {
-        const electron = require('electron');
         const position = placemark.geometry.coordinates;
-        const text = position[0] + ', ' + position[1];
+        PlacemarksPanel.copyToClipboard(`${position[0]}, ${position[1]}`);
+    }
+
+    private static handleCopyPositionKW(placemark: Placemark) {
+        const position = placemark.geometry.coordinates;
+        PlacemarksPanel.copyToClipboard(`lon=${position[0]}, lat=${position[1]})`);
+    }
+
+    private static handleCopyPositionWKT(placemark: Placemark) {
+        const position = placemark.geometry.coordinates;
+        PlacemarksPanel.copyToClipboard(`POINT (${position[0]} ${position[1]})`);
+    }
+
+    private static copyToClipboard(text: string) {
+        const electron = require('electron');
         electron.clipboard.writeText(text);
         console.log(`copied to clipboard [${text}]`);
     }
@@ -196,8 +219,10 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                     <AnchorButton disabled={!this.props.selectedPlacemarkId}
                                   iconName="clipboard"/>
                     <Menu>
-                        <MenuItem onClick={this.handleCopySelectedName} text="Copy name"/>
-                        <MenuItem onClick={this.handleCopySelectedPosition} text="Copy position"/>
+                        <MenuItem onClick={this.handleCopySelectedName} text="Copy Name"/>
+                        <MenuItem onClick={this.handleCopySelectedPosition} text="Copy Position"/>
+                        <MenuItem onClick={this.handleCopySelectedPositionKW} text="Copy Position with Keywords"/>
+                        <MenuItem onClick={this.handleCopySelectedPositionWKT} text="Copy Position as WKT"/>
                     </Menu>
                 </Popover>
                 <LayerSourcesDialog/>
@@ -228,6 +253,8 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                               onVisibilityChange={this.handleChangedPlacemarkVisibility}
                               onCopyName={PlacemarksPanel.handleCopyName}
                               onCopyPosition={PlacemarksPanel.handleCopyPosition}
+                              onCopyPositionKW={PlacemarksPanel.handleCopyPositionKW}
+                              onCopyPositionWKT={PlacemarksPanel.handleCopyPositionWKT}
         />;
     }
 
@@ -291,6 +318,8 @@ interface IPlacemarkItemProps {
     onVisibilityChange: (placemark: Placemark, visible?) => void;
     onCopyName: (placemark: Placemark) => void;
     onCopyPosition: (placemark: Placemark) => void;
+    onCopyPositionKW: (placemark: Placemark) => void;
+    onCopyPositionWKT: (placemark: Placemark) => void;
 }
 
 @ContextMenuTarget
@@ -305,6 +334,8 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
         this.handleVisibilityChanged = this.handleVisibilityChanged.bind(this);
         this.handleCopyName = this.handleCopyName.bind(this);
         this.handleCopyPosition = this.handleCopyPosition.bind(this);
+        this.handleCopyPositionKW = this.handleCopyPositionKW.bind(this);
+        this.handleCopyPositionWKT = this.handleCopyPositionWKT.bind(this);
     }
 
     handleCopyName() {
@@ -313,6 +344,14 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
 
     handleCopyPosition() {
         this.props.onCopyPosition(this.props.placemark);
+    }
+
+    handleCopyPositionKW() {
+        this.props.onCopyPositionKW(this.props.placemark);
+    }
+
+    handleCopyPositionWKT() {
+        this.props.onCopyPositionWKT(this.props.placemark);
     }
 
     handleVisibilityChanged(event) {
@@ -343,8 +382,10 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
         // return a single element, or nothing to use default browser behavior
         return (
             <Menu>
-                <MenuItem onClick={this.handleCopyName} text="Copy name"/>
-                <MenuItem onClick={this.handleCopyPosition} text="Copy position"/>
+                <MenuItem onClick={this.handleCopyName} text="Copy Name"/>
+                <MenuItem onClick={this.handleCopyPosition} text="Copy Position"/>
+                <MenuItem onClick={this.handleCopyPositionKW} text="Copy Position with Keywords"/>
+                <MenuItem onClick={this.handleCopyPositionWKT} text="Copy Position as WKT"/>
             </Menu>
         );
     }

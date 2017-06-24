@@ -8,6 +8,10 @@
    * WORKSPACE - top right
    * VARIABLES - bottom right
 2. All action buttons now have tooltips
+3. PLACEMARK panel now has now three modes to copy position: 
+   - `<lon>,<lat>` 
+   - `lon=<lon>,lat=<lat>`
+   - `POINT (<lon>,<lat>)`
 
 #### Fixes
 
@@ -16,6 +20,7 @@
 3. Removed the non-functional dummy menu from left/right tool panel headers.
 4. Fixed validation of variable names when there is no resource with variables to to compare with
 5. Fixed problem where numeric/text inputs in model dialogs where not accepted (root cause was continued 3D globe position display in status bar)
+6. Fixed copy position to clipboard, which copied name instead
 
 ### 0.8.0-rc.6
 
