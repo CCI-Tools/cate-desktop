@@ -50,6 +50,7 @@ function mapStateToProps(state: State): IDownloadDatasetDialogProps {
 // TODO mz OpenDatasetDialog and DownloadDatasetDialog are very similar !
 class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps, IDownloadDatasetDialogState> {
     static readonly DIALOG_ID = 'downloadDatasetDialog';
+    static readonly VAR_NAMES_INPUT = {name: 'varNames', dataType: 'string', description: null, nullable: true};
 
     constructor(props: IDownloadDatasetDialogProps) {
         super(props);
@@ -277,7 +278,7 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
                 <Checkbox style={{marginTop: '1em'}} checked={this.state.hasVariablesConstraint}
                           label="Variables constraint" onChange={this.onHasVariablesConstraintChange}/>
                 <div style={{marginLeft: '2em'}}>
-                    <VarNameValueEditor input={null} value={this.state.variableNames.join(',')}
+                    <VarNameValueEditor input={DownloadDatasetDialog.VAR_NAMES_INPUT} value={this.state.variableNames.join(',')}
                                         onChange={this.onVariableNamesChange} resource={res} multi={true}/>
                 </div>
 

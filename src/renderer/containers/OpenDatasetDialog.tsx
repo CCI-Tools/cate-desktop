@@ -52,6 +52,8 @@ function mapStateToProps(state: State): IOpenDatasetDialogProps {
 class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDatasetDialogState> {
     static readonly DIALOG_ID = 'openDatasetDialog';
 
+    static readonly VAR_NAMES_INPUT = {name: 'varNames', dataType: 'string', description: null, nullable: true};
+
     constructor(props: IOpenDatasetDialogProps) {
         super(props);
         this.state = OpenDatasetDialog.mapPropsToState(this.props);
@@ -274,7 +276,7 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
                 <Checkbox style={{marginTop: '1em'}} checked={this.state.hasVariablesConstraint}
                           label="Variables constraint" onChange={this.onHasVariablesConstraintChange}/>
                 <div style={{marginLeft: '2em'}}>
-                    <VarNameValueEditor input={null} value={this.state.variableNames.join(',')}
+                    <VarNameValueEditor input={OpenDatasetDialog.VAR_NAMES_INPUT} value={this.state.variableNames.join(',')}
                                         onChange={this.onVariableNamesChange} resource={res} multi={true}/>
                 </div>
 
