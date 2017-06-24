@@ -706,7 +706,6 @@ export function deleteResource(resource: ResourceState): ThunkAction {
 }
 
 
-
 /**
  * Asynchronously close the current workspace.
  *
@@ -715,9 +714,9 @@ export function deleteResource(resource: ResourceState): ThunkAction {
 export function newWorkspaceInteractive(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         const workspacePath = showSingleFileOpenDialog({
-            title: "New Workspace - Select Directory",
+            title: "New Workspace - Select Empty Directory",
             buttonLabel: "Select",
-            properties: ['openDirectory', 'createDirectory'],
+            properties: ['openDirectory', 'createDirectory', 'promptToCreate']  as OpenDialogProperty[],
         });
         if (workspacePath) {
             const ok = maybeSaveCurrentWorkspace(dispatch, getState,
@@ -798,6 +797,7 @@ export function closeWorkspaceInteractive(): ThunkAction {
 export function cleanWorkspaceInteractive(): ThunkAction {
     return (dispatch: Dispatch) => {
         const answer = showMessageBox({
+            type: 'question',
             title: 'Clean Workspace',
             message: 'Do you really want to clean this workspace?',
             detail: 'This will delete all resources and workflow steps.\nYou will not be able to undo this operation.',
@@ -805,7 +805,7 @@ export function cleanWorkspaceInteractive(): ThunkAction {
             defaultId: 1,
             cancelId: 1,
         });
-        if (answer === 0) {
+        if (answer && answer.buttonIndex === 0) {
             dispatch(cleanWorkspace());
         }
     };
@@ -819,6 +819,7 @@ export function cleanWorkspaceInteractive(): ThunkAction {
 export function deleteResourceInteractive(resource: ResourceState): ThunkAction {
     return (dispatch: Dispatch) => {
         const answer = showMessageBox({
+            type: 'question',
             title: 'Remove Resource / Workflow Step',
             message: `Do you really want to delete resource "${resource.name}"?`,
             detail: 'This will also delete the workflow step that created it.\nYou will not be able to undo this operation.',
@@ -826,7 +827,7 @@ export function deleteResourceInteractive(resource: ResourceState): ThunkAction 
             defaultId: 1,
             cancelId: 1,
         });
-        if (answer === 0) {
+        if (answer && answer.buttonIndex === 0) {
             dispatch(deleteResource(resource));
         }
     };
@@ -856,7 +857,7 @@ export function saveWorkspaceInteractive(): ThunkAction {
 export function saveWorkspaceAsInteractive(): ThunkAction {
     return (dispatch: Dispatch) => {
         const workspacePath = showSingleFileOpenDialog({
-            title: "Save Workspace As - Select Directory",
+            title: "Save Workspace As - Select Empty Directory",
             buttonLabel: "Select",
             properties: ['openDirectory', 'createDirectory', 'promptToCreate'] as OpenDialogProperty[],
         });
@@ -877,6 +878,7 @@ function maybeSaveCurrentWorkspace(dispatch, getState: GetState, title: string, 
         const maySave = workspace.workflow.steps.length && (workspace.isModified || !workspace.isSaved);
         if (maySave) {
             const answer = showMessageBox({
+                type: 'question',
                 title,
                 message,
                 detail,
@@ -884,13 +886,17 @@ function maybeSaveCurrentWorkspace(dispatch, getState: GetState, title: string, 
                 defaultId: 0,
                 cancelId: 2,
             });
-            if (answer == 0) {
-                if (workspace.isScratch) {
-                    dispatch(saveWorkspaceAsInteractive());
-                } else {
-                    dispatch(saveWorkspace());
+            if (answer) {
+                if (answer.buttonIndex === 0) {
+                    if (workspace.isScratch) {
+                        dispatch(saveWorkspaceAsInteractive());
+                    } else {
+                        dispatch(saveWorkspace());
+                    }
+                } else if (answer.buttonIndex === 2) {
+                    return false;
                 }
-            } else if (answer === 2) {
+            } else {
                 return false;
             }
         }
@@ -1003,7 +1009,7 @@ export function getWorkspaceVariableStatistics(resName: string,
     }
 }
 
-export function showTableView(resName: string, varName: string|null, placeAfterViewId: string | null): Action {
+export function showTableView(resName: string, varName: string | null, placeAfterViewId: string | null): Action {
     return {type: SHOW_TABLE_VIEW, payload: {resName, varName, placeAfterViewId}};
 }
 
@@ -1480,11 +1486,10 @@ export const MESSAGE_BOX_NO_REPLY = () => {
  * Shows a native message box.
  *
  * @param messageBoxOptions the message dialog options, see https://github.com/electron/electron/blob/master/docs/api/dialog.md
- * @param callback an optional function which is called with the selected button index
- * @returns the selected button index or null, if no button was selected or the callback function is defined
+ * @param callback an optional function which is called with (buttonIndex, checkboxChecked)
+ * @returns null, if no button was selected or the callback function is defined. Otherwise an object {buttonIndex, checkboxChecked}.
  */
-export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: (index: number) => void): number
-    | null {
+export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: (buttonIndex: number, checkboxChecked: boolean) => void): { buttonIndex: number, checkboxChecked: boolean } | null {
     const electron = require('electron');
     if (!electron) {
         console.warn('showMessageBox() cannot be executed, electron not available from renderer process');
@@ -1496,8 +1501,8 @@ export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: 
     }
     if (callback) {
         electron.ipcRenderer.send(actionName, messageBoxOptions, false);
-        electron.ipcRenderer.once(actionName + '-reply', (event, index: number) => {
-            callback(index);
+        electron.ipcRenderer.once(actionName + '-reply', (event, buttonIndex: number, checkboxChecked: boolean) => {
+            callback(buttonIndex, checkboxChecked);
         });
         return null;
     } else {

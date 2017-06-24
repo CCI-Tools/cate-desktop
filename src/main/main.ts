@@ -504,22 +504,29 @@ function createMainWindow() {
     });
 
     ipcMain.on('show-message-box', (event, messageBoxOptions, synchronous?: boolean) => {
-        if (messageBoxOptions.detail) {
+        let reportingEnabled = false;
+        if (!messageBoxOptions.checkboxLabel && messageBoxOptions.detail && messageBoxOptions.type === 'error') {
             messageBoxOptions = {
                 ...messageBoxOptions,
-                checkboxLabel: 'Copy details to clipboard',
+                checkboxLabel: 'Copy report to clipboard',
                 checkboxChecked: false,
             };
+            reportingEnabled = true;
         }
         dialog.showMessageBox(_mainWindow, messageBoxOptions, (buttonIndex: number, checkboxChecked: boolean) => {
-            if (checkboxChecked) {
-                electron.clipboard.writeText(`${messageBoxOptions.detail}`);
+            if (reportingEnabled && checkboxChecked) {
+                const reportEntries = [
+                    app.getName() + ', version ' + app.getVersion(),
+                    messageBoxOptions.message,
+                    messageBoxOptions.detail,
+                ];
+                electron.clipboard.writeText(reportEntries.join('\n\n'));
             }
             // console.log('show-message-box: buttonIndex =', buttonIndex);
             if (synchronous) {
-                event.returnValue = buttonIndex;
+                event.returnValue = {buttonIndex, checkboxChecked};
             } else {
-                event.sender.send('show-message-box-reply', buttonIndex);
+                event.sender.send('show-message-box-reply', buttonIndex, checkboxChecked);
             }
         });
     });
@@ -555,7 +562,7 @@ function checkWebapiServiceExecutable(callback: (installerPath?: string) => void
             buttons: ['Cancel', 'OK'],
             cancelId: 0,
             message: 'About to install missing Cate backend.',
-            detail: 'It seems that Cate is run for the first time from this installation.\n' +
+            detail: 'It seems that Cate is run from this installation for the first time.\n' +
             'Cate will now install a local (Python) backend which may take\n' +
             'some minutes. This is a one-time job and only applies to this\n' +
             'Cate installation, no other computer settings will be changed.',

@@ -12,7 +12,8 @@
    - `<lon>,<lat>` 
    - `lon=<lon>,lat=<lat>`
    - `POINT (<lon>,<lat>)`
-
+4. On backend errors, users can now copy error message with Cate version info to clipboard
+ 
 #### Fixes
 
 1. Fixed problem with numeric input fields which accepted only integer values rather than floats (ONGOING) 
