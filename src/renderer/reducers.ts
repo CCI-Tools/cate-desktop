@@ -561,13 +561,12 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
         }
         case actions.ADD_PLACEMARK: {
             const position = action.payload.position;
-            placemarkCounter++;
             const features = state.placemarkCollection.features.slice();
             const newPlacemark = {
                 type: 'Feature',
                 id: genPlacemarkId(),
                 properties: {
-                    name: 'Pin ' + placemarkCounter,
+                    name: String.fromCharCode(65 + placemarkCounter % 26),
                     visible: true,
                 },
                 geometry: {
@@ -575,6 +574,7 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
                     coordinates: position ? [position.longitude, position.latitude] : [0, 0]
                 }
             } as Placemark;
+            placemarkCounter++;
             features.push(newPlacemark);
             const placemarkCollection = {...state.placemarkCollection, features};
             return {...state, placemarkCollection, selectedPlacemarkId: newPlacemark.id};
