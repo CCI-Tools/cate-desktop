@@ -305,6 +305,17 @@ export const resourceNamesSelector = createSelector<State, string[], ResourceSta
     }
 );
 
+export const resourceMapSelector = createSelector<State, {[name:string]: ResourceState}, ResourceState[]>(
+    resourcesSelector,
+    (resources: ResourceState[]) => {
+        const resourceMap = {};
+        resources.forEach((resource => {
+            resourceMap[resource.name] = resource;
+        }));
+        return resourceMap;
+    }
+);
+
 export const selectedResourceSelector = createSelector<State, ResourceState | null, ResourceState[], string>(
     resourcesSelector,
     selectedResourceNameSelector,

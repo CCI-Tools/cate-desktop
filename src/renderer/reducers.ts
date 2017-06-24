@@ -536,7 +536,7 @@ const initialSessionState: SessionState = {
     selectedPlacemarkId: null,
     showPlacemarkDetails: true,
 
-    workspacePanelMode: 'resources',
+    workspacePanelMode: 'steps',
 
     backendConfig: {
         dataStoresPath: null,

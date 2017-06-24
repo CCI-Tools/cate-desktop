@@ -936,8 +936,20 @@ function setSelectedWorkspaceResourceNameImpl(selectedWorkspaceResourceName: str
     return updateControlState({selectedWorkspaceResourceName});
 }
 
-//noinspection JSUnusedGlobalSymbols
-export function setSelectedWorkflowStepId(selectedWorkflowStepId: string): Action {
+export function setSelectedWorkflowStepId(selectedWorkflowStepId: string): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        if (selectedWorkflowStepId) {
+            const resourceMap = selectors.resourceMapSelector(getState());
+            const resource = resourceMap[selectedWorkflowStepId];
+            if (resource) {
+                dispatch(setSelectedWorkspaceResourceName(resource.name));
+            }
+        }
+        dispatch(setSelectedWorkflowStepIdImpl(selectedWorkflowStepId));
+    };
+}
+
+function setSelectedWorkflowStepIdImpl(selectedWorkflowStepId: string): Action {
     return updateControlState({selectedWorkflowStepId});
 }
 

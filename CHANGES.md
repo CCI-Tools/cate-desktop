@@ -13,7 +13,9 @@
    - `lon=<lon>,lat=<lat>`
    - `POINT (<lon>,<lat>)`
 4. On backend errors, users can now copy error message with Cate version info to clipboard
- 
+5. The *Workflow* tab showing workflow steps in the **WORKSPACE** panel is now the primary tab.
+   Selecting a workflow steps also selects its output resource.
+
 #### Fixes
 
 1. Fixed problem with numeric input fields which accepted only integer values rather than floats (ONGOING) 

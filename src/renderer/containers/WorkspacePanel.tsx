@@ -21,6 +21,7 @@ import {isDataResource, isFigureResource} from "../state-util";
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
     workspace: WorkspaceState;
+    resourcesMap: {[name:string]: ResourceState};
     showResourceDetails: boolean;
     selectedResource: ResourceState | null;
     selectedResourceName: string | null;
@@ -37,6 +38,7 @@ interface IWorkspacePanelProps {
 function mapStateToProps(state: State): IWorkspacePanelProps {
     return {
         workspace: selectors.workspaceSelector(state),
+        resourcesMap: selectors.resourceMapSelector(state),
         showResourceDetails: selectors.showResourceDetailsSelector(state),
         selectedResource: selectors.selectedResourceSelector(state),
         selectedResourceName: selectors.selectedResourceNameSelector(state),
@@ -199,7 +201,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                 <span key={1} style={WorkspacePanel.STATE_TAG_STYLE} className="pt-tag pt-intent-success pt-minimal">Not saved</span>;
         }
         const openItemButton = (
-            <Tooltip content="Open workspace directory">
+            <Tooltip content="Open workspace directory" position={Position.LEFT}>
                 <AnchorButton onClick={this.handleOpenWorkspaceDirectoryClicked} iconName="folder-open"/>
             </Tooltip>
         );
@@ -218,8 +220,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                        renderActiveTabPanelOnly={true}
                        selectedTabId={this.props.workspacePanelMode}
                        onChange={this.handleWorkspacePanelModeChanged}>
+                    <Tab2 id="steps" title={`Workflow (${steps.length})`} panel={this.renderWorkflowStepsPanel()}/>
                     <Tab2 id="resources" title={`Resources (${resources.length})`} panel={this.renderResourcesPanel()}/>
-                    <Tab2 id="steps" title={`Steps (${steps.length})`} panel={this.renderWorkflowStepsPanel()}/>
                 </Tabs2>
             </ScrollablePanelContent>
         );
@@ -458,10 +460,27 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                 opName = opName.slice(index + 1);
             }
         }
+        const resource = this.props.resourcesMap[step.id];
+
+        let opNameLabel;
         if (opName) {
-            return <span><code>{opName}()</code> &rarr; {step.id}</span>;
+            opNameLabel = <code>{opName}()</code>;
+        }
+
+        let resourceLabel;
+        if (resource) {
+            resourceLabel = <LabelWithType label={resource.name}
+                                           dataType={resource.dataType}/>;
+        }
+
+        if (opNameLabel && resourceLabel) {
+            return <span>{opNameLabel} &rarr; {resourceLabel}</span>;
+        } else if (resourceLabel) {
+            return <span>? &rarr; {resourceLabel}</span>;
+        } else if (opNameLabel) {
+            return <span>{opNameLabel}</span>;
         } else {
-            return <span>? &rarr; {step.id}</span>;
+            return <span>?</span>;
         }
     }
 }
