@@ -15,6 +15,7 @@
 4. On backend errors, users can now copy error message with Cate version info to clipboard
 5. The *Workflow* tab showing workflow steps in the **WORKSPACE** panel is now the primary tab.
    Selecting a workflow steps also selects its output resource.
+6. Use letters as initial placemark names.
 
 #### Fixes
 
@@ -22,7 +23,7 @@
 2. Fixed bug where two clicks were required to create a new placemark
 3. Removed the non-functional dummy menu from left/right tool panel headers.
 4. Fixed validation of variable names when there is no resource with variables to to compare with
-5. Fixed problem where numeric/text inputs in model dialogs where not accepted (root cause was continued 3D globe position display in status bar)
+5. Fixed problem where numeric/text inputs in modal dialogs where not accepted (root cause was continued 3D globe position display in status bar)
 6. Fixed copy position to clipboard, which copied name instead
 
 ### 0.8.0-rc.6

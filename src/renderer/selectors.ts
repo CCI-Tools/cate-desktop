@@ -111,9 +111,9 @@ export const selectedPlacemarkIdSelector = (state: State): string | null => stat
 export const showPlacemarkDetailsSelector = (state: State): boolean => state.session.showPlacemarkDetails;
 
 export const selectedPlacemarkSelector = createSelector<State,
-                                                        Placemark | null,
-                                                        Placemark[],
-                                                        string | null>(
+    Placemark | null,
+    Placemark[],
+    string | null>(
     placemarksSelector,
     selectedPlacemarkIdSelector,
     (placemarks: Placemark[], selectedPlacemarkId: string | null) => {
@@ -127,8 +127,8 @@ export const selectedPlacemarkSelector = createSelector<State,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Location selectors
 
-export const globeMousePositionSelector = (state: State): GeographicPosition|null => state.location.globeMousePosition;
-export const globeViewPositionSelector = (state: State): GeographicPosition|null => state.location.globeViewPosition;
+export const globeMousePositionSelector = (state: State): GeographicPosition | null => state.location.globeMousePosition;
+export const globeViewPositionSelector = (state: State): GeographicPosition | null => state.location.globeViewPosition;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation selectors
@@ -305,7 +305,7 @@ export const resourceNamesSelector = createSelector<State, string[], ResourceSta
     }
 );
 
-export const resourceMapSelector = createSelector<State, {[name:string]: ResourceState}, ResourceState[]>(
+export const resourceMapSelector = createSelector<State, { [name: string]: ResourceState }, ResourceState[]>(
     resourcesSelector,
     (resources: ResourceState[]) => {
         const resourceMap = {};
@@ -418,9 +418,9 @@ export const figureResourcesSelector = createSelector<State, ResourceState[], Re
     }
 );
 
-export const selectedFigureResourceSelector = createSelector<State, ResourceState|null, ResourceState|null>(
+export const selectedFigureResourceSelector = createSelector<State, ResourceState | null, ResourceState | null>(
     selectedResourceSelector,
-    (resource: ResourceState|null) => {
+    (resource: ResourceState | null) => {
         return resource && isFigureResource(resource) ? resource : null;
     }
 );
@@ -535,6 +535,19 @@ export const selectedVariableImageLayerSelector = createSelector<State, Variable
     (selectedLayer: LayerState | null) => {
         if (selectedLayer && selectedLayer.type === 'VariableImage') {
             return selectedLayer as VariableImageLayerState;
+        }
+        return null;
+    }
+);
+
+export const selectedVariableImageLayerDisplayMinMaxSelector = createSelector<State,
+    [number, number] | null, VariableImageLayerState | null>(
+    selectedVariableImageLayerSelector,
+    (selectedLayer: VariableImageLayerState | null) => {
+        if (selectedLayer) {
+            const displayMin = isNumber(selectedLayer.displayMin) ? selectedLayer.displayMin : 0;
+            const displayMax = isNumber(selectedLayer.displayMax) ? selectedLayer.displayMax : displayMin + 1;
+            return [displayMin, displayMax];
         }
         return null;
     }

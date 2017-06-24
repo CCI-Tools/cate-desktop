@@ -55,6 +55,7 @@ interface ILayersPanelProps {
     showLayerDetails: boolean;
     colorMapCategories: Array<ColorMapCategoryState>;
     selectedColorMap: ColorMapState | null;
+    displayMinMax: [number, number];
 }
 
 function mapStateToProps(state: State): ILayersPanelProps {
@@ -71,12 +72,9 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedVariableVectorLayer: selectors.selectedVariableVectorLayerSelector(state),
         showLayerDetails: state.control.showLayerDetails,
         colorMapCategories: selectors.colorMapCategoriesSelector(state),
-        selectedColorMap: selectors.selectedColorMapSelector(state)
+        selectedColorMap: selectors.selectedColorMapSelector(state),
+        displayMinMax: selectors.selectedVariableImageLayerDisplayMinMaxSelector(state),
     };
-}
-
-interface ILayersPanelState {
-    displayMinMax: FieldValue<NumberRange>;
 }
 
 /**
@@ -84,7 +82,7 @@ interface ILayersPanelState {
  *
  * @author Norman Fomferra
  */
-class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispatch, ILayersPanelState> {
+class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispatch, null> {
 
     static readonly SLIDER_DIV_STYLE_05 = {width: '100%', paddingLeft: '0.5em', paddingRight: '0.5em'};
     static readonly SLIDER_DIV_STYLE_15 = {width: '100%', paddingLeft: '1.5em', paddingRight: '1.5em'};
@@ -105,21 +103,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         this.handleChangedDisplayAlphaBlend = this.handleChangedDisplayAlphaBlend.bind(this);
         this.handleChangedColorMapName = this.handleChangedColorMapName.bind(this);
         this.renderLayerItem = this.renderLayerItem.bind(this);
-        this.state = LayersPanel.mapPropsToState(props);
-    }
-
-    static mapPropsToState(props: ILayersPanelProps): ILayersPanelState {
-        let displayMinMax;
-        if (props.selectedVariableImageLayer) {
-            const textValue = `${props.selectedVariableImageLayer.displayMin}, ${props.selectedVariableImageLayer.displayMax}`;
-            const value = [props.selectedVariableImageLayer.displayMin, props.selectedVariableImageLayer.displayMax];
-            displayMinMax = {textValue, value};
-        }
-        return {displayMinMax};
-    }
-
-    componentWillReceiveProps(nextProps: ILayersPanelProps & ILayersPanelDispatch): void {
-        this.setState(LayersPanel.mapPropsToState(nextProps));
     }
 
     componentDidMount(): void {
@@ -178,7 +161,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         }));
     }
 
-
     private handleChangedDisplayMinMax(displayMinMax: FieldValue<NumberRange>) {
         const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
         if (!displayMinMax.error) {
@@ -186,7 +168,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             const displayMax = displayMinMax.value[1];
             this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {displayMin, displayMax}));
         }
-        this.setState({displayMinMax});
     }
 
     private handleChangedDisplayAlphaBlend(event: any) {
@@ -194,7 +175,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
         const layer = this.props.selectedVariableImageLayer;
         this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {alphaBlending}));
     }
-
 
     private handleUpdateDisplayStatistics() {
         const resource = this.props.selectedResource;
@@ -375,9 +355,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
                     Display range
                     <div>
                         <div style={{width: '100%', display: 'flex', alignItems: 'center'}}>
-                            <NumericRangeField value={this.state.displayMinMax}
+                            <NumericRangeField value={this.props.displayMinMax}
                                                style={{flex: 'auto'}}
                                                onChange={this.handleChangedDisplayMinMax}
+                                               uncontrolled={true}
                             />
                             <Tooltip content="Compute valid min/max" position={Position.LEFT}>
                                 <AnchorButton className="pt-intent-primary" iconName="arrows-horizontal"
