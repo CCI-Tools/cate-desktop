@@ -79,11 +79,11 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch, nu
             let msg;
             let spinner = null;
             if (numRunningTasks > 0 && numFailedTasks > 0) {
-                msg = `${numRunningTasks} running / {numFailedTasks} failed Task`;
+                msg = `${numRunningTasks} running / ${numFailedTasks} failed task(s)`;
             } else if (numRunningTasks > 0) {
-                msg = `${numRunningTasks} running Task`;
+                msg = `${numRunningTasks} running task(s)`;
             } else if (numFailedTasks > 0) {
-                msg = `${numFailedTasks} failed Task`;
+                msg = `${numFailedTasks} failed task(s)`;
             }
             if (numRunningTasks > 0) {
                 spinner = <div style={{
