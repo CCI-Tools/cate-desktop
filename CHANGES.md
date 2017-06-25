@@ -1,6 +1,8 @@
-### 0.8.0-rc.7.dev.1
+## 0.8.0-rc.7.dev.2
 
-#### UX Improvements
+## 0.8.0-rc.7.dev.1
+
+### UX Improvements
 
 1. Changed the inital position and visibility of tool panels to better reflect the envisaged cate workflow
    * DATA SOURCES - top left
@@ -17,7 +19,7 @@
    Selecting a workflow steps also selects its output resource.
 6. Use letters as initial placemark names.
 
-#### Fixes
+### Fixes
 
 1. Fixed problem with numeric input fields which accepted only integer values rather than floats (ONGOING) 
 2. Fixed bug where two clicks were required to create a new placemark
@@ -26,7 +28,7 @@
 5. Fixed problem where numeric/text inputs in modal dialogs where not accepted (root cause was continued 3D globe position display in status bar)
 6. Fixed copy position to clipboard, which copied name instead
 
-### 0.8.0-rc.6
+## 0.8.0-rc.6
 
 1. Added **PLACEMARKS** panel, which provides a simple placemark management
    * add placemark (by clicking on globe)
@@ -51,7 +53,7 @@
     in the **DATA SOURCES** panel (in the logs: `DateRangeInput value cannot be null`).
 13. Fixed bug where the selected placemark is misplaced after CesiumView is remounted
 
-### 0.8.0-rc.5
+## 0.8.0-rc.5
 
 1. Operation step inputs can now be edited an re-executed: 
    In **WORKSPACE** panel, select **Steps**, select a step, and click the **Edit** button.   
@@ -65,7 +67,7 @@
 5. Fixed problem where a variable's **image layer settings were gone** after selecting another variable.
    Such layer settings are now stored in user preferences store, so that they are available in the next Cate session.
 
-### 0.8.0-rc.4
+## 0.8.0-rc.4
 
 1. fixed problem where Cate backend couldn't be started (cause: wrong stdio config for node's `child_process.spawn()`)
 2. fixed problem where Cate backend couldn't be stopped (cause: the backend was invoked without activated Python env)
