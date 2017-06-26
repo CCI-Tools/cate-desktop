@@ -5,6 +5,7 @@
 1. Minor improvements for the **DATA SOURCES** panel:
    * Open Dataset Dialogs titles are now either "Open Local Dataset" or "Open Remote Dataset (via OPeNDAP)"
    * Download button disabled for the "local" data store
+2. Improved the default placeholder text for geometry fields  
 
 ## 0.8.0-rc.7.dev.1
 

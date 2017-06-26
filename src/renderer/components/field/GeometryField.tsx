@@ -33,13 +33,23 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
     }
 
     render() {
+        let placeholder = this.props.placeholder;
+        if (!placeholder) {
+            if (this.props.geometryType === 'Point') {
+                placeholder = "<lon>,<lat> or Point WKT";
+            } else if (this.props.geometryType === 'Polygon') {
+                placeholder = "<lon1>,<lat1>,<lon2>,<lat2> or Polygon WKT";
+            } else {
+                placeholder = `Enter ${this.props.geometryType} WKT`;
+            }
+        }
         return (
             <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}} disabled={this.props.disabled}>
                 <TextField
                     value={this.props.value}
                     onChange={this.props.onChange}
                     size={this.props.size || 32}
-                    placeholder={this.props.placeholder || `Enter ${this.props.geometryType} WKT`}
+                    placeholder={placeholder}
                     validator={this.validateGeometryText}
                     nullable={this.props.nullable}
                 />
