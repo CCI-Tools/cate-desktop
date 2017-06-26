@@ -1,7 +1,7 @@
-import {IActionProps, ILinkProps, Intent, Position, Toaster} from "@blueprintjs/core";
+import {IActionProps, ILinkProps, Intent, IToaster, Position, Toaster} from "@blueprintjs/core";
 import {MessageState} from "./state";
 
-let MessageToaster = null;
+let MessageToaster: IToaster|null = null;
 
 export function showToast(message: MessageState) {
 
@@ -14,21 +14,27 @@ export function showToast(message: MessageState) {
 
     let iconName;
     let intent;
+    let timeout = 5000;
     if (message.type === 'info') {
         iconName = 'info-sign';
         intent = Intent.NONE;
+        timeout = 2500;
     } else if (message.type === 'success') {
         iconName = 'tick';
         intent = Intent.SUCCESS;
+        timeout = 2500;
     } else if (message.type === 'notification') {
         iconName = 'notifications';
         intent = Intent.PRIMARY;
+        timeout = 2500;
     } else if (message.type === 'warning') {
         iconName = 'warning-sign';
         intent = Intent.WARNING;
+        timeout = 6000;
     } else if (message.type === 'error') {
         iconName = 'error';
         intent = Intent.DANGER;
+        timeout = 6000;
     }
 
     let action: IActionProps & ILinkProps;
@@ -47,5 +53,6 @@ export function showToast(message: MessageState) {
         iconName,
         intent,
         action,
+        timeout,
     });
 }
