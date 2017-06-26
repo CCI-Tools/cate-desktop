@@ -6,8 +6,8 @@ export type GeometryType =
         | 'MultiPoint'
         | 'MultiLineString'
         | 'MultiPolygon'
-        | 'Gemetry'
-        | 'GemetryCollection';
+        | 'Geometry'
+        | 'GeometryCollection';
 
 const WKT_GEOMETRY_TYPES = new Set([
     'POINT',
