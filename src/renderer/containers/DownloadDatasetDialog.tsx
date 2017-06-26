@@ -6,6 +6,7 @@ import {ModalDialog} from "../components/ModalDialog";
 import {Dispatch, connect} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
+import * as types from "../../common/cate-types";
 import {Region, RegionValue, GLOBAL} from "../components/Region";
 import {DateRangeInput, DateRange} from "@blueprintjs/datetime";
 import {VarNameValueEditor} from "./editor/VarNameValueEditor";
@@ -191,16 +192,16 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
         this.setState({variableNames} as IDownloadDatasetDialogState);
     }
 
-    private static convertToVariableState(dsVar: any): VariableState {
-        return {name: dsVar.name, units: dsVar.units || '-', dataType: 'xr.DataArray'};
+    private static dataSourceVarToVariable(dsVar: any): VariableState {
+        return {name: dsVar.name, units: dsVar.units || '-', dataType: types.DATA_ARRAY_TYPE};
     }
 
     private static dataSourceToResource(dataSource: DataSourceState): ResourceState {
         if (dataSource && dataSource.meta_info && dataSource.meta_info.variables && dataSource.meta_info.variables.length) {
             return {
                 name: dataSource.name,
-                dataType: 'xr.DataSet', // TODO
-                variables: dataSource.meta_info.variables.map(v => DownloadDatasetDialog.convertToVariableState(v)),
+                dataType: types.DATASET_TYPE,
+                variables: dataSource.meta_info.variables.map(v => DownloadDatasetDialog.dataSourceVarToVariable(v)),
             } as ResourceState;
         } else {
             return null;
