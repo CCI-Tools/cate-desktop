@@ -120,7 +120,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             const isNonLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id !== 'local';
             const canAdd = isLocalStore;
             const canRemove = hasSelection && isLocalStore;
-            const canDownload = hasSelection;
+            const canDownload = hasSelection && !isLocalStore;
             const canOpen = hasSelection && this.props.hasWorkspace;
             const actionComponent = (
                 <div className="pt-button-group">

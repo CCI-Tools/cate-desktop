@@ -196,10 +196,12 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
             return null;
         }
 
+        const isNonLocalStore = this.props.dataStore && this.props.dataStore.id !== 'local';
+
         return (
             <ModalDialog
                 isOpen={isOpen}
-                title="Open Dataset"
+                title={isNonLocalStore ? "Open Remote Dataset (via OPeNDAP)" : "Open Local Dataset"}
                 iconName="database"
                 confirmTitle="Open"
                 confirmIconName="folder-shared-open"
@@ -259,11 +261,6 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
                         value={timeRange || [null, null]}
                         onChange={this.onTimeRangeChange}/>
                 </div>
-
-                {/*<TimeRange coverage={this.props.temporalCoverage}*/}
-                {/*value={this.state.timeRange}*/}
-                {/*onChange={this.onTimeRangeChange}/>*/}
-
 
                 <Checkbox style={{marginTop: '1em'}} checked={hasRegionConstraint} label="Region constraint"
                           onChange={this.onHasRegionConstraintChange}/>
