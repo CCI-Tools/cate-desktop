@@ -41,9 +41,8 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
                                               value={progressValue}/>;
                 const cancelJob = () => this.props.onCancelJob(jobId);
                 const cancelButton = <AnchorButton type="button"
-                                                   className="pt-intent-primary"
                                                    onClick={cancelJob}
-                                                   iconName="pt-icon-cross">Cancel</AnchorButton>;
+                                                   text="Cancel"/>;
 
                 const cancelableProgress = <div style={{display: "flex", flexFlow: "row nowrap", width: "100%"}}>
                     <div style={{
@@ -51,14 +50,14 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
                         display: "flex",
                         flexFlow: "column",
                         justifyContent: "center",
-                        padding: "1px 1px 1px 1px"
+                        padding: 1
                     }}>{progress}</div>
                     <div style={{flex: "0 1 auto"}}>{cancelButton}</div>
                 </div>;
 
                 let progressMag = null;
                 if (taskState.progress && taskState.progress.message) {
-                    progressMag = <div style={{fontSize: '0.8em'}}>{taskState.progress.message}</div>;
+                    progressMag = <div className="pt-text-muted">{taskState.progress.message}</div>;
                 }
                 activity = <div>{cancelableProgress}{progressMag}</div>
             } else {
@@ -71,8 +70,7 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
             errorMsg = <div style={{display: "flex", flexFlow: "row nowrap", width: "100%"}}>
                 <div className="pt-intent-danger" style={{
                     flex: "0 1 auto",
-                    color: 'rgb(255, 0, 0)',
-                    fontSize: '0.8em'
+                    color: '#A82A2A'
                 }}>{taskState.failure.message}</div>
                 <div style={{flex: "10 1 auto"}}/>
                 <AnchorButton style={{flex: "0 1 auto"}} iconName="cross" onClick={removeJob}/>
