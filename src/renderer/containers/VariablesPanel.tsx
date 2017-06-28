@@ -6,11 +6,11 @@ import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
-import {Card} from "../components/Card";
 import {LabelWithType} from "../components/LabelWithType";
 import {AnchorButton, Tooltip, Position} from "@blueprintjs/core";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE} from "../messages";
+import {Column, Table} from "@blueprintjs/table";
 
 interface IVariablesPanelProps {
     dispatch?: any;
@@ -18,6 +18,7 @@ interface IVariablesPanelProps {
     selectedResource: ResourceState | null;
     selectedVariableName: string | null;
     selectedVariable: VariableState | null;
+    selectedVariableHeader: any;
     showVariableDetails: boolean;
     showSelectedVariableLayer: boolean;
     activeViewId: string;
@@ -32,6 +33,7 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         selectedResource: selectors.selectedResourceSelector(state),
         selectedVariableName: selectors.selectedVariableNameSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
+        selectedVariableHeader: selectors.selectedVariableHeaderSelector(state),
         showVariableDetails: state.control.showVariableDetails,
         showSelectedVariableLayer: state.session.showSelectedVariableLayer,
         activeViewId: selectors.activeViewIdSelector(state),
@@ -56,6 +58,10 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         this.handleAddVariableTimeSeriesPlot = this.handleAddVariableTimeSeriesPlot.bind(this);
         this.handleAddVariableHistogramPlot = this.handleAddVariableHistogramPlot.bind(this);
         this.handleShowVariableTableView = this.handleShowVariableTableView.bind(this);
+        this.renderAttrName = this.renderAttrName.bind(this);
+        this.renderAttrValue = this.renderAttrValue.bind(this);
+        this.renderHeaderName = this.renderHeaderName.bind(this);
+        this.renderHeaderValue = this.renderHeaderValue.bind(this);
     }
 
     private handleSelectedVariableName(newSelection: Array<React.Key>) {
@@ -209,31 +215,59 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         );
     }
 
+    private renderHeaderName(index: number): any {
+        return this.props.selectedVariableHeader[index][0];
+    }
+
+    private renderHeaderValue(index: number): any {
+        return this.props.selectedVariableHeader[index][1];
+    }
+
+    private renderAttrName(index: number): any {
+        return this.props.selectedVariable.attrs[index][0];
+    }
+
+    private renderAttrValue(index: number): any {
+        return this.props.selectedVariable.attrs[index][1];
+    }
+
     private renderVariableDetails() {
         const selectedVariable = this.props.selectedVariable;
         if (!selectedVariable) {
             return null;
         }
-        const entries = [
-            VariablesPanel.renderDetailRow('Data type', selectedVariable.dataType),
-            VariablesPanel.renderDetailRow('Units', selectedVariable.units),
-            VariablesPanel.renderDetailRow('#Dimensions', selectedVariable.ndim),
-            VariablesPanel.renderDetailRow('Dimensions', selectedVariable.dimensions && selectedVariable.dimensions.join(', ')),
-            VariablesPanel.renderDetailRow('Shape', selectedVariable.shape && selectedVariable.shape.join(', ')),
-            VariablesPanel.renderDetailRow('Chunks', selectedVariable.chunks && selectedVariable.chunks.join(', ')),
-            VariablesPanel.renderDetailRow('Valid min.', selectedVariable.valid_min),
-            VariablesPanel.renderDetailRow('Valid max.', selectedVariable.valid_max),
-            VariablesPanel.renderDetailRow('Add offset', selectedVariable.add_offset),
-            VariablesPanel.renderDetailRow('Scale factor', selectedVariable.scale_factor),
-            VariablesPanel.renderDetailRow('Comment', selectedVariable.comment),
-        ];
-        return (
-            <Card>
-                <table className="pt-table pt-condensed pt-striped">
-                    <tbody>{entries}</tbody>
-                </table>
-            </Card>
+        const variableHeaderTable = (
+            <Table numRows={this.props.selectedVariableHeader.length} isRowHeaderShown={false}>
+                <Column name="Name" renderCell={this.renderHeaderName}/>
+                <Column name="Value" renderCell={this.renderHeaderValue}/>
+            </Table>
         );
+        let variableAttrsTable;
+        if (this.props.selectedVariable.attrs) {
+            variableAttrsTable = (
+                <Table numRows={this.props.selectedVariable.attrs.length} isRowHeaderShown={false}>
+                    <Column name="Name" renderCell={this.renderAttrName}/>
+                    <Column name="Value" renderCell={this.renderAttrValue}/>
+                </Table>
+            );
+        }
+        if (variableAttrsTable) {
+            return (
+                <div>
+                    <p>Header:</p>
+                    {variableHeaderTable}
+                    <p>Meta-data:</p>
+                    {variableAttrsTable}
+                </div>
+            );
+        } else {
+            return (
+                <div>
+                    <p>Header:</p>
+                    {variableHeaderTable}
+                </div>
+            );
+        }
     }
 
     private static renderDetailRow(label: string, value: any) {

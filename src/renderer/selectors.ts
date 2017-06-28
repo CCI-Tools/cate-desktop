@@ -446,6 +446,24 @@ export const selectedVariableSelector = createSelector<State, VariableState | nu
     }
 );
 
+export const selectedVariableHeaderSelector = createSelector<State, [[string, any]], VariableState | null>(
+    selectedVariableSelector,
+    (selectedVariable: VariableState | null) => {
+        if (!selectedVariable) {
+            return null;
+        }
+        return [
+            ['Data type', selectedVariable.dataType],
+            ['Units', selectedVariable.units],
+            ['#Dimensions', selectedVariable.ndim],
+            ['Dimensions', selectedVariable.dimensions && selectedVariable.dimensions.join(', ')],
+            ['Shape', selectedVariable.shape && selectedVariable.shape.join(', ')],
+            ['Chunks', selectedVariable.chunks && selectedVariable.chunks.join(', ')],
+        ];
+    }
+);
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Viewer selectors
 

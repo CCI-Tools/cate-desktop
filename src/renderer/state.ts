@@ -265,6 +265,7 @@ export interface VariableState {
     long_name?: string;
     units?: string;
     comment?: string;
+    attrs?: [[string, any]];
     imageLayout?: ImageLayout;
     isFeatureAttribute?: boolean;
 }

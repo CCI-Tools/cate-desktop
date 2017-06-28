@@ -2,10 +2,12 @@
 
 ### UX Improvements
 
-1. Minor improvements for the **DATA SOURCES** panel:
+1. Now displaying all variable meta-data attributes
+2. Minor improvements for the **DATA SOURCES** panel:
    * Open Dataset Dialogs titles are now either "Open Local Dataset" or "Open Remote Dataset (via OPeNDAP)"
    * Download button disabled for the "local" data store
-2. Improved the default placeholder text for geometry fields  
+3. Improved the default placeholder text for geometry fields  
+
 
 ## 0.8.0-rc.7.dev.1
 
