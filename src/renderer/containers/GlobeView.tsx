@@ -86,28 +86,28 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
         // TODO (forman): optimize me: increase speed and clean up code by moving the following into selectors.ts
         if (this.props.workspace && this.props.workspace.resources && this.props.view.data.layers) {
             for (let layer of this.props.view.data.layers) {
+                let layerDescriptor;
+                let dataSourceDescriptor;
                 switch (layer.type) {
                     case 'VariableImage': {
-                        const layerDescriptor = this.convertVariableImageLayerToLayerDescriptor(layer as VariableImageLayerState);
-                        layers.push(layerDescriptor);
+                        layerDescriptor = this.convertVariableImageLayerToLayerDescriptor(layer as VariableImageLayerState);
                         break;
                     }
                     case 'VariableVector': {
-                        const dataSourceDescriptor = this.convertVariableVectorLayerToDataSourceDescriptor(layer as VariableVectorLayerState);
-                        dataSources.push(dataSourceDescriptor);
+                        dataSourceDescriptor = this.convertVariableVectorLayerToDataSourceDescriptor(layer as VariableVectorLayerState);
                         break;
                     }
                     case 'Vector': {
-                        const dataSourceDescriptor = this.convertVectorLayerToDataSourceDescriptor(layer as VectorLayerState);
-                        dataSources.push(dataSourceDescriptor);
+                        dataSourceDescriptor = this.convertVectorLayerToDataSourceDescriptor(layer as VectorLayerState);
                         break;
                     }
-                    default: {
-                        if (layer.id !== SELECTED_VARIABLE_LAYER_ID) {
-                            console.warn(`GlobeView: layer with ID "${layer.id}" will not be rendered`);
-                        }
-                        break;
-                    }
+                }
+                if (layerDescriptor) {
+                    layers.push(layerDescriptor);
+                } else if (dataSourceDescriptor) {
+                    dataSources.push(dataSourceDescriptor);
+                } else if (layer.id !== SELECTED_VARIABLE_LAYER_ID) {
+                    console.warn(`GlobeView: layer with ID "${layer.id}" will not be rendered`);
                 }
             }
         }
@@ -141,12 +141,12 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
         const resource = this.getResource(layer);
         const variable = this.getVariable(layer);
         if (!variable) {
-            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
+            console.warn(`GlobeView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
             return null;
         }
         const imageLayout = variable.imageLayout;
         if (!variable.imageLayout) {
-            console.warn(`MapView: variable "${layer.varName}" of resource "${layer.resName}" has no imageLayout`);
+            console.warn(`GlobeView: variable "${layer.varName}" of resource "${layer.resName}" has no imageLayout`);
             return null;
         }
         const baseDir = this.props.workspace.baseDir;
@@ -178,7 +178,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
         const resource = this.getResource(layer);
         const variable = this.getVariable(layer);
         if (!variable) {
-            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
+            console.warn(`GlobeView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
             return null;
         }
 
