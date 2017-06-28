@@ -6,6 +6,11 @@
    * Open Dataset Dialogs titles are now either "Open Local Dataset" or "Open Remote Dataset (via OPeNDAP)"
    * Download button disabled for the "local" data store
 2. Improved the default placeholder text for geometry fields  
+3. Operation dialog shows operation name in title
+4. Double-click on list elements now invokes the primary action (the blue button) for:
+   * DATA SOURCE panel
+   * OPERATIONS panel
+   * Variables selection dialog
 
 ## 0.8.0-rc.7.dev.1
 
@@ -13,7 +18,7 @@
 
 1. Changed the inital position and visibility of tool panels to better reflect the envisaged cate workflow
    * DATA SOURCES - top left
-   * OPERATION - bottom left
+   * OPERATIONS - bottom left
    * WORKSPACE - top right
    * VARIABLES - bottom right
 2. All action buttons now have tooltips

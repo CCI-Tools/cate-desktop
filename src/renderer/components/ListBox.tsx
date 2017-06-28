@@ -11,8 +11,8 @@ export interface IListBoxProps {
     items: any[];
     renderItem: (item: any, itemIndex: number) => JSX.Element;
     getItemKey?: (item: any, itemIndex: number) => React.Key;
-    onItemClick?: (key: React.Key, item: any, itemIndex: number) => void;
-    onItemDoubleClick?: (key: React.Key, item: any, itemIndex: number) => void;
+    onItemClick?: (item: any, itemIndex: number) => void;
+    onItemDoubleClick?: (item: any, itemIndex: number) => void;
     onSelection?: (newSelection: React.Key[], oldSelection: React.Key[]) => void;
     selectionMode?: ListBoxSelectionMode;
     selection?: React.Key[]|React.Key|null;
@@ -28,11 +28,13 @@ export interface IListBoxProps {
 export class ListBox extends React.PureComponent<IListBoxProps, any> {
     constructor(props: IListBoxProps) {
         super(props);
-        this.handleClick = this.handleClick.bind(this);
-        this.handleDoubleClick = this.handleDoubleClick.bind(this);
     }
 
-    handleClick(itemIndex, key: string|number) {
+    handleClick(event: MouseEvent, itemIndex, key: string|number) {
+        // console.log('handleClick', event.button, event.buttons,event.bubbles, event.detail);
+        if (event.detail === 2) {
+            return;
+        }
         if (this.props.onSelection) {
             const oldSelection = toSelectionArray(this.props.selection);
             let newSelection;
@@ -56,13 +58,14 @@ export class ListBox extends React.PureComponent<IListBoxProps, any> {
             this.props.onSelection(newSelection, oldSelection);
         }
         if (this.props.onItemClick) {
-            this.props.onItemClick(key, this.props.items[itemIndex], itemIndex);
+            this.props.onItemClick(this.props.items[itemIndex], itemIndex);
         }
     }
 
-    handleDoubleClick(itemIndex, key: string|number) {
+    handleDoubleClick(event, itemIndex) {
+        // console.log('handleDoubleClick', event.button, event.buttons,event.bubbles, event.detail);
         if (this.props.onItemDoubleClick) {
-            this.props.onItemDoubleClick(key, this.props.items[itemIndex], itemIndex);
+            this.props.onItemDoubleClick(this.props.items[itemIndex], itemIndex);
         }
     }
 
@@ -99,8 +102,8 @@ export class ListBox extends React.PureComponent<IListBoxProps, any> {
             const className = selected ? 'cate-selected' : null;
             renderedItems.push(
                 <li key={key}
-                    onClick={() => this.handleClick(itemIndex, key)}
-                    onDoubleClick={() => this.handleDoubleClick(itemIndex, key)}
+                    onClick={(event) => this.handleClick(event as any, itemIndex, key)}
+                    onDoubleClick={(event) => this.handleDoubleClick(event as any, itemIndex)}
                     className={className}
                     style={itemStyle}>
                     {renderedItem}

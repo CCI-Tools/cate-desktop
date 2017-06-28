@@ -60,13 +60,15 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
         }
         return (
             <ScrollablePanelContent>
-                <p>Select the variables to wish to add as a layer:</p>
+                <p>{this.props.multiSelect ? "Select one or more the variables:" : "Select variable:"}</p>
                 <ListBox items={variables}
                          getItemKey={VariablesDialog.getVariableItemKey}
                          renderItem={VariablesDialog.renderVariableItem}
                          selectionMode={this.props.multiSelect ? ListBoxSelectionMode.MULTIPLE : ListBoxSelectionMode.SINGLE}
                          selection={this.state.value}
-                         onSelection={this.onSelection}/>
+                         style={{height: '20em'}}
+                         onSelection={this.onSelection}
+                         onItemDoubleClick={this.state.value ? this.onConfirm : null}/>
             </ScrollablePanelContent>
         );
     }
