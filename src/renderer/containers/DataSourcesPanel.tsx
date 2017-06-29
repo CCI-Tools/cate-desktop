@@ -2,7 +2,7 @@ import * as React from "react";
 import {connect} from "react-redux";
 import {State, DataStoreState, DataSourceState} from "../state";
 import {AnchorButton, InputGroup, Classes, Tag, Tabs2, Tab2, Tooltip} from "@blueprintjs/core";
-import {Table, Column, Cell} from "@blueprintjs/table";
+import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
@@ -324,12 +324,12 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
             if (metaInfoKeys.length) {
                 function renderKey(rowIndex: number) {
                     const key = metaInfoKeys[rowIndex];
-                    return <Cell>{key}</Cell>;
+                    return <Cell><TruncatedFormat>{key}</TruncatedFormat></Cell>;
                 }
 
                 function renderValue(rowIndex: number) {
                     const key = metaInfoKeys[rowIndex];
-                    return <Cell>{dataSource.meta_info[key]}</Cell>;
+                    return <Cell><TruncatedFormat>{dataSource.meta_info[key]}</TruncatedFormat></Cell>;
                 }
 
                 function getCellClipboardData(row: number, col: number) {
@@ -350,12 +350,12 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
                 if (variables.length) {
                     function renderName(rowIndex: number) {
                         const variable = variables[rowIndex];
-                        return <Cell>{variable.name}</Cell>;
+                        return <Cell><TruncatedFormat>{variable.name}</TruncatedFormat></Cell>;
                     }
 
                     function renderUnit(rowIndex: number) {
                         const variable = variables[rowIndex];
-                        return <Cell>{variable.units || '-'}</Cell>;
+                        return <Cell><TruncatedFormat>{variable.units || '-'}</TruncatedFormat></Cell>;
                     }
 
                     function getCellClipboardData(row: number, col: number) {

@@ -5,7 +5,7 @@ import {
     OperationIOBaseState
 } from "../state";
 import {AnchorButton, Tabs2, Tab2, Tooltip, Position} from "@blueprintjs/core";
-import {Table, Column, Cell} from "@blueprintjs/table";
+import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
 import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
 import ResourceRenameDialog from "./ResourceRenameDialog";
@@ -414,11 +414,11 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     renderResourceAttrName(row: number) {
-        return <Cell>{this.props.selectedResource.attrs[row][0]}</Cell>;
+        return <Cell><TruncatedFormat>{this.props.selectedResource.attrs[row][0]}</TruncatedFormat></Cell>;
     }
 
     renderResourceAttrValue(row: number): any {
-        return <Cell>{`${this.props.selectedResource.attrs[row][1]}`}</Cell>;
+        return <Cell><TruncatedFormat>{`${this.props.selectedResource.attrs[row][1]}`}</TruncatedFormat></Cell>;
     }
 
     renderOperationStepInputName(row: number) {
@@ -440,7 +440,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     static renderWorkflowPortName(port: OperationIOBaseState) {
-        return <Cell>{port.name}</Cell>;
+        return <Cell><TruncatedFormat>{port.name}</TruncatedFormat></Cell>;
     }
 
     static renderWorkflowPortValue(port: WorkflowPortState) {
@@ -450,7 +450,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         } else {
             cellValue = <span>{`${port.value}`}</span>;
         }
-        return <Cell>{cellValue}</Cell>;
+        return <Cell><TruncatedFormat>{cellValue}</TruncatedFormat></Cell>;
     }
 
     //noinspection JSMethodCanBeStatic
