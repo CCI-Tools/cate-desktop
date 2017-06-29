@@ -391,7 +391,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
     private renderFormVarIndex() {
         const layer = this.props.selectedVariableImageLayer;
         const variable = this.props.selectedVariable;
-        if (!layer || !variable || variable.ndim <= 2) {
+        if (!layer || !variable || variable.numDims <= 2) {
             return null;
         }
 
@@ -401,10 +401,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispat
             this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {varIndex}));
         };
 
-        const n = variable.ndim - 2;
+        const n = variable.numDims - 2;
         const dimensionRows = [];
         for (let i = 0; i < n; i++) {
-            const dimension = variable.dimensions[i];
+            const dimension = variable.dimNames[i];
             const max = variable.shape[i] - 1;
             if (max > 0) {
                 const value = layer.varIndex[i];

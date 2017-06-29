@@ -317,7 +317,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
             return null;
         }
 
-        const attributes = selectedResource.attrs;
+        const attributes = selectedResource.attributes;
         if (!attributes || !attributes.length) {
             return null;
         }
@@ -414,11 +414,11 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     renderResourceAttrName(row: number) {
-        return <Cell><TruncatedFormat>{this.props.selectedResource.attrs[row][0]}</TruncatedFormat></Cell>;
+        return <Cell><TruncatedFormat>{this.props.selectedResource.attributes[row][0]}</TruncatedFormat></Cell>;
     }
 
     renderResourceAttrValue(row: number): any {
-        return <Cell><TruncatedFormat>{`${this.props.selectedResource.attrs[row][1]}`}</TruncatedFormat></Cell>;
+        return <Cell><TruncatedFormat>{`${this.props.selectedResource.attributes[row][1]}`}</TruncatedFormat></Cell>;
     }
 
     renderOperationStepInputName(row: number) {

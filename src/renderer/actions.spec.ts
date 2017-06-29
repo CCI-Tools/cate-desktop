@@ -275,11 +275,17 @@ describe('Actions', () => {
             resources: [
                 {
                     name: 'res_1',
+                    dataType: 'xarray.core.dataset.Dataset',
+                    id: 0,
+                    updateCount: 1,
                     variables: [
                         {
-                            name: 'analysed_sst', dataType: 'float', ndim: 3, dimensions: ['time', 'lat', 'lon'],
-                            valid_min: 270,
-                            valid_max: 310,
+                            name: 'analysed_sst',
+                            dataType: 'float',
+                            numDims: 3,
+                            dimNames: ['time', 'lat', 'lon'],
+                            validMin: 270,
+                            validMax: 310,
                             imageLayout: {
                                 numLevels: 1,
                                 numLevelZeroTilesX: 1,
@@ -289,9 +295,12 @@ describe('Actions', () => {
                             }
                         },
                         {
-                            name: 'sst_error', dataType: 'float', ndim: 3, dimensions: ['time', 'lat', 'lon'],
-                            valid_min: null,
-                            valid_max: null,
+                            name: 'sst_error',
+                            dataType: 'float',
+                            numDims: 3,
+                            dimNames: ['time', 'lat', 'lon'],
+                            validMin: undefined,
+                            validMax: undefined,
                             imageLayout: {
                                 numLevels: 1,
                                 numLevelZeroTilesX: 1,
@@ -301,7 +310,10 @@ describe('Actions', () => {
                             }
                         },
                         {
-                            name: 'profile', dataType: 'float', ndim: 1, dimensions: ['depth']
+                            name: 'profile',
+                            dataType: 'float',
+                            numDims: 1,
+                            dimNames: ['depth']
                         }
                     ]
                 }

@@ -8,9 +8,9 @@ import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
 import {AnchorButton, Tooltip, Position} from "@blueprintjs/core";
+import {Cell, Column, Table, TruncatedFormat} from "@blueprintjs/table";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE} from "../messages";
-import {Column, Table} from "@blueprintjs/table";
 
 interface IVariablesPanelProps {
     dispatch?: any;
@@ -18,7 +18,7 @@ interface IVariablesPanelProps {
     selectedResource: ResourceState | null;
     selectedVariableName: string | null;
     selectedVariable: VariableState | null;
-    selectedVariableHeader: any;
+    selectedVariableAttributesTableData: [[string, any]];
     showVariableDetails: boolean;
     showSelectedVariableLayer: boolean;
     activeViewId: string;
@@ -33,7 +33,7 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         selectedResource: selectors.selectedResourceSelector(state),
         selectedVariableName: selectors.selectedVariableNameSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
-        selectedVariableHeader: selectors.selectedVariableHeaderSelector(state),
+        selectedVariableAttributesTableData: selectors.selectedVariableAttributesTableDataSelector(state),
         showVariableDetails: state.control.showVariableDetails,
         showSelectedVariableLayer: state.session.showSelectedVariableLayer,
         activeViewId: selectors.activeViewIdSelector(state),
@@ -58,10 +58,8 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         this.handleAddVariableTimeSeriesPlot = this.handleAddVariableTimeSeriesPlot.bind(this);
         this.handleAddVariableHistogramPlot = this.handleAddVariableHistogramPlot.bind(this);
         this.handleShowVariableTableView = this.handleShowVariableTableView.bind(this);
-        this.renderAttrName = this.renderAttrName.bind(this);
-        this.renderAttrValue = this.renderAttrValue.bind(this);
-        this.renderHeaderName = this.renderHeaderName.bind(this);
-        this.renderHeaderValue = this.renderHeaderValue.bind(this);
+        this.renderAttributeName = this.renderAttributeName.bind(this);
+        this.renderAttributeValue = this.renderAttributeValue.bind(this);
     }
 
     private handleSelectedVariableName(newSelection: Array<React.Key>) {
@@ -122,7 +120,6 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
     private handleAddVariableHistogramPlot() {
         const resource = this.props.selectedResource;
         const variable = this.props.selectedVariable;
-        const placemark = this.props.selectedPlacemark;
         const newResName = `hist_${resource.name}_${variable.name}`;
         const opArgs = {
             ds: {source: resource.name},
@@ -170,12 +167,12 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
 
     private renderVariableActionRow() {
         const selectedVariable = this.props.selectedVariable;
-        const isSpatialVariable = selectedVariable && selectedVariable.ndim >= 2 && selectedVariable.imageLayout;
+        const isSpatialVariable = selectedVariable && selectedVariable.numDims >= 2 && selectedVariable.imageLayout;
         const placemark = this.props.selectedPlacemark;
         const hasWorldView = this.props.activeViewType && this.props.activeViewType === 'world';
         const canAddLayer = isSpatialVariable && hasWorldView;
         const canAddTimeSeriesPlot = isSpatialVariable && placemark;
-        const canAddHistogramPlot = selectedVariable && selectedVariable.ndim > 0;
+        const canAddHistogramPlot = selectedVariable && selectedVariable.numDims > 0;
         const size = selectedVariable && selectedVariable.shape && selectedVariable.shape.reduce((a, b) => a * b, 1);
         const maxSize = 10000;
         const canShowTableView = selectedVariable && size < maxSize;
@@ -215,69 +212,24 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
         );
     }
 
-    private renderHeaderName(index: number): any {
-        return this.props.selectedVariableHeader[index][0];
+    private renderAttributeName(index: number): any {
+        return <Cell>{this.props.selectedVariableAttributesTableData[index][0]}</Cell>;
     }
 
-    private renderHeaderValue(index: number): any {
-        return this.props.selectedVariableHeader[index][1];
-    }
-
-    private renderAttrName(index: number): any {
-        return this.props.selectedVariable.attrs[index][0];
-    }
-
-    private renderAttrValue(index: number): any {
-        return this.props.selectedVariable.attrs[index][1];
+    private renderAttributeValue(index: number): any {
+        return <Cell><TruncatedFormat>{this.props.selectedVariableAttributesTableData[index][1]}</TruncatedFormat></Cell>;
     }
 
     private renderVariableDetails() {
-        const selectedVariable = this.props.selectedVariable;
-        if (!selectedVariable) {
+        const tableData = this.props.selectedVariableAttributesTableData;
+        if (!tableData || !tableData.length) {
             return null;
         }
-        const variableHeaderTable = (
-            <Table numRows={this.props.selectedVariableHeader.length} isRowHeaderShown={false}>
-                <Column name="Name" renderCell={this.renderHeaderName}/>
-                <Column name="Value" renderCell={this.renderHeaderValue}/>
-            </Table>
-        );
-        let variableAttrsTable;
-        if (this.props.selectedVariable.attrs) {
-            variableAttrsTable = (
-                <Table numRows={this.props.selectedVariable.attrs.length} isRowHeaderShown={false}>
-                    <Column name="Name" renderCell={this.renderAttrName}/>
-                    <Column name="Value" renderCell={this.renderAttrValue}/>
-                </Table>
-            );
-        }
-        if (variableAttrsTable) {
-            return (
-                <div>
-                    <p>Header:</p>
-                    {variableHeaderTable}
-                    <p>Meta-data:</p>
-                    {variableAttrsTable}
-                </div>
-            );
-        } else {
-            return (
-                <div>
-                    <p>Header:</p>
-                    {variableHeaderTable}
-                </div>
-            );
-        }
-    }
-
-    private static renderDetailRow(label: string, value: any) {
-        if (typeof(value) === 'undefined')
-            return null;
         return (
-            <tr key={label}>
-                <td>{label}</td>
-                <td>{value !== null ? value : '-'}</td>
-            </tr>
+            <Table numRows={tableData.length} isRowHeaderShown={false}>
+                <Column name="Name" renderCell={this.renderAttributeName}/>
+                <Column name="Value" renderCell={this.renderAttributeValue}/>
+            </Table>
         );
     }
 

@@ -121,7 +121,7 @@ class LayerSourcesDialog extends React.Component<ILayerSourcesDialogProps, ILaye
                 <span>{layerVariable.resource.name}</span>
                 <span> / </span>
                 <LabelWithType label={variable.name}
-                               dataType={`${variable.dataType}[${variable.dimensions}]`}
+                               dataType={`${variable.dataType}[${variable.dimNames}]`}
                                units={variable.units}
                 />
             </div>

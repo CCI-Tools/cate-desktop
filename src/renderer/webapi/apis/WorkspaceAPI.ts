@@ -1,6 +1,46 @@
 import {WebAPIClient} from "../WebAPIClient";
 import {JobPromise, JobProgress} from "../Job";
-import {WorkspaceState, ImageStatisticsState, OperationKWArgs} from "../../state";
+import {WorkspaceState, ImageStatisticsState, OperationKWArgs, ResourceState, VariableState} from "../../state";
+import {EMPTY_ARRAY, EMPTY_OBJECT} from "../../selectors";
+import {isDefined, isNumber, isUndefined} from "../../../common/types";
+
+function responseToVariables(variablesResponse: any): VariableState[] {
+    return (variablesResponse || EMPTY_ARRAY).map(v => {
+        const attributes = v.attributes || EMPTY_OBJECT;
+        let validMin = attributes['valid_min'];
+        let validMax = attributes['valid_max'];
+        const validRange = attributes['valid_range'];
+        const rangeOk = isDefined(validRange) && validRange.length === 2;
+        validMin = (!isNumber(validMin) && rangeOk && isNumber(validRange[0])) ? validRange[0] : validMin;
+        validMax = (!isNumber(validMax) && rangeOk && isNumber(validRange[1])) ? validRange[1] : validMax;
+        const units = attributes['units'];
+        if (units === 'kelvin' || units === 'Kelvin') {
+            const validMinMin = 270;
+            const validMaxMax = validMinMin + 40;
+            if (!isNumber(validMin) || validMin < validMinMin) {
+                validMin = validMinMin;
+            }
+            if (!isNumber(validMax) || validMax < validMaxMax) {
+                validMax = validMaxMax;
+            }
+        }
+        return {
+            ...v,
+            units,
+            validMin,
+            validMax,
+        };
+    });
+}
+
+function responseToResources(resourcesResponse: any): ResourceState[] {
+    return (resourcesResponse || EMPTY_ARRAY).map(r => {
+        if (r.variables) {
+            return {...r, variables: responseToVariables(r.variables)};
+        }
+        return r;
+    });
+}
 
 function responseToWorkspace(workspaceResponse: any): WorkspaceState {
     if (!workspaceResponse) {
@@ -13,7 +53,7 @@ function responseToWorkspace(workspaceResponse: any): WorkspaceState {
         isModified: workspaceResponse.is_modified,
         isSaved: workspaceResponse.is_saved,
         workflow: workspaceResponse.workflow,
-        resources: workspaceResponse.resources,
+        resources: responseToResources(workspaceResponse.resources),
     };
 }
 

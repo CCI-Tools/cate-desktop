@@ -446,20 +446,29 @@ export const selectedVariableSelector = createSelector<State, VariableState | nu
     }
 );
 
-export const selectedVariableHeaderSelector = createSelector<State, [[string, any]], VariableState | null>(
+export const selectedVariableAttributesTableDataSelector = createSelector<State, [[string, any]] | null, VariableState | null>(
     selectedVariableSelector,
     (selectedVariable: VariableState | null) => {
         if (!selectedVariable) {
             return null;
         }
-        return [
+        const tableData: [[string, any]] = [
             ['Data type', selectedVariable.dataType],
-            ['Units', selectedVariable.units],
-            ['#Dimensions', selectedVariable.ndim],
-            ['Dimensions', selectedVariable.dimensions && selectedVariable.dimensions.join(', ')],
-            ['Shape', selectedVariable.shape && selectedVariable.shape.join(', ')],
-            ['Chunks', selectedVariable.chunks && selectedVariable.chunks.join(', ')],
+            ['Units', selectedVariable.units || ''],
+            ['Valid minimum', selectedVariable.validMin],
+            ['Valid maximum', selectedVariable.validMax],
+            ['Dimension names', selectedVariable.dimNames && selectedVariable.dimNames.join(', ')],
+            ['Array shape', selectedVariable.shape && selectedVariable.shape.join(', ')],
+            ['Chunk sizes', selectedVariable.chunkSizes && selectedVariable.chunkSizes.join(', ')],
+            [' ', ''],
         ];
+        let attributes = selectedVariable.attributes;
+        if (attributes) {
+            Object.getOwnPropertyNames(attributes).forEach(name => {
+                tableData.push([name, attributes[name]]);
+            });
+        }
+        return tableData;
     }
 );
 

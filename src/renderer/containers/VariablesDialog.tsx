@@ -79,7 +79,7 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
     }
 
     private static renderVariableItem(variable: VariableState) {
-        const dataType = variable.dimensions ? `${variable.dataType}[${variable.dimensions}]` : `${variable.dataType}`;
+        const dataType = variable.dimNames ? `${variable.dataType}[${variable.dimNames}]` : `${variable.dataType}`;
         return (
             <div>
                 <LabelWithType label={variable.name}

@@ -227,7 +227,7 @@ export interface WorkflowPortState {
 }
 
 export type DimSizes = { [dimName: string]: number };
-export type Attribute = [string, any];
+export type Attributes = { [attrName: string]: any };
 
 // TODO (forman): harmonize ResourceState + VariableState, in the end
 //                1. ResourceState is-a VariableState
@@ -242,8 +242,11 @@ export interface ResourceState {
     updateCount: number;
     name: string;
     dataType: string;
-    dims?: DimSizes;
-    attrs?: Attribute[];
+    dimSizes?: DimSizes;
+    units?: string;
+    validMin?: number;
+    validMax?: number;
+    attributes?: Attributes;
     variables?: VariableState[];
 }
 
@@ -253,21 +256,17 @@ export interface ResourceState {
 export interface VariableState {
     name: string;
     dataType: string;
-    ndim?: number;
+    numDims?: number;
+    dimNames?: string[];
     shape?: number[];
-    dimensions?: string[];
-    chunks?: number[];
-    valid_min?: number;
-    valid_max?: number;
-    add_offset?: number;
-    scale_factor?: number;
-    standard_name?: string;
-    long_name?: string;
+    chunkSizes?: number[];
     units?: string;
-    comment?: string;
-    attrs?: [[string, any]];
+    validMin?: number;
+    validMax?: number;
+    attributes?: Attributes;
     imageLayout?: ImageLayout;
     isFeatureAttribute?: boolean;
+    isYFlipped?: boolean;
 }
 
 /**
@@ -464,7 +463,7 @@ export interface VariableRefState {
  */
 export interface VariableDataRefState extends VariableRefState {
     /**
-     * The current index into the variable that results in a 2D-subset (i.e. with dims ['lat', 'lon']).
+     * The current index into the variable that results in a 2D-subset (i.e. with dimensions ['lat', 'lon']).
      */
     varIndex: number[];
 }

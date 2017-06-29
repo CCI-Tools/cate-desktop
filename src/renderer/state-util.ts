@@ -50,7 +50,7 @@ export function getMPLDownloadUrl(baseUrl: string, baseDir: string, figureId: nu
 }
 
 export function isSpatialImageVariable(variable: VariableState): boolean {
-    return variable.ndim && variable.ndim >= 2 && !!variable.imageLayout;
+    return variable.numDims && variable.numDims >= 2 && !!variable.imageLayout;
 }
 
 export function isSpatialVectorVariable(variable: VariableState): boolean {
@@ -282,20 +282,22 @@ function updateVariableLayerVarIndex(variable: VariableState | null,
 
 function newVarIndex(variable: VariableState, varIndex) {
     const numSpatialDims = 2;
-    if (variable.ndim
-        && variable.ndim >= numSpatialDims
-        && (!varIndex || varIndex.length != variable.ndim - numSpatialDims)) {
-        return Array(variable.ndim - numSpatialDims).fill(0);
+    if (variable.numDims
+        && variable.numDims >= numSpatialDims
+        && (!varIndex || varIndex.length != variable.numDims - numSpatialDims)) {
+        return Array(variable.numDims - numSpatialDims).fill(0);
     }
     return varIndex;
 }
 
 
 function newVariableLayerDisplayProperties(variable: VariableState) {
+    const displayMin = isNumber(variable.validMin) ? variable.validMin : 0.;
+    const displayMax = isNumber(variable.validMax) ? variable.validMax : displayMin + 1.;
     return {
         colorMapName: 'jet',
-        displayMin: isNumber(variable.valid_min) ? variable.valid_min : 0.,
-        displayMax: isNumber(variable.valid_max) ? variable.valid_max : 1.,
+        displayMin,
+        displayMax,
         alphaBlending: false,
         opacity: 1.0,
         brightness: 1.0,
