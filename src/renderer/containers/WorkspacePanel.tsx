@@ -450,7 +450,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         } else {
             cellValue = <span>{`${port.value}`}</span>;
         }
-        return <Cell><TruncatedFormat>{cellValue}</TruncatedFormat></Cell>;
+        return <Cell>{cellValue}</Cell>;
     }
 
     //noinspection JSMethodCanBeStatic
