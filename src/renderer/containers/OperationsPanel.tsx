@@ -116,14 +116,16 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                 </Tag>
             );
 
-            const operationFilterExprInput = (<InputGroup
-                disabled={false}
-                leftIconName="filter"
-                onChange={this.handleOperationFilterExprChange}
-                placeholder="Find operation"
-                rightElement={resultsTag}
-                value={operationFilterExpr}
-            />);
+            const operationFilterExprInput = (
+                <InputGroup
+                    disabled={false}
+                    leftIconName="filter"
+                    onChange={this.handleOperationFilterExprChange}
+                    placeholder="Find operation"
+                    rightElement={resultsTag}
+                    value={operationFilterExpr}
+                />
+            );
 
             const canApplyOperation = this.props.selectedOperation && this.props.workspace;
             const actionComponent = (
@@ -162,7 +164,8 @@ class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
                          renderItem={OperationsPanel.renderItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={this.props.selectedOperationName}
-                         onSelection={this.handleOperationSelection}/>
+                         onSelection={this.handleOperationSelection}
+                         onItemDoubleClick={this.handleAddOperationStepButtonClicked}/>
             </ScrollablePanelContent>
         );
     }

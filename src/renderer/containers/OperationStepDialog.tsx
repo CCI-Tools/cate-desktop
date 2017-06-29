@@ -171,12 +171,13 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOp
     }
 
     render() {
+        const operation = this.props.operation;
         let dialogTitle, tooltipText;
         if (this.props.isEditMode) {
-            dialogTitle = "Edit Operation Step";
+            dialogTitle = `Edit Operation Step - ${operation.name}`;
             tooltipText = 'Edit operation step parameters and re-apply operation.';
         } else {
-            dialogTitle = "New Operation Step";
+            dialogTitle = `New Operation Step - ${operation.name}`;
             tooltipText = 'Add a new operation step to the workflow and apply it.';
         }
 

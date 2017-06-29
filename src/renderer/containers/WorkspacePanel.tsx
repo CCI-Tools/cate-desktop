@@ -21,7 +21,7 @@ import {isDataResource, isFigureResource} from "../state-util";
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
     workspace: WorkspaceState;
-    resourcesMap: {[name:string]: ResourceState};
+    resourcesMap: { [name: string]: ResourceState };
     showResourceDetails: boolean;
     selectedResource: ResourceState | null;
     selectedResourceName: string | null;
@@ -256,6 +256,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                 </Tooltip>
                 <Tooltip content="Edit workflow step" position={Position.LEFT}>
                     <AnchorButton
+                        className="pt-intent-primary"
                         disabled={!workflowStep}
                         iconName="edit"
                         onClick={this.handleEditOperationStepButtonClicked}/>
@@ -304,7 +305,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                          getItemKey={WorkspacePanel.getResourceItemKey}
                          renderItem={WorkspacePanel.renderResourceItem}
                          selection={this.props.selectedResourceName}
-                         onSelection={this.handleResourceNameSelected}/>
+                         onSelection={this.handleResourceNameSelected}
+                         onItemDoubleClick={this.handleEditOperationStepButtonClicked}/>
             </ScrollablePanelContent>
         );
     }
@@ -356,7 +358,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                          getItemKey={WorkspacePanel.getStepItemKey}
                          renderItem={this.renderStepItem}
                          selection={this.props.selectedWorkflowStepId}
-                         onSelection={this.handleWorkflowStepIdSelected}/>
+                         onSelection={this.handleWorkflowStepIdSelected}
+                         onItemDoubleClick={this.handleEditOperationStepButtonClicked}/>
             </ScrollablePanelContent>
         );
     }

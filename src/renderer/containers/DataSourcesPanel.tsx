@@ -143,7 +143,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                                       iconName="cloud-download"/>
                     </Tooltip>
                     <Tooltip content="Open data source">
-                        <AnchorButton className={(isLocalStore && hasDataSources) ? "pt-intent-primary" : ""}
+                        <AnchorButton className={isLocalStore ? "pt-intent-primary" : ""}
                                       onClick={this.handleShowOpenDatasetDialog}
                                       disabled={!canOpen}
                                       iconName="folder-shared-open"/>
@@ -166,7 +166,8 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                                              actionComponent={actionComponent}>
                         <DataSourcesList dataSources={this.props.filteredDataSources}
                                          selectedDataSourceId={this.props.selectedDataSource ? this.props.selectedDataSource.id : null}
-                                         setSelectedDataSourceId={this.props.setSelectedDataSourceId}/>
+                                         setSelectedDataSourceId={this.props.setSelectedDataSourceId}
+                                         doubleClickAction={isLocalStore ? this.handleShowOpenDatasetDialog : isNonLocalStore ? this.handleShowDownloadDatasetDialog : null}/>
                         <DataSourceDetails dataSource={this.props.selectedDataSource}/>
                     </ContentWithDetailsPanel>
                 </div>
@@ -246,6 +247,7 @@ interface IDataSourcesListProps {
     dataSources: DataSourceState[];
     selectedDataSourceId: string | null;
     setSelectedDataSourceId: (selectedDataSourceId: string) => void;
+    doubleClickAction: (dataSource: DataSourceState) => any;
 }
 class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
 
@@ -298,6 +300,7 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
                          renderItem={this.renderItem}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={this.props.selectedDataSourceId}
+                         onItemDoubleClick={this.props.doubleClickAction}
                          onSelection={this.handleDataSourceSelected}/>
             </ScrollablePanelContent>
         );
