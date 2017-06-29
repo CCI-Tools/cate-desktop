@@ -11,6 +11,7 @@
    * DATA SOURCE panel
    * OPERATIONS panel
    * Variables selection dialog
+5. In **DATA SOURCES** and **WORKSPACE** panel: in details table show long text in popover
 
 ## 0.8.0-rc.7.dev.1
 
