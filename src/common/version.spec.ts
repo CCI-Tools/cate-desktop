@@ -11,6 +11,8 @@ describe('Version-related utilities', function () {
         expect(pep440ToSemver('1.6.43')).to.equal('1.6.43');
 
         expect(pep440ToSemver('1.6.2a11')).to.equal('1.6.2-a.11');
+        expect(pep440ToSemver('0.9.0.dev1')).to.equal('0.9.0-dev.1');
+        expect(pep440ToSemver('1.6.12.dev21')).to.equal('1.6.12-dev.21');
         expect(pep440ToSemver('1.6.2a11.dev104')).to.equal('1.6.2-a.11.dev.104');
         expect(pep440ToSemver('1.6.2rc2')).to.equal('1.6.2-rc.2');
         expect(pep440ToSemver('1.6.2rc2.dev5')).to.equal('1.6.2-rc.2.dev.5');
@@ -20,9 +22,13 @@ describe('Version-related utilities', function () {
         const requiredVersion = ">=0.8.0-rc.3 <0.9";
         expect(satisfies('0.8.0-rc.3', requiredVersion)).to.be.true;
         expect(satisfies('0.8.0-rc.4', requiredVersion)).to.be.true;
+        expect(satisfies('0.8.0-rc.4.dev.2', requiredVersion)).to.be.true;
         expect(satisfies('0.8.0', requiredVersion)).to.be.true;
         expect(satisfies('0.8.1', requiredVersion)).to.be.true;
         expect(satisfies('0.8.24', requiredVersion)).to.be.true;
+
+        expect(satisfies('0.9.0-dev.1', '0.9.0-dev.1')).to.be.true;
+
 
         // out of range
         expect(satisfies('0.8.0-rc.2', requiredVersion)).to.be.false;
@@ -30,6 +36,7 @@ describe('Version-related utilities', function () {
         expect(satisfies('0.8.1-rc.1', requiredVersion)).to.be.false;
         // out of range
         expect(satisfies('0.9.0', requiredVersion)).to.be.false;
+        expect(satisfies('0.9.0-dev.1', requiredVersion)).to.be.false;
     });
 });
 

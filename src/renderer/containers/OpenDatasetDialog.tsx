@@ -6,6 +6,7 @@ import {ModalDialog} from "../components/ModalDialog";
 import {Dispatch, connect} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
+import * as types from "../../common/cate-types";
 import {Region, RegionValue, GLOBAL} from "../components/Region";
 import {DateRangeInput, DateRange} from "@blueprintjs/datetime";
 import {VarNameValueEditor} from "./editor/VarNameValueEditor";
@@ -22,7 +23,7 @@ interface IOpenDatasetDialogProps {
     temporalCoverage: TimeRangeValue | null;
     timeRange: TimeRangeValue | null;
     region: RegionValue;
-    variableNames: string[];
+    variableNames: FieldValue<string>;
 }
 
 interface IOpenDatasetDialogState extends DialogState {
@@ -32,7 +33,7 @@ interface IOpenDatasetDialogState extends DialogState {
     hasRegionConstraint: boolean;
     region: RegionValue;
     hasVariablesConstraint: boolean;
-    variableNames: string[];
+    variableNames: FieldValue<string>;
 }
 
 function mapStateToProps(state: State): IOpenDatasetDialogProps {
@@ -118,8 +119,9 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
         if (!this.props.dataSource) {
             return false;
         }
+
         let validRegion = true;
-        if (this.state.region) {
+        if (this.state.hasRegionConstraint && this.state.region) {
             const west = this.state.region.west.value;
             const east = this.state.region.east.value;
             const south = this.state.region.south.value;
@@ -135,12 +137,14 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
         }
 
         let validVariableNames = true;
-        const variableNames = this.state.variableNames;
-        const dataSource = this.props.dataSource;
-        const variables: any[] = dataSource.meta_info && dataSource.meta_info.variables;
-        if (variableNames && variables) {
-            const validNames = new Set(variables.map(variable => variable.name));
-            validVariableNames = variableNames.every(name => validNames.has(name));
+        if (this.state.hasVariablesConstraint && this.state.variableNames && this.state.variableNames.value) {
+            const variableNames = this.state.variableNames.value.trim();
+            const dataSource = this.props.dataSource;
+            const variables: any[] = dataSource.meta_info && dataSource.meta_info.variables;
+            if (variableNames && variables) {
+                const validNames = new Set(variables.map(variable => variable.name));
+                validVariableNames = variableNames.split(',').every(name => validNames.has(name.trim()));
+            }
         }
 
         return validRegion && validVariableNames;
@@ -166,11 +170,8 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
         this.setState({hasVariablesConstraint: ev.target.checked} as IOpenDatasetDialogState);
     }
 
-    private onVariableNamesChange(unused: any, fieldValue: FieldValue<string>) {
-        let variableNames = [];
-        if (fieldValue && fieldValue.value) {
-            variableNames = fieldValue.value.split(',').map(v => v.trim());
-        }
+    //noinspection JSUnusedLocalSymbols
+    private onVariableNamesChange(unused: any, variableNames: FieldValue<string>) {
         this.setState({variableNames} as IOpenDatasetDialogState);
     }
 
@@ -182,7 +183,7 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
         if (dataSource && dataSource.meta_info && dataSource.meta_info.variables && dataSource.meta_info.variables.length) {
             return {
                 name: dataSource.name,
-                dataType: 'xr.DataSet', // TODO
+                dataType: types.DATASET_TYPE,
                 variables: dataSource.meta_info.variables.map(v => OpenDatasetDialog.convertToVariableState(v)),
             } as ResourceState;
         } else {
@@ -273,8 +274,11 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
                 <Checkbox style={{marginTop: '1em'}} checked={this.state.hasVariablesConstraint}
                           label="Variables constraint" onChange={this.onHasVariablesConstraintChange}/>
                 <div style={{marginLeft: '2em'}}>
-                    <VarNameValueEditor input={OpenDatasetDialog.VAR_NAMES_INPUT} value={this.state.variableNames.join(',')}
-                                        onChange={this.onVariableNamesChange} resource={res} multi={true}/>
+                    <VarNameValueEditor input={OpenDatasetDialog.VAR_NAMES_INPUT}
+                                        value={this.state.variableNames}
+                                        onChange={this.onVariableNamesChange}
+                                        resource={res}
+                                        multi={true}/>
                 </div>
 
                 {remoteMsg}
@@ -298,9 +302,9 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
                 region: `${region.west.value},${region.south.value},${region.east.value},${region.north.value}`
             };
         }
-        if (this.state.hasVariablesConstraint && this.state.variableNames.length) {
-            let variableNames = this.state.variableNames;
-            args = {...args, 'var_names': variableNames.join(',')};
+        if (this.state.hasVariablesConstraint && this.state.variableNames) {
+            let variableNames = this.state.variableNames.value;
+            args = {...args, 'var_names': variableNames};
         }
         return args;
     }

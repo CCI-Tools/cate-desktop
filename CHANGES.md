@@ -1,6 +1,12 @@
 ## 0.9.0-dev.2
 
-TODO
+### Fixes
+
+* Fixed a severe bug where Cate Desktop was unable to find the matching `~/.cate/<version>` directory.
+  (Problem was a bug in conversion from PEP440 to SemVer version strings.)
+* Fixed a problem with non-editable *variable names* field in *Download Dataset* and *Open Dataset* dialogs
+  opened from the **DATA SOURCES** panel.
+  
 
 ## 0.9.0-dev.1
 

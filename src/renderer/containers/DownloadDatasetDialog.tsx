@@ -22,7 +22,7 @@ interface IDownloadDatasetDialogProps {
     temporalCoverage: TimeRangeValue|null;
     timeRange: TimeRangeValue|null;
     region: RegionValue;
-    variableNames: string[];
+    variableNames: FieldValue<string>;
 }
 
 interface IDownloadDatasetDialogState extends DialogState {
@@ -32,7 +32,7 @@ interface IDownloadDatasetDialogState extends DialogState {
     hasRegionConstraint: boolean;
     region: RegionValue;
     hasVariablesConstraint: boolean;
-    variableNames: string[];
+    variableNames: FieldValue<string>;
     localDataSourceName: string;
 }
 
@@ -129,8 +129,9 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
         if (!this.props.dataSource) {
             return false;
         }
+
         let validRegion = true;
-        if (this.state.region) {
+        if (this.state.hasRegionConstraint && this.state.region) {
             const west = this.state.region.west.value;
             const east = this.state.region.east.value;
             const south = this.state.region.south.value;
@@ -146,12 +147,14 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
         }
 
         let validVariableNames = true;
-        const variableNames = this.state.variableNames;
-        const dataSource = this.props.dataSource;
-        const variables: any[] = dataSource.meta_info && dataSource.meta_info.variables;
-        if (variableNames && variables) {
-            const validNames = new Set(variables.map(variable => variable.name));
-            validVariableNames = variableNames.every(name => validNames.has(name));
+        if (this.state.hasVariablesConstraint && this.state.variableNames && this.state.variableNames.value) {
+            const variableNames = this.state.variableNames.value.trim();
+            const dataSource = this.props.dataSource;
+            const variables: any[] = dataSource.meta_info && dataSource.meta_info.variables;
+            if (variableNames && variables) {
+                const validNames = new Set(variables.map(variable => variable.name));
+                validVariableNames = variableNames.split(',').every(name => validNames.has(name.trim()));
+            }
         }
 
         // // TODO (forman): implement full (file) name validation as name will be used as name of a JSON file
@@ -184,11 +187,8 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
         this.setState({hasVariablesConstraint: ev.target.checked} as IDownloadDatasetDialogState);
     }
 
-    private onVariableNamesChange(unused: any, fieldValue: FieldValue<string>) {
-        let variableNames = [];
-        if (fieldValue && fieldValue.value) {
-            variableNames = fieldValue.value.split(',').map(v => v.trim());
-        }
+    //noinspection JSUnusedLocalSymbols
+    private onVariableNamesChange(unused: any, variableNames: FieldValue<string>) {
         this.setState({variableNames} as IDownloadDatasetDialogState);
     }
 
@@ -279,8 +279,11 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
                 <Checkbox style={{marginTop: '1em'}} checked={this.state.hasVariablesConstraint}
                           label="Variables constraint" onChange={this.onHasVariablesConstraintChange}/>
                 <div style={{marginLeft: '2em'}}>
-                    <VarNameValueEditor input={DownloadDatasetDialog.VAR_NAMES_INPUT} value={this.state.variableNames.join(',')}
-                                        onChange={this.onVariableNamesChange} resource={res} multi={true}/>
+                    <VarNameValueEditor input={DownloadDatasetDialog.VAR_NAMES_INPUT}
+                                        value={this.state.variableNames}
+                                        onChange={this.onVariableNamesChange}
+                                        resource={res}
+                                        multi={true}/>
                 </div>
 
                 <p style={{marginTop: '1em'}}>
@@ -310,9 +313,9 @@ class DownloadDatasetDialog extends React.Component<IDownloadDatasetDialogProps,
                 region: `${region.west.value},${region.south.value},${region.east.value},${region.north.value}`
             };
         }
-        if (this.state.hasVariablesConstraint && this.state.variableNames.length) {
-            let variableNames = this.state.variableNames;
-            args = {...args, 'var_names': variableNames.join(',')};
+        if (this.state.hasVariablesConstraint && this.state.variableNames) {
+            let variableNames = this.state.variableNames.value;
+            args = {...args, 'var_names': variableNames};
         }
         return args;
     }
