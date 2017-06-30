@@ -672,6 +672,8 @@ export interface SessionState {
 
     workspacePanelMode: 'resources' | 'steps';
 
+    showHumanReadableDataSourceTitles: boolean;
+
     /**
      * backendConfig settings are applied on restart (of the WebAPI) only.
      */

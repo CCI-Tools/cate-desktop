@@ -202,10 +202,11 @@ export const selectedDataStoreIdSelector = (state: State) => state.control.selec
 export const selectedDataSourceIdSelector = (state: State) => state.control.selectedDataSourceId;
 export const dataSourceFilterExprSelector = (state: State) => state.control.dataSourceFilterExpr;
 export const showDataSourceDetailsSelector = (state: State) => state.control.showDataSourceDetails;
+export const showHumanReadableDataSourceTitlesSelector = (state: State): boolean => state.session.showHumanReadableDataSourceTitles;
 
-export const selectedDataStoreSelector = createSelector<State, DataStoreState | null, DataStoreState[] | null,
-    string
-    | null>(
+export const selectedDataStoreSelector = createSelector<State, DataStoreState | null,
+    DataStoreState[] | null,
+    string | null>(
     dataStoresSelector,
     selectedDataStoreIdSelector,
     (dataStores, selectedDataStoreId) => {
@@ -216,25 +217,35 @@ export const selectedDataStoreSelector = createSelector<State, DataStoreState | 
     }
 );
 
-export const selectedDataSourcesSelector = createSelector<State, DataSourceState[] | null, DataStoreState | null>(
+export const selectedDataSourcesSelector = createSelector<State, DataSourceState[] | null,
+    DataStoreState | null>(
     selectedDataStoreSelector,
     (selectedDataStore) => {
         return (selectedDataStore && selectedDataStore.dataSources) || null;
     }
 );
 
-export const filteredDataSourcesSelector = createSelector<State, DataSourceState[] | null, DataSourceState[] | null,
-    string | null>(
+export const filteredDataSourcesSelector = createSelector<State, DataSourceState[] | null,
+    DataSourceState[] | null,
+    string | null,
+    boolean>(
     selectedDataSourcesSelector,
     dataSourceFilterExprSelector,
-    (selectedDataSources, dataSourceFilterExpr) => {
+    showHumanReadableDataSourceTitlesSelector,
+    (selectedDataSources, dataSourceFilterExpr, showHumanReadableDataSourceTitles) => {
         const hasDataSources = selectedDataSources && selectedDataSources.length;
         const hasFilterExpr = dataSourceFilterExpr && dataSourceFilterExpr !== '';
         if (hasDataSources && hasFilterExpr) {
             const dataSourceFilterExprLC = dataSourceFilterExpr.toLowerCase();
             const parts = dataSourceFilterExprLC.split(" ");
             const nameMatches = ds => {
-                return parts.every(part => ds.name.toLowerCase().includes(part));
+                let text;
+                if (showHumanReadableDataSourceTitles) {
+                    text = (ds.name + " " + (ds.meta_info ? ds.meta_info.title : "")).toLowerCase();
+                } else {
+                    text = ds.name.toLowerCase();
+                }
+                return parts.every(part => text.includes(part));
             };
             return selectedDataSources.filter(ds => nameMatches(ds));
         }
