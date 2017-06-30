@@ -1,6 +1,6 @@
-## 0.8.0-rc.7.dev.2
+## 0.9.0-dev.1
 
-### UX Improvements
+### UX Improvements and new Features
 
 1. Now displaying all variable meta-data attributes
 2. Minor improvements for the **DATA SOURCES** panel:
@@ -8,14 +8,18 @@
    * Download button disabled for the "local" data store
 3. Improved the default placeholder text for geometry fields  
 4. Operation dialog shows operation name in title
-5. Double-click on list elements now invokes the primary action (the blue button) for:
+5. Double-click on list elements now invokes the primary action (the blue button).
+   Note, there is still an issue with double-clicks on already selected items.
+   Double-clicks work for:
    * DATA SOURCE panel
    * OPERATIONS panel
-   * Variables selection dialog
-5. In **DATA SOURCES** and **WORKSPACE** panel: in details table show long text in popover
-6. Improved the default placeholder text for geometry fields  
-
-6. In data source list of **DATA SOURCES** panel, use data source's **title from CSW** as display name
+   * Variables selection dialog   
+5. The details tables of the **DATA SOURCES** panel and **WORKSPACE** panel
+   now have a `...` button to show long values in a pop-up window. 
+6. In the data sources list of **DATA SOURCES** panel we now display the human-readable title
+   retrieved from the data catalogue of the CCI Open Data Portal.
+7. In **VARIABLES** panel, we now display all (meta-info) attributes of the selected variable.
+8. Improved the default placeholder text for geometry fields  
 
 ## 0.8.0-rc.7.dev.1
 
