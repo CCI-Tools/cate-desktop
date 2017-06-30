@@ -19,7 +19,8 @@
 6. In the data sources list of **DATA SOURCES** panel we now display the human-readable title
    retrieved from the data catalogue of the CCI Open Data Portal.
 7. In **VARIABLES** panel, we now display all (meta-info) attributes of the selected variable.
-8. Improved the default placeholder text for geometry fields  
+8. Improved the default placeholder text for geometry fields
+9. In the details view of the **DATA SOURCES** panel show the abstract and a link to the catalogue page
 
 ## 0.8.0-rc.7.dev.1
 

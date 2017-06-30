@@ -1,5 +1,5 @@
 import * as React from "react";
-import {connect} from "react-redux";
+import {connect, Dispatch} from "react-redux";
 import {State, DataStoreState, DataSourceState} from "../state";
 import {AnchorButton, InputGroup, Classes, Tag, Tabs2, Tab2, Tooltip, Checkbox, Colors} from "@blueprintjs/core";
 import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
@@ -355,86 +355,162 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
         );
     }
 }
+interface DetailPart {
+    title: string;
+    id: string;
+    element: JSX.Element;
+}
 
 interface IDataSourceDetailsProps {
     dataSource: DataSourceState
+    dispatch?: Dispatch<State>;
 }
-class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, null> {
+class _DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, null> {
+
+    constructor(props: IDataSourceDetailsProps) {
+        super(props);
+        this.renderAbstract = this.renderAbstract.bind(this);
+        this.openOdpLink = this.openOdpLink.bind(this);
+    }
+
+    private openOdpLink() {
+        const uuid = this.props.dataSource.meta_info.uuid;
+        const url = "http://catalogue.ceda.ac.uk/uuid/" +uuid;
+        actions.openUrlInBrowser(url);
+    }
+
+    private renderAbstract(meta_info: any): DetailPart {
+        // currently not shown
+        let spatialCoverage;
+        if (meta_info.bbox_miny && meta_info.bbox_maxy && meta_info.bbox_minx && meta_info.bbox_maxx) {
+            spatialCoverage = (<div><h5>Spatial coverage</h5>
+                <table>
+                    <tbody>
+                    <tr>
+                        <td></td>
+                        <td>{meta_info.bbox_maxy}&#176;</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>{meta_info.bbox_minx}&#176;</td>
+                        <td></td>
+                        <td>{meta_info.bbox_maxx}&#176;</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>{meta_info.bbox_miny}&#176;</td>
+                        <td></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>)
+        }
+        let openOdpPage;
+        if (meta_info.uuid) {
+            openOdpPage = <AnchorButton onClick={this.openOdpLink} style={{float: 'right', margin: 4}}>Catalogue</AnchorButton>
+        }
+        return {
+            title: "Abstract",
+            id: "abstract",
+            element: (
+                <ScrollablePanelContent>
+                    <Card>
+                        {openOdpPage}
+                        {meta_info.abstract}
+                    </Card>
+                </ScrollablePanelContent>
+            )
+        };
+    }
+
+    private static renderVariablesTable(variables: any[]): DetailPart {
+        function renderName(rowIndex: number) {
+            const variable = variables[rowIndex];
+            return <Cell><TruncatedFormat>{variable.name}</TruncatedFormat></Cell>;
+        }
+
+        function renderUnit(rowIndex: number) {
+            const variable = variables[rowIndex];
+            return <Cell><TruncatedFormat>{variable.units || '-'}</TruncatedFormat></Cell>;
+        }
+
+        function getCellClipboardData(row: number, col: number) {
+            console.log('getCellClipboardData: ', row, col);
+        }
+
+        return {
+            title: "Variables",
+            id: "var",
+            element: (
+                <Table numRows={variables.length}
+                       isRowHeaderShown={false}
+                       getCellClipboardData={getCellClipboardData}>
+                    <Column name="Name" renderCell={renderName}/>
+                    <Column name="Units" renderCell={renderUnit}/>
+                </Table>
+            )
+        };
+    }
+
+    private static renderMetaInfoTable(metaInfoKeys: string[], meta_info: any): DetailPart {
+        function renderKey(rowIndex: number) {
+            const key = metaInfoKeys[rowIndex];
+            return <Cell><TruncatedFormat>{key}</TruncatedFormat></Cell>;
+        }
+
+        function renderValue(rowIndex: number) {
+            const key = metaInfoKeys[rowIndex];
+            return <Cell><TruncatedFormat>{meta_info[key]}</TruncatedFormat></Cell>;
+        }
+
+        function getCellClipboardData(row: number, col: number) {
+            console.log('getCellClipboardData: ', row, col);
+        }
+
+        return {
+            title: "Meta-Info",
+            id: "meta",
+            element: (
+                <Table numRows={metaInfoKeys.length}
+                       isRowHeaderShown={false}
+                       getCellClipboardData={getCellClipboardData}>
+                    <Column name="Key" renderCell={renderKey}/>
+                    <Column name="Value" renderCell={renderValue}/>
+                </Table>
+            )
+        };
+    }
 
     render() {
         const dataSource = this.props.dataSource;
         if (!dataSource) {
             return null;
         }
-        let metaInfoTable = null;
-        let variablesTable = null;
+        const details: DetailPart[] = [];
         if (dataSource.meta_info) {
+            if (dataSource.meta_info.abstract) {
+                details.push(this.renderAbstract(dataSource.meta_info));
+            }
             const metaInfoKeys = Object.keys(dataSource.meta_info).filter(key => key !== 'variables');
             if (metaInfoKeys.length) {
-                function renderKey(rowIndex: number) {
-                    const key = metaInfoKeys[rowIndex];
-                    return <Cell><TruncatedFormat>{key}</TruncatedFormat></Cell>;
-                }
-
-                function renderValue(rowIndex: number) {
-                    const key = metaInfoKeys[rowIndex];
-                    return <Cell><TruncatedFormat>{dataSource.meta_info[key]}</TruncatedFormat></Cell>;
-                }
-
-                function getCellClipboardData(row: number, col: number) {
-                    console.log('getCellClipboardData: ', row, col);
-                }
-
-                metaInfoTable = (
-                    <Table numRows={metaInfoKeys.length}
-                           isRowHeaderShown={false}
-                           getCellClipboardData={getCellClipboardData}>
-                        <Column name="Key" renderCell={renderKey}/>
-                        <Column name="Value" renderCell={renderValue}/>
-                    </Table>
-                );
+                details.push(_DataSourceDetails.renderMetaInfoTable(metaInfoKeys, dataSource.meta_info));
             }
-            const variables = dataSource.meta_info.variables;
             if (dataSource.meta_info.variables) {
+                const variables = dataSource.meta_info.variables;
                 if (variables.length) {
-                    function renderName(rowIndex: number) {
-                        const variable = variables[rowIndex];
-                        return <Cell><TruncatedFormat>{variable.name}</TruncatedFormat></Cell>;
-                    }
-
-                    function renderUnit(rowIndex: number) {
-                        const variable = variables[rowIndex];
-                        return <Cell><TruncatedFormat>{variable.units || '-'}</TruncatedFormat></Cell>;
-                    }
-
-                    function getCellClipboardData(row: number, col: number) {
-                        console.log('getCellClipboardData: ', row, col);
-                    }
-
-                    variablesTable = (
-                        <Table numRows={variables.length}
-                               isRowHeaderShown={false}
-                               getCellClipboardData={getCellClipboardData}>
-                            <Column name="Name" renderCell={renderName}/>
-                            <Column name="Units" renderCell={renderUnit}/>
-                        </Table>
-                    );
+                    details.push(_DataSourceDetails.renderVariablesTable(variables));
                 }
             }
         }
 
-        if (metaInfoTable && variablesTable) {
+        if (details.length == 1) {
+            return details[0].element;
+        } else if (details.length > 1) {
             return (
-
                 <Tabs2 id="dsDetails" renderActiveTabPanelOnly={true}>
-                    <Tab2 id="vars" title="Variables" panel={variablesTable}/>
-                    <Tab2 id="meta" title="Meta-Info" panel={metaInfoTable}/>
+                    {details.map(d => <Tab2 id={d.id} title={d.title} panel={d.element}/>)}
                 </Tabs2>
             );
-        } else if (metaInfoTable) {
-            return metaInfoTable;
-        } else if (variablesTable) {
-            return variablesTable;
         } else {
             return (
                 <Card>
@@ -442,7 +518,9 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
                 </Card>
             );
         }
+
     }
 }
+const DataSourceDetails = connect()(_DataSourceDetails);
 
 export default connect(mapStateToProps, mapDispatchToProps)(DataSourcesPanel);

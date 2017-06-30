@@ -1584,5 +1584,13 @@ export function sendPreferencesToMain(callback?: (error: any) => void): ThunkAct
     };
 }
 
+export function openUrlInBrowser(url: string): boolean {
+    const electron = require('electron');
+    if (!electron) {
+        console.warn('openExternal() cannot be executed, electron not available from renderer process');
+        return false;
+    }
+    return electron.shell.openExternal(url);
+}
 
 
