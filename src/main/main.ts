@@ -32,7 +32,7 @@ const dialog = electron.dialog;
  * The value is a node-semver (https://github.com/npm/node-semver) compatible version range string.
  * @type {string}
  */
-export const WEBAPI_VERSION_RANGE = ">=0.9.0-rc.1 <1.0.0";
+export const WEBAPI_VERSION_RANGE = ">=0.9.0-dev.1 <1.0.0";
 
 const WEBAPI_INSTALLER_CANCELLED = 1;
 const WEBAPI_INSTALLER_ERROR = 2;
