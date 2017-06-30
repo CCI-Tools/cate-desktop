@@ -58,18 +58,18 @@ export class Region extends React.PureComponent<IRegionProps, null> {
         return (
             <div disabled={this.props.disabled}>
                 <div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'flex-start', padding: 2}}>
-                    <div style={{flexGrow: 0, width: '3em'}}>W </div>
+                    <div style={{flexGrow: 0, width: '14em'}}>Lon. from </div>
                     <div
                         style={{flexGrow: 1, width: '100%'}}>{this.renderField(value && value.west || null, -180, 180, this.onWestChange)}</div>
-                    <div style={{flexGrow: 0, width: '3em'}}>E </div>
+                    <div style={{flexGrow: 0, width: '4em'}}> to </div>
                     <div
                         style={{flexGrow: 1, width: '100%'}}>{this.renderField(value && value.east || null, -180, 180, this.onEastChange)}</div>
                 </div>
                 <div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'flex-start', padding: 2}}>
-                    <div style={{flexGrow: 0, width: '3em'}}>S </div>
+                    <div style={{flexGrow: 0, width: '14em'}}>Lat. from </div>
                     <div
                         style={{flexGrow: 1, width: '100%'}}>{this.renderField(value && value.south || null, -90, 90, this.onSouthChange)}</div>
-                    <div style={{flexGrow: 0, width: '3em'}}>N </div>
+                    <div style={{flexGrow: 0, width: '4em'}}>to </div>
                     <div
                         style={{flexGrow: 1, width: '100%'}}>{this.renderField(value && value.north || null, -90, 90, this.onNorthChange)}</div>
                 </div>

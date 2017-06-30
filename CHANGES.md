@@ -8,6 +8,7 @@
    * New details view which shows the abstract and a button to open the related CCI ODP catalogue page
    * Open Dataset Dialogs titles are now either "Open Local Dataset" or "Open Remote Dataset (via OPeNDAP)"
    * Download button now always disabled for the "local" data store
+   * Open and download dialogs now use "Lon. from/to" and "Lat. from/to" rather than "W", "E", "S", "N"
 2. Improved the default placeholder text for geometry fields  
 3. Operation dialog shows operation name in title
 4. Double-click on list elements now invokes the primary action (the blue button).
