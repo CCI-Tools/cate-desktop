@@ -79,22 +79,33 @@ function renderFloatValueEditor(props: IValueEditorProps<number>) {
 
 function renderStrValueEditor(props: IValueEditorProps<string>) {
     if (props.input.fileOpenMode) {
-        return <FileValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
+        return renderFileValueEditor(props);
     } else {
-        return <TextValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
+        return renderTextValueEditor(props);
     }
 }
 
+function renderFileValueEditor(props: IValueEditorProps<string>) {
+    return <FileValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
+}
+
+function renderTextValueEditor(props: IValueEditorProps<string>) {
+    return <TextValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
+}
+
 function renderPointLikeValueEditor(props: IValueEditorProps<string>) {
-    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Point" size={16}/>;
+    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Point"
+                                size={16}/>;
 }
 
 function renderPolygonLikeValueEditor(props: IValueEditorProps<string>) {
-    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Polygon" size={32}/>;
+    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Polygon"
+                                size={32}/>;
 }
 
 function renderGeometryLikeValueEditor(props: IValueEditorProps<string>) {
-    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Geometry" size={32}/>;
+    return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange}
+                                geometryType="Geometry" size={32}/>;
 }
 
 function renderTimeLikeValueEditor(props: IValueEditorProps<string>) {
@@ -106,11 +117,13 @@ function renderTimeRangeLikeValueEditor(props: IValueEditorProps<string>) {
 }
 
 function renderVarNameLikeValueEditor(props: IValueEditorProps<string>) {
-    return <VarNameValueEditor input={props.input} value={props.value} onChange={props.onChange} resource={findResource(props)} multi={false}/>;
+    return <VarNameValueEditor input={props.input} value={props.value} onChange={props.onChange}
+                               resource={findResource(props)} multi={false}/>;
 }
 
 function renderVarNamesLikeValueEditor(props: IValueEditorProps<string>) {
-    return <VarNameValueEditor input={props.input} value={props.value} onChange={props.onChange} resource={findResource(props)} multi={true}/>;
+    return <VarNameValueEditor input={props.input} value={props.value} onChange={props.onChange}
+                               resource={findResource(props)} multi={true}/>;
 }
 
 function renderDictLikeValueEditor(props: IValueEditorProps<string>) {
@@ -134,6 +147,7 @@ const VALUE_EDITOR_FACTORIES = {
     [types.VAR_NAME_LIKE_TYPE]: renderVarNameLikeValueEditor,
     [types.VAR_NAMES_LIKE_TYPE]: renderVarNamesLikeValueEditor,
     [types.DICT_LIKE_TYPE]: renderDictLikeValueEditor,
+    [types.FILE_LIKE_TYPE]: renderFileValueEditor,
     [types.LITERAL_TYPE]: renderLiteralValueEditor,
 };
 

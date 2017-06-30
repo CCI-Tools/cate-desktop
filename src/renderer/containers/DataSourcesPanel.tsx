@@ -1,7 +1,7 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {State, DataStoreState, DataSourceState} from "../state";
-import {AnchorButton, InputGroup, Classes, Tag, Tabs2, Tab2, Tooltip} from "@blueprintjs/core";
+import {AnchorButton, InputGroup, Classes, Tag, Tabs2, Tab2, Tooltip, Checkbox, Colors} from "@blueprintjs/core";
 import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
@@ -25,6 +25,7 @@ interface IDataSourcesPanelProps {
     selectedDataSources: DataSourceState[] | null;
     filteredDataSources: DataSourceState[] | null;
     showDataSourceDetails: boolean;
+    showHumanReadableDataSourceTitles: boolean;
 }
 
 function mapStateToProps(state: State): IDataSourcesPanelProps {
@@ -37,6 +38,7 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         selectedDataSources: selectors.selectedDataSourcesSelector(state),
         filteredDataSources: selectors.filteredDataSourcesSelector(state),
         showDataSourceDetails: selectors.showDataSourceDetailsSelector(state),
+        showHumanReadableDataSourceTitles: selectors.showHumanReadableDataSourceTitlesSelector(state),
     };
 }
 
@@ -45,6 +47,7 @@ interface IDataSourcesPanelDispatch {
     setSelectedDataSourceId(selectedDataSourceId: string): void;
     setDataSourceFilterExpr(dataSourceFilterExpr: string): void;
     setControlState(propertyName: string, value: any): void;
+    updateSessionState(sessionState: any): void;
     loadTemporalCoverage(dataStoreId: string, dataSourceId: string): void;
     showDialog(dialogId: string): void;
     hideDialog(dialogId: string): void;
@@ -55,6 +58,7 @@ const mapDispatchToProps = {
     setSelectedDataSourceId: actions.setSelectedDataSourceId,
     setDataSourceFilterExpr: actions.setDataSourceFilterExpr,
     setControlState: actions.setControlProperty,
+    updateSessionState: actions.updateSessionState,
     loadTemporalCoverage: actions.loadTemporalCoverage,
     showDialog: actions.showDialog,
     hideDialog: actions.hideDialog,
@@ -67,6 +71,9 @@ const mapDispatchToProps = {
  */
 class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSourcesPanelDispatch, null> {
 
+    private static readonly FLEX_ROW_STYLE = {display: "flex", alignItems: "center"};
+    private static readonly SPACER_STYLE = {flex: 1};
+
     constructor(props: IDataSourcesPanelProps) {
         super(props);
         this.handleAddDatasetDialog = this.handleAddDatasetDialog.bind(this);
@@ -75,6 +82,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         this.handleShowOpenDatasetDialog = this.handleShowOpenDatasetDialog.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleDataStoreSelected = this.handleDataStoreSelected.bind(this);
+        this.onShowHumanReadableTitleChange = this.onShowHumanReadableTitleChange.bind(this);
     }
 
     private handleAddDatasetDialog() {
@@ -110,6 +118,10 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         this.props.setControlState('showDataSourceDetails', value);
     }
 
+    private onShowHumanReadableTitleChange(ev: any) {
+        this.props.updateSessionState({showHumanReadableDataSourceTitles: ev.target.checked});
+    }
+
     render() {
         const hasDataStores = this.props.dataStores && this.props.dataStores.length;
         const hasDataSources = this.props.selectedDataSources && this.props.selectedDataSources.length;
@@ -132,9 +144,9 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                     </Tooltip>
                     <Tooltip content="Remove local data source">
                         <AnchorButton
-                                      onClick={this.handleRemoveDatasetDialog}
-                                      disabled={!canRemove}
-                                      iconName="trash"/>
+                            onClick={this.handleRemoveDatasetDialog}
+                            disabled={!canRemove}
+                            iconName="trash"/>
                     </Tooltip>
                     <Tooltip content="Make remote data source local">
                         <AnchorButton className={isNonLocalStore ? "pt-intent-primary" : ""}
@@ -154,7 +166,6 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                     <OpenDatasetDialog/>
                 </div>
             );
-
             body = (
                 <div>
                     {this.renderDataStoreSelector()}
@@ -167,6 +178,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                         <DataSourcesList dataSources={this.props.filteredDataSources}
                                          selectedDataSourceId={this.props.selectedDataSource ? this.props.selectedDataSource.id : null}
                                          setSelectedDataSourceId={this.props.setSelectedDataSourceId}
+                                         showHumanReadableDataSourceTitles={this.props.showHumanReadableDataSourceTitles}
                                          doubleClickAction={isLocalStore ? this.handleShowOpenDatasetDialog : isNonLocalStore ? this.handleShowDownloadDatasetDialog : null}/>
                         <DataSourceDetails dataSource={this.props.selectedDataSource}/>
                     </ContentWithDetailsPanel>
@@ -213,17 +225,26 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         }
 
         const selectedDataStore = this.props.selectedDataStore;
+        const showHumanReadableDataSourceTitles = this.props.showHumanReadableDataSourceTitles;
         //  a label has by default a 15px margin at the bottom
         return (
-            <label className="pt-label pt-inline" style={{margin: "0 0 0 0"}}>
-                Data store:
-                <div className="pt-select" style={{padding: '0.2em'}}>
-                    <select value={selectedDataStore ? selectedDataStore.id : ''}
-                            onChange={this.handleDataStoreSelected}>
-                        {dataStoreOptions}
-                    </select>
-                </div>
-            </label>
+            <div style={DataSourcesPanel.FLEX_ROW_STYLE}>
+                <label className="pt-label pt-inline" style={{margin: "0 0 0 0"}}>
+                    Data store:
+                    <div className="pt-select" style={{padding: '0.2em'}}>
+                        <select value={selectedDataStore ? selectedDataStore.id : ''}
+                                onChange={this.handleDataStoreSelected}>
+                            {dataStoreOptions}
+                        </select>
+                    </div>
+                </label>
+                <span style={DataSourcesPanel.SPACER_STYLE}/>
+                <Checkbox style={{marginTop: '1em'}}
+                          label="Human readable titles"
+                          checked={showHumanReadableDataSourceTitles}
+                          onChange={this.onShowHumanReadableTitleChange}
+                />
+            </div>
         );
     }
 
@@ -247,6 +268,7 @@ interface IDataSourcesListProps {
     dataSources: DataSourceState[];
     selectedDataSourceId: string | null;
     setSelectedDataSourceId: (selectedDataSourceId: string) => void;
+    showHumanReadableDataSourceTitles: boolean;
     doubleClickAction: (dataSource: DataSourceState) => any;
 }
 class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
@@ -255,7 +277,9 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
 
     constructor(props: IDataSourcesListProps) {
         super(props);
-        this.renderItem = this.renderItem.bind(this);
+        this.renderIcon = this.renderIcon.bind(this);
+        this.renderDsTitleHumanReadable = this.renderDsTitleHumanReadable.bind(this);
+        this.renderDsTitle = this.renderDsTitle.bind(this);
         this.handleDataSourceSelected = this.handleDataSourceSelected.bind(this);
         this.handleIconLoadError = this.handleIconLoadError.bind(this);
     }
@@ -277,27 +301,52 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
         return dataSource.id;
     }
 
-    private renderItem(dataSource: DataSourceState) {
+    private renderIcon(dataSource: DataSourceState) {
         // TODO (forman): compute icon size based on screen resolution
         const imageSize = 32;
         const iconName = ((dataSource.meta_info && dataSource.meta_info.cci_project) || 'cci').toLowerCase();
-        const displayName = dataSource.name.replace('esacci', '').replace(/\./g, ' ');
+        return <img src={`resources/images/data-sources/esacci/${iconName}.png`}
+                    style={{width: imageSize, height: imageSize, flex: 'none', marginRight: 6}}
+                    onError={this.handleIconLoadError}/>
+    }
+
+    private renderDsTitleHumanReadable(dataSource: DataSourceState) {
+        const title = (dataSource.meta_info && dataSource.meta_info.title);
+        const name = dataSource.name.replace('esacci', '').replace(/\./g, ' ');
         return (
             <div style={{display: 'flex', alignItems: 'center'}}>
-                <img src={`resources/images/data-sources/esacci/${iconName}.png`}
-                     style={{width: imageSize, height: imageSize, flex: 'none', marginRight: 6}}
-                     onError={this.handleIconLoadError}/>
-                <span>{displayName}</span>
+                {this.renderIcon(dataSource)}
+                <div>
+                    <div>{title}</div>
+                    <div style={{color: Colors.BLUE5}}>{name}</div>
+                </div>
+            </div>
+        );
+    }
+
+    private renderDsTitle(dataSource: DataSourceState) {
+        const name = dataSource.name.replace('esacci', '').replace(/\./g, ' ');
+        return (
+            <div style={{display: 'flex', alignItems: 'center'}}>
+                {this.renderIcon(dataSource)}
+                <span>{name}</span>
             </div>
         );
     }
 
     render() {
+        let renderTitle;
+        if (this.props.showHumanReadableDataSourceTitles) {
+            renderTitle = this.renderDsTitleHumanReadable
+        } else {
+            renderTitle = this.renderDsTitle
+        }
+
         return (
             <ScrollablePanelContent>
                 <ListBox items={this.props.dataSources}
                          getItemKey={DataSourcesList.getItemKey}
-                         renderItem={this.renderItem}
+                         renderItem={renderTitle}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          selection={this.props.selectedDataSourceId}
                          onItemDoubleClick={this.props.doubleClickAction}

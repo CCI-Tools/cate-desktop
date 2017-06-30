@@ -15,6 +15,7 @@
 5. In **DATA SOURCES** and **WORKSPACE** panel: in details table show long text in popover
 6. Improved the default placeholder text for geometry fields  
 
+6. In data source list of **DATA SOURCES** panel, use data source's **title from CSW** as display name
 
 ## 0.8.0-rc.7.dev.1
 

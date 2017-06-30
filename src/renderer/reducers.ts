@@ -538,6 +538,8 @@ const initialSessionState: SessionState = {
 
     workspacePanelMode: 'steps',
 
+    showHumanReadableDataSourceTitles: true,
+
     backendConfig: {
         dataStoresPath: null,
         useWorkspaceImageryCache: false,
