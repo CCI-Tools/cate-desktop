@@ -23,6 +23,7 @@ export const TIME_RANGE_LIKE_TYPE = 'cate.core.types.TimeRangeLike';
 export const VAR_NAME_LIKE_TYPE = 'cate.core.types.VarName';
 export const VAR_NAMES_LIKE_TYPE = 'cate.core.types.VarNamesLike';
 export const DICT_LIKE_TYPE = 'cate.core.types.DictLike';
+export const FILE_LIKE_TYPE = 'cate.core.types.FileLike';
 export const ARBITRARY_TYPE = 'cate.core.types.Arbitrary';
 export const LITERAL_TYPE = 'cate.core.types.Literal';
 
@@ -69,6 +70,8 @@ export function isAssignableFrom(targetDataType: string, sourceDataType: string)
         case VAR_NAMES_LIKE_TYPE:
             return sourceDataType === STR_TYPE;
         case DICT_LIKE_TYPE:
+            return sourceDataType === STR_TYPE;
+        case FILE_LIKE_TYPE:
             return sourceDataType === STR_TYPE;
         case TIME_LIKE_TYPE:
             return sourceDataType === STR_TYPE;

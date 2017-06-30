@@ -22,10 +22,10 @@ export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, 
         const onChange = this.props.onChange;
 
         let showFileDialogCallback;
-        if (this.props.input.fileOpenMode === 'r') {
-            showFileDialogCallback = FileValueEditor.showOpenDialog;
-        } else {
+        if (this.props.input.fileOpenMode === 'w') {
             showFileDialogCallback = FileValueEditor.showSaveDialog;
+        } else {
+            showFileDialogCallback = FileValueEditor.showOpenDialog;
         }
 
         return (
