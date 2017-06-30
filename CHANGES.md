@@ -2,25 +2,21 @@
 
 ### UX Improvements and new Features
 
-1. Now displaying all variable meta-data attributes
-2. Minor improvements for the **DATA SOURCES** panel:
+1. Various improvements for the **DATA SOURCES** panel:
+   * Displaying human-readable data source titles
+     retrieved from the data catalogue of the CCI ODP.
+   * New details view which shows the abstract and a button to open the related CCI ODP catalogue page
    * Open Dataset Dialogs titles are now either "Open Local Dataset" or "Open Remote Dataset (via OPeNDAP)"
-   * Download button disabled for the "local" data store
-3. Improved the default placeholder text for geometry fields  
-4. Operation dialog shows operation name in title
-5. Double-click on list elements now invokes the primary action (the blue button).
+   * Download button now always disabled for the "local" data store
+2. Improved the default placeholder text for geometry fields  
+3. Operation dialog shows operation name in title
+4. Double-click on list elements now invokes the primary action (the blue button).
    Note, there is still an issue with double-clicks on already selected items.
-   Double-clicks work for:
-   * DATA SOURCE panel
-   * OPERATIONS panel
-   * Variables selection dialog   
+   Double-clicks should now work for **DATA SOURCE** panel, **OPERATIONS** panel, 
+   and variable selection dialogs.   
 5. The details tables of the **DATA SOURCES** panel and **WORKSPACE** panel
    now have a `...` button to show long values in a pop-up window. 
-6. In the data sources list of **DATA SOURCES** panel we now display the human-readable title
-   retrieved from the data catalogue of the CCI Open Data Portal.
-7. In **VARIABLES** panel, we now display all (meta-info) attributes of the selected variable.
-8. Improved the default placeholder text for geometry fields
-9. In the details view of the **DATA SOURCES** panel show the abstract and a link to the catalogue page
+6. In **VARIABLES** panel, we now display all (meta-info) attributes of the selected variable.
 
 ## 0.8.0-rc.7.dev.1
 
