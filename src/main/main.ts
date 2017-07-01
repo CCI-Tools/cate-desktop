@@ -228,7 +228,7 @@ export function init() {
         //stdio: 'inherit',
         ...webAPIConfig.processOptions
     };
-    if (process.platform === 'win32') {
+    if (process.platform === 'win32' && webAPIConfig.command) {
         // For Conda executables to run on Windows, we must activate the environment.
         // We emulate this, by setting creating an equivalent environment
         const scriptsPath = path.dirname(webAPIConfig.command);
@@ -241,6 +241,13 @@ export function init() {
     }
 
     function startWebapiService(): child_process.ChildProcess {
+
+        if (!webAPIConfig.command) {
+            electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
+                'Failed to start Cate WebAPI service.\nCate backend could not be found.');
+            app.exit(WEBAPI_MISSING); // exit immediately
+        }
+
         const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
         console.log(CATE_DESKTOP_PREFIX, `Starting Cate WebAPI service using arguments: ${webAPIStartArgs}`);
 
@@ -278,6 +285,11 @@ export function init() {
 
     function stopWebapiService(webAPIProcess) {
         if (!webAPIProcess) {
+            return;
+        }
+        if (!webAPIConfig.command) {
+            electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
+                'Failed to stop Cate WebAPI service.\nCate backend could not be found.');
             return;
         }
         // Note we are async here, because sync can take a lot of time...
