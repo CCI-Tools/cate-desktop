@@ -78,7 +78,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         super(props);
         this.handleAddDatasetDialog = this.handleAddDatasetDialog.bind(this);
         this.handleRemoveDatasetDialog = this.handleRemoveDatasetDialog.bind(this);
-        this.handleShowDownloadDatasetDialog = this.handleShowDownloadDatasetDialog.bind(this);
+        this.handleShowDownloadDataSourceDialog = this.handleShowDownloadDataSourceDialog.bind(this);
         this.handleShowOpenDatasetDialog = this.handleShowOpenDatasetDialog.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleDataStoreSelected = this.handleDataStoreSelected.bind(this);
@@ -93,9 +93,9 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         this.props.showDialog('removeDatasetDialog');
     }
 
-    private handleShowDownloadDatasetDialog() {
+    private handleShowDownloadDataSourceDialog() {
         this.maybeLoadTemporalCoverage();
-        this.props.showDialog('downloadDatasetDialog');
+        this.props.showDialog('downloadDataSourceDialog');
     }
 
     private handleShowOpenDatasetDialog() {
@@ -148,7 +148,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                 primaryAction = (
                     <Tooltip content="Download and/or open remote dataset">
                         <AnchorButton className={"pt-intent-primary"}
-                                      onClick={this.handleShowDownloadDatasetDialog}
+                                      onClick={this.handleShowDownloadDataSourceDialog}
                                       disabled={!canDownload}
                                       iconName="cloud-download"/>
                     </Tooltip>
@@ -188,7 +188,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                                          selectedDataSourceId={this.props.selectedDataSource ? this.props.selectedDataSource.id : null}
                                          setSelectedDataSourceId={this.props.setSelectedDataSourceId}
                                          showHumanReadableDataSourceTitles={this.props.showHumanReadableDataSourceTitles}
-                                         doubleClickAction={isLocalStore ? this.handleShowOpenDatasetDialog : isNonLocalStore ? this.handleShowDownloadDatasetDialog : null}/>
+                                         doubleClickAction={isLocalStore ? this.handleShowOpenDatasetDialog : isNonLocalStore ? this.handleShowDownloadDataSourceDialog : null}/>
                         <DataSourceDetails dataSource={this.props.selectedDataSource}/>
                     </ContentWithDetailsPanel>
                 </div>
