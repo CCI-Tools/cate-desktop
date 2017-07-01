@@ -76,7 +76,7 @@ export class ModalDialog extends React.Component<IModalDialogProps, IModalDialog
                                            iconName={this.props.confirmIconName}>{this.props.confirmTitle || 'OK'}</AnchorButton>);
 
         if (this.props.confirmTooltip) {
-            confirmButton = (<Tooltip content={this.props.confirmTooltip} inline>{confirmButton}</Tooltip>);
+            confirmButton = (<Tooltip key="confirmTooltip" content={this.props.confirmTooltip} inline>{confirmButton}</Tooltip>);
         }
 
         let extraActions;
