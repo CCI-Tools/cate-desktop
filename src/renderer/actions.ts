@@ -380,7 +380,7 @@ export function updateDataSourceTemporalCoverage(dataStoreId: string,
     return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
 }
 
-export function downloadDataset(dataSourceId: string, localName: string, args: any): ThunkAction {
+export function downloadDataset(dataSourceId: string, localName: string, args: any, openAfterDownload: boolean): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         function call(onProgress) {
             return selectors.datasetAPISelector(getState()).makeDataSourceLocal(dataSourceId, localName, args, onProgress);
@@ -391,9 +391,15 @@ export function downloadDataset(dataSourceId: string, localName: string, args: a
             if (dataSources && dataSources.length) {
                 dispatch(setSelectedDataStoreIdImpl('local'));
                 dispatch(setDataSourceFilterExpr(''));
-                const localDSName = dataSources.find(ds => ds.name === localName || ds.name === `local.${localName}`);
-                if (localDSName) {
-                    dispatch(setSelectedDataSourceId(localDSName.name));
+                const localDataSource = dataSources.find(ds => ds.name === localName || ds.name === `local.${localName}`);
+                if (localDataSource) {
+                    dispatch(setSelectedDataSourceId(localDataSource.name));
+                    if (openAfterDownload) {
+                        const selectedDataSource = selectors.selectedDataSourceSelector(getState());
+                        if (selectedDataSource.name === localDataSource.name) {
+                            dispatch(openDataset(selectedDataSource.name, {}));
+                        }
+                    }
                 }
             }
         }

@@ -1,5 +1,13 @@
 ## 0.9.0-dev.2
 
+### UX Improvements and new Features
+
+1. Improvements for the **DATA SOURCES** panel:
+   * To simplify data access for new users, there is now only one primary action for both the
+    `local` and the `esa_cci_odp` data stores: *Open Local Dataset* and *Download Data Source*.
+    The latter can now also open the dataset after download or open from remote (using OPeNDAP).
+   * Edit fields for the constraints such as time range, region, variable names are now collapsible.
+
 ### Fixes
 
 * Fixed a severe bug where Cate Desktop was unable to find the matching `~/.cate/<version>` directory.

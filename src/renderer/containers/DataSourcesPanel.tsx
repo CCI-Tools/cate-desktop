@@ -7,7 +7,7 @@ import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
-import DownloadDatasetDialog from "./DownloadDatasetDialog";
+import DownloadDatasetDialog from "./DownloadDataSourceDialog";
 import OpenDatasetDialog from "./OpenDatasetDialog";
 import AddDatasetDialog from "./AddDatasetDialog";
 import RemoveDatasetDialog from "./RemoveDatasetDialog";
@@ -134,6 +134,26 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             const canRemove = hasSelection && isLocalStore;
             const canDownload = hasSelection && !isLocalStore;
             const canOpen = hasSelection && this.props.hasWorkspace;
+            let primaryAction;
+            if (isLocalStore) {
+                primaryAction = (
+                    <Tooltip content="Open local dataset">
+                        <AnchorButton className={"pt-intent-primary"}
+                                      onClick={this.handleShowOpenDatasetDialog}
+                                      disabled={!canOpen}
+                                      iconName="folder-shared-open"/>
+                    </Tooltip>
+                );
+            } else {
+                primaryAction = (
+                    <Tooltip content="Download and/or open remote dataset">
+                        <AnchorButton className={"pt-intent-primary"}
+                                      onClick={this.handleShowDownloadDatasetDialog}
+                                      disabled={!canDownload}
+                                      iconName="cloud-download"/>
+                    </Tooltip>
+                );
+            }
             const actionComponent = (
                 <div className="pt-button-group">
                     <Tooltip content="Add local data source">
@@ -148,18 +168,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                             disabled={!canRemove}
                             iconName="trash"/>
                     </Tooltip>
-                    <Tooltip content="Make remote data source local">
-                        <AnchorButton className={isNonLocalStore ? "pt-intent-primary" : ""}
-                                      onClick={this.handleShowDownloadDatasetDialog}
-                                      disabled={!canDownload}
-                                      iconName="cloud-download"/>
-                    </Tooltip>
-                    <Tooltip content="Open data source">
-                        <AnchorButton className={isLocalStore ? "pt-intent-primary" : ""}
-                                      onClick={this.handleShowOpenDatasetDialog}
-                                      disabled={!canOpen}
-                                      iconName="folder-shared-open"/>
-                    </Tooltip>
+                    {primaryAction}
                     <AddDatasetDialog/>
                     <RemoveDatasetDialog/>
                     <DownloadDatasetDialog/>
@@ -375,39 +384,40 @@ class _DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nu
 
     private openOdpLink() {
         const uuid = this.props.dataSource.meta_info.uuid;
-        const url = "http://catalogue.ceda.ac.uk/uuid/" +uuid;
+        const url = "http://catalogue.ceda.ac.uk/uuid/" + uuid;
         actions.openUrlInBrowser(url);
     }
 
     private renderAbstract(meta_info: any): DetailPart {
         // currently not shown
-        let spatialCoverage;
-        if (meta_info.bbox_miny && meta_info.bbox_maxy && meta_info.bbox_minx && meta_info.bbox_maxx) {
-            spatialCoverage = (<div><h5>Spatial coverage</h5>
-                <table>
-                    <tbody>
-                    <tr>
-                        <td></td>
-                        <td>{meta_info.bbox_maxy}&#176;</td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>{meta_info.bbox_minx}&#176;</td>
-                        <td></td>
-                        <td>{meta_info.bbox_maxx}&#176;</td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>{meta_info.bbox_miny}&#176;</td>
-                        <td></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>)
-        }
+        // let spatialCoverage;
+        // if (meta_info.bbox_miny && meta_info.bbox_maxy && meta_info.bbox_minx && meta_info.bbox_maxx) {
+        //     spatialCoverage = (<div><h5>Spatial coverage</h5>
+        //         <table>
+        //             <tbody>
+        //             <tr>
+        //                 <td/>
+        //                 <td>{meta_info.bbox_maxy}&#176;</td>
+        //                 <td/>
+        //             </tr>
+        //             <tr>
+        //                 <td>{meta_info.bbox_minx}&#176;</td>
+        //                 <td/>
+        //                 <td>{meta_info.bbox_maxx}&#176;</td>
+        //             </tr>
+        //             <tr>
+        //                 <td/>
+        //                 <td>{meta_info.bbox_miny}&#176;</td>
+        //                 <td/>
+        //             </tr>
+        //             </tbody>
+        //         </table>
+        //     </div>)
+        // }
         let openOdpPage;
         if (meta_info.uuid) {
-            openOdpPage = <AnchorButton onClick={this.openOdpLink} style={{float: 'right', margin: 4}}>Catalogue</AnchorButton>
+            openOdpPage =
+                <AnchorButton onClick={this.openOdpLink} style={{float: 'right', margin: 4}}>Catalogue</AnchorButton>
         }
         return {
             title: "Abstract",

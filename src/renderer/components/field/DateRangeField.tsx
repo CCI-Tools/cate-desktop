@@ -1,10 +1,11 @@
 import * as React from 'react';
 import {DateRange, DateInput} from "@blueprintjs/datetime";
-import {Field, FieldType, IFieldProps} from "./Field";
+import {Field, FieldType, FieldValue, IFieldProps} from "./Field";
 import {isUndefinedOrNull} from "../../../common/types";
 import {DEFAULT_MAX_DATE, DEFAULT_MIN_DATE, formatDate, parseDate, validateDate} from "./DateField";
 
 export type DateRangeFieldType = FieldType<DateRange>;
+export type DateRangeFieldValue = FieldValue<DateRange>;
 
 interface IDateRangeFieldProps extends IFieldProps {
     nullable?: boolean;

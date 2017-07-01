@@ -63,7 +63,7 @@ class RemoveDatasetDialog extends React.Component<IRemoveDatasetDialogProps, IRe
             <ModalDialog
                 isOpen={isOpen}
                 title="Remove data source"
-                iconName="delete"
+                iconName="trash"
                 confirmTitle="Remove"
                 confirmIconName="delete"
                 confirmTooltip="Remove the local data source."

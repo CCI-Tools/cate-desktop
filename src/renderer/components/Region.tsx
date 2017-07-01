@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {NumericField, NumericFieldValue} from "./field/NumericField";
 
+// TODO (forman): rename west, south, east, north to lonMin, latMin, lonMax, latMax because we use negative values
 
 export interface RegionValue {
     west: NumericFieldValue;
