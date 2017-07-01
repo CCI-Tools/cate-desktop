@@ -92,7 +92,6 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
                 iconName="database"
                 confirmTitle="Open Local"
                 confirmIconName="folder-shared-open"
-                confirmTooltip="Opens the dataset."
                 onCancel={this.onCancel}
                 onConfirm={this.onConfirm}
                 canConfirm={this.canConfirm}
