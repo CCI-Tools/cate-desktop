@@ -303,10 +303,10 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
     static optionsToOperationArguments(options: IDataAccessComponentOptions) {
         let args = {};
         if (options.hasTimeConstraint && options.dateRange) {
-            const t0 = formatDateAsISODateString(options.dateRange[0]);
-            const t1 = formatDateAsISODateString(options.dateRange[1]);
+            const t0 = formatDateAsISODateString(options.dateRange.value[0]);
+            const t1 = formatDateAsISODateString(options.dateRange.value[1]);
             args = {
-                time_range: `${t0}, ${t1}`,
+                time_range: `${t0},${t1}`,
             };
         }
         if (options.hasRegionConstraint && options.region) {
