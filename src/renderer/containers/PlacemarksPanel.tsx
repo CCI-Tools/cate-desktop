@@ -158,7 +158,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
 
     private static handleCopyPositionKW(placemark: Placemark) {
         const position = placemark.geometry.coordinates;
-        PlacemarksPanel.copyToClipboard(`lon=${position[0]}, lat=${position[1]})`);
+        PlacemarksPanel.copyToClipboard(`lon=${position[0]}, lat=${position[1]}`);
     }
 
     private static handleCopyPositionWKT(placemark: Placemark) {
