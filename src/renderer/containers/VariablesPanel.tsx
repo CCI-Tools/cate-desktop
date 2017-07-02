@@ -49,6 +49,8 @@ function mapStateToProps(state: State): IVariablesPanelProps {
  * @author Marco Zuehlke, Norman Fomferra
  */
 class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
+    static readonly DIV_STYLE = {paddingTop: 4, width: '100%'};
+
     constructor(props: IVariablesPanelProps) {
         super(props);
         this.handleSelectedVariableName = this.handleSelectedVariableName.bind(this);
@@ -226,10 +228,12 @@ class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
             return null;
         }
         return (
-            <Table numRows={tableData.length} isRowHeaderShown={false}>
-                <Column name="Name" renderCell={this.renderAttributeName}/>
-                <Column name="Value" renderCell={this.renderAttributeValue}/>
-            </Table>
+            <div style={VariablesPanel.DIV_STYLE}>
+                <Table numRows={tableData.length} isRowHeaderShown={false}>
+                    <Column name="Name" renderCell={this.renderAttributeName}/>
+                    <Column name="Value" renderCell={this.renderAttributeValue}/>
+                </Table>
+            </div>
         );
     }
 
