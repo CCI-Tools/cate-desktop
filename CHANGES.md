@@ -8,7 +8,9 @@
     The latter can now also open the dataset after download or open from remote (using OPeNDAP).
    * Edit fields for the constraints such as time range, region, variable names are now collapsible.
 2. Plots can now have a title
-
+3. Currently visible variable layers and their indexers are now shown as overlay in 3D Globe view. 
+   The overlay can be turned off in the **VIEWS** panel.
+   
 ### Fixes
 
 * Fixed a severe bug where Cate Desktop was unable to find the matching `~/.cate/<version>` directory.

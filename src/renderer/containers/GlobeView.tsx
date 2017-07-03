@@ -31,6 +31,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     placemarks: Placemark[];
     selectedPlacemarkId: string | null;
     isDialogOpen: boolean;
+    showLayerTextOverlay: boolean;
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -43,6 +44,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         placemarks: selectors.placemarksSelector(state),
         selectedPlacemarkId: selectors.selectedPlacemarkIdSelector(state),
         isDialogOpen: selectors.isDialogOpenSelector(state),
+        showLayerTextOverlay: state.session.showLayerTextOverlay,
     };
 }
 
@@ -83,6 +85,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
         const placemarks = this.props.placemarks;
         const layers = [];
         const dataSources = [];
+        let overviewHtml = null;
         // TODO (forman): optimize me: increase speed and clean up code by moving the following into selectors.ts
         if (this.props.workspace && this.props.workspace.resources && this.props.view.data.layers) {
             for (let layer of this.props.view.data.layers) {
@@ -90,7 +93,17 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
                 let dataSourceDescriptor;
                 switch (layer.type) {
                     case 'VariableImage': {
-                        layerDescriptor = this.convertVariableImageLayerToLayerDescriptor(layer as VariableImageLayerState);
+                        const variableImageLayer = layer as VariableImageLayerState;
+                        layerDescriptor = this.convertVariableImageLayerToLayerDescriptor(variableImageLayer);
+                        if (variableImageLayer.visible && this.props.showLayerTextOverlay) {
+                            if (!overviewHtml) {
+                                overviewHtml = document.createElement('div');
+                            }
+                            const spanElement = document.createElement('span');
+                            spanElement.style['font-size'] = '1.5em';
+                            spanElement.innerText = variableImageLayer.name + '[' + variableImageLayer.varIndex.join(', ') + ']';
+                            overviewHtml.appendChild(spanElement);
+                        }
                         break;
                     }
                     case 'VariableVector': {
@@ -119,6 +132,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
                          placemarks={placemarks}
                          layers={layers}
                          dataSources={dataSources}
+                         overlayHtml={overviewHtml}
                          offlineMode={this.props.offlineMode}
                          style={GlobeView.CESIUM_GLOBE_STYLE}
                          onMouseMoved={this.props.isDialogOpen ? null : this.handleMouseMoved}

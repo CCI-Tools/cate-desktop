@@ -539,6 +539,7 @@ const initialSessionState: SessionState = {
     workspacePanelMode: 'steps',
 
     showHumanReadableDataSourceTitles: true,
+    showLayerTextOverlay: true,
 
     backendConfig: {
         dataStoresPath: null,

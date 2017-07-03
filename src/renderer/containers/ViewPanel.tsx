@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {FigureViewDataState, ResourceState, State, WorldViewDataState} from "../state";
-import {RadioGroup, Radio, AnchorButton} from "@blueprintjs/core";
+import {RadioGroup, Radio, AnchorButton, Checkbox} from "@blueprintjs/core";
 import {ProjectionField} from "../components/field/ProjectionField";
 import {FieldValue} from "../components/field/Field";
 import * as selectors from "../selectors";
@@ -21,6 +21,7 @@ interface IViewPanelProps {
     figureResources: ResourceState[];
     selectedFigureResource: ResourceState | null;
     selectedResourceName: string | null;
+    showLayerTextOverlay: boolean;
 }
 
 interface IViewPanelState {
@@ -35,6 +36,7 @@ function mapStateToProps(state: State): IViewPanelProps {
         figureResources: selectors.figureResourcesSelector(state),
         selectedFigureResource: selectors.selectedFigureResourceSelector(state),
         selectedResourceName: selectors.selectedResourceNameSelector(state),
+        showLayerTextOverlay: state.session.showLayerTextOverlay,
     };
 }
 
@@ -52,6 +54,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         this.onViewModeChange = this.onViewModeChange.bind(this);
         this.onProjectionCodeChange = this.onProjectionCodeChange.bind(this);
         this.onAddWorldView = this.onAddWorldView.bind(this);
+        this.onShowLayerTextOverlayChange = this.onShowLayerTextOverlayChange.bind(this);
         this.state = {isProjectionsDialogOpen: false};
     }
 
@@ -61,6 +64,11 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
 
     onProjectionCodeChange(projectionCode: FieldValue<string>) {
         this.props.dispatch(actions.setProjectionCode(this.props.activeViewId, projectionCode.textValue));
+    }
+
+    onShowLayerTextOverlayChange(ev) {
+        const showLayerTextOverlay = ev.target.checked;
+        this.props.dispatch(actions.updateSessionState({showLayerTextOverlay}));
     }
 
     onAddWorldView() {
@@ -121,6 +129,11 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                             onChange={this.onProjectionCodeChange}
                         />
                     </label>
+
+                    <Checkbox label="Show layer text overlay"
+                              style={ViewPanel.ITEM_STYLE}
+                              checked={this.props.showLayerTextOverlay}
+                              onChange={this.onShowLayerTextOverlayChange}/>
 
                     <label className="pt-label" style={ViewPanel.ITEM_STYLE}>
                         Imagery layer credits

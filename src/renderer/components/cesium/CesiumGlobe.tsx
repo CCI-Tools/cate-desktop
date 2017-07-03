@@ -77,8 +77,8 @@ export type Scene = {
 };
 
 export type Viewer = {
-    container: HTMLElement;
-    canvas:HTMLCanvasElement
+    container: HTMLDivElement;
+    canvas: HTMLCanvasElement
     entities: EntityCollection;
     imageryLayers: ImageryLayerCollection;
     dataSources: DataSourceCollection;
@@ -152,6 +152,7 @@ interface CesiumGlobeState {
     placemarks?: Placemark[];
     layers?: LayerDescriptor[];
     dataSources?: DataSourceDescriptor[];
+    overlayHtml?: HTMLElement | null;
 }
 
 export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Viewer, CesiumGlobeState>, CesiumGlobeState {
@@ -253,11 +254,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         const placemarks = this.props.placemarks || EMPTY_ARRAY;
         const layers = this.props.layers || EMPTY_ARRAY;
         const dataSources = this.props.dataSources || EMPTY_ARRAY;
+        const overlayHtml = this.props.overlayHtml || null;
         return {
             selectedPlacemarkId,
             placemarks,
             layers,
-            dataSources
+            dataSources,
+            overlayHtml
         };
     }
 
@@ -267,11 +270,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         const prevPlacemarks = (prevState && prevState.placemarks) || EMPTY_ARRAY;
         const prevLayers = (prevState && prevState.layers) || EMPTY_ARRAY;
         const prevDataSources = (prevState && prevState.dataSources) || EMPTY_ARRAY;
+        const prevOverlayHtml = (prevState && prevState.overlayHtml) || null;
 
         const nextSelectedPlacemarkId = nextState.selectedPlacemarkId || null;
         const nextPlacemarks = nextState.placemarks || EMPTY_ARRAY;
         const nextLayers = nextState.layers || EMPTY_ARRAY;
         const nextDataSources = nextState.dataSources || EMPTY_ARRAY;
+        const nextOverlayHtml = nextState.overlayHtml;
 
         if (prevPlacemarks !== nextPlacemarks) {
             this.updateGlobePlacemarks(viewer, prevPlacemarks, nextPlacemarks);
@@ -284,6 +289,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         }
         if (prevSelectedPlacemarkId !== nextSelectedPlacemarkId) {
             this.updateGlobeSelectedPlacemark(viewer, nextSelectedPlacemarkId);
+        }
+        if (prevOverlayHtml !== nextOverlayHtml) {
+            this.updateOverlayHtml(viewer, prevOverlayHtml, nextOverlayHtml);
         }
     }
 
@@ -552,6 +560,25 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
                 default:
                     console.error(`CesiumGlobe: unhandled layer action type "${action.type}"`);
             }
+        }
+    }
+
+    private updateOverlayHtml(viewer: Viewer, prevOverlayHtml: HTMLElement, nextOverlayHtml: HTMLElement) {
+        console.log('updateOverlayHtml', prevOverlayHtml, nextOverlayHtml);
+        if (nextOverlayHtml) {
+            if (prevOverlayHtml) {
+                viewer.container.replaceChild(nextOverlayHtml, prevOverlayHtml);
+            } else {
+                viewer.container.appendChild(nextOverlayHtml);
+            }
+            nextOverlayHtml.id = this.props.id + '-overlay';
+            nextOverlayHtml.style.position = 'relative';
+            nextOverlayHtml.style.top = '-6em'; // TODO (forman): calc offset from height of children
+            nextOverlayHtml.style.left = '1em';
+            nextOverlayHtml.style['z-index'] = 10;
+            nextOverlayHtml.style['pointer-events'] = 'none';
+        } else {
+            viewer.container.removeChild(prevOverlayHtml);
         }
     }
 
