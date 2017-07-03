@@ -1,11 +1,12 @@
 import {
     VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
     VariableImageLayerState, OperationState, WorldViewDataState,
-    TableViewDataState, FigureViewDataState, SavedLayers
+    TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
 import {isNumber} from "../common/types";
+import {EMPTY_ARRAY} from "./selectors";
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 export const COUNTRIES_LAYER_ID = 'countries';
@@ -127,6 +128,49 @@ export function findVariable(resources: ResourceState[], ref: VariableRefState):
 
 export function findOperation(operations: OperationState[], name: string): OperationState | null {
     return operations && operations.find(op => op.qualifiedName === name || op.name === name);
+}
+
+export function findVariableIndexCoordinates(resources: ResourceState[], ref: VariableDataRefState): any[] {
+    const resource = findResourceByName(resources, ref.resName);
+    if (!resource) {
+        return EMPTY_ARRAY;
+    }
+    const coordVariables = resource.coordVariables;
+    if (!coordVariables) {
+        return EMPTY_ARRAY;
+    }
+    const variable = resource && resource.variables.find(v => v.name === ref.varName);
+    if (!variable) {
+        return EMPTY_ARRAY;
+    }
+    const varIndex = ref.varIndex;
+    if (!varIndex || !varIndex.length) {
+        return EMPTY_ARRAY;
+    }
+    const dimNames = variable.dimNames;
+    if (!dimNames || !dimNames.length) {
+        return EMPTY_ARRAY;
+    }
+
+    const coordDataMap = {};
+    coordVariables.forEach(cv => {
+        coordDataMap[cv.name] = cv.data;
+    });
+
+    let coords = [];
+    for (let i = 0; i < varIndex.length; i++) {
+        const coordIndex = varIndex[i];
+        const dimName = i < dimNames.length ? dimNames[i] : null;
+        let coord = '?';
+        if (dimName) {
+            const coordData = coordDataMap[dimName];
+            if (coordData && coordData.length && coordIndex < coordData.length) {
+                coord = coordData[coordIndex];
+            }
+        }
+        coords.push([dimName, coord]);
+    }
+    return coords;
 }
 
 

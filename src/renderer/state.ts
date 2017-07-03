@@ -248,6 +248,7 @@ export interface ResourceState {
     validMax?: number;
     attributes?: Attributes;
     variables?: VariableState[];
+    coordVariables?: VariableState[];
 }
 
 /**
@@ -263,7 +264,9 @@ export interface VariableState {
     units?: string;
     validMin?: number;
     validMax?: number;
+    data?: any[];
     attributes?: Attributes;
+    isCoord?: boolean;
     imageLayout?: ImageLayout;
     isFeatureAttribute?: boolean;
     isYFlipped?: boolean;

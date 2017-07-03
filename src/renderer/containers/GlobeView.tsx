@@ -10,7 +10,7 @@ import {
 import {connect} from "react-redux";
 import {
     findVariable, findResource, getTileUrl, getGeoJSONUrl, getGeoJSONCountriesUrl,
-    COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID
+    COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID, findVariableIndexCoordinates
 } from "../state-util";
 import {ViewState} from "../components/ViewState";
 import * as selectors from "../selectors";
@@ -88,6 +88,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
         let overviewHtml = null;
         // TODO (forman): optimize me: increase speed and clean up code by moving the following into selectors.ts
         if (this.props.workspace && this.props.workspace.resources && this.props.view.data.layers) {
+            let layerInfoCount = 0;
             for (let layer of this.props.view.data.layers) {
                 let layerDescriptor;
                 let dataSourceDescriptor;
@@ -96,13 +97,22 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, nu
                         const variableImageLayer = layer as VariableImageLayerState;
                         layerDescriptor = this.convertVariableImageLayerToLayerDescriptor(variableImageLayer);
                         if (variableImageLayer.visible && this.props.showLayerTextOverlay) {
+                            const indexCoords = findVariableIndexCoordinates(this.props.workspace.resources, variableImageLayer);
                             if (!overviewHtml) {
                                 overviewHtml = document.createElement('div');
+                                overviewHtml.id = 'CesiumGlobeOverlay-' + this.props.view.id;
+                                overviewHtml.style.position = 'relative';
+                                overviewHtml.style['z-index'] = 10;
+                                overviewHtml.style['pointer-events'] = 'none';
+                                overviewHtml.style['padding'] = '1em';
+                                overviewHtml.style['background-color'] = 'rgba(0, 0, 0, 0.25)';
                             }
-                            const spanElement = document.createElement('span');
-                            spanElement.style['font-size'] = '1.5em';
-                            spanElement.innerText = variableImageLayer.name + '[' + variableImageLayer.varIndex.join(', ') + ']';
-                            overviewHtml.appendChild(spanElement);
+                            const textDivElement = document.createElement('div');
+                            textDivElement.style['font-size'] = '1.4em';
+                            textDivElement.innerText = variableImageLayer.name + ': ' + indexCoords.map(e => e.join(' = ')).join(', ');
+                            overviewHtml.appendChild(textDivElement);
+                            overviewHtml.style.top = `-${2 + (layerInfoCount + 1) * 1.5}em`;
+                            layerInfoCount++;
                         }
                         break;
                     }

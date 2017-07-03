@@ -571,12 +571,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
             } else {
                 viewer.container.appendChild(nextOverlayHtml);
             }
-            nextOverlayHtml.id = this.props.id + '-overlay';
-            nextOverlayHtml.style.position = 'relative';
-            nextOverlayHtml.style.top = '-6em'; // TODO (forman): calc offset from height of children
-            nextOverlayHtml.style.left = '1em';
-            nextOverlayHtml.style['z-index'] = 10;
-            nextOverlayHtml.style['pointer-events'] = 'none';
         } else {
             viewer.container.removeChild(prevOverlayHtml);
         }
