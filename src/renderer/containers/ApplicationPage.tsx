@@ -198,7 +198,7 @@ class _RightPanel extends React.PureComponent<IRightPanelProps & IDispatch, null
                             onSelectedTopPanelChange={this.onSelectedRightTopPanelChange}
                             onSelectedBottomPanelChange={this.onSelectedRightBottomPanelChange}
             >
-                <Panel id="workspace" position="top" iconName="pt-icon-folder-close" title="Workspace"
+                <Panel id="workspace" position="top" iconName="pt-icon-flows" title="Workspace"
                        body={<WorkspacePanel/>}/>
                 <Panel id="layers" position="top" iconName="pt-icon-layers" title="Layers"
                        body={<LayersPanel/>}/>
