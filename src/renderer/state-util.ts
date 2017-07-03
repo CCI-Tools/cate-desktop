@@ -161,12 +161,16 @@ export function findVariableIndexCoordinates(resources: ResourceState[], ref: Va
     for (let i = 0; i < varIndex.length; i++) {
         const coordIndex = varIndex[i];
         const dimName = i < dimNames.length ? dimNames[i] : null;
-        let coord = '?';
+        let coord;
         if (dimName) {
             const coordData = coordDataMap[dimName];
             if (coordData && coordData.length && coordIndex < coordData.length) {
                 coord = coordData[coordIndex];
+            } else {
+                coord = '-';
             }
+        } else {
+            coord = '?';
         }
         coords.push([dimName, coord]);
     }
