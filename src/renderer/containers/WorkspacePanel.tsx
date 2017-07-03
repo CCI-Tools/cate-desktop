@@ -201,7 +201,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                 <span key={1} style={WorkspacePanel.STATE_TAG_STYLE} className="pt-tag pt-intent-success pt-minimal">Not saved</span>;
         }
         const openItemButton = (
-            <Tooltip content="Open workspace directory" position={Position.LEFT}>
+            <Tooltip content="Show workspace directory in file system" position={Position.LEFT}>
                 <AnchorButton onClick={this.handleOpenWorkspaceDirectoryClicked} iconName="folder-open"/>
             </Tooltip>
         );
