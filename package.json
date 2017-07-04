@@ -54,7 +54,7 @@
     "@types/openlayers": "~3.20.x",
     "@types/proj4": "~2.3.x",
     "@types/react": "~0.14.x",
-    "@types/react-addons-test-utils": "~0.14.x",
+    "@types/react-addons-test-utils": "0.14.18",
     "@types/react-dom": "~0.14.x",
     "@types/react-redux": "4.4.40",
     "@types/redux-logger": "~2.6.x",
