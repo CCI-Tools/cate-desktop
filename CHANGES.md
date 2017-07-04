@@ -5,7 +5,7 @@
 * Fixed in the **WORKSPACE** panel the details table for dataset attributes, table was always empty.
 * Fixed a problem with the *Download Data Source* dialog opened from **DATA SOURCES** panel.
   It always used the last local data source name, although a different remote data source has been selected.
-
+* 2D map / 3D globe layer containing country borders now works.
 
 
 ## 0.9.0-dev.2
@@ -30,9 +30,7 @@
   (Problem was a bug in conversion from PEP440 to SemVer version strings.)
 * Fixed a problem with non-editable *variable names* field in *Download Dataset* and *Open Dataset* dialogs
   opened from the **DATA SOURCES** panel.
-* 2D map / 3D globe layer containing country borders now works
 
-  
 
 ## 0.9.0-dev.1
 
