@@ -12,6 +12,7 @@
    The overlay can be turned off in the **VIEWS** panel.
 4. Added an *Copy to Clipboard* action in **WORKSPACE** panel which is used to copy the workflow steps 
    to JSON, Python script, and shell script.
+5. Figure views now have scrollbars.
    
 ### Fixes
 

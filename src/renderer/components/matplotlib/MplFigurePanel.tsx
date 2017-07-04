@@ -27,7 +27,7 @@ const FIGURE_COMMAND_SOURCE = new MplFigureCommandSourceImpl();
  * @author Norman Fomferra
  */
 export class MplFigurePanel extends React.Component<IFigurePanelProps, IFigurePanelState> {
-    static readonly DIV_STYLE = {width: '100%', overflow: 'hidden'};
+    static readonly DIV_STYLE = {width: '100%', overflow: 'auto'};
     static readonly CONTAINER_DIV_STYLE = {width: '100%', overflow: 'hidden', padding: '0.2em 0.2em 0 0.2em'};
 
     constructor(props: IFigurePanelProps) {
@@ -50,7 +50,7 @@ export class MplFigurePanel extends React.Component<IFigurePanelProps, IFigurePa
             <div style={MplFigurePanel.DIV_STYLE}>
                 <MplFigureContainer figureId={this.props.figureId}
                                     figureUpdateCount={this.props.figureUpdateCount}
-                                    figureHeight={this.props.figureHeight || '25em'}
+                                    figureHeight={this.props.figureHeight || '30em'}
                                     id={this.props.id}
                                     debug={false}
                                     webSocketUrl={this.props.webSocketUrl}
