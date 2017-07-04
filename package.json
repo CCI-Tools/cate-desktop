@@ -113,9 +113,7 @@
     },
     "linux": {
       "target": [
-        "AppImage",
-        "tar.gz",
-        "zip"
+        "AppImage"
       ]
     }
   }
