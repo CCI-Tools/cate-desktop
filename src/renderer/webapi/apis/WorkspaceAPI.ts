@@ -20,7 +20,7 @@ function responseToVariables(variablesResponse: any): VariableState[] {
             if (!isNumber(validMin) || validMin < validMinMin) {
                 validMin = validMinMin;
             }
-            if (!isNumber(validMax) || validMax < validMaxMax) {
+            if (!isNumber(validMax) || validMax > validMaxMax) {
                 validMax = validMaxMax;
             }
         }
