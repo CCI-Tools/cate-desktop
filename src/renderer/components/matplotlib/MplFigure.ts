@@ -332,7 +332,7 @@ export class MplFigure {
 
     //noinspection JSUnusedLocalSymbols
     private handle_figure_label(msg) {
-        console.warn(`MplFigure.handle_figure_label() - unhandled, figure #${this.id}`, msg);
+        // console.warn(`MplFigure.handle_figure_label() - unhandled, figure #${this.id}`, msg);
     }
 
     //noinspection JSUnusedLocalSymbols
