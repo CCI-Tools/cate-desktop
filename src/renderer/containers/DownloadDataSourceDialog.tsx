@@ -57,7 +57,7 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
     }
 
     private onConfirm() {
-        this.props.dispatch(actions.hideDialog(DownloadDataSourceDialog.DIALOG_ID, this.state));
+        this.props.dispatch(actions.hideDialog(DownloadDataSourceDialog.DIALOG_ID, {...this.state, makeLocalDataSourceName: null}));
         const options = this.state.options;
         const opArguments = DataAccessComponent.optionsToOperationArguments(options);
         if (options.isMakeLocalSelected) {

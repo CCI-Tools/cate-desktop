@@ -2,7 +2,9 @@
 
 ### Fixes
 
-* Fixed in the **WORKSPACE** panel the details tables for the attributes, table was empty
+* Fixed in the **WORKSPACE** panel the details table for dataset attributes, table was always empty.
+* Fixed a problem with the *Download Data Source* dialog opened from **DATA SOURCES** panel.
+  It always used the last local data source name, although a different remote data source has been selected.
 
 
 
