@@ -20,6 +20,7 @@
   (Problem was a bug in conversion from PEP440 to SemVer version strings.)
 * Fixed a problem with non-editable *variable names* field in *Download Dataset* and *Open Dataset* dialogs
   opened from the **DATA SOURCES** panel.
+* 2D map / 3D globe layer containing country borders now works
   
 
 ## 0.9.0-dev.1
