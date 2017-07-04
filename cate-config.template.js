@@ -1,4 +1,10 @@
 module.exports = {
+
+    /**
+     * This variable is used by React. It's values are "development", "production", "test".
+     */
+    NODE_ENV: "development",
+
     /**
      * Cate WebAPI service configuration.
      */

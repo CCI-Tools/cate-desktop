@@ -5,12 +5,12 @@ import * as path from 'path';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as child_process from 'child_process'
+import * as semver from "semver";
 import {request} from './request';
 import {updateConditionally} from '../common/objutil';
 import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
 import {error} from "util";
-import * as semver from "semver";
 import {pep440ToSemver} from "../common/version";
 import {getAppDataDir, getAppIconPath} from "./appenv";
 
@@ -21,6 +21,7 @@ const CATE_DESKTOP_PREFIX = 'cate-desktop:';
 
 // Module to control application life.
 const app = electron.app;
+
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
 
@@ -32,7 +33,7 @@ const dialog = electron.dialog;
  * The value is a node-semver (https://github.com/npm/node-semver) compatible version range string.
  * @type {string}
  */
-export const WEBAPI_VERSION_RANGE = ">=0.9.0-dev.1 <1.0.0";
+export const WEBAPI_VERSION_RANGE = ">=0.9.0-dev.2 <1.0.0";
 
 const WEBAPI_INSTALLER_CANCELLED = 1;
 const WEBAPI_INSTALLER_ERROR = 2;
@@ -194,9 +195,18 @@ function getMPLWebSocketsUrl(webAPIConfig) {
 }
 
 export function init() {
+    if (process.platform === 'darwin') {
+        // Try getting around https://github.com/CCI-Tools/cate-desktop/issues/32
+        // See https://electron.atom.io/docs/api/app/#appcommandlineappendswitchswitch-value
+        app.commandLine.appendSwitch('disable_chromium_framebuffer_multisample');
+    }
 
     _config = loadAppConfig();
     _prefs = loadUserPrefs();
+
+    // By default NODE_ENV will be 'production' so react is much faster
+    process.env.NODE_ENV = _config.get('NODE_ENV', 'production');
+    console.log('process.env.NODE_ENV = ' + process.env.NODE_ENV);
 
     let webAPIConfig = _config.get('webAPIConfig', {});
     webAPIConfig = updateConditionally(webAPIConfig, {
