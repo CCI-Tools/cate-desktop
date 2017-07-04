@@ -18,6 +18,8 @@ import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messages";
 import {findOperation, isDataResource, isFigureResource} from "../state-util";
 import {isBoolean, isString, isUndefined, isUndefinedOrNull} from "../../common/types";
+import * as TestUtils from "react-addons-test-utils";
+import input = TestUtils.Simulate.input;
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
@@ -531,20 +533,19 @@ function convertSteps(operations: OperationState[], steps: WorkflowStepState[], 
     const returnSuffix = '.return';
     let lines = [];
     if (target === 'python') {
-        lines.push('import cate');
+        lines.push('from cate.ops import *');
     } else {
         lines.push('cate ws new');
     }
     for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
-        const opName = step.op;
-        const op = findOperation(operations, opName);
-        const args = [];
+        const op = findOperation(operations, step.op);
         if (op && op.inputs) {
             if (target === 'python') {
                 lines.push('');
                 lines.push(`# Step ${i + 1}`);
             }
+            const args = [];
             for (let input of op.inputs) {
                 const port = step.input[input.name];
                 let source = port.source;
@@ -552,7 +553,7 @@ function convertSteps(operations: OperationState[], steps: WorkflowStepState[], 
                     if (source.endsWith(returnSuffix)) {
                         source = source.substring(0, source.length - returnSuffix.length)
                     }
-                    args.push(`${input.name}=${source}`);
+                    args.push(`${input.name}=@${source}`);
                 } else if (port) {
                     let value = port.value;
                     if (isUndefined(value)) {
@@ -566,7 +567,7 @@ function convertSteps(operations: OperationState[], steps: WorkflowStepState[], 
                         if (isUndefinedOrNull(value)) {
                             args.push(`${input.name}=None`);
                         } else if (isString(value)) {
-                            args.push(`${input.name}='${value}'`);
+                            args.push(`${input.name}="${value}"`);
                         } else if (isBoolean(value)) {
                             args.push(`${input.name}=${value ? 'True' : 'False'}`);
                         } else if (isBoolean(value)) {
@@ -575,16 +576,18 @@ function convertSteps(operations: OperationState[], steps: WorkflowStepState[], 
                     }
                 }
             }
-        }
-        let resName = step.id;
-        if (target === 'python') {
-            lines.push(`${resName} = ${opName}(${args.join(', ')})`);
-        } else {
-            lines.push(`cate res ${resName} ${opName} ${args.join(' ')}`);
+            let resName = step.id;
+            const opName = op.name;
+            if (target === 'python') {
+                lines.push(`${resName} = ${opName}(${args.join(', ')})`);
+            } else {
+                lines.push(`cate res set ${resName} ${opName} ${args.join(' ')}`);
+            }
         }
     }
     if (target === 'shell') {
         lines.push('cate ws exit');
     }
+    lines.push('');
     return lines.join('\n');
 }
