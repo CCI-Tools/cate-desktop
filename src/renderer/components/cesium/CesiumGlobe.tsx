@@ -564,7 +564,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
     }
 
     private updateOverlayHtml(viewer: Viewer, prevOverlayHtml: HTMLElement, nextOverlayHtml: HTMLElement) {
-        console.log('updateOverlayHtml', prevOverlayHtml, nextOverlayHtml);
+        // console.log('updateOverlayHtml', prevOverlayHtml, nextOverlayHtml);
         if (nextOverlayHtml) {
             if (prevOverlayHtml) {
                 viewer.container.replaceChild(nextOverlayHtml, prevOverlayHtml);
