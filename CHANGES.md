@@ -21,6 +21,7 @@
 * Fixed a problem with non-editable *variable names* field in *Download Dataset* and *Open Dataset* dialogs
   opened from the **DATA SOURCES** panel.
 * 2D map / 3D globe layer containing country borders now works
+* Fixed in the **WORKSPACE** panel the details tables for the attributes
   
 
 ## 0.9.0-dev.1

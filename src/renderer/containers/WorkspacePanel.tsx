@@ -27,6 +27,7 @@ interface IWorkspacePanelProps {
     resourcesMap: { [name: string]: ResourceState };
     showResourceDetails: boolean;
     selectedResource: ResourceState | null;
+    selectedResourceAttributes: string[][];
     selectedResourceName: string | null;
     selectedResourceWorkflowStep: WorkflowStepState | null;
     showWorkflowStepDetails: boolean;
@@ -45,6 +46,7 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
         resourcesMap: selectors.resourceMapSelector(state),
         showResourceDetails: selectors.showResourceDetailsSelector(state),
         selectedResource: selectors.selectedResourceSelector(state),
+        selectedResourceAttributes: selectors.selectedResourceAttributesSelector(state),
         selectedResourceName: selectors.selectedResourceNameSelector(state),
         selectedResourceWorkflowStep: selectors.selectedResourceWorkflowStepSelector(state),
         showWorkflowStepDetails: selectors.showWorkflowStepDetailsSelector(state),
@@ -348,20 +350,15 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     private renderResourceDetails() {
-        const selectedResource = this.props.selectedResource;
-        if (!selectedResource) {
-            return null;
-        }
-
-        const attributes = selectedResource.attributes;
-        if (!attributes || !attributes.length) {
+        const selectedResourceAttributes = this.props.selectedResourceAttributes;
+        if (!selectedResourceAttributes || !selectedResourceAttributes.length) {
             return null;
         }
 
         return (
             <ScrollablePanelContent>
                 <span>Attributes:</span>
-                <Table numRows={attributes.length} isRowHeaderShown={false}>
+                <Table numRows={selectedResourceAttributes.length} isRowHeaderShown={false}>
                     <Column name="Name" renderCell={this.renderResourceAttrName}/>
                     <Column name="Value" renderCell={this.renderResourceAttrValue}/>
                 </Table>
@@ -450,11 +447,11 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
     }
 
     renderResourceAttrName(row: number) {
-        return <Cell><TruncatedFormat>{this.props.selectedResource.attributes[row][0]}</TruncatedFormat></Cell>;
+        return <Cell><TruncatedFormat>{this.props.selectedResourceAttributes[row][0]}</TruncatedFormat></Cell>;
     }
 
     renderResourceAttrValue(row: number): any {
-        return <Cell><TruncatedFormat>{`${this.props.selectedResource.attributes[row][1]}`}</TruncatedFormat></Cell>;
+        return <Cell><TruncatedFormat>{`${this.props.selectedResourceAttributes[row][1]}`}</TruncatedFormat></Cell>;
     }
 
     renderOperationStepInputName(row: number) {

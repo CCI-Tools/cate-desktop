@@ -338,6 +338,21 @@ export const selectedResourceSelector = createSelector<State, ResourceState | nu
     }
 );
 
+export const selectedResourceAttributesSelector = createSelector<State, string[][], ResourceState | null>(
+    selectedResourceSelector,
+    (selectedResource: ResourceState | null) => {
+        if (!selectedResource || !selectedResource.attributes) {
+            return EMPTY_ARRAY;
+        }
+        const array = [];
+        const attributes = selectedResource.attributes;
+        for (let attrName in attributes) {
+            array.push([attrName, attributes[attrName]])
+        }
+        return array;
+    }
+);
+
 export const selectedWorkflowStepResourceSelector = createSelector<State, ResourceState | null, ResourceState[], string>(
     resourcesSelector,
     selectedWorkflowStepIdSelector,
