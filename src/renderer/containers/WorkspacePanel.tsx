@@ -4,7 +4,7 @@ import {
     State, WorkspaceState, WorkflowStepState, ResourceState, WorkflowPortState, OperationState,
     OperationIOBaseState
 } from "../state";
-import {AnchorButton, Tabs2, Tab2, Tooltip, Position} from "@blueprintjs/core";
+import {AnchorButton, Tabs2, Tab2, Tooltip, Position, Popover, Menu, MenuItem} from "@blueprintjs/core";
 import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
 import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
@@ -16,7 +16,8 @@ import * as actions from '../actions'
 import * as selectors from '../selectors'
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messages";
-import {isDataResource, isFigureResource} from "../state-util";
+import {findOperation, isDataResource, isFigureResource} from "../state-util";
+import {isBoolean, isString, isUndefined, isUndefinedOrNull} from "../../common/types";
 
 interface IWorkspacePanelProps {
     dispatch?: Dispatch<State>;
@@ -33,6 +34,7 @@ interface IWorkspacePanelProps {
     selectedWorkflowStepResource: ResourceState | null;
     activeViewId: string | null;
     workspacePanelMode: 'resources' | 'steps';
+    operations: OperationState[];
 }
 
 function mapStateToProps(state: State): IWorkspacePanelProps {
@@ -50,6 +52,7 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
         selectedWorkflowStepResource: selectors.selectedWorkflowStepResourceSelector(state),
         activeViewId: selectors.activeViewIdSelector(state),
         workspacePanelMode: state.session.workspacePanelMode,
+        operations: selectors.operationsSelector(state),
     };
 }
 
@@ -87,6 +90,9 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
         this.handleRemoveOperationStepButtonClicked = this.handleRemoveOperationStepButtonClicked.bind(this);
         this.handleCleanWorkflowButtonClicked = this.handleCleanWorkflowButtonClicked.bind(this);
         this.handleShowResourceTableView = this.handleShowResourceTableView.bind(this);
+        this.handleCopyWorkflowAsPythonScript = this.handleCopyWorkflowAsPythonScript.bind(this);
+        this.handleCopyWorkflowAsShellScript = this.handleCopyWorkflowAsShellScript.bind(this);
+        this.handleCopyWorkflowAsJSON = this.handleCopyWorkflowAsJSON.bind(this);
     }
 
     private handleResourceNameSelected(newSelection: Array<React.Key>) {
@@ -127,6 +133,20 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 
     private handleOpenWorkspaceDirectoryClicked() {
         actions.openItem(this.props.workspace.baseDir);
+    }
+
+    private handleCopyWorkflowAsPythonScript() {
+        const text = convertSteps(this.props.operations, this.props.workspace.workflow.steps, 'python');
+        actions.copyTextToClipboard(text);
+    }
+
+    private handleCopyWorkflowAsShellScript() {
+        const text = convertSteps(this.props.operations, this.props.workspace.workflow.steps, 'shell');
+        actions.copyTextToClipboard(text);
+    }
+
+    private handleCopyWorkflowAsJSON() {
+        actions.copyTextToClipboard(JSON.stringify(this.props.workspace.workflow, null, 4));
     }
 
     private handleEditOperationStepButtonClicked() {
@@ -205,6 +225,17 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                 <AnchorButton onClick={this.handleOpenWorkspaceDirectoryClicked} iconName="folder-open"/>
             </Tooltip>
         );
+        const copyItemButton = (
+            <Popover position={Position.LEFT}>
+                <AnchorButton disabled={!steps.length}
+                              iconName="clipboard"/>
+                <Menu>
+                    <MenuItem onClick={this.handleCopyWorkflowAsPythonScript} text="Copy workflow as Python Script"/>
+                    <MenuItem onClick={this.handleCopyWorkflowAsShellScript} text="Copy workflow as Shell Script"/>
+                    <MenuItem onClick={this.handleCopyWorkflowAsJSON} text="Copy workflow as JSON"/>
+                </Menu>
+            </Popover>
+        );
 
         //const resourcesTooltip = "Workspace resources that result from workflow steps";
         //const workflowTooltip = "Workflow steps that generate workspace resources";
@@ -214,7 +245,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
                     {workspaceLabel}
                     <span style={WorkspacePanel.SPACER_STYLE}/>
                     {workspaceState}
-                    {openItemButton}
+                    <div className="pt-button-group">
+                        {openItemButton}
+                        {copyItemButton}
+                    </div>
                 </div>
                 <Tabs2 id="workflow"
                        renderActiveTabPanelOnly={true}
@@ -489,3 +523,68 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
 }
 
 export default connect(mapStateToProps)(WorkspacePanel);
+
+
+
+function convertSteps(operations: OperationState[], steps: WorkflowStepState[], target: 'python'|'shell'): string {
+    // TODO (forman): move this to backend, as this is best done in Python
+    const returnSuffix = '.return';
+    let lines = [];
+    if (target === 'python') {
+        lines.push('import cate');
+    } else {
+        lines.push('cate ws new');
+    }
+    for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        const opName = step.op;
+        const op = findOperation(operations, opName);
+        const args = [];
+        if (op && op.inputs) {
+            if (target === 'python') {
+                lines.push('');
+                lines.push(`# Step ${i + 1}`);
+            }
+            for (let input of op.inputs) {
+                const port = step.input[input.name];
+                let source = port.source;
+                if (port && source) {
+                    if (source.endsWith(returnSuffix)) {
+                        source = source.substring(0, source.length - returnSuffix.length)
+                    }
+                    args.push(`${input.name}=${source}`);
+                } else if (port) {
+                    let value = port.value;
+                    if (isUndefined(value)) {
+                        value = null;
+                    }
+                    let defaultValue = input.defaultValue;
+                    if (isUndefined(defaultValue)) {
+                        defaultValue = null;
+                    }
+                    if (value !== defaultValue) {
+                        if (isUndefinedOrNull(value)) {
+                            args.push(`${input.name}=None`);
+                        } else if (isString(value)) {
+                            args.push(`${input.name}='${value}'`);
+                        } else if (isBoolean(value)) {
+                            args.push(`${input.name}=${value ? 'True' : 'False'}`);
+                        } else if (isBoolean(value)) {
+                            args.push(`${input.name}=${value}`);
+                        }
+                    }
+                }
+            }
+        }
+        let resName = step.id;
+        if (target === 'python') {
+            lines.push(`${resName} = ${opName}(${args.join(', ')})`);
+        } else {
+            lines.push(`cate res ${resName} ${opName} ${args.join(' ')}`);
+        }
+    }
+    if (target === 'shell') {
+        lines.push('cate ws exit');
+    }
+    return lines.join('\n');
+}

@@ -153,23 +153,17 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
 
     private static handleCopyPosition(placemark: Placemark) {
         const position = placemark.geometry.coordinates;
-        PlacemarksPanel.copyToClipboard(`${position[0]}, ${position[1]}`);
+        actions.copyTextToClipboard(`${position[0]}, ${position[1]}`);
     }
 
     private static handleCopyPositionKW(placemark: Placemark) {
         const position = placemark.geometry.coordinates;
-        PlacemarksPanel.copyToClipboard(`lon=${position[0]}, lat=${position[1]}`);
+        actions.copyTextToClipboard(`lon=${position[0]}, lat=${position[1]}`);
     }
 
     private static handleCopyPositionWKT(placemark: Placemark) {
         const position = placemark.geometry.coordinates;
-        PlacemarksPanel.copyToClipboard(`POINT (${position[0]} ${position[1]})`);
-    }
-
-    private static copyToClipboard(text: string) {
-        const electron = require('electron');
-        electron.clipboard.writeText(text);
-        console.log(`copied to clipboard [${text}]`);
+        actions.copyTextToClipboard(`POINT (${position[0]} ${position[1]})`);
     }
 
     private static getPlacemarkItemKey(placemark: Placemark) {

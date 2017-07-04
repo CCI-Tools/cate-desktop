@@ -10,6 +10,8 @@
 2. Plots can now have a title
 3. Currently visible variable layers and their indexers are now shown as overlay in 3D Globe view. 
    The overlay can be turned off in the **VIEWS** panel.
+4. Added an *Copy to Clipboard* action in **WORKSPACE** panel which is used to copy the workflow steps 
+   to JSON, Python script, and shell script.
    
 ### Fixes
 

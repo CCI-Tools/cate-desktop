@@ -26,3 +26,7 @@ export function isNumber(value: any): boolean {
 export function isString(value: any): boolean {
     return typeof(value) === 'string';
 }
+
+export function isBoolean(value: any): boolean {
+    return typeof(value) === 'boolean';
+}

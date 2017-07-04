@@ -1555,6 +1555,19 @@ export function openItem(fullPath: string): boolean {
     return electron.shell.openItem(fullPath);
 }
 
+
+/**
+ * Copies given text to clipboard.
+ * @param text The text to be copied.
+ */
+export function copyTextToClipboard(text: string) {
+    const electron = require('electron');
+    electron.clipboard.writeText(text);
+    console.log(`copied to clipboard: [${text}]`);
+}
+
+
+
 /**
  * Update frontend preferences (but not backend configuration).
  *
