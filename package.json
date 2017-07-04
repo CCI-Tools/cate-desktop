@@ -109,7 +109,7 @@
       "category": "app.category.climate-science"
     },
     "dmg": {
-      "icon": "app/resources/darwin/icon.icns",
+      "icon": "app/resources/darwin/icon.icns"
     },
     "linux": {
       "target": [
