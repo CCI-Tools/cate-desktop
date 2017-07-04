@@ -502,14 +502,14 @@ class _DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nu
                 details.push(this.renderAbstract(dataSource.meta_info));
             }
             const metaInfoKeys = Object.keys(dataSource.meta_info).filter(key => key !== 'variables');
-            if (metaInfoKeys.length) {
-                details.push(_DataSourceDetails.renderMetaInfoTable(metaInfoKeys, dataSource.meta_info));
-            }
             if (dataSource.meta_info.variables) {
                 const variables = dataSource.meta_info.variables;
                 if (variables.length) {
                     details.push(_DataSourceDetails.renderVariablesTable(variables));
                 }
+            }
+            if (metaInfoKeys.length) {
+                details.push(_DataSourceDetails.renderMetaInfoTable(metaInfoKeys, dataSource.meta_info));
             }
         }
 
@@ -518,7 +518,7 @@ class _DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nu
         } else if (details.length > 1) {
             return (
                 <Tabs2 id="dsDetails" renderActiveTabPanelOnly={true}>
-                    {details.map(d => <Tab2 id={d.id} title={d.title} panel={d.element}/>)}
+                    {details.map(d => <Tab2 key={d.id} id={d.id} title={d.title} panel={d.element}/>)}
                 </Tabs2>
             );
         } else {
