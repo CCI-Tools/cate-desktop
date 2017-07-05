@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {connect, Dispatch, DispatchProp} from 'react-redux';
+import {connect, DispatchProp} from 'react-redux';
 import {
     State, LayerState, ColorMapCategoryState, ImageLayerState,
     VariableImageLayerState, VariableState, ResourceState, ColorMapState, VariableVectorLayerState

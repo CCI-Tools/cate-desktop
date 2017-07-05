@@ -63,7 +63,7 @@
     "cesium": "~1.34.x",
     "chai": "~3.5.x",
     "chai-as-promised": "~6.0.x",
-    "chai-enzyme": "~0.6.x",
+    "chai-enzyme": "~0.8.x",
     "classnames": "~2.2.x",
     "d3": "~3.5.x",
     "deep-equal": "~1.0.x",
