@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {State, ResourceState, FigureViewDataState} from "../state";
-import {connect, Dispatch, DispatchProp} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import {ViewState} from "../components/ViewState";
 import * as actions from "../actions";
 import * as selectors from "../selectors";

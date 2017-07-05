@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {connect, Dispatch, DispatchProp} from 'react-redux';
+import {connect, DispatchProp} from 'react-redux';
 import {
     State, WorkspaceState, WorkflowStepState, ResourceState, WorkflowPortState, OperationState,
     OperationIOBaseState
@@ -18,8 +18,6 @@ import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messages";
 import {findOperation, isDataResource, isFigureResource} from "../state-util";
 import {isBoolean, isString, isUndefined, isUndefinedOrNull} from "../../common/types";
-import * as TestUtils from "react-addons-test-utils";
-import input = TestUtils.Simulate.input;
 import {CSSProperties} from "react";
 
 interface IWorkspacePanelProps {

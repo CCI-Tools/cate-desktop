@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {connect, Dispatch, DispatchProp} from 'react-redux';
+import {connect, DispatchProp} from 'react-redux';
 import {
     Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
     PopoverInteractionKind, AnchorButton

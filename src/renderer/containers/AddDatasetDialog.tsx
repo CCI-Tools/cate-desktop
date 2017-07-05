@@ -2,7 +2,7 @@ import * as React from "react";
 import {AnchorButton} from "@blueprintjs/core";
 import {DialogState, State} from "../state";
 import {ModalDialog} from "../components/ModalDialog";
-import {connect, Dispatch, DispatchProp} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import * as actions from "../actions";
 import {OpenDialogProperty} from "../actions";
 import * as selectors from "../selectors";
