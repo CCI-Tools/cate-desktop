@@ -1555,6 +1555,22 @@ export function openItem(fullPath: string): boolean {
     return electron.shell.openItem(fullPath);
 }
 
+/**
+ * Open the given URL in the desktop's default manner.
+ *
+ * @param url The URL.
+ * @returns {boolean}
+ */
+export function openExternal(url: string): boolean {
+    const electron = require('electron');
+    if (!electron) {
+        console.warn('openExternal() cannot be executed, electron not available from renderer process');
+        return false;
+    }
+    return electron.shell.openExternal(url);
+}
+
+
 
 /**
  * Copies given text to clipboard.
@@ -1602,14 +1618,4 @@ export function sendPreferencesToMain(callback?: (error: any) => void): ThunkAct
         }
     };
 }
-
-export function openUrlInBrowser(url: string): boolean {
-    const electron = require('electron');
-    if (!electron) {
-        console.warn('openExternal() cannot be executed, electron not available from renderer process');
-        return false;
-    }
-    return electron.shell.openExternal(url);
-}
-
 

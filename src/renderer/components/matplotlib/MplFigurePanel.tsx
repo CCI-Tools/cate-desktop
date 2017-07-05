@@ -2,6 +2,7 @@ import * as React from 'react';
 import {MplFigureCommandListener, MplFigureCommandSourceImpl} from './MplFigure';
 import {MplFigureContainer} from './MplFigureContainer';
 import {AnchorButton, Tag, Tooltip} from "@blueprintjs/core";
+import {CSSProperties} from "react";
 
 
 interface IFigurePanelProps {
@@ -27,8 +28,8 @@ const FIGURE_COMMAND_SOURCE = new MplFigureCommandSourceImpl();
  * @author Norman Fomferra
  */
 export class MplFigurePanel extends React.Component<IFigurePanelProps, IFigurePanelState> {
-    static readonly DIV_STYLE = {width: '100%', overflow: 'auto'};
-    static readonly CONTAINER_DIV_STYLE = {width: '100%', overflow: 'hidden', padding: '0.2em 0.2em 0 0.2em'};
+    static readonly DIV_STYLE: CSSProperties = {width: '100%', overflow: 'auto'};
+    static readonly CONTAINER_DIV_STYLE: CSSProperties = {width: '100%', overflow: 'hidden', padding: '0.2em 0.2em 0 0.2em'};
 
     constructor(props: IFigurePanelProps) {
         super(props);
@@ -75,7 +76,7 @@ interface IMplFigureToolbarProps {
 
 class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null> {
 
-    static readonly DIV_STYLE = {display: 'flex', alignItems: 'center', padding: '0.2em'};
+    static readonly DIV_STYLE: CSSProperties = {display: 'flex', alignItems: 'center', padding: '0.2em'};
 
     commands: any[];
 

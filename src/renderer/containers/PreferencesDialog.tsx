@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {AnchorButton, TabPanel, Tab, TabList, Tabs, Switch, Tabs2, Tab2} from "@blueprintjs/core";
+import {AnchorButton, Switch, Tabs2, Tab2} from "@blueprintjs/core";
 import {State, SessionState} from "../state";
-import {connect} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {TextField} from "../components/field/TextField";
@@ -11,7 +11,6 @@ import {ModalDialog} from "../components/ModalDialog";
 import {showToast} from "../toast";
 
 interface IPreferencesDialogProps {
-    dispatch?: any;
     isOpen: boolean;
     preferences: SessionState;
 }
@@ -24,11 +23,11 @@ function mapStateToProps(state: State): IPreferencesDialogProps {
 }
 
 
-class PreferencesDialog extends React.Component<IPreferencesDialogProps, SessionState> {
+class PreferencesDialog extends React.Component<IPreferencesDialogProps & DispatchProp<State>, SessionState> {
     static readonly DIALOG_ID = 'preferencesDialog';
     static readonly DIALOG_TITLE = 'Preferences';
 
-    constructor(props: IPreferencesDialogProps) {
+    constructor(props: IPreferencesDialogProps & DispatchProp<State>) {
         super(props);
         this.onConfirm = this.onConfirm.bind(this);
         this.onCancel = this.onCancel.bind(this);

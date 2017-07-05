@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {CSSProperties} from "react";
 
 /**
  * A card is a bounded unit of UI content with a solid background color.
@@ -8,8 +9,8 @@ import * as React from 'react';
  * @author Norman Fomferra
  */
 export class Card extends React.PureComponent<any, any> {
-    static readonly DIV_STYLE = {
-        overflowY: 'auto', flex: 'auto', maxHeight: '100%',
+    static readonly DIV_STYLE: CSSProperties = {
+        overflowY: "auto", flex: 'auto', maxHeight: '100%',
         padding: '0.4em', margin: '4px'
     };
 

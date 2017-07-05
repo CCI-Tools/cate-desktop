@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {connect, Dispatch} from 'react-redux';
+import {connect, Dispatch, DispatchProp} from 'react-redux';
 import {
     State, LayerState, ColorMapCategoryState, ImageLayerState,
     VariableImageLayerState, VariableState, ResourceState, ColorMapState, VariableVectorLayerState
@@ -35,10 +35,6 @@ function getDisplayFractionDigits(min: number, max: number) {
 
 function formatNumber(x: number, fractionDigits: number) {
     return fractionDigits < 3 ? x.toFixed(fractionDigits) : x.toExponential(1);
-}
-
-interface ILayersPanelDispatch {
-    dispatch: Dispatch<State>;
 }
 
 interface ILayersPanelProps {
@@ -82,13 +78,13 @@ function mapStateToProps(state: State): ILayersPanelProps {
  *
  * @author Norman Fomferra
  */
-class LayersPanel extends React.Component<ILayersPanelProps & ILayersPanelDispatch, null> {
+class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State>, null> {
 
     static readonly SLIDER_DIV_STYLE_05 = {width: '100%', paddingLeft: '0.5em', paddingRight: '0.5em'};
     static readonly SLIDER_DIV_STYLE_15 = {width: '100%', paddingLeft: '1.5em', paddingRight: '1.5em'};
 
-    constructor(props: ILayersPanelProps & ILayersPanelDispatch, context: any) {
-        super(props, context);
+    constructor(props: ILayersPanelProps & DispatchProp<State>) {
+        super(props);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleAddLayerButtonClicked = this.handleAddLayerButtonClicked.bind(this);
         this.handleRemoveLayerButtonClicked = this.handleRemoveLayerButtonClicked.bind(this);

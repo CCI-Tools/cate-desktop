@@ -5,6 +5,7 @@ import {
     isViewSplitState, ViewState, ViewSplitState, ViewPanelState, ViewLayoutState, ViewPath,
     ViewRenderer, findMoveTargetViewIds
 } from "./ViewState";
+import {CSSProperties} from "react";
 
 /**
  * Mapping from view type name to ViewRenderer
@@ -198,29 +199,29 @@ interface IViewPanelProps {
 class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
 
     static readonly SELECTED_BG_COLOR = Colors.DARK_GRAY1;
-    static readonly TAB_STYLE_SELECTED = {
+    static readonly TAB_STYLE_SELECTED: CSSProperties = {
         padding: 2,
         flex: "none",
         color: Colors.WHITE,
         backgroundColor: ViewPanel.SELECTED_BG_COLOR
     };
-    static readonly TAB_STYLE_NORMAL = {padding: 2, color: Colors.LIGHT_GRAY1};
+    static readonly TAB_STYLE_NORMAL: CSSProperties = {padding: 2, color: Colors.LIGHT_GRAY1};
 
-    static readonly TITLE_STYLE_BASE = {paddingLeft: 4, paddingRight: 4};
-    static readonly TITLE_STYLE_ACTIVE = {...ViewPanel.TITLE_STYLE_BASE, color: Colors.BLUE5};
-    static readonly TITLE_STYLE_SELECTED = ViewPanel.TITLE_STYLE_BASE;
-    static readonly TITLE_STYLE_NORMAL = ViewPanel.TITLE_STYLE_BASE;
+    static readonly TITLE_STYLE_BASE: CSSProperties = {paddingLeft: 4, paddingRight: 4};
+    static readonly TITLE_STYLE_ACTIVE: CSSProperties = {...ViewPanel.TITLE_STYLE_BASE, color: Colors.BLUE5};
+    static readonly TITLE_STYLE_SELECTED: CSSProperties = ViewPanel.TITLE_STYLE_BASE;
+    static readonly TITLE_STYLE_NORMAL: CSSProperties = ViewPanel.TITLE_STYLE_BASE;
 
-    static readonly CLOSE_ICON_STYLE_SELECTED = {marginLeft: 6, fontSize: 12};
-    static readonly CLOSE_ICON_STYLE_NORMAL = {marginLeft: 6, fontSize: 12};
+    static readonly CLOSE_ICON_STYLE_SELECTED: CSSProperties = {marginLeft: 6, fontSize: 12};
+    static readonly CLOSE_ICON_STYLE_NORMAL: CSSProperties = {marginLeft: 6, fontSize: 12};
 
-    static readonly MENU_ICON_STYLE = {color: Colors.GRAY5, marginLeft: 5, fontSize: 12};
+    static readonly MENU_ICON_STYLE: CSSProperties = {color: Colors.GRAY5, marginLeft: 5, fontSize: 12};
 
-    static readonly TABS_STYLE = {flex: "none", display: "flex", flexDirection: "row"};
-    static readonly SPACER_STYLE = {flex: "auto"};
-    static readonly MENU_STYLE = {flex: "none", height: "100%"};
+    static readonly TABS_STYLE: CSSProperties = {flex: "none", display: "flex", flexDirection: "row"};
+    static readonly SPACER_STYLE: CSSProperties = {flex: "auto"};
+    static readonly MENU_STYLE: CSSProperties = {flex: "none", height: "100%"};
 
-    static readonly VIEW_HEADER_STYLE = {
+    static readonly VIEW_HEADER_STYLE: CSSProperties = {
         display: "flex",
         flexDirection: "row",
         flex: "none",
@@ -233,7 +234,7 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
         overflow: "hidden",
     };
 
-    static readonly VIEW_BODY_STYLE = {
+    static readonly VIEW_BODY_STYLE: CSSProperties = {
         display: "flex",
         flexDirection: "column",
         flex: 'auto',
@@ -242,7 +243,7 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
         overflow: "hidden",
     };
 
-    static readonly CONTAINER_STYLE = {
+    static readonly CONTAINER_STYLE: CSSProperties = {
         display: "flex",
         flexDirection: "column",
         width: "100%",

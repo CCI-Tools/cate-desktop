@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {State, ResourceState, FigureViewDataState} from "../state";
-import {connect, Dispatch} from "react-redux";
+import {connect, Dispatch, DispatchProp} from "react-redux";
 import {ViewState} from "../components/ViewState";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -14,7 +14,6 @@ interface IFigureViewOwnProps {
 }
 
 interface IFigureViewProps extends IFigureViewOwnProps {
-    dispatch?: Dispatch<State>;
     baseUrl: string;
     baseDir: string | null;
     figureResources: ResourceState[];
@@ -34,10 +33,10 @@ function mapStateToProps(state: State, ownProps: IFigureViewOwnProps): IFigureVi
 /**
  * This component displays a 2D map with a number of layers.
  */
-class FigureView extends React.Component<IFigureViewProps, null> {
+class FigureView extends React.Component<IFigureViewProps & DispatchProp<State>, null> {
     static readonly DIV_STYLE = {width: '100%', height: '100%', overflowX: 'hidden', overflowY: 'auto'};
 
-    constructor(props: IFigureViewProps) {
+    constructor(props: IFigureViewProps & DispatchProp<State>) {
         super(props);
         this.onDownload = this.onDownload.bind(this);
     }

@@ -4,7 +4,7 @@ import {
     VariableRefState, VariableState, ResourceState, VectorLayerState, WorldViewDataState
 } from "../state";
 import {OpenLayersMap, LayerDescriptor} from "../components/openlayers/OpenLayersMap";
-import {connect} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import * as ol from 'openlayers';
 import {
     findVariable, findResource, getGeoJSONUrl, getTileUrl, getGeoJSONCountriesUrl,
@@ -35,7 +35,7 @@ function mapStateToProps(state: State, ownProps: IMapViewOwnProps): IMapViewProp
 /**
  * This component displays a 2D map with a number of layers.
  */
-class MapView extends React.Component<IMapViewProps, null> {
+class MapView extends React.Component<IMapViewProps & DispatchProp<State>, null> {
 
     render() {
         const mapLayers = [];

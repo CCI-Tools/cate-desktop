@@ -59,7 +59,7 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
 
     protected _fieldValue: AnyFieldValue;
 
-    constructor(props: IFieldProps) {
+    constructor(props: Readonly<P>) {
         super(props);
         this._fieldValue = this.toFieldValue(props.value);
         if (this.props.uncontrolled) {
@@ -98,7 +98,7 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
         this.setFieldValue({...this._fieldValue, error});
     }
 
-    componentWillReceiveProps(nextProps: IFieldProps): void {
+    componentWillReceiveProps(nextProps: Readonly<P>): void {
         this._fieldValue = this.toFieldValue(nextProps.value);
         if (this.props.uncontrolled) {
             this.setState(this._fieldValue);

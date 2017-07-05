@@ -79,7 +79,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
 
     private parentContainer: HTMLElement | null;
 
-    constructor(props: P | ES) {
+    constructor(props: P & ES) {
         super(props);
         ExternalObjectComponent.checkProps(props);
         this.parentContainer = null;
@@ -136,7 +136,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      * @param props The props.
      * @returns {{}} State of the external object extracted from props.
      */
-    propsToExternalObjectState(props: P & ES): ES {
+    propsToExternalObjectState(props: Readonly<P & ES>): ES {
         return {...props as any};
     }
 
@@ -172,7 +172,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      *
      * @param nextProps the next props
      */
-    componentWillUpdate(nextProps: P & ES) {
+    componentWillUpdate(nextProps: Readonly<P & ES>) {
         ExternalObjectComponent.checkProps(nextProps);
         if (nextProps.id in this.externalObjectStore) {
             this.updateExternalComponentAndSaveProps(nextProps);
@@ -270,7 +270,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         this.externalObjectUnmounted(externalObjectRef.object, parentContainer, container);
     }
 
-    private updateExternalComponentAndSaveProps(nextProps: P & ES): void {
+    private updateExternalComponentAndSaveProps(nextProps: Readonly<P & ES>): void {
         const externalObjectRef = this.externalObjectStore[nextProps.id];
         assert.ok(externalObjectRef);
         // Get previous props

@@ -1,5 +1,5 @@
 import * as React from "react";
-import {connect} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import {State, TaskState} from "../state";
 import {ListBox} from "../components/ListBox";
 import {JobStatusEnum} from "../webapi/Job";
@@ -34,8 +34,8 @@ const mapDispatchToProps = {
  *
  * @author Marco Zuehlke
  */
-class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch, null> {
-    constructor(props: ITaskPanelProps) {
+class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch & DispatchProp<State>, null> {
+    constructor(props: ITaskPanelProps & ITaskPanelDispatch & DispatchProp<State>) {
         super(props);
     }
 

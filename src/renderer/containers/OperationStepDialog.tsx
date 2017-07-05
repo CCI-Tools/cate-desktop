@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {connect} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import {AnchorButton, Tooltip} from "@blueprintjs/core";
 import {
     OperationState, WorkspaceState, OperationInputState, State, DialogState, OperationKWArgs,
@@ -25,7 +25,6 @@ interface IOperationStepDialogOwnProps {
 }
 
 interface IOperationStepDialogProps extends DialogState, IOperationStepDialogOwnProps {
-    dispatch?: any;
     isEditMode: boolean;
     inputAssignments: InputAssignments;
     workspace: WorkspaceState;
@@ -80,10 +79,10 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
     };
 }
 
-class OperationStepDialog extends React.Component<IOperationStepDialogProps, IOperationStepDialogState> {
+class OperationStepDialog extends React.Component<IOperationStepDialogProps & DispatchProp<State>, IOperationStepDialogState> {
     static readonly DIALOG_ID = 'operationStepDialog';
 
-    constructor(props: IOperationStepDialogProps) {
+    constructor(props: IOperationStepDialogProps & DispatchProp<State>) {
         super(props);
         this.onCancel = this.onCancel.bind(this);
         this.onValidate = this.onValidate.bind(this);

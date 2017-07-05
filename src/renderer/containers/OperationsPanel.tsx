@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {connect, Dispatch} from 'react-redux';
+import {connect, Dispatch, DispatchProp} from 'react-redux';
 import {
     Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
     PopoverInteractionKind, AnchorButton
@@ -17,7 +17,6 @@ import {NO_OPERATIONS_FOUND} from "../messages";
 
 
 interface IOperationsPanelProps {
-    dispatch?: Dispatch<State>;
     workspace: WorkspaceState;
     operations: OperationState[] | null;
     selectedOperationName: string | null;
@@ -49,10 +48,10 @@ function mapStateToProps(state: State): IOperationsPanelProps {
  *
  * @author Norman Fomferra
  */
-class OperationsPanel extends React.Component<IOperationsPanelProps, any> {
+class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchProp<State>, any> {
 
-    constructor(props: IOperationsPanelProps, context: any) {
-        super(props, context);
+    constructor(props: IOperationsPanelProps & DispatchProp<State>) {
+        super(props);
         this.handleOperationSelection = this.handleOperationSelection.bind(this);
         this.handleOperationFilterExprCleared = this.handleOperationFilterExprCleared.bind(this);
         this.handleOperationFilterExprChange = this.handleOperationFilterExprChange.bind(this);

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {State, TableViewDataState, ResourceState} from "../state";
-import {connect, Dispatch} from "react-redux";
+import {connect, Dispatch, DispatchProp} from "react-redux";
 import {ViewState} from "../components/ViewState";
 import {Spinner} from "@blueprintjs/core";
 import {Cell, Column, Table} from "@blueprintjs/table";
@@ -8,6 +8,7 @@ import * as assert from "../../common/assert";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {LOADING_TABLE_DATA_FAILED, NO_TABLE_DATA} from "../messages";
+import {CSSProperties} from "react";
 
 interface ITableViewOwnProps {
     view: ViewState<TableViewDataState>;
@@ -29,21 +30,18 @@ function mapStateToProps(state: State, ownProps: ITableViewOwnProps): ITableView
     };
 }
 
-interface ITableViewDispatch {
-    dispatch: Dispatch<State>;
-}
 
 /**
  * This component displays a 2D map with a number of layers.
  */
-class TableView extends React.PureComponent<ITableViewProps & ITableViewOwnProps & ITableViewDispatch, null> {
-    static readonly TABLE_CONTAINER_STYLE = {width: '100%', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column'};
-    static readonly LOADING_CONTAINER_STYLE = {width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' as any};
-    static readonly ACTION_ITEM_STYLE = {padding: '0.2em'};
-    static readonly ACTION_GROUP_STYLE = {display: 'flex'};
+class TableView extends React.PureComponent<ITableViewProps & ITableViewOwnProps & DispatchProp<State>, null> {
+    static readonly TABLE_CONTAINER_STYLE: CSSProperties = {width: '100%', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column'};
+    static readonly LOADING_CONTAINER_STYLE: CSSProperties = {width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' as any};
+    static readonly ACTION_ITEM_STYLE: CSSProperties = {padding: '0.2em'};
+    static readonly ACTION_GROUP_STYLE: CSSProperties = {display: 'flex'};
 
-    constructor(props: ITableViewProps, context: any) {
-        super(props, context);
+    constructor(props: ITableViewProps & ITableViewOwnProps & DispatchProp<State>) {
+        super(props);
     }
 
     componentWillMount(): void {

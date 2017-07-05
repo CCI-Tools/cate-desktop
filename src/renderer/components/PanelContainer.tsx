@@ -12,6 +12,7 @@ import {
 } from "@blueprintjs/core";
 import {Splitter} from "./Splitter";
 import ReactElement = React.ReactElement;
+import {CSSProperties} from "react";
 
 export interface PanelContainerLayout {
     horPos: number;
@@ -359,7 +360,7 @@ const PANEL_UNDOCKED_BACKGROUND_COLOR = "rgba(57, 75, 89, 0.5)";
 const TOP_PANEL_BAR_STYLE = {flex: "none", listStyleType: "none", padding: 0, margin: 0, border: "none"};
 const BOTTOM_PANEL_BAR_STYLE = {flex: "none", listStyleType: "none", padding: 0, margin: 0, border: "none"};
 const SPACER_STYLE = {flex: "auto"};
-const CONTAINER_STYLE = {
+const CONTAINER_STYLE: CSSProperties = {
     display: "flex",
     flexDirection: "column",
     flex: "none",
@@ -372,7 +373,7 @@ const CONTAINER_STYLE = {
 };
 const PANEL_BUTTON_STYLE = {textAlign: "center", verticalAlign: "middle"};
 
-const PANEL_BODY_CONTAINER_STYLE = {
+const PANEL_BODY_CONTAINER_STYLE: CSSProperties = {
     flex: 1,
     padding: PanelContainer.PANEL_BODY_PADDING,
     overflow: "auto",
@@ -459,7 +460,7 @@ function PanelPane(props: IPanelPaneProps) {
     const panelId = panel.props.id;
     const panelBody = panel.props.body;
 
-    let panelParentStyle = {
+    let panelParentStyle: CSSProperties = {
         display: "flex",
         flexDirection: "column",
         alignItems: "stretch",

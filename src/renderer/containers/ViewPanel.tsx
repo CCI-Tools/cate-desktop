@@ -49,8 +49,8 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
 
     private static ITEM_STYLE = {margin: "0.1em 0.2em 0.1em 0.2em"};
 
-    constructor(props: IViewPanelProps & IViewPanelDispatch, context: any) {
-        super(props, context);
+    constructor(props: IViewPanelProps & IViewPanelDispatch) {
+        super(props);
         this.onViewModeChange = this.onViewModeChange.bind(this);
         this.onProjectionCodeChange = this.onProjectionCodeChange.bind(this);
         this.onAddWorldView = this.onAddWorldView.bind(this);

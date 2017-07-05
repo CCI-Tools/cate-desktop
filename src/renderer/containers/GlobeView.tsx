@@ -7,7 +7,7 @@ import {
     CesiumGlobe, LayerDescriptor, ImageryProvider, DataSourceDescriptor,
     DataSource, GeoJsonDataSource
 } from "../components/cesium/CesiumGlobe";
-import {connect} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import {
     findVariable, findResource, getTileUrl, getGeoJSONUrl, getGeoJSONCountriesUrl,
     COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID, findVariableIndexCoordinates
@@ -23,7 +23,6 @@ interface IGlobeViewOwnProps {
 }
 
 interface IGlobeViewProps extends IGlobeViewOwnProps {
-    dispatch?: (action: any) => void;
     baseUrl: string;
     workspace: WorkspaceState | null;
     offlineMode: boolean;
@@ -51,10 +50,10 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
 /**
  * This component displays a 3D globe with a number of layers.
  */
-class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps, null> {
+class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>, null> {
     static readonly CESIUM_GLOBE_STYLE = {width: "100%", height: "100%", overflow: "hidden"};
 
-    constructor(props: IGlobeViewProps & IGlobeViewOwnProps) {
+    constructor(props: IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>) {
         super(props);
         this.handleMouseMoved = this.handleMouseMoved.bind(this);
         this.handleMouseClicked = this.handleMouseClicked.bind(this);

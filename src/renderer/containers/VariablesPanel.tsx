@@ -1,5 +1,5 @@
 import * as React from "react";
-import {connect} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import {State, VariableState, ResourceState, SavedLayers, Placemark} from "../state";
 import * as assert from "../../common/assert";
 import * as actions from "../actions";
@@ -11,9 +11,9 @@ import {AnchorButton, Tooltip, Position} from "@blueprintjs/core";
 import {Cell, Column, Table, TruncatedFormat} from "@blueprintjs/table";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE} from "../messages";
+import {CSSProperties} from "react";
 
 interface IVariablesPanelProps {
-    dispatch?: any;
     variables: VariableState[];
     selectedResource: ResourceState | null;
     selectedVariableName: string | null;
@@ -48,10 +48,10 @@ function mapStateToProps(state: State): IVariablesPanelProps {
  *
  * @author Marco Zuehlke, Norman Fomferra
  */
-class VariablesPanel extends React.Component<IVariablesPanelProps, null> {
-    static readonly DIV_STYLE = {paddingTop: 4, width: '100%'};
+class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp<State>, null> {
+    static readonly DIV_STYLE: CSSProperties = {paddingTop: 4, width: '100%'};
 
-    constructor(props: IVariablesPanelProps) {
+    constructor(props: IVariablesPanelProps & DispatchProp<State>) {
         super(props);
         this.handleSelectedVariableName = this.handleSelectedVariableName.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);

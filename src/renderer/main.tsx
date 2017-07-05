@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {Store, createStore, Middleware, applyMiddleware} from 'redux';
-import * as createLogger from 'redux-logger';
+import {createLogger} from 'redux-logger';
 import thunkMiddleware from 'redux-thunk';
 import {Provider} from 'react-redux';
 import {ipcRenderer} from 'electron';

@@ -104,14 +104,14 @@ export class MplFigure {
         this.waiting = false;
 
         this.imageObj.onload = () => {
-            const context = this.figureImageCanvas.getContext("2d");
+            const canvasContext = this.figureImageCanvas.getContext("2d");
             if (this.imageMode == 'full') {
                 // Full images could contain transparency (where diff images
                 // almost always do), so we need to clear the canvas so that
                 // there is no ghosting.
-                context.clearRect(0, 0, this.figureImageCanvas.width, this.figureImageCanvas.height);
+                canvasContext.clearRect(0, 0, this.figureImageCanvas.width, this.figureImageCanvas.height);
             }
-            context.drawImage(this.imageObj, 0, 0);
+            canvasContext.drawImage(this.imageObj, 0, 0);
         };
 
         this.imageObj.onunload = function () {
@@ -325,9 +325,9 @@ export class MplFigure {
         const width = Math.abs(x1 - x0);
         const height = Math.abs(y1 - y0);
 
-        const context = this.rubberBandCanvas.getContext("2d");
-        context.clearRect(0, 0, this.figureImageCanvas.width, this.figureImageCanvas.height);
-        context.strokeRect(xMin, yMin, width, height);
+        const rubberBandCanvasContext = this.rubberBandCanvas.getContext("2d");
+        rubberBandCanvasContext.clearRect(0, 0, this.figureImageCanvas.width, this.figureImageCanvas.height);
+        rubberBandCanvasContext.strokeRect(xMin, yMin, width, height);
     }
 
     //noinspection JSUnusedLocalSymbols

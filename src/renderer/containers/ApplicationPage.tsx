@@ -21,6 +21,7 @@ import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ViewManager, ViewRenderMap} from "../components/ViewManager";
 import {ViewLayoutState, ViewState, ViewPath, SplitDir} from "../components/ViewState";
+import {CSSProperties} from "react";
 
 
 function renderWorldView(view: ViewState<WorldViewDataState>) {
@@ -47,21 +48,21 @@ interface IDispatch {
 
 //noinspection JSUnusedLocalSymbols
 export default class ApplicationPage extends React.PureComponent<null, null> {
-    static readonly ROOT_DIV_STYLE = {
+    static readonly ROOT_DIV_STYLE: CSSProperties = {
         display: "flex",
         flexFlow: "column nowrap",
         width: "100%",
         height: "100%",
         overflow: "hidden"
     };
-    static readonly MAIN_DIV_STYLE = {
+    static readonly MAIN_DIV_STYLE: CSSProperties = {
         display: "flex",
         flexFlow: "row nowrap",
         flex: "auto",
         height: "100%",
         overflow: "hidden"
     };
-    static readonly CREDITS_DIV_STYLE = {
+    static readonly CREDITS_DIV_STYLE: CSSProperties = {
         minWidth: "10em",
         minHeight: "4em",
         position: "relative",
@@ -231,7 +232,7 @@ function mapStateToPropsView(state: State): IViewManagerPanelProps {
 }
 
 class _CenterPanel extends React.PureComponent<IViewManagerPanelProps & IDispatch, null> {
-    static readonly DIV_STYLE = {flex: "auto", height: "100%", overflow: "hidden"};
+    static readonly DIV_STYLE: CSSProperties = {flex: "auto", height: "100%", overflow: "hidden"};
 
     constructor(props: IViewManagerPanelProps & IDispatch) {
         super(props);

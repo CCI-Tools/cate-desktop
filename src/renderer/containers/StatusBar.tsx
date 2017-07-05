@@ -1,5 +1,5 @@
 import * as React from "react";
-import {connect} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import {GeographicPosition, State, TaskState} from "../state";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
@@ -7,6 +7,7 @@ import {Classes, Intent, Popover, PopoverInteractionKind, Position, Spinner, Too
 import {JobStatusEnum} from "../webapi/Job";
 import {TaskComponent} from "./TaskComponent";
 import {ListBox} from "../components/ListBox";
+import {CSSProperties} from "react";
 
 interface IStatusBarProps {
     webAPIStatus: 'connecting' | 'open' | 'error' | 'closed' | null;
@@ -38,9 +39,9 @@ const mapDispatchToProps = {
  *
  * @author Marco Zuehlke
  */
-class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch, null> {
+class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & DispatchProp<State>, null> {
 
-    static readonly DIV_STYLE = {
+    static readonly DIV_STYLE: CSSProperties = {
         flex: "none",
         display: "flex",
         flexFlow: "row nowrap",
@@ -50,7 +51,7 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch, nu
         overflow: "hidden",
     };
 
-    constructor(props: IStatusBarProps) {
+    constructor(props: IStatusBarProps & IStatusBarDispatch & DispatchProp<State>) {
         super(props);
     }
 

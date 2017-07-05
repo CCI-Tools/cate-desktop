@@ -14,7 +14,6 @@ interface IChartSettingsPanelProps {
     figureResources: ResourceState[];
 }
 
-
 function mapStateToProps(state: State): IChartSettingsPanelProps {
     return {
         figureResources: selectors.figureResourcesSelector(state),
@@ -29,7 +28,7 @@ function mapStateToProps(state: State): IChartSettingsPanelProps {
  * @author Norman Fomferra
  */
 class ChartSettingsPanel extends React.Component<IChartSettingsPanelProps & IDispatch, null> {
-    constructor(props: IChartSettingsPanelProps) {
+    constructor(props: IChartSettingsPanelProps & IDispatch) {
         super(props);
     }
 

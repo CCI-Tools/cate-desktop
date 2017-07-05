@@ -2,12 +2,11 @@ import * as React from "react";
 import {Checkbox} from "@blueprintjs/core";
 import {DataSourceState, DialogState, State} from "../state";
 import {ModalDialog} from "../components/ModalDialog";
-import {Dispatch, connect} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 
 interface IRemoveDatasetDialogProps {
-    dispatch?: Dispatch<State>;
     isOpen: boolean;
     dataSource: DataSourceState|null;
 }
@@ -24,10 +23,10 @@ function mapStateToProps(state: State): IRemoveDatasetDialogProps {
     };
 }
 
-class RemoveDatasetDialog extends React.Component<IRemoveDatasetDialogProps, IRemoveDatasetDialogState> {
+class RemoveDatasetDialog extends React.Component<IRemoveDatasetDialogProps & DispatchProp<State>, IRemoveDatasetDialogState> {
     static readonly DIALOG_ID = 'removeDatasetDialog';
 
-    constructor(props: IRemoveDatasetDialogProps) {
+    constructor(props: IRemoveDatasetDialogProps & DispatchProp<State>) {
         super(props);
         this.state = {removeFiles: false};
         this.onCancel = this.onCancel.bind(this);

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {connect, Dispatch} from 'react-redux';
+import {connect, Dispatch, DispatchProp} from 'react-redux';
 import {
     State, WorkspaceState, WorkflowStepState, ResourceState, WorkflowPortState, OperationState,
     OperationIOBaseState
@@ -20,9 +20,9 @@ import {findOperation, isDataResource, isFigureResource} from "../state-util";
 import {isBoolean, isString, isUndefined, isUndefinedOrNull} from "../../common/types";
 import * as TestUtils from "react-addons-test-utils";
 import input = TestUtils.Simulate.input;
+import {CSSProperties} from "react";
 
 interface IWorkspacePanelProps {
-    dispatch?: Dispatch<State>;
     workspace: WorkspaceState;
     resourcesMap: { [name: string]: ResourceState };
     showResourceDetails: boolean;
@@ -67,14 +67,14 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
  *
  * @author Norman Fomferra
  */
-class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps, any> {
+class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & DispatchProp<State>, any> {
 
-    private static readonly STATE_TAG_STYLE = {margin: 2};
-    private static readonly FLEX_ROW_STYLE = {display: "flex", alignItems: "center"};
-    private static readonly SPACER_STYLE = {flex: 1};
+    private static readonly STATE_TAG_STYLE: CSSProperties = {margin: 2};
+    private static readonly FLEX_ROW_STYLE: CSSProperties = {display: "flex", alignItems: "center"};
+    private static readonly SPACER_STYLE: CSSProperties = {flex: 1};
 
-    constructor(props, context) {
-        super(props, context);
+    constructor(props: IWorkspacePanelProps & DispatchProp<State>) {
+        super(props);
         this.handleShowResourceDetailsChanged = this.handleShowResourceDetailsChanged.bind(this);
         this.handleResourceNameSelected = this.handleResourceNameSelected.bind(this);
         this.handleShowWorkflowStepDetailsChanged = this.handleShowWorkflowStepDetailsChanged.bind(this);

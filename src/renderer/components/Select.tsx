@@ -17,11 +17,10 @@ export interface ISelectProps {
 export class Select extends React.PureComponent<ISelectProps, null> {
     static readonly NULL_ITEM_VALUE = '___NULL_ITEM_VALUE___';
 
-    constructor(props: ISelectProps, context: any) {
-        super(props, context);
+    constructor(props: ISelectProps) {
+        super(props);
         Select.checkProps(props);
         this.onChange = this.onChange.bind(this);
-
     }
 
     //noinspection JSMethodCanBeStatic

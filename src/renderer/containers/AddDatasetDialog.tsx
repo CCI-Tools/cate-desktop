@@ -2,13 +2,12 @@ import * as React from "react";
 import {AnchorButton} from "@blueprintjs/core";
 import {DialogState, State} from "../state";
 import {ModalDialog} from "../components/ModalDialog";
-import {connect, Dispatch} from "react-redux";
+import {connect, Dispatch, DispatchProp} from "react-redux";
 import * as actions from "../actions";
 import {OpenDialogProperty} from "../actions";
 import * as selectors from "../selectors";
 
 interface IAddDatasetDialogProps {
-    dispatch?: Dispatch<State>;
     isOpen: boolean;
 }
 
@@ -24,10 +23,10 @@ function mapStateToProps(state: State): IAddDatasetDialogProps {
     };
 }
 
-class AddDatasetDialog extends React.Component<IAddDatasetDialogProps, IAddDatasetDialogState> {
+class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & DispatchProp<State>, IAddDatasetDialogState> {
     static readonly DIALOG_ID = 'addDatasetDialog';
 
-    constructor(props: IAddDatasetDialogProps) {
+    constructor(props: IAddDatasetDialogProps & DispatchProp<State>) {
         super(props);
         this.state = {dataSourceName: '', filePathPattern: ''};
         this.onCancel = this.onCancel.bind(this);

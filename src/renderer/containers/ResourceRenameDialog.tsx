@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {State, ResourceState, DialogState} from "../state";
-import {connect} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ModalDialog} from "../components/ModalDialog";
@@ -11,7 +11,6 @@ interface IResourceRenameDialogOwnProps {
 }
 
 interface IResourceRenameDialogProps extends IResourceRenameDialogOwnProps, DialogState {
-    dispatch?: any;
     resources: ResourceState[];
     selectedResource: ResourceState;
 }
@@ -28,11 +27,11 @@ function mapStateToProps(state: State, ownProps: IResourceRenameDialogOwnProps):
     };
 }
 
-class ResourceRenameDialog extends React.Component<IResourceRenameDialogProps, IResourceRenameDialogState> {
+class ResourceRenameDialog extends React.Component<IResourceRenameDialogProps & DispatchProp<State>, IResourceRenameDialogState> {
     static readonly DIALOG_ID = 'resourceRenameDialog';
     static readonly DIALOG_TITLE = 'Rename Resource';
 
-    constructor(props: IResourceRenameDialogProps) {
+    constructor(props: IResourceRenameDialogProps & DispatchProp<State>) {
         super(props);
         this.onCancel = this.onCancel.bind(this);
         this.onConfirm = this.onConfirm.bind(this);

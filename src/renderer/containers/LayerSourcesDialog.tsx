@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {State, ResourceState, LayerState, DialogState, LayerVariableState} from "../state";
-import {connect} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ListBoxSelectionMode, ListBox} from "../components/ListBox";
@@ -9,7 +9,6 @@ import {ModalDialog} from "../components/ModalDialog";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 
 interface ILayerSourcesDialogProps extends DialogState {
-    dispatch?: any;
     resources: ResourceState[];
     layers: LayerState[];
     savedLayers: {[name: string ]: LayerState};
@@ -33,11 +32,11 @@ function mapStateToProps(state: State): ILayerSourcesDialogProps {
 }
 
 
-class LayerSourcesDialog extends React.Component<ILayerSourcesDialogProps, ILayerSourcesDialogState> {
+class LayerSourcesDialog extends React.Component<DispatchProp<State> & ILayerSourcesDialogProps, ILayerSourcesDialogState> {
     static readonly DIALOG_ID = 'layerSourcesDialog';
     static readonly DIALOG_TITLE = 'Add Layer';
 
-    constructor(props: ILayerSourcesDialogProps) {
+    constructor(props: DispatchProp<State> & ILayerSourcesDialogProps) {
         super(props);
         this.onCancel = this.onCancel.bind(this);
         this.onConfirm = this.onConfirm.bind(this);

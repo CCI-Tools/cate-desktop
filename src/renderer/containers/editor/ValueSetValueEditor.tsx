@@ -6,10 +6,6 @@ import {OperationInputState} from "../../state";
 export class ValueSetValueEditor extends React.PureComponent<IValueEditorProps<any>, null> {
     static readonly NULL_VALUE = '__null__';
 
-    constructor(props: IValueEditorProps<any>, context: any) {
-        super(props, context);
-    }
-
     private onChange(value: any) {
         this.props.onChange(this.props.input, value === ValueSetValueEditor.NULL_VALUE ? null : value);
     }

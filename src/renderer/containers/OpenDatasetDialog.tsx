@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {DataSourceState, DialogState, State, DataStoreState} from "../state";
 import {ModalDialog} from "../components/ModalDialog";
-import {Dispatch, connect} from "react-redux";
+import {Dispatch, connect, DispatchProp} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {IDataAccessComponentOptions, DataAccessComponent} from "./DataAccessComponent";
@@ -9,7 +9,6 @@ import {IDataAccessComponentOptions, DataAccessComponent} from "./DataAccessComp
 type TimeRangeValue = [string, string];
 
 interface IOpenDatasetDialogProps {
-    dispatch?: Dispatch<State>;
     isOpen: boolean;
     dataStore: DataStoreState | null;
     dataSource: DataSourceState | null;
@@ -32,12 +31,12 @@ function mapStateToProps(state: State): IOpenDatasetDialogProps {
     };
 }
 
-class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDatasetDialogState> {
+class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps & DispatchProp<State>, IOpenDatasetDialogState> {
     static readonly DIALOG_ID = 'openDatasetDialog';
 
     static readonly VAR_NAMES_INPUT = {name: 'varNames', dataType: 'string', description: null, nullable: true};
 
-    constructor(props: IOpenDatasetDialogProps) {
+    constructor(props: IOpenDatasetDialogProps & DispatchProp<State>) {
         super(props);
         this.onCancel = this.onCancel.bind(this);
         this.onConfirm = this.onConfirm.bind(this);

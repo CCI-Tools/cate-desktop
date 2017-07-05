@@ -1,5 +1,5 @@
 import * as React from "react";
-import {connect, Dispatch} from "react-redux";
+import {connect} from "react-redux";
 import {State, DataStoreState, DataSourceState} from "../state";
 import {AnchorButton, InputGroup, Classes, Tag, Tabs2, Tab2, Tooltip, Checkbox, Colors} from "@blueprintjs/core";
 import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
@@ -14,6 +14,7 @@ import RemoveDatasetDialog from "./RemoveDatasetDialog";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES} from "../messages";
+import {CSSProperties} from "react";
 
 
 interface IDataSourcesPanelProps {
@@ -71,10 +72,10 @@ const mapDispatchToProps = {
  */
 class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSourcesPanelDispatch, null> {
 
-    private static readonly FLEX_ROW_STYLE = {display: "flex", alignItems: "center"};
-    private static readonly SPACER_STYLE = {flex: 1};
+    private static readonly FLEX_ROW_STYLE: CSSProperties = {display: "flex", alignItems: "center"};
+    private static readonly SPACER_STYLE: CSSProperties = {flex: 1};
 
-    constructor(props: IDataSourcesPanelProps) {
+    constructor(props: IDataSourcesPanelProps & IDataSourcesPanelDispatch) {
         super(props);
         this.handleAddDatasetDialog = this.handleAddDatasetDialog.bind(this);
         this.handleRemoveDatasetDialog = this.handleRemoveDatasetDialog.bind(this);
@@ -280,8 +281,9 @@ interface IDataSourcesListProps {
     showHumanReadableDataSourceTitles: boolean;
     doubleClickAction: (dataSource: DataSourceState) => any;
 }
-class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
 
+class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
+    static readonly TITLE_DIV_STYLE: CSSProperties = {display: 'flex', alignItems: 'flex-start'};
     readonly defaultIconName = 'cci';
 
     constructor(props: IDataSourcesListProps) {
@@ -323,7 +325,7 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
         const title = (dataSource.meta_info && dataSource.meta_info.title);
         const name = dataSource.name.replace('esacci', '').replace(/\./g, ' ');
         return (
-            <div style={{display: 'flex', alignItems: 'flexStart'}}>
+            <div style={DataSourcesList.TITLE_DIV_STYLE}>
                 {this.renderIcon(dataSource)}
                 <div>
                     <div>{title}</div>
@@ -336,7 +338,7 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
     private renderDsTitle(dataSource: DataSourceState) {
         const name = dataSource.name.replace('esacci', '').replace(/\./g, ' ');
         return (
-            <div style={{display: 'flex', alignItems: 'center'}}>
+            <div style={DataSourcesList.TITLE_DIV_STYLE}>
                 {this.renderIcon(dataSource)}
                 <span>{name}</span>
             </div>
@@ -372,9 +374,9 @@ interface DetailPart {
 
 interface IDataSourceDetailsProps {
     dataSource: DataSourceState
-    dispatch?: Dispatch<State>;
 }
-class _DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, null> {
+
+class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, null> {
 
     constructor(props: IDataSourceDetailsProps) {
         super(props);
@@ -385,7 +387,7 @@ class _DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nu
     private openOdpLink() {
         const uuid = this.props.dataSource.meta_info.uuid;
         const url = "http://catalogue.ceda.ac.uk/uuid/" + uuid;
-        actions.openUrlInBrowser(url);
+        actions.openExternal(url);
     }
 
     private renderAbstract(meta_info: any): DetailPart {
@@ -505,11 +507,11 @@ class _DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nu
             if (dataSource.meta_info.variables) {
                 const variables = dataSource.meta_info.variables;
                 if (variables.length) {
-                    details.push(_DataSourceDetails.renderVariablesTable(variables));
+                    details.push(DataSourceDetails.renderVariablesTable(variables));
                 }
             }
             if (metaInfoKeys.length) {
-                details.push(_DataSourceDetails.renderMetaInfoTable(metaInfoKeys, dataSource.meta_info));
+                details.push(DataSourceDetails.renderMetaInfoTable(metaInfoKeys, dataSource.meta_info));
             }
         }
 
@@ -531,6 +533,5 @@ class _DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nu
 
     }
 }
-const DataSourceDetails = connect()(_DataSourceDetails);
 
 export default connect(mapStateToProps, mapDispatchToProps)(DataSourcesPanel);

@@ -70,8 +70,8 @@ class GeographicPositionField extends Field<IFieldProps> {
  */
 class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemarksPanelDispatch, null> {
 
-    constructor(props: IPlacemarksPanelProps & IPlacemarksPanelDispatch, context: any) {
-        super(props, context);
+    constructor(props: IPlacemarksPanelProps & IPlacemarksPanelDispatch) {
+        super(props);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleAddPlacemarkFromPositionButtonClicked = this.handleAddPlacemarkFromPositionButtonClicked.bind(this);
         this.handleAddPlacemarkButtonClicked = this.handleAddPlacemarkButtonClicked.bind(this);

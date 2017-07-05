@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {DataSourceState, DialogState, State} from "../state";
 import {ModalDialog} from "../components/ModalDialog";
-import {Dispatch, connect} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {IDataAccessComponentOptions, DataAccessComponent} from "./DataAccessComponent";
@@ -9,7 +9,6 @@ import {IDataAccessComponentOptions, DataAccessComponent} from "./DataAccessComp
 type TimeRangeValue = [string, string];
 
 interface IDownloadDataSourceDialogProps {
-    dispatch?: Dispatch<State>;
     isOpen: boolean;
     dataSource: DataSourceState|null;
     temporalCoverage: TimeRangeValue|null;
@@ -30,10 +29,10 @@ function mapStateToProps(state: State): IDownloadDataSourceDialogProps {
     };
 }
 
-class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialogProps, IDownloadDataSourceDialogState> {
+class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialogProps & DispatchProp<State>, IDownloadDataSourceDialogState> {
     static readonly DIALOG_ID = 'downloadDataSourceDialog';
 
-    constructor(props: IDownloadDataSourceDialogProps) {
+    constructor(props: IDownloadDataSourceDialogProps & DispatchProp<State>) {
         super(props);
         this.onCancel = this.onCancel.bind(this);
         this.onConfirm = this.onConfirm.bind(this);
@@ -99,16 +98,12 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
         const makeLocalSelected = this.state.options.isMakeLocalSelected;
         const openDatasetSelected = this.state.options.isOpenDatasetSelected;
         let confirmTitle;
-        let confirmTooltip;
         if (makeLocalSelected && openDatasetSelected) {
             confirmTitle = "Download & Open Local";
-            confirmTooltip="Download and store the dataset as local data source, then open it.";
         } else if (makeLocalSelected) {
             confirmTitle = "Download";
-            confirmTooltip="Download and store the dataset as local data source.";
         } else if (openDatasetSelected) {
             confirmTitle = "Open Remote";
-            confirmTooltip="Open remote data source (using OPeNDAP protocol, use constraints!).";
         } else {
             confirmTitle = "Download";
         }
