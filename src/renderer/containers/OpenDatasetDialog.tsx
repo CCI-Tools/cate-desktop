@@ -52,7 +52,7 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps, IOpenDa
     }
 
     static mapPropsToState(nextProps: IOpenDatasetDialogProps): IOpenDatasetDialogState {
-        const options = nextProps.options || DataAccessComponent.defaultOptions(true, nextProps.dataSource, nextProps.temporalCoverage);
+        const options = nextProps.options || DataAccessComponent.defaultOptions(true, nextProps.temporalCoverage);
         return {options};
     }
 
