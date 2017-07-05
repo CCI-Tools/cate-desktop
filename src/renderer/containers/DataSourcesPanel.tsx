@@ -249,7 +249,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                 </label>
                 <span style={DataSourcesPanel.SPACER_STYLE}/>
                 <Checkbox style={{marginTop: '1em'}}
-                          label="Human readable titles"
+                          label="Titles"
                           checked={showHumanReadableDataSourceTitles}
                           onChange={this.onShowHumanReadableTitleChange}
                 />
@@ -323,7 +323,7 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
         const title = (dataSource.meta_info && dataSource.meta_info.title);
         const name = dataSource.name.replace('esacci', '').replace(/\./g, ' ');
         return (
-            <div style={{display: 'flex', alignItems: 'center'}}>
+            <div style={{display: 'flex', alignItems: 'flexStart'}}>
                 {this.renderIcon(dataSource)}
                 <div>
                     <div>{title}</div>
