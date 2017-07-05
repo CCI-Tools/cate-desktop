@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Checkbox, Collapse, Tooltip} from "@blueprintjs/core";
+import {Checkbox, Collapse} from "@blueprintjs/core";
 import {DataSourceState, ResourceState, VariableState} from "../state";
 import {formatDateAsISODateString} from "../../common/format";
 import * as types from "../../common/cate-types";
@@ -326,7 +326,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         return args;
     }
 
-    static defaultOptions(isLocalDataSource: boolean, dataSource: DataSourceState, temporalCoverage: TimeRangeValue): IDataAccessComponentOptions {
+    static defaultOptions(isLocalDataSource: boolean, temporalCoverage: TimeRangeValue): IDataAccessComponentOptions {
         let minDate = null;
         let maxDate = null;
         if (temporalCoverage && temporalCoverage[0]) {
@@ -344,7 +344,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             }
         }
 
-        let options = {
+        return {
             hasTimeConstraint: false,
             dateRange: [minDate, maxDate],
 
@@ -360,24 +360,20 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             isOpenDatasetSelected: isLocalDataSource,
             openDatasetResourceName: '',
         };
-        if (!isLocalDataSource) {
-            options = {
-                ...options,
-                makeLocalDataSourceName: DataAccessComponent.getDefaultLocalDataSourceName(dataSource)
-            };
-        }
-        return options;
     }
 
-    private static getDefaultLocalDataSourceName(dataSource: DataSourceState) {
-        let localDataSourceName = dataSource && dataSource.name;
-        if (!localDataSourceName) {
-            localDataSourceName = dataSource && dataSource.id;
-            if (!localDataSourceName) {
-                localDataSourceName = 'unknown'
+    static adjustLocalDataSourceName(options: IDataAccessComponentOptions, dataSource: DataSourceState): IDataAccessComponentOptions {
+        if (!options.makeLocalDataSourceName || options.makeLocalDataSourceName === '') {
+            let dataSourceName = dataSource && dataSource.name;
+            if (!dataSourceName) {
+                dataSourceName = dataSource && dataSource.id;
+                if (!dataSourceName) {
+                    dataSourceName = 'unnamed';
+                }
             }
+            return {...options, makeLocalDataSourceName: 'local.' + dataSourceName};
         }
-        return 'local.' + localDataSourceName;
+        return options;
     }
 }
 

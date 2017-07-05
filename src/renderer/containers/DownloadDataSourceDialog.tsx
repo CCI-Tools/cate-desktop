@@ -47,8 +47,12 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
         this.setState(DownloadDataSourceDialog.mapPropsToState(nextProps));
     }
 
-    static mapPropsToState(nextProps: IDownloadDataSourceDialogProps): IDownloadDataSourceDialogState {
-        const options = nextProps.options || DataAccessComponent.defaultOptions(false, nextProps.dataSource, nextProps.temporalCoverage);
+    static mapPropsToState(props: IDownloadDataSourceDialogProps): IDownloadDataSourceDialogState {
+        let options = props.options;
+        if (!options) {
+            options = DataAccessComponent.defaultOptions(false, props.temporalCoverage);
+        }
+        options = DataAccessComponent.adjustLocalDataSourceName(options, props.dataSource);
         return {options};
     }
 
@@ -57,8 +61,10 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
     }
 
     private onConfirm() {
-        this.props.dispatch(actions.hideDialog(DownloadDataSourceDialog.DIALOG_ID, {...this.state, makeLocalDataSourceName: null}));
         const options = this.state.options;
+        // Clear makeLocalDataSourceName, so on next props, we can create a new default from selected data source
+        const dialogState = {options: {...options, makeLocalDataSourceName: ''}};
+        this.props.dispatch(actions.hideDialog(DownloadDataSourceDialog.DIALOG_ID, dialogState));
         const opArguments = DataAccessComponent.optionsToOperationArguments(options);
         if (options.isMakeLocalSelected) {
             this.props.dispatch(actions.downloadDataset(
@@ -72,6 +78,8 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
                 opArguments
             ));
         }
+        // Save modified state
+        this.setState(dialogState);
     }
 
     private canConfirm(): boolean {
@@ -79,7 +87,6 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
     }
 
     private onOptionsChange(options: IDataAccessComponentOptions) {
-        // console.log(options);
         this.setState({options} as IDownloadDataSourceDialogState);
     }
 
