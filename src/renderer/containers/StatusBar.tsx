@@ -1,18 +1,17 @@
 import * as React from "react";
+import {CSSProperties} from "react";
 import {connect, DispatchProp} from "react-redux";
 import {GeographicPosition, State, TaskState} from "../state";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
-import {Classes, Intent, Popover, PopoverInteractionKind, Position, Spinner, Tooltip} from "@blueprintjs/core";
+import {Popover, PopoverInteractionKind, Position, ProgressBar, Tooltip} from "@blueprintjs/core";
 import {JobStatusEnum} from "../webapi/Job";
 import {TaskComponent} from "./TaskComponent";
-import {ListBox} from "../components/ListBox";
-import {CSSProperties} from "react";
 
 interface IStatusBarProps {
     webAPIStatus: 'connecting' | 'open' | 'error' | 'closed' | null;
     tasks: { [jobId: number]: TaskState };
-    globePosition: GeographicPosition|null;
+    globePosition: GeographicPosition | null;
 }
 
 interface IStatusBarDispatch {
@@ -56,27 +55,33 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
     }
 
     private renderTasks() {
+        const tasks: { [jobId: number]: TaskState } = this.props.tasks;
+
         let numRunningTasks = 0;
         let numFailedTasks = 0;
-        const visibleTaskIds: string[] = [];
-        for (let taskId in this.props.tasks) {
-            const task = this.props.tasks[taskId];
+        const taskComponents = [];
+        for (let jobId in tasks) {
+            const task = tasks[jobId];
+            let render = false;
             if (task.status === JobStatusEnum.SUBMITTED || task.status === JobStatusEnum.IN_PROGRESS) {
                 numRunningTasks++;
-                visibleTaskIds.push(taskId);
+                render = true;
             } else if (task.status === JobStatusEnum.CANCELLED || task.status === JobStatusEnum.FAILED) {
                 numFailedTasks++;
-                visibleTaskIds.push(taskId);
+                render = true;
+            }
+            if (render) {
+                taskComponents.push(<TaskComponent
+                    key={jobId}
+                    jobId={jobId}
+                    task={this.props.tasks[jobId]}
+                    onRemoveJob={this.props.removeJob}
+                    onCancelJob={this.props.cancelJob}
+                />);
             }
         }
-        const renderItem = (jobId: number, itemIndex: number) => <TaskComponent
-            jobId={jobId}
-            task={this.props.tasks[jobId]}
-            onRemoveJob={this.props.removeJob}
-            onCancelJob={this.props.cancelJob}
-        />;
 
-        if (visibleTaskIds.length > 0) {
+        if (taskComponents.length > 0) {
             let msg;
             let spinner = null;
             if (numRunningTasks > 0 && numFailedTasks > 0) {
@@ -94,10 +99,10 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
                     width: "1.5em",
                     height: "1.5em"
                 }}>
-                    <Spinner className={Classes.SMALL} intent={Intent.SUCCESS}/>
+                    <ProgressBar/>
                 </div>;
             }
-            const tasksInPopover = <ListBox style={{width: "300px"}} items={visibleTaskIds} renderItem={renderItem}/>;
+            const tasksInPopover = <div style={{width: "300px"}}>{taskComponents}</div>;
             return <Popover
                 content={tasksInPopover}
                 position={Position.TOP}

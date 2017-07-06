@@ -1,7 +1,6 @@
 import * as React from "react";
 import {connect, DispatchProp} from "react-redux";
 import {State, TaskState} from "../state";
-import {ListBox} from "../components/ListBox";
 import {JobStatusEnum} from "../webapi/Job";
 import * as actions from "../actions";
 import {Card} from "../components/Card";
@@ -40,38 +39,29 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch & 
     }
 
     render() {
-        const visibleTaskIds: string[] = [];
-        for (let taskId in this.props.tasks) {
-            const task = this.props.tasks[taskId];
-            if (task.status !== JobStatusEnum.DONE) {
-                visibleTaskIds.push(taskId);
+        const tasks: { [jobId: number]: TaskState } = this.props.tasks;
+
+        const taskComponents= [];
+        for (let jobId in tasks) {
+            if (tasks[jobId].status !== JobStatusEnum.DONE) {
+                taskComponents.push(<TaskComponent
+                    key={jobId}
+                    jobId={jobId}
+                    task={tasks[jobId]}
+                    onRemoveJob={this.props.removeJob}
+                    onCancelJob={this.props.cancelJob}
+                />);
             }
         }
-        const renderItem = (jobId: number, itemIndex: number) => <TaskComponent
-            jobId={jobId}
-            task={this.props.tasks[jobId]}
-            onRemoveJob={this.props.removeJob}
-            onCancelJob={this.props.cancelJob}
-        />;
-
-        let panelContents;
-        if (visibleTaskIds.length) {
-            panelContents = (
-                <ScrollablePanelContent>
-                    <ListBox items={visibleTaskIds}
-                             renderItem={renderItem}
-                    />
-                </ScrollablePanelContent>
-            );
+        if (taskComponents.length) {
+            return <ScrollablePanelContent>
+                {taskComponents}
+            </ScrollablePanelContent>;
         } else {
-            panelContents = (
-                <Card>
-                    <p><strong>There are currently no active tasks.</strong></p>
-                </Card>
-            );
+            return <Card>
+                <p><strong>There are currently no active tasks.</strong></p>
+            </Card>;
         }
-
-        return panelContents;
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(TasksPanel);

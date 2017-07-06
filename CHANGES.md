@@ -1,3 +1,17 @@
+## 0.9.0-dev.4
+
+### UX Improvements and new Features
+
+* Improve styling for the **TASKS** panel and the task section of the **STATUSBAR**:
+    * improve overall layout of task entries
+    * more padding to separate the individual entries
+    * prevent *Close* from growing vertically
+    * add space between the progress bar and the cancel button
+    * replace too big spinner icon in **STATUSBAR** with a small progressbar
+    * add details action to failed tasks
+
+
+
 ## 0.9.0-dev.3
 
 ### Fixes
