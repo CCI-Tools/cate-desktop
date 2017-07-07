@@ -77,8 +77,9 @@ export class WorkspaceAPI {
         return this.webAPIClient.call('close_workspace', [baseDir]);
     }
 
-    saveWorkspace(baseDir: string): JobPromise<WorkspaceState> {
-        return this.webAPIClient.call('save_workspace', [baseDir], null, responseToWorkspace);
+    saveWorkspace(baseDir: string,
+                  onProgress: (progress: JobProgress) => void): JobPromise<WorkspaceState> {
+        return this.webAPIClient.call('save_workspace', [baseDir], onProgress, responseToWorkspace);
     }
 
     saveWorkspaceAs(baseDir: string, toDir: string,

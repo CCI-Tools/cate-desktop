@@ -630,8 +630,8 @@ export function saveWorkspace(): ThunkAction {
 
         const baseDir = workspace.baseDir;
 
-        function call() {
-            return selectors.workspaceAPISelector(getState()).saveWorkspace(baseDir);
+        function call(onProgress) {
+            return selectors.workspaceAPISelector(getState()).saveWorkspace(baseDir, onProgress);
         }
 
         function action(workspace: WorkspaceState) {
