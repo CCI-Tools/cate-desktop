@@ -2,13 +2,16 @@
 
 ### UX Improvements and new Features
 
-* Improve styling for the **TASKS** panel and the task section of the **STATUSBAR**:
-    * improve overall layout of task entries
-    * more padding to separate the individual entries
-    * prevent *Close* from growing vertically
-    * add space between the progress bar and the cancel button
-    * replace too big spinner icon in **STATUSBAR** with a small progressbar
-    * add details action to failed tasks
+* Improved display of workflow step inputs in **WORKSPACE** panel:
+  - display the units of an operation input value, if any    
+  - display the default value, if any, if an operation input is not given    
+* Improved styling for the **TASKS** panel and the task section of the **Status Bar**:
+  - improve overall layout of task entries
+  - more padding to separate the individual entries
+  - prevent *Close* button from growing vertically
+  - add space between the progress bar and the cancel button
+  - replace too big spinner icon in **Status Bar** with a small progressbar
+  - add details action to failed tasks
 
 
 
