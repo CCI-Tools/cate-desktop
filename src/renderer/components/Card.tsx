@@ -11,8 +11,7 @@ import {CSSProperties} from "react";
 export class Card extends React.PureComponent<any, any> {
     static readonly DIV_STYLE: CSSProperties = {
         overflowY: "auto", flex: 'auto', maxHeight: '100%',
-        paddingLeft: '0.4em', paddingRight: '0.4em', paddingTop: '0.5em', paddingBottom: '0.5em',
-        margin: '4px'
+        padding: '0.4em', margin: '4px', marginBottom: '12px'
     };
 
     constructor(props) {
