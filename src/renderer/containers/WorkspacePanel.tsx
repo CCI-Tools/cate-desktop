@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect, DispatchProp} from 'react-redux';
 import {
     State, WorkspaceState, WorkflowStepState, ResourceState, WorkflowPortState, OperationState,
-    OperationIOBaseState
+    OperationIOBaseState, OperationInputState
 } from "../state";
 import {AnchorButton, Tabs2, Tab2, Tooltip, Position, Popover, Menu, MenuItem} from "@blueprintjs/core";
 import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
@@ -17,7 +17,7 @@ import * as selectors from '../selectors'
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messages";
 import {findOperation, isDataResource, isFigureResource} from "../state-util";
-import {isBoolean, isString, isUndefined, isUndefinedOrNull} from "../../common/types";
+import {isBoolean, isDefined, isString, isUndefined, isUndefinedOrNull} from "../../common/types";
 import {CSSProperties} from "react";
 
 interface IWorkspacePanelProps {
@@ -453,35 +453,55 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
     }
 
     renderOperationStepInputName(row: number) {
-        return WorkspacePanel.renderWorkflowPortName(this.props.selectedWorkflowStepOp.inputs[row]);
+        const inputProps = this.props.selectedWorkflowStepOp.inputs[row];
+        const inputPort = this.props.selectedWorkflowStep.input[inputProps.name];
+        return WorkspacePanel.renderWorkflowPortName(inputProps, inputPort);
     }
 
     renderOperationStepInputValue(row: number): any {
-        const name = this.props.selectedWorkflowStepOp.inputs[row].name;
-        return WorkspacePanel.renderWorkflowPortValue(this.props.selectedWorkflowStep.input[name]);
+        const inputProps = this.props.selectedWorkflowStepOp.inputs[row];
+        const inputPort = this.props.selectedWorkflowStep.input[inputProps.name];
+        return WorkspacePanel.renderWorkflowPortValue(inputProps, inputPort);
     }
 
     renderOperationStepOutputName(row: number) {
-        return WorkspacePanel.renderWorkflowPortName(this.props.selectedWorkflowStepOp.outputs[row]);
+        const outputProps = this.props.selectedWorkflowStepOp.outputs[row];
+        const outputPort = this.props.selectedWorkflowStep.output[outputProps.name];
+        return WorkspacePanel.renderWorkflowPortName(outputProps, outputPort);
     }
 
     renderOperationStepOutputValue(row: number): any {
-        const name = this.props.selectedWorkflowStepOp.outputs[row].name;
-        return WorkspacePanel.renderWorkflowPortValue(this.props.selectedWorkflowStep.output[name]);
+        const outputProps = this.props.selectedWorkflowStepOp.outputs[row];
+        const outputPort = this.props.selectedWorkflowStep.output[outputProps.name];
+        return WorkspacePanel.renderWorkflowPortValue(outputProps, outputPort);
     }
 
-    static renderWorkflowPortName(port: OperationIOBaseState) {
-        return <Cell><TruncatedFormat>{port.name}</TruncatedFormat></Cell>;
+    //noinspection JSUnusedLocalSymbols
+    static renderWorkflowPortName(portProps: OperationIOBaseState, port: WorkflowPortState) {
+        return (<Cell><TruncatedFormat>{portProps.name}</TruncatedFormat></Cell>);
     }
 
-    static renderWorkflowPortValue(port: WorkflowPortState) {
+    static renderWorkflowPortValue(portProps: OperationIOBaseState, port: WorkflowPortState) {
         let cellValue;
-        if (port.source) {
-            cellValue = <span>&#8599; <em>{port.source}</em></span>;
+        if (port) {
+            let units;
+            if (portProps.units) {
+                units = (<span className="pt-text-muted">{` (${portProps.units})`}</span>);
+            }
+            if (port.source) {
+                cellValue = (<span>&#8599; <em>{port.source}</em></span>);
+            } else {
+                cellValue = (<span>{`${port.value}`}{units}</span>);
+            }
         } else {
-            cellValue = <span>{`${port.value}`}</span>;
+            let defaultValue = (portProps as OperationInputState).defaultValue;
+            if (isDefined(defaultValue)) {
+                cellValue = (<span>{`${defaultValue}`} <span className="pt-text-muted">(default value)</span></span>);
+            } else {
+                cellValue = (<span className="pt-text-muted">Not given.</span>);
+            }
         }
-        return <Cell>{cellValue}</Cell>;
+        return (<Cell>{cellValue}</Cell>);
     }
 
     //noinspection JSMethodCanBeStatic
@@ -525,7 +545,6 @@ export default connect(mapStateToProps)(WorkspacePanel);
 
 function convertSteps(operations: OperationState[], steps: WorkflowStepState[], target: 'python'|'shell'): string {
     // TODO (forman): move this to backend, as this is best done in Python
-    const returnSuffix = '.return';
     let lines = [];
     if (target === 'python') {
         lines.push('from cate.ops import *');
@@ -545,9 +564,6 @@ function convertSteps(operations: OperationState[], steps: WorkflowStepState[], 
                 const port = step.input[input.name];
                 let source = port.source;
                 if (port && source) {
-                    if (source.endsWith(returnSuffix)) {
-                        source = source.substring(0, source.length - returnSuffix.length)
-                    }
                     args.push(`${input.name}=@${source}`);
                 } else if (port) {
                     let value = port.value;

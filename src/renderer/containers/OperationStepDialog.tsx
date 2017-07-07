@@ -9,7 +9,7 @@ import FormEvent = React.FormEvent;
 import {InputEditor} from "./editor/InputEditor";
 import {updatePropertyObject} from "../../common/objutil";
 import {ModalDialog} from "../components/ModalDialog";
-import {Field, isFieldValue} from "../components/field/Field";
+import {isFieldValue} from "../components/field/Field";
 import {hasValueEditorFactory, InputAssignment, InputAssignments, renderValueEditor} from "./editor/ValueEditor";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -276,9 +276,6 @@ function getInputAssignmentsFromOperationStep(operation: OperationState, operati
         if (inputPort) {
             if (inputPort.source) {
                 let resourceName = inputPort.source;
-                if (resourceName.endsWith('.return')) {
-                    resourceName = resourceName.substr(0, resourceName.length - '.return'.length)
-                }
                 inputAssignments[input.name] = {resourceName, isValueUsed: false};
             } else if (!isUndefined(inputPort.value)) {
                 let constantValue = inputPort.value;
