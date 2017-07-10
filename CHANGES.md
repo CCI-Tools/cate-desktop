@@ -2,6 +2,13 @@
 
 ### UX Improvements and new Features
 
+* To speed up loading of workspaces, workflow steps can now be *persistent*:
+  When a workspace is saved, all persistent steps that produce resources of type `Dataset`  
+  write their current resources to a `<workspace-dir>/.cate-workspace/<resource_name>.nc` file.
+  When the workspace is reopened, such resource for persistent steps are read from file rather 
+  than being computed by the step's operation.    
+  To set the new persistence property of a step, click the *Workflow Step Properties* button
+  in the **WORKSPACE** panel.
 * Improved display of workflow step inputs in **WORKSPACE** panel:
   - display the units of an operation input value, if any    
   - display the default value, if any, if an operation input is not given    
