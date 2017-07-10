@@ -8,7 +8,7 @@ import {AnchorButton, Tabs2, Tab2, Tooltip, Position, Popover, Menu, MenuItem} f
 import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
 import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
-import ResourceRenameDialog from "./ResourceRenameDialog";
+import WorkflowStepPropertiesDialog from "./WorkflowStepPropertiesDialog";
 import OperationStepDialog from "./OperationStepDialog";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import * as assert from "../../common/assert";
@@ -78,7 +78,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         this.handleShowWorkflowStepDetailsChanged = this.handleShowWorkflowStepDetailsChanged.bind(this);
         this.handleWorkflowStepIdSelected = this.handleWorkflowStepIdSelected.bind(this);
         this.handleShowFigureButtonClicked = this.handleShowFigureButtonClicked.bind(this);
-        this.handleRenameResourceButtonClicked = this.handleRenameResourceButtonClicked.bind(this);
+        this.handleWorkflowStepPropertiesButtonClicked = this.handleWorkflowStepPropertiesButtonClicked.bind(this);
         this.handleOpenWorkspaceDirectoryClicked = this.handleOpenWorkspaceDirectoryClicked.bind(this);
         this.handleEditOperationStepButtonClicked = this.handleEditOperationStepButtonClicked.bind(this);
         this.renderStepItem = this.renderStepItem.bind(this);
@@ -129,8 +129,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         this.props.dispatch(actions.showTableView(this.getEffectiveResource().name, null, this.props.activeViewId));
     }
 
-    private handleRenameResourceButtonClicked() {
-        this.props.dispatch(actions.showDialog('resourceRenameDialog'));
+    private handleWorkflowStepPropertiesButtonClicked() {
+        this.props.dispatch(actions.showDialog('workflowStepPropertiesDialog'));
     }
 
     private handleOpenWorkspaceDirectoryClicked() {
@@ -284,11 +284,11 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
                                   onClick={this.handleShowResourceTableView}
                     />
                 </Tooltip>
-                <Tooltip content="Rename resource" position={Position.LEFT}>
+                <Tooltip content="Resource/step properties" position={Position.LEFT}>
                     <AnchorButton
                         disabled={!resource}
                         iconName="label"
-                        onClick={this.handleRenameResourceButtonClicked}/>
+                        onClick={this.handleWorkflowStepPropertiesButtonClicked}/>
                 </Tooltip>
                 <Tooltip content="Edit workflow step" position={Position.LEFT}>
                     <AnchorButton
@@ -309,7 +309,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
                         iconName="delete"
                         onClick={this.handleCleanWorkflowButtonClicked}/>
                 </Tooltip>
-                {resource ? <ResourceRenameDialog selectedResource={resource}/> : null}
+                {workflowStep ? <WorkflowStepPropertiesDialog selectedWorkflowStep={workflowStep}/> : null}
                 {isOperationStepSelected ?
                     <OperationStepDialog id="editOperationStepDialog" operationStep={workflowStep}/> : null}
             </div>
@@ -506,44 +506,41 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
 
     //noinspection JSMethodCanBeStatic
     private getWorkflowStepLabel(step: WorkflowStepState) {
-        let opName;
+
+        const items = [];
+
         if (step && step.op) {
-            opName = step.op;
+            let opName = step.op;
             const index = opName.lastIndexOf('.');
             if (index > 0) {
                 opName = opName.slice(index + 1);
             }
-        }
-        const resource = this.props.resourcesMap[step.id];
-
-        let opNameLabel;
-        if (opName) {
-            opNameLabel = <code>{opName}()</code>;
-        }
-
-        let resourceLabel;
-        if (resource) {
-            resourceLabel = <LabelWithType label={resource.name}
-                                           dataType={resource.dataType}/>;
-        }
-
-        if (opNameLabel && resourceLabel) {
-            return <span>{opNameLabel} &rarr; {resourceLabel}</span>;
-        } else if (resourceLabel) {
-            return <span>? &rarr; {resourceLabel}</span>;
-        } else if (opNameLabel) {
-            return <span>{opNameLabel}</span>;
+            items.push(<code key={0}>{opName}()</code>);
         } else {
-            return <span>?</span>;
+            items.push(<code key={0}>?()</code>);
         }
+
+        const resource = this.props.resourcesMap[step.id];
+        if (resource) {
+            items.push(<span key={1}> &rarr; </span>);
+            items.push(<LabelWithType key={2} label={resource.name}
+                                      dataType={resource.dataType}/>);
+        }
+
+        let persistenceLabel;
+        if (step && step.persistent) {
+            items.push(<span key={3}> </span>);
+            items.push(<span key={4} className="pt-icon-database"/>);
+        }
+
+        return <span>{items}</span>;
     }
 }
 
 export default connect(mapStateToProps)(WorkspacePanel);
 
 
-
-function convertSteps(operations: OperationState[], steps: WorkflowStepState[], target: 'python'|'shell'): string {
+function convertSteps(operations: OperationState[], steps: WorkflowStepState[], target: 'python' | 'shell'): string {
     // TODO (forman): move this to backend, as this is best done in Python
     let lines = [];
     if (target === 'python') {

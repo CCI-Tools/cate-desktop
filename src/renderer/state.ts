@@ -203,6 +203,11 @@ export interface WorkflowStepState {
      */
     op: string;
 
+    /**
+     * Whether the step stores resource files for faster opening of workspaces.
+     */
+    persistent?: boolean;
+
     input: { [name: string]: WorkflowPortState };
     output: { [name: string]: WorkflowPortState };
 }

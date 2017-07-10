@@ -97,6 +97,11 @@ export class WorkspaceAPI {
             onProgress, responseToWorkspace);
     }
 
+    setWorkspaceResourcePersistence(baseDir: string, resName: string, persistent: boolean): JobPromise<WorkspaceState> {
+        return this.webAPIClient.call('set_workspace_resource_persistence', [baseDir, resName, persistent],
+            null, responseToWorkspace);
+    }
+
     renameWorkspaceResource(baseDir: string, resName: string, newResName: string): JobPromise<WorkspaceState> {
         return this.webAPIClient.call('rename_workspace_resource', [baseDir, resName, newResName], null, responseToWorkspace);
     }

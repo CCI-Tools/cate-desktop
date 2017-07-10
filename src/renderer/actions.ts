@@ -985,6 +985,23 @@ export function setWorkspaceResource(resName: string, opName: string, opArgs: Op
     }
 }
 
+export function setWorkspaceResourcePersistence(resName: string, persistent: boolean): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        const baseDir = selectors.workspaceBaseDirSelector(getState());
+        assert.ok(baseDir);
+
+        function call(onProgress) {
+            return selectors.workspaceAPISelector(getState()).setWorkspaceResourcePersistence(baseDir, resName, persistent);
+        }
+
+        function action(workspace: WorkspaceState) {
+            dispatch(setCurrentWorkspace(workspace));
+        }
+
+        callAPI(dispatch, "Changing resource persistence", call, action);
+    }
+}
+
 export function renameWorkspaceResource(resName: string, newResName: string): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
