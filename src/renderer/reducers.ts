@@ -4,7 +4,7 @@ import {
 } from './state';
 import * as actions from './actions';
 import * as assert from "../common/assert";
-import {combineReducers} from 'redux';
+import {combineReducers, Reducer} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
@@ -669,9 +669,9 @@ const locationReducer = (state: LocationState = initialLocationState, action: Ac
 // Combined State reducer
 
 export const stateReducer = combineReducers<State>({
-    data: dataReducer,
-    control: controlReducer,
-    session: sessionReducer,
-    communication: communicationReducer,
-    location: locationReducer,
+    data: dataReducer as Reducer<DataState>,
+    control: controlReducer as Reducer<ControlState>,
+    session: sessionReducer as Reducer<SessionState>,
+    communication: communicationReducer as Reducer<CommunicationState>,
+    location: locationReducer as Reducer<LocationState>,
 });

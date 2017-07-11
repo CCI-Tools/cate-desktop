@@ -5,7 +5,7 @@ import {isUndefinedOrNull} from "../../../common/types";
 import {DEFAULT_MAX_DATE, DEFAULT_MIN_DATE, formatDate, parseDate, validateDate} from "./DateField";
 
 export type DateRangeFieldType = FieldType<DateRange>;
-export type DateRangeFieldValue = FieldValue<DateRange>;
+export type  DateRangeFieldValue = FieldValue<DateRange>;
 
 interface IDateRangeFieldProps extends IFieldProps {
     nullable?: boolean;

@@ -55,7 +55,7 @@ export class Configuration {
         let jsonText = JSON.stringify(this._data, null, 2);
         let error;
         try {
-            fs.writeFileSync(path.resolve(file), jsonText, 'utf8');
+            fs.writeFileSync(path.resolve(file), jsonText, {encoding: 'utf8'});
         } catch (e) {
             error = e;
         }

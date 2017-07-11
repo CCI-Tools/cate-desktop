@@ -46,7 +46,7 @@ export interface EntityCollection {
     getById(id: string): Entity;
     add(entity: Entity): Entity;
     remove(entity: Entity): boolean;
-    removeById(entity: Entity): boolean;
+    removeById(id: string): boolean;
     removeAll(): void;
     suspendEvents(): void;
     resumeEvents(): void;

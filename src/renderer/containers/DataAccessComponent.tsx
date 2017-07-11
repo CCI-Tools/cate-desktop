@@ -346,7 +346,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
 
         return {
             hasTimeConstraint: false,
-            dateRange: [minDate, maxDate],
+            dateRange: {value: [minDate, maxDate]},
 
             hasRegionConstraint: false,
             region: null,

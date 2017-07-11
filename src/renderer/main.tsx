@@ -27,7 +27,7 @@ export function main() {
     }
 
     const middleware = applyMiddleware(...middlewares);
-    const store = createStore(stateReducer, middleware);
+    const store = createStore(stateReducer, middleware) as Store<State>;
 
     ipcRenderer.on('apply-initial-state', (event, initialState) => {
         store.dispatch(actions.updateInitialState(initialState));
