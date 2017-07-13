@@ -44,7 +44,7 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
             }
         }
         return (
-            <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}} disabled={this.props.disabled}>
+            <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}}>
                 <TextField
                     value={this.props.value}
                     onChange={this.props.onChange}

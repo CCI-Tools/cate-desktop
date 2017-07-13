@@ -19,7 +19,6 @@ export interface IFieldProps {
     onChange: (value: AnyFieldValue) => void;
     validator?: FieldValidator;
     placeholder?: string;
-    cols?: number;
     size?: number;
     className?: string;
     style?: { [key: string]: any };
@@ -217,7 +216,6 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
                    type="text"
                    className={error ? Field.ERROR_CLASS : Field.NOMINAL_CLASS}
                    style={this.props.style}
-                   cols={this.props.cols}
                    size={this.props.size}
                    placeholder={this.props.placeholder}
                    disabled={this.props.disabled}

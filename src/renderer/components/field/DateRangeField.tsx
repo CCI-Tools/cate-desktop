@@ -66,7 +66,7 @@ export class DateRangeField extends Field<IDateRangeFieldProps> {
         const maxDate = this.props.max || DEFAULT_MAX_DATE;
 
         return (
-            <div disabled={this.props.disabled}>
+            <div>
                 <DateInput className={error ? "pt-intent-danger" : null}
                            value={value1}
                            format="YYYY-MM-DD"

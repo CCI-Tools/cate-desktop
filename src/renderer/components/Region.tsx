@@ -57,7 +57,7 @@ export class Region extends React.PureComponent<IRegionProps, null> {
     render() {
         let value = this.props.value;
         return (
-            <div disabled={this.props.disabled}>
+            <div>
                 <div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'flex-start', padding: 2}}>
                     <div style={{flexGrow: 0, width: '14em'}}>Lon. from </div>
                     <div

@@ -13,6 +13,7 @@ export interface INumericFieldProps extends IFieldProps {
     nullable?: boolean;
     min?: number;
     max?: number;
+    cols?: number;
     isInt?: boolean;
 }
 

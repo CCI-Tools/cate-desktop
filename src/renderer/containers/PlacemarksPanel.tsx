@@ -279,7 +279,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                 <span className="pt-text-muted"> (optional)</span>
                 <TextField value={{textValue: name, value: name}}
                            onChange={this.handleChangedPlacemarkName}
-                           cols={16}
+                           size={16}
                            uncontrolled={true}
                            placeholder="Enter placemark name"
                 />
@@ -296,7 +296,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                 <span className="pt-text-muted"> (in degrees)</span>
                 <GeographicPositionField value={{longitude: position[0], latitude: position[1]}}
                                          onChange={this.handleChangedPlacemarkPosition}
-                                         cols={16}
+                                         size={16}
                                          uncontrolled={true}
                                          placeholder="Enter longitude, latitude"/>
             </label>
