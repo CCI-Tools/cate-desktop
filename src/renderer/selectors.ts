@@ -531,6 +531,16 @@ export const activeViewTypeSelector = createSelector<State, string | null, ViewS
     }
 );
 
+export const splitLayerIdSelector = createSelector<State, string | null, ViewState<any> | null>(
+    activeViewSelector,
+    (view: ViewState<any>) => {
+        if (view && view.type === 'world') {
+            return view.data.splitLayerId;
+        }
+        return null
+    }
+);
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer selectors
 

@@ -1171,6 +1171,8 @@ export function moveView(sourceViewId: string, placement: "before" | "after", ta
 
 export const SET_VIEW_MODE = 'SET_VIEW_MODE';
 export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
+export const SET_SPLIT_LAYER_ID = 'SET_SPLIT_LAYER_ID';
+export const SET_SPLIT_LAYER_POS = 'SET_SPLIT_LAYER_POS';
 
 export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
@@ -1179,6 +1181,16 @@ export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
 export function setProjectionCode(viewId: string, projectionCode: string): Action {
     return {type: SET_PROJECTION_CODE, payload: {viewId, projectionCode}};
 }
+
+export function setSplitLayerId(viewId: string, splitLayerId: string|null): Action {
+    return {type: SET_SPLIT_LAYER_ID, payload: {viewId, splitLayerId}};
+}
+
+export function setSplitLayerPos(viewId: string, splitLayerPos: number): Action {
+    return {type: SET_SPLIT_LAYER_POS, payload: {viewId, splitLayerPos}};
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Table view actions

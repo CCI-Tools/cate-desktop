@@ -196,6 +196,8 @@ function newInitialWorldViewData(): WorldViewDataState {
             }
         ],
         selectedLayerId: SELECTED_VARIABLE_LAYER_ID,
+        splitLayerId: null,
+        splitLayerPos: 0.5,
     } as WorldViewDataState;
 }
 

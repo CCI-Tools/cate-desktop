@@ -331,6 +331,16 @@ export interface WorldViewDataState {
      * The ID of the selected layer.
      */
     selectedLayerId: string | null;
+
+    /**
+     * The ID of a splitted layer.
+     */
+    splitLayerId: string;
+
+    /**
+     * The split position of a splitted layer, a ratio 0 to 1.
+     */
+    splitLayerPos: number;
 }
 
 export interface FigureViewDataState {

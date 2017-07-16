@@ -91,6 +91,18 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         }
     }
 
+    /**
+     * Gets the external object reference.
+     *
+     * Think twice, before using this method.
+     * The single source of truth should be your app's state.
+     *
+     * @returns the external object reference or null.
+     */
+    getExternalObjectRef(): ExternalObjectRef<E, ES> | null {
+        return this.externalObjectStore[this.props.id] || null;
+    }
+
     // TODO (forman): we can probably simplify ExternalObjectComponent by getting rid of the intermediate container
     //                created by newContainer(id), if we add the following methods to be overidden by clients,
     //                in case this is needed. The default impls would do nothing:
@@ -192,10 +204,19 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
             this.remountExternalObject(parentContainer);
         };
 
-        return <div id={this.props.id}
-                    className={this.props.className}
-                    style={this.props.style}
-                    ref={onRef}/>
+        return (
+            <div id={this.props.id}
+                 className={this.props.className}
+                 style={this.props.style}
+                 ref={onRef}>
+                {this.renderChildren()}
+            </div>
+        );
+    }
+
+    //noinspection JSMethodCanBeStatic
+    protected renderChildren() {
+        return null;
     }
 
     /**

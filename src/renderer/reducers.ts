@@ -337,6 +337,8 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             }
             break;
         }
+        // TODO (forman): clean up code duplication here, they are basically all the same
+        //                SET_SELECTED_LAYER_ID, SET_VIEW_MODE, SET_PROJECTION_CODE,SET_SPLIT_LAYER_ID, SET_SPLIT_LAYER_POS
         case actions.SET_SELECTED_LAYER_ID: {
             const viewId = action.payload.viewId;
             if (viewId === state.id && state.type === 'world') {
@@ -360,6 +362,24 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
                 assert.ok(state.type === 'world');
                 const projectionCode = action.payload.projectionCode;
                 return {...state, data: {...state.data, projectionCode}};
+            }
+            break;
+        }
+        case actions.SET_SPLIT_LAYER_ID: {
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'world');
+                const splitLayerId = action.payload.splitLayerId;
+                return {...state, data: {...state.data, splitLayerId}};
+            }
+            break;
+        }
+        case actions.SET_SPLIT_LAYER_POS: {
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'world');
+                const splitLayerPos = action.payload.splitLayerPos;
+                return {...state, data: {...state.data, splitLayerPos}};
             }
             break;
         }

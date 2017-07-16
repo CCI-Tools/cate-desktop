@@ -3,6 +3,7 @@ import {IExternalObjectComponentProps, ExternalObjectComponent} from '../Externa
 import {arrayDiff} from "../../../common/array-diff";
 import * as assert from "../../../common/assert";
 import {Feature, Point} from "geojson";
+import {Slider} from "./Slider";
 
 interface Placemark extends Feature<Point> {
     id: string;
@@ -19,7 +20,20 @@ BuildModuleUrl.setBaseUrl('./');
 // << begin @types/Cesium
 
 export type ImageryProvider = any;
-export type ImageryLayer = any;
+
+export type ImageryLayer = {
+    imageryProvider: ImageryProvider;
+    show: boolean;
+    rectangle: { west: number, south: number, east: number, north: number };
+    splitDirection: number;
+    alpha: number;
+    brightness: number;
+    contrast: number;
+    hue: number;
+    saturation: number;
+    gamma: number;
+};
+
 export type ImageryLayerCollection = {
     readonly length: number;
     addImageryProvider: (provider: ImageryProvider, index: number) => ImageryLayer;
@@ -74,6 +88,7 @@ export type Scene = {
     camera: any;
     globe: any;
     mode: any;
+    imagerySplitPosition: number;
 };
 
 export type Viewer = {
@@ -84,7 +99,7 @@ export type Viewer = {
     dataSources: DataSourceCollection;
     scene: Scene;
     camera: any;
-    selectedEntity : Entity | null;
+    selectedEntity: Entity | null;
     selectedEntityChanged: any;
     forceResize();
 };
@@ -153,18 +168,22 @@ interface CesiumGlobeState {
     layers?: LayerDescriptor[];
     dataSources?: DataSourceDescriptor[];
     overlayHtml?: HTMLElement | null;
+    splitLayerIndex?: number;
+    splitLayerPos?: number;
 }
 
 export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Viewer, CesiumGlobeState>, CesiumGlobeState {
     offlineMode?: boolean;
     dataSources?: DataSourceDescriptor[];
-    onMouseClicked?: (point: {latitude: number, longitude: number, height?: number}) => void;
-    onMouseMoved?: (point: {latitude: number, longitude: number, height?: number}) => void;
-    onLeftUp?: (point: {latitude: number, longitude: number, height?: number}) => void;
+    onMouseClicked?: (point: { latitude: number, longitude: number, height?: number }) => void;
+    onMouseMoved?: (point: { latitude: number, longitude: number, height?: number }) => void;
+    onLeftUp?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onPlacemarkSelected?: (placemarkId: string | null) => void;
     onViewerMounted?: (id: string, viewer: Viewer) => void;
     onViewerUnmounted?: (id: string, viewer: Viewer) => void;
-
+    splitLayerIndex: number;
+    splitLayerPos: number;
+    onSplitLayerPosChange: (splitLayerPos: number) => void;
 }
 
 const CENTRAL_EUROPE_BOX = Cesium.Rectangle.fromDegrees(-30, 20, 40, 80);
@@ -185,6 +204,12 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
 
     constructor(props: ICesiumGlobeProps) {
         super(props);
+    }
+
+    protected renderChildren() {
+        return (<Slider splitPos={this.props.splitLayerPos}
+                        onChange={this.props.onSplitLayerPosChange}
+                        visible={this.props.splitLayerIndex >= 0}/>);
     }
 
     newContainer(id: string): HTMLElement {
@@ -240,7 +265,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         // https://github.com/AnalyticalGraphicsInc/cesium/blob/master/Source/Widgets/SelectionIndicator/SelectionIndicatorViewModel.js
         const viewModel = viewer.selectionIndicator.viewModel;
         const originalUpdate = viewModel.update;
-        viewModel.update = function() {
+        viewModel.update = function () {
             originalUpdate.apply(this);
             const styleValue = `top : ${viewModel._screenPositionY}; left : ${viewModel._screenPositionX};`;
             viewModel._selectionIndicatorElement.setAttribute('style', styleValue);
@@ -249,18 +274,22 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         return viewer;
     }
 
-    propsToExternalObjectState(props: ICesiumGlobeProps&CesiumGlobeState): CesiumGlobeState {
+    propsToExternalObjectState(props: ICesiumGlobeProps & CesiumGlobeState): CesiumGlobeState {
         const selectedPlacemarkId = this.props.selectedPlacemarkId;
         const placemarks = this.props.placemarks || EMPTY_ARRAY;
         const layers = this.props.layers || EMPTY_ARRAY;
         const dataSources = this.props.dataSources || EMPTY_ARRAY;
         const overlayHtml = this.props.overlayHtml || null;
+        const splitLayerIndex = this.props.splitLayerIndex;
+        const splitLayerPos = this.props.splitLayerPos;
         return {
             selectedPlacemarkId,
             placemarks,
             layers,
             dataSources,
-            overlayHtml
+            overlayHtml,
+            splitLayerIndex,
+            splitLayerPos
         };
     }
 
@@ -271,12 +300,19 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         const prevLayers = (prevState && prevState.layers) || EMPTY_ARRAY;
         const prevDataSources = (prevState && prevState.dataSources) || EMPTY_ARRAY;
         const prevOverlayHtml = (prevState && prevState.overlayHtml) || null;
+        const prevSplitLayerIndex = (prevState && prevState.splitLayerIndex);
+        const prevSplitLayerPos= (prevState && prevState.splitLayerPos);
 
         const nextSelectedPlacemarkId = nextState.selectedPlacemarkId || null;
         const nextPlacemarks = nextState.placemarks || EMPTY_ARRAY;
         const nextLayers = nextState.layers || EMPTY_ARRAY;
         const nextDataSources = nextState.dataSources || EMPTY_ARRAY;
         const nextOverlayHtml = nextState.overlayHtml;
+        const nextSplitLayerIndex = nextState.splitLayerIndex;
+        const nextSplitLayerPos = nextState.splitLayerPos;
+
+        console.log(prevSplitLayerIndex, nextSplitLayerIndex);
+        console.log(prevSplitLayerPos, nextSplitLayerPos);
 
         if (prevPlacemarks !== nextPlacemarks) {
             this.updateGlobePlacemarks(viewer, prevPlacemarks, nextPlacemarks);
@@ -291,7 +327,14 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
             this.updateGlobeSelectedPlacemark(viewer, nextSelectedPlacemarkId);
         }
         if (prevOverlayHtml !== nextOverlayHtml) {
-            this.updateOverlayHtml(viewer, prevOverlayHtml, nextOverlayHtml);
+            CesiumGlobe.updateOverlayHtml(viewer, prevOverlayHtml, nextOverlayHtml);
+        }
+        if (prevSplitLayerIndex !== nextSplitLayerIndex) {
+            CesiumGlobe.updateSplitLayers(viewer, prevSplitLayerIndex, nextSplitLayerIndex);
+        }
+        if (prevSplitLayerPos !== nextSplitLayerPos) {
+            viewer.scene.imagerySplitPosition = nextSplitLayerPos;
+            console.log('viewer.scene.imagerySplitPosition', viewer.scene.imagerySplitPosition);
         }
     }
 
@@ -563,7 +606,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         }
     }
 
-    private updateOverlayHtml(viewer: Viewer, prevOverlayHtml: HTMLElement, nextOverlayHtml: HTMLElement) {
+    private static updateOverlayHtml(viewer: Viewer, prevOverlayHtml: HTMLElement, nextOverlayHtml: HTMLElement) {
         // console.log('updateOverlayHtml', prevOverlayHtml, nextOverlayHtml);
         if (nextOverlayHtml) {
             if (prevOverlayHtml) {
@@ -573,6 +616,22 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
             }
         } else {
             viewer.container.removeChild(prevOverlayHtml);
+        }
+    }
+
+    private static updateSplitLayers(viewer: Viewer, prevSplitLayerIndex: number, nextSplitLayerIndex: number) {
+        for (let cesiumIndex = 1; cesiumIndex < viewer.imageryLayers.length; cesiumIndex++) {
+            const i = cesiumIndex - 1;
+            const layer = viewer.imageryLayers.get(cesiumIndex);
+            if (i === prevSplitLayerIndex) {
+                layer.splitDirection = Cesium.ImagerySplitDirection.NONE;
+                console.log('prev: layer.splitDirection = ', layer.splitDirection);
+
+            }
+            if (i === nextSplitLayerIndex) {
+                layer.splitDirection = Cesium.ImagerySplitDirection.LEFT;
+                console.log('next: layer.splitDirection = ', layer.splitDirection);
+            }
         }
     }
 
@@ -599,7 +658,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         return null;
     }
 
-    private addDataSource(viewer: Viewer, layerDescriptor: DataSourceDescriptor, layerIndex: number): ImageryLayer {
+    private addDataSource(viewer: Viewer, layerDescriptor: DataSourceDescriptor, layerIndex: number): DataSource {
         const dataSource = CesiumGlobe.getDataSource(layerDescriptor);
         this.insertDataSource(viewer, dataSource, layerIndex);
         if (this.props.debug) {
@@ -645,7 +704,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
     }
 
     private static setLayerProps(imageryLayer: ImageryLayer, layerDescriptor: LayerDescriptor) {
-        imageryLayer.name = layerDescriptor.name;
+        //imageryLayer.name = layerDescriptor.name;
         imageryLayer.show = layerDescriptor.visible;
         imageryLayer.alpha = layerDescriptor.opacity;
         imageryLayer.brightness = layerDescriptor.brightness;
@@ -670,7 +729,7 @@ function screenToCartographic(viewer: Viewer, screenPoint?: Cartesian2, degrees?
     if (screenPoint) {
         const rect = viewer.canvas.getBoundingClientRect();
         canvasPoint = new Cesium.Cartesian2(screenPoint.x - rect.left, screenPoint.y - rect.top);
-    }else {
+    } else {
         canvasPoint = new Cesium.Cartesian2(viewer.canvas.clientWidth / 2, viewer.canvas.clientHeight / 2);
     }
     const ellipsoid = viewer.scene.globe.ellipsoid;

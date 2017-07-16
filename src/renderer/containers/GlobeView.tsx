@@ -51,7 +51,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
  * This component displays a 3D globe with a number of layers.
  */
 class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>, null> {
-    static readonly CESIUM_GLOBE_STYLE = {width: "100%", height: "100%", overflow: "hidden"};
+    static readonly CESIUM_GLOBE_STYLE = {position: 'relative', width: "100%", height: "100%", overflow: "hidden"};
 
     constructor(props: IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>) {
         super(props);
@@ -59,6 +59,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         this.handleMouseClicked = this.handleMouseClicked.bind(this);
         this.handleLeftUp = this.handleLeftUp.bind(this);
         this.handlePlacemarkSelected = this.handlePlacemarkSelected.bind(this);
+        this.handleSplitLayerPosChange = this.handleSplitLayerPosChange.bind(this);
     }
 
     handleMouseMoved(position: GeographicPosition) {
@@ -80,11 +81,16 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         this.props.dispatch(actions.setSelectedPlacemarkId(selectedPlacemarkId));
     }
 
+    handleSplitLayerPosChange(splitLayerPos: number) {
+        this.props.dispatch(actions.setSplitLayerPos(this.props.view.id, splitLayerPos));
+    }
+
     render() {
         const placemarks = this.props.placemarks;
         const layers = [];
         const dataSources = [];
-        let overviewHtml = null;
+        let overlayHtml = null;
+        let splitLayerIndex = -1;
         // TODO (forman): optimize me: increase speed and clean up code by moving the following into selectors.ts
         if (this.props.workspace && this.props.workspace.resources && this.props.view.data.layers) {
             let layerInfoCount = 0;
@@ -95,23 +101,28 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                     case 'VariableImage': {
                         const variableImageLayer = layer as VariableImageLayerState;
                         layerDescriptor = this.convertVariableImageLayerToLayerDescriptor(variableImageLayer);
-                        if (variableImageLayer.visible && this.props.showLayerTextOverlay) {
-                            const indexCoords = findVariableIndexCoordinates(this.props.workspace.resources, variableImageLayer);
-                            if (!overviewHtml) {
-                                overviewHtml = document.createElement('div');
-                                overviewHtml.id = 'CesiumGlobeOverlay-' + this.props.view.id;
-                                overviewHtml.style.position = 'relative';
-                                overviewHtml.style['z-index'] = 10;
-                                overviewHtml.style['pointer-events'] = 'none';
-                                overviewHtml.style['padding'] = '1em';
-                                overviewHtml.style['background-color'] = 'rgba(0, 0, 0, 0.25)';
+                        if (layerDescriptor) {
+                            if (variableImageLayer.id === this.props.view.data.splitLayerId) {
+                                splitLayerIndex = layers.length;
                             }
-                            const textDivElement = document.createElement('div');
-                            textDivElement.style['font-size'] = '1.4em';
-                            textDivElement.innerText = variableImageLayer.name + ': ' + indexCoords.map(e => e.join(' = ')).join(', ');
-                            overviewHtml.appendChild(textDivElement);
-                            overviewHtml.style.top = `-${2 + (layerInfoCount + 1) * 1.5}em`;
-                            layerInfoCount++;
+                            if (variableImageLayer.visible && this.props.showLayerTextOverlay) {
+                                const indexCoords = findVariableIndexCoordinates(this.props.workspace.resources, variableImageLayer);
+                                if (!overlayHtml) {
+                                    overlayHtml = document.createElement('div');
+                                    overlayHtml.id = 'CesiumGlobeOverlay-' + this.props.view.id;
+                                    overlayHtml.style.position = 'relative';
+                                    overlayHtml.style['z-index'] = 100;
+                                    overlayHtml.style['pointer-events'] = 'none';
+                                    overlayHtml.style['padding'] = '1em';
+                                    overlayHtml.style['background-color'] = 'rgba(0, 0, 0, 0.25)';
+                                }
+                                const textDivElement = document.createElement('div');
+                                textDivElement.style['font-size'] = '1.4em';
+                                textDivElement.innerText = variableImageLayer.name + ': ' + indexCoords.map(e => e.join(' = ')).join(', ');
+                                overlayHtml.appendChild(textDivElement);
+                                overlayHtml.style.top = `-${2 + (layerInfoCount + 1) * 1.5}em`;
+                                layerInfoCount++;
+                            }
                         }
                         break;
                     }
@@ -141,7 +152,10 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          placemarks={placemarks}
                          layers={layers}
                          dataSources={dataSources}
-                         overlayHtml={overviewHtml}
+                         overlayHtml={overlayHtml}
+                         splitLayerIndex={splitLayerIndex}
+                         splitLayerPos={this.props.view.data.splitLayerPos}
+                         onSplitLayerPosChange={this.handleSplitLayerPosChange}
                          offlineMode={this.props.offlineMode}
                          style={GlobeView.CESIUM_GLOBE_STYLE}
                          onMouseMoved={this.props.isDialogOpen ? null : this.handleMouseMoved}
