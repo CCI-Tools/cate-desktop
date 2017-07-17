@@ -9,7 +9,6 @@ import * as actions from "../actions";
 import {ViewState} from "../components/ViewState";
 import {Card} from "../components/Card";
 import {NO_ACTIVE_VIEW} from "../messages";
-import {SELECTED_VARIABLE_LAYER_ID} from "../state-util";
 
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
@@ -23,7 +22,7 @@ interface IViewPanelProps {
     selectedFigureResource: ResourceState | null;
     selectedResourceName: string | null;
     showLayerTextOverlay: boolean;
-    splitSelectedVariableLayer: boolean;
+    isSelectedLayerSplit: boolean;
 }
 
 interface IViewPanelState {
@@ -39,7 +38,7 @@ function mapStateToProps(state: State): IViewPanelProps {
         selectedFigureResource: selectors.selectedFigureResourceSelector(state),
         selectedResourceName: selectors.selectedResourceNameSelector(state),
         showLayerTextOverlay: state.session.showLayerTextOverlay,
-        splitSelectedVariableLayer: selectors.splitLayerIdSelector(state) === SELECTED_VARIABLE_LAYER_ID,
+        isSelectedLayerSplit: selectors.isSelectedLayerSplitSelector(state),
     };
 }
 
@@ -76,8 +75,8 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
     }
 
     onSplitSelectedVariableLayer(ev) {
-        const splitSelectedVariableLayer = ev.target.checked;
-        this.props.dispatch(actions.setSplitLayerId(this.props.activeViewId, splitSelectedVariableLayer ? SELECTED_VARIABLE_LAYER_ID : null));
+        const isSelectedLayerSplit = ev.target.checked;
+        this.props.dispatch(actions.setSelectedLayerSplit(this.props.activeViewId, isSelectedLayerSplit));
     }
 
     onAddWorldView() {
@@ -144,9 +143,9 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                               checked={this.props.showLayerTextOverlay}
                               onChange={this.onShowLayerTextOverlayChange}/>
 
-                    <Checkbox label="Split selected variable layer"
+                    <Checkbox label="Split selected image layer"
                               style={ViewPanel.ITEM_STYLE}
-                              checked={this.props.splitSelectedVariableLayer}
+                              checked={this.props.isSelectedLayerSplit}
                               onChange={this.onSplitSelectedVariableLayer}/>
 
                     <label className="pt-label" style={ViewPanel.ITEM_STYLE}>

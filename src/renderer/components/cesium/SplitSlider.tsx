@@ -6,13 +6,13 @@ export interface ISliderProps {
     visible?: boolean;
 }
 
-export class Slider extends React.PureComponent<ISliderProps, null> {
+export class SplitSlider extends React.PureComponent<ISliderProps, null> {
     static readonly DIV_STYLE: React.CSSProperties = {
         position: 'absolute',
         left: '50%',
         top: '0px',
         backgroundColor: 'rgba(255, 255, 0, 0.5)',
-        width: '4px',
+        width: '2px',
         height: '100%',
         zIndex: 50,
         cursor: 'col-resize',
@@ -59,7 +59,7 @@ export class Slider extends React.PureComponent<ISliderProps, null> {
             return null;
         }
         const left = (100 * this.props.splitPos) + '%';
-        return (<div style={{...Slider.DIV_STYLE, left}}
+        return (<div style={{...SplitSlider.DIV_STYLE, left}}
                      ref={this.handleRef}/>);
     }
 }

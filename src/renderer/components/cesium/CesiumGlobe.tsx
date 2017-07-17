@@ -3,7 +3,7 @@ import {IExternalObjectComponentProps, ExternalObjectComponent} from '../Externa
 import {arrayDiff} from "../../../common/array-diff";
 import * as assert from "../../../common/assert";
 import {Feature, Point} from "geojson";
-import {Slider} from "./Slider";
+import {SplitSlider} from "./SplitSlider";
 
 interface Placemark extends Feature<Point> {
     id: string;
@@ -207,9 +207,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
     }
 
     protected renderChildren() {
-        return (<Slider splitPos={this.props.splitLayerPos}
-                        onChange={this.props.onSplitLayerPosChange}
-                        visible={this.props.splitLayerIndex >= 0}/>);
+        return (<SplitSlider splitPos={this.props.splitLayerPos}
+                             onChange={this.props.onSplitLayerPosChange}
+                             visible={this.props.splitLayerIndex >= 0}/>);
     }
 
     newContainer(id: string): HTMLElement {
@@ -311,9 +311,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         const nextSplitLayerIndex = nextState.splitLayerIndex;
         const nextSplitLayerPos = nextState.splitLayerPos;
 
-        console.log(prevSplitLayerIndex, nextSplitLayerIndex);
-        console.log(prevSplitLayerPos, nextSplitLayerPos);
-
         if (prevPlacemarks !== nextPlacemarks) {
             this.updateGlobePlacemarks(viewer, prevPlacemarks, nextPlacemarks);
         }
@@ -334,7 +331,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         }
         if (prevSplitLayerPos !== nextSplitLayerPos) {
             viewer.scene.imagerySplitPosition = nextSplitLayerPos;
-            console.log('viewer.scene.imagerySplitPosition', viewer.scene.imagerySplitPosition);
         }
     }
 
@@ -625,12 +621,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
             const layer = viewer.imageryLayers.get(cesiumIndex);
             if (i === prevSplitLayerIndex) {
                 layer.splitDirection = Cesium.ImagerySplitDirection.NONE;
-                console.log('prev: layer.splitDirection = ', layer.splitDirection);
-
             }
             if (i === nextSplitLayerIndex) {
                 layer.splitDirection = Cesium.ImagerySplitDirection.LEFT;
-                console.log('next: layer.splitDirection = ', layer.splitDirection);
             }
         }
     }

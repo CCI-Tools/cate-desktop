@@ -365,21 +365,21 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             }
             break;
         }
-        case actions.SET_SPLIT_LAYER_ID: {
+        case actions.SET_SELECTED_LAYER_SPLIT: {
             const viewId = action.payload.viewId;
             if (viewId === state.id) {
                 assert.ok(state.type === 'world');
-                const splitLayerId = action.payload.splitLayerId;
-                return {...state, data: {...state.data, splitLayerId}};
+                const isSelectedLayerSplit = action.payload.isSelectedLayerSplit;
+                return {...state, data: {...state.data, isSelectedLayerSplit}};
             }
             break;
         }
-        case actions.SET_SPLIT_LAYER_POS: {
+        case actions.SET_SELECTED_LAYER_SPLIT_POS: {
             const viewId = action.payload.viewId;
             if (viewId === state.id) {
                 assert.ok(state.type === 'world');
-                const splitLayerPos = action.payload.splitLayerPos;
-                return {...state, data: {...state.data, splitLayerPos}};
+                const selectedLayerSplitPos = action.payload.selectedLayerSplitPos;
+                return {...state, data: {...state.data, selectedLayerSplitPos}};
             }
             break;
         }

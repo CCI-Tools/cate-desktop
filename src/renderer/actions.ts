@@ -990,7 +990,7 @@ export function setWorkspaceResourcePersistence(resName: string, persistent: boo
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
-        function call(onProgress) {
+        function call() {
             return selectors.workspaceAPISelector(getState()).setWorkspaceResourcePersistence(baseDir, resName, persistent);
         }
 
@@ -1171,8 +1171,8 @@ export function moveView(sourceViewId: string, placement: "before" | "after", ta
 
 export const SET_VIEW_MODE = 'SET_VIEW_MODE';
 export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
-export const SET_SPLIT_LAYER_ID = 'SET_SPLIT_LAYER_ID';
-export const SET_SPLIT_LAYER_POS = 'SET_SPLIT_LAYER_POS';
+export const SET_SELECTED_LAYER_SPLIT = 'SET_SPLIT_LAYER_ID';
+export const SET_SELECTED_LAYER_SPLIT_POS = 'SET_SPLIT_LAYER_POS';
 
 export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
@@ -1182,12 +1182,12 @@ export function setProjectionCode(viewId: string, projectionCode: string): Actio
     return {type: SET_PROJECTION_CODE, payload: {viewId, projectionCode}};
 }
 
-export function setSplitLayerId(viewId: string, splitLayerId: string|null): Action {
-    return {type: SET_SPLIT_LAYER_ID, payload: {viewId, splitLayerId}};
+export function setSelectedLayerSplit(viewId: string, isSelectedLayerSplit: boolean|null): Action {
+    return {type: SET_SELECTED_LAYER_SPLIT, payload: {viewId, isSelectedLayerSplit}};
 }
 
-export function setSplitLayerPos(viewId: string, splitLayerPos: number): Action {
-    return {type: SET_SPLIT_LAYER_POS, payload: {viewId, splitLayerPos}};
+export function setSelectedLayerSplitPos(viewId: string, selectedLayerSplitPos: number): Action {
+    return {type: SET_SELECTED_LAYER_SPLIT_POS, payload: {viewId, selectedLayerSplitPos}};
 }
 
 

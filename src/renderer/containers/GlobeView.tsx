@@ -28,6 +28,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     offlineMode: boolean;
     worldViewClickAction: string | null;
     placemarks: Placemark[];
+    selectedLayerId: string | null;
     selectedPlacemarkId: string | null;
     isDialogOpen: boolean;
     showLayerTextOverlay: boolean;
@@ -41,6 +42,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         offlineMode: state.session.offlineMode,
         worldViewClickAction: state.control.worldViewClickAction,
         placemarks: selectors.placemarksSelector(state),
+        selectedLayerId: selectors.selectedLayerIdSelector(state),
         selectedPlacemarkId: selectors.selectedPlacemarkIdSelector(state),
         isDialogOpen: selectors.isDialogOpenSelector(state),
         showLayerTextOverlay: state.session.showLayerTextOverlay,
@@ -82,7 +84,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     }
 
     handleSplitLayerPosChange(splitLayerPos: number) {
-        this.props.dispatch(actions.setSplitLayerPos(this.props.view.id, splitLayerPos));
+        this.props.dispatch(actions.setSelectedLayerSplitPos(this.props.view.id, splitLayerPos));
     }
 
     render() {
@@ -91,6 +93,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         const dataSources = [];
         let overlayHtml = null;
         let splitLayerIndex = -1;
+        const isSelectedLayerSplit = this.props.view.data.isSelectedLayerSplit;
         // TODO (forman): optimize me: increase speed and clean up code by moving the following into selectors.ts
         if (this.props.workspace && this.props.workspace.resources && this.props.view.data.layers) {
             let layerInfoCount = 0;
@@ -102,7 +105,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                         const variableImageLayer = layer as VariableImageLayerState;
                         layerDescriptor = this.convertVariableImageLayerToLayerDescriptor(variableImageLayer);
                         if (layerDescriptor) {
-                            if (variableImageLayer.id === this.props.view.data.splitLayerId) {
+                            if (isSelectedLayerSplit) {
                                 splitLayerIndex = layers.length;
                             }
                             if (variableImageLayer.visible && this.props.showLayerTextOverlay) {
@@ -154,7 +157,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          dataSources={dataSources}
                          overlayHtml={overlayHtml}
                          splitLayerIndex={splitLayerIndex}
-                         splitLayerPos={this.props.view.data.splitLayerPos}
+                         splitLayerPos={this.props.view.data.selectedLayerSplitPos}
                          onSplitLayerPosChange={this.handleSplitLayerPosChange}
                          offlineMode={this.props.offlineMode}
                          style={GlobeView.CESIUM_GLOBE_STYLE}

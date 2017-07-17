@@ -333,14 +333,14 @@ export interface WorldViewDataState {
     selectedLayerId: string | null;
 
     /**
-     * The ID of a splitted layer.
+     * Whether to split the selected layer.
      */
-    splitLayerId: string;
+    isSelectedLayerSplit: boolean;
 
     /**
-     * The split position of a splitted layer, a ratio 0 to 1.
+     * The split position of the selected layer, a ratio 0 to 1.
      */
-    splitLayerPos: number;
+    selectedLayerSplitPos: number;
 }
 
 export interface FigureViewDataState {
