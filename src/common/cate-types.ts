@@ -62,7 +62,7 @@ export function isAssignableFrom(targetDataType: string, sourceDataType: string)
         case DATASET_TYPE:
             return sourceDataType === DATASET_LIKE_TYPE;
         case DATASET_LIKE_TYPE:
-            return sourceDataType === DATASET_TYPE;
+            return sourceDataType === DATASET_TYPE || sourceDataType === DATA_FRAME_TYPE;
         case SERIES_TYPE:
             return sourceDataType === GEO_SERIES_TYPE;
         case VAR_NAME_LIKE_TYPE:
