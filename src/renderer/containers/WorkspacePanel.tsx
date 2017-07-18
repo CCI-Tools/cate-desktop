@@ -454,25 +454,25 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
 
     renderOperationStepInputName(row: number) {
         const inputProps = this.props.selectedWorkflowStepOp.inputs[row];
-        const inputPort = this.props.selectedWorkflowStep.input[inputProps.name];
+        const inputPort = this.props.selectedWorkflowStep.inputs[inputProps.name];
         return WorkspacePanel.renderWorkflowPortName(inputProps, inputPort);
     }
 
     renderOperationStepInputValue(row: number): any {
         const inputProps = this.props.selectedWorkflowStepOp.inputs[row];
-        const inputPort = this.props.selectedWorkflowStep.input[inputProps.name];
+        const inputPort = this.props.selectedWorkflowStep.inputs[inputProps.name];
         return WorkspacePanel.renderWorkflowPortValue(inputProps, inputPort);
     }
 
     renderOperationStepOutputName(row: number) {
         const outputProps = this.props.selectedWorkflowStepOp.outputs[row];
-        const outputPort = this.props.selectedWorkflowStep.output[outputProps.name];
+        const outputPort = this.props.selectedWorkflowStep.outputs[outputProps.name];
         return WorkspacePanel.renderWorkflowPortName(outputProps, outputPort);
     }
 
     renderOperationStepOutputValue(row: number): any {
         const outputProps = this.props.selectedWorkflowStepOp.outputs[row];
-        const outputPort = this.props.selectedWorkflowStep.output[outputProps.name];
+        const outputPort = this.props.selectedWorkflowStep.outputs[outputProps.name];
         return WorkspacePanel.renderWorkflowPortValue(outputProps, outputPort);
     }
 
@@ -558,7 +558,7 @@ function convertSteps(operations: OperationState[], steps: WorkflowStepState[], 
             }
             const args = [];
             for (let input of op.inputs) {
-                const port = step.input[input.name];
+                const port = step.inputs[input.name];
                 let source = port.source;
                 if (port && source) {
                     args.push(`${input.name}=@${source}`);

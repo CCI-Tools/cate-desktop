@@ -13,8 +13,8 @@ function responseOperationToOperation(op: any): OperationState {
         description: (op.header && op.header.description) || null,
         tags: (op.header && op.header.tags) || [],
         hasMonitor: (op.has_monitor || false),
-        inputs: op.input.map(responseInputToOperationInput),
-        outputs: op.output.map(responseOutputToOperationOutput),
+        inputs: op.inputs.map(responseInputToOperationInput),
+        outputs: op.outputs.map(responseOutputToOperationOutput),
     }
 }
 

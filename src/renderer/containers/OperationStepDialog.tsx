@@ -272,7 +272,7 @@ export default connect(mapStateToProps)(OperationStepDialog);
 function getInputAssignmentsFromOperationStep(operation: OperationState, operationStep: WorkflowStepState): InputAssignments {
     const inputAssignments = {};
     for (let input of operation.inputs) {
-        const inputPort = operationStep.input[input.name];
+        const inputPort = operationStep.inputs[input.name];
         if (inputPort) {
             if (inputPort.source) {
                 let resourceName = inputPort.source;
