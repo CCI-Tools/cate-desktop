@@ -13,7 +13,7 @@ import {isFieldValue} from "../components/field/Field";
 import {hasValueEditorFactory, InputAssignment, InputAssignments, renderValueEditor} from "./editor/ValueEditor";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import {isDefined, isUndefinedOrNull} from "../../common/types";
+import {isDefined, isString, isUndefinedOrNull} from "../../common/types";
 import {isUndefined} from "util";
 
 
@@ -274,8 +274,8 @@ function getInputAssignmentsFromOperationStep(operation: OperationState, operati
     for (let input of operation.inputs) {
         const inputPort = operationStep.inputs[input.name];
         if (inputPort) {
-            if (inputPort.source) {
-                let resourceName = inputPort.source;
+            const resourceName = isString(inputPort) ? inputPort : inputPort.source;
+            if (resourceName) {
                 inputAssignments[input.name] = {resourceName, isValueUsed: false};
             } else if (!isUndefined(inputPort.value)) {
                 let constantValue = inputPort.value;

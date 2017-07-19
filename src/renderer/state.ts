@@ -208,8 +208,8 @@ export interface WorkflowStepState {
      */
     persistent?: boolean;
 
-    inputs: { [name: string]: WorkflowPortState };
-    outputs: { [name: string]: WorkflowPortState };
+    inputs: { [name: string]: WorkflowPortState & string };
+    outputs: { [name: string]: WorkflowPortState & string };
 }
 
 /**

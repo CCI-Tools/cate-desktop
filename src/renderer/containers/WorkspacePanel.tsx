@@ -488,8 +488,9 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
             if (portProps.units) {
                 units = (<span className="pt-text-muted">{` (${portProps.units})`}</span>);
             }
-            if (port.source) {
-                cellValue = (<span>&#8599; <em>{port.source}</em></span>);
+            const source = isString(port) ? port : port.source;
+            if (source) {
+                cellValue = (<span>&#8599; <em>{source}</em></span>);
             } else {
                 cellValue = (<span>{`${port.value}`}{units}</span>);
             }
@@ -544,7 +545,7 @@ function convertSteps(operations: OperationState[], steps: WorkflowStepState[], 
     // TODO (forman): move this to backend, as this is best done in Python
     let lines = [];
     if (target === 'python') {
-        lines.push('from cate.ops import *');
+        lines.push('import cate');
     } else {
         lines.push('cate ws new');
     }
@@ -558,12 +559,20 @@ function convertSteps(operations: OperationState[], steps: WorkflowStepState[], 
             }
             const args = [];
             for (let input of op.inputs) {
-                const port = step.inputs[input.name];
-                let source = port.source;
-                if (port && source) {
-                    args.push(`${input.name}=@${source}`);
-                } else if (port) {
-                    let value = port.value;
+                const inputPort = step.inputs[input.name];
+                if (!inputPort) {
+                    // No value provided, which should be ok (default value applies)
+                    continue;
+                }
+                const source = isString(inputPort) ? inputPort : inputPort.source;
+                if (inputPort && source) {
+                    if (target === 'python') {
+                        args.push(`${input.name}=${source}`);
+                    }else {
+                        args.push(`${input.name}=@${source}`);
+                    }
+                } else if (inputPort) {
+                    let value = inputPort.value;
                     if (isUndefined(value)) {
                         value = null;
                     }
@@ -587,7 +596,7 @@ function convertSteps(operations: OperationState[], steps: WorkflowStepState[], 
             let resName = step.id;
             const opName = op.name;
             if (target === 'python') {
-                lines.push(`${resName} = ${opName}(${args.join(', ')})`);
+                lines.push(`${resName} = cate.ops.${opName}(${args.join(', ')})`);
             } else {
                 lines.push(`cate res set ${resName} ${opName} ${args.join(' ')}`);
             }
