@@ -74,12 +74,12 @@ describe('isAssignableFrom()', function () {
         // Yes
         expect(isAssignableFrom(DATASET_LIKE_TYPE, DATASET_LIKE_TYPE)).to.be.true;
         expect(isAssignableFrom(DATASET_LIKE_TYPE, DATASET_TYPE)).to.be.true;
+        expect(isAssignableFrom(DATASET_LIKE_TYPE, DATA_FRAME_TYPE)).to.be.true;
         // No
         expect(isAssignableFrom(DATASET_LIKE_TYPE, 'bool')).to.be.false;
         expect(isAssignableFrom(DATASET_LIKE_TYPE, 'int')).to.be.false;
         expect(isAssignableFrom(DATASET_LIKE_TYPE, 'float')).to.be.false;
         expect(isAssignableFrom(DATASET_LIKE_TYPE, 'str')).to.be.false;
-        expect(isAssignableFrom(DATASET_LIKE_TYPE, DATA_FRAME_TYPE)).to.be.false;
         expect(isAssignableFrom(DATASET_LIKE_TYPE, DATA_FRAME_LIKE_TYPE)).to.be.false;
         expect(isAssignableFrom(DATASET_LIKE_TYPE, GEO_DATA_FRAME_TYPE)).to.be.false;
     });
