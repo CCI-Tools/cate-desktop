@@ -58,14 +58,13 @@ export interface WebAPIConfig {
 
 export interface DataStoreState {
     id: string;
-    name: string;
-    description: string;
+    title?: string;
     dataSources?: DataSourceState[] | null;
 }
 
 export interface DataSourceState {
     id: string;
-    name: string;
+    title?: string;
     meta_info: any | null;
     temporalCoverage?: any | null;
 }
@@ -690,7 +689,7 @@ export interface SessionState {
 
     workspacePanelMode: 'resources' | 'steps';
 
-    showHumanReadableDataSourceTitles: boolean;
+    showDataSourceTitles: boolean;
     showLayerTextOverlay: boolean;
 
     /**

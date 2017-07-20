@@ -37,21 +37,21 @@ describe('DataStore/DataSource selectors', function () {
         return {
             data: {dataStores},
             control: {selectedDataStoreId, selectedDataSourceId, dataSourceFilterExpr},
-            session: {showHumanReadableDataSourceTitles: false}
+            session: {showDataSourceTitles: false}
         };
     };
 
     const dataSources1 = [
-        {id: 'ds1', name: 'A1'},
-        {id: 'ds2', name: 'A2'},
-        {id: 'ds3', name: 'A3'},
+        {id: 'A1', title: 'Aha 1'},
+        {id: 'A2', title: 'Aha 2'},
+        {id: 'A3', title: 'Aha 3'},
     ];
     const dataStore1 = {id: 'local1', dataSources: dataSources1};
 
     const dataSources2 = [
-        {id: 'ds1', name: 'B1'},
-        {id: 'ds2', name: 'B2'},
-        {id: 'ds3', name: 'B3'},
+        {id: 'B1', title: 'Bibo 1'},
+        {id: 'B2', title: 'Bibo 2'},
+        {id: 'B3', title: 'Bibo 3'},
     ];
     const dataStore2 = {id: 'local2', dataSources: dataSources2};
     const dataStores = [dataStore1, dataStore2];
@@ -94,20 +94,20 @@ describe('DataStore/DataSource selectors', function () {
         ).to.deep.equal(dataSources2);
 
         expect(selectors.filteredDataSourcesSelector(getState(dataStores, 'local2', undefined, '2') as State)
-        ).to.deep.equal([{id: 'ds2', name: 'B2'}]);
+        ).to.deep.equal([{id: 'B2', title: 'Bibo 2'}]);
 
         expect(selectors.filteredDataSourcesSelector(getState(dataStores, 'local2', undefined, '3 B') as State)
-        ).to.deep.equal([{id: 'ds3', name: 'B3'}]);
+        ).to.deep.equal([{id: 'B3', title: 'Bibo 3'}]);
     });
 
     it('selectedDataSourceSelector', function () {
         expect(selectors.selectedDataSourceSelector(getState(dataStores, 'local2', null,) as State)
         ).to.be.null;
 
-        expect(selectors.selectedDataSourceSelector(getState(dataStores, 'local2', 'ds2') as State)
-        ).to.be.deep.equal({id: 'ds2', name: 'B2'});
+        expect(selectors.selectedDataSourceSelector(getState(dataStores, 'local2', 'B2') as State)
+        ).to.be.deep.equal({id: 'B2', title: 'Bibo 2'});
 
-        expect(selectors.selectedDataSourceSelector(getState(dataStores, 'local2', 'ds4') as State)
+        expect(selectors.selectedDataSourceSelector(getState(dataStores, 'local2', 'B4') as State)
         ).to.be.undefined;
     });
 });

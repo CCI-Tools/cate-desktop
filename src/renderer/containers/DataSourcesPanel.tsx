@@ -26,7 +26,7 @@ interface IDataSourcesPanelProps {
     selectedDataSources: DataSourceState[] | null;
     filteredDataSources: DataSourceState[] | null;
     showDataSourceDetails: boolean;
-    showHumanReadableDataSourceTitles: boolean;
+    showDataSourceTitles: boolean;
 }
 
 function mapStateToProps(state: State): IDataSourcesPanelProps {
@@ -39,7 +39,7 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         selectedDataSources: selectors.selectedDataSourcesSelector(state),
         filteredDataSources: selectors.filteredDataSourcesSelector(state),
         showDataSourceDetails: selectors.showDataSourceDetailsSelector(state),
-        showHumanReadableDataSourceTitles: selectors.showHumanReadableDataSourceTitlesSelector(state),
+        showDataSourceTitles: selectors.showDataSourceTitlesSelector(state),
     };
 }
 
@@ -83,7 +83,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         this.handleShowOpenDatasetDialog = this.handleShowOpenDatasetDialog.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleDataStoreSelected = this.handleDataStoreSelected.bind(this);
-        this.onShowHumanReadableTitleChange = this.onShowHumanReadableTitleChange.bind(this);
+        this.handleShowDataSourceTitlesChanged = this.handleShowDataSourceTitlesChanged.bind(this);
     }
 
     private handleAddDatasetDialog() {
@@ -119,8 +119,8 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         this.props.setControlState('showDataSourceDetails', value);
     }
 
-    private onShowHumanReadableTitleChange(ev: any) {
-        this.props.updateSessionState({showHumanReadableDataSourceTitles: ev.target.checked});
+    private handleShowDataSourceTitlesChanged(ev: any) {
+        this.props.updateSessionState({showDataSourceTitles: ev.target.checked});
     }
 
     render() {
@@ -188,7 +188,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                         <DataSourcesList dataSources={this.props.filteredDataSources}
                                          selectedDataSourceId={this.props.selectedDataSource ? this.props.selectedDataSource.id : null}
                                          setSelectedDataSourceId={this.props.setSelectedDataSourceId}
-                                         showHumanReadableDataSourceTitles={this.props.showHumanReadableDataSourceTitles}
+                                         showDataSourceTitles={this.props.showDataSourceTitles}
                                          doubleClickAction={isLocalStore ? this.handleShowOpenDatasetDialog : isNonLocalStore ? this.handleShowDownloadDataSourceDialog : null}/>
                         <DataSourceDetails dataSource={this.props.selectedDataSource}/>
                     </ContentWithDetailsPanel>
@@ -231,11 +231,11 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
 
         const dataStoreOptions = [];
         for (let dataStore of this.props.dataStores) {
-            dataStoreOptions.push(<option key={dataStore.id} value={dataStore.id}>{dataStore.name}</option>);
+            dataStoreOptions.push(<option key={dataStore.id} value={dataStore.id}>{dataStore.title || dataStore.id}</option>);
         }
 
         const selectedDataStore = this.props.selectedDataStore;
-        const showHumanReadableDataSourceTitles = this.props.showHumanReadableDataSourceTitles;
+        const showDataSourceTitles = this.props.showDataSourceTitles;
         //  a label has by default a 15px margin at the bottom
         return (
             <div style={DataSourcesPanel.FLEX_ROW_STYLE}>
@@ -251,8 +251,8 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                 <span style={DataSourcesPanel.SPACER_STYLE}/>
                 <Checkbox style={{marginTop: '1em'}}
                           label="Titles"
-                          checked={showHumanReadableDataSourceTitles}
-                          onChange={this.onShowHumanReadableTitleChange}
+                          checked={showDataSourceTitles}
+                          onChange={this.handleShowDataSourceTitlesChanged}
                 />
             </div>
         );
@@ -278,19 +278,21 @@ interface IDataSourcesListProps {
     dataSources: DataSourceState[];
     selectedDataSourceId: string | null;
     setSelectedDataSourceId: (selectedDataSourceId: string) => void;
-    showHumanReadableDataSourceTitles: boolean;
+    showDataSourceTitles: boolean;
     doubleClickAction: (dataSource: DataSourceState) => any;
 }
 
 class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
-    static readonly TITLE_DIV_STYLE: CSSProperties = {display: 'flex', alignItems: 'flex-start'};
+    static readonly ITEM_DIV_STYLE: CSSProperties = {display: 'flex', alignItems: 'flex-start'};
+    static readonly ID_DIV_STYLE: CSSProperties = {color: Colors.BLUE5};
+    static readonly ICON_DIV_STYLE: CSSProperties = {width: 32, height: 32, flex: 'none', marginRight: 6};
     readonly defaultIconName = 'cci';
 
     constructor(props: IDataSourcesListProps) {
         super(props);
         this.renderIcon = this.renderIcon.bind(this);
-        this.renderDsTitleHumanReadable = this.renderDsTitleHumanReadable.bind(this);
-        this.renderDsTitle = this.renderDsTitle.bind(this);
+        this.renderDataSourceTitleAndId = this.renderDataSourceTitleAndId.bind(this);
+        this.renderDataSourceId = this.renderDataSourceId.bind(this);
         this.handleDataSourceSelected = this.handleDataSourceSelected.bind(this);
         this.handleIconLoadError = this.handleIconLoadError.bind(this);
     }
@@ -313,44 +315,42 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
     }
 
     private renderIcon(dataSource: DataSourceState) {
-        // TODO (forman): compute icon size based on screen resolution
-        const imageSize = 32;
         const iconName = ((dataSource.meta_info && dataSource.meta_info.cci_project) || 'cci').toLowerCase();
         return <img src={`resources/images/data-sources/esacci/${iconName}.png`}
-                    style={{width: imageSize, height: imageSize, flex: 'none', marginRight: 6}}
+                    style={DataSourcesList.ICON_DIV_STYLE}
                     onError={this.handleIconLoadError}/>
     }
 
-    private renderDsTitleHumanReadable(dataSource: DataSourceState) {
-        const title = (dataSource.meta_info && dataSource.meta_info.title);
-        const name = dataSource.name.replace('esacci', '').replace(/\./g, ' ');
+    private renderDataSourceTitleAndId(dataSource: DataSourceState) {
+        const title = dataSource.title || (dataSource.meta_info && dataSource.meta_info.title);
+        const id = dataSource.id;
         return (
-            <div style={DataSourcesList.TITLE_DIV_STYLE}>
+            <div style={DataSourcesList.ITEM_DIV_STYLE}>
                 {this.renderIcon(dataSource)}
                 <div>
                     <div>{title}</div>
-                    <div style={{color: Colors.BLUE5}}>{name}</div>
+                    <div style={DataSourcesList.ID_DIV_STYLE}>{id}</div>
                 </div>
             </div>
         );
     }
 
-    private renderDsTitle(dataSource: DataSourceState) {
-        const name = dataSource.name.replace('esacci', '').replace(/\./g, ' ');
+    private renderDataSourceId(dataSource: DataSourceState) {
+        const id = dataSource.id;
         return (
-            <div style={DataSourcesList.TITLE_DIV_STYLE}>
+            <div style={DataSourcesList.ITEM_DIV_STYLE}>
                 {this.renderIcon(dataSource)}
-                <span>{name}</span>
+                <span>{id}</span>
             </div>
         );
     }
 
     render() {
         let renderTitle;
-        if (this.props.showHumanReadableDataSourceTitles) {
-            renderTitle = this.renderDsTitleHumanReadable
+        if (this.props.showDataSourceTitles) {
+            renderTitle = this.renderDataSourceTitleAndId;
         } else {
-            renderTitle = this.renderDsTitle
+            renderTitle = this.renderDataSourceId;
         }
 
         return (

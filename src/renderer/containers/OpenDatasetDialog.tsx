@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {DataSourceState, DialogState, State, DataStoreState} from "../state";
 import {ModalDialog} from "../components/ModalDialog";
-import {Dispatch, connect, DispatchProp} from "react-redux";
+import {connect, DispatchProp} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {IDataAccessComponentOptions, DataAccessComponent} from "./DataAccessComponent";
@@ -81,8 +81,6 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps & Dispat
         if (!isOpen) {
             return null;
         }
-
-        const isNonLocalStore = this.props.dataStore && this.props.dataStore.id !== 'local';
 
         return (
             <ModalDialog

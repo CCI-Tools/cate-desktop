@@ -165,8 +165,8 @@ export const filteredOperationsSelector = createSelector<State, OperationState[]
             if (hasFilterExpr) {
                 const filterExprLC = operationFilterExpr.toLowerCase();
                 const parts = filterExprLC.split(" ");
-                nameMatches = ds => {
-                    return parts.every(part => ds.name.toLowerCase().includes(part));
+                nameMatches = op => {
+                    return parts.every(part => op.name.toLowerCase().includes(part));
                 };
             } else {
                 nameMatches = op => true;
@@ -202,7 +202,7 @@ export const selectedDataStoreIdSelector = (state: State) => state.control.selec
 export const selectedDataSourceIdSelector = (state: State) => state.control.selectedDataSourceId;
 export const dataSourceFilterExprSelector = (state: State) => state.control.dataSourceFilterExpr;
 export const showDataSourceDetailsSelector = (state: State) => state.control.showDataSourceDetails;
-export const showHumanReadableDataSourceTitlesSelector = (state: State): boolean => state.session.showHumanReadableDataSourceTitles;
+export const showDataSourceTitlesSelector = (state: State): boolean => state.session.showDataSourceTitles;
 
 export const selectedDataStoreSelector = createSelector<State, DataStoreState | null,
     DataStoreState[] | null,
@@ -231,27 +231,36 @@ export const filteredDataSourcesSelector = createSelector<State, DataSourceState
     boolean>(
     selectedDataSourcesSelector,
     dataSourceFilterExprSelector,
-    showHumanReadableDataSourceTitlesSelector,
-    (selectedDataSources, dataSourceFilterExpr, showHumanReadableDataSourceTitles) => {
+    showDataSourceTitlesSelector,
+    (selectedDataSources, dataSourceFilterExpr, showDataSourceTitles) => {
         const hasDataSources = selectedDataSources && selectedDataSources.length;
         const hasFilterExpr = dataSourceFilterExpr && dataSourceFilterExpr !== '';
         if (hasDataSources && hasFilterExpr) {
             const dataSourceFilterExprLC = dataSourceFilterExpr.toLowerCase();
             const parts = dataSourceFilterExprLC.split(" ");
-            const nameMatches = ds => {
-                let text;
-                if (showHumanReadableDataSourceTitles) {
-                    text = (ds.name + " " + (ds.meta_info ? ds.meta_info.title : "")).toLowerCase();
-                } else {
-                    text = ds.name.toLowerCase();
-                }
-                return parts.every(part => text.includes(part));
-            };
-            return selectedDataSources.filter(ds => nameMatches(ds));
+            const dsMatcher = showDataSourceTitles ? matchesIdOrTitle : matchesId;
+            return selectedDataSources.filter(ds => dsMatcher(ds, parts));
         }
         return selectedDataSources;
     }
 );
+
+function matchesId(ds: DataSourceState, parts: string[]) {
+    const id = ds.id.toLowerCase();
+    return parts.every(part => id.includes(part));
+}
+
+function matchesIdOrTitle(ds: DataSourceState, parts: string[]) {
+    if (matchesId(ds, parts)) {
+        return true;
+    }
+    let title = ds.title || (ds.meta_info ? ds.meta_info.title : null);
+    if (!title || title === '') {
+        return false;
+    }
+    title = title.toLowerCase();
+    return parts.every(part => title.includes(part));
+}
 
 export const selectedDataSourceSelector = createSelector<State, DataSourceState | null, DataSourceState[] | null,
     string

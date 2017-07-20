@@ -558,7 +558,7 @@ const initialSessionState: SessionState = {
 
     workspacePanelMode: 'steps',
 
-    showHumanReadableDataSourceTitles: true,
+    showDataSourceTitles: true,
     showLayerTextOverlay: true,
 
     backendConfig: {

@@ -61,14 +61,14 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
 
     private onConfirm() {
         const options = this.state.options;
-        // Clear makeLocalDataSourceName, so on next props, we can create a new default from selected data source
+        // Clear makeLocalDataSourceId, so on next props, we can create a new default from selected data source
         const dialogState = {options: {...options, makeLocalDataSourceName: ''}};
         this.props.dispatch(actions.hideDialog(DownloadDataSourceDialog.DIALOG_ID, dialogState));
         const opArguments = DataAccessComponent.optionsToOperationArguments(options);
         if (options.isMakeLocalSelected) {
             this.props.dispatch(actions.downloadDataset(
                 this.props.dataSource.id,
-                options.makeLocalDataSourceName,
+                options.makeLocalDataSourceId,
                 opArguments,
                 options.isOpenDatasetSelected));
         } else if (options.isOpenDatasetSelected) {

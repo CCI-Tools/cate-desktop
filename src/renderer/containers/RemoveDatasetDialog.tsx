@@ -79,7 +79,7 @@ class RemoveDatasetDialog extends React.Component<IRemoveDatasetDialogProps & Di
         return (
             <div>
                 <p>You are about to remove the definition for the local data source
-                    <strong>{this.props.dataSource.name}</strong>.
+                    <strong>{this.props.dataSource.id}</strong>.
                 </p>
 
                 <Checkbox style={{marginTop: '1em'}} checked={this.state.removeFiles}

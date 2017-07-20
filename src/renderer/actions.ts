@@ -324,7 +324,7 @@ export function loadDataSources(dataStoreId: string): ThunkAction {
         }
 
         const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === dataStoreId);
-        callAPI(dispatch, `Loading data sources for store "${dataStore ? dataStore.name : '?'}"`, call, action);
+        callAPI(dispatch, `Loading data sources for store "${dataStore ? dataStore.id : '?'}"`, call, action);
     }
 }
 
@@ -380,10 +380,10 @@ export function updateDataSourceTemporalCoverage(dataStoreId: string,
     return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
 }
 
-export function downloadDataset(dataSourceId: string, localName: string, args: any, openAfterDownload: boolean): ThunkAction {
+export function downloadDataset(dataSourceId: string, localId: string, args: any, openAfterDownload: boolean): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         function call(onProgress) {
-            return selectors.datasetAPISelector(getState()).makeDataSourceLocal(dataSourceId, localName, args, onProgress);
+            return selectors.datasetAPISelector(getState()).makeDataSourceLocal(dataSourceId, localId, args, onProgress);
         }
 
         function action(dataSources: DataSourceState[]) {
@@ -391,20 +391,20 @@ export function downloadDataset(dataSourceId: string, localName: string, args: a
             if (dataSources && dataSources.length) {
                 dispatch(setSelectedDataStoreIdImpl('local'));
                 dispatch(setDataSourceFilterExpr(''));
-                const localDataSource = dataSources.find(ds => ds.name === localName || ds.name === `local.${localName}`);
+                const localDataSource = dataSources.find(ds => ds.id === localId || ds.id === `local.${localId}`);
                 if (localDataSource) {
-                    dispatch(setSelectedDataSourceId(localDataSource.name));
+                    dispatch(setSelectedDataSourceId(localDataSource.id));
                     if (openAfterDownload) {
                         const selectedDataSource = selectors.selectedDataSourceSelector(getState());
-                        if (selectedDataSource.name === localDataSource.name) {
-                            dispatch(openDataset(selectedDataSource.name, {}));
+                        if (selectedDataSource.id === localDataSource.id) {
+                            dispatch(openDataset(selectedDataSource.id, {}));
                         }
                     }
                 }
             }
         }
 
-        callAPI(dispatch, `Creating local copy for data source "${dataSourceId}" as "${localName}""`, call, action);
+        callAPI(dispatch, `Creating local copy for data source "${dataSourceId}" as "${localId}""`, call, action);
     }
 }
 export function openDataset(dataSourceId: string, args: any): ThunkAction {

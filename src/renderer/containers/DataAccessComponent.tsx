@@ -22,7 +22,8 @@ export interface IDataAccessComponentOptions {
     variableNames: TextFieldValue | null;
 
     isMakeLocalSelected?: boolean;
-    makeLocalDataSourceName?: string;
+    makeLocalDataSourceId?: string;
+    makeLocalDataSourceTitle?: string;
 
     isOpenDatasetSelected?: boolean;
     openDatasetResourceName: string;
@@ -56,7 +57,8 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         this.onHasVariablesConstraintChange = this.onHasVariablesConstraintChange.bind(this);
         this.onVariableNamesChange = this.onVariableNamesChange.bind(this);
         this.onMakeLocalSelectedChange = this.onMakeLocalSelectedChange.bind(this);
-        this.onMakeLocalDataSourceNameChange = this.onMakeLocalDataSourceNameChange.bind(this);
+        this.onMakeLocalDataSourceIdChange = this.onMakeLocalDataSourceIdChange.bind(this);
+        this.onMakeLocalDataSourceTitleChange = this.onMakeLocalDataSourceTitleChange.bind(this);
         this.onOpenDatasetSelectedChange = this.onOpenDatasetSelectedChange.bind(this);
         this.onOpenDatasetResourceNameChange = this.onOpenDatasetResourceNameChange.bind(this);
     }
@@ -90,8 +92,12 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         this.props.onChange({...this.props.options, isMakeLocalSelected: ev.target.checked});
     }
 
-    private onMakeLocalDataSourceNameChange(ev: any) {
-        this.props.onChange({...this.props.options, makeLocalDataSourceName: ev.target.value});
+    private onMakeLocalDataSourceIdChange(ev: any) {
+        this.props.onChange({...this.props.options, makeLocalDataSourceId: ev.target.value});
+    }
+
+    private onMakeLocalDataSourceTitleChange(ev: any) {
+        this.props.onChange({...this.props.options, makeLocalDataSourceTitle: ev.target.value});
     }
 
     private onOpenDatasetSelectedChange(ev: any) {
@@ -109,7 +115,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
     private static dataSourceToResource(dataSource: DataSourceState): ResourceState {
         if (dataSource && dataSource.meta_info && dataSource.meta_info.variables && dataSource.meta_info.variables.length) {
             return {
-                name: dataSource.name,
+                name: dataSource.id,
                 dataType: types.DATASET_TYPE,
                 variables: dataSource.meta_info.variables.map(v => DataAccessComponent.dataSourceVarToVariable(v)),
             } as ResourceState;
@@ -144,7 +150,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
 
         let headerText;
         let localDataSourceCheck;
-        let localDataSourceNamePanel;
+        let localDataSourcePanel;
         let openDatasetCheck;
         // let openDatasetResourceNamePanel = (
         //     <div style={DataAccessComponent.OPTION_DIV_STYPE}>
@@ -159,7 +165,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         //         </label>
         //     </div>
         // );
-        const dataSourceNameElement = <strong>{this.props.dataSource.name}</strong>;
+        const dataSourceNameElement = <strong>{this.props.dataSource.id}</strong>;
         if (isLocalDataSource) {
             headerText = (<p>Local data source:<br/>{dataSourceNameElement}</p>);
         } else {
@@ -170,17 +176,26 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
                           label="Download and make local data source (allocates space on disk)"
                           onChange={this.onMakeLocalSelectedChange}/>
             );
-            localDataSourceNamePanel = (
+            localDataSourcePanel = (
                 <Collapse isOpen={isMakeLocalSelected}>
                     <div style={DataAccessComponent.OPTION_DIV_STYPE}>
                         <label className="pt-label">
-                            Unique name for the new local data source
+                            Unique identifier for the new local data source
                             <span className="pt-text-muted"> (required)</span>
                             <input className="pt-input"
                                    style={{width: '100%'}}
                                    type="text"
-                                   value={options.makeLocalDataSourceName}
-                                   onChange={this.onMakeLocalDataSourceNameChange}/>
+                                   value={options.makeLocalDataSourceId}
+                                   onChange={this.onMakeLocalDataSourceIdChange}/>
+                        </label>
+                        <label className="pt-label">
+                            Data source title
+                            <span className="pt-text-muted"> (optional)</span>
+                            <input className="pt-input"
+                                   style={{width: '100%'}}
+                                   type="text"
+                                   value={options.makeLocalDataSourceTitle}
+                                   onChange={this.onMakeLocalDataSourceTitleChange}/>
                         </label>
                     </div>
                 </Collapse>
@@ -249,7 +264,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
                 </Collapse>
 
                 {localDataSourceCheck}
-                {localDataSourceNamePanel}
+                {localDataSourcePanel}
                 {openDatasetCheck}
                 {/*{openDatasetResourceNamePanel}*/}
 
@@ -283,11 +298,11 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             validVariableNames = !options.variableNames.error;
         }
 
-        let validDataSourceName = true;
+        let validDataSourceId = true;
         if (options.isMakeLocalSelected) {
-            const makeLocalDataSourceName = options.makeLocalDataSourceName;
-            if (!/[^\\\/:*?"<>|\r\n]+$/im.test(makeLocalDataSourceName)) {
-                validDataSourceName = false;
+            const makeLocalDataSourceId = options.makeLocalDataSourceId;
+            if (!/[^\\\/:*?"<>|\r\n]+$/im.test(makeLocalDataSourceId)) {
+                validDataSourceId = false;
             }
         }
 
@@ -296,7 +311,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             canPerformAction = options.isMakeLocalSelected || options.isOpenDatasetSelected;
         }
 
-        return validRegion && validVariableNames && validDataSourceName && canPerformAction;
+        return validRegion && validVariableNames && validDataSourceId && canPerformAction;
     }
 
 
@@ -355,7 +370,8 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             variableNames: null,
 
             isMakeLocalSelected: !isLocalDataSource,
-            makeLocalDataSourceName: '',
+            makeLocalDataSourceId: '',
+            makeLocalDataSourceTitle: '',
 
             isOpenDatasetSelected: isLocalDataSource,
             openDatasetResourceName: '',
@@ -363,15 +379,12 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
     }
 
     static adjustLocalDataSourceName(options: IDataAccessComponentOptions, dataSource: DataSourceState): IDataAccessComponentOptions {
-        if (!options.makeLocalDataSourceName || options.makeLocalDataSourceName === '') {
-            let dataSourceName = dataSource && dataSource.name;
-            if (!dataSourceName) {
-                dataSourceName = dataSource && dataSource.id;
-                if (!dataSourceName) {
-                    dataSourceName = 'unnamed';
-                }
+        if (!options.makeLocalDataSourceId || options.makeLocalDataSourceId === '') {
+            let dataSourceId = dataSource && dataSource.id;
+            if (!dataSourceId) {
+                dataSourceId = 'unnamed';
             }
-            return {...options, makeLocalDataSourceName: 'local.' + dataSourceName};
+            return {...options, makeLocalDataSourceId: 'local.' + dataSourceId};
         }
         return options;
     }
