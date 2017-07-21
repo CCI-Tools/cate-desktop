@@ -122,8 +122,8 @@ export class WebSocketMock implements WebSocketMin {
         }
 
         if (message.id >= 0 && message.method && message.params) {
-            if (message.method === '__cancelJob__') {
-                this.cancelledJobsIds.add(message.params['jobId']);
+            if (message.method === '__cancel__') {
+                this.cancelledJobsIds.add(message.params['id']);
             } else {
                 this.callServiceObjectMethod(message);
             }

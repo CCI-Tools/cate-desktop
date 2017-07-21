@@ -4,8 +4,8 @@
  * The implementation is based on WebSockets with a JSON-RPC-based protocol.
  * For JSON-RPC details see http://www.jsonrpc.org/specification.
  *
- * A WebAPI server must implement a general method "__cancelJob__(jobId: number): void"
- * which cancels the job with given *jobId*. The method call must either succeed with any "response" value
+ * A WebAPI server must implement a general method "__cancel__(id: number): void"
+ * which cancels the method for the given *id*. The method call must either succeed with any "response" value
  * or fail by returning an "error" object.
  *
  * If the WebAPI server has successfully cancelled a running job, an "error" object with code 999
@@ -37,7 +37,7 @@ import {
     JobFailureHandler, JobStatusEnum
 } from './Job'
 
-const CANCEL_METHOD = '__cancelJob__';
+const CANCEL_METHOD = '__cancel__';
 const CANCELLED_CODE = 999;
 
 export type JobResponseTransformer<JobResponse> = (any) => JobResponse;
@@ -48,8 +48,8 @@ export type JobResponseTransformer<JobResponse> = (any) => JobResponse;
  * The WebAPIClient class is used to perform remote calls to server-side methods and to observe
  * their progress, success, failure, or cancellation in an asynchronous fashion.
  *
- * The WebAPI interface must implement a general method "__cancelJob__(jobId: number): void"
- * which cancels the job with given *jobId*. The method call must either succeed with any "response" value
+ * A WebAPI server must implement a general method "__cancel__(id: number): void"
+ * which cancels the method for the given *id*. The method call must either succeed with any "response" value
  * or fail by returning an "error" object.
  *
  * If the WebAPIClient server has successfully cancelled a running job, an "error" object with the code
@@ -278,7 +278,7 @@ class JobImpl<JobResponse> implements Job {
 
     cancel(onResolve?: JobResponseHandler<void>,
            onReject?: JobFailureHandler): void {
-        this.webAPIClient.call<void>(CANCEL_METHOD, {jobId: this.request.id})
+        this.webAPIClient.call<void>(CANCEL_METHOD, {id: this.request.id})
             .then(onResolve || (() => {
                 }), onReject || (() => {
                 }));
