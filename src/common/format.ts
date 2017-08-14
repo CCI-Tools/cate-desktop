@@ -13,7 +13,8 @@ export function formatMillisAsISODateString(millis: number) {
  * @returns {string} ISO date string
  */
 export function formatDateAsISODateString(date: Date) {
-    return date.toISOString().slice(0, 10);
+    const isoDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+    return isoDate.toISOString().slice(0, 10);
 }
 
 /**

@@ -96,10 +96,10 @@ export function validateDate(date: Date|null, nullable: boolean|null, min: Date|
         }
         return;
     }
-    if (min && date.getDate() < min.getDate()) {
+    if (min && date.valueOf() < min.valueOf()) {
         throw new Error(`${name || 'Date'} must not be before ${formatDate(min)}.`);
     }
-    if (max && date.getDate() > max.getDate()) {
+    if (max && date.valueOf() > max.valueOf()) {
         throw new Error(`${name || 'Date'} must not be after ${formatDate(max)}.`);
     }
 }

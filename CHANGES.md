@@ -1,6 +1,9 @@
 ## 0.9.0-dev.5
 
-TODO
+### UX Improvements and new Features
+
+### Fixes
+ * Fix handling and formatting of date ranges [#313](https://github.com/CCI-Tools/cate-core/issues/313).
 
 
 ## 0.9.0-dev.4

@@ -5,7 +5,7 @@ import {isUndefinedOrNull} from "../../../common/types";
 import {DEFAULT_MAX_DATE, DEFAULT_MIN_DATE, formatDate, parseDate, validateDate} from "./DateField";
 
 export type DateRangeFieldType = FieldType<DateRange>;
-export type  DateRangeFieldValue = FieldValue<DateRange>;
+export type DateRangeFieldValue = FieldValue<DateRange>;
 
 interface IDateRangeFieldProps extends IFieldProps {
     nullable?: boolean;
@@ -126,16 +126,16 @@ export function formatDateRange(value: DateRange | null): string {
 
 export function validateDateRange(value: DateRange | null, nullable: boolean|null, min: Date|null, max: Date|null) {
     if (!value) {
-        if (!this.props.nullable) {
+        if (!nullable) {
             throw Error('Date range value expected.');
         }
         return;
     }
     const date1 = value[0];
     const date2 = value[1];
-    validateDate(date1, this.props.nullable, this.props.min, this.props.max, "First date");
-    validateDate(date2, this.props.nullable, this.props.min, this.props.max, "Second date");
-    if (date1 && date2 && date1.getDate() > date2.getDate()) {
+    validateDate(date1, nullable, min, max, "First date");
+    validateDate(date2, nullable, min, max, "Second date");
+    if (date1 && date2 && date1.valueOf() > date2.valueOf()) {
         throw new Error('First date must not be after second date.');
     }
 }
