@@ -64,18 +64,11 @@ export class InputEditor extends React.PureComponent<IInputEditorProps, null> {
     private renderResourceNameEditor() {
         const NULL_VALUE = '__null__';
         const firstResourceOption = (<option key='__first__' value={NULL_VALUE}>Select resource</option>);
-        const otherResourceOptions = (this.props.resources || []).map(resource => {
-            if (this.isDataTypeCompatible(resource)) {
-                return (
-                    <option key={resource.name} value={resource.name}>
-                        {resource.name}
-                    </option>
-                );
-            } else {
-                return null;
-            }
-        });
+        const otherResourceOptions = (this.props.resources || [])
+            .filter(resource => this.isDataTypeCompatible(resource))
+            .map(resource =><option key={resource.name} value={resource.name}>{resource.name}</option>);
         const resourceOptions = [firstResourceOption].concat(otherResourceOptions);
+
         return (
             <div className="pt-select pt-intent-primary">
                 <select value={this.props.resourceName || NULL_VALUE}
@@ -90,12 +83,14 @@ export class InputEditor extends React.PureComponent<IInputEditorProps, null> {
     private renderEditorSwitch() {
         const valueEditorShown = this.isValueEditorShown();
         const valueEditorDisabled = this.isValueEditorDisabled();
+        const resourceSelectorDisabled = !this.hasCompatibleResources();
+        const switchDisabled = valueEditorDisabled || resourceSelectorDisabled;
         return (
             <div>
                 <Tooltip
-                    content={(valueEditorShown ? "Switch to resource selection" : "Switch to value entry") + (valueEditorDisabled ? ' (disabled)' : '')}>
+                    content={(valueEditorShown ? "Switch to resource selection" : "Switch to value entry") + (switchDisabled ? ' (disabled)' : '')}>
                     <Switch checked={valueEditorShown}
-                            disabled={valueEditorDisabled}
+                            disabled={switchDisabled}
                             style={{marginLeft: '1em', marginBottom: 0}}
                             onChange={(event:any) => this.handleChange(this.props.resourceName, event.target.checked)}/>
                 </Tooltip>
@@ -105,6 +100,10 @@ export class InputEditor extends React.PureComponent<IInputEditorProps, null> {
 
     private isDataTypeCompatible(resource) {
         return isAssignableFrom(this.props.dataType, resource.dataType);
+    }
+
+    private hasCompatibleResources() {
+        return (this.props.resources || []).some(resource => this.isDataTypeCompatible(resource));
     }
 
     private isValueEditorDisabled() {
