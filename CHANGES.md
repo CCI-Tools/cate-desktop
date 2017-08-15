@@ -8,6 +8,7 @@
  * The resource switch in the **OPERATION STEP** dialog is only enabled
    when the drop-down box would contain any **compatible resource**
    [#310](https://github.com/CCI-Tools/cate-core/issues/310).
+ * Only show lat/lon values when mouse is over globe [#312](https://github.com/CCI-Tools/cate-core/issues/312).
 
 ## 0.9.0-dev.4
 

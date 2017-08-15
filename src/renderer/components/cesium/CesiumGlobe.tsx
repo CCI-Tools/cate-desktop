@@ -721,20 +721,24 @@ function screenToCartographic(viewer: Viewer, screenPoint?: Cartesian2, degrees?
     let canvasPoint;
     if (screenPoint) {
         const rect = viewer.canvas.getBoundingClientRect();
-        canvasPoint = new Cesium.Cartesian2(screenPoint.x - rect.left, screenPoint.y - rect.top);
-    } else {
-        canvasPoint = new Cesium.Cartesian2(viewer.canvas.clientWidth / 2, viewer.canvas.clientHeight / 2);
-    }
-    const ellipsoid = viewer.scene.globe.ellipsoid;
-    const cartesian = viewer.camera.pickEllipsoid(canvasPoint, ellipsoid);
-    if (cartesian) {
-        const cartographic = ellipsoid.cartesianToCartographic(cartesian);
-        if (cartographic && degrees) {
-            const factor = 10000.;
-            const longitude = Math.round(factor * Cesium.Math.toDegrees(cartographic.longitude)) / factor;
-            const latitude = Math.round(factor * Cesium.Math.toDegrees(cartographic.latitude)) / factor;
-            return {longitude, latitude, height: cartographic.height};
+        const x = screenPoint.x;
+        const y = screenPoint.y;
+        if ((x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom)) {
+            canvasPoint = new Cesium.Cartesian2(x - rect.left, y - rect.top);
         }
-        return cartographic;
+    }
+    if (canvasPoint) {
+        const ellipsoid = viewer.scene.globe.ellipsoid;
+        const cartesian = viewer.camera.pickEllipsoid(canvasPoint, ellipsoid);
+        if (cartesian) {
+            const cartographic = ellipsoid.cartesianToCartographic(cartesian);
+            if (cartographic && degrees) {
+                const factor = 10000.;
+                const longitude = Math.round(factor * Cesium.Math.toDegrees(cartographic.longitude)) / factor;
+                const latitude = Math.round(factor * Cesium.Math.toDegrees(cartographic.latitude)) / factor;
+                return {longitude, latitude, height: cartographic.height};
+            }
+            return cartographic;
+        }
     }
 }
