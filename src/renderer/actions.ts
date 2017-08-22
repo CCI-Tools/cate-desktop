@@ -9,7 +9,8 @@ import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
-    newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName
+    newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName,
+    computingVariableStatisticsID
 } from "./state-util";
 import {ViewPath} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
@@ -179,12 +180,12 @@ export function cancelJob(jobId: number): ThunkAction {
     }
 }
 
-function jobSubmitted(jobId: number, jobTitle: string): Action {
+function jobSubmitted(jobId: number, jobTitle: string, uniqueID: string): Action {
     showToast({
         type: 'notification',
         text: 'Started: ' + jobTitle,
     });
-    return updateTaskState(jobId, {status: JobStatusEnum.SUBMITTED, title: jobTitle});
+    return updateTaskState(jobId, {status: JobStatusEnum.SUBMITTED, title: jobTitle, uniqueID: uniqueID});
 }
 
 function jobProgress(progress: JobProgress): Action {
@@ -233,6 +234,7 @@ export type JobPromisePlanB = (jobFailure: JobFailure) => void;
  * @param dispatch Redux' dispatch() function.
  * @param title A human-readable title for the job that is being created
  * @param call The API call which must produce a JobPromise
+ * @param uniqueID A unique ID to prevent multiple invocations
  * @param action The action to be performed when the API call succeeds.
  * @param planB The action to be performed when the API call fails.
  */
@@ -240,13 +242,14 @@ export function callAPI<T>(dispatch: (action: Action) => void,
                            title: string,
                            call: JobPromiseFactory<T>,
                            action?: JobPromiseAction<T>,
+                           uniqueID?: string,
                            planB?: JobPromisePlanB): void {
     const onProgress = (progress: JobProgress) => {
         dispatch(jobProgress(progress));
     };
 
     const jobPromise = call(onProgress);
-    dispatch(jobSubmitted(jobPromise.getJobId(), title));
+    dispatch(jobSubmitted(jobPromise.getJobId(), title, uniqueID));
 
     const onDone = (jobResult: T) => {
         dispatch(jobDone(jobPromise.getJobId(), title));
@@ -588,7 +591,7 @@ export function openWorkspace(workspacePath?: string | null): ThunkAction {
             }
         }
 
-        callAPI(dispatch, `Open workspace "${workspacePath}"`, call, action, planB);
+        callAPI(dispatch, `Open workspace "${workspacePath}"`, call, action, null, planB);
     }
 }
 
@@ -1040,7 +1043,9 @@ export function getWorkspaceVariableStatistics(resName: string,
             dispatch(action(statistics));
         }
 
-        callAPI(dispatch, `Computing statistics for variable "${varName}"`, call, action2);
+        const title = `Computing statistics for variable "${varName}"`;
+        const uniqueID = computingVariableStatisticsID(resName, varName, varIndex);
+        callAPI(dispatch, title, call, action2, uniqueID);
     }
 }
 
