@@ -307,7 +307,7 @@ export function updateSelectedVariableLayer(selectedVariableLayer: LayerState,
     }
 }
 
-export function computingVariableStatisticsID(resName: string, varName: string, varIndex: Array<number>) {
+export function computingVariableStatisticsLock(resName: string, varName: string, varIndex: Array<number>) {
     const varIndexString = varIndex.join("_");
     return `compute statistics "${resName}" "${varName}" "${varIndexString}" `;
 }

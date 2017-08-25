@@ -580,7 +580,7 @@ export interface TaskState {
     status: JobStatus;
     failure?: JobFailure;
     progress?: JobProgress;
-    uniqueID?: string;
+    requestLock?: string;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

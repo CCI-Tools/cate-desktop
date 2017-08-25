@@ -13,7 +13,7 @@ import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
-    computingVariableStatisticsID} from "./state-util";
+    computingVariableStatisticsLock} from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
 import {JobStatusEnum} from "./webapi/Job";
@@ -65,14 +65,14 @@ export const colorMapsAPISelector = createSelector(
     }
 );
 
-export const activeUniqueIDsSelector = (state: State): string[] => {
+export const activeRequestLocksSelector = (state: State): string[] => {
     const array = [];
     for (let jobId in state.communication.tasks) {
         const task = state.communication.tasks[jobId];
         if (task.status == JobStatusEnum.NEW ||
             task.status == JobStatusEnum.SUBMITTED ||
             task.status == JobStatusEnum.IN_PROGRESS) {
-            array.push(task.uniqueID)
+            array.push(task.requestLock)
         }
     }
     return array;
@@ -675,16 +675,16 @@ export const isComputingVariableStatistics = createSelector<State, boolean,
     selectedVariableSelector,
     selectedVariableImageLayerSelector,
     selectedVariableVectorLayerSelector,
-    activeUniqueIDsSelector,
+    activeRequestLocksSelector,
     (selectedResource: ResourceState | null, selectedVariable: VariableState | null,
      selectedVariableImageLayer: VariableLayerBase | null, selectedVariableVectorLayer: VariableLayerBase | null,
-     activeUniqueIDs: string[]) => {
+     activeRequestLocks: string[]) => {
         const layer = selectedVariableImageLayer || selectedVariableVectorLayer;
         if (!selectedResource || !selectedVariable || !layer) {
             return false;
         }
-        const uniqueID = computingVariableStatisticsID(selectedResource.name, selectedVariable.name, layer.varIndex);
-        return activeUniqueIDs.indexOf(uniqueID) > -1;
+        const requestLock = computingVariableStatisticsLock(selectedResource.name, selectedVariable.name, layer.varIndex);
+        return activeRequestLocks.indexOf(requestLock) > -1;
     }
 );
 
