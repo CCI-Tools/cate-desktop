@@ -3,6 +3,7 @@ import {JobStatus, JobFailure, JobProgress} from "./webapi/Job";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
 import {Feature, FeatureCollection, Point} from "geojson";
+import {IconName} from "@blueprintjs/core";
 
 /**
  * Interface describing Cate's application state structure.
@@ -724,7 +725,7 @@ export interface MessageActionState {
     text: string;
     onClick?: (...actionArgs) => void;
     href?: string;
-    iconName?: string;
+    iconName?: IconName;
 }
 
 export interface MessageState {

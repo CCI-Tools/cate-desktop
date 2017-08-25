@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Colors, Menu, MenuItem, NonIdealState, Popover, Position} from "@blueprintjs/core";
+import {Colors, IconName, Menu, MenuItem, NonIdealState, Popover, Position} from "@blueprintjs/core";
 import {Splitter, SplitDir} from "./Splitter";
 import {
     isViewSplitState, ViewState, ViewSplitState, ViewPanelState, ViewLayoutState, ViewPath,
@@ -23,7 +23,7 @@ interface IViewManagerProps {
     activeView: ViewState<any> | null;
     noViewsDescription?: string | null;
     noViewsAction?: JSX.Element | null;
-    noViewsVisual?: string | JSX.Element;
+    noViewsVisual?: IconName | JSX.Element;
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
     onCloseView: (viewPath: ViewPath, viewId: string) => void;
     onCloseAllViews: (viewPath: ViewPath) => void;

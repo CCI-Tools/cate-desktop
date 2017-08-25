@@ -1,13 +1,13 @@
 import * as React from 'react';
-import {Dialog, Classes, AnchorButton, Tooltip} from "@blueprintjs/core";
+import {Dialog, Classes, AnchorButton, Tooltip, IconName} from "@blueprintjs/core";
 
 interface IModalDialogProps {
     isOpen: boolean;
     title?: string;
-    confirmIconName?: string;
+    confirmIconName?: IconName;
     confirmTitle?: string;
     confirmTooltip?: string;
-    iconName?: string;
+    iconName?: IconName;
     renderBody: () => JSX.Element | JSX.Element[];
     renderActions?: () => JSX.Element[];
     renderExtraActions?: () => JSX.Element[];
