@@ -2,7 +2,7 @@ import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
     WorkflowStepState, VariableVectorLayerState, LayerVariableState, SavedLayers,
-    FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark
+    FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient} from "./webapi/WebAPIClient";
@@ -12,9 +12,11 @@ import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import {PanelContainerLayout} from "./components/PanelContainer";
-import {isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource} from "./state-util";
+import {isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
+    computingVariableStatisticsLock} from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
+import {JobStatusEnum} from "./webapi/Job";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -62,6 +64,19 @@ export const colorMapsAPISelector = createSelector(
         return new ColorMapsAPI(webAPIClient);
     }
 );
+
+export const activeRequestLocksSelector = (state: State): string[] => {
+    const array = [];
+    for (let jobId in state.communication.tasks) {
+        const task = state.communication.tasks[jobId];
+        if (task.status == JobStatusEnum.NEW ||
+            task.status == JobStatusEnum.SUBMITTED ||
+            task.status == JobStatusEnum.IN_PROGRESS) {
+            array.push(task.requestLock)
+        }
+    }
+    return array;
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Dialog state selectors
@@ -654,6 +669,24 @@ export const selectedLayerVariablesSelector = createSelector<State, LayerVariabl
     }
 );
 
+export const isComputingVariableStatistics = createSelector<State, boolean,
+    ResourceState | null, VariableState | null, VariableLayerBase | null, VariableLayerBase | null, string[]>(
+    selectedResourceSelector,
+    selectedVariableSelector,
+    selectedVariableImageLayerSelector,
+    selectedVariableVectorLayerSelector,
+    activeRequestLocksSelector,
+    (selectedResource: ResourceState | null, selectedVariable: VariableState | null,
+     selectedVariableImageLayer: VariableLayerBase | null, selectedVariableVectorLayer: VariableLayerBase | null,
+     activeRequestLocks: string[]) => {
+        const layer = selectedVariableImageLayer || selectedVariableVectorLayer;
+        if (!selectedResource || !selectedVariable || !layer) {
+            return false;
+        }
+        const requestLock = computingVariableStatisticsLock(selectedResource.name, selectedVariable.name, layer.varIndex);
+        return activeRequestLocks.indexOf(requestLock) > -1;
+    }
+);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Color map selectors

@@ -52,6 +52,7 @@ interface ILayersPanelProps {
     colorMapCategories: Array<ColorMapCategoryState>;
     selectedColorMap: ColorMapState | null;
     displayMinMax: [number, number];
+    isComputingVariableStatistics: boolean;
 }
 
 function mapStateToProps(state: State): ILayersPanelProps {
@@ -70,6 +71,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
         colorMapCategories: selectors.colorMapCategoriesSelector(state),
         selectedColorMap: selectors.selectedColorMapSelector(state),
         displayMinMax: selectors.selectedVariableImageLayerDisplayMinMaxSelector(state),
+        isComputingVariableStatistics: selectors.isComputingVariableStatistics(state)
     };
 }
 
@@ -359,6 +361,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                             <Tooltip content="Compute valid min/max" position={Position.LEFT}>
                                 <AnchorButton className="pt-intent-primary" iconName="arrows-horizontal"
                                               style={{flex: 'none'}}
+                                              disabled={this.props.isComputingVariableStatistics}
                                               onClick={this.handleUpdateDisplayStatistics}/>
                             </Tooltip>
                         </div>

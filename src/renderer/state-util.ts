@@ -307,6 +307,11 @@ export function updateSelectedVariableLayer(selectedVariableLayer: LayerState,
     }
 }
 
+export function computingVariableStatisticsLock(resName: string, varName: string, varIndex: Array<number>) {
+    const varIndexString = varIndex.join("_");
+    return `compute statistics "${resName}" "${varName}" "${varIndexString}" `;
+}
+
 /**
  * If there is a restoredLayer try reusing its varIndex, otherwise generate new variable display properties with
  * new varIndex.
