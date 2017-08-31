@@ -325,17 +325,24 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             };
         }
         if (options.hasRegionConstraint && options.region) {
-            let region = options.region;
+            const region = options.region;
             args = {
                 ...args,
                 region: `${region.west.value},${region.south.value},${region.east.value},${region.north.value}`
             };
         }
         if (options.hasVariablesConstraint && options.variableNames) {
-            let variableNames = options.variableNames.value;
+            const variableNames = options.variableNames.value;
             args = {
                 ...args,
                 var_names: variableNames
+            };
+        }
+        if (options.isMakeLocalSelected && options.makeLocalDataSourceTitle) {
+            const title = options.makeLocalDataSourceTitle;
+            args = {
+                ...args,
+                title
             };
         }
         return args;
