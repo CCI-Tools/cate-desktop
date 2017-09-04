@@ -94,7 +94,6 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
     }
 
     setError(error: Error | null) {
-        console.log("set Error", error.message);
         this.setFieldValue({...this._fieldValue, error});
     }
 
@@ -151,7 +150,6 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
             value = this.parseValue(textValue);
             this.validateValue(value);
         } catch (e) {
-            console.log("newFieldValueFromTextValue Error", e.message);
             value = this._fieldValue ? this._fieldValue.value : value;
             error = e;
         }
@@ -167,14 +165,12 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
         try {
             textValue = this.formatValue(value);
         } catch (e) {
-            console.log("newFieldValueFromValue format Error", e.message);
             textValue = '';
             error = e;
         }
         try {
             this.validateValue(value);
         } catch (e) {
-            console.log("newFieldValueFromValue validate Error", e.message);
             error = e;
         }
         return {textValue, value, error};
@@ -185,7 +181,6 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
         try {
             this.validateValue(value);
         } catch (e) {
-            console.log("newFieldValueFromValueAndTextValue Error", e.message);
             error = e;
         }
         return {textValue, value, error};
