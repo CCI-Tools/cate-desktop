@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {DateInput, DateRange} from "@blueprintjs/datetime";
-import {Field, FieldType, FieldValue, IFieldProps} from "./Field";
+import {DateRange} from "@blueprintjs/datetime";
+import {Field, FieldType, IFieldProps} from "./Field";
 import {formatDateAsISODateString} from "../../../common/format";
 import {isUndefinedOrNull} from "../../../common/types";
 
@@ -18,10 +18,13 @@ export const DEFAULT_DATE_RANGE: DateRange = [DEFAULT_MIN_DATE, DEFAULT_MAX_DATE
 
 export class DateField extends Field<IDateFieldProps> {
 
+    public static defaultProps: Partial<IFieldProps> = {
+        uncontrolled: true,
+        placeholder: 'YYYY-MM-DD'
+    };
+
     constructor(props: IDateFieldProps) {
         super(props);
-        this.handleDateInputChange = this.handleDateInputChange.bind(this);
-        this.handleDataInputError = this.handleDataInputError.bind(this);
     }
 
     parseValue(textValue: string): DateFieldType {
@@ -36,34 +39,6 @@ export class DateField extends Field<IDateFieldProps> {
         super.validateValue(value);
         validateDate(value, this.props.nullable, this.props.min, this.props.max);
     }
-
-    private handleDateInputChange(date: Date) {
-        this.setValue(date);
-    }
-
-    private handleDataInputError(date: Date) {
-        this.setError(new Error('Invalid date.'));
-    }
-
-    render() {
-        const error = this.getError();
-        const value = this.getValue();
-        const minDate = this.props.min || DEFAULT_MIN_DATE;
-        const maxDate = this.props.max || DEFAULT_MAX_DATE;
-
-        return (
-                <DateInput className={error ? "pt-intent-danger" : null}
-                           value={value}
-                           format="YYYY-MM-DD"
-                           locale={'en'}
-                           disabled={this.props.disabled}
-                           onChange={this.handleDateInputChange}
-                           onError={this.handleDataInputError}
-                           minDate={minDate}
-                           maxDate={maxDate}
-                />
-        );
-    }
 }
 
 export function parseDate(textValue: string, nullable: boolean, name?: string): Date|null {
@@ -72,6 +47,10 @@ export function parseDate(textValue: string, nullable: boolean, name?: string): 
             return null;
         }
         throw new Error('Date must be given.');
+    }
+    const dateRegex = /^\d\d\d\d\-\d\d\-\d\d$/;
+    if (!dateRegex.test(textValue.trim())) {
+        throw new Error('Date not valid: >'+ textValue+'<');
     }
     let millis;
     try {

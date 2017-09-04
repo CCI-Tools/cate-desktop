@@ -1,9 +1,9 @@
 import * as React from 'react';
 import {IValueEditorProps} from "./ValueEditor";
 import {DateRange} from "@blueprintjs/datetime";
-import {FieldValue, toTextValue} from "../../components/field/Field";
-import {DateRangeField, parseDateRange} from "../../components/field/DateRangeField";
-import {DEFAULT_DATE_RANGE, parseDate} from "../../components/field/DateField";
+import {FieldValue} from "../../components/field/Field";
+import {DateRangeField} from "../../components/field/DateRangeField";
+import {parseDate} from "../../components/field/DateField";
 
 interface ITimeRangeValueEditorProps extends IValueEditorProps<string>  {
 }
@@ -22,25 +22,16 @@ export class TimeRangeValueEditor extends React.PureComponent<ITimeRangeValueEdi
     }
 
     render() {
-        const value = this.getValue();
         const valueMinMax = this.getValueMinMax();
         return (
             <DateRangeField
                 nullable={this.props.input.nullable}
                 min={valueMinMax[0]}
                 max={valueMinMax[1]}
-                value={value}
+                value={this.props.value}
                 onChange={this.onChange}
             />
         );
-    }
-
-    private getValue(): DateRange {
-        try {
-            return parseDateRange(toTextValue(this.props.value), true);
-        } catch (e) {
-            return DEFAULT_DATE_RANGE;
-        }
     }
 
     private getValueMinMax(): DateRange {

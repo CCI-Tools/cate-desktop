@@ -1,5 +1,11 @@
 ## 0.9.0-dev.6
 
+### UX Improvements and new Features
+
+
+### Fixes
+ * Fix date input components (for a single date and for date ranges). Now a simple text input filed is used.
+   [#303](https://github.com/CCI-Tools/cate-core/issues/303) and [#335](https://github.com/CCI-Tools/cate-core/issues/335)
 
 ## 0.9.0-dev.5
 
