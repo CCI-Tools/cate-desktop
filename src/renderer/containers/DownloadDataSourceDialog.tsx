@@ -62,7 +62,16 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
     private onConfirm() {
         const options = this.state.options;
         // Clear makeLocalDataSourceId, so on next props, we can create a new default from selected data source
-        const dialogState = {options: {...options, makeLocalDataSourceName: ''}};
+        // clear makeLocalDataSourceTitle, hasVariablesConstraint, variableNames, too
+        // keep time and geo constraint
+        const dialogState = {options:
+            {...options,
+                makeLocalDataSourceName: '',
+                makeLocalDataSourceTitle: '',
+                hasVariablesConstraint: false,
+                variableNames: null,
+            }
+        };
         this.props.dispatch(actions.hideDialog(DownloadDataSourceDialog.DIALOG_ID, dialogState));
         const opArguments = DataAccessComponent.optionsToOperationArguments(options);
         if (options.isMakeLocalSelected) {

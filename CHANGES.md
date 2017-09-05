@@ -6,7 +6,8 @@
 ### Fixes
  * Fix date input components (for a single date and for date ranges). Now a simple text input filed is used.
    [#303](https://github.com/CCI-Tools/cate-core/issues/303) and [#335](https://github.com/CCI-Tools/cate-core/issues/335)
-
+ * Only persist the parameter values for the 'time' and 'geo' constraint in the 'Open Local Dataset' and 'Download Data Source' dialog.
+   [#307](https://github.com/CCI-Tools/cate-core/issues/307) and [#308](https://github.com/CCI-Tools/cate-core/issues/308)
 ## 0.9.0-dev.5
 
 ### UX Improvements and new Features

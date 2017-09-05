@@ -6,7 +6,7 @@ import * as types from "../../common/cate-types";
 import {Region, RegionValue, GLOBAL} from "../components/Region";
 import {VarNameValueEditor} from "./editor/VarNameValueEditor";
 import {TextFieldValue} from "../components/field/TextField";
-import {DateRangeField, DateRangeFieldValue} from "../components/field/DateRangeField";
+import {DateRangeField, DateRangeFieldValue, validateDateRange} from "../components/field/DateRangeField";
 
 type TimeRangeValue = [string, string];
 
@@ -136,7 +136,19 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         const options = this.props.options;
 
         const hasTimeConstraint = options.hasTimeConstraint;
-        const dateRange = hasTimeConstraint ? options.dateRange || [minDate, maxDate] : options.dateRange;
+        const dateRange = hasTimeConstraint ? options.dateRange || {value:[minDate, maxDate]} : options.dateRange;
+        if (hasTimeConstraint && options.dateRange) {
+            try {
+                // re-validate, because min, max may have changed
+                console.log("re-validate", options.dateRange.value, minDate, maxDate);
+                validateDateRange(options.dateRange.value, true, minDate, maxDate);
+                dateRange.error = null;
+            } catch (e) {
+                dateRange.error = e;
+            }
+            console.log("re-validate result", dateRange.error);
+
+        }
 
         const hasRegionConstraint = options.hasRegionConstraint;
         const region = hasRegionConstraint ? options.region || GLOBAL : options.region;
@@ -320,7 +332,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
 
     static optionsToOperationArguments(options: IDataAccessComponentOptions) {
         let args = {};
-        if (options.hasTimeConstraint && options.dateRange) {
+        if (options.hasTimeConstraint && options.dateRange && options.dateRange.value) {
             const t0 = formatDateAsISODateString(options.dateRange.value[0]);
             const t1 = formatDateAsISODateString(options.dateRange.value[1]);
             args = {

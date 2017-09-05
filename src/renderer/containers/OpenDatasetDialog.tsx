@@ -64,11 +64,22 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps & Dispat
     }
 
     private onConfirm() {
-        this.props.dispatch(actions.hideDialog(OpenDatasetDialog.DIALOG_ID, this.state));
+        const options = this.state.options;
+        // clear hasVariablesConstraint, variableNames
+        // keep time and geo constraint
+        const dialogState = {options:
+            {...options,
+                hasVariablesConstraint: false,
+                variableNames: null,
+            }
+        };
+        this.props.dispatch(actions.hideDialog(OpenDatasetDialog.DIALOG_ID, dialogState));
         this.props.dispatch(actions.openDataset(
             this.props.dataSource.id,
             DataAccessComponent.optionsToOperationArguments(this.state.options)
         ));
+        // Save modified state
+        this.setState(dialogState);
     }
 
     private onOptionsChange(options: IDataAccessComponentOptions) {
