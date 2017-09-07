@@ -140,14 +140,11 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         if (hasTimeConstraint && options.dateRange) {
             try {
                 // re-validate, because min, max may have changed
-                console.log("re-validate", options.dateRange.value, minDate, maxDate);
                 validateDateRange(options.dateRange.value, true, minDate, maxDate);
                 dateRange.error = null;
             } catch (e) {
                 dateRange.error = e;
             }
-            console.log("re-validate result", dateRange.error);
-
         }
 
         const hasRegionConstraint = options.hasRegionConstraint;
