@@ -78,7 +78,7 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
             let detailsButton;
             let message;
             if (taskState.status === JobStatusEnum.CANCELLED) {
-                message = <div>{TaskComponent.renderIcon("hand", "warning")}Task has been cancelled by the user.</div>
+                message = <div>{TaskComponent.renderIcon("hand", "warning")}Task has been cancelled.</div>
             } else {
                 const showFailureDetails = () => {
                     actions.showMessageBox({
