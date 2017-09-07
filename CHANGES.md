@@ -1,19 +1,18 @@
+## 0.9.0-dev.7 (unreleased)
+
 ## 0.9.0-dev.6
 
-### UX Improvements and new Features
-
-
 ### Fixes
+
  * Fix date input components (for a single date and for date ranges). Now a simple text input filed is used.
    [#303](https://github.com/CCI-Tools/cate-core/issues/303) and [#335](https://github.com/CCI-Tools/cate-core/issues/335)
  * Only persist the parameter values for the 'time' and 'geo' constraint in the 'Open Local Dataset' and 'Download Data Source' dialog.
    [#307](https://github.com/CCI-Tools/cate-core/issues/307) and [#308](https://github.com/CCI-Tools/cate-core/issues/308)
+
 ## 0.9.0-dev.5
 
-### UX Improvements and new Features
-
-
 ### Fixes
+
  * Fix handling and formatting of date ranges [#313](https://github.com/CCI-Tools/cate-core/issues/313).
  * The resource switch in the **OPERATION STEP** dialog is only enabled
    when the drop-down box would contain any **compatible resource**
