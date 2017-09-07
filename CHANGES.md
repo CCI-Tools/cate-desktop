@@ -10,9 +10,11 @@
 
 ### Fixes
 
- * Fix date input components (for a single date and for date ranges). Now a simple text input filed is used.
+ * Fixed date input components (for a single date and for date ranges) used in diverse places. 
+   Now a simple text input field is used.
    [#303](https://github.com/CCI-Tools/cate-core/issues/303) and [#335](https://github.com/CCI-Tools/cate-core/issues/335)
- * Only persist the parameter values for the 'time' and 'geo' constraint in the 'Open Local Dataset' and 'Download Data Source' dialog.
+ * Only persist the parameter values for the Time and Region constraints in the 
+   **Open Local Dataset** and **Download Data Source** dialogs of the **DATA SOURCES** panel.
    [#307](https://github.com/CCI-Tools/cate-core/issues/307) and [#308](https://github.com/CCI-Tools/cate-core/issues/308)
 
 ## 0.9.0-dev.5
@@ -47,6 +49,8 @@
   - add space between the progress bar and the cancel button
   - replace too big spinner icon in **Status Bar** with a small progressbar
   - add details action to failed tasks
+* The **VIEW** panel now has a checkbox *Split selected image layer*. If selected, the selected 
+  image layer can be vertically split, where only the left side of the split remains visible.
 
 
 ## 0.9.0-dev.3
