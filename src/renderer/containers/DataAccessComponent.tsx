@@ -131,7 +131,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         const temporalCoverage = this.props.temporalCoverage;
         const minDate = temporalCoverage && temporalCoverage[0] ? new Date(temporalCoverage[0]) : new Date('1980-01-01');
         const maxDate = temporalCoverage && temporalCoverage[1] ? new Date(temporalCoverage[1]) : new Date(Date.now());
-        const temporalCoverageText = temporalCoverage ? <span>Data availability: {temporalCoverage.join(' - ')}</span> : '';
+        const temporalCoverageText = temporalCoverage ? <span>Data availability: {temporalCoverage.join(', ')}</span> : '';
 
         const options = this.props.options;
 
