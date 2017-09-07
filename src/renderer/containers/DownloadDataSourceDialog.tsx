@@ -66,7 +66,7 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
         // keep time and geo constraint
         const dialogState = {options:
             {...options,
-                makeLocalDataSourceName: '',
+                makeLocalDataSourceId: '',
                 makeLocalDataSourceTitle: '',
                 hasVariablesConstraint: false,
                 variableNames: null,
