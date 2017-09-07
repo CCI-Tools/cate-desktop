@@ -390,37 +390,63 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         actions.openExternal(url);
     }
 
-    private renderAbstract(meta_info: any): DetailPart {
-        // currently not shown
-        // let spatialCoverage;
-        // if (meta_info.bbox_miny && meta_info.bbox_maxy && meta_info.bbox_minx && meta_info.bbox_maxx) {
-        //     spatialCoverage = (<div><h5>Spatial coverage</h5>
-        //         <table>
-        //             <tbody>
-        //             <tr>
-        //                 <td/>
-        //                 <td>{meta_info.bbox_maxy}&#176;</td>
-        //                 <td/>
-        //             </tr>
-        //             <tr>
-        //                 <td>{meta_info.bbox_minx}&#176;</td>
-        //                 <td/>
-        //                 <td>{meta_info.bbox_maxx}&#176;</td>
-        //             </tr>
-        //             <tr>
-        //                 <td/>
-        //                 <td>{meta_info.bbox_miny}&#176;</td>
-        //                 <td/>
-        //             </tr>
-        //             </tbody>
-        //         </table>
-        //     </div>)
-        // }
+    private renderAbstract(dataSource: DataSourceState): DetailPart {
+        const meta_info = dataSource.meta_info;
         let openOdpPage;
         if (meta_info.uuid) {
             openOdpPage =
                 <AnchorButton onClick={this.openOdpLink} style={{float: 'right', margin: 4}}>Catalogue</AnchorButton>
         }
+        let spatialCoverage;
+        if (meta_info.bbox_miny && meta_info.bbox_maxy && meta_info.bbox_minx && meta_info.bbox_maxx) {
+            spatialCoverage = (<div><h5>Spatial coverage</h5>
+                <table>
+                    <tbody>
+                    <tr>
+                        <td/>
+                        <td>{meta_info.bbox_maxy}&#176;</td>
+                        <td/>
+                    </tr>
+                    <tr>
+                        <td>{meta_info.bbox_minx}&#176;</td>
+                        <td/>
+                        <td>{meta_info.bbox_maxx}&#176;</td>
+                    </tr>
+                    <tr>
+                        <td/>
+                        <td>{meta_info.bbox_miny}&#176;</td>
+                        <td/>
+                    </tr>
+                    </tbody>
+                </table>
+                <br/>
+            </div>)
+        }
+        let temporalCoverage;
+        if (dataSource.temporalCoverage) {
+            temporalCoverage = (<div><h5>Temporal coverage</h5>
+                <table>
+                    <tbody>
+                    <tr>
+                        <td>Start</td>
+                        <td>{dataSource.temporalCoverage[0]}</td>
+                    </tr>
+                    <tr>
+                        <td>End</td>
+                        <td>{dataSource.temporalCoverage[1]}</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <br/>
+            </div>)
+        }
+        let summary;
+        if (meta_info.abstract) {
+            summary = (<div><h5>Summary</h5>
+                <p>{meta_info.abstract}</p>
+            </div>)
+        }
+
         return {
             title: "Abstract",
             id: "abstract",
@@ -428,7 +454,9 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
                 <ScrollablePanelContent>
                     <Card>
                         {openOdpPage}
-                        {meta_info.abstract}
+                        {spatialCoverage}
+                        {temporalCoverage}
+                        {summary}
                     </Card>
                 </ScrollablePanelContent>
             )
@@ -501,7 +529,7 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         const details: DetailPart[] = [];
         if (dataSource.meta_info) {
             if (dataSource.meta_info.abstract) {
-                details.push(this.renderAbstract(dataSource.meta_info));
+                details.push(this.renderAbstract(dataSource));
             }
             const metaInfoKeys = Object.keys(dataSource.meta_info).filter(key => key !== 'variables');
             if (dataSource.meta_info.variables) {

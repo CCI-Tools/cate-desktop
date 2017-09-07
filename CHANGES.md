@@ -1,5 +1,11 @@
 ## 0.9.0-dev.7 (unreleased)
 
+### UX Improvements and new Features
+
+ * On the **Abstract** tab of the **DATA SOURCES** panel show information about spatial and temporal coverage.
+
+### Fixes
+
 ## 0.9.0-dev.6
 
 ### Fixes
