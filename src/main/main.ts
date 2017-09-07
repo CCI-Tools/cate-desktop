@@ -386,8 +386,8 @@ export function init() {
 
 function createSplashWindow(callback: () => void) {
     _splashWindow = new BrowserWindow({
-        width: 256,
-        height: 276,
+        width: 750,
+        height: 260,
         center: true,
         useContentSize: true,
         frame: false,

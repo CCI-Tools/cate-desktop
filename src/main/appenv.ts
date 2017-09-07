@@ -6,7 +6,7 @@ const app = electron.app;
 export function getAppIconPath() {
     let iconFile = "cate-icon.png";
     if (process.platform === "darwin") {
-        iconFile = "darwin/icon.icns";
+        iconFile = "darwin/cate-icon.hqx";
     } else if (process.platform === "win32") {
         iconFile = "win32/cate-icon.ico";
     }
