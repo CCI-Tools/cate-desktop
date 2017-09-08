@@ -3,6 +3,7 @@
 ### UX Improvements and new Features
 
  * On the **Abstract** tab of the **DATA SOURCES** panel show information about spatial and temporal coverage.
+ * Enable the **Show data in tabl** Action only for resources of type type `Dataframe`.
 
 ### Fixes
 

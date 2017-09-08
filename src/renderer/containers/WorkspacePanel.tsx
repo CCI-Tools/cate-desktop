@@ -16,7 +16,7 @@ import * as actions from '../actions'
 import * as selectors from '../selectors'
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messages";
-import {findOperation, isDataResource, isFigureResource} from "../state-util";
+import {findOperation, isDataFrameResource, isFigureResource} from "../state-util";
 import {isBoolean, isDefined, isString, isUndefined, isUndefinedOrNull} from "../../common/types";
 import {CSSProperties} from "react";
 
@@ -269,7 +269,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         const canShowFigure = isFigureResource(resource);
         const isOperationStepSelected = workflowStep && workflowStep.op;
         const hasSteps = this.props.workspace && this.props.workspace.workflow.steps.length;
-        const canShowTableView = isDataResource(resource);
+        const canShowTableView = isDataFrameResource(resource);
         return (
             <div className="pt-button-group">
                 <Tooltip content="Show figure" position={Position.LEFT}>
