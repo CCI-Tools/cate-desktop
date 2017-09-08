@@ -5,9 +5,10 @@
         #message-container {
             color: black;
             text-align: center;
+            text-shadow: 0 0 8px white;
             font-family: Helvetica, Arial, sans-serif;
             font-size: 14px;
-            text-shadow: 0 0 8px white;
+            overflow: hidden;
         }
     </style>
     <script>
@@ -20,9 +21,9 @@
         }
     </script>
 </head>
-<body onload="init()">
-<div style="width: 100%; overflow: hidden">
-    <img style="width: 90%" src="resources/images/splash.png"/>
+<body onload="init()" style="overflow: hidden;">
+<div style="overflow: hidden;">
+    <img src="resources/images/splash.png"/>
 </div>
 <div id="message-container">
 Loading Cate, please wait...
