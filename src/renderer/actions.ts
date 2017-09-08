@@ -407,7 +407,7 @@ export function downloadDataset(dataSourceId: string, localId: string, args: any
             }
         }
 
-        callAPI(dispatch, `Creating local copy for data source "${dataSourceId}" as "${localId}""`, call, action);
+        callAPI(dispatch, `Creating local copy for data source "${dataSourceId}" as "${localId}"`, call, action);
     }
 }
 export function openDataset(dataSourceId: string, args: any): ThunkAction {
