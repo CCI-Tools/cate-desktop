@@ -24,6 +24,7 @@ if (OS_IS_NOT_DARWIN) {
     );
 }
 
+const editSubMenu = [];
 // const editSubMenu: Array<any> = [
 //     actions.undo,
 //     actions.redo,
@@ -93,11 +94,11 @@ const fileMenu = {
     submenu: fileSubMenu
 };
 
-// const editMenu = {
-//     label: 'Edit',
-//     role: 'edit',
-//     submenu: editSubMenu
-// };
+const editMenu = {
+    label: 'Edit',
+    role: 'edit',
+    submenu: editSubMenu
+};
 
 const viewMenu = {
     label: 'View',
@@ -117,13 +118,16 @@ const helpMenu = {
     submenu: helpSubMenu
 };
 
-export const menuTemplate: Array<any> = [
+export const allMenus: Array<any> = [
     fileMenu,
-    // editMenu,
+    editMenu,
     viewMenu,
     windowMenu,
     helpMenu,
 ];
+
+export const menuTemplate: Array<any> = allMenus.filter(m => m.submenu && m.submenu.length);
+
 
 if (OS_IS_DARWIN) {
     const appSubMenu = [
