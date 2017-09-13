@@ -320,7 +320,7 @@ export function init() {
         request(webAPIRestUrl, msServiceAccessTimeout)
             .then((response: string) => {
                 console.log(CATE_WEBAPI_PREFIX, response);
-                createMainWindow();
+                loadMainWindow();
             })
             .catch((err) => {
                 console.log(CATE_DESKTOP_PREFIX, `Waiting for Cate WebAPI service to respond after ${msSpend} ms`);
@@ -340,10 +340,32 @@ export function init() {
             });
     }
 
+    let initBrowserWindows = function () {
+
+        const mainWindowBounds = _prefs.data.mainWindowBounds || {width: 1366, height: 768};
+        _mainWindow = new BrowserWindow({
+            icon: getAppIconPath(),
+            title: `${app.getName()} ${app.getVersion()}`,
+            ...mainWindowBounds
+        });
+
+        _splashWindow = new BrowserWindow({
+            width: 750,
+            height: 260,
+            center: true,
+            useContentSize: true,
+            frame: false,
+            alwaysOnTop: false,
+            transparent: true,
+            parent: _mainWindow
+        });
+    };
+
     // Emitted when Electron has finished initializing.
     app.on('ready', (): void => {
         checkWebapiServiceExecutable((installerPath: string) => {
-            createSplashWindow(() => {
+            initBrowserWindows();
+            loadSplashWindow(() => {
                 installBackend(installerPath, () => {
                     console.log(CATE_DESKTOP_PREFIX, 'Ready.');
                     startUpWithWebapiService();
@@ -376,7 +398,7 @@ export function init() {
             // TODO (forman): must find out what Mac OS expects an app to do, once it becomes deactivated
             //   - is it a complete restart or should it remain in its previous state?
             //   - must we stop the webapi on "deactivate" and start on "activate"?
-            createMainWindow();
+            loadMainWindow();
         }
     });
 
@@ -384,16 +406,8 @@ export function init() {
     // code. You can also put them in separate files and require them here.
 }
 
-function createSplashWindow(callback: () => void) {
-    _splashWindow = new BrowserWindow({
-        width: 750,
-        height: 260,
-        center: true,
-        useContentSize: true,
-        frame: false,
-        alwaysOnTop: true,
-        transparent: true,
-    });
+function loadSplashWindow(callback: () => void) {
+
     _splashWindow.loadURL(url.format({
         pathname: path.join(app.getAppPath(), 'splash.html'),
         protocol: 'file:',
@@ -414,7 +428,7 @@ function showSplashMessage(message: string) {
     }
 }
 
-function createMainWindow() {
+function loadMainWindow() {
 
     if (_config.data.devToolsExtensions) {
         showSplashMessage('Installing developer tools...');
@@ -429,14 +443,6 @@ function createMainWindow() {
     }
 
     showSplashMessage('Loading user interface...');
-
-    const mainWindowBounds = _prefs.data.mainWindowBounds || {width: 1366, height: 768};
-
-    _mainWindow = new BrowserWindow({
-        icon: getAppIconPath(),
-        title: `${app.getName()} ${app.getVersion()}`,
-        ...mainWindowBounds
-    });
 
     const menu = electron.Menu.buildFromTemplate(menuTemplate);
     electron.Menu.setApplicationMenu(menu);
