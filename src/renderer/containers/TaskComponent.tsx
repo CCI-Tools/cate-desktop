@@ -85,7 +85,7 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
                         type: "error",
                         title: "Cate - Error",
                         message: taskState.failure.message,
-                        detail: `An error (code ${taskState.failure.code}) occurred while executing a backend process:\n\n${taskState.failure.data}`,
+                        detail: `An error (code ${taskState.failure.code}) occurred in Cate Core:\n\n${taskState.failure.data}`,
                         buttons: [],
                     }, actions.MESSAGE_BOX_NO_REPLY);
                 };

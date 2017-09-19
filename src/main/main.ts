@@ -254,16 +254,16 @@ export function init() {
 
         if (!webAPIConfig.command) {
             electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
-                'Failed to start Cate WebAPI service.\nCate backend could not be found.');
+                'Failed to start Cate service.\nCate Core could not be found.');
             app.exit(WEBAPI_MISSING); // exit immediately
         }
 
         const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
-        console.log(CATE_DESKTOP_PREFIX, `Starting Cate WebAPI service using arguments: ${webAPIStartArgs}`);
+        console.log(CATE_DESKTOP_PREFIX, `Starting Cate service using arguments: ${webAPIStartArgs}`);
 
         const webAPIProcess = child_process.spawn(webAPIConfig.command, webAPIStartArgs, processOptions);
         webAPIStarted = true;
-        console.log(CATE_DESKTOP_PREFIX, 'Cate WebAPI service started:', webAPIProcess);
+        console.log(CATE_DESKTOP_PREFIX, 'Cate service started:', webAPIProcess);
         webAPIProcess.stdout.on('data', (data: any) => {
             console.log(CATE_WEBAPI_PREFIX, `${data}`);
         });
@@ -274,13 +274,13 @@ export function init() {
             console.error(CATE_WEBAPI_PREFIX, err);
             if (!webAPIError) {
                 electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
-                    'Failed to start Cate WebAPI service.');
+                    'Failed to start Cate service.');
             }
             webAPIError = err;
             app.exit(WEBAPI_ERROR); // exit immediately
         });
         webAPIProcess.on('close', (code: number) => {
-            let message = `Cate WebAPI service process exited with code ${code}.`;
+            let message = `Cate service process exited with code ${code}.`;
             console.log(CATE_WEBAPI_PREFIX, message);
             if (code != 0) {
                 if (!webAPIError) {
@@ -299,12 +299,12 @@ export function init() {
         }
         if (!webAPIConfig.command) {
             electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
-                'Failed to stop Cate WebAPI service.\nCate backend could not be found.');
+                'Failed to stop Cate service.\nCate Core could not be found.');
             return;
         }
         // Note we are async here, because sync can take a lot of time...
         const webAPIStopArgs = getWebAPIStopArgs(webAPIConfig);
-        console.log(CATE_DESKTOP_PREFIX, `Stopping Cate WebAPI service using arguments: ${webAPIStopArgs}`);
+        console.log(CATE_DESKTOP_PREFIX, `Stopping Cate service using arguments: ${webAPIStopArgs}`);
         child_process.spawn(webAPIConfig.command, webAPIStopArgs, processOptions);
         // child_process.spawnSync(webAPIConfig.command, webAPIStopArgs, webAPIConfig.options);
     }
@@ -315,22 +315,22 @@ export function init() {
         const msDelay = 500; // ms
         let msSpend = 0; // ms
         let webAPIRestUrl = getWebAPIRestUrl(_config.data.webAPIConfig);
-        console.log(CATE_DESKTOP_PREFIX, `Waiting for response from ${webAPIRestUrl}`);
-        showSplashMessage('Waiting for Cate backend response...');
+        console.log(CATE_DESKTOP_PREFIX, `Waiting for response from Cate service ${webAPIRestUrl}`);
+        showSplashMessage('Waiting for Cate service response...');
         request(webAPIRestUrl, msServiceAccessTimeout)
             .then((response: string) => {
                 console.log(CATE_WEBAPI_PREFIX, response);
                 loadMainWindow();
             })
             .catch((err) => {
-                console.log(CATE_DESKTOP_PREFIX, `Waiting for Cate WebAPI service to respond after ${msSpend} ms`);
+                console.log(CATE_DESKTOP_PREFIX, `Waiting for Cate service to respond after ${msSpend} ms`);
                 if (!webAPIStarted) {
                     webAPIProcess = startWebapiService();
                 }
                 if (msSpend > msServiceStartTimeout) {
-                    console.error(CATE_DESKTOP_PREFIX, `Failed to start Cate WebAPI service within ${msSpend} ms.`, err);
+                    console.error(CATE_DESKTOP_PREFIX, `Failed to start Cate service within ${msSpend} ms.`, err);
                     if (!webAPIError) {
-                        electron.dialog.showErrorBox(`${app.getName()} - Internal Error`, `Failed to start Cate backend within ${msSpend} ms.`);
+                        electron.dialog.showErrorBox(`${app.getName()} - Internal Error`, `Failed to start Cate service within ${msSpend} ms.`);
                     }
                     app.exit(WEBAPI_TIMEOUT);
                 } else {
@@ -589,9 +589,9 @@ function checkWebapiServiceExecutable(callback: (installerPath?: string) => void
             title: `${app.getName()} - Information`,
             buttons: ['Cancel', 'OK'],
             cancelId: 0,
-            message: 'About to install missing Cate backend.',
+            message: 'About to install missing Cate Core.',
             detail: 'It seems that Cate is run from this installation for the first time.\n' +
-            'Cate will now install a local (Python) backend which may take\n' +
+            'Cate will now install a (Python) sandbox environment which may take\n' +
             'some minutes. This is a one-time job and only applies to this\n' +
             'Cate installation, no other computer settings will be changed.',
         });
@@ -607,8 +607,8 @@ function checkWebapiServiceExecutable(callback: (installerPath?: string) => void
         electron.dialog.showMessageBox({
             type: 'error',
             title: `${app.getName()} - Fatal Error`,
-            message: `Cate backend could not be found. ${expectedLoc}\n` +
-            'Please install Cate backend first.\n\n' +
+            message: `Cate Core could not be found. ${expectedLoc}\n` +
+            'Please install Cate Core first.\n\n' +
             'Application will exit now.',
         });
         electron.app.exit(WEBAPI_MISSING);
@@ -629,8 +629,8 @@ function installBackend(installerCommand: string, callback: () => void) {
         ? ['/S', '/InstallationType=JustMe', '/AddToPath=0', '/RegisterPython=0', `/D=${installDir}`]
         : ['-b', '-f', '-p', installDir];
 
-    console.log(CATE_DESKTOP_PREFIX, `running backend installer "${installerCommand}" with arguments ${installerArgs}`);
-    showSplashMessage('Running backend installer, please wait...');
+    console.log(CATE_DESKTOP_PREFIX, `running Cate Core installer "${installerCommand}" with arguments ${installerArgs}`);
+    showSplashMessage('Running Cate Core installer, please wait...');
     const installerProcess = child_process.spawn(installerCommand, installerArgs);
 
     installerProcess.stdout.on('data', (data: any) => {
@@ -640,17 +640,17 @@ function installBackend(installerCommand: string, callback: () => void) {
         console.error(CATE_DESKTOP_PREFIX, `${data}`);
     });
     installerProcess.on('error', (err: Error) => {
-        console.log(CATE_DESKTOP_PREFIX, 'Cate backend installation failed', err);
+        console.log(CATE_DESKTOP_PREFIX, 'Cate Core installation failed', err);
         electron.dialog.showMessageBox({
             type: 'error',
             title: `${app.getName()} - Fatal Error`,
-            message: 'Cate backend installation failed.',
+            message: 'Cate Core installation failed.',
             detail: `${err}`
         });
         app.exit(WEBAPI_INSTALLER_ERROR); // exit immediately
     });
     installerProcess.on('close', (code: number) => {
-        console.log(CATE_DESKTOP_PREFIX, `Cate backend installation closed with exit code ${code}`);
+        console.log(CATE_DESKTOP_PREFIX, `Cate Core installation closed with exit code ${code}`);
         if (code == 0) {
             callback();
             return;
@@ -658,7 +658,7 @@ function installBackend(installerCommand: string, callback: () => void) {
         electron.dialog.showMessageBox({
             type: 'error',
             title: `${app.getName()} - Fatal Error`,
-            message: `Cate backend installation failed with exit code ${code}.`,
+            message: `Cate Core installation failed with exit code ${code}.`,
         });
         app.exit(WEBAPI_INSTALLER_BAD_EXIT); // exit immediately
     });
