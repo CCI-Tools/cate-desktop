@@ -228,7 +228,7 @@ class WebAPIClientImpl implements WebAPIClient {
 
     private warnInvalidJsonRcpMessage(detailsMessage: string, jsonRcpMessage: string) {
         if (this.onWarning) {
-            const message = `Received invalid JSON-RCP message from WebAPI. ${detailsMessage}. Ignoring it.\n--------------------\n${jsonRcpMessage}\n--------------------`;
+            const message = `Received invalid JSON-RCP message from Cate service. ${detailsMessage}. Ignoring it.\n--------------------\n${jsonRcpMessage}\n--------------------`;
             this.onWarning({type: 'warning', message});
         }
     }

@@ -154,7 +154,7 @@ export function loadBackendConfig(): ThunkAction {
             dispatch(updateBackendConfig(backendConfig));
         }
 
-        callAPI(dispatch, 'Loading backend configuration', call, action);
+        callAPI(dispatch, 'Loading configuration', call, action);
     };
 }
 
@@ -169,7 +169,7 @@ export function storeBackendConfig(backendConfig: BackendConfigState): ThunkActi
             return selectors.backendConfigAPISelector(getState()).setBackendConfig(backendConfig);
         }
 
-        callAPI(dispatch, 'Storing backend configuration', call);
+        callAPI(dispatch, 'Storing configuration', call);
     };
 }
 
@@ -215,7 +215,7 @@ function jobFailed(jobId: number, jobTitle: string, failure: JobFailure): Action
                     type: "error",
                     title: "Cate - Error",
                     message: failure.message,
-                    detail: `An error (code ${failure.code}) occurred while executing a backend process:\n\n${failure.data}`,
+                    detail: `An error (code ${failure.code}) occurred in Cate Core:\n\n${failure.data}`,
                     buttons: [],
                 }, MESSAGE_BOX_NO_REPLY);
             }
