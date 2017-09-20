@@ -45,12 +45,19 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
 
 interface IDataSourcesPanelDispatch {
     setSelectedDataStoreId(selectedDataStoreId: string): void;
+
     setSelectedDataSourceId(selectedDataSourceId: string): void;
+
     setDataSourceFilterExpr(dataSourceFilterExpr: string): void;
+
     setControlState(propertyName: string, value: any): void;
+
     updateSessionState(sessionState: any): void;
+
     loadTemporalCoverage(dataStoreId: string, dataSourceId: string): void;
+
     showDialog(dialogId: string): void;
+
     hideDialog(dialogId: string): void;
 }
 
@@ -176,6 +183,12 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                     <OpenDatasetDialog/>
                 </div>
             );
+            let listItemDoubleClickAction = null;
+            if (isLocalStore && canOpen) {
+                listItemDoubleClickAction = this.handleShowOpenDatasetDialog;
+            } else if (isNonLocalStore && canDownload) {
+                listItemDoubleClickAction = this.handleShowDownloadDataSourceDialog;
+            }
             body = (
                 <div>
                     {this.renderDataStoreSelector()}
@@ -189,7 +202,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                                          selectedDataSourceId={this.props.selectedDataSource ? this.props.selectedDataSource.id : null}
                                          setSelectedDataSourceId={this.props.setSelectedDataSourceId}
                                          showDataSourceTitles={this.props.showDataSourceTitles}
-                                         doubleClickAction={isLocalStore ? this.handleShowOpenDatasetDialog : isNonLocalStore ? this.handleShowDownloadDataSourceDialog : null}/>
+                                         doubleClickAction={listItemDoubleClickAction}/>
                         <DataSourceDetails dataSource={this.props.selectedDataSource}/>
                     </ContentWithDetailsPanel>
                 </div>
@@ -231,7 +244,8 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
 
         const dataStoreOptions = [];
         for (let dataStore of this.props.dataStores) {
-            dataStoreOptions.push(<option key={dataStore.id} value={dataStore.id}>{dataStore.title || dataStore.id}</option>);
+            dataStoreOptions.push(<option key={dataStore.id}
+                                          value={dataStore.id}>{dataStore.title || dataStore.id}</option>);
         }
 
         const selectedDataStore = this.props.selectedDataStore;
@@ -366,6 +380,7 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
         );
     }
 }
+
 interface DetailPart {
     title: string;
     id: string;
