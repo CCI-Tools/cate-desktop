@@ -46,7 +46,7 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
         const taskState = this.props.task;
         const jobId = this.props.jobId;
 
-        let title = taskState.title || `Task #${jobId}`;
+        let title = (<p>{taskState.title || `Task #${jobId}`}</p>);
         let body = null;
 
         if (TaskComponent.isRunning(taskState)) {
@@ -101,6 +101,6 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
                 {message}
             </div>;
         }
-        return (<Card><h5>{title}</h5>{body}</Card>);
+        return (<Card>{title}{body}</Card>);
     };
 }
