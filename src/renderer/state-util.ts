@@ -5,7 +5,7 @@ import {
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
-import {isNumber} from "../common/types";
+import {isNumber, isString} from "../common/types";
 import {EMPTY_ARRAY} from "./selectors";
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
@@ -347,12 +347,13 @@ function newVarIndex(variable: VariableState, varIndex) {
 
 
 function newVariableLayerDisplayProperties(variable: VariableState) {
-    const displayMin = isNumber(variable.validMin) ? variable.validMin : 0.;
-    const displayMax = isNumber(variable.validMax) ? variable.validMax : displayMin + 1.;
+    const defaultColorMapName = 'inferno';
+    const defaultDisplayMin = isNumber(variable.validMin) ? variable.validMin : 0.;
+    const defaultDisplayMax = isNumber(variable.validMax) ? variable.validMax : defaultDisplayMin + 1.;
     return {
-        colorMapName: 'jet',
-        displayMin,
-        displayMax,
+        colorMapName: isString(variable.colorMapName) ? variable.colorMapName : defaultColorMapName,
+        displayMin: isNumber(variable.displayMin) ? variable.displayMin : defaultDisplayMin,
+        displayMax: isNumber(variable.displayMax) ? variable.displayMax : defaultDisplayMax,
         alphaBlending: false,
         opacity: 1.0,
         brightness: 1.0,

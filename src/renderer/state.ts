@@ -275,6 +275,9 @@ export interface VariableState {
     imageLayout?: ImageLayout;
     isFeatureAttribute?: boolean;
     isYFlipped?: boolean;
+    colorMapName?: string;
+    displayMin?: number;
+    displayMax?: number;
 }
 
 /**
