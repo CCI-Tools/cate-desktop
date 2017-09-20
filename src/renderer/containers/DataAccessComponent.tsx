@@ -25,7 +25,6 @@ export interface IDataAccessComponentOptions {
     makeLocalDataSourceId?: string;
     makeLocalDataSourceTitle?: string;
 
-    isOpenDatasetSelected?: boolean;
     openDatasetResourceName: string;
 }
 
@@ -58,8 +57,6 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         this.onVariableNamesChange = this.onVariableNamesChange.bind(this);
         this.onMakeLocalSelectedChange = this.onMakeLocalSelectedChange.bind(this);
         this.onMakeLocalDataSourceIdChange = this.onMakeLocalDataSourceIdChange.bind(this);
-        this.onMakeLocalDataSourceTitleChange = this.onMakeLocalDataSourceTitleChange.bind(this);
-        this.onOpenDatasetSelectedChange = this.onOpenDatasetSelectedChange.bind(this);
         this.onOpenDatasetResourceNameChange = this.onOpenDatasetResourceNameChange.bind(this);
     }
 
@@ -94,14 +91,6 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
 
     private onMakeLocalDataSourceIdChange(ev: any) {
         this.props.onChange({...this.props.options, makeLocalDataSourceId: ev.target.value});
-    }
-
-    private onMakeLocalDataSourceTitleChange(ev: any) {
-        this.props.onChange({...this.props.options, makeLocalDataSourceTitle: ev.target.value});
-    }
-
-    private onOpenDatasetSelectedChange(ev: any) {
-        this.props.onChange({...this.props.options, isOpenDatasetSelected: ev.target.checked});
     }
 
     private onOpenDatasetResourceNameChange(ev: any) {
@@ -154,14 +143,12 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         const isLocalDataSource = this.props.isLocalDataSource;
         const isRemoteDataSource = !isLocalDataSource;
         const isMakeLocalSelected = isRemoteDataSource && options.isMakeLocalSelected;
-        const isOpenDatasetSelected = isRemoteDataSource && options.isOpenDatasetSelected;
 
         const res = DataAccessComponent.dataSourceToResource(this.props.dataSource);
 
         let headerText;
         let localDataSourceCheck;
         let localDataSourcePanel;
-        let openDatasetCheck;
         // let openDatasetResourceNamePanel = (
         //     <div style={DataAccessComponent.OPTION_DIV_STYPE}>
         //         <label className="pt-label">
@@ -198,25 +185,8 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
                                    value={options.makeLocalDataSourceId}
                                    onChange={this.onMakeLocalDataSourceIdChange}/>
                         </label>
-                        <label className="pt-label">
-                            Data source title
-                            <span className="pt-text-muted"> (optional)</span>
-                            <input className="pt-input"
-                                   style={{width: '100%'}}
-                                   type="text"
-                                   value={options.makeLocalDataSourceTitle}
-                                   onChange={this.onMakeLocalDataSourceTitleChange}/>
-                        </label>
                     </div>
                 </Collapse>
-            );
-            openDatasetCheck = (
-                <Checkbox style={DataAccessComponent.OPTION_CHECK_STYPE}
-                          checked={isOpenDatasetSelected}
-                          label={isMakeLocalSelected
-                              ? "Open dataset from local data source (after downloading)"
-                              : "Open dataset from remote (in-memory, via OPeNDAP)"}
-                          onChange={this.onOpenDatasetSelectedChange}/>
             );
             /*
              openDatasetResourceNamePanel = (
@@ -277,7 +247,6 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
 
                 {localDataSourceCheck}
                 {localDataSourcePanel}
-                {openDatasetCheck}
                 {/*{openDatasetResourceNamePanel}*/}
 
             </div>
@@ -320,7 +289,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
 
         let canPerformAction = true;
         if (!isLocalDataSource) {
-            canPerformAction = options.isMakeLocalSelected || options.isOpenDatasetSelected;
+            canPerformAction = options.isMakeLocalSelected;
         }
 
         return validRegion && validVariableNames && validDataSourceId && canPerformAction;
@@ -350,12 +319,17 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
                 var_names: variableNames
             };
         }
-        if (options.isMakeLocalSelected && options.makeLocalDataSourceTitle) {
-            const title = options.makeLocalDataSourceTitle;
+        if (options.isMakeLocalSelected) {
             args = {
                 ...args,
-                title
+                force_local: true
             };
+            if (options.makeLocalDataSourceId) {
+                args = {
+                    ...args,
+                    local_ds_id: options.makeLocalDataSourceId
+                };
+            }
         }
         return args;
     }
@@ -390,9 +364,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
 
             isMakeLocalSelected: !isLocalDataSource,
             makeLocalDataSourceId: '',
-            makeLocalDataSourceTitle: '',
 
-            isOpenDatasetSelected: isLocalDataSource,
             openDatasetResourceName: '',
         };
     }

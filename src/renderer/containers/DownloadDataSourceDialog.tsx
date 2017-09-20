@@ -74,18 +74,10 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
         };
         this.props.dispatch(actions.hideDialog(DownloadDataSourceDialog.DIALOG_ID, dialogState));
         const opArguments = DataAccessComponent.optionsToOperationArguments(options);
-        if (options.isMakeLocalSelected) {
-            this.props.dispatch(actions.downloadDataset(
-                this.props.dataSource.id,
-                options.makeLocalDataSourceId,
-                opArguments,
-                options.isOpenDatasetSelected));
-        } else if (options.isOpenDatasetSelected) {
-            this.props.dispatch(actions.openDataset(
-                this.props.dataSource.id,
-                opArguments
-            ));
-        }
+        this.props.dispatch(actions.openDataset(
+            this.props.dataSource.id,
+            opArguments
+        ));
         // Save modified state
         this.setState(dialogState);
     }
@@ -105,16 +97,11 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
         }
 
         const makeLocalSelected = this.state.options.isMakeLocalSelected;
-        const openDatasetSelected = this.state.options.isOpenDatasetSelected;
         let confirmTitle;
-        if (makeLocalSelected && openDatasetSelected) {
+        if (makeLocalSelected && true) {
             confirmTitle = "Download & Open Local";
-        } else if (makeLocalSelected) {
-            confirmTitle = "Download";
-        } else if (openDatasetSelected) {
+        } else  {
             confirmTitle = "Open Remote";
-        } else {
-            confirmTitle = "Download";
         }
 
         return (

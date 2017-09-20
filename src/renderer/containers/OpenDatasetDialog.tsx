@@ -34,8 +34,6 @@ function mapStateToProps(state: State): IOpenDatasetDialogProps {
 class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps & DispatchProp<State>, IOpenDatasetDialogState> {
     static readonly DIALOG_ID = 'openDatasetDialog';
 
-    static readonly VAR_NAMES_INPUT = {name: 'varNames', dataType: 'string', description: null, nullable: true};
-
     constructor(props: IOpenDatasetDialogProps & DispatchProp<State>) {
         super(props);
         this.onCancel = this.onCancel.bind(this);
