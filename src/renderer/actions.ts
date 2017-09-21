@@ -1035,8 +1035,12 @@ export function getWorkspaceVariableStatistics(resName: string,
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
-        function call() {
-            return selectors.workspaceAPISelector(getState()).getWorkspaceVariableStatistics(baseDir, resName, varName, varIndex);
+        function call(onProgress) {
+            return selectors.workspaceAPISelector(getState()).getWorkspaceVariableStatistics(baseDir,
+                                                                                             resName,
+                                                                                             varName,
+                                                                                             varIndex,
+                                                                                             onProgress);
         }
 
         function action2(statistics: ImageStatisticsState) {
