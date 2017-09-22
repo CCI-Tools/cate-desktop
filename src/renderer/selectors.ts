@@ -442,7 +442,7 @@ export const newResourceNameSelector = createSelector<State, string, ResourceSta
     newResourceName
 );
 
-export function newResourceName(resources: ResourceState[], namePrefix: string): string {
+function newResourceName(resources: ResourceState[], namePrefix: string): string {
     if (!resources || !namePrefix) {
         return "";
     }
