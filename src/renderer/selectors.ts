@@ -12,8 +12,10 @@ import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
 import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
 import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import {PanelContainerLayout} from "./components/PanelContainer";
-import {isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
-    computingVariableStatisticsLock} from "./state-util";
+import {
+    isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
+    computingVariableStatisticsLock
+} from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
 import {JobStatusEnum} from "./webapi/Job";
@@ -329,9 +331,6 @@ export const selectedWorkflowStepIdSelector = (state: State): string | null => {
 export const selectedVariableNameSelector = (state: State): string | null => {
     return state.control.selectedVariableName;
 };
-export const resourceNamePrefixSelector = (state: State): string => {
-    return state.session.resourceNamePrefix;
-};
 
 export const resourceNamesSelector = createSelector<State, string[], ResourceState[]>(
     resourcesSelector,
@@ -428,38 +427,6 @@ export const selectedWorkflowStepOpSelector = createSelector<State, OperationSta
         return null;
     }
 );
-
-/**
- * Generate a new resource name based on resourceNamePrefix and the largest resource index used so far
- * in the given resources.
- * @param namePrefix the prefix for the resource name
- * @param resources the used resources
- * @returns {string} a new resource name
- */
-export const newResourceNameSelector = createSelector<State, string, ResourceState[], string>(
-    resourcesSelector,
-    resourceNamePrefixSelector,
-    newResourceName
-);
-
-function newResourceName(resources: ResourceState[], namePrefix: string): string {
-    if (!resources || !namePrefix) {
-        return "";
-    }
-    let maxNameIndex = 0;
-    for (let resource of resources) {
-        const resourceName = resource.name;
-        if (resourceName.startsWith(namePrefix)) {
-            try {
-                const nameIndex = parseInt(resourceName.substr(namePrefix.length));
-                maxNameIndex = Math.max(nameIndex, maxNameIndex);
-            } catch (e) {
-                // ok
-            }
-        }
-    }
-    return `${namePrefix}${maxNameIndex + 1}`;
-}
 
 export const figureResourcesSelector = createSelector<State, ResourceState[], ResourceState[]>(
     resourcesSelector,

@@ -230,19 +230,6 @@ describe('Variable selectors', function () {
         ).to.be.undefined;
     });
 
-    it('newResourceNameSelector', function () {
-        expect(selectors.newResourceNameSelector(getState(null, undefined, undefined, 'res') as any)
-        ).to.equal('');
-
-        expect(selectors.newResourceNameSelector(getState(resources, undefined, undefined, null) as any)
-        ).to.equal('');
-
-        expect(selectors.newResourceNameSelector(getState([], undefined, undefined, 'res') as any)
-        ).to.equal('res1');
-
-        expect(selectors.newResourceNameSelector(getState(resources, undefined, undefined, 'res') as any)
-        ).to.equal('res3');
-    });
 });
 
 describe('Layer selectors', function () {

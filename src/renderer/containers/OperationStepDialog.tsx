@@ -5,7 +5,6 @@ import {
     OperationState, WorkspaceState, OperationInputState, State, DialogState, OperationKWArgs,
     ResourceState, WorkflowStepState
 } from "../state";
-import FormEvent = React.FormEvent;
 import {InputEditor} from "./editor/InputEditor";
 import {updatePropertyObject} from "../../common/objutil";
 import {ModalDialog} from "../components/ModalDialog";
@@ -29,7 +28,8 @@ interface IOperationStepDialogProps extends DialogState, IOperationStepDialogOwn
     inputAssignments: InputAssignments;
     workspace: WorkspaceState;
     operation: OperationState;
-    resName: string,
+    resName: string;
+    overwrite: boolean;
 }
 
 interface IOperationStepDialogState {
@@ -39,18 +39,23 @@ interface IOperationStepDialogState {
 }
 
 function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): IOperationStepDialogProps {
+    let resName: string | null;
+    let overwrite: boolean;
     let operation: OperationState | null;
-    let resName;
     let operationName;
     let inputAssignments;
     let operationStep = ownProps.operationStep;
     if (operationStep) {
         resName = operationStep.id;
+        overwrite = true;
         operationName = operationStep.op;
         operation = (selectors.operationsSelector(state) || []).find(op => op.qualifiedName === operationName);
         if (operation) {
             inputAssignments = getInputAssignmentsFromOperationStep(operation, operationStep);
         }
+    } else {
+        resName = null;
+        overwrite = false;
     }
 
     const dialogStateSelector = selectors.dialogStateSelector(ownProps.id);
@@ -75,7 +80,8 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
         isOpen,
         inputAssignments,
         operation,
-        resName: resName || selectors.newResourceNameSelector(state),
+        resName,
+        overwrite,
     };
 }
 
@@ -110,15 +116,19 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
     private onConfirm() {
         const operation = this.props.operation;
         const resName = this.props.resName;
+        const overwrite = this.props.overwrite;
         const opName = operation.name;
         const opArgs = this.getInputArguments();
         console.log(`OperationStepDialog: handleConfirm: op="${opName}", args=`, opArgs);
         if (!this.props.isEditMode) {
-            this.props.dispatch(actions.hideOperationStepDialog(this.props.id, {[opName]: this.state.inputAssignments}));
+            this.props.dispatch(actions.hideOperationStepDialog(this.props.id,
+                                                                {[opName]: this.state.inputAssignments}));
         } else {
             this.props.dispatch(actions.hideOperationStepDialog(this.props.id));
         }
-        this.props.dispatch(actions.setWorkspaceResource(resName, opName, opArgs, `Executing operation "${opName}"`));
+        this.props.dispatch(actions.setWorkspaceResource(opName, opArgs,
+                                                         resName, overwrite,
+                                                         `Executing operation "${opName}"`));
     }
 
     private canConfirm() {
@@ -147,7 +157,8 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
     }
 
     private onDefaults() {
-        const inputAssignments = getInitialInputAssignments(this.props.operation.inputs, this.state.inputAssignments, true);
+        const inputAssignments = getInitialInputAssignments(this.props.operation.inputs,
+                                                            this.state.inputAssignments, true);
         this.setState({inputAssignments} as any);
     }
 
@@ -319,12 +330,12 @@ function renderInputEditors(inputs: OperationInputState[],
             const inputAssignment = inputAssignments[input.name];
             const constantValue = inputAssignment.constantValue;
             const valueEditor = renderValueEditor({
-                input,
-                inputAssignments,
-                resources,
-                value: constantValue,
-                onChange: onConstantValueChange
-            });
+                                                      input,
+                                                      inputAssignments,
+                                                      resources,
+                                                      value: constantValue,
+                                                      onChange: onConstantValueChange
+                                                  });
             return (
                 <InputEditor key={input.name}
                              resources={resources}
