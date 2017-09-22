@@ -2,6 +2,11 @@
 
 ### UX Improvements and new Features
 
+ * The **Download Data Source** dialog opened from the **DATA SOURCES** panel has been simplified and now produces 
+   a new workflow step which calls operation `open_dataset(..., force_local=True)` 
+   [#366](https://github.com/CCI-Tools/cate-core/issues/366). Like for any other operation step, 
+   users can be inspect and edit input values and re-invoke the operation any time later 
+   from the **WORKSPACE** panel [#314](https://github.com/CCI-Tools/cate-core/issues/314).  
  * On the **Abstract** tab of the **DATA SOURCES** panel show information about spatial and temporal coverage.
  * Enable the **Show data in table** action only for resources of type type `DataFrame`.
 
