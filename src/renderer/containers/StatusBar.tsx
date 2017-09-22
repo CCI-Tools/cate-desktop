@@ -100,7 +100,7 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
                         flexFlow: "column",
                         justifyContent: "center",
                         width: "12em",
-                        height: "2em"
+                        height: "1.5em"
                     }}>
                         <ProgressBar intent={Intent.SUCCESS}/>
                     </div>);
