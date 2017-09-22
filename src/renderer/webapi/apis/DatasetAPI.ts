@@ -34,11 +34,6 @@ export class DatasetAPI {
         );
     }
 
-    makeDataSourceLocal(dataSourceId: string, localId: string, args: any,
-                        onProgress: (progress: JobProgress) => void): JobPromise<DataSourceState[]> {
-        return this.webAPIClient.call('make_ds_local', [dataSourceId, localId, args], onProgress);
-    }
-
     addLocalDataSource(dataSourceId: string, filePathPattern: string,
                        onProgress: (progress: JobProgress) => void): JobPromise<DataSourceState[]> {
         return this.webAPIClient.call('add_local_data_source',

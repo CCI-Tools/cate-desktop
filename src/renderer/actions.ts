@@ -383,33 +383,6 @@ export function updateDataSourceTemporalCoverage(dataStoreId: string,
     return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
 }
 
-export function downloadDataset(dataSourceId: string, localId: string, args: any, openAfterDownload: boolean): ThunkAction {
-    return (dispatch: Dispatch, getState: GetState) => {
-        function call(onProgress) {
-            return selectors.datasetAPISelector(getState()).makeDataSourceLocal(dataSourceId, localId, args, onProgress);
-        }
-
-        function action(dataSources: DataSourceState[]) {
-            dispatch(updateDataSources('local', dataSources));
-            if (dataSources && dataSources.length) {
-                dispatch(setSelectedDataStoreIdImpl('local'));
-                dispatch(setDataSourceFilterExpr(''));
-                const localDataSource = dataSources.find(ds => ds.id === localId || ds.id === `local.${localId}`);
-                if (localDataSource) {
-                    dispatch(setSelectedDataSourceId(localDataSource.id));
-                    if (openAfterDownload) {
-                        const selectedDataSource = selectors.selectedDataSourceSelector(getState());
-                        if (selectedDataSource.id === localDataSource.id) {
-                            dispatch(openDataset(selectedDataSource.id, {}));
-                        }
-                    }
-                }
-            }
-        }
-
-        callAPI(dispatch, `Creating local copy for data source "${dataSourceId}" as "${localId}"`, call, action);
-    }
-}
 export function openDataset(dataSourceId: string, args: any): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
 
@@ -462,6 +435,7 @@ export function removeLocalDataset(dataSourceId: string, removeFiles: boolean): 
         callAPI(dispatch, `Removing local copy of data source "${dataSourceId}"`, call, action);
     }
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation actions
 
@@ -1061,6 +1035,7 @@ export function showFigureView(resource: ResourceState, placeAfterViewId: string
     return {type: SHOW_FIGURE_VIEW, payload: {resource, placeAfterViewId}};
 }
 
+// noinspection JSUnusedLocalSymbols
 export function saveFigureImageAs(imageUrl: string, figureId: number): ThunkAction {
     return () => {
         // console.log("saveFigureImageAs: ", imageUrl, figureId);
@@ -1191,14 +1166,13 @@ export function setProjectionCode(viewId: string, projectionCode: string): Actio
     return {type: SET_PROJECTION_CODE, payload: {viewId, projectionCode}};
 }
 
-export function setSelectedLayerSplit(viewId: string, isSelectedLayerSplit: boolean|null): Action {
+export function setSelectedLayerSplit(viewId: string, isSelectedLayerSplit: boolean | null): Action {
     return {type: SET_SELECTED_LAYER_SPLIT, payload: {viewId, isSelectedLayerSplit}};
 }
 
 export function setSelectedLayerSplitPos(viewId: string, selectedLayerSplitPos: number): Action {
     return {type: SET_SELECTED_LAYER_SPLIT_POS, payload: {viewId, selectedLayerSplitPos}};
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1609,7 +1583,6 @@ export function openExternal(url: string): boolean {
 }
 
 
-
 /**
  * Copies given text to clipboard.
  * @param text The text to be copied.
@@ -1619,7 +1592,6 @@ export function copyTextToClipboard(text: string) {
     electron.clipboard.writeText(text);
     console.log(`copied to clipboard: [${text}]`);
 }
-
 
 
 /**
