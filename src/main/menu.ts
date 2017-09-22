@@ -77,7 +77,9 @@ if (OS_IS_DARWIN) {
 }
 
 const helpSubMenu: Array<any> = [
+    actions.openWebsite,
     actions.openDocumentation,
+    actions.openDownloads,
     actions.openIssueTracker,
     actions.openEsaCCI,
 ];
