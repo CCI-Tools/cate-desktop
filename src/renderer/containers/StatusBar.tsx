@@ -4,7 +4,7 @@ import {connect, DispatchProp} from "react-redux";
 import {GeographicPosition, State, TaskState} from "../state";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
-import {Popover, PopoverInteractionKind, Position, ProgressBar, Tooltip} from "@blueprintjs/core";
+import {Intent, Popover, PopoverInteractionKind, Position, ProgressBar, Tooltip} from "@blueprintjs/core";
 import {JobStatusEnum} from "../webapi/Job";
 import {TaskComponent} from "./TaskComponent";
 
@@ -16,6 +16,7 @@ interface IStatusBarProps {
 
 interface IStatusBarDispatch {
     cancelJob(number): void;
+
     removeJob(number): void;
 }
 
@@ -71,13 +72,14 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
                 render = true;
             }
             if (render) {
-                taskComponents.push(<TaskComponent
-                    key={jobId}
-                    jobId={jobId}
-                    task={this.props.tasks[jobId]}
-                    onRemoveJob={this.props.removeJob}
-                    onCancelJob={this.props.cancelJob}
-                />);
+                taskComponents.push(
+                    <TaskComponent
+                        key={jobId}
+                        jobId={jobId}
+                        task={this.props.tasks[jobId]}
+                        onRemoveJob={this.props.removeJob}
+                        onCancelJob={this.props.cancelJob}
+                    />);
             }
         }
 
@@ -92,28 +94,31 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
                 msg = `${numFailedTasks} failed task(s)`;
             }
             if (numRunningTasks > 0) {
-                spinner = <div style={{
-                    display: "flex",
-                    flexFlow: "column",
-                    justifyContent: "center",
-                    width: "1.5em",
-                    height: "1.5em"
-                }}>
-                    <ProgressBar/>
-                </div>;
+                spinner = (
+                    <div style={{
+                        display: "flex",
+                        flexFlow: "column",
+                        justifyContent: "center",
+                        width: "12em",
+                        height: "2em"
+                    }}>
+                        <ProgressBar intent={Intent.SUCCESS}/>
+                    </div>);
             }
             const tasksInPopover = <div style={{width: "300px"}}>{taskComponents}</div>;
-            return <Popover
-                content={tasksInPopover}
-                position={Position.TOP}
-                interactionKind={PopoverInteractionKind.HOVER}>
-                <div style={{display: "flex", flexFlow: "row nowrap"}}>
-                    {spinner}
-                    <div style={{display: "flex", flexFlow: "column", justifyContent: "center", paddingLeft: "5px"}}>
-                        {msg}
+            return (
+                <Popover
+                    content={tasksInPopover}
+                    position={Position.TOP}
+                    interactionKind={PopoverInteractionKind.HOVER}>
+                    <div style={{display: "flex", flexFlow: "row nowrap"}}>
+                        {spinner}
+                        <div
+                            style={{display: "flex", flexFlow: "column", justifyContent: "center", paddingLeft: "5px"}}>
+                            {msg}
+                        </div>
                     </div>
-                </div>
-            </Popover>;
+                </Popover>);
         } else {
             return null;
         }
@@ -138,9 +143,10 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
             iconName = "pt-icon-help";
             tooltipText = "Unknown";
         }
-        return <Tooltip content={tooltipText} hoverOpenDelay={1500} position={Position.LEFT_TOP}>
-            <span className={`pt-icon-small ${iconName}` }/>
-        </Tooltip>;
+        return (
+            <Tooltip content={tooltipText} hoverOpenDelay={1500} position={Position.LEFT_TOP}>
+                <span className={`pt-icon-small ${iconName}`}/>
+            </Tooltip>);
     };
 
     render() {
@@ -168,4 +174,5 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
         );
     }
 }
+
 export default connect(mapStateToProps, mapDispatchToProps)(StatusBar);
