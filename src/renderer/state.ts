@@ -649,6 +649,7 @@ export type SavedLayers = { [key: string]: LayerState };
 export interface BackendConfigState {
     dataStoresPath: string;
     useWorkspaceImageryCache: boolean;
+    resourceNamePrefix: string;
 }
 
 export interface Placemark extends Feature<Point> {
@@ -673,7 +674,6 @@ export interface SessionState {
      */
     lastWorkspacePath?: string;
     reopenLastWorkspace?: boolean;
-    resourceNamePrefix: string;
     offlineMode: boolean;
     autoShowNewFigures: boolean;
     showSelectedVariableLayer: boolean;

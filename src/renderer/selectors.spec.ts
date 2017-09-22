@@ -174,7 +174,7 @@ describe('Operation selectors', function () {
 
 describe('Variable selectors', function () {
 
-    const getState = (resources, selectedWorkspaceResourceName?, selectedVariableName?, resourceNamePrefix?) => {
+    const getState = (resources, selectedWorkspaceResourceName?, selectedVariableName?) => {
         return {
             data: {
                 workspace: {
@@ -182,7 +182,7 @@ describe('Variable selectors', function () {
                 }
             },
             control: {selectedWorkspaceResourceName, selectedVariableName},
-            session: {resourceNamePrefix},
+            session: {},
         };
     };
 

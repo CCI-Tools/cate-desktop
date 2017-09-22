@@ -102,7 +102,6 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
         return (
             <div style={{width: '100%', marginTop: '1em'}}>
                 {this.renderReopenLastWorkspace()}
-                {this.renderResourceNamePrefix()}
                 {this.renderAutoShowNewFigures()}
                 {this.renderOfflineMode()}
                 {this.renderPanelContainerUndockedMode()}
@@ -115,6 +114,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
             <div style={{width: '100%', marginTop: '1em'}}>
                 {this.renderDataStoresPath()}
                 {this.renderCacheWorkspaceImagery()}
+                {this.renderResourceNamePrefix()}
             </div>
         );
     }
@@ -124,14 +124,6 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
             'reopenLastWorkspace',
             false,
             "Reopen last workspace on startup"
-        );
-    }
-
-    private renderResourceNamePrefix() {
-        return this.renderStringValue(
-            'resourceNamePrefix',
-            false,
-            'Resource name prefix'
         );
     }
 
@@ -172,6 +164,14 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
             'useWorkspaceImageryCache',
             true,
             "Use per-workspace imagery cache (may accelerate image display)"
+        );
+    }
+
+    private renderResourceNamePrefix() {
+        return this.renderStringValue(
+            'resourceNamePrefix',
+            true,
+            'Default resource name prefix'
         );
     }
 
