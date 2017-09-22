@@ -36,10 +36,15 @@ export class DatasetAPI {
 
     addLocalDataSource(dataSourceId: string, filePathPattern: string,
                        onProgress: (progress: JobProgress) => void): JobPromise<DataSourceState[]> {
-        return this.webAPIClient.call('add_local_datasource', [dataSourceId, filePathPattern], onProgress);
+        return this.webAPIClient.call('add_local_data_source',
+                                      [dataSourceId, filePathPattern],
+                                      onProgress);
     }
 
-    removeLocalDataSource(dataSourceId: string, removeFiles: boolean): JobPromise<DataSourceState[]> {
-        return this.webAPIClient.call('remove_local_datasource', [dataSourceId, removeFiles]);
+    removeLocalDataSource(dataSourceId: string, removeFiles: boolean,
+                          onProgress: (progress: JobProgress) => void): JobPromise<DataSourceState[]> {
+        return this.webAPIClient.call('remove_local_data_source',
+                                      [dataSourceId, removeFiles],
+                                      onProgress);
     }
 }

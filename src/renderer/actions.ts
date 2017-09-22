@@ -424,8 +424,8 @@ export function addLocalDataset(dataSourceId: string, filePathPattern: string): 
 
 export function removeLocalDataset(dataSourceId: string, removeFiles: boolean): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        function call() {
-            return selectors.datasetAPISelector(getState()).removeLocalDataSource(dataSourceId, removeFiles);
+        function call(onProgress) {
+            return selectors.datasetAPISelector(getState()).removeLocalDataSource(dataSourceId, removeFiles, onProgress);
         }
 
         function action(dataSources: DataSourceState[]) {
@@ -1009,8 +1009,12 @@ export function getWorkspaceVariableStatistics(resName: string,
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
-        function call() {
-            return selectors.workspaceAPISelector(getState()).getWorkspaceVariableStatistics(baseDir, resName, varName, varIndex);
+        function call(onProgress) {
+            return selectors.workspaceAPISelector(getState()).getWorkspaceVariableStatistics(baseDir,
+                                                                                             resName,
+                                                                                             varName,
+                                                                                             varIndex,
+                                                                                             onProgress);
         }
 
         function action2(statistics: ImageStatisticsState) {
