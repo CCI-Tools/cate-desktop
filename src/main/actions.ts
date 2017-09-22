@@ -231,6 +231,14 @@ export const actions = {
 
     /* help #############################################################*/
 
+    openWebsite: {
+        label: 'Website',
+        click: function () {
+            electron.shell.openExternal('https://cci-tools.github.io/')
+        },
+        category: 'help',
+    },
+
     openDocumentation: {
         label: 'Documentation',
         click: function () {
@@ -243,6 +251,14 @@ export const actions = {
         label: 'Issue Tracker',
         click: function () {
             electron.shell.openExternal('https://github.com/CCI-Tools/cate-core/issues')
+        },
+        category: 'help',
+    },
+
+    openDownloads: {
+        label: 'Downloads',
+        click: function () {
+            electron.shell.openExternal('https://github.com/CCI-Tools/cate-core/releases')
         },
         category: 'help',
     },
