@@ -9,6 +9,7 @@ import {OpenDialogProperty} from "../actions";
 import * as deepEqual from 'deep-equal';
 import {ModalDialog} from "../components/ModalDialog";
 import {showToast} from "../toast";
+import {isDefined} from "../../common/types";
 
 interface IPreferencesDialogProps {
     isOpen: boolean;
@@ -230,7 +231,9 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
     private getChangeHandler(propertyName: string, isBackend: boolean) {
         return (value: any) => {
             const change = {};
-            change[propertyName] = value;
+            // TODO (forman): this needs a better fix
+            // change[propertyName] = value;
+            change[propertyName] = isDefined(value) ? (isDefined(value.value) ? value.value : value) : null;
             console.log('getChangeHandler', propertyName, isBackend, change);
             if (isBackend) {
                 this.setBackendConfig(change);
