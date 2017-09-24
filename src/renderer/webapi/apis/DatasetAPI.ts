@@ -37,8 +37,7 @@ export class DatasetAPI {
 
     addLocalDataSource(dataSourceId: string, filePathPattern: string,
                        onProgress: (progress: JobProgress) => void): JobPromise<DataSourceState[]> {
-        // TODO (forman): in cate-core, rename add_local_datasource() to add_local_data_source()
-        return this.webAPIClient.call('add_local_datasource',
+        return this.webAPIClient.call('add_local_data_source',
                                       [dataSourceId, filePathPattern],
                                       onProgress);
     }
