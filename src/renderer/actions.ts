@@ -388,7 +388,7 @@ export function openDataset(dataSourceId: string, args: any): ThunkAction {
 
         const opName = 'open_dataset';
         const opArgs = {
-            ds_name: dataSourceId,
+            ds_id: dataSourceId,
             ...args
         };
 
