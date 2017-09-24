@@ -366,7 +366,7 @@ export function loadTemporalCoverage(dataStoreId: string, dataSourceId: string):
     return (dispatch: Dispatch, getState: GetState) => {
 
         function call(onProgress) {
-            return selectors.datasetAPISelector(getState()).getTemporalCoverage(dataStoreId, dataSourceId, onProgress);
+            return selectors.datasetAPISelector(getState()).getDataSourceTemporalCoverage(dataStoreId, dataSourceId, onProgress);
         }
 
         function action(temporalCoverage) {
