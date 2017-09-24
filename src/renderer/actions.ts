@@ -670,21 +670,21 @@ export function cleanWorkspace(): ThunkAction {
  *
  * @returns a Redux thunk action
  */
-export function deleteResource(resource: ResourceState): ThunkAction {
+export function deleteResource(resName: string): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         let workspace = getState().data.workspace;
         assert.ok(workspace);
         const baseDir = workspace.baseDir;
 
         function call() {
-            return selectors.workspaceAPISelector(getState()).deleteWorkspaceResource(baseDir, resource.name);
+            return selectors.workspaceAPISelector(getState()).deleteWorkspaceResource(baseDir, resName);
         }
 
         function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
         }
 
-        callAPI(dispatch, `Deleting resource "${resource.name}"`, call, action);
+        callAPI(dispatch, `Deleting step/resource "${resName}"`, call, action);
     }
 }
 
@@ -799,19 +799,20 @@ export function cleanWorkspaceInteractive(): ThunkAction {
  *
  * @returns a Redux thunk action
  */
-export function deleteResourceInteractive(resource: ResourceState): ThunkAction {
+export function deleteResourceInteractive(resName: string): ThunkAction {
     return (dispatch: Dispatch) => {
         const answer = showMessageBox({
                                           type: 'question',
                                           title: 'Remove Resource / Workflow Step',
-                                          message: `Do you really want to delete resource "${resource.name}"?`,
-                                          detail: 'This will also delete the workflow step that created it.\nYou will not be able to undo this operation.',
+                                          message: `Do you really want to delete resource/step "${resName}"?`,
+                                          detail: 'This will also delete the workflow step that created it.\n' +
+                                                  'You will not be able to undo this operation.',
                                           buttons: ["Yes", "No"],
                                           defaultId: 1,
                                           cancelId: 1,
                                       });
         if (answer && answer.buttonIndex === 0) {
-            dispatch(deleteResource(resource));
+            dispatch(deleteResource(resName));
         }
     };
 }

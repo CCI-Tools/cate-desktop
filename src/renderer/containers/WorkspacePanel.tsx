@@ -156,7 +156,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
     }
 
     private handleRemoveOperationStepButtonClicked() {
-        this.props.dispatch(actions.deleteResourceInteractive(this.getEffectiveResource()));
+        const resName = this.getEffectiveResourceName();
+        if (resName) {
+            this.props.dispatch(actions.deleteResourceInteractive(resName));
+        }
     }
 
     private handleCleanWorkflowButtonClicked() {
@@ -175,6 +178,12 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
     private getEffectiveResource() {
         return this.props.workspacePanelMode === 'resources'
             ? this.props.selectedResource : this.props.selectedWorkflowStepResource;
+    }
+
+    private getEffectiveResourceName() {
+        let resource = this.getEffectiveResource();
+        let workflowStep = this.getEffectiveWorkflowStep();
+        return resource ? resource.name : workflowStep ? workflowStep.id : null;
     }
 
     private static getResourceItemKey(resource: ResourceState) {
@@ -568,7 +577,7 @@ function convertSteps(operations: OperationState[], steps: WorkflowStepState[], 
                 if (inputPort && source) {
                     if (target === 'python') {
                         args.push(`${input.name}=${source}`);
-                    }else {
+                    } else {
                         args.push(`${input.name}=@${source}`);
                     }
                 } else if (inputPort) {
