@@ -75,7 +75,7 @@ describe('Actions', () => {
                 {
                     dataStoresPath: '/a/b/c',
                     useWorkspaceImageryCache: false,
-                    resourceNamePrefix: 'var_{index}'
+                    resourceNamePattern: 'var_{index}'
                 });
         });
     });
