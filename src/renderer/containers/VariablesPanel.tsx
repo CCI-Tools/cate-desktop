@@ -103,7 +103,6 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         const placemark = this.props.selectedPlacemark;
         const placemarkName = placemark.properties['name'] || 'placemark';
         const placemarkPosition = placemark.geometry.coordinates;
-        const newResName = `ts_${resource.name}_${variable.name}_${placemarkName}`;
         const opArgs = {
             ds: {source: resource.name},
             'var': {value: variable.name},
@@ -111,18 +110,14 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
             properties: {value: null},
             file: {value: null},
         };
-        this.props.dispatch(actions.setWorkspaceResource(
-            newResName,
-            'cate.ops.plot.plot',
-            opArgs,
-            `Creating time series plot "${newResName}"`
-        ));
+        this.props.dispatch(actions.setWorkspaceResource('cate.ops.plot.plot', opArgs,
+                                                         null, false,
+                                                         `Creating time series plot for placemark ${placemarkName}`));
     }
 
     private handleAddVariableHistogramPlot() {
         const resource = this.props.selectedResource;
         const variable = this.props.selectedVariable;
-        const newResName = `hist_${resource.name}_${variable.name}`;
         const opArgs = {
             ds: {source: resource.name},
             'var': {value: variable.name},
@@ -130,12 +125,9 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
             properties: {value: 'bins=250'},
             file: {value: null},
         };
-        this.props.dispatch(actions.setWorkspaceResource(
-            newResName,
-            'cate.ops.plot.plot_hist',
-            opArgs,
-            `Creating histogram plot "${newResName}"`
-        ));
+        this.props.dispatch(actions.setWorkspaceResource('cate.ops.plot.plot_hist', opArgs,
+                                                         null, false,
+                                                         "Creating histogram plot"));
     }
 
     private handleShowVariableTableView() {

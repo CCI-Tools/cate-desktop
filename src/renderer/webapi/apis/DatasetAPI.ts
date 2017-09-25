@@ -26,10 +26,9 @@ export class DatasetAPI {
         return this.webAPIClient.call('get_data_sources', [dataStoreId], onProgress);
     }
 
-    getTemporalCoverage(dataStoreId: string, dataSourceId: string,
-                        onProgress: (progress: JobProgress) => void): JobPromise<[string, string]|null> {
-        // TODO (forman): in cate-core, rename get_ds_temporal_coverage() to get_data_source_temporal_coverage()
-        return this.webAPIClient.call('get_ds_temporal_coverage',
+    getDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: string,
+                                  onProgress: (progress: JobProgress) => void): JobPromise<[string, string]|null> {
+        return this.webAPIClient.call('get_data_source_temporal_coverage',
             [dataStoreId, dataSourceId],
             onProgress, responseToTemporalCoverage
         );
@@ -37,8 +36,7 @@ export class DatasetAPI {
 
     addLocalDataSource(dataSourceId: string, filePathPattern: string,
                        onProgress: (progress: JobProgress) => void): JobPromise<DataSourceState[]> {
-        // TODO (forman): in cate-core, rename add_local_datasource() to add_local_data_source()
-        return this.webAPIClient.call('add_local_datasource',
+        return this.webAPIClient.call('add_local_data_source',
                                       [dataSourceId, filePathPattern],
                                       onProgress);
     }

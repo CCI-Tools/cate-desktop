@@ -182,9 +182,9 @@ export function cancelJob(jobId: number): ThunkAction {
 
 function jobSubmitted(jobId: number, jobTitle: string, requestLock: string): Action {
     showToast({
-        type: 'notification',
-        text: 'Started: ' + jobTitle,
-    });
+                  type: 'notification',
+                  text: 'Started: ' + jobTitle,
+              });
     return updateTaskState(jobId, {status: JobStatusEnum.SUBMITTED, title: jobTitle, requestLock: requestLock});
 }
 
@@ -194,9 +194,9 @@ function jobProgress(progress: JobProgress): Action {
 
 function jobDone(jobId: number, jobTitle: string): Action {
     showToast({
-        type: 'success',
-        text: 'Done: ' + jobTitle,
-    });
+                  type: 'success',
+                  text: 'Done: ' + jobTitle,
+              });
     return updateTaskState(jobId, {status: JobStatusEnum.DONE});
 }
 
@@ -206,21 +206,21 @@ function jobFailed(jobId: number, jobTitle: string, failure: JobFailure): Action
         console.error(failure);
     }
     showToast({
-        type: 'error',
-        text: `Failed: ${jobTitle} (error #${failure.code})\n${failure.message}`,
-        action: {
-            text: 'Details',
-            onClick: () => {
-                showMessageBox({
-                    type: "error",
-                    title: "Cate - Error",
-                    message: failure.message,
-                    detail: `An error (code ${failure.code}) occurred in Cate Core:\n\n${failure.data}`,
-                    buttons: [],
-                }, MESSAGE_BOX_NO_REPLY);
-            }
-        },
-    });
+                  type: 'error',
+                  text: `Failed: ${jobTitle} (error #${failure.code})\n${failure.message}`,
+                  action: {
+                      text: 'Details',
+                      onClick: () => {
+                          showMessageBox({
+                                             type: "error",
+                                             title: "Cate - Error",
+                                             message: failure.message,
+                                             detail: `An error (code ${failure.code}) occurred in Cate Core:\n\n${failure.data}`,
+                                             buttons: [],
+                                         }, MESSAGE_BOX_NO_REPLY);
+                      }
+                  },
+              });
     return updateTaskState(jobId, {status, failure});
 }
 
@@ -366,7 +366,7 @@ export function loadTemporalCoverage(dataStoreId: string, dataSourceId: string):
     return (dispatch: Dispatch, getState: GetState) => {
 
         function call(onProgress) {
-            return selectors.datasetAPISelector(getState()).getTemporalCoverage(dataStoreId, dataSourceId, onProgress);
+            return selectors.datasetAPISelector(getState()).getDataSourceTemporalCoverage(dataStoreId, dataSourceId, onProgress);
         }
 
         function action(temporalCoverage) {
@@ -384,14 +384,11 @@ export function updateDataSourceTemporalCoverage(dataStoreId: string,
 }
 
 export function openDataset(dataSourceId: string, args: any): ThunkAction {
-    return (dispatch: Dispatch, getState: GetState) => {
+    return (dispatch: Dispatch) => {
 
-        // TODO (forman): Handle case where action is called twice without completing the first.
-        //                In this case the same resource name will be generated :(
-        const resName = selectors.newResourceNameSelector(getState());
         const opName = 'open_dataset';
         const opArgs = {
-            ds_name: dataSourceId,
+            ds_id: dataSourceId,
             ...args
         };
 
@@ -403,8 +400,11 @@ export function openDataset(dataSourceId: string, args: any): ThunkAction {
             wrappedOpArgs[name] = {value: opArgs[name]};
         });
 
-        dispatch(setWorkspaceResource(resName, opName, wrappedOpArgs,
-            `Opening dataset "${resName}" from "${dataSourceId}"`));
+        dispatch(setWorkspaceResource(opName,
+                                      wrappedOpArgs,
+                                      null,
+                                      false,
+                                      `Opening data source "${dataSourceId}"`));
     }
 }
 
@@ -670,21 +670,21 @@ export function cleanWorkspace(): ThunkAction {
  *
  * @returns a Redux thunk action
  */
-export function deleteResource(resource: ResourceState): ThunkAction {
+export function deleteResource(resName: string): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         let workspace = getState().data.workspace;
         assert.ok(workspace);
         const baseDir = workspace.baseDir;
 
         function call() {
-            return selectors.workspaceAPISelector(getState()).deleteWorkspaceResource(baseDir, resource.name);
+            return selectors.workspaceAPISelector(getState()).deleteWorkspaceResource(baseDir, resName);
         }
 
         function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
         }
 
-        callAPI(dispatch, `Deleting resource "${resource.name}"`, call, action);
+        callAPI(dispatch, `Deleting step/resource "${resName}"`, call, action);
     }
 }
 
@@ -697,15 +697,15 @@ export function deleteResource(resource: ResourceState): ThunkAction {
 export function newWorkspaceInteractive(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         const workspacePath = showSingleFileOpenDialog({
-            title: "New Workspace - Select Empty Directory",
-            buttonLabel: "Select",
-            properties: ['openDirectory', 'createDirectory', 'promptToCreate']  as OpenDialogProperty[],
-        });
+                                                           title: "New Workspace - Select Empty Directory",
+                                                           buttonLabel: "Select",
+                                                           properties: ['openDirectory', 'createDirectory', 'promptToCreate']  as OpenDialogProperty[],
+                                                       });
         if (workspacePath) {
             const ok = maybeSaveCurrentWorkspace(dispatch, getState,
-                "New Workspace",
-                "Would you like to save the current workspace before creating a new one?",
-                "Press \"Cancel\" to cancel creating a new workspace."
+                                                 "New Workspace",
+                                                 "Would you like to save the current workspace before creating a new one?",
+                                                 "Press \"Cancel\" to cancel creating a new workspace."
             );
             if (ok) {
                 dispatch(newWorkspace(workspacePath));
@@ -722,10 +722,10 @@ export function newWorkspaceInteractive(): ThunkAction {
 export function openWorkspaceInteractive(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         const workspacePath = showSingleFileOpenDialog({
-            title: "Open Workspace - Select Directory",
-            buttonLabel: "Open",
-            properties: ['openDirectory'],
-        });
+                                                           title: "Open Workspace - Select Directory",
+                                                           buttonLabel: "Open",
+                                                           properties: ['openDirectory'],
+                                                       });
         if (workspacePath) {
             const workspace = getState().data.workspace;
             let ok = true;
@@ -736,15 +736,15 @@ export function openWorkspaceInteractive(): ThunkAction {
                     //     message: 'Workspace is already open.'
                     // }, MESSAGE_BOX_NO_REPLY);
                     showToast({
-                        type: 'warning',
-                        text: 'Workspace is already open.',
-                    });
+                                  type: 'warning',
+                                  text: 'Workspace is already open.',
+                              });
                     return;
                 }
                 ok = maybeSaveCurrentWorkspace(dispatch, getState,
-                    "Open Workspace",
-                    "Would you like to save the current workspace before opening the new one?",
-                    "Press \"Cancel\" to cancel opening a new workspace."
+                                               "Open Workspace",
+                                               "Would you like to save the current workspace before opening the new one?",
+                                               "Press \"Cancel\" to cancel opening a new workspace."
                 );
             }
             if (ok) {
@@ -762,9 +762,9 @@ export function openWorkspaceInteractive(): ThunkAction {
 export function closeWorkspaceInteractive(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         const ok = maybeSaveCurrentWorkspace(dispatch, getState,
-            "Close Workspace",
-            "Would you like to save the current workspace before closing it?",
-            "Press \"Cancel\" to cancel closing the workspace."
+                                             "Close Workspace",
+                                             "Would you like to save the current workspace before closing it?",
+                                             "Press \"Cancel\" to cancel closing the workspace."
         );
         if (ok) {
             dispatch(closeWorkspace())
@@ -780,14 +780,14 @@ export function closeWorkspaceInteractive(): ThunkAction {
 export function cleanWorkspaceInteractive(): ThunkAction {
     return (dispatch: Dispatch) => {
         const answer = showMessageBox({
-            type: 'question',
-            title: 'Clean Workspace',
-            message: 'Do you really want to clean this workspace?',
-            detail: 'This will delete all resources and workflow steps.\nYou will not be able to undo this operation.',
-            buttons: ["Yes", "No"],
-            defaultId: 1,
-            cancelId: 1,
-        });
+                                          type: 'question',
+                                          title: 'Clean Workspace',
+                                          message: 'Do you really want to clean this workspace?',
+                                          detail: 'This will delete all resources and workflow steps.\nYou will not be able to undo this operation.',
+                                          buttons: ["Yes", "No"],
+                                          defaultId: 1,
+                                          cancelId: 1,
+                                      });
         if (answer && answer.buttonIndex === 0) {
             dispatch(cleanWorkspace());
         }
@@ -799,19 +799,20 @@ export function cleanWorkspaceInteractive(): ThunkAction {
  *
  * @returns a Redux thunk action
  */
-export function deleteResourceInteractive(resource: ResourceState): ThunkAction {
+export function deleteResourceInteractive(resName: string): ThunkAction {
     return (dispatch: Dispatch) => {
         const answer = showMessageBox({
-            type: 'question',
-            title: 'Remove Resource / Workflow Step',
-            message: `Do you really want to delete resource "${resource.name}"?`,
-            detail: 'This will also delete the workflow step that created it.\nYou will not be able to undo this operation.',
-            buttons: ["Yes", "No"],
-            defaultId: 1,
-            cancelId: 1,
-        });
+                                          type: 'question',
+                                          title: 'Remove Resource / Workflow Step',
+                                          message: `Do you really want to delete resource/step "${resName}"?`,
+                                          detail: 'This will also delete the workflow step that created it.\n' +
+                                                  'You will not be able to undo this operation.',
+                                          buttons: ["Yes", "No"],
+                                          defaultId: 1,
+                                          cancelId: 1,
+                                      });
         if (answer && answer.buttonIndex === 0) {
-            dispatch(deleteResource(resource));
+            dispatch(deleteResource(resName));
         }
     };
 }
@@ -840,10 +841,10 @@ export function saveWorkspaceInteractive(): ThunkAction {
 export function saveWorkspaceAsInteractive(): ThunkAction {
     return (dispatch: Dispatch) => {
         const workspacePath = showSingleFileOpenDialog({
-            title: "Save Workspace As - Select Empty Directory",
-            buttonLabel: "Select",
-            properties: ['openDirectory', 'createDirectory', 'promptToCreate'] as OpenDialogProperty[],
-        });
+                                                           title: "Save Workspace As - Select Empty Directory",
+                                                           buttonLabel: "Select",
+                                                           properties: ['openDirectory', 'createDirectory', 'promptToCreate'] as OpenDialogProperty[],
+                                                       });
         if (workspacePath) {
             dispatch(saveWorkspaceAs(workspacePath))
         }
@@ -861,14 +862,14 @@ function maybeSaveCurrentWorkspace(dispatch, getState: GetState, title: string, 
         const maySave = workspace.workflow.steps.length && (workspace.isModified || !workspace.isSaved);
         if (maySave) {
             const answer = showMessageBox({
-                type: 'question',
-                title,
-                message,
-                detail,
-                buttons: ["Yes", "No", "Cancel"],
-                defaultId: 0,
-                cancelId: 2,
-            });
+                                              type: 'question',
+                                              title,
+                                              message,
+                                              detail,
+                                              buttons: ["Yes", "No", "Cancel"],
+                                              defaultId: 0,
+                                              cancelId: 2,
+                                          });
             if (answer) {
                 if (answer.buttonIndex === 0) {
                     if (workspace.isScratch) {
@@ -936,16 +937,27 @@ function setSelectedWorkflowStepIdImpl(selectedWorkflowStepId: string): Action {
     return updateControlState({selectedWorkflowStepId});
 }
 
-export function setWorkspaceResource(resName: string, opName: string, opArgs: OperationKWArgs, title: string): ThunkAction {
+export function setWorkspaceResource(opName: string,
+                                     opArgs: OperationKWArgs,
+                                     resName: string | null,
+                                     overwrite: boolean,
+                                     title: string): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
 
         function call(onProgress) {
-            return selectors.workspaceAPISelector(getState()).setWorkspaceResource(baseDir, resName, opName, opArgs, onProgress);
+            return selectors.workspaceAPISelector(getState()).setWorkspaceResource(baseDir,
+                                                                                   opName,
+                                                                                   opArgs,
+                                                                                   resName,
+                                                                                   overwrite,
+                                                                                   onProgress);
         }
 
-        function action(workspace: WorkspaceState) {
+        function action(result: [WorkspaceState, string]) {
+            const workspace = result[0];
+            const resName = result[1];
             dispatch(setCurrentWorkspace(workspace));
 
             const resource = findResourceByName(selectors.resourcesSelector(getState()), resName);

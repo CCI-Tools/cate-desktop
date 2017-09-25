@@ -2,7 +2,7 @@ import {WebAPIClient} from "../WebAPIClient";
 import {JobPromise, JobProgress} from "../Job";
 import {WorkspaceState, ImageStatisticsState, OperationKWArgs, ResourceState, VariableState} from "../../state";
 import {EMPTY_ARRAY, EMPTY_OBJECT} from "../../selectors";
-import {isDefined, isNumber, isUndefined} from "../../../common/types";
+import {isDefined, isNumber} from "../../../common/types";
 
 function responseToVariables(variablesResponse: any): VariableState[] {
     return (variablesResponse || EMPTY_ARRAY).map(v => {
@@ -57,6 +57,10 @@ function responseToWorkspace(workspaceResponse: any): WorkspaceState {
     };
 }
 
+function responseToWorkspaceAndResName(workspaceAndResNameResponse: any): [WorkspaceState, string] {
+    return [responseToWorkspace(workspaceAndResNameResponse[0]), workspaceAndResNameResponse[1]];
+}
+
 export class WorkspaceAPI {
     private webAPIClient: WebAPIClient;
 
@@ -106,12 +110,16 @@ export class WorkspaceAPI {
                                       null, responseToWorkspace);
     }
 
-    setWorkspaceResource(baseDir: string, resName: string, opName: string, opArgs: OperationKWArgs,
-                         onProgress: (progress: JobProgress) => void): JobPromise<WorkspaceState> {
+    setWorkspaceResource(baseDir: string,
+                         opName: string,
+                         opArgs: OperationKWArgs,
+                         resName: string | null,
+                         overwrite: boolean,
+                         onProgress: (progress: JobProgress) => void): JobPromise<[WorkspaceState, string]> {
         return this.webAPIClient.call('set_workspace_resource',
-                                      [baseDir, resName, opName, opArgs],
+                                      [baseDir, opName, opArgs, resName, overwrite],
                                       onProgress,
-                                      responseToWorkspace);
+                                      responseToWorkspaceAndResName);
     }
 
     setWorkspaceResourcePersistence(baseDir: string, resName: string, persistent: boolean): JobPromise<WorkspaceState> {

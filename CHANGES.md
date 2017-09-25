@@ -11,12 +11,13 @@
  * Enable the **Show data in table** action only for resources of type type `DataFrame`.
 
 ### Fixes
-
  * "Window" sub-menu is empty [#362](https://github.com/CCI-Tools/cate-core/issues/362)
  * Splash screen must not stay on top [#363](https://github.com/CCI-Tools/cate-core/issues/363)
  * Make alpha blending work for all color maps [#360](https://github.com/CCI-Tools/cate-core/issues/360)
  * GUI-Preferences for data store files do not overwrite conf.py
    [#350](https://github.com/CCI-Tools/cate-core/issues/350)
+ * Two Datasets opened in parallel via OPeNDAP are loaded into same resource 
+   [#306](https://github.com/CCI-Tools/cate-core/issues/306)
 
 ## 0.9.0-dev.6
 
