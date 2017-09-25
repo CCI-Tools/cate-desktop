@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect, DispatchProp} from 'react-redux';
 import {
     Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
-    PopoverInteractionKind, AnchorButton
+    PopoverInteractionKind, AnchorButton, Tooltip
 } from "@blueprintjs/core";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
@@ -126,14 +126,16 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
                 />
             );
 
-            const canApplyOperation = this.props.selectedOperation && this.props.workspace;
+            const canAddStepOperation = this.props.selectedOperation && this.props.workspace;
             const actionComponent = (
                 <div className="pt-button-group">
-                    <AnchorButton className="pt-intent-primary"
-                                  onClick={this.handleAddOperationStepButtonClicked}
-                                  disabled={!canApplyOperation}
-                                  iconName="play">Apply...</AnchorButton>
-                    {canApplyOperation ? <OperationStepDialog id="newOperationStepDialog"/> : null}
+                    <Tooltip content="Add a new operation step to the workspace's workflow.">
+                        <AnchorButton className="pt-intent-primary"
+                                      onClick={this.handleAddOperationStepButtonClicked}
+                                      disabled={!canAddStepOperation}
+                                      iconName="play">Add Step...</AnchorButton>
+                    </Tooltip>
+                    {canAddStepOperation ? <OperationStepDialog id="newOperationStepDialog"/> : null}
                 </div>
             );
 

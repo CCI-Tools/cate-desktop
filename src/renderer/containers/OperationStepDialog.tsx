@@ -174,10 +174,10 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
         let dialogTitle, tooltipText;
         if (this.props.isEditMode) {
             dialogTitle = `Edit Operation Step - ${operation.name}`;
-            tooltipText = 'Edit operation step parameters and re-apply operation.';
+            tooltipText = 'Edit operation step inputs and recompute output.';
         } else {
             dialogTitle = `New Operation Step - ${operation.name}`;
-            tooltipText = 'Add a new operation step to the workflow and apply it.';
+            tooltipText = 'Add a new operation step to the workspace\'s workflow.';
         }
 
         return (
@@ -186,7 +186,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
                 iconName="function"
                 title={dialogTitle}
                 confirmTooltip={tooltipText}
-                confirmTitle="Apply"
+                confirmTitle="Add Step"
                 confirmIconName="play"
                 onConfirm={this.onConfirm}
                 onCancel={this.onCancel}
