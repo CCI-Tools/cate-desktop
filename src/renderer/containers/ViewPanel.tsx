@@ -10,6 +10,9 @@ import {ViewState} from "../components/ViewState";
 import {Card} from "../components/Card";
 import {NO_ACTIVE_VIEW} from "../messages";
 
+// Drop 2D map view #390
+const HAS_WORLD_VIEW_2D = false;
+
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
 }
@@ -49,7 +52,17 @@ function mapStateToProps(state: State): IViewPanelProps {
  */
 class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IViewPanelState> {
 
-    private static ITEM_STYLE = {margin: "0.1em 0.2em 0.1em 0.2em"};
+    private static ACTION_ITEM_STYLE = {margin: "0.1em 0em 2em 0em"};
+    private static PROPERTY_ITEM_STYLE = {margin: "0.1em 0em 0.6em 0em"};
+    private static CREDITS_LABEL_STYLE = {margin: "2em 0em 0.6em 0em"};
+    private static CREDITS_CONTAINER_STYLE: any = {
+        width: "100%",
+        minHeight: "6em",
+        position: "relative",
+        padding: "0.2em 0.2em 0.2em 0.2em",
+        margin: "0.2em 0 0.2em 0",
+        backgroundColor: 'rgba(255,255,255,0.1)'
+    };
 
     constructor(props: IViewPanelProps & IViewPanelDispatch) {
         super(props);
@@ -85,9 +98,10 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
 
     render() {
         return (
-            <div style={ViewPanel.ITEM_STYLE}>
-                <AnchorButton style={{marginBottom: 4}} iconName="globe" onClick={this.onAddWorldView}>New World
-                    View</AnchorButton>
+            <div style={{margin: "0.2em 0.2em 0.2em 0.2em"}}>
+                <AnchorButton iconName="globe"
+                              style={ViewPanel.ACTION_ITEM_STYLE}
+                              onClick={this.onAddWorldView}>New World View</AnchorButton>
                 {this.renderActiveViewPanel()}
             </div>
         );
@@ -102,8 +116,8 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
 
         // TODO (forman): make title field editable
         const titleField = (
-            <label className="pt-label" style={ViewPanel.ITEM_STYLE}>
-                View title
+            <label className="pt-label" style={ViewPanel.PROPERTY_ITEM_STYLE}>
+                Active view:
                 <div className="pt-input-group">
                     <span className={"pt-icon " + activeView.iconName}/>
                     <input className="pt-input" type="text" value={activeView.title} dir="auto" disabled={true}/>
@@ -112,13 +126,19 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
         );
 
         if (activeView.type === 'world') {
-            const worldView = activeView as ViewState<WorldViewDataState>;
-            let is3DGlobe = worldView.data.viewMode === '3D';
-            return (
-                <div>
-                    {titleField}
 
-                    <div style={ViewPanel.ITEM_STYLE}>
+            let globeMapSwitch;
+            let projectionField;
+
+            if (HAS_WORLD_VIEW_2D) {
+                const worldView = activeView as ViewState<WorldViewDataState>;
+
+                // Drop 2D map view #390
+                const is3DGlobe = worldView.data.viewMode === '3D';
+
+                // Drop 2D map view #390
+                const globeMapSwitch = (
+                    <div style={ViewPanel.PROPERTY_ITEM_STYLE}>
                         <RadioGroup
                             label="View mode"
                             onChange={this.onViewModeChange}
@@ -127,8 +147,11 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                             <Radio label="2D Map" value="2D"/>
                         </RadioGroup>
                     </div>
+                );
 
-                    <label className="pt-label" style={ViewPanel.ITEM_STYLE}>
+                // Drop 2D map view #390
+                const projectionField = (
+                    <label className="pt-label" style={ViewPanel.PROPERTY_ITEM_STYLE}>
                         Projection
                         {is3DGlobe ? <span className="pt-text-muted"> (for 2D Map only)</span> : null}
                         <ProjectionField
@@ -137,23 +160,29 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
                             onChange={this.onProjectionCodeChange}
                         />
                     </label>
+                );
+            }
+
+            return (
+                <div>
+                    {titleField}
+                    {globeMapSwitch}
+                    {projectionField}
 
                     <Checkbox label="Show layer text overlay"
-                              style={ViewPanel.ITEM_STYLE}
+                              style={ViewPanel.PROPERTY_ITEM_STYLE}
                               checked={this.props.showLayerTextOverlay}
                               onChange={this.onShowLayerTextOverlayChange}/>
 
                     <Checkbox label="Split selected image layer"
-                              style={ViewPanel.ITEM_STYLE}
+                              style={ViewPanel.PROPERTY_ITEM_STYLE}
                               checked={this.props.isSelectedLayerSplit}
                               onChange={this.onSplitSelectedVariableLayer}/>
 
-                    <label className="pt-label" style={ViewPanel.ITEM_STYLE}>
-                        Imagery layer credits
-                        <Card>
-                            <div id="creditContainer"
-                                 style={{minWidth: "10em", minHeight: "4em", position: "relative", overflow: "auto"}}/>
-                        </Card>
+                    <label className="pt-label" style={ViewPanel.CREDITS_LABEL_STYLE}>
+                        Imagery layer credits:
+                        <div id="creditContainer"
+                             style={ViewPanel.CREDITS_CONTAINER_STYLE}/>
                     </label>
                 </div>
             );
