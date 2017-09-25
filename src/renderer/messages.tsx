@@ -18,7 +18,7 @@ export const NO_WORKSPACE_RESOURCES = (
     <NonIdealState
         title="No workspace resources"
         visual="pt-icon-database"
-        description={<span>Open a dataset in DATA SOURCES panel or apply a <code>read_</code> operation from the OPERATIONS panel.</span>}
+        description={<span>Open a dataset in DATA SOURCES panel or add a <code>read_</code> operation step from the OPERATIONS panel.</span>}
     />
 );
 
@@ -26,7 +26,7 @@ export const NO_WORKFLOW_STEPS = (
     <NonIdealState
         title="No workflow steps"
         visual="pt-icon-flows"
-        description={<span>Open a dataset in DATA SOURCES panel or apply a <code>read_</code> operation from the OPERATIONS panel.</span>}
+        description={<span>Open a dataset in DATA SOURCES panel or add a <code>read_</code> operation step from the OPERATIONS panel.</span>}
     />
 );
 
