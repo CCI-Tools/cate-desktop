@@ -1,3 +1,18 @@
+## 1.0.0-dev.1
+
+### UX Improvements and new Features
+
+### Fixes
+
+ * Two Datasets opened in parallel via OPeNDAP are loaded into same resource
+   [#306](https://github.com/CCI-Tools/cate-core/issues/306)
+
+### Other Changes
+
+ * We decided to remove the 2D map view (OpenLayers), because we had too many issues
+   keeping it in sync with the 3D globe view (Cesium).
+   [#390](https://github.com/CCI-Tools/cate-core/issues/390)
+
 ## 0.9.0-dev.7 (unreleased)
 
 ### UX Improvements and new Features
@@ -17,14 +32,6 @@
  * Make alpha blending work for all color maps [#360](https://github.com/CCI-Tools/cate-core/issues/360)
  * GUI-Preferences for data store files do not overwrite conf.py
    [#350](https://github.com/CCI-Tools/cate-core/issues/350)
- * Two Datasets opened in parallel via OPeNDAP are loaded into same resource 
-   [#306](https://github.com/CCI-Tools/cate-core/issues/306)
-   
-### Other Changes
-
- * We decided to remove the 2D map view (OpenLayers), because we had too many issues 
-   keeping it in sync with the 3D globe view (Cesium).
-   [#390](https://github.com/CCI-Tools/cate-core/issues/390)
 
 ## 0.9.0-dev.6
 
