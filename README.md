@@ -9,10 +9,10 @@
 
 ## Building from Sources
 
-Note that `cate-desktop` requires [cate-core](https://github.com/CCI-Tools/cate-core) to be installed on your system.
-Follow the instruction in `cate-core`'s [README](https://github.com/CCI-Tools/cate-core/blob/master/README.md) first.
+Note that `cate-desktop` requires [cate](https://github.com/CCI-Tools/cate) to be installed on your system.
+Follow the instruction in `cate`'s [README](https://github.com/CCI-Tools/cate/blob/master/README.md) first.
 
-Once `cate-core` is ready to be used, get the source code for `cate-desktop`:
+Once `cate` is ready to be used, get the source code for `cate-desktop`:
 
     $ git clone https://github.com/CCI-Tools/cate-desktop.git
     $ cd cate-desktop
@@ -23,7 +23,7 @@ If you've already cloned the repo, you make it up-to-date by pulling in the late
 
 Now copy file `cate-config.template.js` to a file named `cate-config.js`. Then adjust the `command` parameter 
 in `cate-config.js` to match the `cate-webapi` executable located in the Python environment in which you've installed 
-`cate-core`.
+`cate`.
 
 On Linux and Darwin the value for `command` may look like
 

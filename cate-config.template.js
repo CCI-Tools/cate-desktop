@@ -10,7 +10,7 @@ module.exports = {
      */
     webAPIConfig: {
         /**
-         * Cate WebAPI service executable which points into Cate's Python environment where cate-core
+         * Cate WebAPI service executable which points into Cate's Python environment where cate
          * has be installed, e.g. using "python setup.py develop" or "python setup.py install".
          */
         command: "C:\\Users\\Norman\\Miniconda3\\envs\\cate\\Scripts\\cate-webapi.exe",

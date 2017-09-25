@@ -250,7 +250,7 @@ export const actions = {
     openIssueTracker: {
         label: 'Issue Tracker',
         click: function () {
-            electron.shell.openExternal('https://github.com/CCI-Tools/cate-core/issues')
+            electron.shell.openExternal('https://github.com/CCI-Tools/cate/issues')
         },
         category: 'help',
     },
@@ -258,7 +258,7 @@ export const actions = {
     openDownloads: {
         label: 'Downloads',
         click: function () {
-            electron.shell.openExternal('https://github.com/CCI-Tools/cate-core/releases')
+            electron.shell.openExternal('https://github.com/CCI-Tools/cate/releases')
         },
         category: 'help',
     },

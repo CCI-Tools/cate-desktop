@@ -5,13 +5,13 @@
 ### Fixes
 
  * Two Datasets opened in parallel via OPeNDAP are loaded into same resource
-   [#306](https://github.com/CCI-Tools/cate-core/issues/306)
+   [#306](https://github.com/CCI-Tools/cate/issues/306)
 
 ### Other Changes
 
  * We decided to remove the 2D map view (OpenLayers), because we had too many issues
    keeping it in sync with the 3D globe view (Cesium).
-   [#390](https://github.com/CCI-Tools/cate-core/issues/390)
+   [#390](https://github.com/CCI-Tools/cate/issues/390)
 
 ## 0.9.0-dev.7 (unreleased)
 
@@ -19,19 +19,19 @@
 
  * The **Download Data Source** dialog opened from the **DATA SOURCES** panel has been simplified and now produces 
    a new workflow step which calls operation `open_dataset(..., force_local=True)` 
-   [#366](https://github.com/CCI-Tools/cate-core/issues/366). Like for any other operation step, 
+   [#366](https://github.com/CCI-Tools/cate/issues/366). Like for any other operation step, 
    users can be inspect and edit input values and re-invoke the operation any time later 
-   from the **WORKSPACE** panel [#314](https://github.com/CCI-Tools/cate-core/issues/314).  
+   from the **WORKSPACE** panel [#314](https://github.com/CCI-Tools/cate/issues/314).  
  * On the **Abstract** tab of the **DATA SOURCES** panel show information about spatial and temporal coverage.
  * Enable the **Show data in table** action only for resources of type type `DataFrame`.
 
 ### Fixes
 
- * "Window" sub-menu is empty [#362](https://github.com/CCI-Tools/cate-core/issues/362)
- * Splash screen must not stay on top [#363](https://github.com/CCI-Tools/cate-core/issues/363)
- * Make alpha blending work for all color maps [#360](https://github.com/CCI-Tools/cate-core/issues/360)
+ * "Window" sub-menu is empty [#362](https://github.com/CCI-Tools/cate/issues/362)
+ * Splash screen must not stay on top [#363](https://github.com/CCI-Tools/cate/issues/363)
+ * Make alpha blending work for all color maps [#360](https://github.com/CCI-Tools/cate/issues/360)
  * GUI-Preferences for data store files do not overwrite conf.py
-   [#350](https://github.com/CCI-Tools/cate-core/issues/350)
+   [#350](https://github.com/CCI-Tools/cate/issues/350)
 
 ## 0.9.0-dev.6
 
@@ -39,20 +39,20 @@
 
  * Fixed date input components (for a single date and for date ranges) used in diverse places. 
    Now a simple text input field is used.
-   [#303](https://github.com/CCI-Tools/cate-core/issues/303) and [#335](https://github.com/CCI-Tools/cate-core/issues/335)
+   [#303](https://github.com/CCI-Tools/cate/issues/303) and [#335](https://github.com/CCI-Tools/cate/issues/335)
  * Only persist the parameter values for the Time and Region constraints in the 
    **Open Local Dataset** and **Download Data Source** dialogs of the **DATA SOURCES** panel.
-   [#307](https://github.com/CCI-Tools/cate-core/issues/307) and [#308](https://github.com/CCI-Tools/cate-core/issues/308)
+   [#307](https://github.com/CCI-Tools/cate/issues/307) and [#308](https://github.com/CCI-Tools/cate/issues/308)
 
 ## 0.9.0-dev.5
 
 ### Fixes
 
- * Fix handling and formatting of date ranges [#313](https://github.com/CCI-Tools/cate-core/issues/313).
+ * Fix handling and formatting of date ranges [#313](https://github.com/CCI-Tools/cate/issues/313).
  * The resource switch in the **OPERATION STEP** dialog is only enabled
    when the drop-down box would contain any **compatible resource**
-   [#310](https://github.com/CCI-Tools/cate-core/issues/310).
- * Only show lat/lon values when mouse is over globe [#312](https://github.com/CCI-Tools/cate-core/issues/312).
+   [#310](https://github.com/CCI-Tools/cate/issues/310).
+ * Only show lat/lon values when mouse is over globe [#312](https://github.com/CCI-Tools/cate/issues/312).
  * Prevent a 2nd (and 3rd) invocation of the variable statistics computation
 
 ## 0.9.0-dev.4
