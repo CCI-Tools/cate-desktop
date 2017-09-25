@@ -38,7 +38,7 @@ export const WEBAPI_VERSION_RANGE = "1.0.0-dev.1";
 
 const WEBAPI_INSTALLER_CANCELLED = 1;
 const WEBAPI_INSTALLER_ERROR = 2;
-const WEBAPI_INSTALLER_MISSING = 3;
+// const WEBAPI_INSTALLER_MISSING = 3;
 const WEBAPI_INSTALLER_BAD_EXIT = 4;
 const WEBAPI_ERROR = 5;
 const WEBAPI_BAD_EXIT = 6;
@@ -49,9 +49,36 @@ const WEBAPI_MISSING = 8;
 // be closed automatically when the JavaScript object is garbage collected.
 let _mainWindow;
 let _splashWindow;
+
+/**
+ * Preferences loaded from $home/.cate/preferences.json
+ * Note: all preferences set by the main process (the process executing this module)
+ * must be protected from overwriting by the renderer process!
+ * See src/renderer/actions.ts, function sendPreferencesToMain()
+ */
 let _prefs: Configuration;
+
+/**
+ * Configuration loaded from $(pwd)/cate-config.js
+ */
 let _config: Configuration;
+
+/**
+ * _prefsUpdateRequestedOnClose is used to indicate that we are waiting for a preferences update from the
+ * renderer process.
+ *
+ * @type {boolean}
+ * @private
+ */
 let _prefsUpdateRequestedOnClose = false;
+
+/**
+ * _prefsUpdatedOnClose is used to indicate that we have received a preferences update from the
+ * renderer process and we now can safely close.
+ *
+ * @type {boolean}
+ * @private
+ */
 let _prefsUpdatedOnClose = false;
 
 
@@ -195,6 +222,7 @@ function getMPLWebSocketsUrl(webAPIConfig) {
     return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/mpl/figures/`;
 }
 
+// noinspection JSUnusedGlobalSymbols
 export function init() {
     if (process.platform === 'darwin') {
         // Try getting around https://github.com/CCI-Tools/cate-desktop/issues/32
@@ -484,17 +512,48 @@ function loadMainWindow() {
         console.log(CATE_DESKTOP_PREFIX, 'Main window is ready to show.');
     });
 
+    const requestPreferencesUpdate = (event) => {
+        _prefsUpdateRequestedOnClose = true;
+        console.log(CATE_DESKTOP_PREFIX, 'Main window is going to be closed, fetching user preferences...');
+        _prefs.set('mainWindowBounds', _mainWindow.getBounds());
+        _prefs.set('devToolsOpened', _mainWindow.webContents.isDevToolsOpened());
+        event.sender.send('get-preferences');
+    };
+
     // Emitted when the window is going to be closed.
     _mainWindow.on('close', (event) => {
         if (!_prefsUpdateRequestedOnClose) {
-            _prefsUpdateRequestedOnClose = true;
+            const EXIT = process.platform === 'darwin' ? 'Quit' : 'Exit';
             event.preventDefault();
-            console.log(CATE_DESKTOP_PREFIX, 'Main window is going to be closed, fetching user preferences...');
-            _prefs.set('mainWindowBounds', _mainWindow.getBounds());
-            _prefs.set('devToolsOpened', _mainWindow.webContents.isDevToolsOpened());
-            event.sender.send('get-preferences');
+            const suppressExitConfirm = _prefs.get('suppressExitConfirm', false);
+            if (!suppressExitConfirm) {
+                const options = {
+                    type: 'question',
+                    title: `${app.getName()} - Confirm ${EXIT}`,
+                    buttons: ['Cancel', EXIT],
+                    //buttons: ['Cancel', "Yes"],
+                    cancelId: 0,
+                    message: `Are you sure you want to exit ${app.getName()}?`,
+                    checkboxLabel: 'Do not ask me again',
+                    checkboxChecked: false,
+                };
+                const callback = (response: number, checkboxChecked: boolean) => {
+                    _prefs.set('suppressExitConfirm', checkboxChecked);
+                    const exitConfirmed = response == 1;
+                    if (exitConfirmed) {
+                        requestPreferencesUpdate(event);
+                        app.quit();
+                    }
+                };
+                electron.dialog.showMessageBox(_mainWindow, options, callback);
+            } else {
+                requestPreferencesUpdate(event);
+            }
         } else if (!_prefsUpdatedOnClose) {
             event.preventDefault();
+            console.log(CATE_DESKTOP_PREFIX, 'Main window is going to be closed, must still update preferences...');
+        } else {
+            console.log(CATE_DESKTOP_PREFIX, 'Main window is going to be closed, nothing more to do...');
         }
     });
 

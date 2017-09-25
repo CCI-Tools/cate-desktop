@@ -1426,7 +1426,16 @@ export interface MessageBoxOptions {
      */
     noLink?: boolean;
 
+    /**
+     * If provided, the message box will include a checkbox with the given label.
+     * The checkbox state can be inspected only when using callback.
+     */
+    checkboxLabel?: string;
 
+    /**
+     * Initial checked state of the checkbox. false by default.
+     */
+    checkboxChecked?: boolean;
 }
 
 /**
@@ -1622,9 +1631,10 @@ export function sendPreferencesToMain(callback?: (error: any) => void): ThunkAct
         const session = getState().session;
         const preferences = Object.assign({}, session);
         const excludedPreferenceNames = [
-            'backendConfig',     // treated differently, see storeBackendConfig
-            'mainWindowBounds',  // use current value from main process
-            'devToolsOpened',    // use current value from main process
+            'backendConfig',           // treated differently, see storeBackendConfig
+            'mainWindowBounds',        // use current value from main process
+            'devToolsOpened',          // use current value from main process
+            'suppressExitConfirm',     // use current value from main process
         ];
         excludedPreferenceNames.forEach(propertyName => {
             if (preferences.hasOwnProperty(propertyName)) {
