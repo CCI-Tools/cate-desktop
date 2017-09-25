@@ -170,9 +170,9 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
 
     private renderResourceNamePrefix() {
         return this.renderStringValue(
-            'resourceNamePrefix',
+            'resourceNamePattern',
             true,
-            'Default resource name prefix'
+            'Default resource name pattern'
         );
     }
 

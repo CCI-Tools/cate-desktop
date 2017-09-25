@@ -69,13 +69,13 @@ describe('Actions', () => {
                 {
                     dataStoresPath: '/a/b/c',
                     useWorkspaceImageryCache: false,
-                    resourceNamePrefix: 'var_'
+                    resourceNamePattern: 'var_{index}'
                 }));
             expect(getState().session.backendConfig).to.deep.equal(
                 {
                     dataStoresPath: '/a/b/c',
                     useWorkspaceImageryCache: false,
-                    resourceNamePrefix: 'var_'
+                    resourceNamePrefix: 'var_{index}'
                 });
         });
     });

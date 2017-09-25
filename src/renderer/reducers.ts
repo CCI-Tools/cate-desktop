@@ -563,7 +563,7 @@ const initialSessionState: SessionState = {
     backendConfig: {
         dataStoresPath: null,
         useWorkspaceImageryCache: false,
-        resourceNamePrefix: 'res_',
+        resourceNamePattern: 'res_{index}',
     }
 };
 

@@ -649,7 +649,7 @@ export type SavedLayers = { [key: string]: LayerState };
 export interface BackendConfigState {
     dataStoresPath: string;
     useWorkspaceImageryCache: boolean;
-    resourceNamePrefix: string;
+    resourceNamePattern: string;
 }
 
 export interface Placemark extends Feature<Point> {
