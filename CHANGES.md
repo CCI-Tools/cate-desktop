@@ -6,6 +6,8 @@
 
  * Two Datasets opened in parallel via OPeNDAP are loaded into same resource
    [#306](https://github.com/CCI-Tools/cate/issues/306)
+ * Prevent multiple concurrent attempts to load data sources
+   [#386](https://github.com/CCI-Tools/cate/issues/386)
 
 ### Other Changes
 

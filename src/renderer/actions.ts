@@ -313,6 +313,10 @@ export function updateDataStores(dataStores: Array<DataStoreState>): Action {
  */
 export function loadDataSources(dataStoreId: string): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
+        const requestLock = `load DataSources "${dataStoreId}"`;
+        if (selectors.activeRequestLocksSelector(getState()).indexOf(requestLock) > -1) {
+            return;
+        }
         function call(onProgress) {
             return selectors.datasetAPISelector(getState()).getDataSources(dataStoreId, onProgress);
         }
@@ -327,7 +331,7 @@ export function loadDataSources(dataStoreId: string): ThunkAction {
         }
 
         const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === dataStoreId);
-        callAPI(dispatch, `Loading data sources for store "${dataStore ? dataStore.id : '?'}"`, call, action);
+        callAPI(dispatch, `Loading data sources for store "${dataStore ? dataStore.id : '?'}"`, call, action, requestLock);
     }
 }
 
