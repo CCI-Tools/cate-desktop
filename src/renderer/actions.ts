@@ -288,6 +288,10 @@ export function loadDataStores(): ThunkAction {
         }
 
         function action(dataStores: DataStoreState[]) {
+            let offlineMode = selectors.offlineModeSelector(getState());
+            if (offlineMode) {
+                dataStores = dataStores.filter(ds => ds.is_local);
+            }
             dispatch(updateDataStores(dataStores));
             if (dataStores && dataStores.length) {
                 dispatch(setSelectedDataStoreId(dataStores[0].id));

@@ -27,6 +27,7 @@ interface IDataSourcesPanelProps {
     filteredDataSources: DataSourceState[] | null;
     showDataSourceDetails: boolean;
     showDataSourceTitles: boolean;
+    offlineMode: boolean;
 }
 
 function mapStateToProps(state: State): IDataSourcesPanelProps {
@@ -40,6 +41,7 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         filteredDataSources: selectors.filteredDataSourcesSelector(state),
         showDataSourceDetails: selectors.showDataSourceDetailsSelector(state),
         showDataSourceTitles: selectors.showDataSourceTitlesSelector(state),
+        offlineMode: selectors.offlineModeSelector(state),
     };
 }
 

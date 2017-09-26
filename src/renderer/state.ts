@@ -1,4 +1,4 @@
-import  {WebAPIClient} from './webapi';
+import {WebAPIClient} from './webapi';
 import {JobStatus, JobFailure, JobProgress} from "./webapi/Job";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
@@ -59,7 +59,8 @@ export interface WebAPIConfig {
 
 export interface DataStoreState {
     id: string;
-    title?: string;
+    title: string | null;
+    is_local: boolean;
     dataSources?: DataSourceState[] | null;
 }
 

@@ -39,7 +39,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         view: ownProps.view,
         baseUrl: selectors.webAPIRestUrlSelector(state),
         workspace: selectors.workspaceSelector(state),
-        offlineMode: state.session.offlineMode,
+        offlineMode: selectors.offlineModeSelector(state),
         worldViewClickAction: state.control.worldViewClickAction,
         placemarks: selectors.placemarksSelector(state),
         selectedLayerId: selectors.selectedLayerIdSelector(state),
