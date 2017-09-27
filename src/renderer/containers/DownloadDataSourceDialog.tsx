@@ -51,7 +51,7 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
         if (!options) {
             options = DataAccessComponent.defaultOptions(false, props.temporalCoverage);
         }
-        options = DataAccessComponent.adjustLocalDataSourceName(options, props.dataSource);
+        // options = DataAccessComponent.adjustLocalDataSourceName(options, props.dataSource);
         return {options};
     }
 
