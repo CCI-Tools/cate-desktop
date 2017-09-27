@@ -5,6 +5,7 @@ import {connect, DispatchProp} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {IDataAccessComponentOptions, DataAccessComponent} from "./DataAccessComponent";
+import {renderInputErrors} from "./OperationStepDialog";
 
 type TimeRangeValue = [string, string];
 
@@ -49,7 +50,8 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps & Dispat
     }
 
     static mapPropsToState(nextProps: IOpenDatasetDialogProps): IOpenDatasetDialogState {
-        const options = nextProps.options || DataAccessComponent.defaultOptions(true, nextProps.temporalCoverage);
+        let options = nextProps.options || DataAccessComponent.defaultOptions(true, nextProps.temporalCoverage);
+        options = DataAccessComponent.ensureDateRangeIsValidated(options, nextProps.temporalCoverage);
         return {options};
     }
 
@@ -91,6 +93,9 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps & Dispat
             return null;
         }
 
+        const inputErrors = DataAccessComponent.optionsToErrors(this.state.options);
+        const confirmTooltip = renderInputErrors(inputErrors);
+
         return (
             <ModalDialog
                 isOpen={isOpen}
@@ -98,6 +103,7 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps & Dispat
                 iconName="database"
                 confirmTitle="Open Local"
                 confirmIconName="folder-shared-open"
+                confirmTooltip={confirmTooltip}
                 onCancel={this.onCancel}
                 onConfirm={this.onConfirm}
                 canConfirm={this.canConfirm}

@@ -6,7 +6,7 @@ interface IModalDialogProps {
     title?: string;
     confirmIconName?: IconName;
     confirmTitle?: string;
-    confirmTooltip?: string;
+    confirmTooltip?: JSX.Element | string;
     iconName?: IconName;
     renderBody: () => JSX.Element | JSX.Element[];
     renderActions?: () => JSX.Element[];

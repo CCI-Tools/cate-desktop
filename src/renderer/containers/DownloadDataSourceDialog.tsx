@@ -5,6 +5,7 @@ import {connect, DispatchProp} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {IDataAccessComponentOptions, DataAccessComponent} from "./DataAccessComponent";
+import {renderInputErrors} from "./OperationStepDialog";
 
 type TimeRangeValue = [string, string];
 
@@ -51,6 +52,7 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
         if (!options) {
             options = DataAccessComponent.defaultOptions(false, props.temporalCoverage);
         }
+        options = DataAccessComponent.ensureDateRangeIsValidated(options, props.temporalCoverage);
         // options = DataAccessComponent.adjustLocalDataSourceName(options, props.dataSource);
         return {options};
     }
@@ -103,6 +105,8 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
         } else  {
             confirmTitle = "Open Remote";
         }
+        const inputErrors = DataAccessComponent.optionsToErrors(this.state.options);
+        const confirmTooltip = renderInputErrors(inputErrors);
 
         return (
             <ModalDialog
@@ -111,6 +115,7 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
                 iconName="cloud-download"
                 confirmTitle={confirmTitle}
                 confirmIconName="cloud-download"
+                confirmTooltip={confirmTooltip}
                 onCancel={this.onCancel}
                 onConfirm={this.onConfirm}
                 canConfirm={this.canConfirm}

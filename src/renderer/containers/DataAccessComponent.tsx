@@ -120,22 +120,14 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         const temporalCoverage = this.props.temporalCoverage;
         const minDate = temporalCoverage && temporalCoverage[0] ? new Date(temporalCoverage[0]) : new Date('1980-01-01');
         const maxDate = temporalCoverage && temporalCoverage[1] ? new Date(temporalCoverage[1]) : new Date(Date.now());
-        const temporalCoverageText = temporalCoverage ?
-            <span>Data availability: {temporalCoverage.join(', ')}</span> : '';
+        let temporalCoverageText ;
+        if ( temporalCoverage ) {
+            temporalCoverageText = <div>Data availability: {temporalCoverage.join(', ')}</div>;
+        }
 
         const options = this.props.options;
-
         const hasTimeConstraint = options.hasTimeConstraint;
-        const dateRange = hasTimeConstraint ? options.dateRange || {value: [minDate, maxDate]} : options.dateRange;
-        if (hasTimeConstraint && options.dateRange) {
-            try {
-                // re-validate, because min, max may have changed
-                validateDateRange(options.dateRange.value, true, minDate, maxDate);
-                dateRange.error = null;
-            } catch (e) {
-                dateRange.error = e;
-            }
-        }
+        const dateRange = hasTimeConstraint ? options.dateRange : null;
 
         const hasRegionConstraint = options.hasRegionConstraint;
         const region = hasRegionConstraint ? options.region || GLOBAL : options.region;
@@ -212,14 +204,13 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
                           onChange={this.onHasTimeConstraintChange}/>
                 <Collapse isOpen={hasTimeConstraint}>
                     <div style={DataAccessComponent.OPTION_DIV_STYPE}>
-                        <DateRangeField
-                            nullable={true}
-                            min={minDate}
-                            max={maxDate}
-                            value={dateRange}
-                            onChange={this.onDateRangeChange}/>
-                        <br/>
-                        {temporalCoverageText}
+                                <DateRangeField
+                                    nullable={true}
+                                    min={minDate}
+                                    max={maxDate}
+                                    value={dateRange}
+                                    onChange={this.onDateRangeChange}/>
+                                {temporalCoverageText}
                     </div>
                 </Collapse>
 
@@ -262,6 +253,11 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             return false;
         }
 
+        let validTimeConstraint = true;
+        if (options.hasTimeConstraint && options.dateRange) {
+            validTimeConstraint = !options.dateRange.error;
+        }
+
         let validRegion = true;
         if (options.hasRegionConstraint && options.region) {
             const west = options.region.west.value;
@@ -291,7 +287,18 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             }
         }
 
-        return validRegion && validVariableNames && validDataSourceId;
+        return validTimeConstraint &&validRegion && validVariableNames && validDataSourceId ;
+    }
+
+    static optionsToErrors(options: IDataAccessComponentOptions) {
+        const inputErrors = {};
+        if (options.hasTimeConstraint && options.dateRange && options.dateRange.error) {
+            inputErrors["Time constraint"] = options.dateRange.error
+        }
+        if (options.hasVariablesConstraint && options.variableNames && options.variableNames.error) {
+            inputErrors["Variables constraint"] = options.variableNames.error
+        }
+        return inputErrors;
     }
 
 
@@ -378,6 +385,22 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
     //     }
     //     return options;
     // }
+
+    static ensureDateRangeIsValidated(options: IDataAccessComponentOptions, temporalCoverage: TimeRangeValue): IDataAccessComponentOptions {
+        if (options.hasTimeConstraint && options.dateRange && temporalCoverage) {
+            try {
+                const minDate = temporalCoverage[0] ? new Date(temporalCoverage[0]) : new Date('1980-01-01');
+                const maxDate = temporalCoverage[1] ? new Date(temporalCoverage[1]) : new Date(Date.now());
+
+                // re-validate, because min, max may have changed
+                validateDateRange(options.dateRange.value, true, minDate, maxDate);
+                return {...options, dateRange: {...options.dateRange, error: null}};
+            } catch (e) {
+                return {...options, dateRange: {...options.dateRange, error: e}};
+            }
+        }
+        return options;
+    }
 }
 
 

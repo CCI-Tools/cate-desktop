@@ -455,35 +455,44 @@ class ValidationDialog extends React.Component<IValidationDialogProps, null> {
         if (!inputErrors) {
             return (<p>No problems encountered.</p>);
         }
-
-        const problems = [];
-        Object.getOwnPropertyNames(inputErrors).forEach(inputName => {
-            let error = inputErrors[inputName];
-            problems.push(<li key={inputName}>{inputName}: {error.message}</li>);
-        });
-
-        let introText;
-        if (problems.length === 1) {
-            introText = "The following problem has been encountered:";
-        } else {
-            introText = `The following ${problems.length} problems have been encountered:`;
-        }
-
         const resourceProblems = this.countResourceProblems();
-        const footerText = resourceProblems > 0 ? (<p>This operation has
-            parameter(s) which require specifying a <em>resource</em>. When there are no compatible resources yet,
-            you may consider opening a data source or use one of the <code>read_...</code> operations first.
-        </p>) : null;
-
-        return (
-            <div className="pt-form-group">
-                {introText}
-                <div className="pt-form-content">
-                    {problems}
-                    <div className="pt-form-helper-text">{footerText}</div>
-                </div>
-            </div>
-        );
+        const body = renderInputErrors(inputErrors, resourceProblems);
+        if (!body) {
+            return (<p>No problems encountered.</p>);
+        }
+        return body;
     }
+}
+
+export function renderInputErrors(inputErrors: InputErrors, resourceProblems?: number) {
+    const problems = [];
+    Object.getOwnPropertyNames(inputErrors).forEach(inputName => {
+        let error = inputErrors[inputName];
+        problems.push(<li key={inputName}>{inputName}: {error.message}</li>);
+    });
+
+    let introText;
+    if (problems.length === 0) {
+        return null;
+    } else if (problems.length === 1) {
+        introText = "The following problem has been encountered:";
+    } else {
+        introText = `The following ${problems.length} problems have been encountered:`;
+    }
+
+    const footerText = resourceProblems && resourceProblems > 0 ? (<p>This operation has
+        parameter(s) which require specifying a <em>resource</em>. When there are no compatible resources yet,
+        you may consider opening a data source or use one of the <code>read_...</code> operations first.
+    </p>) : null;
+
+    return (
+        <div className="pt-form-group">
+            {introText}
+            <div className="pt-form-content">
+                {problems}
+                <div className="pt-form-helper-text">{footerText}</div>
+            </div>
+        </div>
+    );
 }
 
