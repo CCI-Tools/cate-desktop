@@ -8,6 +8,14 @@
    [#306](https://github.com/CCI-Tools/cate/issues/306)
  * Prevent multiple concurrent attempts to load data sources
    [#386](https://github.com/CCI-Tools/cate/issues/386)
+ * Time constraint is being ignored for data download if entered in wrong format
+   [#345](https://github.com/CCI-Tools/cate/issues/345)
+ * Illegal time range accepted and used in wrong way
+   [#374](https://github.com/CCI-Tools/cate/issues/374)
+ * Open Dataset dialogue keeps values from previous selection
+   [#417](https://github.com/CCI-Tools/cate/issues/417)
+ * Values persisted in "Download Data Source" window
+   [#307](https://github.com/CCI-Tools/cate/issues/207)
 
 ### Other Changes
 
