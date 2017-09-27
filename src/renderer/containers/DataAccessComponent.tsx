@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Checkbox, Collapse} from "@blueprintjs/core";
+import {Checkbox, Collapse, Tooltip} from "@blueprintjs/core";
 import {DataSourceState, ResourceState, VariableState} from "../state";
 import {formatDateAsISODateString} from "../../common/format";
 import * as types from "../../common/cate-types";
@@ -120,12 +120,13 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         const temporalCoverage = this.props.temporalCoverage;
         const minDate = temporalCoverage && temporalCoverage[0] ? new Date(temporalCoverage[0]) : new Date('1980-01-01');
         const maxDate = temporalCoverage && temporalCoverage[1] ? new Date(temporalCoverage[1]) : new Date(Date.now());
-        const temporalCoverageText = temporalCoverage ? <span>Data availability: {temporalCoverage.join(', ')}</span> : '';
+        const temporalCoverageText = temporalCoverage ?
+            <span>Data availability: {temporalCoverage.join(', ')}</span> : '';
 
         const options = this.props.options;
 
         const hasTimeConstraint = options.hasTimeConstraint;
-        const dateRange = hasTimeConstraint ? options.dateRange || {value:[minDate, maxDate]} : options.dateRange;
+        const dateRange = hasTimeConstraint ? options.dateRange || {value: [minDate, maxDate]} : options.dateRange;
         if (hasTimeConstraint && options.dateRange) {
             try {
                 // re-validate, because min, max may have changed
@@ -168,17 +169,20 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         } else {
             headerText = (<p>Remote data source:<br/>{dataSourceNameElement}</p>);
             localDataSourceCheck = (
-                <Checkbox style={DataAccessComponent.OPTION_CHECK_STYPE}
-                          checked={isMakeLocalSelected}
-                          label="Download and make local data source (allocates space on disk)"
-                          onChange={this.onMakeLocalSelectedChange}/>
+                <Tooltip
+                    content="If unchecked, remote data will be accessed using an available protocol, e.g. OPeNDAP.">
+                    <Checkbox style={DataAccessComponent.OPTION_CHECK_STYPE}
+                              checked={isMakeLocalSelected}
+                              label="Download and make local data source (allocates space on disk)"
+                              onChange={this.onMakeLocalSelectedChange}/>
+                </Tooltip>
             );
             localDataSourcePanel = (
                 <Collapse isOpen={isMakeLocalSelected}>
                     <div style={DataAccessComponent.OPTION_DIV_STYPE}>
                         <label className="pt-label">
                             Unique identifier for the new local data source
-                            <span className="pt-text-muted"> (required)</span>
+                            <span className="pt-text-muted"> (optional)</span>
                             <input className="pt-input"
                                    style={{width: '100%'}}
                                    type="text"
@@ -369,16 +373,16 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         };
     }
 
-    static adjustLocalDataSourceName(options: IDataAccessComponentOptions, dataSource: DataSourceState): IDataAccessComponentOptions {
-        if (!options.makeLocalDataSourceId || options.makeLocalDataSourceId === '') {
-            let dataSourceId = dataSource && dataSource.id;
-            if (!dataSourceId) {
-                dataSourceId = 'unnamed';
-            }
-            return {...options, makeLocalDataSourceId: 'local.' + dataSourceId};
-        }
-        return options;
-    }
+    // static adjustLocalDataSourceName(options: IDataAccessComponentOptions, dataSource: DataSourceState): IDataAccessComponentOptions {
+    //     if (!options.makeLocalDataSourceId || options.makeLocalDataSourceId === '') {
+    //         let dataSourceId = dataSource && dataSource.id;
+    //         if (!dataSourceId) {
+    //             dataSourceId = 'unnamed';
+    //         }
+    //         return {...options, makeLocalDataSourceId: 'local.' + dataSourceId};
+    //     }
+    //     return options;
+    // }
 }
 
 
