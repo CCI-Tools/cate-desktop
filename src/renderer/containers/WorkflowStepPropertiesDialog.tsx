@@ -80,7 +80,8 @@ class WorkflowStepPropertiesDialog extends React.Component<IWorkflowStepProperti
         const newStepId = this.state.stepId ? this.state.stepId.trim() : '';
         const oldStepPersistent = this.props.selectedWorkflowStep.persistent || false;
         const newStepPersistent = this.state.stepPersistent || false;
-        return newStepId !== '' && (newStepId !== oldStepId || newStepPersistent !== oldStepPersistent);
+        const newStepIdIsValid = /^[a-zA-z_][a-zA-z0-9_]$/.test(newStepId);
+        return newStepId !== '' && (newStepId !== oldStepId || newStepPersistent !== oldStepPersistent) && newStepIdIsValid;
     }
 
     render() {
@@ -115,6 +116,8 @@ class WorkflowStepPropertiesDialog extends React.Component<IWorkflowStepProperti
                            type="text"
                            value={this.state.stepId}
                            onChange={(ev: any) => this.setState({stepId: ev.target.value})}/>
+                    <span className="pt-text-muted">The Resource name must only contain the uppercase and lowercase letters A through Z,
+                        the underscore _ and, except for the first character, the digits 0 through 9.</span>
                 </label>
 
                 <div style={{paddingTop: 10}}>
