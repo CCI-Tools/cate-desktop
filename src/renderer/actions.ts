@@ -2,7 +2,7 @@ import {
     WorkspaceState, DataStoreState, TaskState, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
-    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, Placemark
+    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, Placemark, MessageState
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
 import * as selectors from "./selectors";
@@ -202,25 +202,31 @@ function jobDone(jobId: number, jobTitle: string): Action {
 
 function jobFailed(jobId: number, jobTitle: string, failure: JobFailure): Action {
     const status = failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED;
+    let type = 'warning';
+    let text = `Cancelled: ${jobTitle}`;
+    let action;
     if (status === JobStatusEnum.FAILED) {
+        type = 'error';
+        text = `Failed: ${jobTitle} (error #${failure.code})\n${failure.message}`;
+        action = {
+            text: 'Details',
+            onClick: () => {
+                showMessageBox({
+                    type: "error",
+                    title: "Cate - Error",
+                    message: failure.message,
+                    detail: `An error (code ${failure.code}) occurred in Cate Core:\n\n${failure.data}`,
+                    buttons: [],
+                }, MESSAGE_BOX_NO_REPLY);
+            }
+        };
         console.error(failure);
     }
     showToast({
-                  type: 'error',
-                  text: `Failed: ${jobTitle} (error #${failure.code})\n${failure.message}`,
-                  action: {
-                      text: 'Details',
-                      onClick: () => {
-                          showMessageBox({
-                                             type: "error",
-                                             title: "Cate - Error",
-                                             message: failure.message,
-                                             detail: `An error (code ${failure.code}) occurred in Cate Core:\n\n${failure.data}`,
-                                             buttons: [],
-                                         }, MESSAGE_BOX_NO_REPLY);
-                      }
-                  },
-              });
+                  type: type,
+                  text: text,
+                  action: action,
+              } as MessageState);
     return updateTaskState(jobId, {status, failure});
 }
 
