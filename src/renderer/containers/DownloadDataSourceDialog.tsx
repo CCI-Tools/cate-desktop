@@ -78,7 +78,8 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
         const opArguments = DataAccessComponent.optionsToOperationArguments(options);
         this.props.dispatch(actions.openDataset(
             this.props.dataSource.id,
-            opArguments
+            opArguments,
+            this.state.options.isMakeLocalSelected
         ));
         // Save modified state
         this.setState(dialogState);

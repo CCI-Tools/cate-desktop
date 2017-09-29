@@ -319,9 +319,10 @@ export function updateDataStores(dataStores: Array<DataStoreState>): Action {
  * Asynchronously load data sources for given data store ID.
  *
  * @param dataStoreId
+ * @param setSelection
  * @returns a Redux thunk action
  */
-export function loadDataSources(dataStoreId: string): ThunkAction {
+export function loadDataSources(dataStoreId: string, setSelection: boolean): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         const requestLock = `load DataSources "${dataStoreId}"`;
         if (selectors.activeRequestLocksSelector(getState()).indexOf(requestLock) > -1) {
@@ -333,10 +334,12 @@ export function loadDataSources(dataStoreId: string): ThunkAction {
 
         function action(dataSources: DataSourceState[]) {
             dispatch(updateDataSources(dataStoreId, dataSources));
-            if (dataSources && dataSources.length) {
-                dispatch(setSelectedDataSourceId(dataSources[0].id));
-            } else {
-                dispatch(setSelectedDataSourceId(null));
+            if (setSelection) {
+                if (dataSources && dataSources.length) {
+                    dispatch(setSelectedDataSourceId(dataSources[0].id));
+                } else {
+                    dispatch(setSelectedDataSourceId(null));
+                }
             }
         }
 
@@ -358,7 +361,7 @@ export function setSelectedDataStoreId(selectedDataStoreId: string | null): Thun
         if (selectedDataStoreId !== null) {
             const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === selectedDataStoreId);
             if (!dataStore.dataSources) {
-                dispatch(loadDataSources(selectedDataStoreId));
+                dispatch(loadDataSources(selectedDataStoreId, true));
             }
         }
     }
@@ -397,7 +400,7 @@ export function updateDataSourceTemporalCoverage(dataStoreId: string,
     return {type: UPDATE_DATA_SOURCE_TEMPORAL_COVERAGE, payload: {dataStoreId, dataSourceId, temporalCoverage}};
 }
 
-export function openDataset(dataSourceId: string, args: any): ThunkAction {
+export function openDataset(dataSourceId: string, args: any, updateLocalDataSources: boolean): ThunkAction {
     return (dispatch: Dispatch) => {
 
         const opName = 'open_dataset';
@@ -413,12 +416,16 @@ export function openDataset(dataSourceId: string, args: any): ThunkAction {
         Object.keys(opArgs).forEach(name => {
             wrappedOpArgs[name] = {value: opArgs[name]};
         });
+        let postSetAction;
+        if (updateLocalDataSources) {
+            postSetAction = (dispatch: Dispatch) => {dispatch(loadDataSources('local', false));}
+        }
 
         dispatch(setWorkspaceResource(opName,
                                       wrappedOpArgs,
                                       null,
                                       false,
-                                      `Opening data source "${dataSourceId}"`));
+                                      `Opening data source "${dataSourceId}"`, postSetAction));
     }
 }
 
@@ -955,7 +962,8 @@ export function setWorkspaceResource(opName: string,
                                      opArgs: OperationKWArgs,
                                      resName: string | null,
                                      overwrite: boolean,
-                                     title: string): ThunkAction {
+                                     title: string,
+                                     postSetAction?): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         assert.ok(baseDir);
@@ -981,6 +989,9 @@ export function setWorkspaceResource(opName: string,
             }
             if (isFigure && getState().session.autoShowNewFigures) {
                 dispatch(showFigureView(resource, selectors.activeViewIdSelector(getState())))
+            }
+            if (postSetAction) {
+                dispatch(postSetAction);
             }
         }
 
