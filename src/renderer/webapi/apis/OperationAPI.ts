@@ -2,7 +2,7 @@ import {WebAPIClient} from "../WebAPIClient";
 import {JobPromise} from "../Job";
 import {OperationState, OperationInputState, OperationOutputState} from "../../state";
 
-function responseToOperation(operationsResponse: any): OperationState[] {
+function responseToOperations(operationsResponse: any): OperationState[] {
     return operationsResponse ? operationsResponse.map(responseOperationToOperation) : null;
 }
 
@@ -53,7 +53,7 @@ export class OperationAPI {
     }
 
     getOperations(): JobPromise<OperationState[]> {
-        return this.webAPIClient.call('get_operations', [], null, responseToOperation);
+        return this.webAPIClient.call('get_operations', [], null, responseToOperations);
     }
 
     /*
