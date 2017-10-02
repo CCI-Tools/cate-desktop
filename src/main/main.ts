@@ -230,10 +230,15 @@ export function init() {
         return;
     }
 
+    console.log(process.version);
+    console.log(process.versions);
+
     if (process.platform === 'darwin') {
         // Try getting around https://github.com/CCI-Tools/cate-desktop/issues/32
         // See https://electron.atom.io/docs/api/app/#appcommandlineappendswitchswitch-value
+        // See https://bugs.chromium.org/p/chromium/issues/detail?id=682075&desc=2
         app.commandLine.appendSwitch('disable_chromium_framebuffer_multisample');
+        app.commandLine.appendSwitch('disable_depth_texture');
     }
 
     _config = loadAppConfig();
