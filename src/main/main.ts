@@ -82,12 +82,11 @@ let _prefsUpdateRequestedOnClose = false;
 let _prefsUpdatedOnClose = false;
 
 
-function getOptionArg(options: string[]) {
+function getOptionArg(options: string[]): string | null {
     let args: Array<string> = process.argv.slice(1);
     for (let i = 0; i < args.length; i++) {
-        let arg = args[i];
-        if (options.indexOf(arg) >= 0 && i < args.length - 1) {
-            return args[i];
+        if (options.indexOf(args[i]) >= 0 && i < args.length - 1) {
+            return args[i + 1];
         }
     }
     return null;
