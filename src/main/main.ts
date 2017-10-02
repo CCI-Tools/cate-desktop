@@ -82,12 +82,11 @@ let _prefsUpdateRequestedOnClose = false;
 let _prefsUpdatedOnClose = false;
 
 
-function getOptionArg(options: string[]) {
+function getOptionArg(options: string[]): string | null {
     let args: Array<string> = process.argv.slice(1);
     for (let i = 0; i < args.length; i++) {
-        let arg = args[i];
-        if (options.indexOf(arg) >= 0 && i < args.length - 1) {
-            return args[i];
+        if (options.indexOf(args[i]) >= 0 && i < args.length - 1) {
+            return args[i + 1];
         }
     }
     return null;
@@ -224,10 +223,22 @@ function getMPLWebSocketsUrl(webAPIConfig) {
 
 // noinspection JSUnusedGlobalSymbols
 export function init() {
+    let modulePath = getOptionArg(['-r', '--run']);
+    if (modulePath) {
+        const module = require(modulePath);
+        module.run();
+        return;
+    }
+
+    console.log(process.version);
+    console.log(process.versions);
+
     if (process.platform === 'darwin') {
         // Try getting around https://github.com/CCI-Tools/cate-desktop/issues/32
         // See https://electron.atom.io/docs/api/app/#appcommandlineappendswitchswitch-value
+        // See https://bugs.chromium.org/p/chromium/issues/detail?id=682075&desc=2
         app.commandLine.appendSwitch('disable_chromium_framebuffer_multisample');
+        app.commandLine.appendSwitch('disable_depth_texture');
     }
 
     _config = loadAppConfig();
