@@ -93,9 +93,13 @@ class MapView extends React.Component<IMapViewProps & DispatchProp<State>, null>
         const baseDir = this.props.workspace.baseDir;
         const url = getTileUrl(this.props.baseUrl, baseDir, layer);
         let extent: ol.Extent = [-180, -90, 180, 90];
-        if (imageLayout.sector) {
-            const sector = imageLayout.sector;
-            extent = [sector.west, sector.south, sector.east, sector.north];
+        if (imageLayout.extent) {
+            extent = [
+                imageLayout.extent.west,
+                imageLayout.extent.south,
+                imageLayout.extent.east,
+                imageLayout.extent.north
+            ];
         }
         const startResolution = 360. / (imageLayout.numLevelZeroTilesX * imageLayout.tileWidth);
         const resolutions = new Array<number>(imageLayout.numLevels);

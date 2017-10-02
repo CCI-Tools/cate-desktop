@@ -285,7 +285,7 @@ export interface VariableState {
  * Image layout for use with Cesium and OpenLayers.
  */
 export interface ImageLayout {
-    sector?: {
+    extent?: {
         /** The westernmost longitude, in radians, in the range [-Pi, Pi]. */
         west: number,
         /** The southernmost latitude, in radians, in the range [-Pi/2, Pi/2]. */
