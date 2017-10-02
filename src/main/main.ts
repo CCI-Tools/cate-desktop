@@ -223,6 +223,13 @@ function getMPLWebSocketsUrl(webAPIConfig) {
 
 // noinspection JSUnusedGlobalSymbols
 export function init() {
+    let modulePath = getOptionArg(['-r', '--run']);
+    if (modulePath) {
+        const module = require(modulePath);
+        module.run();
+        return;
+    }
+
     if (process.platform === 'darwin') {
         // Try getting around https://github.com/CCI-Tools/cate-desktop/issues/32
         // See https://electron.atom.io/docs/api/app/#appcommandlineappendswitchswitch-value
