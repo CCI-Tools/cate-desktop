@@ -559,6 +559,7 @@ const initialSessionState: SessionState = {
 
     showDataSourceTitles: true,
     showLayerTextOverlay: true,
+    debugWorldView: false,
 
     backendConfig: {
         dataStoresPath: null,

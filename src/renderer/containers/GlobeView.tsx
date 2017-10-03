@@ -32,6 +32,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     selectedPlacemarkId: string | null;
     isDialogOpen: boolean;
     showLayerTextOverlay: boolean;
+    debugWorldView: boolean;
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -46,6 +47,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         selectedPlacemarkId: selectors.selectedPlacemarkIdSelector(state),
         isDialogOpen: selectors.isDialogOpenSelector(state),
         showLayerTextOverlay: state.session.showLayerTextOverlay,
+        debugWorldView: state.session.debugWorldView,
     };
 }
 
@@ -150,7 +152,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
 
         return (
             <CesiumGlobe id={'CesiumGlobe-' + this.props.view.id}
-                         debug={false}
+                         debug={this.props.debugWorldView}
                          selectedPlacemarkId={this.props.selectedPlacemarkId}
                          placemarks={placemarks}
                          layers={layers}
@@ -194,7 +196,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         let rectangle = Cesium.Rectangle.MAX_VALUE;
         if (imageLayout.extent) {
             const extent = imageLayout.extent;
-            rectangle = Cesium.Rectangle.fromDegrees(extent.west, extent.south, extent.east, extent.north);
+            rectangle = Cesium.Rectangle.fromDegrees(extent.east, extent.south, extent.west, extent.north);
         }
         return Object.assign({}, layer, {
             imageryProvider: GlobeView.createImageryProvider,
