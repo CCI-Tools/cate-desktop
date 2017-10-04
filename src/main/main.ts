@@ -193,13 +193,16 @@ function loadUserPrefs(): Configuration {
 
 function getWebAPICommonArgs(webAPIConfig) {
     const webApiExe = process.platform === 'win32' ? 'cate-webapi.exe' : 'cate-webapi';
-    return [
+    let args =[
         webApiExe,
         '--caller', 'cate-desktop',
         '--port', webAPIConfig.servicePort,
-        '--address', webAPIConfig.serviceAddress,
         '--file', webAPIConfig.serviceFile,
     ];
+    if (webAPIConfig.serviceAddress) {
+        args = args.concat('--address', webAPIConfig.serviceAddress);
+    }
+    return args;
 }
 
 
