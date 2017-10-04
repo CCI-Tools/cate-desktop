@@ -350,8 +350,8 @@ export function init() {
         // Note we are async here, because sync can take a lot of time...
         const webAPIStopArgs = getWebAPIStopArgs(webAPIConfig);
         console.log(CATE_DESKTOP_PREFIX, `Stopping Cate service using arguments: ${webAPIStopArgs}`);
-        child_process.spawn(webAPIConfig.command, webAPIStopArgs, processOptions);
-        // child_process.spawnSync(webAPIConfig.command, webAPIStopArgs, webAPIConfig.options);
+        // child_process.spawn(webAPIConfig.command, webAPIStopArgs, processOptions);
+        child_process.spawnSync(webAPIConfig.command, webAPIStopArgs, webAPIConfig.options);
     }
 
     function startUpWithWebapiService() {
