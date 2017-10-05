@@ -144,15 +144,15 @@ function loadBackendLocation() {
             let location = fs.readFileSync(locationFile, 'utf8');
             if (location) {
                 location = location.trim();
-                const webApiExe = path.join(location, process.platform === 'win32' ? 'Scripts\\cate-webapi.exe' : 'bin/cate-webapi');
-                if (fs.existsSync(webApiExe)) {
+                const cateCliExe = path.join(location, process.platform === 'win32' ? 'Scripts\\cate-cli.bat' : 'bin/cate-cli');
+                if (fs.existsSync(cateCliExe)) {
                     const version = pep440ToSemver(fileName);
                     if (semver.valid(version, true)) {
                         // Return immediately if the versions are equal.
                         if (semver.eq(version, app.getVersion(), true)) {
-                            return webApiExe;
+                            return cateCliExe;
                         }
-                        backendLocations[version] = webApiExe;
+                        backendLocations[version] = cateCliExe;
                     }
                 }
             }
@@ -192,12 +192,17 @@ function loadUserPrefs(): Configuration {
 
 
 function getWebAPICommonArgs(webAPIConfig) {
-    return [
+    const webApiExe = process.platform === 'win32' ? 'cate-webapi.exe' : 'cate-webapi';
+    let args =[
+        webApiExe,
         '--caller', 'cate-desktop',
         '--port', webAPIConfig.servicePort,
-        '--address', webAPIConfig.serviceAddress,
         '--file', webAPIConfig.serviceFile,
     ];
+    if (webAPIConfig.serviceAddress) {
+        args = args.concat('--address', webAPIConfig.serviceAddress);
+    }
+    return args;
 }
 
 
@@ -278,17 +283,17 @@ export function init() {
         //stdio: 'inherit',
         ...webAPIConfig.processOptions
     };
-    if (process.platform === 'win32' && webAPIConfig.command) {
+    // if (process.platform === 'win32' && webAPIConfig.command) {
         // For Conda executables to run on Windows, we must activate the environment.
         // We emulate this, by setting creating an equivalent environment
-        const scriptsPath = path.dirname(webAPIConfig.command);
-        const pythonPath = path.dirname(scriptsPath);
-        const env = {};
-        env['GDAL_DATA'] = `${pythonPath}\\Library\\share\\gdal`;
-        env['PROJ_LIB='] = `${pythonPath}\\Library\\share`;
-        env['PATH'] = `${pythonPath};${pythonPath}\\Library\\bin;${scriptsPath};${process.env.PATH}`;
-        processOptions.env = {...processOptions.env, ...env};
-    }
+        // const scriptsPath = path.dirname(webAPIConfig.command);
+        // const pythonPath = path.dirname(scriptsPath);
+        // const env = {};
+        // env['GDAL_DATA'] = `${pythonPath}\\Library\\share\\gdal`;
+        // env['PROJ_LIB='] = `${pythonPath}\\Library\\share`;
+        // env['PATH'] = `${pythonPath};${pythonPath}\\Library\\bin;${scriptsPath};${process.env.PATH}`;
+        // processOptions.env = {...processOptions.env, ...env};
+    // }
 
     function startWebapiService(): child_process.ChildProcess {
 
@@ -345,8 +350,8 @@ export function init() {
         // Note we are async here, because sync can take a lot of time...
         const webAPIStopArgs = getWebAPIStopArgs(webAPIConfig);
         console.log(CATE_DESKTOP_PREFIX, `Stopping Cate service using arguments: ${webAPIStopArgs}`);
-        child_process.spawn(webAPIConfig.command, webAPIStopArgs, processOptions);
-        // child_process.spawnSync(webAPIConfig.command, webAPIStopArgs, webAPIConfig.options);
+        // child_process.spawn(webAPIConfig.command, webAPIStopArgs, processOptions);
+        child_process.spawnSync(webAPIConfig.command, webAPIStopArgs, webAPIConfig.options);
     }
 
     function startUpWithWebapiService() {
