@@ -559,16 +559,14 @@ const initialSessionState: SessionState = {
 
     showDataSourceTitles: true,
     showLayerTextOverlay: true,
+    debugWorldView: false,
+    hasWebGL: hasWebGL(),
 
     backendConfig: {
         dataStoresPath: null,
         useWorkspaceImageryCache: false,
         resourceNamePattern: 'res_{index}',
     },
-
-    //hasWebGL: hasWebGL(),
-    debugWorldView: false,
-    hasWebGL: false,
 };
 
 
