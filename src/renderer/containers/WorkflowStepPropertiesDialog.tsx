@@ -80,7 +80,7 @@ class WorkflowStepPropertiesDialog extends React.Component<IWorkflowStepProperti
         const newStepId = this.state.stepId ? this.state.stepId.trim() : '';
         const oldStepPersistent = this.props.selectedWorkflowStep.persistent || false;
         const newStepPersistent = this.state.stepPersistent || false;
-        const newStepIdIsValid = /^[a-zA-z_][a-zA-z0-9_]$/.test(newStepId);
+        const newStepIdIsValid = /^[a-zA-z_][a-zA-z0-9_]*$/.test(newStepId);
         return newStepId !== '' && (newStepId !== oldStepId || newStepPersistent !== oldStepPersistent) && newStepIdIsValid;
     }
 
