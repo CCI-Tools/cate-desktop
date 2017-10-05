@@ -8,7 +8,8 @@ import {combineReducers, Reducer} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
-    newWorldView, newTableView, newFigureView, getFigureViewTitle, genPlacemarkId
+    newWorldView, newTableView, newFigureView, getFigureViewTitle, genPlacemarkId,
+    hasWebGL,
 } from "./state-util";
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
@@ -16,7 +17,6 @@ import {
     addViewToPanel, moveView, selectView
 } from "./components/ViewState";
 import {Action, SET_GLOBE_MOUSE_POSITION, SET_GLOBE_VIEW_POSITION} from "./actions";
-import {Point} from "geojson";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -564,7 +564,11 @@ const initialSessionState: SessionState = {
         dataStoresPath: null,
         useWorkspaceImageryCache: false,
         resourceNamePattern: 'res_{index}',
-    }
+    },
+
+    //hasWebGL: hasWebGL(),
+    debugWorldView: false,
+    hasWebGL: false,
 };
 
 

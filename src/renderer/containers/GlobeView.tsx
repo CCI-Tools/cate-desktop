@@ -10,11 +10,12 @@ import {
 import {connect, DispatchProp} from "react-redux";
 import {
     findVariable, findResource, getTileUrl, getGeoJSONUrl, getGeoJSONCountriesUrl,
-    COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID, findVariableIndexCoordinates
+    COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID, findVariableIndexCoordinates, hasWebGL
 } from "../state-util";
 import {ViewState} from "../components/ViewState";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
+import {NO_WEB_GL} from "../messages";
 
 const Cesium: any = require('cesium');
 
@@ -32,6 +33,8 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     selectedPlacemarkId: string | null;
     isDialogOpen: boolean;
     showLayerTextOverlay: boolean;
+    debugWorldView: boolean;
+    hasWebGL: boolean;
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -46,6 +49,8 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         selectedPlacemarkId: selectors.selectedPlacemarkIdSelector(state),
         isDialogOpen: selectors.isDialogOpenSelector(state),
         showLayerTextOverlay: state.session.showLayerTextOverlay,
+        debugWorldView: state.session.debugWorldView,
+        hasWebGL: state.session.hasWebGL,
     };
 }
 
@@ -88,6 +93,11 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     }
 
     render() {
+
+        if (!this.props.hasWebGL) {
+            return NO_WEB_GL;
+        }
+
         const placemarks = this.props.placemarks;
         const layers = [];
         const dataSources = [];
@@ -150,7 +160,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
 
         return (
             <CesiumGlobe id={'CesiumGlobe-' + this.props.view.id}
-                         debug={false}
+                         debug={this.props.debugWorldView}
                          selectedPlacemarkId={this.props.selectedPlacemarkId}
                          placemarks={placemarks}
                          layers={layers}

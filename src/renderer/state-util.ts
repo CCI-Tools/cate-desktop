@@ -363,3 +363,23 @@ function newVariableLayerDisplayProperties(variable: VariableState) {
         gamma: 1.0,
     };
 }
+
+// from https://stackoverflow.com/questions/11871077/proper-way-to-detect-webgl-support
+export function hasWebGL(): boolean {
+    let canvas;
+    let context;
+    let extensions;
+
+    try {
+        canvas = document.createElement('canvas');
+        context = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        extensions = context.getSupportedExtensions();
+        console.log(extensions);
+    } catch (e) {
+        return false;
+    }
+
+    canvas = null;
+    context = null;
+    return true;
+}
