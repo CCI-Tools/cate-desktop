@@ -697,7 +697,6 @@ export interface SessionState {
 
     showDataSourceTitles: boolean;
     showLayerTextOverlay: boolean;
-    debugWorldView: boolean;
 
     /**
      * backendConfig settings are applied on restart (of the WebAPI) only.
