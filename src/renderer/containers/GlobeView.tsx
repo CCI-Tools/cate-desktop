@@ -204,7 +204,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         let rectangle = Cesium.Rectangle.MAX_VALUE;
         if (imageLayout.extent) {
             const extent = imageLayout.extent;
-            rectangle = Cesium.Rectangle.fromDegrees(extent.east, extent.south, extent.west, extent.north);
+            rectangle = Cesium.Rectangle.fromDegrees(extent.west, extent.south, extent.east, extent.north);
         }
         return Object.assign({}, layer, {
             imageryProvider: GlobeView.createImageryProvider,
