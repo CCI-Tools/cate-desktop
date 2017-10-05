@@ -10,7 +10,7 @@ import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName,
-    computingVariableStatisticsLock
+    computingVariableStatisticsLock, hasWebGL
 } from "./state-util";
 import {ViewPath} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
@@ -134,6 +134,8 @@ export function updateControlState(controlState: any): Action {
 
 export function updatePreferences(session: any): ThunkAction {
     return (dispatch: Dispatch) => {
+        session = {...session, hasWebGL: hasWebGL()};
+        console.log(session);
         dispatch(updateSessionState(session));
         dispatch(sendPreferencesToMain());
     };
