@@ -2,12 +2,6 @@
 
 ### UX Improvements and new Features
 
- * Missing static background map
-   [#453](https://github.com/CCI-Tools/cate/issues/453)
- * Background map invisible on globe 
-   [#448](https://github.com/CCI-Tools/cate/issues/448)
- * 3D globe error on OS X
-   [#408](https://github.com/CCI-Tools/cate/issues/408)
  * Run in offline mode
    [#405](https://github.com/CCI-Tools/cate/issues/405)
  * Graceful degradation when WebGL fails
@@ -15,13 +9,22 @@
 
 ### Fixes
 
+ * 3D globe error on OS X
+   [#408](https://github.com/CCI-Tools/cate/issues/408)
+ * Background map invisible on globe 
+   [#448](https://github.com/CCI-Tools/cate/issues/448)
+ * Missing static background map
+   [#453](https://github.com/CCI-Tools/cate/issues/453)
 
 ## 1.0.0-dev.1
 
-### Fixes
- 
+### UX Improvements and new Features
+
  * Ask before exit
    [#424](https://github.com/CCI-Tools/cate/issues/424)
+
+### Fixes
+ 
  * Generated resource names not always unique
    [#391](https://github.com/CCI-Tools/cate/issues/391)
  * Two Datasets opened in parallel via OPeNDAP are loaded into same resource
