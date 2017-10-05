@@ -202,9 +202,9 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         const baseDir = this.props.workspace.baseDir;
         const url = getTileUrl(this.props.baseUrl, baseDir, layer);
         let rectangle = Cesium.Rectangle.MAX_VALUE;
-        if (imageLayout.sector) {
-            const sector = imageLayout.sector;
-            rectangle = Cesium.Rectangle.fromDegrees(sector.west, sector.south, sector.east, sector.north);
+        if (imageLayout.extent) {
+            const extent = imageLayout.extent;
+            rectangle = Cesium.Rectangle.fromDegrees(extent.west, extent.south, extent.east, extent.north);
         }
         return Object.assign({}, layer, {
             imageryProvider: GlobeView.createImageryProvider,
