@@ -1,3 +1,5 @@
+## 1.0.0-dev.2
+
 ## 1.0.0-dev.1
 
 ### UX Improvements and new Features
@@ -17,7 +19,7 @@
  * Values persisted in "Download Data Source" window
    [#307](https://github.com/CCI-Tools/cate/issues/207)
 * Only allow valid python identifiers as resource names
-  [#436](https://github.com/CCI-Tools/cate/issues/436)
+   [#436](https://github.com/CCI-Tools/cate/issues/436)
 
 ### Other Changes
 
