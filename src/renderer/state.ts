@@ -703,6 +703,9 @@ export interface SessionState {
      * backendConfig settings are applied on restart (of the WebAPI) only.
      */
     backendConfig: BackendConfigState;
+
+    debugWorldView: boolean;
+    hasWebGL: boolean;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

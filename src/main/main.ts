@@ -34,7 +34,7 @@ const dialog = electron.dialog;
  * @type {string}
  */
 // export const WEBAPI_VERSION_RANGE = ">=0.9.0-dev.5 <=0.9.0-dev.7";
-export const WEBAPI_VERSION_RANGE = "1.0.0-dev.1";
+export const WEBAPI_VERSION_RANGE = "1.0.0-dev.2";
 
 const WEBAPI_INSTALLER_CANCELLED = 1;
 const WEBAPI_INSTALLER_ERROR = 2;
@@ -283,17 +283,6 @@ export function init() {
         //stdio: 'inherit',
         ...webAPIConfig.processOptions
     };
-    // if (process.platform === 'win32' && webAPIConfig.command) {
-        // For Conda executables to run on Windows, we must activate the environment.
-        // We emulate this, by setting creating an equivalent environment
-        // const scriptsPath = path.dirname(webAPIConfig.command);
-        // const pythonPath = path.dirname(scriptsPath);
-        // const env = {};
-        // env['GDAL_DATA'] = `${pythonPath}\\Library\\share\\gdal`;
-        // env['PROJ_LIB='] = `${pythonPath}\\Library\\share`;
-        // env['PATH'] = `${pythonPath};${pythonPath}\\Library\\bin;${scriptsPath};${process.env.PATH}`;
-        // processOptions.env = {...processOptions.env, ...env};
-    // }
 
     function startWebapiService(): child_process.ChildProcess {
 
@@ -347,10 +336,9 @@ export function init() {
                 'Failed to stop Cate service.\nCate Core could not be found.');
             return;
         }
-        // Note we are async here, because sync can take a lot of time...
         const webAPIStopArgs = getWebAPIStopArgs(webAPIConfig);
         console.log(CATE_DESKTOP_PREFIX, `Stopping Cate service using arguments: ${webAPIStopArgs}`);
-        // child_process.spawn(webAPIConfig.command, webAPIStopArgs, processOptions);
+        // this must be sync to make sure the stop is performed before this process ends
         child_process.spawnSync(webAPIConfig.command, webAPIStopArgs, webAPIConfig.options);
     }
 
