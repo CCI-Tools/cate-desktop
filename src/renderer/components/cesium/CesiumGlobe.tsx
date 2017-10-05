@@ -57,12 +57,19 @@ export interface EntityCollection {
     readonly id: string;
     values: Entity[];
     show: boolean;
+
     getById(id: string): Entity;
+
     add(entity: Entity): Entity;
+
     remove(entity: Entity): boolean;
+
     removeById(id: string): boolean;
+
     removeAll(): void;
+
     suspendEvents(): void;
+
     resumeEvents(): void;
 }
 
@@ -70,6 +77,7 @@ export interface DataSource {
     name: string;
     show: boolean;
     entities: EntityCollection;
+
     update(time: any): void;
 }
 
@@ -204,6 +212,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
 
     constructor(props: ICesiumGlobeProps) {
         super(props);
+        this.handleRemoteBaseLayerError = this.handleRemoteBaseLayerError.bind(this);
     }
 
     protected renderChildren() {
@@ -223,19 +232,10 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
 
         let baseLayerImageryProvider;
         if (this.props.offlineMode) {
-            const baseUrl = Cesium.buildModuleUrl('');
-            const imageryProviderOptions = {
-                url: baseUrl + 'Assets/Textures/NaturalEarthII/{z}/{x}/{reverseY}.jpg',
-                tilingScheme: new Cesium.GeographicTilingScheme(),
-                minimumLevel: 0,
-                maximumLevel: 2,
-                credit: 'Natural Earth II: Tileset Copyright © 2012-2014 Analytical Graphics, Inc. (AGI). Original data courtesy Natural Earth and in the public domain.'
-            };
-            baseLayerImageryProvider = new Cesium.UrlTemplateImageryProvider(imageryProviderOptions);
+            baseLayerImageryProvider = CesiumGlobe.getStaticNaturalEarthImageryProvider();
         } else {
-            baseLayerImageryProvider = new Cesium.BingMapsImageryProvider({
-                url: 'http://dev.virtualearth.net'
-            });
+            baseLayerImageryProvider = new Cesium.BingMapsImageryProvider({url: 'http://dev.virtualearth.net'});
+            baseLayerImageryProvider.errorEvent.addEventListener(this.handleRemoteBaseLayerError);
         }
 
         const cesiumViewerOptions = {
@@ -274,6 +274,31 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         return viewer;
     }
 
+    private handleRemoteBaseLayerError(event) {
+        console.error('CesiumGlobe: error: ', event.message, event.timesRetried, event.error);
+        let ref = this.getExternalObjectRef();
+        if (ref) {
+            const viewer: Viewer = ref.object;
+            // On error, exchange the remote base layer with a static one.
+            let imageryLayer = viewer.imageryLayers.get(0);
+            viewer.imageryLayers.remove(imageryLayer, true);
+            let staticNaturalEarthImageryProvider = CesiumGlobe.getStaticNaturalEarthImageryProvider();
+            viewer.imageryLayers.addImageryProvider(staticNaturalEarthImageryProvider, 0);
+        }
+    }
+
+    private static getStaticNaturalEarthImageryProvider() {
+        const baseUrl = Cesium.buildModuleUrl('');
+        const imageryProviderOptions = {
+            url: baseUrl + 'Assets/Textures/NaturalEarthII/{z}/{x}/{reverseY}.jpg',
+            tilingScheme: new Cesium.GeographicTilingScheme(),
+            minimumLevel: 0,
+            maximumLevel: 2,
+            credit: 'Natural Earth II: Tileset Copyright © 2012-2014 Analytical Graphics, Inc. (AGI). Original data courtesy Natural Earth and in the public domain.'
+        };
+        return new Cesium.UrlTemplateImageryProvider(imageryProviderOptions);
+    }
+
     propsToExternalObjectState(props: ICesiumGlobeProps & CesiumGlobeState): CesiumGlobeState {
         const selectedPlacemarkId = this.props.selectedPlacemarkId;
         const placemarks = this.props.placemarks || EMPTY_ARRAY;
@@ -301,7 +326,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         const prevDataSources = (prevState && prevState.dataSources) || EMPTY_ARRAY;
         const prevOverlayHtml = (prevState && prevState.overlayHtml) || null;
         const prevSplitLayerIndex = (prevState && prevState.splitLayerIndex);
-        const prevSplitLayerPos= (prevState && prevState.splitLayerPos);
+        const prevSplitLayerPos = (prevState && prevState.splitLayerPos);
 
         const nextSelectedPlacemarkId = nextState.selectedPlacemarkId || null;
         const nextPlacemarks = nextState.placemarks || EMPTY_ARRAY;
