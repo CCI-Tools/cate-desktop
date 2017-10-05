@@ -1,11 +1,29 @@
 ## 1.0.0-dev.2
 
-## 1.0.0-dev.1
-
 ### UX Improvements and new Features
+
+ * Missing static background map
+   [#453](https://github.com/CCI-Tools/cate/issues/453)
+ * Background map invisible on globe 
+   [#448](https://github.com/CCI-Tools/cate/issues/448)
+ * 3D globe error on OS X
+   [#408](https://github.com/CCI-Tools/cate/issues/408)
+ * Run in offline mode
+   [#405](https://github.com/CCI-Tools/cate/issues/405)
+ * Graceful degradation when WebGL fails
+   [#400](https://github.com/CCI-Tools/cate/issues/400)
 
 ### Fixes
 
+
+## 1.0.0-dev.1
+
+### Fixes
+ 
+ * Ask before exit
+   [#424](https://github.com/CCI-Tools/cate/issues/424)
+ * Generated resource names not always unique
+   [#391](https://github.com/CCI-Tools/cate/issues/391)
  * Two Datasets opened in parallel via OPeNDAP are loaded into same resource
    [#306](https://github.com/CCI-Tools/cate/issues/306)
  * Prevent multiple concurrent attempts to load data sources
@@ -14,12 +32,12 @@
    [#345](https://github.com/CCI-Tools/cate/issues/345)
  * Illegal time range accepted and used in wrong way
    [#374](https://github.com/CCI-Tools/cate/issues/374)
- * Open Dataset dialogue keeps values from previous selection
-   [#417](https://github.com/CCI-Tools/cate/issues/417)
  * Values persisted in "Download Data Source" window
    [#307](https://github.com/CCI-Tools/cate/issues/207)
-* Only allow valid python identifiers as resource names
+ * Only allow valid python identifiers as resource names
    [#436](https://github.com/CCI-Tools/cate/issues/436)
+ * Open Dataset dialogue keeps values from previous selection
+   [#417](https://github.com/CCI-Tools/cate/issues/417)
 
 ### Other Changes
 
