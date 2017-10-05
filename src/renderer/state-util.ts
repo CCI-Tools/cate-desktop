@@ -374,8 +374,9 @@ export function hasWebGL(): boolean {
         canvas = document.createElement('canvas');
         context = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
         extensions = context.getSupportedExtensions();
-        console.log(extensions);
+        console.log("WebGL supported extensions:", extensions);
     } catch (e) {
+        console.warn("WebGL not supported but required by world view");
         return false;
     }
 

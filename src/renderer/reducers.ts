@@ -33,6 +33,7 @@ const initialDataState: DataState = {
             mplWebSocketUrl: '',
         },
         webAPIClient: null,
+        hasWebGL: hasWebGL(),
     },
     dataStores: null,
     operations: null,
@@ -560,7 +561,6 @@ const initialSessionState: SessionState = {
     showDataSourceTitles: true,
     showLayerTextOverlay: true,
     debugWorldView: false,
-    hasWebGL: hasWebGL(),
 
     backendConfig: {
         dataStoresPath: null,

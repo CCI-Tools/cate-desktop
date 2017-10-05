@@ -50,7 +50,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         isDialogOpen: selectors.isDialogOpenSelector(state),
         showLayerTextOverlay: state.session.showLayerTextOverlay,
         debugWorldView: state.session.debugWorldView,
-        hasWebGL: state.session.hasWebGL,
+        hasWebGL: state.data.appConfig.hasWebGL,
     };
 }
 

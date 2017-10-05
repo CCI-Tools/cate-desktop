@@ -29,7 +29,7 @@ export interface State {
  * Cate's domain data which is usually received from the Cate WebAPI service.
  */
 export interface DataState {
-    appConfig: AppConfigState; // TBD: move this to session?
+    appConfig: AppConfigState;
     dataStores: DataStoreState[] | null;
     operations: OperationState[] | null;
     workspace: WorkspaceState | null;
@@ -41,6 +41,7 @@ export interface DataState {
 export interface AppConfigState {
     webAPIConfig: WebAPIConfig;
     webAPIClient: WebAPIClient | null;
+    hasWebGL: boolean;
 }
 
 export interface WebAPIConfig {
@@ -697,14 +698,12 @@ export interface SessionState {
 
     showDataSourceTitles: boolean;
     showLayerTextOverlay: boolean;
+    debugWorldView: boolean;
 
     /**
      * backendConfig settings are applied on restart (of the WebAPI) only.
      */
     backendConfig: BackendConfigState;
-
-    debugWorldView: boolean;
-    hasWebGL: boolean;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
