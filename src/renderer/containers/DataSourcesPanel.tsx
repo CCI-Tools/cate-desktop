@@ -138,8 +138,8 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         let body;
         if (hasDataStores) {
             const hasSelection = this.props.selectedDataSource;
-            const isLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.isLocal;
-            const isDynamicLocalStore = isLocalStore && this.props.selectedDataStore.id === 'local';
+            const isDynamicLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id === 'local';
+            const isLocalStore = isDynamicLocalStore || (this.props.selectedDataStore && this.props.selectedDataStore.isLocal);
             const isNonLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id !== 'local';
             const canAdd = isDynamicLocalStore;
             const canRemove = hasSelection && isDynamicLocalStore;
