@@ -138,10 +138,11 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         let body;
         if (hasDataStores) {
             const hasSelection = this.props.selectedDataSource;
-            const isLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id === 'local';
+            const isLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.isLocal;
+            const isDynamicLocalStore = isLocalStore && this.props.selectedDataStore.id === 'local';
             const isNonLocalStore = this.props.selectedDataStore && this.props.selectedDataStore.id !== 'local';
-            const canAdd = isLocalStore;
-            const canRemove = hasSelection && isLocalStore;
+            const canAdd = isDynamicLocalStore;
+            const canRemove = hasSelection && isDynamicLocalStore;
             const canDownload = hasSelection && !isLocalStore;
             const canOpen = hasSelection && this.props.hasWorkspace;
             let primaryAction;
@@ -167,7 +168,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             const actionComponent = (
                 <div className="pt-button-group">
                     <Tooltip content="Add local data source">
-                        <AnchorButton className={(isLocalStore && !hasDataSources) ? "pt-intent-primary" : ""}
+                        <AnchorButton className={(isDynamicLocalStore && !hasDataSources) ? "pt-intent-primary" : ""}
                                       onClick={this.handleAddDatasetDialog}
                                       disabled={!canAdd}
                                       iconName="add"/>

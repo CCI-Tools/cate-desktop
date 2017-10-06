@@ -298,7 +298,7 @@ export function loadDataStores(): ThunkAction {
         function action(dataStores: DataStoreState[]) {
             let offlineMode = selectors.offlineModeSelector(getState());
             if (offlineMode) {
-                dataStores = dataStores.filter(ds => ds.is_local);
+                dataStores = dataStores.filter(ds => ds.isLocal);
             }
             dispatch(updateDataStores(dataStores));
             if (dataStores && dataStores.length) {

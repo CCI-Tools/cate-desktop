@@ -61,7 +61,7 @@ export interface WebAPIConfig {
 export interface DataStoreState {
     id: string;
     title: string | null;
-    is_local: boolean;
+    isLocal: boolean;
     dataSources?: DataSourceState[] | null;
 }
 
