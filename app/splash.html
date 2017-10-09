@@ -2,13 +2,23 @@
 <html>
 <head>
     <style type='text/css'>
-        #message-container {
-            color: black;
-            text-align: center;
-            text-shadow: 0 0 8px white;
-            font-family: Helvetica, Arial, sans-serif;
-            font-size: 14px;
+        #image {
             overflow: hidden;
+            position: relative;
+            width: 100%;
+        }
+        #message-container {
+            overflow: hidden;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 100%;
+            color: white;
+            text-align: right;
+            font-weight: lighter;
+            font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 12px;
+            /*text-shadow: 0 0 8px white;*/
         }
     </style>
     <script>
@@ -22,11 +32,9 @@
     </script>
 </head>
 <body onload="init()" style="overflow: hidden;">
-<div style="overflow: hidden;">
+<div id="image">
     <img src="resources/images/splash.png"/>
-</div>
-<div id="message-container">
-Loading Cate, please wait...
+    <span id="message-container">Loading Cate, please wait...</span>
 </div>
 </body>
 </html>

@@ -384,7 +384,7 @@ export function init() {
 
         _splashWindow = new BrowserWindow({
             width: 750,
-            height: 260,
+            height: 300,
             center: true,
             useContentSize: true,
             frame: false,
