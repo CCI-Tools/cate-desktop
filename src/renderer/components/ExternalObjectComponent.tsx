@@ -132,9 +132,9 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      * Clients must implement this method by computing the delta between *prevState* and *nextState* and update their
      * external object accordingly.
      *
-     * @param object
-     * @param prevState
-     * @param nextState
+     * @param object The external object.
+     * @param prevState The previous state, may be null or undefined.
+     * @param nextState The next state, never null, always defined.
      * @param parentContainer The parent container HTML element which either holds *container* or the *object*.
      * @param container The HTML element created by *newContainer()*, if any.
      */
