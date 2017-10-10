@@ -342,6 +342,20 @@ export function init() {
         });
     };
 
+    const shouldQuit = app.makeSingleInstance(() => {
+        // Someone tried to run a second instance, we should focus our window.
+        if (_mainWindow) {
+            if (_mainWindow.isMinimized()){
+                _mainWindow.restore();
+            }
+            _mainWindow.focus();
+        }
+    });
+    if (shouldQuit) {
+        app.quit();
+        return;
+    }
+
     // Emitted when Electron has finished initializing.
     app.on('ready', (): void => {
         initBrowserWindows();
