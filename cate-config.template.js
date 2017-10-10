@@ -10,11 +10,6 @@ module.exports = {
      */
     webAPIConfig: {
         /**
-         * Cate WebAPI service executable which points into Cate's Python environment where cate
-         * has been installed, e.g. using "python setup.py develop" or "python setup.py install".
-         */
-        command: "C:\\Users\\Norman\\Miniconda3\\envs\\cate\\Scripts\\cate-webapi.exe",
-        /**
          * The port used by the Cate WebAPI service
          */
         servicePort: 9090,
@@ -25,7 +20,7 @@ module.exports = {
         /**
          * The file in which Cate WebAPI service stores its configuration while it is running.
          */
-        serviceFile: 'cate-webapi-info.json',
+        serviceFile: 'webapi-info.json',
         /**
          * Additional process invocation options.
          * For details refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options

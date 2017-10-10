@@ -5,14 +5,13 @@ import * as path from 'path';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as child_process from 'child_process'
-import * as semver from "semver";
 import {request} from './request';
 import {updateConditionally} from '../common/objutil';
+import * as assert from '../common/assert';
 import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
 import {error} from "util";
-import {pep440ToSemver} from "../common/version";
-import {getAppDataDir, getAppIconPath} from "./appenv";
+import {getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE} from "./appenv";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -28,18 +27,10 @@ const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
 const dialog = electron.dialog;
 
-/**
- * Identifies the required version of the Cate WebAPI.
- * The value is a node-semver (https://github.com/npm/node-semver) compatible version range string.
- * @type {string}
- */
-// export const WEBAPI_VERSION_RANGE = ">=0.9.0-dev.5 <=0.9.0-dev.7";
-export const WEBAPI_VERSION_RANGE = "1.0.0-dev.3";
-
-const WEBAPI_INSTALLER_CANCELLED = 1;
-const WEBAPI_INSTALLER_ERROR = 2;
+// const WEBAPI_INSTALLER_CANCELLED = 1;
+// const WEBAPI_INSTALLER_ERROR = 2;
 // const WEBAPI_INSTALLER_MISSING = 3;
-const WEBAPI_INSTALLER_BAD_EXIT = 4;
+// const WEBAPI_INSTALLER_BAD_EXIT = 4;
 const WEBAPI_ERROR = 5;
 const WEBAPI_BAD_EXIT = 6;
 const WEBAPI_TIMEOUT = 7;
@@ -129,47 +120,6 @@ function storeConfiguration(config: Configuration, options: string[], defaultCon
     });
 }
 
-function loadBackendLocation() {
-    const dataDir = getAppDataDir();
-    if (!fs.existsSync(dataDir)) {
-        // Return immediately if there is no dataDir (yet).
-        return null;
-    }
-
-    const fileNames = fs.readdirSync(dataDir);
-    const backendLocations = {};
-    for (let fileName of fileNames) {
-        const locationFile = path.join(dataDir, fileName, 'cate.location');
-        if (fs.existsSync(locationFile)) {
-            let location = fs.readFileSync(locationFile, 'utf8');
-            if (location) {
-                location = location.trim();
-                const cateCliExe = path.join(location, process.platform === 'win32' ? 'Scripts\\cate-cli.bat' : 'bin/cate-cli');
-                if (fs.existsSync(cateCliExe)) {
-                    const version = pep440ToSemver(fileName);
-                    if (semver.valid(version, true)) {
-                        // Return immediately if the versions are equal.
-                        if (semver.eq(version, app.getVersion(), true)) {
-                            return cateCliExe;
-                        }
-                        backendLocations[version] = cateCliExe;
-                    }
-                }
-            }
-        }
-    }
-
-    let descendingVersions = Object.getOwnPropertyNames(backendLocations);
-    descendingVersions.sort((v1: string, v2: string) => semver.compare(v2, v1, true));
-
-    for (let version of descendingVersions) {
-        if (semver.satisfies(version, WEBAPI_VERSION_RANGE, true)) {
-            return backendLocations[version];
-        }
-    }
-
-    return null;
-}
 
 function loadAppConfig(): Configuration {
     return loadConfiguration(CONFIG_OPTIONS, path.resolve('cate-config.js'), 'App configuration');
@@ -193,7 +143,7 @@ function loadUserPrefs(): Configuration {
 
 function getWebAPICommonArgs(webAPIConfig) {
     const webApiExe = process.platform === 'win32' ? 'cate-webapi.exe' : 'cate-webapi';
-    let args =[
+    let args = [
         webApiExe,
         '--caller', 'cate-desktop',
         '--port', webAPIConfig.servicePort,
@@ -251,7 +201,7 @@ export function init() {
 
     // By default NODE_ENV will be 'production' so react is much faster
     process.env.NODE_ENV = _config.get('NODE_ENV', 'production');
-    console.log('process.env.NODE_ENV = ' + process.env.NODE_ENV);
+    console.log(CATE_DESKTOP_PREFIX, 'process.env.NODE_ENV = ' + process.env.NODE_ENV);
 
     let webAPIConfig = _config.get('webAPIConfig', {});
     webAPIConfig = updateConditionally(webAPIConfig, {
@@ -261,16 +211,11 @@ export function init() {
         // Refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
         processOptions: {},
     });
-    const backendLocation = loadBackendLocation();
-    if (backendLocation) {
-        webAPIConfig = updateConditionally(webAPIConfig, {
-            command: backendLocation
-        });
-    }
+    const appCliLocation = getAppCliLocation();
     _config.set('webAPIConfig', webAPIConfig);
 
     console.log(CATE_DESKTOP_PREFIX, 'appConfig:', _config.data);
-    console.log(CATE_DESKTOP_PREFIX, 'userPrefs:', _prefs.data);
+    // console.log(CATE_DESKTOP_PREFIX, 'userPrefs:', _prefs.data);
 
     let webAPIStarted = false;
     // Remember error occurred so
@@ -284,20 +229,18 @@ export function init() {
         ...webAPIConfig.processOptions
     };
 
-    function startWebapiService(): child_process.ChildProcess {
-
-        if (!webAPIConfig.command) {
-            electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
-                'Failed to start Cate service.\nCate Core could not be found.');
-            app.exit(WEBAPI_MISSING); // exit immediately
+    function startWebAPIService(): child_process.ChildProcess {
+        const appCliLocation = getAppCliLocation();
+        if (!checkCliLocation(appCliLocation)) {
+            return null;
         }
 
         const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
-        console.log(CATE_DESKTOP_PREFIX, `Starting Cate service using arguments: ${webAPIStartArgs}`);
+        console.log(CATE_DESKTOP_PREFIX, `Starting Cate service: ${appCliLocation} [${webAPIStartArgs}]`);
 
-        const webAPIProcess = child_process.spawn(webAPIConfig.command, webAPIStartArgs, processOptions);
+        const webAPIProcess = child_process.spawn(appCliLocation, webAPIStartArgs, processOptions);
         webAPIStarted = true;
-        console.log(CATE_DESKTOP_PREFIX, 'Cate service started:', webAPIProcess);
+        console.log(CATE_DESKTOP_PREFIX, 'Cate service started.');
         webAPIProcess.stdout.on('data', (data: any) => {
             console.log(CATE_WEBAPI_PREFIX, `${data}`);
         });
@@ -327,22 +270,21 @@ export function init() {
         return webAPIProcess;
     }
 
-    function stopWebapiService(webAPIProcess) {
+    function stopWebAPIService(webAPIProcess) {
+        // If there is no webAPIProcess instance, we haven't started the WebAPI service on our own.
         if (!webAPIProcess) {
             return;
         }
-        if (!webAPIConfig.command) {
-            electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
-                'Failed to stop Cate service.\nCate Core could not be found.');
-            return;
-        }
+        const appCliLocation = getAppCliLocation();
+        assert.ok(appCliLocation);
+
         const webAPIStopArgs = getWebAPIStopArgs(webAPIConfig);
         console.log(CATE_DESKTOP_PREFIX, `Stopping Cate service using arguments: ${webAPIStopArgs}`);
         // this must be sync to make sure the stop is performed before this process ends
-        child_process.spawnSync(webAPIConfig.command, webAPIStopArgs, webAPIConfig.options);
+        child_process.spawnSync(appCliLocation, webAPIStopArgs, webAPIConfig.options);
     }
 
-    function startUpWithWebapiService() {
+    function startUpWithWebAPIService() {
         const msServiceAccessTimeout = 1000; // ms
         const msServiceStartTimeout = 5000; // ms
         const msDelay = 500; // ms
@@ -358,7 +300,7 @@ export function init() {
             .catch((err) => {
                 console.log(CATE_DESKTOP_PREFIX, `Waiting for Cate service to respond after ${msSpend} ms`);
                 if (!webAPIStarted) {
-                    webAPIProcess = startWebapiService();
+                    webAPIProcess = startWebAPIService();
                 }
                 if (msSpend > msServiceStartTimeout) {
                     console.error(CATE_DESKTOP_PREFIX, `Failed to start Cate service within ${msSpend} ms.`, err);
@@ -367,7 +309,7 @@ export function init() {
                     }
                     app.exit(WEBAPI_TIMEOUT);
                 } else {
-                    setTimeout(startUpWithWebapiService, msDelay);
+                    setTimeout(startUpWithWebAPIService, msDelay);
                     msSpend += msDelay;
                 }
             });
@@ -379,7 +321,13 @@ export function init() {
         _mainWindow = new BrowserWindow({
             icon: getAppIconPath(),
             title: `${app.getName()} ${app.getVersion()}`,
+            show: false,
             ...mainWindowBounds
+        });
+
+        _mainWindow.once('ready-to-show', () => {
+            console.log(CATE_DESKTOP_PREFIX, 'Ready to show.');
+            _mainWindow.show();
         });
 
         _splashWindow = new BrowserWindow({
@@ -396,21 +344,17 @@ export function init() {
 
     // Emitted when Electron has finished initializing.
     app.on('ready', (): void => {
-        checkWebapiServiceExecutable((installerPath: string) => {
-            initBrowserWindows();
-            loadSplashWindow(() => {
-                installBackend(installerPath, () => {
-                    console.log(CATE_DESKTOP_PREFIX, 'Ready.');
-                    startUpWithWebapiService();
-                });
-            });
+        initBrowserWindows();
+        loadSplashWindow(() => {
+            console.log(CATE_DESKTOP_PREFIX, 'Ready.');
+            startUpWithWebAPIService();
         });
     });
 
     // Emitted when all windows have been closed and the application will quit.
     app.on('quit', () => {
         console.log(CATE_DESKTOP_PREFIX, 'Quit.');
-        stopWebapiService(webAPIProcess);
+        stopWebAPIService(webAPIProcess);
     });
 
     // Emitted when all windows have been closed.
@@ -510,11 +454,6 @@ function loadMainWindow() {
         // Open the DevTools.
         _mainWindow.webContents.openDevTools();
     }
-
-    // Emitted when the web page has been rendered and window can be displayed without a visual flash.
-    _mainWindow.on('ready-to-show', () => {
-        console.log(CATE_DESKTOP_PREFIX, 'Main window is ready to show.');
-    });
 
     const requestPreferencesUpdate = (event) => {
         _prefsUpdateRequestedOnClose = true;
@@ -634,53 +573,29 @@ function loadMainWindow() {
     });
 }
 
-function checkWebapiServiceExecutable(callback: (installerPath?: string) => void): boolean {
-    const webAPIConfig = _config.data.webAPIConfig;
-    if (fs.existsSync(webAPIConfig.command)) {
-        callback();
+function checkCliLocation(appCliLocation: string | null): boolean {
+    if (appCliLocation && fs.existsSync(appCliLocation)) {
         return true;
     }
 
-    const fileNames = fs.readdirSync(app.getAppPath());
-    // console.log('fileNames =', fileNames);
-    const isWin = process.platform === 'win32';
-    const finder = n => n.startsWith('cate-') && (isWin ? (n.endsWith('.exe') || n.endsWith('.bat')) : n.endsWith('.sh'));
-    const installerExeName = fileNames.find(finder);
-    if (installerExeName) {
-        const installerPath = path.join(app.getAppPath(), installerExeName);
-        const response = electron.dialog.showMessageBox({
-            type: 'info',
-            title: `${app.getName()} - Information`,
-            buttons: ['Cancel', 'OK'],
-            cancelId: 0,
-            message: 'About to install missing Cate Core.',
-            detail: 'It seems that Cate is run from this installation for the first time.\n' +
-            'Cate will now install a (Python) sandbox environment which may take\n' +
-            'some minutes. This is a one-time job and only applies to this\n' +
-            'Cate installation, no other computer settings will be changed.',
-        });
-        if (response == 0) {
-            electron.app.exit(WEBAPI_INSTALLER_CANCELLED);
-            return false;
-        } else {
-            callback(installerPath);
-            return true;
-        }
-    } else {
-        const expectedLoc = webAPIConfig.command ? "The expected location is:\n    '" + webAPIConfig.command + "'\n" : "";
-        electron.dialog.showMessageBox({
-            type: 'error',
-            title: `${app.getName()} - Fatal Error`,
-            message: `Cate Core could not be found. ${expectedLoc}\n` +
-            'Please install Cate Core first.\n\n' +
-            'Application will exit now.',
-        });
-        electron.app.exit(WEBAPI_MISSING);
-        return false;
+    let moreDetails = '';
+    if (appCliLocation) {
+        moreDetails = `The configured location is:\n${appCliLocation}\n`;
     }
+    electron.dialog.showErrorBox(`${app.getName()} - Configuration Error`,
+        `${app.getName()} requires Cate Core ${APP_CLI_VERSION_RANGE}.\n` +
+        'A compatible version could not be found.\n' +
+        `${moreDetails}` +
+        'Please install a compatible Cate Core first.\n\n' +
+        `${app.getName()} will exit now.`,
+    );
+    app.exit(WEBAPI_MISSING); // exit immediately
+    return false;
 }
 
-function installBackend(installerCommand: string, callback: () => void) {
+// Will reuse in Cate 1+.
+/*
+function installCateCore(installerCommand: string, callback: () => void) {
 
     if (!installerCommand) {
         callback();
@@ -728,3 +643,4 @@ function installBackend(installerCommand: string, callback: () => void) {
     });
     return installerProcess;
 }
+*/

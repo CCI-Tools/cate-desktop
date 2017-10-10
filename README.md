@@ -9,10 +9,38 @@
 
 ## Building from Sources
 
-Note that `cate-desktop` requires [cate](https://github.com/CCI-Tools/cate) to be installed on your system.
-Follow the instruction in `cate`'s [README](https://github.com/CCI-Tools/cate/blob/master/README.md) first.
+### Setting up Cate Core
 
-Once `cate` is ready to be used, get the source code for `cate-desktop`:
+Cate Desktop requires the [Cate](https://github.com/CCI-Tools/cate) Python environment to be installed on your system.
+Follow the instruction in [Cate's README](https://github.com/CCI-Tools/cate/blob/master/README.md) first.
+The short version is that you'll first need to install a Miniconda 3.x, then:
+
+    $ git clone https://github.com/CCI-Tools/cate.git
+    
+If you've already cloned the repo make it up to date by 
+
+    $ git pull
+
+Then, with am Anaconda/Miniconda 3.x installed create a new Python environment for Cate and install the sources
+    
+    $ cd cate
+    $ conda env create
+    $ source activate cate-env
+    $ python setup.py develop
+    
+With a successfully installed Cate sources make sure you can start Cate's WebAPI service, 
+which will be later used by Cate Desktop:
+
+    $ cate-webapi --port 9090 start
+
+You can stop it by hitting `CTRL+C` or from another shell:
+
+    $ cate-webapi --port 9090 stop
+
+
+### Setting up Cate Desktop
+
+Check out Cate Desktop from GitHub:
 
     $ git clone https://github.com/CCI-Tools/cate-desktop.git
     $ cd cate-desktop
@@ -20,24 +48,6 @@ Once `cate` is ready to be used, get the source code for `cate-desktop`:
 If you've already cloned the repo, you make it up-to-date by pulling in the latest changes:
 
     $ git pull
-
-Now copy file `cate-config.template.js` to a file named `cate-config.js`. Then adjust the `command` parameter 
-in `cate-config.js` to match the `cate-webapi` executable located in the Python environment in which you've installed 
-`cate`.
-
-On Linux and Darwin the value for `command` may look like
-
-    module.exports = {
-        webAPIConfig: {
-            command: "/home/bibo/apps/miniconda3/envs/cate/bin/cate-webapi",
-            ...
-
-while on Windows the value may be similar to (note the double backslashes!)
-
-    module.exports = {
-        webAPIConfig: {
-            command: "C:\\Users\\Bibo\\Miniconda3\\envs\\cate\\Scripts\\cate-webapi.exe",
-            ...
 
 The only development tool initially required to build cate-desktop is [Node.js](https://nodejs.org/). We use the 
 long-term support (LTS) version of Node.
@@ -47,13 +57,17 @@ This step is also required if a file named `package.json` was updated during a `
     $ npm install
 
 The project `cate-desktop` is programmed in [TypeScript](https://www.typescriptlang.org/). Therefore all TypeScript 
-sources must be compiled to JavaScript first. This step is required if there are any changes during a `git pull` command (see above).
+sources must be compiled to JavaScript first. This step is required if there are any changes during a `git pull` 
+command (see above).
 
     $ npm run compile
 
-To finally run the application:
+To finally run the Cate Desktop application, make sure Cate WebAPI service is up and running (see above) and type
     
     $ npm start
+
+
+### Cate Desktop Development
 
 The following commands are of interest for developers.
 
@@ -94,7 +108,6 @@ The following frameworks and libraries are currently used in Cate's production c
   * [redux-logger](https://github.com/evgenyrodionov/redux-logger), a logger middleware for Redux
 * [Blueprint](http://blueprintjs.com/), a React UI toolkit.
 * [Cesium](https://cesiumjs.org/), an open-source JavaScript library for world-class 3D globes and maps.
-* [OpenLayers](https://openlayers.org/), the high-performance, feature-packed library for all your mapping needs.
 
 Utilities:
 
@@ -143,6 +156,8 @@ This is how the directory structure will look like after cloning the repo:
     │   ├── index.html           # Loaded by Electron's main process
     │   └── package.json         # Electron application definition 
     ├── src/                     # TypeScript application module sources
+    │   ├── common/              # Common code running in both Electron's main and renderer processes
+    │   │   └── **/*.ts          #   TypeScript files
     │   ├── main/                # Code running in Electron's main process (with Node API access)
     │   │   └── **/*.ts          #   TypeScript files
     │   └── renderer/            # Code running in Electron's renderer process (w/o Node API access)
@@ -150,9 +165,8 @@ This is how the directory structure will look like after cloning the repo:
     │       └── **/*.tsx         #   TypeScript JSX files
     ├── e2e/                     # End-to-end tests
     │   └── **/*.js              #   JavaScript files
-    ├── .gitignore
     ├── .editorconfig            # see http://editorconfig.org/
-    ├── tsconfig.json            # TS compiler configuration
+    ├── tsconfig.json            # TypeScript compiler (tsc) configuration
     └── package.json             # Node package definition
   
 `cate-desktop` uses a [two-package.json project structure](https://github.com/electron-userland/electron-builder/wiki/Two-package.json-Structure).

@@ -1,5 +1,5 @@
 import * as electron from 'electron';
-import {getAppDataDir, getAppIconPath} from "./appenv";
+import {getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE} from "./appenv";
 
 const app = electron.app;
 
@@ -170,7 +170,7 @@ export const actions = {
     reload: {
         label: 'Reload',
         accelerator: 'CmdOrCtrl+R',
-        click (_item, focusedWindow) {
+        click(_item, focusedWindow) {
             if (focusedWindow) focusedWindow.reload()
         }
     },
@@ -179,7 +179,7 @@ export const actions = {
     toggleDevTools: {
         label: 'Toggle Developer Tools',
         accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
-        click (_item, focusedWindow) {
+        click(_item, focusedWindow) {
             if (focusedWindow) focusedWindow.webContents.toggleDevTools()
         },
         category: 'tools',
@@ -281,7 +281,17 @@ export const actions = {
             electron.dialog.showMessageBox({
                 title: `About ${app.getName()}`,
                 message: `${app.getName()}, version ${app.getVersion()}`,
-                detail: `Program: ${app.getAppPath()}\nData: ${getAppDataDir()}\n\n${app.getName()} is open source software distributed under the MIT license.`,
+                detail: '' +
+                `Program: ${app.getAppPath()}\n` +
+                `Data: ${getAppDataDir()}\n` +
+                `CLI: ${getAppCliLocation()}\n` +
+                `Requires Cate Core ${APP_CLI_VERSION_RANGE}\n` +
+                '\n' +
+                'Cate is open source software distributed under the MIT license.\n\n' +
+                'Cate is developed on top of numerous 3rd party software packages.\n' +
+                'Notably, the Cate project team would like to acknowledge following projects:\n' +
+                'Python, Conda, Xarray, Dask, Pandas, Numpy, Matplotlib, Tornado, and more for Cate Core;\n' +
+                'TypeScript, Electron, React, Redux, BlueprintJS, Cesium, and more for Cate Desktop.',
                 icon: iconImage,
             });
         },

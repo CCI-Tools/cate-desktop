@@ -46,7 +46,6 @@ export interface AppConfigState {
 
 export interface WebAPIConfig {
     // Values read by main.ts from ./cate-config.js
-    command?: string;
     servicePort: number;
     serviceAddress: string;
     serviceFile?: string;
