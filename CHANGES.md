@@ -1,4 +1,8 @@
-## 1.0.0-dev.3
+## 1.0.0
+
+ * Cate doesn't work when two instances are open at once 
+   [#459](https://github.com/CCI-Tools/cate/issues/459)
+
 
 ## 1.0.0-dev.2
 
