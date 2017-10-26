@@ -29,7 +29,7 @@ module.exports = {
     },
 
     /**
-     * Cate's user preferences file, default is ~/.cate/cate-prefs.js
+     * Cate's user preferences file, default is ~/.cate/preferences.json
      */
     prefsFile: null,
 
