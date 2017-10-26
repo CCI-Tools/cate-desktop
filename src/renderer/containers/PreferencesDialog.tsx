@@ -234,7 +234,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
             // TODO (forman): this needs a better fix
             // change[propertyName] = value;
             change[propertyName] = isDefined(value) ? (isDefined(value.value) ? value.value : value) : null;
-            console.log('getChangeHandler', propertyName, isBackend, change);
+            // console.log('getChangeHandler', propertyName, isBackend, change);
             if (isBackend) {
                 this.setBackendConfig(change);
             } else {

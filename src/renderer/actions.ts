@@ -135,7 +135,6 @@ export function updateControlState(controlState: any): Action {
 export function updatePreferences(session: any): ThunkAction {
     return (dispatch: Dispatch) => {
         session = {...session, hasWebGL: hasWebGL()};
-        console.log(session);
         dispatch(updateSessionState(session));
         dispatch(sendPreferencesToMain());
     };
@@ -1638,7 +1637,7 @@ export function openExternal(url: string): boolean {
 export function copyTextToClipboard(text: string) {
     const electron = require('electron');
     electron.clipboard.writeText(text);
-    console.log(`copied to clipboard: [${text}]`);
+    // console.log(`copied to clipboard: [${text}]`);
 }
 
 

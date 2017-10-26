@@ -148,7 +148,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         const electron = require('electron');
         const text = placemark.properties['name'];
         electron.clipboard.writeText(text);
-        console.log(`copied to clipboard [${text}]`);
+        // console.log(`copied to clipboard [${text}]`);
     }
 
     private static handleCopyPosition(placemark: Placemark) {

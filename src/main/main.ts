@@ -185,7 +185,6 @@ export function init() {
         return;
     }
 
-    console.log(process.version);
     console.log(process.versions);
 
     if (process.platform === 'darwin') {
