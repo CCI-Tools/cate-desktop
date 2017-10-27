@@ -1,7 +1,7 @@
-import * as child_process from 'child_process';
 import * as path from 'path';
 import * as os from 'os';
-import {existsFile, execFile, deleteFile, downloadFile} from './fileutil';
+import {existsFile, execFile, deleteFile, downloadFile, FileExecOutput} from './fileutil';
+import {URL} from "url";
 
 import {
     RequirementSet,
@@ -10,113 +10,114 @@ import {
     RequirementProgressHandler, RequirementState
 } from './requirement';
 
-/*
-const CONFIG = {
-    "macosx": {
-        "minicondaInstallerExec": "Miniconda3-latest-MacOSX-x86_64.sh",
-    },
-    "linux": {
-        "minicondaInstallerExec": "Miniconda3-latest-Linux-x86_64.sh",
-    },
-    "win32": {
-        "minicondaInstallerExec": "Miniconda3-latest-Windows-x86_64.exe",
-        "minicondaInstallerArgs": ['/S', '/InstallationType=JustMe', '/AddToPath=0', '/RegisterPython=0', `/D=${pythonPrefix}`],
-        "condaExec": `${pythonPrefix}\\Scripts\\conda.exe`,
-        "cateCliExec": `${pythonPrefix}\\Scripts\\cate-cli.exe`,
-    },
-    "default": {
-        "minicondaInstallerArgs": ['-b', '-f', '-p', pythonPrefix],
-        "condaArgs": ['install', '--yes', '--shortcuts', '--channel', 'ccitools', '--channel', 'conda-forge', 'cate-cli=0.9.0.dev7'],
-        "condaExec": `${pythonPrefix}/bin/conda`,
-        "cateCliExec": `${pythonPrefix}/bin/cate-cli`,
-    }
-};
-*/
+
+function _getOutput(output: FileExecOutput) {
+    // Note "python --version" outputs to stderr!
+    return ((output.stdout && output.stdout !== '') ? output.stdout : output.stderr) || '';
+}
 
 
 class DownloadMiniconda extends Requirement {
-
-    private static WIN_URL = "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe";
-    private static WIN_FILE = "miniconda-installer.exe";
 
     constructor() {
         super('DownloadMiniconda', [], 'Download Miniconda');
     }
 
-    // noinspection JSMethodCanBeStatic
-    getSourceUrl() {
-        return DownloadMiniconda.WIN_URL;
+    getMinicondaInstallerUrl(): string {
+        const platform = process.platform;
+        if (platform === "win32") {
+            return "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe";
+        } else if (platform === "darwin") {
+            return "https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh";
+        } else if (platform === "linux") {
+            return "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh";
+        }
+        throw new Error(`${this.name}: platform "${platform}" is not supported`);
     }
 
-    // noinspection JSMethodCanBeStatic
-    getTargetFile() {
-        return DownloadMiniconda.WIN_FILE;
+    getMinicondaInstallerExecutable(): string {
+        const sourceUrl = new URL(this.getMinicondaInstallerUrl());
+        const pos = sourceUrl.pathname.lastIndexOf('/');
+        return pos >= 0 ? sourceUrl.pathname.slice(pos + 1) : sourceUrl.pathname;
     }
 
     newInitialState(context: RequirementContext): RequirementState {
         return {
-            sourceUrl: this.getSourceUrl(),
-            targetFile: this.getTargetFile(),
+            minicondaInstallerUrl: this.getMinicondaInstallerUrl(),
+            minicondaInstallerExecutable: this.getMinicondaInstallerExecutable(),
         };
     }
 
     fulfilled(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<boolean> {
-        return existsFile(this.getTargetFile());
+        return existsFile(this.getMinicondaInstallerExecutable());
     }
 
     fulfill(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<any> {
-        const targetFile = this.getTargetFile();
+        const targetFile = this.getMinicondaInstallerExecutable();
         let progressHandler = (bytesReceived: number, bytesTotal: number) => {
             const percent = Math.round(100 * bytesReceived / bytesTotal);
             onProgress({message: `Downloading ${targetFile}: ${bytesReceived} of ${bytesTotal} bytes received, ${percent}%`});
         };
-        return downloadFile(this.getSourceUrl(), targetFile, progressHandler);
+        return downloadFile(this.getMinicondaInstallerUrl(), targetFile, progressHandler);
     }
 
     rollback(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<any> {
-        return deleteFile(this.getTargetFile(), true);
+        return deleteFile(this.getMinicondaInstallerExecutable(), true);
     }
 }
 
 
 class InstallMiniconda extends Requirement {
-    installDir: string;
+    minicondaInstallDir: string;
 
-    constructor(installDir: string) {
+    constructor(minicondaInstallDir: string) {
         super('InstallMiniconda', ['DownloadMiniconda'], 'Install Miniconda');
-        this.installDir = installDir;
+        this.minicondaInstallDir = minicondaInstallDir;
+    }
+
+    getMinicondaInstallerArgs() {
+        if (process.platform === "win32") {
+            return ['/S', '/InstallationType=JustMe', '/AddToPath=0', '/RegisterPython=0', `/D=${this.minicondaInstallDir}`];
+        } else {
+            return ['-b', '-f', '-p', this.minicondaInstallDir];
+        }
     }
 
     getPythonExecutable() {
-        return path.join(this.installDir, 'python.exe');
+        if (process.platform === "win32") {
+            return path.join(this.minicondaInstallDir, 'python.exe');
+        } else {
+            return path.join(this.minicondaInstallDir, 'bin', 'python');
+        }
     }
 
     newInitialState(context: RequirementContext): RequirementState {
         return {
-            installDir: this.installDir,
+            minicondaInstallDir: this.minicondaInstallDir,
+            minicondaInstallerArgs: this.getMinicondaInstallerArgs(),
             pythonExecutable: this.getPythonExecutable(),
         };
     }
 
     fulfilled(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<boolean> {
         const pythonExecutable = this.getPythonExecutable();
-        return new Promise<boolean>((resolve) => {
-            child_process.execFile(pythonExecutable, ['--version'], (error: Error, stdout: string) => {
-                resolve(!error && !!(stdout && stdout.startsWith("Python 3.") && stdout.endsWith('Anaconda, Inc.')));
-            });
+        return execFile(pythonExecutable, ['--version']).then((output: FileExecOutput) => {
+            const line = _getOutput(output);
+            return line.startsWith("Python 3.");
+        }).catch(() => {
+            return false;
         });
     }
 
     fulfill(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<any> {
-        const installDir = this.installDir;
-        const installerFile = context.getRequirementState('DownloadMiniconda').targetFile;
-        this.getState(context).installed = true;
-        return execFile(installerFile, ['/S', '/InstallationType=JustMe', '/AddToPath=0', '/RegisterPython=0', `/D=${installDir}`], onProgress);
+        const minicondaInstallerExecutable = context.getRequirementState('DownloadMiniconda').minicondaInstallerExecutable;
+        this.getState(context).minicondaInstalled = true;
+        return execFile(minicondaInstallerExecutable, this.getMinicondaInstallerArgs(), onProgress);
     }
 
     rollback(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<any> {
-        if (this.getState(context).installed) {
-            // const installDir = this.installDir;
+        if (this.getState(context).minicondaInstalled) {
+            // const minicondaInstallDir = this.minicondaInstallDir;
             // deleteInstallDir
         }
         return Promise.resolve();
@@ -132,22 +133,32 @@ class InstallOrUpdateCate extends Requirement {
     }
 
     // noinspection JSMethodCanBeStatic
-    getInstallDir(context: RequirementContext) {
-        return context.getRequirementState('InstallMiniconda').installDir;
+    getMinicondaInstallDir(context: RequirementContext) {
+        return context.getRequirementState('InstallMiniconda').minicondaInstallDir;
     }
 
     getCateCliExecutable(context: RequirementContext) {
-        return path.join(this.getInstallDir(context), 'Scripts', 'cate-cli.bat');
+        const installDir = this.getMinicondaInstallDir(context);
+        if (process.platform === "win32") {
+            return path.join(installDir, 'Scripts', 'cate-cli.bat');
+        } else {
+            return path.join(installDir, 'bin', 'cate-cli.sh');
+        }
     }
 
     getCondaExecutable(context: RequirementContext) {
-        return path.join(this.getInstallDir(context), 'Scripts', 'conda.exe');
+        const installDir = this.getMinicondaInstallDir(context);
+        if (process.platform === "win32") {
+            return path.join(installDir, 'Scripts', 'conda.exe');
+        } else {
+            return path.join(installDir, 'bin', 'conda');
+        }
     }
 
     newInitialState(context: RequirementContext): RequirementState {
         return {
             cateVersion: this.cateVersion,
-            installDir: this.getInstallDir(context),
+            installDir: this.getMinicondaInstallDir(context),
             cateCliExecutable: this.getCateCliExecutable(context),
             condaExecutable: this.getCondaExecutable(context),
         };
@@ -155,10 +166,11 @@ class InstallOrUpdateCate extends Requirement {
 
     fulfilled(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<boolean> {
         const cateCliExecutable = this.getCateCliExecutable(context);
-        return new Promise<boolean>((resolve) => {
-            child_process.execFile(cateCliExecutable, ['cate', '--version'], (error: Error, stdout: string) => {
-                resolve(!error && stdout === 'cate ' + this.cateVersion);
-            });
+        return execFile(cateCliExecutable, ['cate', '--version']).then((output: FileExecOutput) => {
+            const line = _getOutput(output);
+            return line.startsWith(this.cateVersion);
+        }).catch(() => {
+            return false;
         });
     }
 
@@ -168,19 +180,28 @@ class InstallOrUpdateCate extends Requirement {
     }
 }
 
+export function updateCateCli() {
+    //const minicondaInstallDir = path.join(os.homedir(), 'cate-test-1');
+    const minicondaInstallDir = 'D:\\cate-test-1';
+    const cateVersion = '1.0.1.dev1';
 
-export function run() {
     let downloadMiniconda = new DownloadMiniconda();
-    let installMiniconda = new InstallMiniconda(path.join(os.homedir(), 'cate-test-1'));
-    let installOrUpdateCate = new InstallOrUpdateCate('1.0.0');
+    let installMiniconda = new InstallMiniconda(minicondaInstallDir);
+    let installOrUpdateCate = new InstallOrUpdateCate(cateVersion);
     let requirementSet = new RequirementSet(downloadMiniconda,
                                             installMiniconda,
                                             installOrUpdateCate);
     requirementSet.fulfillRequirement(installOrUpdateCate.id, progress => {
         console.log(progress);
     }).then(() => {
-        console.log('OK!')
+        console.log('Cate CLI updated successfully.')
     }).catch(reason => {
-        console.error(reason)
+        console.error('Failed to update Cate CLI due to the following error:');
+        console.error(reason);
     });
+}
+
+// noinspection JSUnusedGlobalSymbols
+export function run() {
+    updateCateCli();
 }
