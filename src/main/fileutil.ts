@@ -117,7 +117,7 @@ export function downloadFile(sourceUrl: string,
 
         let request;
         if (sourceUrl.startsWith("https:")) {
-            request = https.get(sourceUrl, resHandler);
+            request = https.get(sourceUrl as any, resHandler);
         } else {
             request = http.get(sourceUrl, resHandler);
         }
