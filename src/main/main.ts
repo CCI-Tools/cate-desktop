@@ -12,6 +12,8 @@ import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
 import {error} from "util";
 import {getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE} from "./appenv";
+import {pep440ToSemver} from "../common/version";
+import installAutoUpdate from "./update-frontend";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -210,7 +212,6 @@ export function init() {
         // Refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
         processOptions: {},
     });
-    const appCliLocation = getAppCliLocation();
     _config.set('webAPIConfig', webAPIConfig);
 
     console.log(CATE_DESKTOP_PREFIX, 'appConfig:', _config.data);
@@ -392,8 +393,7 @@ export function init() {
         }
     });
 
-    // In this file you can include the rest of your app's specific main process
-    // code. You can also put them in separate files and require them here.
+    //installAutoUpdate();
 }
 
 function loadSplashWindow(callback: () => void) {
