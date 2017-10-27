@@ -39,7 +39,10 @@ export class Requirement {
     ensureFulfilled(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<any> {
         return this.fulfilled(context, onProgress).then(isFulfilled => {
             if (!isFulfilled) {
+                //console.log(`"${this.name}" is not fulfilled`);
                 return this.fulfill(context, onProgress);
+            } else {
+                //console.log(`"${this.name}" is already fulfilled`);
             }
         });
     }
@@ -134,8 +137,8 @@ export class RequirementSet implements RequirementContext {
         onProgress = onProgress || RequirementSet.NO_PROGRESS_HANDLER;
         this._requirementStates = {};
         const requirements = this.collectRequirements(requirementId);
-        let promiseSequence = this.newFulfillSequence(requirements, onProgress);
-        return promiseSequence.catch(reason => {
+        let fulfillSequence = this.newFulfillSequence(requirements, onProgress);
+        return fulfillSequence.catch(reason => {
             if (!(reason instanceof RequirementError)) {
                 throw reason;
             }
@@ -146,6 +149,7 @@ export class RequirementSet implements RequirementContext {
     private newFulfillSequence(requirements: Requirement[], onProgress: RequirementProgressHandler) {
         onProgress({worked: 0, totalWork: requirements.length});
         let ensureFulfilledReducer = (p: Promise<void>, r: Requirement, i: number) => {
+            //console.log(`adding ${r.name}`);
             return p.then(() => {
                 onProgress({name: r.name});
                 return r.ensureFulfilled(this, onProgress).then(value => {
@@ -163,6 +167,7 @@ export class RequirementSet implements RequirementContext {
         onProgress({error: error});
         const rollbackRequirements = requirements.slice(0, error.index + 1);
         let rollbackReducer = (p: Promise<void>, r: Requirement, i: number) => {
+            //console.log(`adding ${r.name}`);
             return p.then(() => {
                 onProgress({name: `Rolling back "${r.name}"`});
                 return r.rollback(this, onProgress).then(value => {
