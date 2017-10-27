@@ -2,13 +2,11 @@ import {app, autoUpdater, dialog} from "electron";
 import * as os from "os";
 
 
-export default function installAutoUpdate() {
-    if (process.env.NODE_ENV === 'development') {
-        return;
-    }
+export function installAutoUpdate() {
 
     const platform = os.platform();
     if (platform === "linux") {
+        // Electron auto-update is not available for Linuxes
         return;
     }
 
