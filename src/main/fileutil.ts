@@ -3,32 +3,48 @@ import * as https from 'https';
 import * as fs from 'fs';
 import * as child_process from "child_process";
 
+export type FileExecOutput = { stdout: string, stderr: string };
 
 /**
  * Execute a file.
  *
  * @param {string} file
  * @param {string[]} args
- * @param progress Called while executing the process. Signature: (bytesReceived: number, bytesTotal: number) => void
- * @returns {Promise<number>}
+ * @param onProgress Called while executing the process. Signature: (progress: any) => any
+ * @returns {Promise<number | FileExecOutput>}
  */
-export function execFile(file: string, args: string[], progress): Promise<number> {
-    return new Promise<number>((resolve: (code: number) => any, reject: (error: Error) => any) => {
-        progress({message: `running ${file} ` + args.map(a => a.indexOf(' ') >= 0 ? `"${a}"` : a).join(' ')});
-        const child = child_process.execFile(file, args);
-        child.stdout.on('data', (data) => {
-            progress({stdout: data});
+export function execFile(file: string, args: string[], onProgress?: (progress: any) => any): Promise<number | FileExecOutput> {
+    console.log('execFile:', file, args);
+    if (onProgress) {
+        return new Promise<number>((resolve: (code: number) => any, reject: (error: Error) => any) => {
+            onProgress({message: `running ${file} ` + args.map(a => a.indexOf(' ') >= 0 ? `"${a}"` : a).join(' ')});
+            const child = child_process.execFile(file, args);
+            child.stdout.on('data', (data) => {
+                onProgress({stdout: data});
+            });
+            child.stderr.on('data', (data) => {
+                onProgress({stderr: data});
+            });
+            child.on('close', (code) => {
+                resolve(code);
+            });
+            child.on('error', (error: Error) => {
+                reject(error);
+            });
         });
-        child.stderr.on('data', (data) => {
-            progress({stderr: data});
+    } else {
+        return new Promise<FileExecOutput>((resolve: (output: FileExecOutput) => any, reject: (error: Error) => any) => {
+            child_process.execFile(file, args, (error, stdout, stderr) => {
+                if (error) {
+                    console.log('execFile: reject: error = ', error);
+                    reject(error);
+                } else {
+                    console.log('execFile: resolve: output = ', {stdout, stderr});
+                    resolve({stdout, stderr});
+                }
+            });
         });
-        child.on('close', (code) => {
-            resolve(code);
-        });
-        child.on('error', (error: Error) => {
-            reject(error);
-        });
-    });
+    }
 }
 
 
@@ -85,8 +101,8 @@ export function downloadFile(sourceUrl: string,
                              progress: (bytesReceived: number, bytesTotal: number) => void): Promise<void> {
 
     return new Promise<void>((resolve, reject) => {
-        const tempDestFile = targetFile + ".download";
-        const file = fs.createWriteStream(tempDestFile);
+        const tempTargetFile = targetFile + ".download";
+        const file = fs.createWriteStream(tempTargetFile);
         const resHandler = (res: http.IncomingMessage) => {
             const bytesTotal = parseInt(res.headers['content-length'] as string);
             let bytesReceived = 0;
@@ -99,7 +115,7 @@ export function downloadFile(sourceUrl: string,
             });
             res.on("end", function () {
                 file.once("close", () => {
-                    fs.rename(tempDestFile, targetFile, (e: Error) => {
+                    fs.rename(tempTargetFile, targetFile, (e: Error) => {
                         if (e) {
                             reject(e);
                         } else {
@@ -127,6 +143,5 @@ export function downloadFile(sourceUrl: string,
             reject(e);
         });
     });
-
 }
 
