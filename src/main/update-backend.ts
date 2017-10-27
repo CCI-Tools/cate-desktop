@@ -10,6 +10,30 @@ import {
     RequirementProgressHandler, RequirementState
 } from './requirement';
 
+/*
+const CONFIG = {
+    "macosx": {
+        "minicondaInstallerExec": "Miniconda3-latest-MacOSX-x86_64.sh",
+    },
+    "linux": {
+        "minicondaInstallerExec": "Miniconda3-latest-Linux-x86_64.sh",
+    },
+    "win32": {
+        "minicondaInstallerExec": "Miniconda3-latest-Windows-x86_64.exe",
+        "minicondaInstallerArgs": ['/S', '/InstallationType=JustMe', '/AddToPath=0', '/RegisterPython=0', `/D=${pythonPrefix}`],
+        "condaExec": `${pythonPrefix}\\Scripts\\conda.exe`,
+        "cateCliExec": `${pythonPrefix}\\Scripts\\cate-cli.exe`,
+    },
+    "default": {
+        "minicondaInstallerArgs": ['-b', '-f', '-p', pythonPrefix],
+        "condaArgs": ['install', '--yes', '--shortcuts', '--channel', 'ccitools', '--channel', 'conda-forge', 'cate-cli=0.9.0.dev7'],
+        "condaExec": `${pythonPrefix}/bin/conda`,
+        "cateCliExec": `${pythonPrefix}/bin/cate-cli`,
+    }
+};
+*/
+
+
 class DownloadMiniconda extends Requirement {
 
     private static WIN_URL = "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe";
