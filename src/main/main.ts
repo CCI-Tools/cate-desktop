@@ -10,10 +10,9 @@ import {updateConditionally} from '../common/objutil';
 import * as assert from '../common/assert';
 import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
-import {error} from "util";
+import {error, isNumber} from "util";
 import {getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE} from "./appenv";
-import {pep440ToSemver} from "../common/version";
-import installAutoUpdate from "./update-frontend";
+import {installAutoUpdate} from "./update-frontend";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -180,11 +179,22 @@ function getMPLWebSocketsUrl(webAPIConfig) {
 
 // noinspection JSUnusedGlobalSymbols
 export function init() {
+    console.log(__dirname);
+
     let modulePath = getOptionArg(['-r', '--run']);
     if (modulePath) {
-        const module = require(modulePath);
-        module.run();
-        return;
+        try {
+            const module = require(modulePath);
+            const exitCode = module.run();
+            if (exitCode === 0) {
+                return;
+            } else if (isNumber(exitCode)) {
+                process.exit(exitCode);
+            }
+        } catch (e) {
+            console.error(e);
+            process.exit(1);
+        }
     }
 
     console.log(process.versions);
@@ -251,7 +261,7 @@ export function init() {
             console.error(CATE_WEBAPI_PREFIX, err);
             if (!webAPIError) {
                 electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
-                    'Failed to start Cate service.');
+                                             'Failed to start Cate service.');
             }
             webAPIError = err;
             app.exit(WEBAPI_ERROR); // exit immediately
@@ -319,11 +329,11 @@ export function init() {
 
         const mainWindowBounds = _prefs.data.mainWindowBounds || {width: 1366, height: 768};
         _mainWindow = new BrowserWindow({
-            icon: getAppIconPath(),
-            title: `${app.getName()} ${app.getVersion()}`,
-            show: false,
-            ...mainWindowBounds
-        });
+                                            icon: getAppIconPath(),
+                                            title: `${app.getName()} ${app.getVersion()}`,
+                                            show: false,
+                                            ...mainWindowBounds
+                                        });
 
         _mainWindow.once('ready-to-show', () => {
             console.log(CATE_DESKTOP_PREFIX, 'Ready to show.');
@@ -331,21 +341,21 @@ export function init() {
         });
 
         _splashWindow = new BrowserWindow({
-            width: 750,
-            height: 300,
-            center: true,
-            useContentSize: true,
-            frame: false,
-            alwaysOnTop: false,
-            transparent: true,
-            parent: _mainWindow
-        });
+                                              width: 750,
+                                              height: 300,
+                                              center: true,
+                                              useContentSize: true,
+                                              frame: false,
+                                              alwaysOnTop: false,
+                                              transparent: true,
+                                              parent: _mainWindow
+                                          });
     };
 
     const shouldQuit = app.makeSingleInstance(() => {
         // Someone tried to run a second instance, we should focus our window.
         if (_mainWindow) {
-            if (_mainWindow.isMinimized()){
+            if (_mainWindow.isMinimized()) {
                 _mainWindow.restore();
             }
             _mainWindow.focus();
@@ -393,16 +403,18 @@ export function init() {
         }
     });
 
-    //installAutoUpdate();
+    if (process.env.NODE_ENV !== 'development' && _prefs.data.autoUpdateEnabled) {
+        installAutoUpdate();
+    }
 }
 
 function loadSplashWindow(callback: () => void) {
 
     _splashWindow.loadURL(url.format({
-        pathname: path.join(app.getAppPath(), 'splash.html'),
-        protocol: 'file:',
-        slashes: true
-    }));
+                                         pathname: path.join(app.getAppPath(), 'splash.html'),
+                                         protocol: 'file:',
+                                         slashes: true
+                                     }));
     _splashWindow.on('closed', () => {
         _splashWindow = null;
     });
@@ -438,10 +450,10 @@ function loadMainWindow() {
     electron.Menu.setApplicationMenu(menu);
 
     _mainWindow.loadURL(url.format({
-        pathname: path.join(app.getAppPath(), 'index.html'),
-        protocol: 'file:',
-        slashes: true
-    }));
+                                       pathname: path.join(app.getAppPath(), 'index.html'),
+                                       protocol: 'file:',
+                                       slashes: true
+                                   }));
 
     _mainWindow.webContents.on('did-finish-load', () => {
         showSplashMessage('Done.');
@@ -605,55 +617,3 @@ function checkCliLocation(appCliLocation: string | null): boolean {
     app.exit(WEBAPI_MISSING); // exit immediately
     return false;
 }
-
-// Will reuse in Cate 1+.
-/*
-function installCateCore(installerCommand: string, callback: () => void) {
-
-    if (!installerCommand) {
-        callback();
-        return;
-    }
-
-    const isWin = process.platform === 'win32';
-    const installDir = path.join(app.getAppPath(), 'python');
-    const installerArgs = isWin
-        ? ['/S', '/InstallationType=JustMe', '/AddToPath=0', '/RegisterPython=0', `/D=${installDir}`]
-        : ['-b', '-f', '-p', installDir];
-
-    console.log(CATE_DESKTOP_PREFIX, `running Cate Core installer "${installerCommand}" with arguments ${installerArgs}`);
-    showSplashMessage('Running Cate Core installer, please wait...');
-    const installerProcess = child_process.spawn(installerCommand, installerArgs);
-
-    installerProcess.stdout.on('data', (data: any) => {
-        console.log(CATE_DESKTOP_PREFIX, `${data}`);
-    });
-    installerProcess.stderr.on('data', (data: any) => {
-        console.error(CATE_DESKTOP_PREFIX, `${data}`);
-    });
-    installerProcess.on('error', (err: Error) => {
-        console.log(CATE_DESKTOP_PREFIX, 'Cate Core installation failed', err);
-        electron.dialog.showMessageBox({
-            type: 'error',
-            title: `${app.getName()} - Fatal Error`,
-            message: 'Cate Core installation failed.',
-            detail: `${err}`
-        });
-        app.exit(WEBAPI_INSTALLER_ERROR); // exit immediately
-    });
-    installerProcess.on('close', (code: number) => {
-        console.log(CATE_DESKTOP_PREFIX, `Cate Core installation closed with exit code ${code}`);
-        if (code == 0) {
-            callback();
-            return;
-        }
-        electron.dialog.showMessageBox({
-            type: 'error',
-            title: `${app.getName()} - Fatal Error`,
-            message: `Cate Core installation failed with exit code ${code}.`,
-        });
-        app.exit(WEBAPI_INSTALLER_BAD_EXIT); // exit immediately
-    });
-    return installerProcess;
-}
-*/
