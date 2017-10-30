@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style type='text/css'>
+        html {
+            font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
+        }
+        #progress-bar {
+            font-weight: bolder;
+            font-size: 1.2em;
+        }
+        #install-log {
+            white-space: nowrap;
+            overflow: scroll;
+            font-weight: lighter;
+            font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.8em;
+        }
+    </style>
+    <script>
+        function init() {
+            const progressBar = document.getElementById('progress-bar');
+            function updateProgressBar(worked, totalWork) {
+                progressBar.textContent = `Step ${worked} of ${totalWork}`;
+            }
+
+            const installLog = document.getElementById('install-log');
+            function updateInstallLog(message, error) {
+                const splits = message.split('\n');
+                const innerHTML = splits.map(s => `<span>${s}</span><br/>`).join('\n');
+                installLog.innerHTML += innerHTML;
+            }
+
+            updateProgressBar(0, 0);
+            updateInstallLog("" +
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n" +
+                "Phasellus imperdiet, nulla et dictum interdum, nisi lorem egestas odio, vitae scelerisque enim ligula venenatis dolor.\n" +
+                "Maecenas nisl est, ultrices nec congue eget, auctor vitae massa.\n" +
+                "Fusce luctus vestibulum augue ut aliquet.\n" +
+                "Mauris ante ligula, facilisis sed ornare eu, lobortis in odio.\n");
+            updateInstallLog("" +
+                "Praesent convallis urna a lacus interdum ut hendrerit risus congue.\n" +
+                "Nunc sagittis dictum nisi, sed ullamcorper ipsum dignissim ac.\n" +
+                "In at libero sed nunc venenatis imperdiet sed ornare turpis. \n" +
+                "onec vitae dui eget tellus gravida venenatis.\n" +
+                "Integer fringilla congue eros non fermentum.\n" +
+                "Sed dapibus pulvinar nibh tempor porta.\n" +
+                "Cras ac leo purus.\n" +
+                "Mauris quis diam velit.");
+
+            const ipcRenderer = require('electron').ipcRenderer;
+            let totalWork;
+            let worked;
+            ipcRenderer.on('update-progress', (event, progress) => {
+                if (progress.stdout) {
+                    updateInstallLog(progress.stdout, false);
+                }
+                if (progress.stderr) {
+                    updateInstallLog(progress.stderr, true);
+                }
+                totalWork = progress.totalWork;
+                worked = progress.worked;
+                if (worked && totalWork) {
+                    updateProgressBar(worked, totalWork);
+                }
+            });
+        }
+    </script>
+</head>
+<body onload="init()" style="overflow: hidden;">
+<div>
+    <div id="info">
+        <img src="resources/images/in-progress.gif" style="float: right; margin: 10px; height: 80px;"/>
+        <div id="progress-bar"></div>
+        Cate Desktop is now updating its Python environment. This may take several minutes.
+    </div>
+    <div id="install-log" style="clear: right"></div>
+</div>
+</body>
+</html>
