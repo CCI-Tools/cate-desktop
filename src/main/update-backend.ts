@@ -9,6 +9,7 @@ import {
     RequirementContext,
     RequirementProgressHandler, RequirementState
 } from './requirement';
+import {isNumber} from "../common/types";
 
 
 function _getOutput(output: FileExecOutput) {
@@ -182,7 +183,7 @@ class InstallOrUpdateCate extends Requirement {
 
 export function updateCateCli() {
     //const minicondaInstallDir = path.join(os.homedir(), 'cate-test-1');
-    const minicondaInstallDir = 'D:\\cate-test-1';
+    const minicondaInstallDir = 'D:\\cate-test-2';
     const cateVersion = '1.0.1.dev1';
 
     let downloadMiniconda = new DownloadMiniconda();
@@ -191,8 +192,10 @@ export function updateCateCli() {
     let requirementSet = new RequirementSet(downloadMiniconda,
                                             installMiniconda,
                                             installOrUpdateCate);
+    let done = false;
     requirementSet.fulfillRequirement(installOrUpdateCate.id, progress => {
         console.log(progress);
+        done = isNumber(progress.worked) && progress.worked === progress.totalWork;
     }).then(() => {
         console.log('Cate CLI updated successfully.')
     }).catch(reason => {

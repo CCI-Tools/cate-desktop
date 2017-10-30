@@ -1,8 +1,9 @@
 export interface RequirementProgress {
-    worked?: number;
-    totalWork?: number;
     name?: string;
     message?: string;
+    worked?: number;
+    totalWork?: number;
+    done?: boolean;
     error?: RequirementError;
 }
 
@@ -147,13 +148,13 @@ export class RequirementSet implements RequirementContext {
     }
 
     private newFulfillSequence(requirements: Requirement[], onProgress: RequirementProgressHandler) {
-        onProgress({worked: 0, totalWork: requirements.length});
+        onProgress({worked: 0, totalWork: requirements.length, done: requirements.length === 0});
         let ensureFulfilledReducer = (p: Promise<void>, r: Requirement, i: number) => {
             //console.log(`adding ${r.name}`);
             return p.then(() => {
                 onProgress({name: r.name});
                 return r.ensureFulfilled(this, onProgress).then(value => {
-                    onProgress({worked: i + 1});
+                    onProgress({worked: i + 1, totalWork: requirements.length, done: i === requirements.length - 1});
                     return value;
                 }).catch(reason => {
                     throw new RequirementError(r, i, reason);
@@ -171,7 +172,7 @@ export class RequirementSet implements RequirementContext {
             return p.then(() => {
                 onProgress({name: `Rolling back "${r.name}"`});
                 return r.rollback(this, onProgress).then(value => {
-                    onProgress({worked: i});
+                    onProgress({worked: i, totalWork: requirements.length, done: i == 0});
                     return value;
                 });
             });

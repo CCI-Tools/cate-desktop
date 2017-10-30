@@ -18,12 +18,12 @@ export function execFile(file: string, args: string[], onProgress?: (progress: a
     if (onProgress) {
         return new Promise<number>((resolve: (code: number) => any, reject: (error: Error) => any) => {
             onProgress({message: `running ${file} ` + args.map(a => a.indexOf(' ') >= 0 ? `"${a}"` : a).join(' ')});
-            const child = child_process.execFile(file, args);
+            const child = child_process.spawn(file, args);
             child.stdout.on('data', (data) => {
-                onProgress({stdout: data});
+                onProgress({stdout: data.toString()});
             });
             child.stderr.on('data', (data) => {
-                onProgress({stderr: data});
+                onProgress({stderr: data.toString()});
             });
             child.on('close', (code) => {
                 resolve(code);

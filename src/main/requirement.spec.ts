@@ -71,19 +71,19 @@ describe('RequirementSet', function () {
 
         let promise = rSet.fulfillRequirement('r3', onProgress).then(() => progressTrace);
         return expect(promise).to.eventually.become([
-                                                        {worked: 0, totalWork: 3},
+                                                        {worked: 0, totalWork: 3, done: false},
                                                         {name: 'r1'},
                                                         {message: "checking r1"},
                                                         {message: "fulfilling r1"},
-                                                        {worked: 1},
+                                                        {worked: 1, totalWork: 3, done: false},
                                                         {name: 'r2'},
                                                         {message: "checking r2"},
                                                         {message: "fulfilling r2"},
-                                                        {worked: 2},
+                                                        {worked: 2, totalWork: 3, done: false},
                                                         {name: 'r3'},
                                                         {message: "checking r3"},
                                                         {message: "fulfilling r3"},
-                                                        {worked: 3},
+                                                        {worked: 3, totalWork: 3, done: true},
                                                     ] as any);
     });
 
@@ -126,28 +126,28 @@ describe('RequirementSet', function () {
 
         let promise = rSet.fulfillRequirement('r3', onProgress).then(() => progressTrace);
         return expect(promise).to.eventually.become([
-                                                        {worked: 0, totalWork: 3},
+                                                        {worked: 0, totalWork: 3, done: false},
                                                         {name: 'r1'},
                                                         {message: 'checking r1 files exist'},
                                                         {message: 'adding r1 files'},
-                                                        {worked: 1},
+                                                        {worked: 1, totalWork: 3, done: false},
                                                         {name: 'r2'},
                                                         {message: 'checking r2 files exist'},
                                                         {message: 'adding r2 files'},
-                                                        {worked: 2},
+                                                        {worked: 2, totalWork: 3, done: false},
                                                         {name: 'r3'},
                                                         {message: 'checking r3 files exist'},
                                                         {message: 'adding r3 files'},
                                                         {error: new RequirementError(rSet.getRequirement('r3'), 2, new Error('disk full'))},
                                                         {name: 'Rolling back "r3"'},
                                                         {message: 'removing r3 files'},
-                                                        {worked: 2},
+                                                        {worked: 2, totalWork: 3, done: false},
                                                         {name: 'Rolling back "r2"'},
                                                         {message: 'removing r2 files'},
-                                                        {worked: 1},
+                                                        {worked: 1, totalWork: 3, done: false},
                                                         {name: 'Rolling back "r1"'},
                                                         {message: 'removing r1 files'},
-                                                        {worked: 0},
+                                                        {worked: 0, totalWork: 3, done: true},
                                                     ] as any);
     });
 });
