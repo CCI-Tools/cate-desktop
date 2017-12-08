@@ -12,6 +12,7 @@ import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
 import {error} from "util";
 import {getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE} from "./appenv";
+import * as net from "net";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -35,6 +36,11 @@ const WEBAPI_ERROR = 5;
 const WEBAPI_BAD_EXIT = 6;
 const WEBAPI_TIMEOUT = 7;
 const WEBAPI_MISSING = 8;
+
+// As the first port in the dynamic/private range (49152-65535),
+// this port is commonly used by applications that utilize a dynamic/random/configurable port.
+const WEBAPI_PORT_RANGE = [49152, 65535];
+
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -250,7 +256,7 @@ export function init() {
             console.error(CATE_WEBAPI_PREFIX, err);
             if (!webAPIError) {
                 electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
-                    'Failed to start Cate service.');
+                                             'Failed to start Cate service.');
             }
             webAPIError = err;
             app.exit(WEBAPI_ERROR); // exit immediately
@@ -318,11 +324,11 @@ export function init() {
 
         const mainWindowBounds = _prefs.data.mainWindowBounds || {width: 1366, height: 768};
         _mainWindow = new BrowserWindow({
-            icon: getAppIconPath(),
-            title: `${app.getName()} ${app.getVersion()}`,
-            show: false,
-            ...mainWindowBounds
-        });
+                                            icon: getAppIconPath(),
+                                            title: `${app.getName()} ${app.getVersion()}`,
+                                            show: false,
+                                            ...mainWindowBounds
+                                        });
 
         _mainWindow.once('ready-to-show', () => {
             console.log(CATE_DESKTOP_PREFIX, 'Ready to show.');
@@ -330,21 +336,21 @@ export function init() {
         });
 
         _splashWindow = new BrowserWindow({
-            width: 750,
-            height: 300,
-            center: true,
-            useContentSize: true,
-            frame: false,
-            alwaysOnTop: false,
-            transparent: true,
-            parent: _mainWindow
-        });
+                                              width: 750,
+                                              height: 300,
+                                              center: true,
+                                              useContentSize: true,
+                                              frame: false,
+                                              alwaysOnTop: false,
+                                              transparent: true,
+                                              parent: _mainWindow
+                                          });
     };
 
     const shouldQuit = app.makeSingleInstance(() => {
         // Someone tried to run a second instance, we should focus our window.
         if (_mainWindow) {
-            if (_mainWindow.isMinimized()){
+            if (_mainWindow.isMinimized()) {
                 _mainWindow.restore();
             }
             _mainWindow.focus();
@@ -399,10 +405,10 @@ export function init() {
 function loadSplashWindow(callback: () => void) {
 
     _splashWindow.loadURL(url.format({
-        pathname: path.join(app.getAppPath(), 'splash.html'),
-        protocol: 'file:',
-        slashes: true
-    }));
+                                         pathname: path.join(app.getAppPath(), 'splash.html'),
+                                         protocol: 'file:',
+                                         slashes: true
+                                     }));
     _splashWindow.on('closed', () => {
         _splashWindow = null;
     });
@@ -438,10 +444,10 @@ function loadMainWindow() {
     electron.Menu.setApplicationMenu(menu);
 
     _mainWindow.loadURL(url.format({
-        pathname: path.join(app.getAppPath(), 'index.html'),
-        protocol: 'file:',
-        slashes: true
-    }));
+                                       pathname: path.join(app.getAppPath(), 'index.html'),
+                                       protocol: 'file:',
+                                       slashes: true
+                                   }));
 
     _mainWindow.webContents.on('did-finish-load', () => {
         showSplashMessage('Done.');
@@ -605,6 +611,33 @@ function checkCliLocation(appCliLocation: string | null): boolean {
     app.exit(WEBAPI_MISSING); // exit immediately
     return false;
 }
+
+
+
+function findFreePort(fromPort?: number, toPort?: number, callback?: (port: number) => void) {
+    fromPort = fromPort || 49152;
+    toPort = toPort || 65535;
+
+    const findPort = (port: number) => {
+        const server = net.createServer();
+        server.listen(port, () => {
+            server.once('close', () => {
+                callback(port);
+            });
+            server.close();
+        });
+        server.on('error', () => {
+            if (port < toPort) {
+                findPort(port + 1);
+            } else {
+                callback(-1);
+            }
+        });
+    };
+
+    findPort(fromPort);
+}
+
 
 // Will reuse in Cate 1+.
 /*
