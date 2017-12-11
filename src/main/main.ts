@@ -41,6 +41,7 @@ const WEBAPI_MISSING = 8;
 // be closed automatically when the JavaScript object is garbage collected.
 let _mainWindow;
 let _splashWindow;
+let _updateWindow;
 
 /**
  * Preferences loaded from $home/.cate/preferences.json
@@ -350,6 +351,17 @@ export function init() {
                                               transparent: true,
                                               parent: _mainWindow
                                           });
+
+
+        _updateWindow = new BrowserWindow({
+                                              width: 750,
+                                              height: 400,
+                                              center: true,
+                                              //frame: false,
+                                              alwaysOnTop: false,
+                                              parent: _mainWindow
+                                          });
+
     };
 
     const shouldQuit = app.makeSingleInstance(() => {
@@ -616,4 +628,21 @@ function checkCliLocation(appCliLocation: string | null): boolean {
     );
     app.exit(WEBAPI_MISSING); // exit immediately
     return false;
+}
+
+function checkForUpdates() {
+    openUpdateWindow();
+}
+
+(app as any).checkForUpdates = checkForUpdates;
+
+function openUpdateWindow() {
+    _updateWindow.loadURL(url.format({
+                                         pathname: path.join(app.getAppPath(), 'update.html'),
+                                         protocol: 'file:',
+                                         slashes: true
+                                     }));
+    _updateWindow.on('closed', () => {
+        _updateWindow = null;
+    });
 }

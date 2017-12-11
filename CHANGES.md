@@ -1,13 +1,11 @@
-## 1.0.0
+## Version 1.0.1-dev.1 (xx.yy.2018) 
 
- * Cate doesn't work when two instances are open at once 
-   [#459](https://github.com/CCI-Tools/cate/issues/459)
-
-
-## 1.0.0-dev.2
+## Version 1.0.0 (10.10.2017)
 
 ### UX Improvements and new Features
 
+ * Ask before exit
+   [#424](https://github.com/CCI-Tools/cate/issues/424)
  * Run in offline mode
    [#405](https://github.com/CCI-Tools/cate/issues/405)
  * Graceful degradation when WebGL fails
@@ -15,22 +13,14 @@
 
 ### Fixes
 
+ * Cate doesn't work when two instances are open at once 
+   [#459](https://github.com/CCI-Tools/cate/issues/459)
  * 3D globe error on OS X
    [#408](https://github.com/CCI-Tools/cate/issues/408)
  * Background map invisible on globe 
    [#448](https://github.com/CCI-Tools/cate/issues/448)
  * Missing static background map
    [#453](https://github.com/CCI-Tools/cate/issues/453)
-
-## 1.0.0-dev.1
-
-### UX Improvements and new Features
-
- * Ask before exit
-   [#424](https://github.com/CCI-Tools/cate/issues/424)
-
-### Fixes
- 
  * Generated resource names not always unique
    [#391](https://github.com/CCI-Tools/cate/issues/391)
  * Two Datasets opened in parallel via OPeNDAP are loaded into same resource
@@ -54,52 +44,17 @@
    keeping it in sync with the 3D globe view (Cesium).
    [#390](https://github.com/CCI-Tools/cate/issues/390)
 
-## 0.9.0-dev.7 (unreleased)
+## Version 0.9.0
 
 ### UX Improvements and new Features
 
- * The **Download Data Source** dialog opened from the **DATA SOURCES** panel has been simplified and now produces 
-   a new workflow step which calls operation `open_dataset(..., force_local=True)` 
-   [#366](https://github.com/CCI-Tools/cate/issues/366). Like for any other operation step, 
-   users can be inspect and edit input values and re-invoke the operation any time later 
-   from the **WORKSPACE** panel [#314](https://github.com/CCI-Tools/cate/issues/314).  
- * On the **Abstract** tab of the **DATA SOURCES** panel show information about spatial and temporal coverage.
- * Enable the **Show data in table** action only for resources of type type `DataFrame`.
-
-### Fixes
-
- * "Window" sub-menu is empty [#362](https://github.com/CCI-Tools/cate/issues/362)
- * Splash screen must not stay on top [#363](https://github.com/CCI-Tools/cate/issues/363)
- * Make alpha blending work for all color maps [#360](https://github.com/CCI-Tools/cate/issues/360)
- * GUI-Preferences for data store files do not overwrite conf.py
-   [#350](https://github.com/CCI-Tools/cate/issues/350)
-
-## 0.9.0-dev.6
-
-### Fixes
-
- * Fixed date input components (for a single date and for date ranges) used in diverse places. 
-   Now a simple text input field is used.
-   [#303](https://github.com/CCI-Tools/cate/issues/303) and [#335](https://github.com/CCI-Tools/cate/issues/335)
- * Only persist the parameter values for the Time and Region constraints in the 
-   **Open Local Dataset** and **Download Data Source** dialogs of the **DATA SOURCES** panel.
-   [#307](https://github.com/CCI-Tools/cate/issues/307) and [#308](https://github.com/CCI-Tools/cate/issues/308)
-
-## 0.9.0-dev.5
-
-### Fixes
-
- * Fix handling and formatting of date ranges [#313](https://github.com/CCI-Tools/cate/issues/313).
- * The resource switch in the **OPERATION STEP** dialog is only enabled
-   when the drop-down box would contain any **compatible resource**
-   [#310](https://github.com/CCI-Tools/cate/issues/310).
- * Only show lat/lon values when mouse is over globe [#312](https://github.com/CCI-Tools/cate/issues/312).
- * Prevent a 2nd (and 3rd) invocation of the variable statistics computation
-
-## 0.9.0-dev.4
-
-### UX Improvements and new Features
-
+* The **Download Data Source** dialog opened from the **DATA SOURCES** panel has been simplified and now produces 
+  a new workflow step which calls operation `open_dataset(..., force_local=True)` 
+  [#366](https://github.com/CCI-Tools/cate/issues/366). Like for any other operation step, 
+  users can be inspect and edit input values and re-invoke the operation any time later 
+  from the **WORKSPACE** panel [#314](https://github.com/CCI-Tools/cate/issues/314).  
+* On the **Abstract** tab of the **DATA SOURCES** panel show information about spatial and temporal coverage.
+* Enable the **Show data in table** action only for resources of type type `DataFrame`.
 * To speed up loading of workspaces, workflow steps can now be *persistent*:
   When a workspace is saved, all persistent steps that produce resources of type `Dataset`  
   write their current resources to a `<workspace-dir>/.cate-workspace/<resource_name>.nc` file.
@@ -119,64 +74,65 @@
   - add details action to failed tasks
 * The **VIEW** panel now has a checkbox *Split selected image layer*. If selected, the selected 
   image layer can be vertically split, where only the left side of the split remains visible.
-
-
-## 0.9.0-dev.3
-
-### Fixes
-
 * Fixed in the **WORKSPACE** panel the details table for dataset attributes, table was always empty.
 * Fixed a problem with the *Download Data Source* dialog opened from **DATA SOURCES** panel.
   It always used the last local data source name, although a different remote data source has been selected.
 * 2D map / 3D globe layer containing country borders now works.
-
-
-## 0.9.0-dev.2
-
-### UX Improvements and new Features
-
-1. Improvements for the **DATA SOURCES** panel:
+* Improvements for the **DATA SOURCES** panel:
    * To simplify data access for new users, there is now only one primary action for both the
     `local` and the `esa_cci_odp` data stores: *Open Local Dataset* and *Download Data Source*.
     The latter can now also open the dataset after download or open from remote (using OPeNDAP).
    * Edit fields for the constraints such as time range, region, variable names are now collapsible.
-2. Plots can now have a title
-3. Currently visible variable layers and their indexers are now shown as overlay in 3D Globe view. 
+* Plots can now have a title
+* Currently visible variable layers and their indexers are now shown as overlay in 3D Globe view. 
    The overlay can be turned off in the **VIEWS** panel.
-4. Added an *Copy to Clipboard* action in **WORKSPACE** panel which is used to copy the workflow steps 
+* Added an *Copy to Clipboard* action in **WORKSPACE** panel which is used to copy the workflow steps 
    to JSON, Python script, and shell script.
-5. Figure views now have scrollbars.
-   
-### Fixes
-
-* Fixed a severe bug where Cate Desktop was unable to find the matching `~/.cate/<version>` directory.
-  (Problem was a bug in conversion from PEP440 to SemVer version strings.)
-* Fixed a problem with non-editable *variable names* field in *Download Dataset* and *Open Dataset* dialogs
-  opened from the **DATA SOURCES** panel.
-
-
-## 0.9.0-dev.1
-
-### UX Improvements and new Features
-
-1. Various improvements for the **DATA SOURCES** panel:
+* Figure views now have scrollbars.
+* Various improvements for the **DATA SOURCES** panel:
    * Displaying human-readable data source titles
      retrieved from the data catalogue of the CCI ODP.
    * New details view which shows the abstract and a button to open the related CCI ODP catalogue page
    * Open Dataset Dialogs titles are now either "Open Local Dataset" or "Open Remote Dataset (via OPeNDAP)"
    * Download button now always disabled for the "local" data store
    * Open and download dialogs now use "Lon. from/to" and "Lat. from/to" rather than "W", "E", "S", "N"
-2. Improved the default placeholder text for geometry fields  
-3. Operation dialog shows operation name in title
-4. Double-click on list elements now invokes the primary action (the blue button).
+* Improved the default placeholder text for geometry fields  
+* Operation dialog shows operation name in title
+* Double-click on list elements now invokes the primary action (the blue button).
    Note, there is still an issue with double-clicks on already selected items.
    Double-clicks should now work for **DATA SOURCE** panel, **OPERATIONS** panel, 
    and variable selection dialogs.   
-5. The details tables of the **DATA SOURCES** panel and **WORKSPACE** panel
+* The details tables of the **DATA SOURCES** panel and **WORKSPACE** panel
    now have a `...` button to show long values in a pop-up window. 
-6. In **VARIABLES** panel, we now display all (meta-info) attributes of the selected variable.
+* In **VARIABLES** panel, we now display all (meta-info) attributes of the selected variable.
 
-## 0.8.0-rc.7.dev.1
+
+### Fixes
+
+* "Window" sub-menu is empty [#362](https://github.com/CCI-Tools/cate/issues/362)
+* Splash screen must not stay on top [#363](https://github.com/CCI-Tools/cate/issues/363)
+* Make alpha blending work for all color maps [#360](https://github.com/CCI-Tools/cate/issues/360)
+* GUI-Preferences for data store files do not overwrite conf.py
+  [#350](https://github.com/CCI-Tools/cate/issues/350)
+* Fixed date input components (for a single date and for date ranges) used in diverse places. 
+  Now a simple text input field is used.
+  [#303](https://github.com/CCI-Tools/cate/issues/303) and [#335](https://github.com/CCI-Tools/cate/issues/335)
+* Only persist the parameter values for the Time and Region constraints in the 
+  **Open Local Dataset** and **Download Data Source** dialogs of the **DATA SOURCES** panel.
+  [#307](https://github.com/CCI-Tools/cate/issues/307) and [#308](https://github.com/CCI-Tools/cate/issues/308)
+* Fix handling and formatting of date ranges [#313](https://github.com/CCI-Tools/cate/issues/313).
+* The resource switch in the **OPERATION STEP** dialog is only enabled
+  when the drop-down box would contain any **compatible resource**
+  [#310](https://github.com/CCI-Tools/cate/issues/310).
+* Only show lat/lon values when mouse is over globe [#312](https://github.com/CCI-Tools/cate/issues/312).
+* Prevent a 2nd (and 3rd) invocation of the variable statistics computation
+* Fixed a severe bug where Cate Desktop was unable to find the matching `~/.cate/<version>` directory.
+  (Problem was a bug in conversion from PEP440 to SemVer version strings.)
+* Fixed a problem with non-editable *variable names* field in *Download Dataset* and *Open Dataset* dialogs
+  opened from the **DATA SOURCES** panel.
+
+
+## Version 0.8.0
 
 ### UX Improvements
 
@@ -194,18 +150,6 @@
 5. The *Workflow* tab showing workflow steps in the **WORKSPACE** panel is now the primary tab.
    Selecting a workflow steps also selects its output resource.
 6. Use letters as initial placemark names.
-
-### Fixes
-
-1. Fixed problem with numeric input fields which accepted only integer values rather than floats (ONGOING) 
-2. Fixed bug where two clicks were required to create a new placemark
-3. Removed the non-functional dummy menu from left/right tool panel headers.
-4. Fixed validation of variable names when there is no resource with variables to to compare with
-5. Fixed problem where numeric/text inputs in modal dialogs where not accepted (root cause was continued 3D globe position display in status bar)
-6. Fixed copy position to clipboard, which copied name instead
-
-## 0.8.0-rc.6
-
 1. Added **PLACEMARKS** panel, which provides a simple placemark management
    * add placemark (by clicking on globe)
    * add placemark (by globe center coordinate)
@@ -228,9 +172,6 @@
 12. Fixed problem where no open dialog was displayed after pressing the *Open* or *Download* buttons 
     in the **DATA SOURCES** panel (in the logs: `DateRangeInput value cannot be null`).
 13. Fixed bug where the selected placemark is misplaced after CesiumView is remounted
-
-## 0.8.0-rc.5
-
 1. Operation step inputs can now be edited an re-executed: 
    In **WORKSPACE** panel, select **Steps**, select a step, and click the **Edit** button.   
 2. `matplotlib` figures returned from various `plot` operations can now be displayed with some limited interactions 
@@ -243,7 +184,13 @@
 5. Fixed problem where a variable's **image layer settings were gone** after selecting another variable.
    Such layer settings are now stored in user preferences store, so that they are available in the next Cate session.
 
-## 0.8.0-rc.4
+### Fixes
 
+1. Fixed problem with numeric input fields which accepted only integer values rather than floats (ONGOING) 
+2. Fixed bug where two clicks were required to create a new placemark
+3. Removed the non-functional dummy menu from left/right tool panel headers.
+4. Fixed validation of variable names when there is no resource with variables to to compare with
+5. Fixed problem where numeric/text inputs in modal dialogs where not accepted (root cause was continued 3D globe position display in status bar)
+6. Fixed copy position to clipboard, which copied name instead
 1. fixed problem where Cate backend couldn't be started (cause: wrong stdio config for node's `child_process.spawn()`)
 2. fixed problem where Cate backend couldn't be stopped (cause: the backend was invoked without activated Python env)
