@@ -28,14 +28,11 @@ const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
 const dialog = electron.dialog;
 
-// const WEBAPI_INSTALLER_CANCELLED = 1;
-// const WEBAPI_INSTALLER_ERROR = 2;
-// const WEBAPI_INSTALLER_MISSING = 3;
-// const WEBAPI_INSTALLER_BAD_EXIT = 4;
-const WEBAPI_ERROR = 5;
-const WEBAPI_BAD_EXIT = 6;
-const WEBAPI_TIMEOUT = 7;
-const WEBAPI_MISSING = 8;
+const WEBAPI_INTERNAL_ERROR = 1;
+const WEBAPI_TIMEOUT = 2;
+const WEBAPI_MISSING = 3;
+const WEBAPI_NO_FREE_PORT = 4;
+const WEBAPI_BAD_EXIT = 1000;
 
 // As the first port in the dynamic/private range (49152-65535),
 // this port is commonly used by applications that utilize a dynamic/random/configurable port.
@@ -216,16 +213,13 @@ export function init() {
         // Refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
         processOptions: {},
     });
-    const appCliLocation = getAppCliLocation();
     _config.set('webAPIConfig', webAPIConfig);
 
     console.log(CATE_DESKTOP_PREFIX, 'appConfig:', _config.data);
     // console.log(CATE_DESKTOP_PREFIX, 'userPrefs:', _prefs.data);
 
     let webAPIStarted = false;
-    // Remember error occurred so
     let webAPIError = null;
-
     let webAPIProcess = null;
 
     const processOptions = {
@@ -234,45 +228,60 @@ export function init() {
         ...webAPIConfig.processOptions
     };
 
-    function startWebAPIService(): child_process.ChildProcess {
+    function startWebAPIService(callback: (process: child_process.ChildProcess) => void) {
+
         const appCliLocation = getAppCliLocation();
         if (!checkCliLocation(appCliLocation)) {
             return null;
         }
 
-        const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
-        console.log(CATE_DESKTOP_PREFIX, `Starting Cate service: ${appCliLocation} [${webAPIStartArgs}]`);
+        showSplashMessage('Searching unused port...');
+        findFreePort(webAPIConfig.servicePort, null, (freePort: number) => {
+            if (freePort < webAPIConfig.servicePort) {
+                console.error(CATE_DESKTOP_PREFIX, "Can't find any free port");
+                electron.dialog.showErrorBox(`${app.getName()} - Error`, "Can't find any free port");
+                app.exit(WEBAPI_NO_FREE_PORT);
+                return;
+            }
+            if (freePort != webAPIConfig.servicePort) {
+                console.warn(CATE_DESKTOP_PREFIX, `Cate has been configured to use port ${webAPIConfig.servicePort}, but next free port is ${freePort}`);
+            }
+            webAPIConfig.servicePort = freePort;
 
-        const webAPIProcess = child_process.spawn(appCliLocation, webAPIStartArgs, processOptions);
-        webAPIStarted = true;
-        console.log(CATE_DESKTOP_PREFIX, 'Cate service started.');
-        webAPIProcess.stdout.on('data', (data: any) => {
-            console.log(CATE_WEBAPI_PREFIX, `${data}`);
-        });
-        webAPIProcess.stderr.on('data', (data: any) => {
-            console.error(CATE_WEBAPI_PREFIX, `${data}`);
-        });
-        webAPIProcess.on('error', (err: Error) => {
-            console.error(CATE_WEBAPI_PREFIX, err);
-            if (!webAPIError) {
-                electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
-                                             'Failed to start Cate service.');
-            }
-            webAPIError = err;
-            app.exit(WEBAPI_ERROR); // exit immediately
-        });
-        webAPIProcess.on('close', (code: number) => {
-            let message = `Cate service process exited with code ${code}.`;
-            console.log(CATE_WEBAPI_PREFIX, message);
-            if (code != 0) {
+            const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
+            console.log(CATE_DESKTOP_PREFIX, `Starting Cate service: ${appCliLocation} [${webAPIStartArgs}]`);
+
+            webAPIProcess = child_process.spawn(appCliLocation, webAPIStartArgs, processOptions);
+            console.log(CATE_DESKTOP_PREFIX, 'Cate service started.');
+            webAPIProcess.stdout.on('data', (data: any) => {
+                console.log(CATE_WEBAPI_PREFIX, `${data}`);
+            });
+            webAPIProcess.stderr.on('data', (data: any) => {
+                console.error(CATE_WEBAPI_PREFIX, `${data}`);
+            });
+            webAPIProcess.on('error', (err: Error) => {
+                console.error(CATE_WEBAPI_PREFIX, err);
                 if (!webAPIError) {
-                    electron.dialog.showErrorBox(`${app.getName()} - Internal Error`, message);
+                    electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
+                                                 'Failed to start Cate service.');
                 }
-                webAPIError = new Error(message);
-                app.exit(WEBAPI_BAD_EXIT); // exit immediately
-            }
+                webAPIError = err;
+                app.exit(WEBAPI_INTERNAL_ERROR); // exit immediately
+            });
+            webAPIProcess.on('close', (code: number) => {
+                let message = `Cate service process exited with code ${code}.`;
+                console.log(CATE_WEBAPI_PREFIX, message);
+                if (code != 0) {
+                    if (!webAPIError) {
+                        electron.dialog.showErrorBox(`${app.getName()} - Internal Error`, message);
+                    }
+                    webAPIError = new Error(message);
+                    app.exit(WEBAPI_BAD_EXIT + code); // exit immediately
+                }
+            });
+
+            callback(webAPIProcess);
         });
-        return webAPIProcess;
     }
 
     function stopWebAPIService(webAPIProcess) {
@@ -289,12 +298,13 @@ export function init() {
         child_process.spawnSync(appCliLocation, webAPIStopArgs, webAPIConfig.options);
     }
 
+    const msServiceAccessTimeout = 1000; // ms
+    const msServiceStartTimeout = 5000; // ms
+    const msDelay = 500; // ms
+    let msSpend = 0; // ms
+    let webAPIRestUrl = getWebAPIRestUrl(webAPIConfig);
+
     function startUpWithWebAPIService() {
-        const msServiceAccessTimeout = 1000; // ms
-        const msServiceStartTimeout = 5000; // ms
-        const msDelay = 500; // ms
-        let msSpend = 0; // ms
-        let webAPIRestUrl = getWebAPIRestUrl(_config.data.webAPIConfig);
         console.log(CATE_DESKTOP_PREFIX, `Waiting for response from Cate service ${webAPIRestUrl}`);
         showSplashMessage('Waiting for Cate service response...');
         request(webAPIRestUrl, msServiceAccessTimeout)
@@ -303,19 +313,23 @@ export function init() {
                 loadMainWindow();
             })
             .catch((err) => {
-                console.log(CATE_DESKTOP_PREFIX, `Waiting for Cate service to respond after ${msSpend} ms`);
-                if (!webAPIStarted) {
-                    webAPIProcess = startWebAPIService();
-                }
-                if (msSpend > msServiceStartTimeout) {
-                    console.error(CATE_DESKTOP_PREFIX, `Failed to start Cate service within ${msSpend} ms.`, err);
-                    if (!webAPIError) {
-                        electron.dialog.showErrorBox(`${app.getName()} - Internal Error`, `Failed to start Cate service within ${msSpend} ms.`);
+                console.log(CATE_DESKTOP_PREFIX, `No response from Cate service after ${msSpend} ms`);
+                let callback = () => {
+                    if (msSpend > msServiceStartTimeout) {
+                        console.error(CATE_DESKTOP_PREFIX, `Failed to start Cate service within ${msSpend} ms.`, err);
+                        if (!webAPIError) {
+                            electron.dialog.showErrorBox(`${app.getName()} - Internal Error`, `Failed to start Cate service within ${msSpend} ms.`);
+                        }
+                        app.exit(WEBAPI_TIMEOUT);
+                    } else {
+                        setTimeout(startUpWithWebAPIService, msDelay);
+                        msSpend += msDelay;
                     }
-                    app.exit(WEBAPI_TIMEOUT);
+                };
+                if (!webAPIProcess) {
+                    startWebAPIService(callback);
                 } else {
-                    setTimeout(startUpWithWebAPIService, msDelay);
-                    msSpend += msDelay;
+                    callback();
                 }
             });
     }
@@ -612,8 +626,6 @@ function checkCliLocation(appCliLocation: string | null): boolean {
     return false;
 }
 
-
-
 function findFreePort(fromPort?: number, toPort?: number, callback?: (port: number) => void) {
     fromPort = fromPort || 49152;
     toPort = toPort || 65535;
@@ -637,56 +649,3 @@ function findFreePort(fromPort?: number, toPort?: number, callback?: (port: numb
 
     findPort(fromPort);
 }
-
-
-// Will reuse in Cate 1+.
-/*
-function installCateCore(installerCommand: string, callback: () => void) {
-
-    if (!installerCommand) {
-        callback();
-        return;
-    }
-
-    const isWin = process.platform === 'win32';
-    const installDir = path.join(app.getAppPath(), 'python');
-    const installerArgs = isWin
-        ? ['/S', '/InstallationType=JustMe', '/AddToPath=0', '/RegisterPython=0', `/D=${installDir}`]
-        : ['-b', '-f', '-p', installDir];
-
-    console.log(CATE_DESKTOP_PREFIX, `running Cate Core installer "${installerCommand}" with arguments ${installerArgs}`);
-    showSplashMessage('Running Cate Core installer, please wait...');
-    const installerProcess = child_process.spawn(installerCommand, installerArgs);
-
-    installerProcess.stdout.on('data', (data: any) => {
-        console.log(CATE_DESKTOP_PREFIX, `${data}`);
-    });
-    installerProcess.stderr.on('data', (data: any) => {
-        console.error(CATE_DESKTOP_PREFIX, `${data}`);
-    });
-    installerProcess.on('error', (err: Error) => {
-        console.log(CATE_DESKTOP_PREFIX, 'Cate Core installation failed', err);
-        electron.dialog.showMessageBox({
-            type: 'error',
-            title: `${app.getName()} - Fatal Error`,
-            message: 'Cate Core installation failed.',
-            detail: `${err}`
-        });
-        app.exit(WEBAPI_INSTALLER_ERROR); // exit immediately
-    });
-    installerProcess.on('close', (code: number) => {
-        console.log(CATE_DESKTOP_PREFIX, `Cate Core installation closed with exit code ${code}`);
-        if (code == 0) {
-            callback();
-            return;
-        }
-        electron.dialog.showMessageBox({
-            type: 'error',
-            title: `${app.getName()} - Fatal Error`,
-            message: `Cate Core installation failed with exit code ${code}.`,
-        });
-        app.exit(WEBAPI_INSTALLER_BAD_EXIT); // exit immediately
-    });
-    return installerProcess;
-}
-*/

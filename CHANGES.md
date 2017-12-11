@@ -1,3 +1,9 @@
+## 1.0.1
+
+ * Detect a free port number for Cate WebAPI
+   [#479](https://github.com/CCI-Tools/cate/issues/479)
+
+
 ## 1.0.0
 
  * Cate doesn't work when two instances are open at once 
