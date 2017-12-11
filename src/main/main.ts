@@ -12,6 +12,7 @@ import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
 import {error, isNumber} from "util";
 import {getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE} from "./appenv";
+import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
@@ -36,6 +37,11 @@ const WEBAPI_ERROR = 5;
 const WEBAPI_BAD_EXIT = 6;
 const WEBAPI_TIMEOUT = 7;
 const WEBAPI_MISSING = 8;
+
+// As the first port in the dynamic/private range (49152-65535),
+// this port is commonly used by applications that utilize a dynamic/random/configurable port.
+const WEBAPI_PORT_RANGE = [49152, 65535];
+
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -630,9 +636,37 @@ function checkCliLocation(appCliLocation: string | null): boolean {
     return false;
 }
 
+
+
+function findFreePort(fromPort?: number, toPort?: number, callback?: (port: number) => void) {
+    fromPort = fromPort || 49152;
+    toPort = toPort || 65535;
+
+    const findPort = (port: number) => {
+        const server = net.createServer();
+        server.listen(port, () => {
+            server.once('close', () => {
+                callback(port);
+            });
+            server.close();
+        });
+        server.on('error', () => {
+            if (port < toPort) {
+                findPort(port + 1);
+            } else {
+                callback(-1);
+            }
+        });
+    };
+
+    findPort(fromPort);
+}
+
+
 function checkForUpdates() {
     openUpdateWindow();
 }
+
 
 (app as any).checkForUpdates = checkForUpdates;
 
