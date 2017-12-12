@@ -631,11 +631,21 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         // console.log('updateOverlayHtml', prevOverlayHtml, nextOverlayHtml);
         if (nextOverlayHtml) {
             if (prevOverlayHtml) {
+                if (!viewer.container.contains(prevOverlayHtml)) {
+                    // TODO (forman): FIXME! Why does this happen?
+                    console.warn("CesiumGlobe: previous HTML element is not a child", prevOverlayHtml);
+                    return;
+                }
                 viewer.container.replaceChild(nextOverlayHtml, prevOverlayHtml);
             } else {
                 viewer.container.appendChild(nextOverlayHtml);
             }
-        } else {
+        } else if (prevOverlayHtml) {
+            if (!viewer.container.contains(prevOverlayHtml)) {
+                // TODO (forman): FIXME! Why does this happen?
+                console.warn("CesiumGlobe: previous HTML element is not a child", prevOverlayHtml);
+                return;
+            }
             viewer.container.removeChild(prevOverlayHtml);
         }
     }
