@@ -111,23 +111,10 @@ const dataReducer = (state: DataState = initialDataState, action: Action) => {
 const initialView = newWorldView();
 
 const initialControlState: ControlState = {
-    selectedDataStoreId: null,
-    selectedDataSourceId: null,
-    dataSourceFilterExpr: '',
-    selectedOperationName: null,
-    operationFilterTags: [],
-    operationFilterExpr: '',
     selectedWorkflowStepId: null,
     selectedWorkspaceResourceName: null,
     selectedVariableName: null,
     dialogs: {},
-
-    showDataSourceDetails: true,
-    showResourceDetails: true,
-    showWorkflowStepDetails: true,
-    showOperationDetails: true,
-    showVariableDetails: true,
-    showLayerDetails: true,
 
     views: [initialView],
     viewLayout: {
@@ -541,6 +528,21 @@ const initialSessionState: SessionState = {
     offlineMode: false,
     showSelectedVariableLayer: true,
     savedLayers: {},
+
+    selectedDataStoreId: null,
+    selectedDataSourceId: null,
+    dataSourceFilterExpr: '',
+    selectedOperationName: null,
+    operationFilterTags: [],
+    operationFilterExpr: '',
+
+    showDataSourceDetails: true,
+    showResourceDetails: true,
+    showWorkflowStepDetails: true,
+    showOperationDetails: true,
+    showVariableDetails: true,
+    showLayerDetails: true,
+
 
     panelContainerUndockedMode: false,
     leftPanelContainerLayout: {horPos: 300, verPos: 400},

@@ -114,11 +114,11 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
     }
 
     private handleShowResourceDetailsChanged(value: boolean) {
-        this.props.dispatch(actions.setControlProperty('showResourceDetails', value));
+        this.props.dispatch(actions.setSessionProperty('showResourceDetails', value));
     }
 
     private handleShowWorkflowStepDetailsChanged(value: boolean) {
-        this.props.dispatch(actions.setControlProperty('showWorkflowStepDetails', value));
+        this.props.dispatch(actions.setSessionProperty('showWorkflowStepDetails', value));
     }
 
     private handleShowFigureButtonClicked() {

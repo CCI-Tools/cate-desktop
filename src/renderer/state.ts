@@ -596,33 +596,17 @@ export interface TaskState {
  * URL or in the HTML5 History API.
  */
 export interface ControlState {
-    // TODO (forman): move some global view properties into session, so they are stored in preferences
+
     // TODO (forman): Move some local selection properties into workspace so they can be stored.
 
-    // DataSourcesPanel
-    selectedDataStoreId: string | null;
-    selectedDataSourceId: string | null;
-    dataSourceFilterExpr: string;
-    showDataSourceDetails: boolean;
-
-    // OperationsPanel
-    selectedOperationName: string | null;
-    operationFilterTags: string[];
-    operationFilterExpr: string;
-    showOperationDetails: boolean;
-
     // WorkspacePanel
-    showResourceDetails: boolean;
     selectedWorkspaceResourceName: string | null;
-    showWorkflowStepDetails: boolean;
     selectedWorkflowStepId: string | null;
 
     // VariablesPanel
     selectedVariableName: string | null;
-    showVariableDetails: boolean;
 
     // LayersPanel
-    showLayerDetails: boolean;
 
     // A map that stores the last state of any dialog given a dialogId
     dialogs: { [dialogId: string]: DialogState };
@@ -677,8 +661,6 @@ export interface SessionState {
     reopenLastWorkspace?: boolean;
     offlineMode: boolean;
     autoShowNewFigures: boolean;
-    showSelectedVariableLayer: boolean;
-    savedLayers: SavedLayers;
 
     // ApplicationPage
     panelContainerUndockedMode: boolean;
@@ -689,13 +671,6 @@ export interface SessionState {
     selectedRightTopPanelId: string | null;
     selectedRightBottomPanelId: string | null;
 
-    placemarkCollection: PlacemarkCollection | null;
-    selectedPlacemarkId: string | null;
-    showPlacemarkDetails: boolean;
-
-    workspacePanelMode: 'resources' | 'steps';
-
-    showDataSourceTitles: boolean;
     showLayerTextOverlay: boolean;
     debugWorldView: boolean;
 
@@ -703,6 +678,37 @@ export interface SessionState {
      * backendConfig settings are applied on restart (of the WebAPI) only.
      */
     backendConfig: BackendConfigState;
+
+    // DataSourcesPanel
+    selectedDataStoreId: string | null;
+    selectedDataSourceId: string | null;
+    dataSourceFilterExpr: string;
+    showDataSourceDetails: boolean;
+    showDataSourceTitles: boolean;
+
+    // OperationsPanel
+    selectedOperationName: string | null;
+    operationFilterTags: string[];
+    operationFilterExpr: string;
+    showOperationDetails: boolean;
+
+    // WorkspacePanel
+    workspacePanelMode: 'resources' | 'steps';
+    showResourceDetails: boolean;
+    showWorkflowStepDetails: boolean;
+
+    // VariablePanel
+    showVariableDetails: boolean;
+
+    // LayersPanel
+    showSelectedVariableLayer: boolean;
+    showLayerDetails: boolean;
+    savedLayers: SavedLayers;
+
+    // PlacemarksPanel
+    placemarkCollection: PlacemarkCollection | null;
+    selectedPlacemarkId: string | null;
+    showPlacemarkDetails: boolean;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

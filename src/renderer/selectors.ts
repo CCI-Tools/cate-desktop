@@ -156,9 +156,9 @@ export const globeViewPositionSelector = (state: State): GeographicPosition | nu
 // Operation selectors
 
 export const operationsSelector = (state: State): OperationState[] | null => state.data.operations;
-export const operationFilterTagsSelector = (state: State): string[] | null => state.control.operationFilterTags;
-export const operationFilterExprSelector = (state: State): string | null => state.control.operationFilterExpr;
-export const selectedOperationNameSelector = (state: State): string | null => state.control.selectedOperationName;
+export const operationFilterTagsSelector = (state: State): string[] | null => state.session.operationFilterTags;
+export const operationFilterExprSelector = (state: State): string | null => state.session.operationFilterExpr;
+export const selectedOperationNameSelector = (state: State): string | null => state.session.selectedOperationName;
 
 export const selectedOperationSelector = createSelector<State, OperationState | null, OperationState[] | null,
     string | null>(
@@ -220,10 +220,10 @@ export const operationsTagCountsSelector = createSelector<State, Map<string, num
 // Data store and data source selectors
 
 export const dataStoresSelector = (state: State) => state.data.dataStores;
-export const selectedDataStoreIdSelector = (state: State) => state.control.selectedDataStoreId;
-export const selectedDataSourceIdSelector = (state: State) => state.control.selectedDataSourceId;
-export const dataSourceFilterExprSelector = (state: State) => state.control.dataSourceFilterExpr;
-export const showDataSourceDetailsSelector = (state: State) => state.control.showDataSourceDetails;
+export const selectedDataStoreIdSelector = (state: State) => state.session.selectedDataStoreId;
+export const selectedDataSourceIdSelector = (state: State) => state.session.selectedDataSourceId;
+export const dataSourceFilterExprSelector = (state: State) => state.session.dataSourceFilterExpr;
+export const showDataSourceDetailsSelector = (state: State) => state.session.showDataSourceDetails;
 export const showDataSourceTitlesSelector = (state: State): boolean => state.session.showDataSourceTitles;
 
 export const selectedDataStoreSelector = createSelector<State, DataStoreState | null,
@@ -322,13 +322,13 @@ export const workflowStepsSelector = (state: State): WorkflowStepState[] => {
     return state.data.workspace ? state.data.workspace.workflow.steps : EMPTY_ARRAY;
 };
 export const showResourceDetailsSelector = (state: State): boolean => {
-    return state.control.showResourceDetails;
+    return state.session.showResourceDetails;
 };
 export const selectedResourceNameSelector = (state: State): string | null => {
     return state.control.selectedWorkspaceResourceName;
 };
 export const showWorkflowStepDetailsSelector = (state: State): boolean => {
-    return state.control.showWorkflowStepDetails;
+    return state.session.showWorkflowStepDetails;
 };
 export const selectedWorkflowStepIdSelector = (state: State): string | null => {
     return state.control.selectedWorkflowStepId || selectedResourceNameSelector(state);

@@ -140,6 +140,10 @@ export function updatePreferences(session: any): ThunkAction {
     };
 }
 
+export function setSessionProperty(propertyName: string, value: any): Action {
+    return updateSessionState({[propertyName]: value});
+}
+
 export function updateSessionState(sessionState: any): Action {
     return {type: UPDATE_SESSION_STATE, payload: sessionState};
 }
@@ -213,12 +217,12 @@ function jobFailed(jobId: number, jobTitle: string, failure: JobFailure): Action
             text: 'Details',
             onClick: () => {
                 showMessageBox({
-                    type: "error",
-                    title: "Cate - Error",
-                    message: failure.message,
-                    detail: `An error (code ${failure.code}) occurred in Cate Core:\n\n${failure.data}`,
-                    buttons: [],
-                }, MESSAGE_BOX_NO_REPLY);
+                                   type: "error",
+                                   title: "Cate - Error",
+                                   message: failure.message,
+                                   detail: `An error (code ${failure.code}) occurred in Cate Core:\n\n${failure.data}`,
+                                   buttons: [],
+                               }, MESSAGE_BOX_NO_REPLY);
             }
         };
         console.error(failure);
@@ -295,15 +299,17 @@ export function loadDataStores(): ThunkAction {
         }
 
         function action(dataStores: DataStoreState[]) {
-            let offlineMode = selectors.offlineModeSelector(getState());
+            const offlineMode = selectors.offlineModeSelector(getState());
             if (offlineMode) {
                 dataStores = dataStores.filter(ds => ds.isLocal);
             }
             dispatch(updateDataStores(dataStores));
+
             if (dataStores && dataStores.length) {
-                dispatch(setSelectedDataStoreId(dataStores[0].id));
-            } else {
-                dispatch(setSelectedDataStoreId(null));
+                let selectedDataStoreId = selectors.selectedDataStoreIdSelector(getState());
+                const selectedDataStore = dataStores.find(dataStore => dataStore.id === selectedDataStoreId);
+                selectedDataStoreId = selectedDataStore ? selectedDataStore.id : dataStores[0].id;
+                dispatch(setSelectedDataStoreId(selectedDataStoreId));
             }
         }
 
@@ -329,6 +335,7 @@ export function loadDataSources(dataStoreId: string, setSelection: boolean): Thu
         if (selectors.activeRequestLocksSelector(getState()).indexOf(requestLock) > -1) {
             return;
         }
+
         function call(onProgress) {
             return selectors.datasetAPISelector(getState()).getDataSources(dataStoreId, onProgress);
         }
@@ -336,11 +343,12 @@ export function loadDataSources(dataStoreId: string, setSelection: boolean): Thu
         function action(dataSources: DataSourceState[]) {
             dispatch(updateDataSources(dataStoreId, dataSources));
             if (setSelection) {
+                let selectedDataSourceId = selectors.selectedDataSourceIdSelector(getState());
                 if (dataSources && dataSources.length) {
-                    dispatch(setSelectedDataSourceId(dataSources[0].id));
-                } else {
-                    dispatch(setSelectedDataSourceId(null));
+                    const selectedDataSource = dataSources.find(dataSource => dataSource.id === selectedDataSourceId);
+                    selectedDataSourceId = selectedDataSource ? selectedDataSource.id : selectedDataSourceId;
                 }
+                dispatch(setSelectedDataSourceId(selectedDataSourceId));
             }
         }
 
@@ -355,8 +363,8 @@ export function updateDataSources(dataStoreId: string, dataSources): Action {
 
 export function setSelectedDataStoreId(selectedDataStoreId: string | null): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        if (getState().control.selectedDataStoreId === selectedDataStoreId) {
-            return;
+        if (getState().session.selectedDataStoreId === selectedDataStoreId) {
+            //return;
         }
         dispatch(setSelectedDataStoreIdImpl(selectedDataStoreId));
         if (selectedDataStoreId !== null) {
@@ -369,15 +377,15 @@ export function setSelectedDataStoreId(selectedDataStoreId: string | null): Thun
 }
 
 export function setSelectedDataStoreIdImpl(selectedDataStoreId: string | null) {
-    return updateControlState({selectedDataStoreId});
+    return updateSessionState({selectedDataStoreId});
 }
 
 export function setSelectedDataSourceId(selectedDataSourceId: string | null) {
-    return updateControlState({selectedDataSourceId});
+    return updateSessionState({selectedDataSourceId});
 }
 
 export function setDataSourceFilterExpr(dataSourceFilterExpr: string) {
-    return updateControlState({dataSourceFilterExpr});
+    return updateSessionState({dataSourceFilterExpr});
 }
 
 export function loadTemporalCoverage(dataStoreId: string, dataSourceId: string): ThunkAction {
@@ -419,7 +427,9 @@ export function openDataset(dataSourceId: string, args: any, updateLocalDataSour
         });
         let postSetAction;
         if (updateLocalDataSources) {
-            postSetAction = (dispatch: Dispatch) => {dispatch(loadDataSources('local', false));}
+            postSetAction = (dispatch: Dispatch) => {
+                dispatch(loadDataSources('local', false));
+            }
         }
 
         dispatch(setWorkspaceResource(opName,
@@ -483,15 +493,15 @@ export function updateOperations(operations): Action {
 }
 
 export function setSelectedOperationName(selectedOperationName: string | null) {
-    return updateControlState({selectedOperationName});
+    return updateSessionState({selectedOperationName});
 }
 
 export function setOperationFilterTags(operationFilterTags: string[]) {
-    return updateControlState({operationFilterTags});
+    return updateSessionState({operationFilterTags});
 }
 
 export function setOperationFilterExpr(operationFilterExpr: string) {
-    return updateControlState({operationFilterExpr});
+    return updateSessionState({operationFilterExpr});
 }
 
 export function showOperationStepDialog(dialogId: string) {
@@ -828,7 +838,7 @@ export function deleteResourceInteractive(resName: string): ThunkAction {
                                           title: 'Remove Resource / Workflow Step',
                                           message: `Do you really want to delete resource/step "${resName}"?`,
                                           detail: 'This will also delete the workflow step that created it.\n' +
-                                                  'You will not be able to undo this operation.',
+                                          'You will not be able to undo this operation.',
                                           buttons: ["Yes", "No"],
                                           defaultId: 1,
                                           cancelId: 1,

@@ -67,7 +67,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedImageLayer: selectors.selectedImageLayerSelector(state),
         selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
         selectedVariableVectorLayer: selectors.selectedVariableVectorLayerSelector(state),
-        showLayerDetails: state.control.showLayerDetails,
+        showLayerDetails: state.session.showLayerDetails,
         colorMapCategories: selectors.colorMapCategoriesSelector(state),
         selectedColorMap: selectors.selectedColorMapSelector(state),
         displayMinMax: selectors.selectedVariableImageLayerDisplayMinMaxSelector(state),
@@ -110,7 +110,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     }
 
     private handleShowDetailsChanged(value: boolean) {
-        this.props.dispatch(actions.setControlProperty('showLayerDetails', value));
+        this.props.dispatch(actions.setSessionProperty('showLayerDetails', value));
     }
 
     private handleAddLayerButtonClicked() {

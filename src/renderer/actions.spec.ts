@@ -154,23 +154,23 @@ describe('Actions', () => {
                     {id: 'local-2', dataSources: []}
                 ] as any));
             dispatch(actions.setSelectedDataStoreId('local-2'));
-            expect(getState().control.selectedDataStoreId).to.equal('local-2');
+            expect(getState().session.selectedDataStoreId).to.equal('local-2');
             dispatch(actions.setSelectedDataStoreId(null));
-            expect(getState().control.selectedDataStoreId).to.be.null;
+            expect(getState().session.selectedDataStoreId).to.be.null;
         });
 
         it('setSelectedDataSourceId', () => {
             dispatch(actions.setSelectedDataSourceId('ds-1'));
-            expect(getState().control.selectedDataSourceId).to.equal('ds-1');
+            expect(getState().session.selectedDataSourceId).to.equal('ds-1');
             dispatch(actions.setSelectedDataSourceId(null));
-            expect(getState().control.selectedDataSourceId).to.be.null;
+            expect(getState().session.selectedDataSourceId).to.be.null;
         });
 
         it('setDataSourceFilterExpr', () => {
             dispatch(actions.setDataSourceFilterExpr('oz mon'));
-            expect(getState().control.dataSourceFilterExpr).to.equal('oz mon');
+            expect(getState().session.dataSourceFilterExpr).to.equal('oz mon');
             dispatch(actions.setDataSourceFilterExpr(null));
-            expect(getState().control.dataSourceFilterExpr).to.be.null;
+            expect(getState().session.dataSourceFilterExpr).to.be.null;
         });
     });
 
@@ -191,23 +191,23 @@ describe('Actions', () => {
 
         it('setSelectedOperationName', () => {
             dispatch(actions.setSelectedOperationName('op-2'));
-            expect(getState().control.selectedOperationName).to.equal('op-2');
+            expect(getState().session.selectedOperationName).to.equal('op-2');
             dispatch(actions.setSelectedOperationName(null));
-            expect(getState().control.selectedOperationName).to.be.null;
+            expect(getState().session.selectedOperationName).to.be.null;
         });
 
         it('setOperationFilterTags', () => {
             dispatch(actions.setOperationFilterTags(['a', 'b']));
-            expect(getState().control.operationFilterTags).to.deep.equal(['a', 'b']);
+            expect(getState().session.operationFilterTags).to.deep.equal(['a', 'b']);
             dispatch(actions.setOperationFilterTags(null));
-            expect(getState().control.operationFilterTags).to.be.null;
+            expect(getState().session.operationFilterTags).to.be.null;
         });
 
         it('setOperationFilterExpr', () => {
             dispatch(actions.setOperationFilterExpr('read wri'));
-            expect(getState().control.operationFilterExpr).to.equal('read wri');
+            expect(getState().session.operationFilterExpr).to.equal('read wri');
             dispatch(actions.setOperationFilterExpr(null));
-            expect(getState().control.operationFilterExpr).to.be.null;
+            expect(getState().session.operationFilterExpr).to.be.null;
         });
     });
 

@@ -175,4 +175,4 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(StatusBar);
+export default connect(mapStateToProps, mapDispatchToProps)(StatusBar as any);

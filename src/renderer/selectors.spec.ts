@@ -1,8 +1,7 @@
 import {expect} from 'chai';
-import * as fs from 'fs';
 
 import * as selectors from './selectors';
-import {State, ResourceState, DataState, ControlState} from "./state";
+import {State, ResourceState} from "./state";
 
 describe('API selectors', function () {
     const getState = () => {
@@ -36,8 +35,7 @@ describe('DataStore/DataSource selectors', function () {
     const getState = (dataStores, selectedDataStoreId?, selectedDataSourceId?, dataSourceFilterExpr?) => {
         return {
             data: {dataStores},
-            control: {selectedDataStoreId, selectedDataSourceId, dataSourceFilterExpr},
-            session: {showDataSourceTitles: false}
+            session: {selectedDataStoreId, selectedDataSourceId, dataSourceFilterExpr, showDataSourceTitles: false}
         };
     };
 
@@ -117,7 +115,7 @@ describe('Operation selectors', function () {
     const getState = (operations, selectedOperationName?, operationFilterTags?, operationFilterExpr?) => {
         return {
             data: {operations},
-            control: {selectedOperationName, operationFilterTags, operationFilterExpr}
+            session: {selectedOperationName, operationFilterTags, operationFilterExpr}
         };
     };
 
@@ -168,7 +166,7 @@ describe('Operation selectors', function () {
         ).to.deep.equal(new Map());
 
         expect(selectors.operationsTagCountsSelector(getState(operations) as State)
-        ).to.deep.equal(new Map([['x', 2], ['y', 2], ['z', 1]]));
+        ).to.deep.equal(new Map([['x', 2], ['y', 2]]));
     });
 });
 

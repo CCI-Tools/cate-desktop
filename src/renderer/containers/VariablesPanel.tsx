@@ -34,7 +34,7 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         selectedVariableName: selectors.selectedVariableNameSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
         selectedVariableAttributesTableData: selectors.selectedVariableAttributesTableDataSelector(state),
-        showVariableDetails: state.control.showVariableDetails,
+        showVariableDetails: state.session.showVariableDetails,
         showSelectedVariableLayer: state.session.showSelectedVariableLayer,
         activeViewId: selectors.activeViewIdSelector(state),
         activeViewType: selectors.activeViewTypeSelector(state),
@@ -78,7 +78,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
     }
 
     private handleShowDetailsChanged(value: boolean) {
-        this.props.dispatch(actions.setControlProperty('showVariableDetails', value));
+        this.props.dispatch(actions.setSessionProperty('showVariableDetails', value));
     }
 
     private handleShowSelectedVariableLayer() {

@@ -39,7 +39,7 @@ function mapStateToProps(state: State): IOperationsPanelProps {
         operationFilterTags: selectors.operationFilterTagsSelector(state) || selectors.EMPTY_ARRAY,
         operationFilterExpr: selectors.operationFilterExprSelector(state),
         operationsTagCounts: selectors.operationsTagCountsSelector(state),
-        showOperationDetails: state.control.showOperationDetails,
+        showOperationDetails: state.session.showOperationDetails,
     };
 }
 
@@ -60,7 +60,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
     }
 
     private handleShowDetailsChanged(value: boolean) {
-        this.props.dispatch(actions.setControlProperty('showOperationDetails', value));
+        this.props.dispatch(actions.setSessionProperty('showOperationDetails', value));
     }
 
     private handleOperationSelection(newSelection: Array<React.Key>) {
