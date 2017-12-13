@@ -8,7 +8,8 @@
   [#479](https://github.com/CCI-Tools/cate/issues/479)
 * Use nearest-neighbor resampling for image layer display
   [#482](https://github.com/CCI-Tools/cate/issues/482)
-
+* `read_csv` operation has a parameter `more_args` which isn't used
+  [#464](https://github.com/CCI-Tools/cate/issues/464)
 
 ## Changes 1.0.0
 
