@@ -32,6 +32,8 @@ export type ImageryLayer = {
     hue: number;
     saturation: number;
     gamma: number;
+    minificationFilter: number;
+    magnificationFilter: number;
 };
 
 export type ImageryLayerCollection = {
@@ -524,6 +526,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
                     //                Possible reason, new globe views may not have their
                     //                'selectedVariable' layer correctly initialized. Same problem in OpenLayersMap!
                     //assert.ok(imageryLayer);
+                    // Set the texture minification and magnification filters of layerNearest. Default is LINEAR.
+                    imageryLayer.minificationFilter = Cesium.TextureMinificationFilter.NEAREST;
+                    imageryLayer.magnificationFilter = Cesium.TextureMagnificationFilter.NEAREST;
                     if (!imageryLayer) {
                         console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
                         break;
