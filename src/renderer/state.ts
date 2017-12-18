@@ -651,7 +651,7 @@ export interface PlacemarkCollection extends FeatureCollection<Point> {
  * Session state can be used to save preferences.
  */
 export interface SessionState {
-    lastDir?: string;
+    lastWorkspaceDir?: string | null;
     mainWindowBounds?: { x: number; y: number; width: number; height: number };
     devToolsOpened?: boolean;
     /**

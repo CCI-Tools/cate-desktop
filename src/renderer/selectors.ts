@@ -309,8 +309,13 @@ export const selectedDataSourceTemporalCoverageSelector = createSelector<State, 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Workspace, resource, step, and variable selectors
 
+// lastWorkspaceDir
+
 export const workspaceSelector = (state: State): WorkspaceState | null => {
     return state.data.workspace;
+};
+export const isScratchWorkspaceSelector = (state: State): boolean => {
+    return state.data.workspace && state.data.workspace.isScratch;
 };
 export const workspaceBaseDirSelector = (state: State): string | null => {
     return state.data.workspace && state.data.workspace.baseDir;
@@ -320,6 +325,9 @@ export const resourcesSelector = (state: State): ResourceState[] => {
 };
 export const workflowStepsSelector = (state: State): WorkflowStepState[] => {
     return state.data.workspace ? state.data.workspace.workflow.steps : EMPTY_ARRAY;
+};
+export const lastWorkspacePathSelector = (state: State): string  | null => {
+    return state.session.lastWorkspacePath;
 };
 export const showResourceDetailsSelector = (state: State): boolean => {
     return state.session.showResourceDetails;
@@ -336,6 +344,43 @@ export const selectedWorkflowStepIdSelector = (state: State): string | null => {
 export const selectedVariableNameSelector = (state: State): string | null => {
     return state.control.selectedVariableName;
 };
+
+export const workspaceNameSelector = createSelector<State, string | null, string | null>(
+    workspaceBaseDirSelector,
+    (baseDir: string | null) => {
+        return getFileName(baseDir);
+    }
+);
+
+export const workspaceDirSelector = createSelector<State, string | null, string | null>(
+    workspaceBaseDirSelector,
+    (baseDir: string | null) => {
+        return getParentDir(baseDir);
+    }
+);
+
+export const lastWorkspaceDirSelector = createSelector<State, string | null, string | null>(
+    lastWorkspacePathSelector,
+    (baseDir: string | null) => {
+        return getParentDir(baseDir);
+    }
+);
+
+function getFileName(path: string | null) : string | null {
+    if (!path) {
+        return null;
+    }
+    let index = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+    return index >= 0 ? path.substring(index + 1) : path;
+}
+
+function getParentDir(path: string | null) : string | null {
+    if (!path) {
+        return null;
+    }
+    let index = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+    return index >= 0 ? path.substring(0, index) : "";
+}
 
 export const resourceNamesSelector = createSelector<State, string[], ResourceState[]>(
     resourcesSelector,

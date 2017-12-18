@@ -12,6 +12,8 @@ import ViewPanel from "./ViewPanel";
 import TaskPanel from "./TasksPanel";
 import StatusBar from "./StatusBar";
 import LayersPanel from "./LayersPanel";
+import NewWorkspaceDialog from "./NewWorkspaceDialog";
+import SaveWorkspaceAsDialog from "./SaveWorkspaceAsDialog";
 import PreferencesDialog from "./PreferencesDialog";
 import {PanelContainer, PanelContainerLayout} from "../components/PanelContainer";
 import {Panel} from "../components/Panel";
@@ -80,6 +82,8 @@ export default class ApplicationPage extends React.PureComponent<null, null> {
                 </div>
                 <StatusBar/>
                 <PreferencesDialog/>
+                <NewWorkspaceDialog/>
+                <SaveWorkspaceAsDialog/>
                 <div id="creditContainer"
                      style={ApplicationPage.CREDITS_DIV_STYLE}/>
 

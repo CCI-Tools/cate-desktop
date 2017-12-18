@@ -722,28 +722,12 @@ export function deleteResource(resName: string): ThunkAction {
 
 
 /**
- * Asynchronously close the current workspace.
+ * Bring up the "New Workspace" dialog.
  *
- * @returns a Redux thunk action
+ * @returns a Redux action
  */
-export function newWorkspaceInteractive(): ThunkAction {
-    return (dispatch: Dispatch, getState: GetState) => {
-        const workspacePath = showSingleFileOpenDialog({
-                                                           title: "New Workspace - Select Empty Directory",
-                                                           buttonLabel: "Select",
-                                                           properties: ['openDirectory', 'createDirectory', 'promptToCreate']  as OpenDialogProperty[],
-                                                       });
-        if (workspacePath) {
-            const ok = maybeSaveCurrentWorkspace(dispatch, getState,
-                                                 "New Workspace",
-                                                 "Would you like to save the current workspace before creating a new one?",
-                                                 "Press \"Cancel\" to cancel creating a new workspace."
-            );
-            if (ok) {
-                dispatch(newWorkspace(workspacePath));
-            }
-        }
-    };
+export function newWorkspaceInteractive() {
+    return showDialog('newWorkspaceDialog');
 }
 
 /**
@@ -866,21 +850,12 @@ export function saveWorkspaceInteractive(): ThunkAction {
 }
 
 /**
- * Let user select a workspace directory, then save it.
+ * Bring up the "Save Workspace As" dialog.
  *
- * @returns a Redux thunk action
+ * @returns a Redux action
  */
-export function saveWorkspaceAsInteractive(): ThunkAction {
-    return (dispatch: Dispatch) => {
-        const workspacePath = showSingleFileOpenDialog({
-                                                           title: "Save Workspace As - Select Empty Directory",
-                                                           buttonLabel: "Select",
-                                                           properties: ['openDirectory', 'createDirectory', 'promptToCreate'] as OpenDialogProperty[],
-                                                       });
-        if (workspacePath) {
-            dispatch(saveWorkspaceAs(workspacePath))
-        }
-    };
+export function saveWorkspaceAsInteractive() {
+    return showDialog("saveWorkspaceAsDialog");
 }
 
 /**
