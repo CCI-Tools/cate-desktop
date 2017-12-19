@@ -565,7 +565,16 @@ export function newWorkspace(workspacePath: string | null): ThunkAction {
             }
         }
 
-        callAPI(dispatch, 'New workspace' + (workspacePath ? ` "${workspacePath}"` : ''), call, action);
+        function planB(jobFailure: JobFailure) {
+            showMessageBox({
+                               type: "error",
+                               title: "New Workspace",
+                               message: 'Failed to create new workspace.',
+                               detail: jobFailure.message
+                           });
+        }
+
+        callAPI(dispatch, 'New workspace' + (workspacePath ? ` "${workspacePath}"` : ''), call, action, null, planB);
     }
 }
 
@@ -647,7 +656,16 @@ export function saveWorkspace(): ThunkAction {
             dispatch(setCurrentWorkspace(workspace));
         }
 
-        callAPI(dispatch, 'Save workspace', call, action);
+        function planB(jobFailure: JobFailure) {
+            showMessageBox({
+                               type: "error",
+                               title: "Save Workspace",
+                               message: 'Failed to save workspace.',
+                               detail: jobFailure.message
+                           });
+        }
+
+        callAPI(dispatch, 'Save workspace', call, action, null, planB);
     }
 }
 
@@ -669,7 +687,16 @@ export function saveWorkspaceAs(workspacePath: string): ThunkAction {
             dispatch(setCurrentWorkspace(workspace));
         }
 
-        callAPI(dispatch, `Save workspace as "${workspacePath}"`, call, action);
+        function planB(jobFailure: JobFailure) {
+            showMessageBox({
+                               type: "error",
+                               title: "Save Workspace As",
+                               message: 'Failed to save workspace.',
+                               detail: jobFailure.message
+                           });
+        }
+
+        callAPI(dispatch, `Save workspace as "${workspacePath}"`, call, action, null, planB);
     }
 }
 
@@ -1546,6 +1573,7 @@ export const MESSAGE_BOX_NO_REPLY = () => {
 
 /**
  * Shows a native message box.
+ * Note, this is not an action.
  *
  * @param messageBoxOptions the message dialog options, see https://github.com/electron/electron/blob/master/docs/api/dialog.md
  * @param callback an optional function which is called with (buttonIndex, checkboxChecked)
