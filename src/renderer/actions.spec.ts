@@ -58,7 +58,7 @@ describe('Actions', () => {
 
         it('updatePreferences', () => {
             dispatch(actions.updatePreferences({lastWorkspacePath: 'a/b'}));
-            expect(getState().session.lastWorkspaceDir).to.deep.equal('a/b');
+            expect(getState().session.lastWorkspacePath).to.deep.equal('a/b');
             dispatch(actions.updatePreferences({lastVar: 'c'}));
             expect(getState().session.lastWorkspacePath).to.deep.equal('a/b');
             expect((getState().session as any).lastVar).to.deep.equal('c');
