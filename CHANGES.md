@@ -1,5 +1,7 @@
 ## Changes in 1.0.1 (in dev)
 
+* "Save Workspace As" does not work
+  [#419](https://github.com/CCI-Tools/cate/issues/419)
 * Remember selection states in UI
   [#481](https://github.com/CCI-Tools/cate/issues/481)
 * Fixed problem with 3D globe overlay
