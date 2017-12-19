@@ -1,5 +1,7 @@
 ## Changes in 1.0.1 (in dev)
 
+* No longer able to select dataset for operations 
+  [#463](https://github.com/CCI-Tools/cate/issues/463)
 * "Save Workspace As" does not work
   [#419](https://github.com/CCI-Tools/cate/issues/419)
 * Remember selection states in UI
