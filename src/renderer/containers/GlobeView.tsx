@@ -244,18 +244,24 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
             worker.onmessage = function (event: MessageEvent) {
                 const features = event.data;
                 if (!features) {
+                    console.log(`Received ${numFeatures} feature(s) in total from ${url}`);
+                    console.log(`customDataSource = `, customDataSource);
+                    console.log(`customDataSource.update = `, customDataSource.update);
+
                     customDataSource.update(Cesium.JulianDate.now());
-                    console.log(`${numFeatures} feature(s) received from ${url}`);
                     return;
                 }
                 numFeatures += features.length;
+                console.log(`Received another ${features.length} feature(s) from ${url}`);
                 for (let feature of features) {
                     // Add basic styling, see https://github.com/mapbox/simplestyle-spec
+                    console.log(`Feature ID ${feature.id} geometry: `, feature.geometry);
+                    console.log(`Feature ID ${feature.id} properties: `, feature.properties);
                     feature.properties = Object.assign(feature.properties, {
-                        "stroke": "#555555",
-                        "stroke-opacity": 1.0,
+                        "stroke": "#ffffff",
+                        "stroke-opacity": 0.5,
                         "stroke-width": 2,
-                        "fill": "#555555",
+                        "fill": ["#ff0000", "#00ff00", "#0000ff", "#ffff00"][numFeatures % 4],
                         "fill-opacity": 0.5
                     });
                 }
@@ -270,7 +276,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                             customDataSource.entities.add(entity);
                         }
                         customDataSource.entities.resumeEvents();
-                        // customDataSource.update(Cesium.JulianDate.now());
+                        console.log(`Added another ${features.length} feature(s) to Cesium custom data source`);
+                        customDataSource.update(Cesium.JulianDate.now());
                     });
             };
             return customDataSource;

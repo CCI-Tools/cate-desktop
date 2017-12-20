@@ -22,7 +22,7 @@ export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImag
 }
 
 export function getGeoJSONUrl(baseUrl: string, baseDir: string, layer: VariableVectorLayerState): string {
-    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/8?`
+    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/0?`
         + `&var=${encodeURIComponent(layer.varName)}`
         + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
         + `&cmap=${encodeURIComponent(layer.colorMapName)}`
