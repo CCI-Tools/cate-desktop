@@ -1,5 +1,7 @@
 ## Changes in 1.0.1 (in dev)
 
+* Internal error when computing variable statistics for Shapefile variables
+  [#485](https://github.com/CCI-Tools/cate/issues/485)
 * No longer able to select dataset for operations 
   [#463](https://github.com/CCI-Tools/cate/issues/463)
 * "Save Workspace As" does not work

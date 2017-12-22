@@ -10,7 +10,7 @@ import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName,
-    computingVariableStatisticsLock, hasWebGL
+    getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources
 } from "./state-util";
 import {ViewPath} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
@@ -331,8 +331,8 @@ export function updateDataStores(dataStores: Array<DataStoreState>): Action {
  */
 export function loadDataSources(dataStoreId: string, setSelection: boolean): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        const requestLock = `load DataSources "${dataStoreId}"`;
-        if (selectors.activeRequestLocksSelector(getState()).indexOf(requestLock) > -1) {
+        const requestLock = getLockForLoadDataSources(dataStoreId);
+        if (selectors.activeRequestLocksSelector(getState()).has(requestLock)) {
             return;
         }
 
@@ -1053,7 +1053,7 @@ export function renameWorkspaceResourceImpl(resName: string, newResName: string)
 
 export function getWorkspaceVariableStatistics(resName: string,
                                                varName: string,
-                                               varIndex: Array<number>,
+                                               varIndex: number[],
                                                action: (statistics: ImageStatisticsState) => any): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         const baseDir = selectors.workspaceBaseDirSelector(getState());
@@ -1072,7 +1072,7 @@ export function getWorkspaceVariableStatistics(resName: string,
         }
 
         const title = `Computing statistics for variable "${varName}"`;
-        const requestLock = computingVariableStatisticsLock(resName, varName, varIndex);
+        const requestLock = getLockForGetWorkspaceVariableStatistics(resName, varName, varIndex);
         callAPI(dispatch, title, call, action2, requestLock);
     }
 }

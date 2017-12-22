@@ -307,9 +307,20 @@ export function updateSelectedVariableLayer(selectedVariableLayer: LayerState,
     }
 }
 
-export function computingVariableStatisticsLock(resName: string, varName: string, varIndex: Array<number>) {
-    const varIndexString = varIndex.join("_");
-    return `compute statistics "${resName}" "${varName}" "${varIndexString}" `;
+export function getLockForLoadDataSources(dataStoreId: string) {
+    return `loadDataSources("${dataStoreId}")`;
+}
+
+export function getLockForGetWorkspaceVariableStatistics(resName: string, varName: string, varIndex?: number[]) {
+    return getVariableLock('getWorkspaceVariableStatistics', resName, varName, varIndex);
+}
+
+function getVariableLock(op: string, resName: string, varName: string, varIndex: number[]) {
+    if (varIndex && varIndex.length) {
+        return `${op}("${resName}", "${varName}", [${varIndex}])`;
+    } else {
+        return `${op}("${resName}", "${varName}")`;
+    }
 }
 
 /**
