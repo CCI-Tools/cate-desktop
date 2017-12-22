@@ -22,7 +22,8 @@ export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImag
 }
 
 export function getGeoJSONUrl(baseUrl: string, baseDir: string, layer: VariableVectorLayerState): string {
-    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/0?`
+    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}?`
+        + `level=0`
         + `&var=${encodeURIComponent(layer.varName)}`
         + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
         + `&cmap=${encodeURIComponent(layer.colorMapName)}`
@@ -39,7 +40,7 @@ export function getCsvUrl(baseUrl: string, baseDir: string, resName: string, var
 }
 
 export function getGeoJSONCountriesUrl(baseUrl: string): string {
-    return baseUrl + 'ws/countries/0';
+    return baseUrl + 'ws/countries';
 }
 
 export function getMPLWebSocketUrl(baseUrl: string, baseDir: string, figureId: number): string {
