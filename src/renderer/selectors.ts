@@ -14,7 +14,7 @@ import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
-    computingVariableStatisticsLock
+    getLockForGetWorkspaceVariableStatistics
 } from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
@@ -72,17 +72,17 @@ export const colorMapsAPISelector = createSelector(
     }
 );
 
-export const activeRequestLocksSelector = (state: State): string[] => {
-    const array = [];
+export const activeRequestLocksSelector = (state: State): Set<string> => {
+    const activeRequestLocks = new Set<string>();
     for (let jobId in state.communication.tasks) {
         const task = state.communication.tasks[jobId];
         if (task.status == JobStatusEnum.NEW ||
             task.status == JobStatusEnum.SUBMITTED ||
             task.status == JobStatusEnum.IN_PROGRESS) {
-            array.push(task.requestLock)
+            activeRequestLocks.add(task.requestLock);
         }
     }
-    return array;
+    return activeRequestLocks;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -326,7 +326,7 @@ export const resourcesSelector = (state: State): ResourceState[] => {
 export const workflowStepsSelector = (state: State): WorkflowStepState[] => {
     return state.data.workspace ? state.data.workspace.workflow.steps : EMPTY_ARRAY;
 };
-export const lastWorkspacePathSelector = (state: State): string  | null => {
+export const lastWorkspacePathSelector = (state: State): string | null => {
     return state.session.lastWorkspacePath;
 };
 export const showResourceDetailsSelector = (state: State): boolean => {
@@ -366,7 +366,7 @@ export const lastWorkspaceDirSelector = createSelector<State, string | null, str
     }
 );
 
-function getFileName(path: string | null) : string | null {
+function getFileName(path: string | null): string | null {
     if (!path) {
         return null;
     }
@@ -374,7 +374,7 @@ function getFileName(path: string | null) : string | null {
     return index >= 0 ? path.substring(index + 1) : path;
 }
 
-function getParentDir(path: string | null) : string | null {
+function getParentDir(path: string | null): string | null {
     if (!path) {
         return null;
     }
@@ -687,21 +687,23 @@ export const selectedLayerVariablesSelector = createSelector<State, LayerVariabl
 );
 
 export const isComputingVariableStatistics = createSelector<State, boolean,
-    ResourceState | null, VariableState | null, VariableLayerBase | null, VariableLayerBase | null, string[]>(
+    ResourceState | null, VariableState | null, VariableLayerBase | null, VariableLayerBase | null, Set<string>>(
     selectedResourceSelector,
     selectedVariableSelector,
     selectedVariableImageLayerSelector,
     selectedVariableVectorLayerSelector,
     activeRequestLocksSelector,
-    (selectedResource: ResourceState | null, selectedVariable: VariableState | null,
-     selectedVariableImageLayer: VariableLayerBase | null, selectedVariableVectorLayer: VariableLayerBase | null,
-     activeRequestLocks: string[]) => {
+    (selectedResource: ResourceState | null,
+     selectedVariable: VariableState | null,
+     selectedVariableImageLayer: VariableLayerBase | null,
+     selectedVariableVectorLayer: VariableLayerBase | null,
+     activeRequestLocks: Set<string>) => {
         const layer = selectedVariableImageLayer || selectedVariableVectorLayer;
         if (!selectedResource || !selectedVariable || !layer) {
             return false;
         }
-        const requestLock = computingVariableStatisticsLock(selectedResource.name, selectedVariable.name, layer.varIndex);
-        return activeRequestLocks.indexOf(requestLock) > -1;
+        const requestLock = getLockForGetWorkspaceVariableStatistics(selectedResource.name, selectedVariable.name, layer.varIndex);
+        return activeRequestLocks.has(requestLock);
     }
 );
 
