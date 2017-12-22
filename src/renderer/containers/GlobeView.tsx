@@ -5,7 +5,7 @@ import {
 } from "../state";
 import {
     CesiumGlobe, LayerDescriptor, ImageryProvider, DataSourceDescriptor,
-    DataSource, GeoJsonDataSource
+    DataSource, GeoJsonDataSource, Viewer
 } from "../components/cesium/CesiumGlobe";
 import {connect, DispatchProp} from "react-redux";
 import {
@@ -216,10 +216,10 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                 tileWidth: imageLayout.tileWidth,
                 tileHeight: imageLayout.tileHeight,
                 tilingScheme: new Cesium.GeographicTilingScheme({
-                    rectangle,
-                    numberOfLevelZeroTilesX: imageLayout.numLevelZeroTilesX,
-                    numberOfLevelZeroTilesY: imageLayout.numLevelZeroTilesY
-                }),
+                                                                    rectangle,
+                                                                    numberOfLevelZeroTilesX: imageLayout.numLevelZeroTilesX,
+                                                                    numberOfLevelZeroTilesY: imageLayout.numLevelZeroTilesY
+                                                                }),
             },
         });
     }
@@ -236,12 +236,14 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         const url = getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
         const dataSourceName = `${resource.name} / ${variable.name}`;
 
-        const dataSource = (dataSourceOptions) => {
+        const dataSource = (viewer: Viewer, dataSourceOptions) => {
             let numFeatures = 0;
             const customDataSource: DataSource = new Cesium.CustomDataSource(dataSourceOptions.name);
+
             const worker = new Worker("common/stream-geojson.js");
             worker.postMessage(dataSourceOptions.url);
             worker.onmessage = function (event: MessageEvent) {
+
                 const features = event.data;
                 if (!features) {
                     console.log(`Received ${numFeatures} feature(s) in total from ${url}`);
@@ -251,30 +253,76 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                     customDataSource.update(Cesium.JulianDate.now());
                     return;
                 }
+
                 numFeatures += features.length;
                 console.log(`Received another ${features.length} feature(s) from ${url}`);
-                for (let feature of features) {
-                    // Add basic styling, see https://github.com/mapbox/simplestyle-spec
-                    console.log(`Feature ID ${feature.id} geometry: `, feature.geometry);
-                    console.log(`Feature ID ${feature.id} properties: `, feature.properties);
-                    feature.properties = Object.assign(feature.properties, {
-                        "stroke": "#ffffff",
-                        "stroke-opacity": 0.5,
-                        "stroke-width": 2,
-                        "fill": ["#ff0000", "#00ff00", "#0000ff", "#ffff00"][numFeatures % 4],
-                        "fill-opacity": 0.5
-                    });
-                }
-                Cesium.GeoJsonDataSource.load({type: 'FeatureCollection', features: features})
+
+                const defaultStyle = {
+                    stroke: Cesium.Color.BLACK,
+                    strokeOpacity: 0.5,
+                    strokeWidth: 2,
+                    fill: [Cesium.Color.RED, Cesium.Color.GREEN, Cesium.Color.BLUE, Cesium.Color.YELLOW][Math.floor(100 * Math.random()) % 4],
+                    fillOpacity: 0.5,
+                    clampToGround: true,
+                };
+
+                Cesium.GeoJsonDataSource.load({type: 'FeatureCollection', features: features}, defaultStyle)
                     .then((geoJsonDataSource: GeoJsonDataSource) => {
+
+                        const featureMap = new Map();
+                        features.forEach(f => featureMap.set(f.id, f));
+
+                        const scaleByDistance = new Cesium.NearFarScalar(1.5e2, 1.0, 1.5e7, 0.1);
+                        const translucencyByDistance = new Cesium.NearFarScalar(1.5e2, 1.0, 1.5e7, 0.25);
+
                         geoJsonDataSource.entities.suspendEvents();
                         customDataSource.entities.suspendEvents();
-                        //console.log('new geoJsonDataSource: ', geoJsonDataSource);
-                        const entities = geoJsonDataSource.entities.values.slice();
-                        for (let entity of entities) {
-                            geoJsonDataSource.entities.remove(entity);
-                            customDataSource.entities.add(entity);
+                        for (let entity of geoJsonDataSource.entities.values) {
+                            //console.log('entity: ', entity);
+
+                            const pixelSizeMin = 10;
+                            const pixelSizeMax = 50;
+                            const areaMin = 20.;
+                            const areaMax = 500.;
+                            const feature = featureMap.get(entity.id);
+                            let ratio = 0.5;
+                            let description;
+                            if (feature && feature.properties) {
+                                let area = feature.properties['area_npl43'];
+                                ratio = (area - areaMin) / (areaMax - areaMin);
+                                if (ratio < 0.) {
+                                    ratio = 0.;
+                                }
+                                if (ratio > 1.) {
+                                    ratio = 1.;
+                                }
+
+                                description = '<table class="cesium-infoBox-defaultTable cesium-infoBox-defaultTable-lighter"><tbody>';
+                                Object.getOwnPropertyNames(feature.properties)
+                                    .map(n => `<tr><th>${n}</th><td>${feature.properties[n]}</td></tr>`)
+                                    .forEach(d => description += d);
+                                description += '</tbody></table>';
+                            }
+                            const pixelSize = pixelSizeMin + ratio * (pixelSizeMax - pixelSizeMin);
+
+                            customDataSource.entities.add({
+                                                              id: entity.id,
+                                                              name: entity.id,
+                                                              position: entity.position,
+                                                              description,
+                                                              point: {
+                                                                  color: Cesium.Color.YELLOW,
+                                                                  outlineColor: Cesium.Color.BLACK,
+                                                                  // pixelSize will multiply by the scale factor, so in this
+                                                                  // example the size will range from pixelSize (near) to 0.1*pixelSize (far).
+                                                                  pixelSize,
+                                                                  scaleByDistance,
+                                                                  translucencyByDistance,
+                                                              }
+                                                          });
                         }
+
+                        geoJsonDataSource.entities.removeAll();
                         customDataSource.entities.resumeEvents();
                         console.log(`Added another ${features.length} feature(s) to Cesium custom data source`);
                         customDataSource.update(Cesium.JulianDate.now());
@@ -309,9 +357,10 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     /**
      * Creates a Cesium.UrlTemplateImageryProvider instance.
      *
+     * @param viewer the Cesium viewer
      * @param imageryProviderOptions see https://cesiumjs.org/Cesium/Build/Documentation/UrlTemplateImageryProvider.html
      */
-    private static createImageryProvider(imageryProviderOptions): ImageryProvider {
+    private static createImageryProvider(viewer: Viewer, imageryProviderOptions): ImageryProvider {
         const imageryProvider = new Cesium.UrlTemplateImageryProvider(imageryProviderOptions);
         imageryProvider.errorEvent.addEventListener((event) => {
             console.error('GlobeView:', event);
@@ -322,9 +371,10 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     /**
      * Creates a Cesium.GeoJsonDataSource instance.
      *
+     * @param viewer the Cesium viewer
      * @param dataSourceOptions see https://cesiumjs.org/Cesium/Build/Documentation/GeoJsonDataSource.html
      */
-    private static createGeoJsonDataSource(dataSourceOptions): DataSource {
+    private static createGeoJsonDataSource(viewer: Viewer, dataSourceOptions): DataSource {
         return Cesium.GeoJsonDataSource.load(dataSourceOptions.url, {
             stroke: Cesium.Color.ORANGE,
             fill: new Cesium.Color(0, 0, 0, 0),
