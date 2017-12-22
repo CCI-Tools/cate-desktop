@@ -21,7 +21,7 @@ BuildModuleUrl.setBaseUrl('./');
 
 export type ImageryProvider = any;
 
-export type ImageryLayer = {
+export interface ImageryLayer {
     imageryProvider: ImageryProvider;
     show: boolean;
     rectangle: { west: number, south: number, east: number, north: number };
@@ -34,25 +34,37 @@ export type ImageryLayer = {
     gamma: number;
     minificationFilter: number;
     magnificationFilter: number;
-};
+}
 
-export type ImageryLayerCollection = {
+export interface ImageryLayerCollection {
     readonly length: number;
-    addImageryProvider: (provider: ImageryProvider, index: number) => ImageryLayer;
-    get: (index: number) => ImageryLayer;
-    indexOf: (layer: ImageryLayer) => number;
-    remove: (layer: ImageryLayer, destroy?: boolean) => void;
-    raise: (layer: ImageryLayer) => void;
-    lower: (layer: ImageryLayer) => void;
-};
+
+    addImageryProvider (provider: ImageryProvider, index: number): ImageryLayer;
+
+    get(index: number): ImageryLayer;
+
+    indexOf(layer: ImageryLayer): number;
+
+    remove(layer: ImageryLayer, destroy?: boolean): void;
+
+    raise(layer: ImageryLayer): void;
+
+    lower(layer: ImageryLayer): void;
+}
 
 export interface Entity {
     id?: string;
     name?: string;
     description?: string;
     show?: boolean;
+    properties?: any;
+    propertyNames?: string[];
     position?: Cartesian3;
     billboard?: any;
+    point?: any;
+    polyline?: any;
+    polygon?: any;
+    polylineVolume?: any;
 }
 
 export interface EntityCollection {
@@ -86,22 +98,67 @@ export interface DataSource {
 export interface GeoJsonDataSource extends DataSource {
 }
 
-export type DataSourceCollection = {
+export interface DataSourceCollection {
     readonly length: number;
-    add: (dataSource: DataSource) => Promise<DataSource>;
-    get: (index: number) => DataSource;
-    indexOf: (dataSource: DataSource) => number;
-    remove: (dataSource: DataSource, destroy?: boolean) => boolean;
-};
 
-export type Scene = {
+    add(dataSource: DataSource): Promise<DataSource>;
+
+    get(index: number): DataSource;
+
+    indexOf(dataSource: DataSource): number;
+
+    remove(dataSource: DataSource, destroy?: boolean): boolean;
+}
+
+export interface Primitive {
+    position: Cartesian3;
+    id?: any;
+    show?: boolean;
+    appearance?: any;
+    allowPicking?: boolean;
+    color?: any;
+    outlineColor?: any;
+    outlineWidth?: number;
+    pixelSize?: number;
+    disableDepthTestDistance?: number;
+    scaleByDistance?: any;
+    translucencyByDistance?: any;
+}
+
+
+export interface PrimitiveCollection extends Primitive {
+    add(primitive: Primitive): Primitive;
+
+    get(index: number): Primitive;
+
+    lower(primitive: Primitive): void;
+
+    lowerToBottom(primitive: Primitive): void;
+
+    raise(primitive: Primitive): void;
+
+    raiseToTop(primitive: Primitive): void;
+
+    remove(primitive: Primitive): boolean;
+
+    removeAll(): void;
+
+    contains(primitive: Primitive): boolean;
+
+    destroy(): void;
+
+    isDestroyed(): boolean;
+}
+
+export interface Scene {
     camera: any;
     globe: any;
     mode: any;
     imagerySplitPosition: number;
-};
+    primitives: PrimitiveCollection;
+}
 
-export type Viewer = {
+export interface Viewer {
     container: HTMLDivElement;
     canvas: HTMLCanvasElement
     entities: EntityCollection;
@@ -111,25 +168,26 @@ export type Viewer = {
     camera: any;
     selectedEntity: Entity | null;
     selectedEntityChanged: any;
-    forceResize();
-};
 
-export type Cartesian2 = {
+    forceResize();
+}
+
+export interface Cartesian2 {
     x: number;
     y: number;
-};
+}
 
-export type Cartesian3 = {
+export interface Cartesian3 {
     x: number;
     y: number;
     z: number;
-};
+}
 
-export type Cartographic = {
+export interface Cartographic {
     longitude: number;
     latitude: number;
     height?: number;
-};
+}
 
 // >> end @types/Cesium
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,7 +206,7 @@ export interface LayerDescriptor {
     saturation?: number;
     gamma?: number;
 
-    imageryProvider: (options: any) => ImageryProvider | ImageryProvider;
+    imageryProvider: ((viewer: Viewer, options: any) => ImageryProvider) | ImageryProvider;
     imageryProviderOptions: any;
 }
 
@@ -160,7 +218,7 @@ export interface DataSourceDescriptor {
     name?: string | null;
     visible: boolean;
 
-    dataSource?: (options: any) => ImageryProvider | ImageryProvider;
+    dataSource?: ((viewer: Viewer, options: any) => DataSource) | DataSource;
     dataSourceOptions?: any;
 }
 
@@ -247,7 +305,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
             fullscreenButton: false,
             geocoder: false,
             homeButton: false,
-            infoBox: false,
+            infoBox: true,
             sceneModePicker: true,
             timeline: false,
             navigationHelpButton: false,
@@ -463,12 +521,12 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
                         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
                     };
                     viewer.entities.add(new Cesium.Entity({
-                        id,
-                        name,
-                        show,
-                        position,
-                        billboard,
-                    }));
+                                                              id,
+                                                              name,
+                                                              show,
+                                                              position,
+                                                              billboard,
+                                                          }));
                     break;
                 }
                 case 'REMOVE': {
@@ -668,10 +726,10 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         }
     }
 
-    private static getImageryProvider(layerDescriptor: LayerDescriptor): ImageryProvider {
+    private static getImageryProvider(viewer: Viewer, layerDescriptor: LayerDescriptor): ImageryProvider {
         if (layerDescriptor.imageryProvider) {
             if (typeof layerDescriptor.imageryProvider === 'function') {
-                return layerDescriptor.imageryProvider(layerDescriptor.imageryProviderOptions);
+                return layerDescriptor.imageryProvider(viewer, layerDescriptor.imageryProviderOptions);
             } else {
                 return layerDescriptor.imageryProvider;
             }
@@ -680,10 +738,10 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
     }
 
     // https://cesiumjs.org/Cesium/Build/Documentation/GeoJsonDataSource.html
-    private static getDataSource(dataSourceDescriptor: DataSourceDescriptor): DataSource {
+    private static getDataSource(viewer: Viewer, dataSourceDescriptor: DataSourceDescriptor): DataSource {
         if (dataSourceDescriptor.dataSource) {
             if (typeof dataSourceDescriptor.dataSource === 'function') {
-                return dataSourceDescriptor.dataSource(dataSourceDescriptor.dataSourceOptions);
+                return dataSourceDescriptor.dataSource(viewer, dataSourceDescriptor.dataSourceOptions);
             } else {
                 return dataSourceDescriptor.dataSource;
             }
@@ -692,7 +750,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
     }
 
     private addDataSource(viewer: Viewer, layerDescriptor: DataSourceDescriptor, layerIndex: number): DataSource {
-        const dataSource = CesiumGlobe.getDataSource(layerDescriptor);
+        const dataSource = CesiumGlobe.getDataSource(viewer, layerDescriptor);
         this.insertDataSource(viewer, dataSource, layerIndex);
         if (this.props.debug) {
             console.log(`CesiumGlobe: added data source #${layerIndex}: ${layerDescriptor.name}`);
@@ -721,7 +779,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
     }
 
     private addLayer(viewer: Viewer, layerDescriptor: LayerDescriptor, layerIndex: number): ImageryLayer {
-        const imageryProvider = CesiumGlobe.getImageryProvider(layerDescriptor);
+        const imageryProvider = CesiumGlobe.getImageryProvider(viewer, layerDescriptor);
         const imageryLayer = viewer.imageryLayers.addImageryProvider(imageryProvider, layerIndex);
         if (this.props.debug) {
             console.log(`CesiumGlobe: added imagery layer #${layerIndex}: ${layerDescriptor.name}`);
