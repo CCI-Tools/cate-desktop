@@ -247,10 +247,6 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                 const features = event.data;
                 if (!features) {
                     console.log(`Received ${numFeatures} feature(s) in total from ${url}`);
-                    console.log(`customDataSource = `, customDataSource);
-                    console.log(`customDataSource.update = `, customDataSource.update);
-
-                    customDataSource.update(Cesium.JulianDate.now());
                     return;
                 }
 
@@ -287,14 +283,17 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                             const feature = featureMap.get(entity.id);
                             let ratio = 0.5;
                             let description;
+                            let isPoint = !!(entity.point || entity.billboard || entity.label);
                             if (feature && feature.properties) {
                                 let area = feature.properties['area_npl43'];
-                                ratio = (area - areaMin) / (areaMax - areaMin);
-                                if (ratio < 0.) {
-                                    ratio = 0.;
-                                }
-                                if (ratio > 1.) {
-                                    ratio = 1.;
+                                if (area) {
+                                    ratio = (area - areaMin) / (areaMax - areaMin);
+                                    if (ratio < 0.) {
+                                        ratio = 0.;
+                                    }
+                                    if (ratio > 1.) {
+                                        ratio = 1.;
+                                    }
                                 }
 
                                 description = '<table class="cesium-infoBox-defaultTable cesium-infoBox-defaultTable-lighter"><tbody>';
@@ -305,27 +304,30 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                             }
                             const pixelSize = pixelSizeMin + ratio * (pixelSizeMax - pixelSizeMin);
 
-                            customDataSource.entities.add({
-                                                              id: entity.id,
-                                                              name: entity.id,
-                                                              position: entity.position,
-                                                              description,
-                                                              point: {
-                                                                  color: Cesium.Color.YELLOW,
-                                                                  outlineColor: Cesium.Color.BLACK,
-                                                                  // pixelSize will multiply by the scale factor, so in this
-                                                                  // example the size will range from pixelSize (near) to 0.1*pixelSize (far).
-                                                                  pixelSize,
-                                                                  scaleByDistance,
-                                                                  translucencyByDistance,
-                                                              }
-                                                          });
+                            if (isPoint) {
+                                customDataSource.entities.add({
+                                                                  id: entity.id,
+                                                                  name: entity.id,
+                                                                  position: entity.position,
+                                                                  description,
+                                                                  point: {
+                                                                      color: Cesium.Color.YELLOW,
+                                                                      outlineColor: Cesium.Color.BLACK,
+                                                                      // pixelSize will multiply by the scale factor, so in this
+                                                                      // example the size will range from pixelSize (near) to 0.1*pixelSize (far).
+                                                                      pixelSize,
+                                                                      scaleByDistance,
+                                                                      translucencyByDistance,
+                                                                  }
+                                                              });
+                            } else {
+                                customDataSource.entities.add(entity);
+                            }
                         }
 
                         geoJsonDataSource.entities.removeAll();
                         customDataSource.entities.resumeEvents();
                         console.log(`Added another ${features.length} feature(s) to Cesium custom data source`);
-                        customDataSource.update(Cesium.JulianDate.now());
                     });
             };
             return customDataSource;

@@ -149,13 +149,13 @@ function renderTypeInstanceHintText(targetDataType: string): ReactChild {
         case cateTypes.DATASET_LIKE_TYPE:
             return <span>Datasets can be opened from the <b>DATA SOURCES</b> panel.<br/>
                 You can also use operations like <code>open_dataset</code>, <br/>
-                <code>read_netcdf</code>, or <code>read_data_frame</code> to produce resources of this type.</span>;
+                or <code>read_netcdf</code> to produce resources of this type.</span>;
         case cateTypes.DATA_FRAME_TYPE:
-            return <span>You can use operations like <code>read_csv</code>, <code>read_data_frame</code>,<br/>
-                <code>read_geo_data_frame</code> to produce resources of this type.</span>;
+            return <span>You can use operations like <code>read_csv</code>, <code>read_geo_data</code><br/>
+                to produce resources of this type.</span>;
         case cateTypes.DATA_FRAME_LIKE_TYPE:
-            return <span>You can use operations like <code>read_csv</code>, <code>read_data_frame</code>,<br/>
-                or <code>read_geo_data_frame</code>, or <code>open_dataset</code> to produce resources of this type.</span>;
+            return <span>You can use operations like <code>read_csv</code>, <code>read_geo_data</code>,<br/>
+                or <code>open_dataset</code> to produce resources of this type.</span>;
         case cateTypes.ND_ARRAY_TYPE:
             return "";
         case cateTypes.SERIES_TYPE:

@@ -61,6 +61,7 @@ export interface Entity {
     propertyNames?: string[];
     position?: Cartesian3;
     billboard?: any;
+    label?: any;
     point?: any;
     polyline?: any;
     polygon?: any;
@@ -462,7 +463,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
                 this.props.onPlacemarkSelected(placemarkId);
             }
         };
-        viewer.selectedEntityChanged.addEventListener(this.selectedEntityHandler);
+        // TODO: we cannot select entities other than placemarks if the following line is active.
+        // But we must, see also https://github.com/CCI-Tools/cate/issues/489
+        //viewer.selectedEntityChanged.addEventListener(this.selectedEntityHandler);
 
         if (this.props.onViewerMounted) {
             this.props.onViewerMounted(this.props.id, viewer);

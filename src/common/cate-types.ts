@@ -18,6 +18,7 @@ export const DATA_FRAME_LIKE_TYPE = 'cate.core.types.DataFrameLike';
 export const POINT_LIKE_TYPE = 'cate.core.types.PointLike';
 export const POLYGON_LIKE_TYPE = 'cate.core.types.PolygonLike';
 export const GEOMETRY_LIKE_TYPE = 'cate.core.types.GeometryLike';
+export const GEO_DATA_FRAME_PROXY_TYPE = 'cate.core.types.GeoDataFrame';
 export const TIME_LIKE_TYPE = 'cate.core.types.TimeLike';
 export const TIME_RANGE_LIKE_TYPE = 'cate.core.types.TimeRangeLike';
 export const VAR_NAME_LIKE_TYPE = 'cate.core.types.VarName';
@@ -56,9 +57,13 @@ export function isAssignableFrom(targetDataType: string, sourceDataType: string)
         case ND_ARRAY_TYPE:
             return sourceDataType === DATA_ARRAY_TYPE;
         case DATA_FRAME_TYPE:
-            return sourceDataType === DATA_FRAME_LIKE_TYPE || sourceDataType === GEO_DATA_FRAME_TYPE;
+            return sourceDataType === DATA_FRAME_LIKE_TYPE || sourceDataType === GEO_DATA_FRAME_TYPE
+                || sourceDataType === GEO_DATA_FRAME_PROXY_TYPE;
         case DATA_FRAME_LIKE_TYPE:
-            return sourceDataType === DATA_FRAME_TYPE || sourceDataType === GEO_DATA_FRAME_TYPE;
+            return sourceDataType === DATA_FRAME_TYPE || sourceDataType === GEO_DATA_FRAME_TYPE
+                || sourceDataType === GEO_DATA_FRAME_PROXY_TYPE;
+        case GEO_DATA_FRAME_TYPE:
+            return sourceDataType === GEO_DATA_FRAME_PROXY_TYPE;
         case DATASET_TYPE:
             return sourceDataType === DATASET_LIKE_TYPE;
         case DATASET_LIKE_TYPE:

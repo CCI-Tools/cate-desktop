@@ -23,7 +23,8 @@ export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImag
 
 export function getGeoJSONUrl(baseUrl: string, baseDir: string, layer: VariableVectorLayerState): string {
     return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}?`
-        + `level=0`
+        + `level=0`  // simplify to points
+        //+ `level=8` // don't simplify
         + `&var=${encodeURIComponent(layer.varName)}`
         + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
         + `&cmap=${encodeURIComponent(layer.colorMapName)}`
