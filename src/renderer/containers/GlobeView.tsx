@@ -262,6 +262,9 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                     clampToGround: true,
                 };
 
+                const pointColor = Cesium.Color.fromAlpha(Cesium.Color.ORANGE, 0.9);
+                const pointOutlineColor = Cesium.Color.fromAlpha(Cesium.Color.ORANGE, 0.5);
+
                 Cesium.GeoJsonDataSource.load({type: 'FeatureCollection', features: features}, defaultStyle)
                     .then((geoJsonDataSource: GeoJsonDataSource) => {
 
@@ -311,8 +314,9 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                                                                   position: entity.position,
                                                                   description,
                                                                   point: {
-                                                                      color: Cesium.Color.YELLOW,
-                                                                      outlineColor: Cesium.Color.BLACK,
+                                                                      color: pointColor,
+                                                                      outlineColor: pointOutlineColor,
+                                                                      outlineWidth: 5,
                                                                       // pixelSize will multiply by the scale factor, so in this
                                                                       // example the size will range from pixelSize (near) to 0.1*pixelSize (far).
                                                                       pixelSize,
