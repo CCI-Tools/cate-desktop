@@ -21,13 +21,13 @@ export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImag
         + `&max=${encodeURIComponent(layer.displayMax + '')}`;
 }
 
-export function getGeoJSONUrl(baseUrl: string, baseDir: string, layer: VariableVectorLayerState): string {
-    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}?`
-        + `&var=${encodeURIComponent(layer.varName)}`
-        + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
-        + `&cmap=${encodeURIComponent(layer.colorMapName)}`
-        + `&min=${encodeURIComponent(layer.displayMin + '')}`
-        + `&max=${encodeURIComponent(layer.displayMax + '')}`;
+export function getFeatureCollectionUrl(baseUrl: string, baseDir: string, layer: VariableVectorLayerState): string {
+    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}`;
+}
+
+// TODO use me (see allow expanding of point simplified geometries #489)
+export function getFeatureUrl(baseUrl: string, baseDir: string, layer: VariableVectorLayerState, index: number): string {
+    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/${index}`;
 }
 
 export function getCsvUrl(baseUrl: string, baseDir: string, resName: string, varName?: string | null): string {

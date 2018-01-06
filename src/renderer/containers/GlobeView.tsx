@@ -9,7 +9,7 @@ import {
 } from "../components/cesium/CesiumGlobe";
 import {connect, DispatchProp} from "react-redux";
 import {
-    findVariable, findResource, getTileUrl, getGeoJSONUrl, getGeoJSONCountriesUrl,
+    findVariable, findResource, getTileUrl, getFeatureCollectionUrl, getGeoJSONCountriesUrl,
     COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID, findVariableIndexCoordinates, hasWebGL
 } from "../state-util";
 import {ViewState} from "../components/ViewState";
@@ -233,7 +233,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         }
 
         const baseDir = this.props.workspace.baseDir;
-        const url = getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
+        const url = getFeatureCollectionUrl(this.props.baseUrl, baseDir, layer);
         const dataSourceName = `${resource.name} / ${variable.name}`;
 
         const dataSource = (viewer: Viewer, dataSourceOptions) => {
@@ -279,6 +279,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                         for (let entity of geoJsonDataSource.entities.values) {
                             //console.log('entity: ', entity);
 
+                            // TODO (nf/mz): Generalize this code. This is for Glaciers CCI.
                             const pixelSizeMin = 10;
                             const pixelSizeMax = 50;
                             const areaMin = 20.;

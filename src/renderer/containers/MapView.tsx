@@ -7,7 +7,7 @@ import {OpenLayersMap, LayerDescriptor} from "../components/openlayers/OpenLayer
 import {connect, DispatchProp} from "react-redux";
 import * as ol from 'openlayers';
 import {
-    findVariable, findResource, getGeoJSONUrl, getTileUrl, getGeoJSONCountriesUrl,
+    findVariable, findResource, getFeatureCollectionUrl, getTileUrl, getGeoJSONCountriesUrl,
     COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID
 } from "../state-util";
 import {ViewState} from "../components/ViewState";
@@ -138,7 +138,7 @@ class MapView extends React.Component<IMapViewProps & DispatchProp<State>, null>
             return null;
         }
         const baseDir = this.props.workspace.baseDir;
-        const url = getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
+        const url = getFeatureCollectionUrl(this.props.baseUrl, baseDir, layer);
 
         const streamFeatures = function (extend: ol.Extent, resolution: number, projection: ol.proj.Projection) {
             const source = (this as any) as ol.source.Vector;
