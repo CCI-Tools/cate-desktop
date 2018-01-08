@@ -4,6 +4,7 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
 import {Feature, FeatureCollection, Point} from "geojson";
 import {IconName} from "@blueprintjs/core";
+import {DataSourceDescriptor} from "./components/cesium/CesiumGlobe";
 
 /**
  * Interface describing Cate's application state structure.
@@ -376,7 +377,6 @@ export interface LayerState {
      */
     id: string;
 
-    // TODO #491 remove 'VariableVector'
     /**
      * Layer type
      */
@@ -608,12 +608,10 @@ export interface TaskState {
  */
 export interface ControlState {
 
-    // TODO (forman): Move some local selection properties into workspace so they can be stored.
-
+    // TODO (forman): Move following selection properties into workspace so they can be stored.
     // WorkspacePanel
     selectedWorkspaceResourceName: string | null;
     selectedWorkflowStepId: string | null;
-
     // VariablesPanel
     selectedVariableName: string | null;
 
@@ -628,6 +626,11 @@ export interface ControlState {
     activeViewId: string | null;
 
     worldViewClickAction: string | null;
+
+    /**
+     * Cache for GeoJSON data sources
+     */
+    worldViewDataSources: {[resName: string]: DataSourceDescriptor};
 }
 
 export interface DialogState {

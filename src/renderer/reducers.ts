@@ -17,6 +17,7 @@ import {
     addViewToPanel, moveView, selectView
 } from "./components/ViewState";
 import {Action, SET_GLOBE_MOUSE_POSITION, SET_GLOBE_VIEW_POSITION} from "./actions";
+import {EMPTY_ARRAY} from "./selectors";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -124,21 +125,57 @@ const initialControlState: ControlState = {
     activeViewId: initialView.id,
 
     worldViewClickAction: null,
+    worldViewDataSources: {},
 };
 
 
 const controlReducer = (state: ControlState = initialControlState, action: Action) => {
     switch (action.type) {
+        case actions.SET_CURRENT_WORKSPACE: {
+            // Remove all worldViewDataSources that are no longer valid
+            const workspace = action.payload.workspace;
+            const resources = workspace.resources || EMPTY_ARRAY;
+            let worldViewDataSources;
+            const wsResNames = new Set<string>(resources.map(r => r.name));
+            for (let dsResName in Object.getOwnPropertyNames(state.worldViewDataSources)) {
+                if (!(dsResName in wsResNames)) {
+                    if (!worldViewDataSources) {
+                        worldViewDataSources = {...state.worldViewDataSources};
+                    }
+                    delete worldViewDataSources[dsResName];
+                }
+            }
+            if (!!worldViewDataSources) {
+                return {...state, worldViewDataSources};
+            }
+            return state;
+        }
         case actions.RENAME_RESOURCE: {
             const resName = action.payload.resName;
             const newResName = action.payload.newResName;
+
+            // Rename resName in selectedWorkspaceResourceName
             let selectedWorkspaceResourceName = state.selectedWorkspaceResourceName;
             if (selectedWorkspaceResourceName === resName) {
                 selectedWorkspaceResourceName = newResName;
             }
+
+            // Rename resName in views and their layers
             const views = viewsReducer(state.views, action, state.activeViewId);
-            if (selectedWorkspaceResourceName !== state.selectedWorkspaceResourceName || views !== state.views) {
-                return {...state, selectedWorkspaceResourceName, views};
+
+            // Rename resName key in worldViewDataSources
+            let worldViewDataSources = state.worldViewDataSources;
+            if (resName in worldViewDataSources) {
+                worldViewDataSources = {...worldViewDataSources};
+                const dataSource = worldViewDataSources[resName];
+                delete worldViewDataSources[resName];
+                worldViewDataSources[newResName] = dataSource;
+            }
+
+            if (selectedWorkspaceResourceName !== state.selectedWorkspaceResourceName
+                || views !== state.views
+                || worldViewDataSources !== state.worldViewDataSources) {
+                return {...state, selectedWorkspaceResourceName, views, worldViewDataSources};
             }
             return state;
         }
@@ -325,7 +362,7 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             }
             break;
         }
-        // TODO (forman): clean up code duplication here, they are basically all the same
+        // TODO (forman): clean up code duplication here, following actions are basically all the same
         //                SET_SELECTED_LAYER_ID, SET_VIEW_MODE, SET_PROJECTION_CODE,SET_SPLIT_LAYER_ID, SET_SPLIT_LAYER_POS
         case actions.SET_SELECTED_LAYER_ID: {
             const viewId = action.payload.viewId;
@@ -693,9 +730,9 @@ const locationReducer = (state: LocationState = initialLocationState, action: Ac
 // Combined State reducer
 
 export const stateReducer = combineReducers<State>({
-    data: dataReducer as Reducer<DataState>,
-    control: controlReducer as Reducer<ControlState>,
-    session: sessionReducer as Reducer<SessionState>,
-    communication: communicationReducer as Reducer<CommunicationState>,
-    location: locationReducer as Reducer<LocationState>,
-});
+                                                       data: dataReducer as Reducer<DataState>,
+                                                       control: controlReducer as Reducer<ControlState>,
+                                                       session: sessionReducer as Reducer<SessionState>,
+                                                       communication: communicationReducer as Reducer<CommunicationState>,
+                                                       location: locationReducer as Reducer<LocationState>,
+                                                   });

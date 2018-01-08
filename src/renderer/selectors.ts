@@ -5,12 +5,8 @@ import {
     FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase, ResourceVectorLayerState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
-import {WebAPIClient} from "./webapi/WebAPIClient";
-import {DatasetAPI} from "./webapi/apis/DatasetAPI";
-import {OperationAPI} from "./webapi/apis/OperationAPI";
-import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
-import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
-import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
+import {WebAPIClient, JobStatusEnum} from "./webapi";
+import {DatasetAPI, OperationAPI, WorkspaceAPI, ColorMapsAPI, BackendConfigAPI} from "./webapi/apis";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
@@ -18,7 +14,6 @@ import {
 } from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
-import {JobStatusEnum} from "./webapi/Job";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -191,12 +186,14 @@ export const filteredOperationsSelector = createSelector<State, OperationState[]
                     return parts.every(part => op.name.toLowerCase().includes(part));
                 };
             } else {
+                // noinspection JSUnusedLocalSymbols
                 nameMatches = op => true;
             }
             let hasTag;
             if (hasFilterTags) {
                 hasTag = op => !operationFilterTags.length || operationFilterTags.every(tag => new Set(op.tags).has(tag));
             } else {
+                // noinspection JSUnusedLocalSymbols
                 hasTag = op => true;
             }
             return operations.filter(op => nameMatches(op) && hasTag(op));
@@ -736,8 +733,3 @@ export const selectedColorMapSelector = createSelector<State, ColorMapState, Col
 function canFind(array: any[], id: string): boolean {
     return array && array.length && !!id;
 }
-
-
-
-
-
