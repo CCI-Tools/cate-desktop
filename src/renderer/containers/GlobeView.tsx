@@ -130,9 +130,15 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                                     overlayHtml.style['padding'] = '1em';
                                     overlayHtml.style['background-color'] = 'rgba(0, 0, 0, 0.25)';
                                 }
+                                let varText;
+                                if (indexCoords && indexCoords.length) {
+                                    varText = variableImageLayer.name + ' at ' + indexCoords.map(e => e.join(' = ')).join(', ');
+                                } else {
+                                    varText = variableImageLayer.name;
+                                }
                                 const textDivElement = document.createElement('div');
                                 textDivElement.style['font-size'] = '1.4em';
-                                textDivElement.innerText = variableImageLayer.name + ': ' + indexCoords.map(e => e.join(' = ')).join(', ');
+                                textDivElement.innerText = varText;
                                 overlayHtml.appendChild(textDivElement);
                                 overlayHtml.style.top = `-${2 + (layerInfoCount + 1) * 1.5}em`;
                                 layerInfoCount++;
