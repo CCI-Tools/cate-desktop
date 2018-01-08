@@ -459,13 +459,12 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
 
         this.selectedEntityHandler = (selectedEntity: Entity) => {
             if (this.props.onPlacemarkSelected) {
-                const placemarkId = selectedEntity ? selectedEntity.id : null;
+                // make sure this entity is actually a placemark and not something else
+                const placemarkId = selectedEntity && selectedEntity.id && selectedEntity.id.startsWith('placemark-') ? selectedEntity.id : null;
                 this.props.onPlacemarkSelected(placemarkId);
             }
         };
-        // TODO: we cannot select entities other than placemarks if the following line is active.
-        // But we must, see also https://github.com/CCI-Tools/cate/issues/489
-        //viewer.selectedEntityChanged.addEventListener(this.selectedEntityHandler);
+        viewer.selectedEntityChanged.addEventListener(this.selectedEntityHandler);
 
         if (this.props.onViewerMounted) {
             this.props.onViewerMounted(this.props.id, viewer);
