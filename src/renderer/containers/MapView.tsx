@@ -1,7 +1,8 @@
 import * as React from 'react';
 import {
-    State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
-    VariableRefState, VariableState, ResourceState, VectorLayerState, WorldViewDataState
+    State, WorkspaceState, VariableImageLayerState,
+    VariableRefState, VariableState, ResourceState, VectorLayerState, WorldViewDataState, ResourceVectorLayerState,
+    ResourceRefState
 } from "../state";
 import {OpenLayersMap, LayerDescriptor} from "../components/openlayers/OpenLayersMap";
 import {connect, DispatchProp} from "react-redux";
@@ -46,8 +47,8 @@ class MapView extends React.Component<IMapViewProps & DispatchProp<State>, null>
                     case 'VariableImage':
                         mapLayer = this.convertVariableImageLayerToMapLayer(layer as VariableImageLayerState);
                         break;
-                    case 'VariableVector':
-                        mapLayer = this.convertVariableVectorLayerToMapLayer(layer as VariableVectorLayerState);
+                    case 'ResourceVector':
+                        mapLayer = this.convertResourceVectorLayerToMapLayer(layer as ResourceVectorLayerState);
                         break;
                     case 'Vector':
                         mapLayer = this.convertVectorLayerToMapLayer(layer as VectorLayerState);
@@ -71,7 +72,7 @@ class MapView extends React.Component<IMapViewProps & DispatchProp<State>, null>
         );
     }
 
-    private getResource(ref: VariableRefState): ResourceState {
+    private getResource(ref: ResourceRefState): ResourceState {
         return findResource(this.props.workspace.resources, ref);
     }
 
@@ -130,13 +131,7 @@ class MapView extends React.Component<IMapViewProps & DispatchProp<State>, null>
         };
     }
 
-    private convertVariableVectorLayerToMapLayer(layer: VariableVectorLayerState): LayerDescriptor | null {
-        const resource = this.getResource(layer);
-        const variable = this.getVariable(layer);
-        if (!variable) {
-            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
-            return null;
-        }
+    private convertResourceVectorLayerToMapLayer(layer: ResourceVectorLayerState): LayerDescriptor | null {
         const baseDir = this.props.workspace.baseDir;
         const url = getFeatureCollectionUrl(this.props.baseUrl, baseDir, layer);
 

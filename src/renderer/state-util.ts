@@ -1,7 +1,8 @@
 import {
-    VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
+    VariableState, VariableRefState, ResourceState, LayerState,
     VariableImageLayerState, OperationState, WorldViewDataState,
-    TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState
+    TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState, ResourceRefState,
+    ResourceVectorLayerState
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
@@ -21,12 +22,12 @@ export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImag
         + `&max=${encodeURIComponent(layer.displayMax + '')}`;
 }
 
-export function getFeatureCollectionUrl(baseUrl: string, baseDir: string, layer: VariableVectorLayerState): string {
+export function getFeatureCollectionUrl(baseUrl: string, baseDir: string, layer: ResourceVectorLayerState): string {
     return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}`;
 }
 
 // TODO use me (see allow expanding of point simplified geometries #489)
-export function getFeatureUrl(baseUrl: string, baseDir: string, layer: VariableVectorLayerState, index: number): string {
+export function getFeatureUrl(baseUrl: string, baseDir: string, layer: ResourceVectorLayerState, index: number): string {
     return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/${index}`;
 }
 
@@ -113,7 +114,7 @@ export function getLayerDisplayName(layer: LayerState): string {
     return layer.id;
 }
 
-export function findResource(resources: ResourceState[], ref: VariableRefState): ResourceState | null {
+export function findResource(resources: ResourceState[], ref: ResourceRefState): ResourceState | null {
     return resources.find(r => r.name === ref.resName);
 }
 
@@ -243,7 +244,7 @@ export function getFigureViewTitle(resourceName: string): string {
 
 export function newTableView(resName: string, varName: string): ViewState<TableViewDataState> {
     return {
-        title: varName ? `${resName} / ${varName}` : resName,
+        title: varName ? `${resName}.${varName}` : resName,
         id: genSimpleId('table-'),
         type: 'table',
         iconName: "pt-icon-th",
@@ -259,50 +260,68 @@ export function newVariableLayer(resource: ResourceState,
     const spatialImageVariable = variable && isSpatialImageVariable(variable);
     const spatialVectorVariable = variable && isSpatialVectorVariable(variable);
     assert.ok(spatialImageVariable || spatialVectorVariable, 'geo-spatial variable expected');
-    const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
-    const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
-    return {
-        ...restoredLayer,
-        id: genLayerId(),
-        type: spatialImageVariable ? 'VariableImage' : 'VariableVector',
-        name: `${resource.name}/${variable.name}`,
-        visible: true,
-        resName: resource.name,
-        varName: variable.name,
-        ...layerDisplayProperties
-    };
+    if (spatialImageVariable) {
+        const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
+        const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
+        return {
+            ...restoredLayer,
+            id: genLayerId(),
+            type: 'VariableImage',
+            name: `${resource.name}.${variable.name}`,
+            visible: true,
+            resName: resource.name,
+            varName: variable.name,
+            ...layerDisplayProperties
+        } as VariableImageLayerState;
+    } else {
+        const restoredLayer = (savedLayers && savedLayers[variable.name]) as ResourceVectorLayerState;
+        return {
+            ...restoredLayer,
+            id: genLayerId(),
+            type: 'ResourceVector',
+            name: `${resource.name}`,
+            visible: true,
+            resName: resource.name,
+        } as ResourceVectorLayerState;
+    }
 }
 
-export function updateSelectedVariableLayer(selectedVariableLayer: LayerState,
+export function updateSelectedVariableLayer(selectedLayer: LayerState,
                                             resource: ResourceState,
                                             variable: VariableState,
                                             savedLayers?: SavedLayers): LayerState {
-    assert.ok(selectedVariableLayer);
-    assert.ok(selectedVariableLayer.id === SELECTED_VARIABLE_LAYER_ID);
+    assert.ok(selectedLayer);
+    assert.ok(selectedLayer.id === SELECTED_VARIABLE_LAYER_ID);
     const spatialImageVariable = variable && isSpatialImageVariable(variable);
     const spatialVectorVariable = variable && isSpatialVectorVariable(variable);
-    if (spatialImageVariable || spatialVectorVariable) {
+    if (spatialImageVariable) {
         const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
         const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
         // console.log("updateSelectedVariableLayer: ", variable.name, savedLayers, restoredLayer, layerDisplayProperties);
         return {
-            ...selectedVariableLayer,
+            ...selectedLayer,
             ...restoredLayer,
-            type: spatialImageVariable ? 'VariableImage' : 'VariableVector',
-            name: `Sel. var.: ${resource.name}/${variable.name}`,
+            type: 'VariableImage',
+            name: `Variable: ${resource.name}.${variable.name}`,
             resName: resource.name,
             varName: variable.name,
             ...layerDisplayProperties
         };
+    } else if (spatialVectorVariable) {
+        const restoredLayer = (savedLayers && savedLayers[resource.name]) as ResourceVectorLayerState;
+        return {
+            ...selectedLayer,
+            ...restoredLayer,
+            type: 'ResourceVector',
+            name: `Resource: ${resource.name}`,
+            resName: resource.name
+        } as ResourceVectorLayerState;
     } else {
         return {
             id: SELECTED_VARIABLE_LAYER_ID,
             type: 'Unknown' as any,
-            name: variable ? 'Sel. var.: none (not geo-spatial)' : 'Sel. var.: none (no selection)',
-            visible: selectedVariableLayer.visible,
-            resName: null,
-            varName: null,
-            varIndex: null,
+            name: variable ? `Variable: ${variable.name} (not geo-spatial)` : '(no selection)',
+            visible: selectedLayer.visible,
         } as any;
     }
 }

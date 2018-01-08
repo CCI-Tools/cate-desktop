@@ -1,7 +1,8 @@
 import * as React from 'react';
 import {
-    State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
-    VariableState, VariableRefState, VectorLayerState, ResourceState, WorldViewDataState, GeographicPosition, Placemark
+    State, WorkspaceState, VariableImageLayerState,
+    VariableState, VariableRefState, VectorLayerState, ResourceState, WorldViewDataState, GeographicPosition, Placemark,
+    ResourceVectorLayerState, ResourceRefState
 } from "../state";
 import {
     CesiumGlobe, LayerDescriptor, ImageryProvider, DataSourceDescriptor,
@@ -10,7 +11,7 @@ import {
 import {connect, DispatchProp} from "react-redux";
 import {
     findVariable, findResource, getTileUrl, getFeatureCollectionUrl, getGeoJSONCountriesUrl,
-    COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID, findVariableIndexCoordinates, hasWebGL
+    COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID, findVariableIndexCoordinates
 } from "../state-util";
 import {ViewState} from "../components/ViewState";
 import * as selectors from "../selectors";
@@ -139,8 +140,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                         }
                         break;
                     }
-                    case 'VariableVector': {
-                        dataSourceDescriptor = this.convertVariableVectorLayerToDataSourceDescriptor(layer as VariableVectorLayerState);
+                    case 'ResourceVector': {
+                        dataSourceDescriptor = this.convertResourceVectorLayerToDataSourceDescriptor(layer as ResourceVectorLayerState);
                         break;
                     }
                     case 'Vector': {
@@ -179,7 +180,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         );
     }
 
-    private getResource(ref: VariableRefState): ResourceState {
+    private getResource(ref: ResourceRefState): ResourceState {
         return findResource(this.props.workspace.resources, ref);
     }
 
@@ -188,7 +189,6 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     }
 
     private convertVariableImageLayerToLayerDescriptor(layer: VariableImageLayerState): LayerDescriptor | null {
-        const resource = this.getResource(layer);
         const variable = this.getVariable(layer);
         if (!variable) {
             console.warn(`GlobeView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
@@ -224,17 +224,12 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         });
     }
 
-    private convertVariableVectorLayerToDataSourceDescriptor(layer: VariableVectorLayerState): DataSourceDescriptor | null {
+    private convertResourceVectorLayerToDataSourceDescriptor(layer: ResourceVectorLayerState): DataSourceDescriptor | null {
         const resource = this.getResource(layer);
-        const variable = this.getVariable(layer);
-        if (!variable) {
-            console.warn(`GlobeView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
-            return null;
-        }
 
         const baseDir = this.props.workspace.baseDir;
         const url = getFeatureCollectionUrl(this.props.baseUrl, baseDir, layer);
-        const dataSourceName = `${resource.name} / ${variable.name}`;
+        const dataSourceName = resource.name;
 
         const dataSource = (viewer: Viewer, dataSourceOptions) => {
             let numFeatures = 0;

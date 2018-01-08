@@ -362,7 +362,7 @@ describe('Actions', () => {
                 [
                     {
                         id: SELECTED_VARIABLE_LAYER_ID,
-                        name: "Sel. var.: res_1/analysed_sst",
+                        name: "Variable: res_1.analysed_sst",
                         type: "VariableImage",
                         visible: true,
                         resName: "res_1",
@@ -392,11 +392,8 @@ describe('Actions', () => {
                     {
                         id: SELECTED_VARIABLE_LAYER_ID,
                         type: "Unknown",
-                        name: "Sel. var.: none (not geo-spatial)",
+                        name: "Variable: profile (not geo-spatial)",
                         visible: true,
-                        resName: null,
-                        varName: null,
-                        varIndex: null,
                     },
                     defaultCountriesLayers
                 ]);

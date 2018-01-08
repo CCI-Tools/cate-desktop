@@ -1,8 +1,8 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
-    WorkflowStepState, VariableVectorLayerState, LayerVariableState, SavedLayers,
-    FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase
+    WorkflowStepState, LayerVariableState, SavedLayers,
+    FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase, ResourceVectorLayerState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient} from "./webapi/WebAPIClient";
@@ -657,17 +657,16 @@ export const selectedVariableImageLayerDisplayMinMaxSelector = createSelector<St
     }
 );
 
-export const selectedVariableVectorLayerSelector = createSelector<State, VariableVectorLayerState | null,
+export const selectedResourceVectorLayerSelector = createSelector<State, ResourceVectorLayerState | null,
     LayerState | null>(
     selectedLayerSelector,
     (selectedLayer: LayerState | null) => {
-        if (selectedLayer && selectedLayer.type === 'VariableVector') {
-            return selectedLayer as VariableVectorLayerState;
+        if (selectedLayer && selectedLayer.type === 'ResourceVector') {
+            return selectedLayer as ResourceVectorLayerState;
         }
         return null;
     }
 );
-
 
 export const selectedLayerVariablesSelector = createSelector<State, LayerVariableState[] | null, ResourceState[]>(
     resourcesSelector,
@@ -687,22 +686,22 @@ export const selectedLayerVariablesSelector = createSelector<State, LayerVariabl
 );
 
 export const isComputingVariableStatistics = createSelector<State, boolean,
-    ResourceState | null, VariableState | null, VariableLayerBase | null, VariableLayerBase | null, Set<string>>(
+    ResourceState | null, VariableState | null, VariableLayerBase | null, Set<string>>(
     selectedResourceSelector,
     selectedVariableSelector,
     selectedVariableImageLayerSelector,
-    selectedVariableVectorLayerSelector,
     activeRequestLocksSelector,
     (selectedResource: ResourceState | null,
      selectedVariable: VariableState | null,
      selectedVariableImageLayer: VariableLayerBase | null,
-     selectedVariableVectorLayer: VariableLayerBase | null,
      activeRequestLocks: Set<string>) => {
-        const layer = selectedVariableImageLayer || selectedVariableVectorLayer;
-        if (!selectedResource || !selectedVariable || !layer) {
+        const imageLayer = selectedVariableImageLayer;
+        if (!selectedResource || !selectedVariable || !imageLayer) {
             return false;
         }
-        const requestLock = getLockForGetWorkspaceVariableStatistics(selectedResource.name, selectedVariable.name, layer.varIndex);
+        const requestLock = getLockForGetWorkspaceVariableStatistics(selectedResource.name,
+                                                                     selectedVariable.name,
+                                                                     imageLayer.varIndex);
         return activeRequestLocks.has(requestLock);
     }
 );

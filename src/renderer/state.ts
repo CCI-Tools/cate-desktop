@@ -376,10 +376,11 @@ export interface LayerState {
      */
     id: string;
 
+    // TODO #491 remove 'VariableVector'
     /**
      * Layer type
      */
-    type: 'VariableImage' | 'VariableVector' | 'Image' | 'Vector' | 'Unknown';
+    type: 'VariableImage' | 'ResourceVector' | 'Image' | 'Vector' | 'Unknown';
 
     /**
      * Layer name.
@@ -447,7 +448,7 @@ export interface ImageLayerBase extends LayerState {
  */
 export interface ImageLayerState extends ImageLayerBase {
     /**
-     * The image type ID.
+     * The layer type.
      */
     type: 'Image';
 }
@@ -457,7 +458,7 @@ export interface ImageLayerState extends ImageLayerBase {
  */
 export interface VectorLayerState extends LayerState {
     /**
-     * The image type ID.
+     * The layer type.
      */
     type: 'Vector';
     /**
@@ -467,9 +468,19 @@ export interface VectorLayerState extends LayerState {
 }
 
 /**
+ * Resource reference
+ */
+export interface ResourceRefState {
+    /**
+     * The name of the resource that contains the variable.
+     */
+    resName: string;
+}
+
+/**
  * Variable reference
  */
-export interface VariableRefState {
+export interface VariableRefState extends ResourceRefState {
     /**
      * The name of the resource that contains the variable.
      */
@@ -521,7 +532,7 @@ export interface VariableLayerBase extends LayerState, VariableDataRefState {
  */
 export interface VariableImageLayerState extends ImageLayerBase, VariableLayerBase {
     /**
-     * The image type ID.
+     * The layer type.
      */
     type: 'VariableImage';
 }
@@ -529,11 +540,11 @@ export interface VariableImageLayerState extends ImageLayerBase, VariableLayerBa
 /**
  * State of an image layer that displays a variable.
  */
-export interface VariableVectorLayerState extends VariableLayerBase {
+export interface ResourceVectorLayerState extends LayerState, ResourceRefState {
     /**
-     * The image type ID.
+     * The layer type.
      */
-    type: 'VariableVector';
+    type: 'ResourceVector';
 }
 
 /**

@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect, DispatchProp} from 'react-redux';
 import {
     State, LayerState, ColorMapCategoryState, ImageLayerState,
-    VariableImageLayerState, VariableState, ResourceState, ColorMapState, VariableVectorLayerState
+    VariableImageLayerState, VariableState, ResourceState, ColorMapState, ResourceVectorLayerState
 } from "../state";
 import {
     AnchorButton, Slider, Popover, Position, PopoverInteractionKind, Switch,
@@ -47,7 +47,7 @@ interface ILayersPanelProps {
     selectedLayer: LayerState | null;
     selectedImageLayer: ImageLayerState | null;
     selectedVariableImageLayer: VariableImageLayerState | null;
-    selectedVariableVectorLayer: VariableVectorLayerState | null;
+    selectedResourceVectorLayer: ResourceVectorLayerState | null;
     showLayerDetails: boolean;
     colorMapCategories: Array<ColorMapCategoryState>;
     selectedColorMap: ColorMapState | null;
@@ -66,7 +66,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedLayer: selectors.selectedLayerSelector(state),
         selectedImageLayer: selectors.selectedImageLayerSelector(state),
         selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
-        selectedVariableVectorLayer: selectors.selectedVariableVectorLayerSelector(state),
+        selectedResourceVectorLayer: selectors.selectedResourceVectorLayerSelector(state),
         showLayerDetails: state.session.showLayerDetails,
         colorMapCategories: selectors.colorMapCategoriesSelector(state),
         selectedColorMap: selectors.selectedColorMapSelector(state),
@@ -144,7 +144,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     }
 
     private handleChangedColorMapName(newSelection: string[]) {
-        const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
+        const layer = this.props.selectedVariableImageLayer || this.props.selectedResourceVectorLayer;
         const colorMapName = newSelection && newSelection.length && newSelection[0];
         if (colorMapName) {
             this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {colorMapName}));
@@ -152,7 +152,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     }
 
     private handleChangedDisplayRange(displayRange: NumberRange) {
-        const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
+        const layer = this.props.selectedVariableImageLayer || this.props.selectedResourceVectorLayer;
         this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {
             displayMin: displayRange[0],
             displayMax: displayRange[1]
@@ -160,7 +160,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     }
 
     private handleChangedDisplayMinMax(displayMinMax: FieldValue<NumberRange>) {
-        const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
+        const layer = this.props.selectedVariableImageLayer || this.props.selectedResourceVectorLayer;
         if (!displayMinMax.error) {
             const displayMin = displayMinMax.value[0];
             const displayMax = displayMinMax.value[1];
@@ -177,13 +177,13 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private handleUpdateDisplayStatistics() {
         const resource = this.props.selectedResource;
         const variable = this.props.selectedVariable;
-        const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
-        if (!resource || !variable || !layer) {
+        const imageLayer = this.props.selectedVariableImageLayer;
+        if (!resource || !variable || !imageLayer) {
             return;
         }
-        this.props.dispatch(actions.getWorkspaceVariableStatistics(resource.name, variable.name, layer.varIndex,
+        this.props.dispatch(actions.getWorkspaceVariableStatistics(resource.name, variable.name, imageLayer.varIndex,
             (statistics) => {
-                return actions.updateLayer(this.props.activeView.id, layer, {
+                return actions.updateLayer(this.props.activeView.id, imageLayer, {
                     displayMin: statistics.min,
                     displayMax: statistics.max,
                     statistics
@@ -342,7 +342,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     }
 
     private renderFormDisplayMinMax() {
-        const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
+        const layer = this.props.selectedVariableImageLayer || this.props.selectedResourceVectorLayer;
         if (!layer) {
             return null;
         }
@@ -427,8 +427,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     }
 
     private renderFormImageEnhancement(key: string, label: string, min: number, max: number) {
-        const layer = this.props.selectedVariableImageLayer || this.props.selectedVariableVectorLayer;
-        if (!layer || (layer === this.props.selectedVariableVectorLayer && key !== 'opacity')) {
+        const layer = this.props.selectedVariableImageLayer || this.props.selectedResourceVectorLayer;
+        if (!layer || (layer === this.props.selectedResourceVectorLayer && key !== 'opacity')) {
             return null;
         }
 
