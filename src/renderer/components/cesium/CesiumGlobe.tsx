@@ -194,12 +194,18 @@ export interface Cartographic {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Describes an image layer to be displayed on the Cesium globe.
+ * Describes a layer to be displayed on the Cesium globe.
  */
 export interface LayerDescriptor {
     id: string;
     name?: string | null;
     visible: boolean;
+}
+
+/**
+ * Describes an image layer (imagery provider) to be displayed on the Cesium globe.
+ */
+export interface ImageLayerDescriptor extends LayerDescriptor {
     opacity?: number;
     brightness?: number;
     contrast?: number;
@@ -212,15 +218,16 @@ export interface LayerDescriptor {
 }
 
 /**
- * Describes a entity data source to be displayed on the Cesium globe.
+ * Describes a vector data layer (entity data source) to be displayed on the Cesium globe.
  */
-export interface DataSourceDescriptor {
-    id: string;
-    name?: string | null;
-    visible: boolean;
-
+export interface VectorLayerDescriptor extends LayerDescriptor {
     dataSource?: ((viewer: Viewer, options: any) => DataSource) | DataSource;
     dataSourceOptions?: any;
+}
+
+export interface LayerDescriptors {
+    vectorLayerDescriptors?: VectorLayerDescriptor[];
+    imageLayerDescriptors?: ImageLayerDescriptor[];
 }
 
 // Bing Maps Key associated with Account Id 1441410 (= norman.fomferra@brockmann-consult.de)
@@ -234,8 +241,8 @@ Cesium.BingMapsApi.defaultKey = 'AnCcpOxnAAgq-KyFcczSZYZ_iFvCOmWl0Mx-6QzQ_rzMtpg
 interface CesiumGlobeState {
     selectedPlacemarkId?: string;
     placemarks?: Placemark[];
-    layers?: LayerDescriptor[];
-    dataSources?: DataSourceDescriptor[];
+    layers?: ImageLayerDescriptor[];
+    dataSources?: VectorLayerDescriptor[];
     overlayHtml?: HTMLElement | null;
     splitLayerIndex?: number;
     splitLayerPos?: number;
@@ -243,7 +250,7 @@ interface CesiumGlobeState {
 
 export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Viewer, CesiumGlobeState>, CesiumGlobeState {
     offlineMode?: boolean;
-    dataSources?: DataSourceDescriptor[];
+    dataSources?: VectorLayerDescriptor[];
     onMouseClicked?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onMouseMoved?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onLeftUp?: (point: { latitude: number, longitude: number, height?: number }) => void;
@@ -565,14 +572,14 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         }
     }
 
-    private updateGlobeLayers(viewer: Viewer, currentLayers: LayerDescriptor[], nextLayers: LayerDescriptor[]) {
+    private updateGlobeLayers(viewer: Viewer, currentLayers: ImageLayerDescriptor[], nextLayers: ImageLayerDescriptor[]) {
         if (this.props.debug) {
             console.log('CesiumGlobe: updating layers');
         }
-        const actions = arrayDiff<LayerDescriptor>(currentLayers, nextLayers);
+        const actions = arrayDiff<ImageLayerDescriptor>(currentLayers, nextLayers);
         let imageryLayer: ImageryLayer;
-        let newLayer: LayerDescriptor;
-        let oldLayer: LayerDescriptor;
+        let newLayer: ImageLayerDescriptor;
+        let oldLayer: ImageLayerDescriptor;
         for (let action of actions) {
             if (this.props.debug) {
                 console.log('CesiumGlobe: next layer action', action);
@@ -645,11 +652,11 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         }
     }
 
-    private updateGlobeDataSources(viewer: Viewer, currentLayers: DataSourceDescriptor[], nextLayers: DataSourceDescriptor[]) {
-        const actions = arrayDiff<DataSourceDescriptor>(currentLayers, nextLayers);
+    private updateGlobeDataSources(viewer: Viewer, currentLayers: VectorLayerDescriptor[], nextLayers: VectorLayerDescriptor[]) {
+        const actions = arrayDiff<VectorLayerDescriptor>(currentLayers, nextLayers);
         let dataSource: DataSource;
-        let newLayer: DataSourceDescriptor;
-        let oldLayer: DataSourceDescriptor;
+        let newLayer: VectorLayerDescriptor;
+        let oldLayer: VectorLayerDescriptor;
         for (let action of actions) {
             if (this.props.debug) {
                 console.log('CesiumGlobe: next data source action', action);
@@ -728,7 +735,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         }
     }
 
-    private static getImageryProvider(viewer: Viewer, layerDescriptor: LayerDescriptor): ImageryProvider {
+    private static getImageryProvider(viewer: Viewer, layerDescriptor: ImageLayerDescriptor): ImageryProvider {
         if (layerDescriptor.imageryProvider) {
             if (typeof layerDescriptor.imageryProvider === 'function') {
                 return layerDescriptor.imageryProvider(viewer, layerDescriptor.imageryProviderOptions);
@@ -740,7 +747,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
     }
 
     // https://cesiumjs.org/Cesium/Build/Documentation/GeoJsonDataSource.html
-    private static getDataSource(viewer: Viewer, dataSourceDescriptor: DataSourceDescriptor): DataSource {
+    private static getDataSource(viewer: Viewer, dataSourceDescriptor: VectorLayerDescriptor): DataSource {
         if (dataSourceDescriptor.dataSource) {
             if (typeof dataSourceDescriptor.dataSource === 'function') {
                 return dataSourceDescriptor.dataSource(viewer, dataSourceDescriptor.dataSourceOptions);
@@ -751,7 +758,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         return null;
     }
 
-    private addDataSource(viewer: Viewer, layerDescriptor: DataSourceDescriptor, layerIndex: number): DataSource {
+    private addDataSource(viewer: Viewer, layerDescriptor: VectorLayerDescriptor, layerIndex: number): DataSource {
         const dataSource = CesiumGlobe.getDataSource(viewer, layerDescriptor);
         this.insertDataSource(viewer, dataSource, layerIndex);
         if (this.props.debug) {
@@ -780,7 +787,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         });
     }
 
-    private addLayer(viewer: Viewer, layerDescriptor: LayerDescriptor, layerIndex: number): ImageryLayer {
+    private addLayer(viewer: Viewer, layerDescriptor: ImageLayerDescriptor, layerIndex: number): ImageryLayer {
         const imageryProvider = CesiumGlobe.getImageryProvider(viewer, layerDescriptor);
         const imageryLayer = viewer.imageryLayers.addImageryProvider(imageryProvider, layerIndex);
         if (this.props.debug) {
@@ -796,7 +803,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         }
     }
 
-    private static setLayerProps(imageryLayer: ImageryLayer, layerDescriptor: LayerDescriptor) {
+    private static setLayerProps(imageryLayer: ImageryLayer, layerDescriptor: ImageLayerDescriptor) {
         //imageryLayer.name = layerDescriptor.name;
         imageryLayer.show = layerDescriptor.visible;
         imageryLayer.alpha = layerDescriptor.opacity;
@@ -808,7 +815,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
     }
 
     private static setDataSourceProps(dataSource: DataSource
-        | Promise<DataSource>, dataSourceDescriptor: DataSourceDescriptor) {
+        | Promise<DataSource>, dataSourceDescriptor: VectorLayerDescriptor) {
         Promise.resolve(dataSource).then((resolvedDataSource: DataSource) => {
             //resolvedDataSource.name = dataSourceDescriptor.name;
             resolvedDataSource.show = dataSourceDescriptor.visible;

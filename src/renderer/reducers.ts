@@ -125,31 +125,11 @@ const initialControlState: ControlState = {
     activeViewId: initialView.id,
 
     worldViewClickAction: null,
-    worldViewDataSources: {},
 };
 
 
 const controlReducer = (state: ControlState = initialControlState, action: Action) => {
     switch (action.type) {
-        case actions.SET_CURRENT_WORKSPACE: {
-            // Remove all worldViewDataSources that are no longer valid
-            const workspace = action.payload.workspace;
-            const resources = workspace.resources || EMPTY_ARRAY;
-            let worldViewDataSources;
-            const wsResNames = new Set<string>(resources.map(r => r.name));
-            for (let dsResName in Object.getOwnPropertyNames(state.worldViewDataSources)) {
-                if (!(dsResName in wsResNames)) {
-                    if (!worldViewDataSources) {
-                        worldViewDataSources = {...state.worldViewDataSources};
-                    }
-                    delete worldViewDataSources[dsResName];
-                }
-            }
-            if (!!worldViewDataSources) {
-                return {...state, worldViewDataSources};
-            }
-            return state;
-        }
         case actions.RENAME_RESOURCE: {
             const resName = action.payload.resName;
             const newResName = action.payload.newResName;
@@ -163,19 +143,9 @@ const controlReducer = (state: ControlState = initialControlState, action: Actio
             // Rename resName in views and their layers
             const views = viewsReducer(state.views, action, state.activeViewId);
 
-            // Rename resName key in worldViewDataSources
-            let worldViewDataSources = state.worldViewDataSources;
-            if (resName in worldViewDataSources) {
-                worldViewDataSources = {...worldViewDataSources};
-                const dataSource = worldViewDataSources[resName];
-                delete worldViewDataSources[resName];
-                worldViewDataSources[newResName] = dataSource;
-            }
-
             if (selectedWorkspaceResourceName !== state.selectedWorkspaceResourceName
-                || views !== state.views
-                || worldViewDataSources !== state.worldViewDataSources) {
-                return {...state, selectedWorkspaceResourceName, views, worldViewDataSources};
+                || views !== state.views) {
+                return {...state, selectedWorkspaceResourceName, views};
             }
             return state;
         }
