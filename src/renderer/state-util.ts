@@ -22,13 +22,13 @@ export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImag
         + `&max=${encodeURIComponent(layer.displayMax + '')}`;
 }
 
-export function getFeatureCollectionUrl(baseUrl: string, baseDir: string, layer: ResourceVectorLayerState): string {
-    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}`;
+export function getFeatureCollectionUrl(baseUrl: string, baseDir: string, ref: ResourceRefState): string {
+    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(ref.resName)}`;
 }
 
 // TODO use me (see allow expanding of point simplified geometries #489)
-export function getFeatureUrl(baseUrl: string, baseDir: string, layer: ResourceVectorLayerState, index: number): string {
-    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/${index}`;
+export function getFeatureUrl(baseUrl: string, baseDir: string, ref: ResourceRefState, index: number): string {
+    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(ref.resName)}/${index}`;
 }
 
 export function getCsvUrl(baseUrl: string, baseDir: string, resName: string, varName?: string | null): string {

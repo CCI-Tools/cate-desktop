@@ -8,10 +8,10 @@ import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {NO_WEB_GL} from "../messages";
 import {EMPTY_ARRAY, EMPTY_OBJECT} from "../selectors";
-import {CesiumGlobe, LayerDescriptors} from "../components/cesium/CesiumGlobe";
-import {findVariableIndexCoordinates} from "../state-util";
+import {CesiumGlobe, Entity, LayerDescriptors} from "../components/cesium/CesiumGlobe";
+import {findVariableIndexCoordinates, getFeatureUrl} from "../state-util";
 import {ViewState} from "../components/ViewState";
-import {convertLayersToLayerDescriptors} from "./globe-view-layers";
+import {convertLayersToLayerDescriptors, loadDetailedPolygon} from "./globe-view-layers";
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -114,6 +114,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         this.handleMouseClicked = this.handleMouseClicked.bind(this);
         this.handleLeftUp = this.handleLeftUp.bind(this);
         this.handlePlacemarkSelected = this.handlePlacemarkSelected.bind(this);
+        this.handleSimplifiedGeometrySelected = this.handleSimplifiedGeometrySelected.bind(this);
         this.handleSplitLayerPosChange = this.handleSplitLayerPosChange.bind(this);
     }
 
@@ -134,6 +135,17 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
 
     handlePlacemarkSelected(selectedPlacemarkId: string | null) {
         this.props.dispatch(actions.setSelectedPlacemarkId(selectedPlacemarkId));
+    }
+
+    handleSimplifiedGeometrySelected(selectedEntity: Entity,  resName: string) {
+        const workspace = this.props.workspace;
+        if (workspace) {
+            const baseUrl = this.props.baseUrl;
+            const baseDir = workspace.baseDir;
+            const id = selectedEntity.id.substring(('ds-'+resName+'-').length);
+            const featureUrl = getFeatureUrl(baseUrl, baseDir, {resName}, +id);
+            loadDetailedPolygon(selectedEntity, featureUrl)
+        }
     }
 
     handleSplitLayerPosChange(splitLayerPos: number) {
@@ -190,6 +202,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          onMouseClicked={this.props.isDialogOpen ? null : this.handleMouseClicked}
                          onLeftUp={this.props.isDialogOpen ? null : this.handleLeftUp}
                          onPlacemarkSelected={this.handlePlacemarkSelected}
+                         handleSimplifiedGeometrySelected={this.handleSimplifiedGeometrySelected}
             />
         );
     }

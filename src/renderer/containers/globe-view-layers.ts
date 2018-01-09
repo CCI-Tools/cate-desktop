@@ -5,7 +5,7 @@ import {
 } from "../state";
 import {
     ImageLayerDescriptor, VectorLayerDescriptor, LayerDescriptors,
-    DataSource, ImageryProvider, GeoJsonDataSource, Viewer
+    DataSource, ImageryProvider, GeoJsonDataSource, Viewer, Entity
 } from "../components/cesium/CesiumGlobe";
 import {
     findVariable, findResource, getTileUrl, getFeatureCollectionUrl, getGeoJSONCountriesUrl,
@@ -172,6 +172,17 @@ function createGeoJsonDataSource(viewer: Viewer, dataSourceOptions): DataSource 
     });
 }
 
+function getDefaultStyle() {
+    const colors = [Cesium.Color.RED, Cesium.Color.GREEN, Cesium.Color.BLUE, Cesium.Color.YELLOW];
+    const defaultStyle = {
+        stroke: Cesium.Color.fromAlpha(Cesium.Color.BLACK, 0.5),
+        strokeWidth: 2,
+        fill: Cesium.Color.fromAlpha(colors[Math.floor(colors.length * Math.random()) % colors.length], 0.5),
+        // outline stroke  is only visible when polygon.height is 0, which is only set when clampToGround is false (default)
+        // clampToGround: true,
+    };
+    return defaultStyle;
+}
 
 const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
     const customDataSource: DataSource = new Cesium.CustomDataSource(name);
@@ -189,20 +200,10 @@ const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
         numFeatures += features.length;
         console.log(`Received another ${features.length} feature(s) from ${url}`);
 
-        const colors = [Cesium.Color.RED, Cesium.Color.GREEN, Cesium.Color.BLUE, Cesium.Color.YELLOW];
-        const defaultStyle = {
-            stroke: Cesium.Color.BLACK,
-            strokeOpacity: 0.5,
-            strokeWidth: 2,
-            fill: colors[Math.floor(colors.length * Math.random())],
-            fillOpacity: 0.5,
-            clampToGround: true,
-        };
-
         const pointColor = Cesium.Color.fromAlpha(Cesium.Color.ORANGE, 0.9);
         const pointOutlineColor = Cesium.Color.fromAlpha(Cesium.Color.ORANGE, 0.5);
 
-        Cesium.GeoJsonDataSource.load({type: 'FeatureCollection', features: features}, defaultStyle)
+        Cesium.GeoJsonDataSource.load({type: 'FeatureCollection', features: features}, getDefaultStyle())
             .then((geoJsonDataSource: GeoJsonDataSource) => {
 
                 const featureMap = new Map();
@@ -247,7 +248,7 @@ const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
 
                     if (isPoint) {
                         customDataSource.entities.add({
-                                                          id: entity.id,
+                                                          id: 'ds-' + name + '-' + entity.id,
                                                           name: entity.id,
                                                           position: entity.position,
                                                           description,
@@ -274,4 +275,18 @@ const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
     };
     return customDataSource;
 });
+
+export function loadDetailedPolygon(entity: Entity, featureUrl: string) {
+
+    console.log("loadDetailedPolygon", entity, featureUrl);
+
+    Cesium.GeoJsonDataSource.load(featureUrl, getDefaultStyle())
+        .then((geoJsonDataSource: GeoJsonDataSource) => {
+            if (geoJsonDataSource.entities.values) {
+                const detailedEntity = geoJsonDataSource.entities.values[0];
+                entity.point = undefined;
+                entity.polygon = detailedEntity.polygon;
+            }
+        });
+}
 

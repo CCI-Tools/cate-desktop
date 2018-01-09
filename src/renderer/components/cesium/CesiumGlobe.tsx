@@ -86,6 +86,8 @@ export interface EntityCollection {
     suspendEvents(): void;
 
     resumeEvents(): void;
+
+    contains(entity: Entity): boolean;
 }
 
 export interface DataSource {
@@ -255,6 +257,7 @@ export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Viewer,
     onMouseMoved?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onLeftUp?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onPlacemarkSelected?: (placemarkId: string | null) => void;
+    handleSimplifiedGeometrySelected?: (selectedEntity: Entity,  resName: string) => void;
     onViewerMounted?: (id: string, viewer: Viewer) => void;
     onViewerUnmounted?: (id: string, viewer: Viewer) => void;
     splitLayerIndex: number;
@@ -469,6 +472,21 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
                 // make sure this entity is actually a placemark and not something else
                 const placemarkId = selectedEntity && selectedEntity.id && selectedEntity.id.startsWith('placemark-') ? selectedEntity.id : null;
                 this.props.onPlacemarkSelected(placemarkId);
+            }
+            if (this.props.handleSimplifiedGeometrySelected) {
+                if (selectedEntity && selectedEntity.point &&
+                    selectedEntity.id && selectedEntity.id.startsWith('ds-')) {
+                    for (let dataSourceDescriptor of this.props.dataSources) {
+                        const dsName = dataSourceDescriptor.dataSourceOptions.name;
+                        if (selectedEntity.id.startsWith('ds-' + dsName + '-')) {
+                            const dataSource = CesiumGlobe.getDataSource(viewer, dataSourceDescriptor);
+                            if (dataSource.entities && dataSource.entities.contains(selectedEntity)) {
+                                this.props.handleSimplifiedGeometrySelected(selectedEntity, dsName);
+                            }
+                            break;
+                        }
+                    }
+                }
             }
         };
         viewer.selectedEntityChanged.addEventListener(this.selectedEntityHandler);
