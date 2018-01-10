@@ -75,12 +75,12 @@ function convertVariableImageLayerToDescriptor(baseUrl: string,
                                                layer: VariableImageLayerState): ImageLayerDescriptor | null {
     const variable = findVariable(resources, layer);
     if (!variable) {
-        console.warn(`GlobeView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
+        console.warn(`GlobeView: variable "${layer.varName}" not found in resource "${layer.resId}"`);
         return null;
     }
     const imageLayout = variable.imageLayout;
     if (!variable.imageLayout) {
-        console.warn(`GlobeView: variable "${layer.varName}" of resource "${layer.resName}" has no imageLayout`);
+        console.warn(`GlobeView: variable "${layer.varName}" of resource "${layer.resId}" has no imageLayout`);
         return null;
     }
     const url = getTileUrl(baseUrl, baseDir, layer);
@@ -113,17 +113,18 @@ function convertResourceVectorLayerToDescriptor(baseUrl: string,
                                                 layer: ResourceVectorLayerState): VectorLayerDescriptor | null {
     const resource = findResource(resources, layer);
     if (!resource) {
-        console.warn(`globe-view-desc: resource "${layer.resName}" not found"`);
+        console.warn(`globe-view-desc: resource "${layer.resId}" not found"`);
         return null;
     }
     return {
         ...layer,
         dataSource: (viewer: Viewer, dataSourceOptions) => {
-            return createResourceGeoJSONDataSource(dataSourceOptions.url, dataSourceOptions.name);
+            return createResourceGeoJSONDataSource(dataSourceOptions.url, dataSourceOptions.resName);
         },
         dataSourceOptions: {
             url: getFeatureCollectionUrl(baseUrl, baseDir, layer),
-            name: resource.name
+            resId: resource.id,
+            resName: resource.name
         },
     } as VectorLayerDescriptor;
 }
@@ -248,7 +249,7 @@ const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
 
                     if (isPoint) {
                         customDataSource.entities.add({
-                                                          id: 'ds-' + name + '-' + entity.id,
+                                                          id: 'ds-' + entity.id,
                                                           name: entity.id,
                                                           position: entity.position,
                                                           description,
@@ -276,9 +277,9 @@ const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
     return customDataSource;
 });
 
-export function loadDetailedPolygon(entity: Entity, featureUrl: string) {
+export function loadDetailedGeometry(entity: Entity, featureUrl: string) {
 
-    console.log("loadDetailedPolygon", entity, featureUrl);
+    console.log("loadDetailedGeometry", entity, featureUrl);
 
     Cesium.GeoJsonDataSource.load(featureUrl, getDefaultStyle())
         .then((geoJsonDataSource: GeoJsonDataSource) => {

@@ -365,6 +365,7 @@ describe('Actions', () => {
                         name: "Variable: res_1.analysed_sst",
                         type: "VariableImage",
                         visible: true,
+                        resId: 0,
                         resName: "res_1",
                         varName: "analysed_sst",
                         varIndex: [0],
@@ -549,8 +550,8 @@ describe('Actions', () => {
 
         it('renameWorkspaceResourceImpl', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
-            dispatch(actions.addLayer(getActiveViewId(), {id: 'L1', resName: 'res_1', varName: 'X'} as any, false));
-            dispatch(actions.addLayer(getActiveViewId(), {id: 'L2', resName: 'res_2', varName: 'X'} as any, false));
+            dispatch(actions.addLayer(getActiveViewId(), {id: 'L1', resId: 1, resName: 'res_1', varName: 'X'} as any, false));
+            dispatch(actions.addLayer(getActiveViewId(), {id: 'L2', resId: 2, resName: 'res_2', varName: 'X'} as any, false));
             dispatch(actions.setSelectedWorkspaceResourceName('res_2'));
             dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
             expect(getActiveView().data.layers).to.deep.equal(
@@ -566,8 +567,8 @@ describe('Actions', () => {
                         type: "Vector",
                         name: 'Countries'
                     },
-                    {id: 'L1', resName: 'res_1', varName: 'X'},
-                    {id: 'L2', resName: 'bert', varName: 'X'},
+                    {id: 'L1', resId: 1, resName: 'res_1', varName: 'X'},
+                    {id: 'L2', resId: 2, resName: 'bert', varName: 'X'},
                 ]);
             expect(getState().control.selectedWorkspaceResourceName).to.equal('bert');
         });

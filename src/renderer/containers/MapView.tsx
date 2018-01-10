@@ -83,12 +83,12 @@ class MapView extends React.Component<IMapViewProps & DispatchProp<State>, null>
     private convertVariableImageLayerToMapLayer(layer: VariableImageLayerState): LayerDescriptor | null {
         const variable = this.getVariable(layer);
         if (!variable) {
-            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
+            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resId}"`);
             return null;
         }
         const imageLayout = variable.imageLayout;
         if (!variable.imageLayout) {
-            console.warn(`MapView: variable "${layer.varName}" of resource "${layer.resName}" has no imageLayout`);
+            console.warn(`MapView: variable "${layer.varName}" of resource "${layer.resId}" has no imageLayout`);
             return null;
         }
         const baseDir = this.props.workspace.baseDir;

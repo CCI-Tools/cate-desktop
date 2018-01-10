@@ -257,7 +257,7 @@ export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Viewer,
     onMouseMoved?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onLeftUp?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onPlacemarkSelected?: (placemarkId: string | null) => void;
-    handleSimplifiedGeometrySelected?: (selectedEntity: Entity,  resName: string) => void;
+    onSimplifiedGeometrySelected?: (selectedEntity: Entity, resId: number) => void;
     onViewerMounted?: (id: string, viewer: Viewer) => void;
     onViewerUnmounted?: (id: string, viewer: Viewer) => void;
     splitLayerIndex: number;
@@ -473,16 +473,15 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
                 const placemarkId = selectedEntity && selectedEntity.id && selectedEntity.id.startsWith('placemark-') ? selectedEntity.id : null;
                 this.props.onPlacemarkSelected(placemarkId);
             }
-            if (this.props.handleSimplifiedGeometrySelected) {
+            if (this.props.onSimplifiedGeometrySelected) {
                 if (selectedEntity && selectedEntity.point &&
                     selectedEntity.id && selectedEntity.id.startsWith('ds-')) {
-                    for (let dataSourceDescriptor of this.props.dataSources) {
-                        const dsName = dataSourceDescriptor.dataSourceOptions.name;
-                        if (selectedEntity.id.startsWith('ds-' + dsName + '-')) {
-                            const dataSource = CesiumGlobe.getDataSource(viewer, dataSourceDescriptor);
-                            if (dataSource.entities && dataSource.entities.contains(selectedEntity)) {
-                                this.props.handleSimplifiedGeometrySelected(selectedEntity, dsName);
-                            }
+                    for (let dsDesc of this.props.dataSources) {
+                        const dataSource = CesiumGlobe.getDataSource(viewer, dsDesc);
+                        if (dataSource.entities &&
+                            dataSource.entities.contains(selectedEntity)) {
+                            const resId = dsDesc.dataSourceOptions.resId;
+                            this.props.onSimplifiedGeometrySelected(selectedEntity, resId);
                             break;
                         }
                     }

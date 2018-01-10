@@ -14,7 +14,7 @@ export const COUNTRIES_LAYER_ID = 'countries';
 
 
 export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImageLayerState): string {
-    return baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/{z}/{y}/{x}.png?`
+    return baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${layer.resId}/{z}/{y}/{x}.png?`
         + `&var=${encodeURIComponent(layer.varName)}`
         + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
         + `&cmap=${encodeURIComponent(layer.colorMapName) + (layer.alphaBlending ? '_alpha' : '')}`
@@ -23,15 +23,16 @@ export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImag
 }
 
 export function getFeatureCollectionUrl(baseUrl: string, baseDir: string, ref: ResourceRefState): string {
-    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(ref.resName)}`;
+    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${ref.resId}`;
 }
 
 // TODO use me (see allow expanding of point simplified geometries #489)
 export function getFeatureUrl(baseUrl: string, baseDir: string, ref: ResourceRefState, index: number): string {
-    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(ref.resName)}/${index}`;
+    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${ref.resId}/${index}`;
 }
 
 export function getCsvUrl(baseUrl: string, baseDir: string, resName: string, varName?: string | null): string {
+    // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO USE ID
     let varPart = '';
     if (varName) {
         varPart = `?var=${encodeURIComponent(varName)}`;
@@ -115,11 +116,15 @@ export function getLayerDisplayName(layer: LayerState): string {
 }
 
 export function findResource(resources: ResourceState[], ref: ResourceRefState): ResourceState | null {
-    return resources.find(r => r.name === ref.resName);
+    return findResourceById(resources, ref.resId);
 }
 
 export function findResourceByName(resources: ResourceState[], name: string): ResourceState | null {
     return resources.find(r => r.name === name);
+}
+
+export function findResourceById(resources: ResourceState[], id: number): ResourceState | null {
+    return resources.find(r => r.id === id);
 }
 
 export function findVariable(resources: ResourceState[], ref: VariableRefState): VariableState | null {
@@ -132,7 +137,7 @@ export function findOperation(operations: OperationState[], name: string): Opera
 }
 
 export function findVariableIndexCoordinates(resources: ResourceState[], ref: VariableDataRefState): any[] {
-    const resource = findResourceByName(resources, ref.resName);
+    const resource = findResourceById(resources, ref.resId);
     if (!resource) {
         return EMPTY_ARRAY;
     }
@@ -269,6 +274,7 @@ export function newVariableLayer(resource: ResourceState,
             type: 'VariableImage',
             name: `${resource.name}.${variable.name}`,
             visible: true,
+            resId: resource.id,
             resName: resource.name,
             varName: variable.name,
             ...layerDisplayProperties
@@ -281,6 +287,7 @@ export function newVariableLayer(resource: ResourceState,
             type: 'ResourceVector',
             name: `${resource.name}`,
             visible: true,
+            resId: resource.id,
             resName: resource.name,
         } as ResourceVectorLayerState;
     }
@@ -303,6 +310,7 @@ export function updateSelectedVariableLayer(selectedLayer: LayerState,
             ...restoredLayer,
             type: 'VariableImage',
             name: `Variable: ${resource.name}.${variable.name}`,
+            resId: resource.id,
             resName: resource.name,
             varName: variable.name,
             ...layerDisplayProperties
@@ -314,6 +322,7 @@ export function updateSelectedVariableLayer(selectedLayer: LayerState,
             ...restoredLayer,
             type: 'ResourceVector',
             name: `Resource: ${resource.name}`,
+            resId: resource.id,
             resName: resource.name
         } as ResourceVectorLayerState;
     } else {

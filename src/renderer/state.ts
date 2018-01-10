@@ -471,19 +471,15 @@ export interface VectorLayerState extends LayerState {
  */
 export interface ResourceRefState {
     /**
-     * The name of the resource that contains the variable.
+     * The id of the resource that contains the variable.
      */
-    resName: string;
+    resId: number;
 }
 
 /**
  * Variable reference
  */
 export interface VariableRefState extends ResourceRefState {
-    /**
-     * The name of the resource that contains the variable.
-     */
-    resName: string;
     /**
      * The name of the variable.
      */

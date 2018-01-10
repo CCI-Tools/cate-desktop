@@ -21,22 +21,24 @@ describe('convertLayersToLayerDescriptors', function () {
                 name: 'I has a bucket',
                 type: 'ResourceVector',
                 visible: true,
-                resName: 'res_1'
+                resId: 1
             },
             {
                 id: 'L427',
                 name: 'I love ma bucket',
                 type: 'VariableImage',
                 visible: true,
-                resName: 'res_2',
+                resId: 2,
                 varName: 'sst',
             }
         ];
         resources = [
             {
+                id: 1,
                 name: 'res_1'
             },
             {
+                id: 2,
                 name: 'res_2',
                 variables: [
                     {
@@ -74,18 +76,21 @@ describe('convertLayersToLayerDescriptors', function () {
         expect(ld2.id).to.equal("L423");
         expect(ld2.name).to.equal("I has a bucket");
         expect(ld2.visible).to.be.true;
-        expect(ld2.resName).to.equal("res_1");
+        expect(ld2.resId).to.equal(1);
+        //expect(ld2.resName).to.equal("res_1");
         expect(ld2.dataSource).to.be.a('function');
         expect(ld2.dataSourceOptions).to.deep.equal({
-                                                        name: "res_1",
-                                                        url: "http://localhost/ws/res/geojson/hotte/res_1"
-                                                    });
+            resId: 1,
+            resName: "res_1",
+            url: "http://localhost/ws/res/geojson/hotte/1"
+        });
 
         expect(ld3.id).to.equal("L427");
         expect(ld3.name).to.equal("I love ma bucket");
         expect(ld3.visible).to.be.true;
         expect(ld3.type).to.be.equal("VariableImage");
-        expect(ld3.resName).to.equal("res_2");
+        expect(ld3.resId).to.equal(2);
+        //expect(ld3.resName).to.equal("res_2");
         expect(ld3.varName).to.equal("sst");
         expect(ld3.imageryProvider).to.be.a('function');
         expect(ld3.imageryProviderOptions).to.exist;
