@@ -78,8 +78,7 @@ export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Cesium.
     onMouseClicked?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onMouseMoved?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onLeftUp?: (point: { latitude: number, longitude: number, height?: number }) => void;
-    onPlacemarkSelected?: (placemarkId: string | null) => void;
-    onSimplifiedGeometrySelected?: (selectedEntity: Cesium.Entity, resId: number) => void;
+    onGeometrySelected?: (selectedEntity: Cesium.Entity) => void;
     onViewerMounted?: (id: string, viewer: Cesium.Viewer) => void;
     onViewerUnmounted?: (id: string, viewer: Cesium.Viewer) => void;
     splitLayerIndex: number;
@@ -290,24 +289,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         );
 
         this.selectedEntityHandler = (selectedEntity: Cesium.Entity) => {
-            if (this.props.onPlacemarkSelected) {
-                // make sure this entity is actually a placemark and not something else
-                const placemarkId = selectedEntity && selectedEntity.id && selectedEntity.id.startsWith('placemark-') ? selectedEntity.id : null;
-                this.props.onPlacemarkSelected(placemarkId);
-            }
-            if (this.props.onSimplifiedGeometrySelected) {
-                if (selectedEntity && selectedEntity.point
-                    && selectedEntity.id && selectedEntity.id.startsWith('ds-')) {
-                    for (let dsDesc of this.props.dataSources) {
-                        const dataSource = CesiumGlobe.getDataSource(viewer, dsDesc);
-                        if (dataSource.entities
-                            && dataSource.entities.contains(selectedEntity)) {
-                            const resId = dsDesc.dataSourceOptions.resId;
-                            this.props.onSimplifiedGeometrySelected(selectedEntity, resId);
-                            break;
-                        }
-                    }
-                }
+            if (this.props.onGeometrySelected) {
+                this.props.onGeometrySelected(selectedEntity);
             }
         };
         viewer.selectedEntityChanged.addEventListener(this.selectedEntityHandler);

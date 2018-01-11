@@ -13,6 +13,7 @@ import {
 import {memoize} from '../../common/memoize';
 import {EMPTY_OBJECT} from "../selectors";
 import * as Cesium from "cesium";
+import {isDefined} from "../../common/types";
 
 export function convertLayersToLayerDescriptors(layers: LayerState[],
                                                 resources: ResourceState[],
@@ -29,17 +30,17 @@ export function convertLayersToLayerDescriptors(layers: LayerState[],
         switch (layer.type) {
             case 'VariableImage': {
                 layerDescriptor = convertVariableImageLayerToDescriptor(baseUrl, baseDir, resources,
-                                                                        layer as VariableImageLayerState);
+                    layer as VariableImageLayerState);
                 break;
             }
             case 'ResourceVector': {
                 dataSourceDescriptor = convertResourceVectorLayerToDescriptor(baseUrl, baseDir, resources,
-                                                                              layer as ResourceVectorLayerState);
+                    layer as ResourceVectorLayerState);
                 break;
             }
             case 'Vector': {
                 dataSourceDescriptor = convertVectorLayerToDescriptor(baseUrl,
-                                                                      layer as VectorLayerState);
+                    layer as VectorLayerState);
                 break;
             }
         }
@@ -96,10 +97,10 @@ function convertVariableImageLayerToDescriptor(baseUrl: string,
             tileWidth: imageLayout.tileWidth,
             tileHeight: imageLayout.tileHeight,
             tilingScheme: new Cesium.GeographicTilingScheme({
-                                                                rectangle,
-                                                                numberOfLevelZeroTilesX: imageLayout.numLevelZeroTilesX,
-                                                                numberOfLevelZeroTilesY: imageLayout.numLevelZeroTilesY
-                                                            }),
+                rectangle,
+                numberOfLevelZeroTilesX: imageLayout.numLevelZeroTilesX,
+                numberOfLevelZeroTilesY: imageLayout.numLevelZeroTilesY
+            }),
         },
     });
 }
@@ -116,12 +117,11 @@ function convertResourceVectorLayerToDescriptor(baseUrl: string,
     return {
         ...layer,
         dataSource: (viewer: Cesium.Viewer, dataSourceOptions) => {
-            return createResourceGeoJSONDataSource(dataSourceOptions.url, dataSourceOptions.resName);
+            return createResourceGeoJSONDataSource(dataSourceOptions.url, dataSourceOptions.resId);
         },
         dataSourceOptions: {
             url: getFeatureCollectionUrl(baseUrl, baseDir, layer),
             resId: resource.id,
-            resName: resource.name
         },
     } as VectorLayerDescriptor;
 }
@@ -181,8 +181,8 @@ function getDefaultFeatureStyle() {
     };
 }
 
-const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
-    const customDataSource: Cesium.DataSource = new Cesium.CustomDataSource(name);
+const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => {
+    const customDataSource: Cesium.DataSource = new Cesium.CustomDataSource("cate-" + resId);
     let numFeatures = 0;
     const worker = new Worker("common/stream-geojson.js");
     worker.postMessage(url);
@@ -222,7 +222,6 @@ const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
                     const areaMax = 500.;
                     const feature = featureMap.get(entity.id);
                     let ratio = 0.5;
-                    let description;
                     let isPoint = !!(entity.point || entity.billboard || entity.label);
                     if (feature && feature.properties) {
                         let area = feature.properties['area_npl43'];
@@ -235,35 +234,37 @@ const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
                                 ratio = 1.;
                             }
                         }
-
-                        description = '<table class="cesium-infoBox-defaultTable cesium-infoBox-defaultTable-lighter"><tbody>';
-                        Object.getOwnPropertyNames(feature.properties)
-                            .map(n => `<tr><th>${n}</th><td>${feature.properties[n]}</td></tr>`)
-                            .forEach(d => description += d);
-                        description += '</tbody></table>';
                     }
                     const pixelSize = pixelSizeMin + ratio * (pixelSizeMax - pixelSizeMin);
 
                     if (isPoint) {
-                        customDataSource.entities.add({
-                                                          id: 'ds-' + entity.id,
-                                                          name: entity.id,
-                                                          position: entity.position,
-                                                          description,
-                                                          point: {
-                                                              color: pointColor,
-                                                              outlineColor: pointOutlineColor,
-                                                              outlineWidth: 5,
-                                                              // pixelSize will multiply by the scale factor, so in this
-                                                              // example the size will range from pixelSize (near) to 0.1*pixelSize (far).
-                                                              pixelSize,
-                                                              scaleByDistance,
-                                                              translucencyByDistance,
-                                                          }
-                                                      });
-                    } else {
-                        customDataSource.entities.add(entity);
+                        entity = {
+                            id: entity.id,
+                            name: entity.id,
+                            position: entity.position,
+                            description: entity.description,
+                            point: {
+                                color: pointColor,
+                                outlineColor: pointOutlineColor,
+                                outlineWidth: 5,
+                                // pixelSize will multiply by the scale factor, so in this
+                                // example the size will range from pixelSize (near) to 0.1*pixelSize (far).
+                                pixelSize,
+                                scaleByDistance,
+                                translucencyByDistance,
+                            }
+                        };
                     }
+                    let isSimple = false;
+                    if (feature && isDefined(feature['simp']) && feature['simp'] == 1) {
+                        isSimple = true;
+                    }
+                    customDataSource.entities.add(
+                        {
+                            ...entity,
+                            _isSimple: isSimple,
+                            _resId: resId
+                        });
                 }
 
                 geoJsonDataSource.entities.removeAll();
@@ -277,9 +278,6 @@ const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
 const entityGeometryPropertyNames = ["billboard", "corridor", "polyline", "point", "polygon"];
 
 export function loadDetailedGeometry(oldEntity: Cesium.Entity, featureUrl: string) {
-
-    console.log("loadDetailedGeometry", oldEntity, featureUrl);
-
     // TODO (nf/mz): We don't correctly handle multi-geometries here.
     Cesium.GeoJsonDataSource.load(featureUrl, getDefaultFeatureStyle())
         .then((geoJsonDataSource: Cesium.GeoJsonDataSource) => {
@@ -298,6 +296,7 @@ export function transferEntityGeometry(fromEntity: Cesium.Entity, toEntity: Cesi
     }
     if (newGeomPropertyName) {
         toEntity[newGeomPropertyName] = fromEntity[newGeomPropertyName];
+        toEntity._isSimple = false;
     }
-};
+}
 

@@ -13,6 +13,7 @@ import {findVariableIndexCoordinates, getFeatureUrl} from "../state-util";
 import {ViewState} from "../components/ViewState";
 import {convertLayersToLayerDescriptors, loadDetailedGeometry} from "./globe-view-layers";
 import * as Cesium from "cesium";
+import {isDefined} from "../../common/types";
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -114,8 +115,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         this.handleMouseMoved = this.handleMouseMoved.bind(this);
         this.handleMouseClicked = this.handleMouseClicked.bind(this);
         this.handleLeftUp = this.handleLeftUp.bind(this);
-        this.handlePlacemarkSelected = this.handlePlacemarkSelected.bind(this);
-        this.handleSimplifiedGeometrySelected = this.handleSimplifiedGeometrySelected.bind(this);
+        this.handleGeometrySelected = this.handleGeometrySelected.bind(this);
         this.handleSplitLayerPosChange = this.handleSplitLayerPosChange.bind(this);
     }
 
@@ -134,18 +134,21 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         this.props.dispatch(actions.setGlobeViewPosition(position));
     }
 
-    handlePlacemarkSelected(selectedPlacemarkId: string | null) {
-        this.props.dispatch(actions.setSelectedPlacemarkId(selectedPlacemarkId));
-    }
+    handleGeometrySelected(selectedEntity: Cesium.Entity) {
+        // make sure this entity is actually a placemark and not something else
+        const placemarkId = selectedEntity && selectedEntity.id && selectedEntity.id.startsWith('placemark-') ? selectedEntity.id : null;
+        this.props.dispatch(actions.setSelectedPlacemarkId(placemarkId));
 
-    handleSimplifiedGeometrySelected(selectedEntity: Cesium.Entity, resId: number) {
-        const workspace = this.props.workspace;
-        if (workspace) {
-            const baseUrl = this.props.baseUrl;
-            const baseDir = workspace.baseDir;
-            const id = selectedEntity.id.substring(('ds-').length);
-            const featureUrl = getFeatureUrl(baseUrl, baseDir, {resId}, +id);
-            loadDetailedGeometry(selectedEntity, featureUrl)
+        if (selectedEntity && isDefined(selectedEntity._isSimple) && selectedEntity._isSimple) {
+            const resId = selectedEntity._resId;
+            const workspace = this.props.workspace;
+            if (workspace) {
+                const baseUrl = this.props.baseUrl;
+                const baseDir = workspace.baseDir;
+                const id = selectedEntity.id;
+                const featureUrl = getFeatureUrl(baseUrl, baseDir, {resId}, +id);
+                loadDetailedGeometry(selectedEntity, featureUrl)
+            }
         }
     }
 
@@ -202,8 +205,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          onMouseMoved={this.props.isDialogOpen ? null : this.handleMouseMoved}
                          onMouseClicked={this.props.isDialogOpen ? null : this.handleMouseClicked}
                          onLeftUp={this.props.isDialogOpen ? null : this.handleLeftUp}
-                         onPlacemarkSelected={this.handlePlacemarkSelected}
-                         onSimplifiedGeometrySelected={this.handleSimplifiedGeometrySelected}
+                         onGeometrySelected={this.handleGeometrySelected}
             />
         );
     }
