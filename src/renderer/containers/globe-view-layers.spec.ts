@@ -81,7 +81,6 @@ describe('convertLayersToLayerDescriptors', function () {
         expect(ld2.dataSource).to.be.a('function');
         expect(ld2.dataSourceOptions).to.deep.equal({
             resId: 1,
-            resName: "res_1",
             url: "http://localhost/ws/res/geojson/hotte/1"
         });
 
