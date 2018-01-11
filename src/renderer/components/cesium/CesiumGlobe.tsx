@@ -11,11 +11,9 @@ interface Placemark extends Feature<Point> {
 }
 
 console.log(Cesium);
-//const Cesium: any = require('cesium');
 
 const BuildModuleUrl: any = Cesium.buildModuleUrl;
 BuildModuleUrl.setBaseUrl('./');
-
 
 /**
  * Describes a layer to be displayed on the Cesium globe.
@@ -78,7 +76,7 @@ export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Cesium.
     onMouseClicked?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onMouseMoved?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onLeftUp?: (point: { latitude: number, longitude: number, height?: number }) => void;
-    onGeometrySelected?: (selectedEntity: Cesium.Entity) => void;
+    onEntitySelected?: (selectedEntity: Cesium.Entity) => void;
     onViewerMounted?: (id: string, viewer: Cesium.Viewer) => void;
     onViewerUnmounted?: (id: string, viewer: Cesium.Viewer) => void;
     splitLayerIndex: number;
@@ -289,8 +287,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         );
 
         this.selectedEntityHandler = (selectedEntity: Cesium.Entity) => {
-            if (this.props.onGeometrySelected) {
-                this.props.onGeometrySelected(selectedEntity);
+            if (this.props.onEntitySelected) {
+                this.props.onEntitySelected(selectedEntity);
             }
         };
         viewer.selectedEntityChanged.addEventListener(this.selectedEntityHandler);
@@ -415,7 +413,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                     //                Possible reason, new globe views may not have their
                     //                'selectedVariable' layer correctly initialized. Same problem in OpenLayersMap!
                     //assert.ok(imageryLayer);
-                    // Set the texture minification and magnification filters of layerNearest. Default is LINEAR.
                     if (!imageryLayer) {
                         console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
                         break;

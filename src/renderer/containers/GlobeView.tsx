@@ -115,7 +115,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         this.handleMouseMoved = this.handleMouseMoved.bind(this);
         this.handleMouseClicked = this.handleMouseClicked.bind(this);
         this.handleLeftUp = this.handleLeftUp.bind(this);
-        this.handleGeometrySelected = this.handleGeometrySelected.bind(this);
+        this.handleEntitySelected = this.handleEntitySelected.bind(this);
         this.handleSplitLayerPosChange = this.handleSplitLayerPosChange.bind(this);
     }
 
@@ -134,9 +134,11 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         this.props.dispatch(actions.setGlobeViewPosition(position));
     }
 
-    handleGeometrySelected(selectedEntity: Cesium.Entity) {
+    handleEntitySelected(selectedEntity: Cesium.Entity) {
         // make sure this entity is actually a placemark and not something else
-        const placemarkId = selectedEntity && selectedEntity.id && selectedEntity.id.startsWith('placemark-') ? selectedEntity.id : null;
+        const placemarkId = selectedEntity
+            && selectedEntity.id
+            && selectedEntity.id.startsWith('placemark-') ? selectedEntity.id : null;
         this.props.dispatch(actions.setSelectedPlacemarkId(placemarkId));
 
         if (selectedEntity && isDefined(selectedEntity._isSimple) && selectedEntity._isSimple) {
@@ -205,7 +207,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          onMouseMoved={this.props.isDialogOpen ? null : this.handleMouseMoved}
                          onMouseClicked={this.props.isDialogOpen ? null : this.handleMouseClicked}
                          onLeftUp={this.props.isDialogOpen ? null : this.handleLeftUp}
-                         onGeometrySelected={this.handleGeometrySelected}
+                         onEntitySelected={this.handleEntitySelected}
             />
         );
     }
