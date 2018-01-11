@@ -1,5 +1,5 @@
 import {WebAPIClient} from './webapi';
-import {JobStatus, JobFailure, JobProgress} from "./webapi/Job";
+import {JobStatus, JobFailure, JobProgress} from "./webapi";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
 import {Feature, FeatureCollection, Point} from "geojson";
@@ -345,6 +345,16 @@ export interface WorldViewDataState {
      * The split position of the selected layer, a ratio 0 to 1.
      */
     selectedLayerSplitPos: number;
+
+    /**
+     * The ID of a selected feature ("entity" in Cesium).
+     */
+    selectedFeatureId: string | null;
+
+    /**
+     * The selected feature.
+     */
+    selectedFeature: Feature<any> | null;
 }
 
 export interface FigureViewDataState {
