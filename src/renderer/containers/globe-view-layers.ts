@@ -219,6 +219,7 @@ const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
                     //console.log('entity: ', entity);
 
                     // TODO (nf/mz): Generalize this code. This is for Glaciers CCI.
+                    // See #491: use a special style for feature geometries that are expandable/collapsible.
                     const pixelSizeMin = 10;
                     const pixelSizeMax = 50;
                     const areaMin = 20.;
