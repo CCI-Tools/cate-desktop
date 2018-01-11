@@ -474,12 +474,12 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
                 this.props.onPlacemarkSelected(placemarkId);
             }
             if (this.props.onSimplifiedGeometrySelected) {
-                if (selectedEntity && selectedEntity.point &&
-                    selectedEntity.id && selectedEntity.id.startsWith('ds-')) {
+                if (selectedEntity && selectedEntity.point
+                    && selectedEntity.id && selectedEntity.id.startsWith('ds-')) {
                     for (let dsDesc of this.props.dataSources) {
                         const dataSource = CesiumGlobe.getDataSource(viewer, dsDesc);
-                        if (dataSource.entities &&
-                            dataSource.entities.contains(selectedEntity)) {
+                        if (dataSource.entities
+                            && dataSource.entities.contains(selectedEntity)) {
                             const resId = dsDesc.dataSourceOptions.resId;
                             this.props.onSimplifiedGeometrySelected(selectedEntity, resId);
                             break;
