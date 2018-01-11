@@ -274,7 +274,7 @@ const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
     return customDataSource;
 });
 
-const entityGeometryPropertyNames = ["point", "label", "polygon", "path"];
+const entityGeometryPropertyNames = ["billboard", "corridor", "polyline", "point", "polygon"];
 
 export function loadDetailedGeometry(oldEntity: Cesium.Entity, featureUrl: string) {
 
