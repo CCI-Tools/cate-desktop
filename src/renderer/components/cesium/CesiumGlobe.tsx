@@ -611,8 +611,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
                     //                'selectedVariable' layer correctly initialized. Same problem in OpenLayersMap!
                     //assert.ok(imageryLayer);
                     // Set the texture minification and magnification filters of layerNearest. Default is LINEAR.
-                    imageryLayer.minificationFilter = Cesium.TextureMinificationFilter.NEAREST;
-                    imageryLayer.magnificationFilter = Cesium.TextureMagnificationFilter.NEAREST;
                     if (!imageryLayer) {
                         console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
                         break;
@@ -642,6 +640,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
                         // URL in place. The current approach, namely remove/add, causes flickering.
                         this.removeLayer(viewer, imageryLayer, cesiumIndex);
                         imageryLayer = this.addLayer(viewer, newLayer, cesiumIndex);
+                        imageryLayer.minificationFilter = Cesium.TextureMinificationFilter.NEAREST;
+                        imageryLayer.magnificationFilter = Cesium.TextureMagnificationFilter.NEAREST;
                     }
                     // update imageryLayer
                     CesiumGlobe.setLayerProps(imageryLayer, newLayer);
@@ -829,6 +829,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Viewer, CesiumGlobeStat
         imageryLayer.hue = layerDescriptor.hue;
         imageryLayer.saturation = layerDescriptor.saturation;
         imageryLayer.gamma = layerDescriptor.gamma;
+        // TODO (mz,nf): set from layerDescriptor.interpolation prop (NEAREST / BILINEAR);
+        imageryLayer.minificationFilter = Cesium.TextureMinificationFilter.NEAREST;
+        imageryLayer.magnificationFilter = Cesium.TextureMagnificationFilter.NEAREST;
     }
 
     private static setDataSourceProps(dataSource: DataSource
