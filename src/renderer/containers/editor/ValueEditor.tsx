@@ -13,6 +13,7 @@ import {VarNameValueEditor} from "./VarNameValueEditor";
 import {DictValueEditor} from "./DictValueEditor";
 import {LiteralValueEditor} from "./LiteralValueEditor";
 import {TimeValueEditor} from "./TimeValueEditor";
+import * as Cesium from "cesium";
 
 export interface InputAssignment {
     constantValue: FieldValue<any> | any;
@@ -31,6 +32,7 @@ export interface IValueEditorProps<T> {
     onChange: ValueEditorCallback<T>;
     inputAssignments?: InputAssignments;
     resources?: ResourceState[];
+    selectedEntity?: Cesium.Entity | null;
 }
 
 export type ValueEditorFactory<T> = (props: IValueEditorProps<T>) => JSX.Element | null;
@@ -95,17 +97,17 @@ function renderTextValueEditor(props: IValueEditorProps<string>) {
 
 function renderPointLikeValueEditor(props: IValueEditorProps<string>) {
     return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Point"
-                                size={16}/>;
+                                size={16} selectedEntity={props.selectedEntity}/>;
 }
 
 function renderPolygonLikeValueEditor(props: IValueEditorProps<string>) {
     return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Polygon"
-                                size={32}/>;
+                                size={32} selectedEntity={props.selectedEntity}/>;
 }
 
 function renderGeometryLikeValueEditor(props: IValueEditorProps<string>) {
     return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange}
-                                geometryType="Geometry" size={32}/>;
+                                geometryType="Geometry" size={32} selectedEntity={props.selectedEntity}/>;
 }
 
 function renderTimeLikeValueEditor(props: IValueEditorProps<string>) {

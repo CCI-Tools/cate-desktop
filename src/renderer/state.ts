@@ -4,6 +4,7 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
 import {Feature, FeatureCollection, Point} from "geojson";
 import {IconName} from "@blueprintjs/core";
+import * as Cesium from "cesium";
 
 /**
  * Interface describing Cate's application state structure.
@@ -347,14 +348,9 @@ export interface WorldViewDataState {
     selectedLayerSplitPos: number;
 
     /**
-     * The ID of a selected feature ("entity" in Cesium).
+     * The selected entity in Cesium 3D globe.
      */
-    selectedFeatureId: string | null;
-
-    /**
-     * The selected feature.
-     */
-    selectedFeature: Feature<any> | null;
+    selectedEntity: Cesium.Entity | null;
 }
 
 export interface FigureViewDataState {

@@ -2,7 +2,8 @@ import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
     WorkflowStepState, LayerVariableState, SavedLayers,
-    FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase, ResourceVectorLayerState
+    FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase,
+    ResourceVectorLayerState, WorldViewDataState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient, JobStatusEnum} from "./webapi";
@@ -10,10 +11,11 @@ import {DatasetAPI, OperationAPI, WorkspaceAPI, ColorMapsAPI, BackendConfigAPI} 
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
-    getLockForGetWorkspaceVariableStatistics
+    getLockForGetWorkspaceVariableStatistics, entityToGeometryWKT
 } from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
+import * as Cesium from "cesium";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -573,7 +575,19 @@ export const isSelectedLayerSplitSelector = createSelector<State, boolean | null
     activeViewSelector,
     (view: ViewState<any>) => {
         if (view && view.type === 'world') {
-            return view.data.isSelectedLayerSplit;
+            const data = view.data as WorldViewDataState;
+            return data.isSelectedLayerSplit;
+        }
+        return null;
+    }
+);
+
+export const selectedEntitySelector = createSelector<State, Cesium.Entity | null, ViewState<any> | null>(
+    activeViewSelector,
+    (view: ViewState<any>) => {
+        if (view && view.type === 'world') {
+            const data = view.data as WorldViewDataState;
+            return data.selectedEntity;
         }
         return null;
     }

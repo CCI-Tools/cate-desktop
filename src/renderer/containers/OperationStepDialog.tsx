@@ -14,7 +14,7 @@ import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {isDefined, isString, isUndefinedOrNull} from "../../common/types";
 import {isUndefined} from "util";
-
+import * as Cesium from "cesium";
 
 type InputErrors = { [inputName: string]: Error };
 
@@ -30,6 +30,7 @@ interface IOperationStepDialogProps extends DialogState, IOperationStepDialogOwn
     operation: OperationState;
     resName: string;
     overwrite: boolean;
+    selectedEntity: Cesium.Entity | null;
 }
 
 interface IOperationStepDialogState {
@@ -82,6 +83,7 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
         operation,
         resName,
         overwrite,
+        selectedEntity: selectors.selectedEntitySelector(state),
     };
 }
 
@@ -271,6 +273,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
             operation.inputs,
             this.state.inputAssignments,
             this.props.workspace.resources,
+            this.props.selectedEntity,
             this.onConstantValueChange,
             this.onResourceNameChange
         );
@@ -322,6 +325,7 @@ function getInitialInputAssignments(inputs: OperationInputState[],
 function renderInputEditors(inputs: OperationInputState[],
                             inputAssignments: InputAssignments,
                             resources: ResourceState[],
+                            selectedEntity: Cesium.Entity | null,
                             onConstantValueChange,
                             onResourceNameChange): JSX.Element[] {
     return inputs
@@ -333,6 +337,7 @@ function renderInputEditors(inputs: OperationInputState[],
                                                       input,
                                                       inputAssignments,
                                                       resources,
+                                                      selectedEntity,
                                                       value: constantValue,
                                                       onChange: onConstantValueChange
                                                   });

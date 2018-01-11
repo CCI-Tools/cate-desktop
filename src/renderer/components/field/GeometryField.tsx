@@ -4,16 +4,19 @@ import {toTextValue} from "./Field";
 import {TextField, TextFieldValue} from "./TextField";
 import {GeometryDialog} from "../GeometryDialog";
 import {GeometryType, validateGeometryValue} from "../../../common/geometry-util";
+import * as Cesium from "cesium";
+import {entityToGeometryWKT} from "../../state-util";
 
 
 interface IGeometryFieldProps {
-    value: TextFieldValue | any,
+    value: TextFieldValue | any;
     onChange: (value: TextFieldValue) => void;
     geometryType: GeometryType;
     placeholder?: string;
     size?: number;
     nullable?: boolean;
     disabled?: boolean;
+    selectedEntity?: Cesium.Entity | null;
 }
 
 interface IGeometryFieldState {
@@ -26,10 +29,17 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
         super(props);
         this.validateGeometryText = this.validateGeometryText.bind(this);
         this.state = {isEditorOpen: false};
+        this.setSelectedEntityWKT = this.setSelectedEntityWKT.bind(this);
     }
 
     validateGeometryText(value: string  | null) {
         validateGeometryValue(value, this.props.geometryType);
+    }
+
+    setSelectedEntityWKT() {
+        let geometryWKT = entityToGeometryWKT(this.props.selectedEntity);
+        // TODO (nf): impl. setSelectedEntityWKT()
+        console.log("geometryWKT =", geometryWKT);
     }
 
     render() {
@@ -53,6 +63,10 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
                     validator={this.validateGeometryText}
                     nullable={this.props.nullable}
                 />
+
+                <AnchorButton className="pt-intent-primary pt-icon-selection" style={{flex: 'none'}}
+                              disabled={!this.props.selectedEntity}
+                              onClick={this.setSelectedEntityWKT}/>
 
                 <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
                               onClick={() => this.setState({isEditorOpen: true})}>...</AnchorButton>

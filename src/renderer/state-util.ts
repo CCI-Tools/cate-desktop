@@ -2,12 +2,14 @@ import {
     VariableState, VariableRefState, ResourceState, LayerState,
     VariableImageLayerState, OperationState, WorldViewDataState,
     TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState, ResourceRefState,
-    ResourceVectorLayerState
+    ResourceVectorLayerState, State
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
 import {isNumber, isString} from "../common/types";
-import {EMPTY_ARRAY} from "./selectors";
+import {activeViewSelector, EMPTY_ARRAY} from "./selectors";
+import * as Cesium from "cesium";
+import {createSelector} from "reselect";
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 export const COUNTRIES_LAYER_ID = 'countries';
@@ -422,4 +424,55 @@ export function hasWebGL(): boolean {
     canvas = null;
     context = null;
     return true;
+}
+
+export function entityToGeometryWKT(selectedEntity: Cesium.Entity): string | null {
+
+    const polyline = selectedEntity.polyline;
+    if (polyline) {
+        const positions = polyline.positions;
+        return `LINESTRING (${cartesian3ArrayToWKT(positions)})`;
+    }
+
+    const polygon = selectedEntity.polygon;
+    if (polygon) {
+        const positions = polygon.hierarchy.positions;
+        if (polygon.hierarchy.holes) {
+            // TODO (nf): also convert polygon.hierarchy.holes,
+            // see https://cesiumjs.org/Cesium/Build/Documentation/PolygonHierarchy.html
+            console.warn("ignoring polygon holes for entity:", selectedEntity);
+        }
+        return `POLYGON ((${cartesian3ArrayToWKT(positions)}))`;
+    }
+
+    const rectangle = selectedEntity.rectangle;
+    if (rectangle) {
+        const coordinates = rectangle.coordinates;
+        const x1 = toDeg(coordinates.west);
+        const y1 = toDeg(coordinates.south);
+        const x2 = toDeg(coordinates.east);
+        const y2 = toDeg(coordinates.north);
+        return `POLYGON ((${x1} ${y1}, ${x2} ${y1}, ${x2} ${y2}, ${x1} ${y2}, ${x1} ${y1}))`;
+    }
+
+    const position = selectedEntity.position;
+    if (position) {
+        return `POINT (${cartesian3ToWKT(position)})`
+    }
+
+    console.warn("can't understand geometry of selected entity:", selectedEntity);
+    return null;
+}
+
+function cartesian3ArrayToWKT(positions: Cesium.Cartesian3[]): string {
+    return positions.map(p => cartesian3ToWKT(p)).join(', ');
+}
+
+function cartesian3ToWKT(position: Cesium.Cartesian3): string {
+    const cartographic = Cesium.Cartographic.fromCartesian(position);
+    return `${toDeg(cartographic.longitude)} ${toDeg(cartographic.latitude)}`;
+}
+
+function toDeg(x: number): number {
+    return x * (180. / Math.PI);
 }
