@@ -182,7 +182,7 @@ function getDefaultFeatureStyle() {
 }
 
 const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => {
-    const customDataSource: Cesium.DataSource = new Cesium.CustomDataSource("cate-" + resId);
+    const customDataSource: Cesium.DataSource = new Cesium.CustomDataSource("Cate Resource #" + resId);
     let numFeatures = 0;
     const worker = new Worker("common/stream-geojson.js");
     worker.postMessage(url);
