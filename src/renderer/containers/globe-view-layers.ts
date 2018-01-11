@@ -5,7 +5,6 @@ import {
 } from "../state";
 import {
     ImageLayerDescriptor, VectorLayerDescriptor, LayerDescriptors,
-    DataSource, ImageryProvider, GeoJsonDataSource, Viewer, Entity
 } from "../components/cesium/CesiumGlobe";
 import {
     findVariable, findResource, getTileUrl, getFeatureCollectionUrl, getGeoJSONCountriesUrl,
@@ -13,9 +12,7 @@ import {
 } from "../state-util";
 import {memoize} from '../../common/memoize';
 import {EMPTY_OBJECT} from "../selectors";
-
-const Cesium: any = require('cesium');
-
+import * as Cesium from "cesium";
 
 export function convertLayersToLayerDescriptors(layers: LayerState[],
                                                 resources: ResourceState[],
@@ -118,7 +115,7 @@ function convertResourceVectorLayerToDescriptor(baseUrl: string,
     }
     return {
         ...layer,
-        dataSource: (viewer: Viewer, dataSourceOptions) => {
+        dataSource: (viewer: Cesium.Viewer, dataSourceOptions) => {
             return createResourceGeoJSONDataSource(dataSourceOptions.url, dataSourceOptions.resName);
         },
         dataSourceOptions: {
@@ -150,7 +147,7 @@ function convertVectorLayerToDescriptor(baseUrl: string,
  * @param viewer the Cesium viewer
  * @param imageryProviderOptions see https://cesiumjs.org/Cesium/Build/Documentation/UrlTemplateImageryProvider.html
  */
-function createImageryProvider(viewer: Viewer, imageryProviderOptions): ImageryProvider {
+function createImageryProvider(viewer: Cesium.Viewer, imageryProviderOptions): Cesium.ImageryProvider {
     const imageryProvider = new Cesium.UrlTemplateImageryProvider(imageryProviderOptions);
     imageryProvider.errorEvent.addEventListener((event) => {
         console.error('GlobeView:', event);
@@ -164,7 +161,7 @@ function createImageryProvider(viewer: Viewer, imageryProviderOptions): ImageryP
  * @param viewer the Cesium viewer
  * @param dataSourceOptions see https://cesiumjs.org/Cesium/Build/Documentation/GeoJsonDataSource.html
  */
-function createGeoJsonDataSource(viewer: Viewer, dataSourceOptions): DataSource {
+function createGeoJsonDataSource(viewer: Cesium.Viewer, dataSourceOptions): Cesium.DataSource {
     return Cesium.GeoJsonDataSource.load(dataSourceOptions.url, {
         stroke: Cesium.Color.ORANGE,
         fill: new Cesium.Color(0, 0, 0, 0),
@@ -173,20 +170,19 @@ function createGeoJsonDataSource(viewer: Viewer, dataSourceOptions): DataSource 
     });
 }
 
-function getDefaultStyle() {
+function getDefaultFeatureStyle() {
     const colors = [Cesium.Color.RED, Cesium.Color.GREEN, Cesium.Color.BLUE, Cesium.Color.YELLOW];
-    const defaultStyle = {
+    return {
         stroke: Cesium.Color.fromAlpha(Cesium.Color.BLACK, 0.5),
         strokeWidth: 2,
         fill: Cesium.Color.fromAlpha(colors[Math.floor(colors.length * Math.random()) % colors.length], 0.5),
         // outline stroke  is only visible when polygon.height is 0, which is only set when clampToGround is false (default)
         // clampToGround: true,
     };
-    return defaultStyle;
 }
 
 const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
-    const customDataSource: DataSource = new Cesium.CustomDataSource(name);
+    const customDataSource: Cesium.DataSource = new Cesium.CustomDataSource(name);
     let numFeatures = 0;
     const worker = new Worker("common/stream-geojson.js");
     worker.postMessage(url);
@@ -204,8 +200,8 @@ const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
         const pointColor = Cesium.Color.fromAlpha(Cesium.Color.ORANGE, 0.9);
         const pointOutlineColor = Cesium.Color.fromAlpha(Cesium.Color.ORANGE, 0.5);
 
-        Cesium.GeoJsonDataSource.load({type: 'FeatureCollection', features: features}, getDefaultStyle())
-            .then((geoJsonDataSource: GeoJsonDataSource) => {
+        Cesium.GeoJsonDataSource.load({type: 'FeatureCollection', features: features}, getDefaultFeatureStyle())
+            .then((geoJsonDataSource: Cesium.GeoJsonDataSource) => {
 
                 const featureMap = new Map();
                 features.forEach(f => featureMap.set(f.id, f));
@@ -278,17 +274,30 @@ const createResourceGeoJSONDataSource = memoize((url: string, name: string) => {
     return customDataSource;
 });
 
-export function loadDetailedGeometry(entity: Entity, featureUrl: string) {
+const entityGeometryPropertyNames = ["point", "label", "polygon", "path"];
 
-    console.log("loadDetailedGeometry", entity, featureUrl);
+export function loadDetailedGeometry(oldEntity: Cesium.Entity, featureUrl: string) {
 
-    Cesium.GeoJsonDataSource.load(featureUrl, getDefaultStyle())
-        .then((geoJsonDataSource: GeoJsonDataSource) => {
-            if (geoJsonDataSource.entities.values) {
-                const detailedEntity = geoJsonDataSource.entities.values[0];
-                entity.point = undefined;
-                entity.polygon = detailedEntity.polygon;
+    console.log("loadDetailedGeometry", oldEntity, featureUrl);
+
+    // TODO (nf/mz): We don't correctly handle multi-geometries here.
+    Cesium.GeoJsonDataSource.load(featureUrl, getDefaultFeatureStyle())
+        .then((geoJsonDataSource: Cesium.GeoJsonDataSource) => {
+            let entities = geoJsonDataSource.entities.values;
+            if (entities && entities.length) {
+                transferEntityGeometry(entities[0], oldEntity);
             }
         });
 }
+
+export function transferEntityGeometry(fromEntity: Cesium.Entity, toEntity: Cesium.Entity): void {
+    let oldGeomPropertyName = entityGeometryPropertyNames.find(name => Cesium.defined(toEntity[name]));
+    let newGeomPropertyName = entityGeometryPropertyNames.find(name => Cesium.defined(fromEntity[name]));
+    if (oldGeomPropertyName && newGeomPropertyName && oldGeomPropertyName !== newGeomPropertyName) {
+        toEntity[oldGeomPropertyName] = undefined;
+    }
+    if (newGeomPropertyName) {
+        toEntity[newGeomPropertyName] = fromEntity[newGeomPropertyName];
+    }
+};
 

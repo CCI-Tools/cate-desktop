@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import {convertLayersToLayerDescriptors} from "./globe-view-layers";
+import {convertLayersToLayerDescriptors, transferEntityGeometry} from "./globe-view-layers";
 
 describe('convertLayersToLayerDescriptors', function () {
     it('converts correctly', function () {
@@ -104,5 +104,20 @@ describe('convertLayersToLayerDescriptors', function () {
         expect(ld3.imageryProviderOptions.rectangle.east).to.equal(Math.PI);
         expect(ld3.imageryProviderOptions.rectangle.north).to.equal(Math.PI/2);
         expect(ld3.imageryProviderOptions.tilingScheme).to.exist;
+    });
+});
+
+describe('transferEntityGeometry', function () {
+    it('transfers correctly', function () {
+        let fromEntity = {
+            polygon: {}
+        } as any;
+        let toEntity = {
+            point: {}
+        } as any;
+        transferEntityGeometry(fromEntity, toEntity);
+        expect(toEntity).to.contain.keys('polygon', 'point');
+        expect(toEntity.polygon).to.exist;
+        expect(toEntity.point).to.be.undefined;
     });
 });

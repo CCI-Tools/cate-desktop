@@ -8,10 +8,11 @@ import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {NO_WEB_GL} from "../messages";
 import {EMPTY_ARRAY, EMPTY_OBJECT} from "../selectors";
-import {CesiumGlobe, Entity, LayerDescriptors} from "../components/cesium/CesiumGlobe";
+import {CesiumGlobe, LayerDescriptors} from "../components/cesium/CesiumGlobe";
 import {findVariableIndexCoordinates, getFeatureUrl} from "../state-util";
 import {ViewState} from "../components/ViewState";
 import {convertLayersToLayerDescriptors, loadDetailedGeometry} from "./globe-view-layers";
+import * as Cesium from "cesium";
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -137,7 +138,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         this.props.dispatch(actions.setSelectedPlacemarkId(selectedPlacemarkId));
     }
 
-    handleSimplifiedGeometrySelected(selectedEntity: Entity,  resId: number) {
+    handleSimplifiedGeometrySelected(selectedEntity: Cesium.Entity, resId: number) {
         const workspace = this.props.workspace;
         if (workspace) {
             const baseUrl = this.props.baseUrl;
