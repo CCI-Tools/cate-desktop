@@ -4,20 +4,23 @@ import {
     OperationState, BackendConfigState, VariableState,
     OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, Placemark, MessageState
 } from "./state";
-import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi/Job";
+import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi";
 import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName,
-    getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources
+    getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl
 } from "./state-util";
 import {ViewPath} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
 import {showToast} from "./toast";
+import * as redux from "redux";
 import * as d3 from "d3";
-import * as redux from 'redux';
+import * as Cesium from "cesium";
+import {isDefined, isNumber, isString} from "../common/types";
+import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
 
 const CANCELLED_CODE = 999;
 
@@ -1207,6 +1210,7 @@ export const SET_VIEW_MODE = 'SET_VIEW_MODE';
 export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
 export const SET_SELECTED_LAYER_SPLIT = 'SET_SPLIT_LAYER_ID';
 export const SET_SELECTED_LAYER_SPLIT_POS = 'SET_SPLIT_LAYER_POS';
+export const SET_SELECTED_ENTITY = 'SET_SELECTED_ENTITY';
 
 export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
@@ -1224,6 +1228,39 @@ export function setSelectedLayerSplitPos(viewId: string, selectedLayerSplitPos: 
     return {type: SET_SELECTED_LAYER_SPLIT_POS, payload: {viewId, selectedLayerSplitPos}};
 }
 
+export function setSelectedEntity(viewId: string, selectedEntity: Cesium.Entity | null): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+
+        dispatch(setSelectedEntityImpl(viewId, selectedEntity));
+
+        const entityId = selectedEntity && selectedEntity.id;
+        const placemarkId = (isString(entityId) && entityId.startsWith('placemark-')) ? entityId : null;
+        dispatch(setSelectedPlacemarkId(placemarkId));
+
+        if (selectedEntity
+            && isNumber(selectedEntity._simp)
+            && isNumber(selectedEntity._resId)) {
+            const isGeometrySimplified = (selectedEntity._simp & 0x01) != 0;
+            if (isGeometrySimplified) {
+                const workspace = selectors.workspaceSelector(getState());
+                if (workspace) {
+                    const resId = selectedEntity._resId;
+                    const baseUrl = selectors.webAPIRestUrlSelector(getState());
+                    const baseDir = workspace.baseDir;
+                    // TODO #477 (mz,nf): how can we know that +selectedEntity.id *is really* the feature index
+                    // within the collection?
+                    const featureIndex = +selectedEntity.id;
+                    const featureUrl = getFeatureUrl(baseUrl, baseDir, {resId}, featureIndex);
+                    reloadEntityWithOriginalGeometry(selectedEntity, featureUrl);
+                }
+            }
+        }
+    }
+}
+
+function setSelectedEntityImpl(viewId: string, selectedEntity: Cesium.Entity | null): Action {
+    return {type: SET_SELECTED_ENTITY, payload: {viewId, selectedEntity}};
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Table view actions

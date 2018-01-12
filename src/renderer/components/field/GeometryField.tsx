@@ -37,9 +37,14 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
     }
 
     setSelectedEntityWKT() {
-        let geometryWKT = entityToGeometryWKT(this.props.selectedEntity);
-        // TODO (nf): impl. setSelectedEntityWKT()
-        console.log("geometryWKT =", geometryWKT);
+        let wkt;
+        try {
+            wkt = entityToGeometryWKT(this.props.selectedEntity);
+        } catch (error) {
+            console.error(error);
+            wkt = "Error: " + error;
+        }
+        this.props.onChange({textValue: wkt, value: wkt});
     }
 
     render() {
@@ -53,6 +58,7 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
                 placeholder = `Enter ${this.props.geometryType} WKT`;
             }
         }
+        // TODO #477 (mz,nf): bug here: current field value is not put into GeometryDialog's text field
         return (
             <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}}>
                 <TextField

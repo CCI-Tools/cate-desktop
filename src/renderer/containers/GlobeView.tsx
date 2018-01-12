@@ -11,7 +11,7 @@ import {EMPTY_ARRAY, EMPTY_OBJECT} from "../selectors";
 import {CesiumGlobe, LayerDescriptors} from "../components/cesium/CesiumGlobe";
 import {findVariableIndexCoordinates, getFeatureUrl} from "../state-util";
 import {ViewState} from "../components/ViewState";
-import {convertLayersToLayerDescriptors, loadDetailedGeometry} from "./globe-view-layers";
+import {convertLayersToLayerDescriptors, reloadEntityWithOriginalGeometry} from "./globe-view-layers";
 import * as Cesium from "cesium";
 import {isDefined} from "../../common/types";
 
@@ -135,23 +135,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     }
 
     handleEntitySelected(selectedEntity: Cesium.Entity) {
-        // make sure this entity is actually a placemark and not something else
-        const placemarkId = selectedEntity
-            && selectedEntity.id
-            && selectedEntity.id.startsWith('placemark-') ? selectedEntity.id : null;
-        this.props.dispatch(actions.setSelectedPlacemarkId(placemarkId));
-
-        if (selectedEntity && isDefined(selectedEntity._isSimple) && selectedEntity._isSimple) {
-            const resId = selectedEntity._resId;
-            const workspace = this.props.workspace;
-            if (workspace) {
-                const baseUrl = this.props.baseUrl;
-                const baseDir = workspace.baseDir;
-                const id = selectedEntity.id;
-                const featureUrl = getFeatureUrl(baseUrl, baseDir, {resId}, +id);
-                loadDetailedGeometry(selectedEntity, featureUrl)
-            }
-        }
+        console.log("selectedEntity: ", selectedEntity);
+        this.props.dispatch(actions.setSelectedEntity(this.props.view.id, selectedEntity));
     }
 
     handleSplitLayerPosChange(splitLayerPos: number) {

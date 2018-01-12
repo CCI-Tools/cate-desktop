@@ -108,7 +108,7 @@ function addPoint(position, end) {
     if (end) {
         editingDataSource.entities.removeAll();
         if (polygonEntity) {
-            // TODO: mark this as a user-polygon so we can edit points later
+            // TODO #477 (nf): mark this as a user-polygon so we can edit points later
             const polygon = viewer.entities.add({
                 polygon: {
                     hierarchy: polygonPositions,

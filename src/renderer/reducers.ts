@@ -333,7 +333,22 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             break;
         }
         // TODO (forman): clean up code duplication here, following actions are basically all the same
-        //                SET_SELECTED_LAYER_ID, SET_VIEW_MODE, SET_PROJECTION_CODE,SET_SPLIT_LAYER_ID, SET_SPLIT_LAYER_POS
+        //                SET_SELECTED_ENTITY,
+        //                SET_SELECTED_LAYER_ID,
+        //                SET_VIEW_MODE,
+        //                SET_PROJECTION_CODE,
+        //                SET_SPLIT_LAYER_ID,
+        //                SET_SPLIT_LAYER_POS
+        // Will Dan Abramov hate us for this?
+        //
+        case actions.SET_SELECTED_ENTITY: {
+            const viewId = action.payload.viewId;
+            if (viewId === state.id && state.type === 'world') {
+                const selectedEntity = action.payload.selectedEntity;
+                return {...state, data: {...state.data, selectedEntity}};
+            }
+            break;
+        }
         case actions.SET_SELECTED_LAYER_ID: {
             const viewId = action.payload.viewId;
             if (viewId === state.id && state.type === 'world') {

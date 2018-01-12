@@ -28,7 +28,6 @@ export function getFeatureCollectionUrl(baseUrl: string, baseDir: string, ref: R
     return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${ref.resId}`;
 }
 
-// TODO use me (see allow expanding of point simplified geometries #489)
 export function getFeatureUrl(baseUrl: string, baseDir: string, ref: ResourceRefState, index: number): string {
     return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${ref.resId}/${index}`;
 }
@@ -428,26 +427,34 @@ export function hasWebGL(): boolean {
 
 export function entityToGeometryWKT(selectedEntity: Cesium.Entity): string | null {
 
-    const polyline = selectedEntity.polyline;
-    if (polyline) {
-        const positions = polyline.positions;
+    if (selectedEntity.polyline) {
+        const positions = selectedEntity.polyline.positions.getValue(Cesium.JulianDate.now());
         return `LINESTRING (${cartesian3ArrayToWKT(positions)})`;
     }
 
-    const polygon = selectedEntity.polygon;
-    if (polygon) {
-        const positions = polygon.hierarchy.positions;
-        if (polygon.hierarchy.holes) {
-            // TODO (nf): also convert polygon.hierarchy.holes,
-            // see https://cesiumjs.org/Cesium/Build/Documentation/PolygonHierarchy.html
-            console.warn("ignoring polygon holes for entity:", selectedEntity);
+    if (selectedEntity.polygon) {
+        const hierarchy = selectedEntity.polygon.hierarchy.getValue(Cesium.JulianDate.now());
+        const positions = hierarchy.positions;
+        const holes = hierarchy.holes;
+        const exterieur = cartesian3ArrayToWKTArray(positions);
+        if (exterieur.length > 2) {
+            exterieur.push(exterieur[0]);
         }
-        return `POLYGON ((${cartesian3ArrayToWKT(positions)}))`;
+        const linearRings = [`(${exterieur.join(', ')})`];
+        if (holes && holes.length) {
+            for (let hole of holes) {
+                const interieur = cartesian3ArrayToWKTArray(hole.positions);
+                if (interieur.length > 2) {
+                    interieur.push(interieur[0]);
+                }
+                linearRings.push(`(${interieur.join(', ')})`);
+            }
+        }
+        return `POLYGON (${linearRings.join(', ')})`;
     }
 
-    const rectangle = selectedEntity.rectangle;
-    if (rectangle) {
-        const coordinates = rectangle.coordinates;
+    if (selectedEntity.rectangle) {
+        const coordinates = selectedEntity.rectangle.coordinates.getValue(Cesium.JulianDate.now());
         const x1 = toDeg(coordinates.west);
         const y1 = toDeg(coordinates.south);
         const x2 = toDeg(coordinates.east);
@@ -455,17 +462,20 @@ export function entityToGeometryWKT(selectedEntity: Cesium.Entity): string | nul
         return `POLYGON ((${x1} ${y1}, ${x2} ${y1}, ${x2} ${y2}, ${x1} ${y2}, ${x1} ${y1}))`;
     }
 
-    const position = selectedEntity.position;
-    if (position) {
+    if (selectedEntity.position) {
+        const position = selectedEntity.position.getValue(Cesium.JulianDate.now());
         return `POINT (${cartesian3ToWKT(position)})`
     }
 
-    console.warn("can't understand geometry of selected entity:", selectedEntity);
-    return null;
+    throw new TypeError("can't understand geometry of selected entity");
+}
+
+function cartesian3ArrayToWKTArray(positions: Cesium.Cartesian3[]): string[] {
+    return positions.map(p => cartesian3ToWKT(p));
 }
 
 function cartesian3ArrayToWKT(positions: Cesium.Cartesian3[]): string {
-    return positions.map(p => cartesian3ToWKT(p)).join(', ');
+    return cartesian3ArrayToWKTArray(positions).join(', ');
 }
 
 function cartesian3ToWKT(position: Cesium.Cartesian3): string {

@@ -13,7 +13,7 @@ import {
 import {memoize} from '../../common/memoize';
 import {EMPTY_OBJECT} from "../selectors";
 import * as Cesium from "cesium";
-import {isDefined} from "../../common/types";
+import {isDefined, isNumber} from "../../common/types";
 
 export function convertLayersToLayerDescriptors(layers: LayerState[],
                                                 resources: ResourceState[],
@@ -30,17 +30,17 @@ export function convertLayersToLayerDescriptors(layers: LayerState[],
         switch (layer.type) {
             case 'VariableImage': {
                 layerDescriptor = convertVariableImageLayerToDescriptor(baseUrl, baseDir, resources,
-                    layer as VariableImageLayerState);
+                                                                        layer as VariableImageLayerState);
                 break;
             }
             case 'ResourceVector': {
                 dataSourceDescriptor = convertResourceVectorLayerToDescriptor(baseUrl, baseDir, resources,
-                    layer as ResourceVectorLayerState);
+                                                                              layer as ResourceVectorLayerState);
                 break;
             }
             case 'Vector': {
                 dataSourceDescriptor = convertVectorLayerToDescriptor(baseUrl,
-                    layer as VectorLayerState);
+                                                                      layer as VectorLayerState);
                 break;
             }
         }
@@ -97,10 +97,10 @@ function convertVariableImageLayerToDescriptor(baseUrl: string,
             tileWidth: imageLayout.tileWidth,
             tileHeight: imageLayout.tileHeight,
             tilingScheme: new Cesium.GeographicTilingScheme({
-                rectangle,
-                numberOfLevelZeroTilesX: imageLayout.numLevelZeroTilesX,
-                numberOfLevelZeroTilesY: imageLayout.numLevelZeroTilesY
-            }),
+                                                                rectangle,
+                                                                numberOfLevelZeroTilesX: imageLayout.numLevelZeroTilesX,
+                                                                numberOfLevelZeroTilesY: imageLayout.numLevelZeroTilesY
+                                                            }),
         },
     });
 }
@@ -111,7 +111,7 @@ function convertResourceVectorLayerToDescriptor(baseUrl: string,
                                                 layer: ResourceVectorLayerState): VectorLayerDescriptor | null {
     const resource = findResource(resources, layer);
     if (!resource) {
-        console.warn(`globe-view-desc: resource "${layer.resId}" not found"`);
+        console.warn(`globe-view-layers: resource "${layer.resId}" not found"`);
         return null;
     }
     return {
@@ -163,15 +163,35 @@ function createImageryProvider(viewer: Cesium.Viewer, imageryProviderOptions): C
  */
 function createGeoJsonDataSource(viewer: Cesium.Viewer, dataSourceOptions): Cesium.DataSource {
     return Cesium.GeoJsonDataSource.load(dataSourceOptions.url, {
-        stroke: Cesium.Color.ORANGE,
-        fill: new Cesium.Color(0, 0, 0, 0),
         strokeWidth: 5,
+        stroke: Cesium.Color.fromAlpha(Cesium.Color.WHITE, 0.75),
+        fill: Cesium.Color.fromAlpha(Cesium.Color.WHITE, 0.25),
         markerSymbol: '?'
     });
 }
 
 function getDefaultFeatureStyle() {
-    const colors = [Cesium.Color.RED, Cesium.Color.GREEN, Cesium.Color.BLUE, Cesium.Color.YELLOW];
+    const colors = [
+        Cesium.Color.RED,
+        Cesium.Color.GREEN,
+        Cesium.Color.BLUE,
+        Cesium.Color.YELLOW,
+        Cesium.Color.ORANGE,
+        Cesium.Color.CYAN,
+        Cesium.Color.MAGENTA,
+        Cesium.Color.BLANCHEDALMOND,
+        Cesium.Color.BURLYWOOD,
+        Cesium.Color.CHOCOLATE,
+        Cesium.Color.DARKBLUE,
+        Cesium.Color.DARKORCHID,
+        Cesium.Color.DARKORCHID,
+        Cesium.Color.DARKRED,
+        Cesium.Color.DIMGRAY,
+        Cesium.Color.GHOSTWHITE,
+        Cesium.Color.WHITE,
+        Cesium.Color.LEMONCHIFFON,
+        Cesium.Color.LIME,
+    ];
     return {
         stroke: Cesium.Color.fromAlpha(Cesium.Color.BLACK, 0.5),
         strokeWidth: 2,
@@ -197,6 +217,7 @@ const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => 
         numFeatures += features.length;
         console.log(`Received another ${features.length} feature(s) from ${url}`);
 
+        // Style for points symbolizing a more complex geometry
         const pointColor = Cesium.Color.fromAlpha(Cesium.Color.ORANGE, 0.9);
         const pointOutlineColor = Cesium.Color.fromAlpha(Cesium.Color.ORANGE, 0.5);
 
@@ -206,47 +227,58 @@ const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => 
                 const featureMap = new Map();
                 features.forEach(f => featureMap.set(f.id, f));
 
+                // Style for points symbolizing a more complex geometry
                 const scaleByDistance = new Cesium.NearFarScalar(1.5e2, 1.0, 1.5e7, 0.1);
                 const translucencyByDistance = new Cesium.NearFarScalar(1.5e2, 1.0, 1.5e7, 0.25);
 
-                geoJsonDataSource.entities.suspendEvents();
                 customDataSource.entities.suspendEvents();
                 for (let entity of geoJsonDataSource.entities.values) {
-                    //console.log('entity: ', entity);
-
-                    // TODO (nf/mz): Generalize this code. This is for Glaciers CCI.
-                    // See #491: use a special style for feature geometries that are expandable/collapsible.
-                    const pixelSizeMin = 10;
-                    const pixelSizeMax = 50;
-                    const areaMin = 20.;
-                    const areaMax = 500.;
+                    // console.log("entity: ", entity);
+                    // TODO #477 (nf/mz): Use of the following featureMap is probably wrong
+                    // as there is no unconditional 1:1 mapping between GeoJSON features and generated entities.
                     const feature = featureMap.get(entity.id);
-                    let ratio = 0.5;
-                    let isPoint = !!(entity.point || entity.billboard || entity.label);
-                    if (feature && feature.properties) {
-                        let area = feature.properties['area_npl43'];
-                        if (area) {
-                            ratio = (area - areaMin) / (areaMax - areaMin);
-                            if (ratio < 0.) {
-                                ratio = 0.;
-                            }
-                            if (ratio > 1.) {
-                                ratio = 1.;
+                    // console.log("feature: ", feature);
+                    if (feature
+                        && isNumber(feature._simp)
+                        && isNumber(feature._resId)
+                        && !!(entity.point || entity.billboard || entity.label)) {
+                        console.log('will convert to point entity!');
+
+                        // TODO #477 (nf/mz): Generalize this code. This is for Glaciers CCI.
+                        // See #491: use a special style for feature geometries that are expandable/collapsible.
+                        const pixelSizeMin = 20;
+                        const pixelSizeMax = 60;
+                        const areaMin = 20.;
+                        const areaMax = 500.;
+                        let ratio = 0.5;
+
+                        if (feature.properties) {
+                            let area = feature.properties['area_npl43'];
+                            if (area) {
+                                ratio = (area - areaMin) / (areaMax - areaMin);
+                                if (ratio < 0.) {
+                                    ratio = 0.;
+                                }
+                                if (ratio > 1.) {
+                                    ratio = 1.;
+                                }
                             }
                         }
-                    }
-                    const pixelSize = pixelSizeMin + ratio * (pixelSizeMax - pixelSizeMin);
-
-                    if (isPoint) {
-                        entity = {
+                        const pixelSize = pixelSizeMin + ratio * (pixelSizeMax - pixelSizeMin);
+                        const time = Cesium.JulianDate.now();
+                        const entityTemplate = {
                             id: entity.id,
-                            name: entity.id,
+                            name: entity.name,
                             position: entity.position,
                             description: entity.description,
+                            properties: entity.properties,
+                            _simp: feature._simp,
+                            _resId: feature._resId,
                             point: {
+                                // Style for points symbolizing a more complex geometry
                                 color: pointColor,
                                 outlineColor: pointOutlineColor,
-                                outlineWidth: 5,
+                                outlineWidth: 10,
                                 // pixelSize will multiply by the scale factor, so in this
                                 // example the size will range from pixelSize (near) to 0.1*pixelSize (far).
                                 pixelSize,
@@ -254,17 +286,20 @@ const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => 
                                 translucencyByDistance,
                             }
                         };
+                        console.log('will convert to point entity #2', entityTemplate);
+                        entity = customDataSource.entities.add(entityTemplate);
+                    } else {
+                        entity = customDataSource.entities.add(entity);
                     }
-                    let isSimple = false;
-                    if (feature && isDefined(feature['simp']) && feature['simp'] == 1) {
-                        isSimple = true;
-                    }
-                    customDataSource.entities.add(
-                        {
-                            ...entity,
-                            _isSimple: isSimple,
-                            _resId: resId
-                        });
+                    //console.log("added entity: ", entity);
+
+                    // TODO #477 (mz): marco, FYI, we now set _simp and _resId in the back-end!
+                    // customDataSource.entities.add(
+                    //     {
+                    //         ...entity,
+                    //         _simp: isGeometrySimplified,
+                    //         _resId: resId
+                    //     });
                 }
 
                 geoJsonDataSource.entities.removeAll();
@@ -277,8 +312,8 @@ const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => 
 
 const entityGeometryPropertyNames = ["billboard", "corridor", "polyline", "point", "polygon"];
 
-export function loadDetailedGeometry(oldEntity: Cesium.Entity, featureUrl: string) {
-    // TODO (nf/mz): We don't correctly handle multi-geometries here.
+export function reloadEntityWithOriginalGeometry(oldEntity: Cesium.Entity, featureUrl: string) {
+    // TODO #477 (nf/mz): We don't correctly handle multi-geometries here.
     Cesium.GeoJsonDataSource.load(featureUrl, getDefaultFeatureStyle())
         .then((geoJsonDataSource: Cesium.GeoJsonDataSource) => {
             let entities = geoJsonDataSource.entities.values;
@@ -296,7 +331,11 @@ export function transferEntityGeometry(fromEntity: Cesium.Entity, toEntity: Cesi
     }
     if (newGeomPropertyName) {
         toEntity[newGeomPropertyName] = fromEntity[newGeomPropertyName];
-        toEntity._isSimple = false;
+        // TODO #477 (mz): check if this works, as toEntity._simp is a Cesium "Property" instance
+        if (isNumber(toEntity._simp)) {
+            // clear geometry flag
+            toEntity._simp &= ~0x01;
+        }
     }
 }
 
