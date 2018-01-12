@@ -162,43 +162,83 @@ function createImageryProvider(viewer: Cesium.Viewer, imageryProviderOptions): C
  * @param dataSourceOptions see https://cesiumjs.org/Cesium/Build/Documentation/GeoJsonDataSource.html
  */
 function createGeoJsonDataSource(viewer: Cesium.Viewer, dataSourceOptions): Cesium.DataSource {
-    return Cesium.GeoJsonDataSource.load(dataSourceOptions.url, {
-        strokeWidth: 5,
-        stroke: Cesium.Color.fromAlpha(Cesium.Color.WHITE, 0.75),
-        fill: Cesium.Color.fromAlpha(Cesium.Color.WHITE, 0.25),
-        markerSymbol: '?'
-    });
+    return Cesium.GeoJsonDataSource.load(dataSourceOptions.url, DEFAULT_GEOJSON_FEATURE_STYLE);
 }
 
-function getDefaultFeatureStyle() {
-    const colors = [
-        Cesium.Color.RED,
-        Cesium.Color.GREEN,
-        Cesium.Color.BLUE,
-        Cesium.Color.YELLOW,
-        Cesium.Color.ORANGE,
-        Cesium.Color.CYAN,
-        Cesium.Color.MAGENTA,
-        Cesium.Color.BLANCHEDALMOND,
-        Cesium.Color.BURLYWOOD,
-        Cesium.Color.CHOCOLATE,
-        Cesium.Color.DARKBLUE,
-        Cesium.Color.DARKORCHID,
-        Cesium.Color.DARKORCHID,
-        Cesium.Color.DARKRED,
-        Cesium.Color.DIMGRAY,
-        Cesium.Color.GHOSTWHITE,
-        Cesium.Color.WHITE,
-        Cesium.Color.LEMONCHIFFON,
-        Cesium.Color.LIME,
-    ];
-    return {
-        stroke: Cesium.Color.fromAlpha(Cesium.Color.BLACK, 0.5),
-        strokeWidth: 2,
-        fill: Cesium.Color.fromAlpha(colors[Math.floor(colors.length * Math.random()) % colors.length], 0.5),
-        // outline stroke  is only visible when polygon.height is 0, which is only set when clampToGround is false (default)
-        // clampToGround: true,
-    };
+/**
+ * Style must follow simplestyle-spec 1.1, see https://github.com/mapbox/simplestyle-spec
+ */
+const DEFAULT_GEOJSON_FEATURE_STYLE = {
+    strokeWidth: 2,
+    stroke: colorWithAlpha(Cesium.Color.WHITE, 0.75),
+    fill: colorWithAlpha(Cesium.Color.WHITE, 0.25),
+    markerSymbol: '?'
+};
+
+const COLORS = [
+    Cesium.Color.RED,
+    Cesium.Color.GREEN,
+    Cesium.Color.BLUE,
+    Cesium.Color.YELLOW,
+    Cesium.Color.ORANGE,
+    Cesium.Color.CYAN,
+    Cesium.Color.MAGENTA,
+    Cesium.Color.BLANCHEDALMOND,
+    Cesium.Color.BURLYWOOD,
+    Cesium.Color.CHOCOLATE,
+    Cesium.Color.DARKBLUE,
+    Cesium.Color.DARKORCHID,
+    Cesium.Color.DARKORCHID,
+    Cesium.Color.DARKRED,
+    Cesium.Color.DIMGRAY,
+    Cesium.Color.GHOSTWHITE,
+    Cesium.Color.WHITE,
+    Cesium.Color.LEMONCHIFFON,
+    Cesium.Color.LIME,
+];
+
+function getRandomColor() {
+    return COLORS[Math.floor(COLORS.length * Math.random())];
+}
+
+function colorWithAlpha(color: Cesium.Color, alpha: number) {
+    return Cesium.Color.fromAlpha(color, alpha);
+}
+
+const getEntityStyleMap = memoize((resId: number) => {
+    return {};
+});
+
+function styleEntity(entity, entityStyles) {
+
+    let style = entityStyles[entity.id];
+    let newStyle;
+    if (!style) {
+        newStyle = style = {};
+        entityStyles[entity.id] = newStyle;
+    }
+
+    if (Cesium.defined(entity.polygon)) {
+        if (newStyle) {
+            const color = getRandomColor();
+            newStyle.material = colorWithAlpha(color, 0.5);
+            newStyle.outlineColor = colorWithAlpha(color, 0.9);
+        }
+        entity.polygon.material = style.material;
+        entity.polygon.outlineColor = style.outlineColor;
+    } else if (Cesium.defined(entity.polyline)) {
+        if (newStyle) {
+            const color = getRandomColor();
+            newStyle.width = 2;
+            newStyle.followSurface = true;
+            newStyle.material = colorWithAlpha(color, 0.9);
+        }
+        entity.polyline.width = style.width;
+        entity.polyline.followSurface = style.followSurface;
+        entity.polyline.material = style.material;
+    }
+    // TODO (nf,mz): handle billboard, label, point, etc here...
+
 }
 
 const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => {
@@ -218,20 +258,28 @@ const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => 
         console.log(`Received another ${features.length} feature(s) from ${url}`);
 
         // Style for points symbolizing a more complex geometry
+        const pixelSizeMin = 10;
+        const pixelSizeMax = 100;
+        const areaMin = 20.;
+        const areaMax = 500.;
+        const defaultRatio = 0.2;
         const pointColor = Cesium.Color.fromAlpha(Cesium.Color.ORANGE, 0.9);
         const pointOutlineColor = Cesium.Color.fromAlpha(Cesium.Color.ORANGE, 0.5);
 
-        Cesium.GeoJsonDataSource.load({type: 'FeatureCollection', features: features}, getDefaultFeatureStyle())
+        let entityStyles = getEntityStyleMap(resId);
+
+        Cesium.GeoJsonDataSource.load({type: 'FeatureCollection', features: features})
             .then((geoJsonDataSource: Cesium.GeoJsonDataSource) => {
 
                 const featureMap = new Map();
                 features.forEach(f => featureMap.set(f.id, f));
 
                 // Style for points symbolizing a more complex geometry
-                const scaleByDistance = new Cesium.NearFarScalar(1.5e2, 1.0, 1.5e7, 0.1);
-                const translucencyByDistance = new Cesium.NearFarScalar(1.5e2, 1.0, 1.5e7, 0.25);
+                const scaleByDistance = new Cesium.NearFarScalar(2e2, 1.0, 1.0e7, 0.01);
+                const translucencyByDistance = new Cesium.NearFarScalar(2e2, 1.0, 1.0e7, 0.5);
 
                 customDataSource.entities.suspendEvents();
+
                 for (let entity of geoJsonDataSource.entities.values) {
                     // console.log("entity: ", entity);
                     // TODO #477 (nf/mz): Use of the following featureMap is probably wrong
@@ -242,15 +290,10 @@ const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => 
                         && isNumber(feature._simp)
                         && isNumber(feature._resId)
                         && !!(entity.point || entity.billboard || entity.label)) {
-                        console.log('will convert to point entity!');
 
                         // TODO #477 (nf/mz): Generalize this code. This is for Glaciers CCI.
                         // See #491: use a special style for feature geometries that are expandable/collapsible.
-                        const pixelSizeMin = 20;
-                        const pixelSizeMax = 60;
-                        const areaMin = 20.;
-                        const areaMax = 500.;
-                        let ratio = 0.5;
+                        let ratio = defaultRatio;
 
                         if (feature.properties) {
                             let area = feature.properties['area_npl43'];
@@ -264,14 +307,25 @@ const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => 
                                 }
                             }
                         }
+
                         const pixelSize = pixelSizeMin + ratio * (pixelSizeMax - pixelSizeMin);
-                        const time = Cesium.JulianDate.now();
-                        const entityTemplate = {
+
+                        // TODO #477 (mz): marco, please review following comments.
+
+                        // Note that Cesium refers to the
+                        // following as an entity "template" which is very distinct from the actual entity created.
+                        // The latter is composed of Cesium.Property objects and
+                        // ES6 Properties (getter/setter functions).
+                        //
+                        entity = {
                             id: entity.id,
-                            name: entity.name,
+                            // When setting "name" in Cesium 1.41,
+                            // I get Cesium.DeveloperError("name is a reserved property name.")
+                            //name: entity.name,
                             position: entity.position,
                             description: entity.description,
                             properties: entity.properties,
+                            // Cesium will turn _simp and _resId into ES6 Property instances (get/set).
                             _simp: feature._simp,
                             _resId: feature._resId,
                             point: {
@@ -286,12 +340,16 @@ const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => 
                                 translucencyByDistance,
                             }
                         };
-                        console.log('will convert to point entity #2', entityTemplate);
-                        entity = customDataSource.entities.add(entityTemplate);
                     } else {
-                        entity = customDataSource.entities.add(entity);
+                        styleEntity(entity, entityStyles);
                     }
-                    //console.log("added entity: ", entity);
+
+                    try {
+                        entity = customDataSource.entities.add(entity);
+                        // console.log("added entity: ", entity);
+                    } catch (e) {
+                        console.error("failed to add entity: ", entity, e);
+                    }
 
                     // TODO #477 (mz): marco, FYI, we now set _simp and _resId in the back-end!
                     // customDataSource.entities.add(
@@ -310,30 +368,33 @@ const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => 
     return customDataSource;
 });
 
-const entityGeometryPropertyNames = ["billboard", "corridor", "polyline", "point", "polygon"];
+const entityGeometryPropertyNames = ["billboard", "label", "point", "corridor", "polyline", "polygon"];
 
 export function reloadEntityWithOriginalGeometry(oldEntity: Cesium.Entity, featureUrl: string) {
     // TODO #477 (nf/mz): We don't correctly handle multi-geometries here.
-    Cesium.GeoJsonDataSource.load(featureUrl, getDefaultFeatureStyle())
+    Cesium.GeoJsonDataSource.load(featureUrl)
         .then((geoJsonDataSource: Cesium.GeoJsonDataSource) => {
-            let entities = geoJsonDataSource.entities.values;
+            const entities = geoJsonDataSource.entities.values;
             if (entities && entities.length) {
-                transferEntityGeometry(entities[0], oldEntity);
+                const entity = entities[0];
+                transferEntityGeometry(entity, oldEntity);
+                if (isNumber(oldEntity._resId)) {
+                    styleEntity(oldEntity, getEntityStyleMap(oldEntity._resId));
+                }
             }
         });
 }
 
 export function transferEntityGeometry(fromEntity: Cesium.Entity, toEntity: Cesium.Entity): void {
-    let oldGeomPropertyName = entityGeometryPropertyNames.find(name => Cesium.defined(toEntity[name]));
-    let newGeomPropertyName = entityGeometryPropertyNames.find(name => Cesium.defined(fromEntity[name]));
+    const newGeomPropertyName = entityGeometryPropertyNames.find(name => Cesium.defined(fromEntity[name]));
+    const oldGeomPropertyName = entityGeometryPropertyNames.find(name => Cesium.defined(toEntity[name]));
     if (oldGeomPropertyName && newGeomPropertyName && oldGeomPropertyName !== newGeomPropertyName) {
         toEntity[oldGeomPropertyName] = undefined;
     }
     if (newGeomPropertyName) {
         toEntity[newGeomPropertyName] = fromEntity[newGeomPropertyName];
-        // TODO #477 (mz): check if this works, as toEntity._simp is a Cesium "Property" instance
         if (isNumber(toEntity._simp)) {
-            // clear geometry flag
+            // clear geometry simplification flag
             toEntity._simp &= ~0x01;
         }
     }

@@ -80,9 +80,9 @@ describe('convertLayersToLayerDescriptors', function () {
         //expect(ld2.resName).to.equal("res_1");
         expect(ld2.dataSource).to.be.a('function');
         expect(ld2.dataSourceOptions).to.deep.equal({
-            resId: 1,
-            url: "http://localhost/ws/res/geojson/hotte/1"
-        });
+                                                        resId: 1,
+                                                        url: "http://localhost/ws/res/geojson/hotte/1"
+                                                    });
 
         expect(ld3.id).to.equal("L427");
         expect(ld3.name).to.equal("I love ma bucket");
@@ -99,9 +99,9 @@ describe('convertLayersToLayerDescriptors', function () {
         expect(ld3.imageryProviderOptions.tileHeight).to.equal(180);
         expect(ld3.imageryProviderOptions.rectangle).to.exist;
         expect(ld3.imageryProviderOptions.rectangle.west).to.equal(-Math.PI);
-        expect(ld3.imageryProviderOptions.rectangle.south).to.equal(-Math.PI/2);
+        expect(ld3.imageryProviderOptions.rectangle.south).to.equal(-Math.PI / 2);
         expect(ld3.imageryProviderOptions.rectangle.east).to.equal(Math.PI);
-        expect(ld3.imageryProviderOptions.rectangle.north).to.equal(Math.PI/2);
+        expect(ld3.imageryProviderOptions.rectangle.north).to.equal(Math.PI / 2);
         expect(ld3.imageryProviderOptions.tilingScheme).to.exist;
     });
 });
@@ -109,14 +109,16 @@ describe('convertLayersToLayerDescriptors', function () {
 describe('transferEntityGeometry', function () {
     it('transfers correctly', function () {
         let fromEntity = {
-            polygon: {}
+            polygon: {},
         } as any;
         let toEntity = {
-            point: {}
+            point: {},
+            _simp: 1,
         } as any;
         transferEntityGeometry(fromEntity, toEntity);
         expect(toEntity).to.contain.keys('polygon', 'point');
         expect(toEntity.polygon).to.exist;
         expect(toEntity.point).to.be.undefined;
+        expect(toEntity._simp).to.equal(0); // = cleared geometry simplification flag
     });
 });
