@@ -28,6 +28,17 @@ export const FILE_LIKE_TYPE = 'cate.core.types.FileLike';
 export const ARBITRARY_TYPE = 'cate.core.types.Arbitrary';
 export const LITERAL_TYPE = 'cate.core.types.Literal';
 
+export const GEOMETRY_TYPE = 'shapely.geometry.base.BaseGeometry';
+export const POINT_TYPE = 'shapely.geometry.point.Point';
+export const MULTI_POINT_TYPE = 'shapely.geometry.multipoint.MultiPoint';
+export const LINE_STRING_TYPE = 'shapely.geometry.linestring.LineString';
+export const MULTI_LINE_STRING_TYPE = 'shapely.geometry.multilinestring.MultiLineString';
+export const POLYGON_TYPE = 'shapely.geometry.polygon.Polygon';
+export const MULTI_POLYGON_TYPE = 'shapely.geometry.multipolygon.multiPolygon';
+export const GEOMETRY_COLLECTION_TYPE = 'shapely.geometry.collection.GeometryCollection';
+
+
+
 /**
  * Naive test if a targetDataType is assignable from a given sourceDataType.
  *
@@ -83,16 +94,21 @@ export function isAssignableFrom(targetDataType: string, sourceDataType: string)
         case TIME_RANGE_LIKE_TYPE:
             return sourceDataType === STR_TYPE;
         case POINT_LIKE_TYPE:
-            // TODO (forman): add shapely Point
-            return sourceDataType === STR_TYPE;
+            return sourceDataType === STR_TYPE || sourceDataType === POINT_TYPE;
         case POLYGON_LIKE_TYPE:
-            // TODO (forman): add shapely Polygon
-            return sourceDataType === STR_TYPE;
+            return sourceDataType === STR_TYPE || sourceDataType === POLYGON_TYPE;
         case GEOMETRY_LIKE_TYPE:
-            // TODO (forman): add shapely Point, Polygon, Geometry, ...
             return sourceDataType === STR_TYPE
                 || sourceDataType === POINT_LIKE_TYPE
-                || sourceDataType === POLYGON_LIKE_TYPE;
+                || sourceDataType === POLYGON_LIKE_TYPE
+                || sourceDataType === GEOMETRY_TYPE
+                || sourceDataType === POINT_TYPE
+                || sourceDataType === MULTI_POINT_TYPE
+                || sourceDataType === LINE_STRING_TYPE
+                || sourceDataType === MULTI_LINE_STRING_TYPE
+                || sourceDataType === POLYGON_TYPE
+                || sourceDataType === MULTI_POLYGON_TYPE
+                || sourceDataType === GEOMETRY_COLLECTION_TYPE;
     }
     return false;
 }

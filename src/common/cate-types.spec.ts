@@ -2,9 +2,9 @@ import {expect} from "chai";
 import {
     ARBITRARY_TYPE,
     DATA_ARRAY_TYPE, DATA_FRAME_LIKE_TYPE, DATA_FRAME_TYPE, DATASET_LIKE_TYPE, DATASET_TYPE, GEO_DATA_FRAME_PROXY_TYPE,
-    GEO_DATA_FRAME_TYPE,
-    isAssignableFrom, LITERAL_TYPE,
-    ND_ARRAY_TYPE
+    GEO_DATA_FRAME_TYPE, GEOMETRY_COLLECTION_TYPE, GEOMETRY_LIKE_TYPE, GEOMETRY_TYPE,
+    isAssignableFrom, LINE_STRING_TYPE, LITERAL_TYPE, MULTI_LINE_STRING_TYPE, MULTI_POINT_TYPE, MULTI_POLYGON_TYPE,
+    ND_ARRAY_TYPE, POINT_LIKE_TYPE, POINT_TYPE, POLYGON_LIKE_TYPE, POLYGON_TYPE
 } from "./cate-types";
 
 describe('isAssignableFrom()', function () {
@@ -151,8 +151,8 @@ describe('isAssignableFrom()', function () {
 
     it('works with ' + LITERAL_TYPE, function () {
         // Yes
-        expect(isAssignableFrom(LITERAL_TYPE, LITERAL_TYPE)).to.be.true;
         expect(isAssignableFrom(LITERAL_TYPE, 'str')).to.be.true;
+        expect(isAssignableFrom(LITERAL_TYPE, LITERAL_TYPE)).to.be.true;
         // No
         expect(isAssignableFrom(LITERAL_TYPE, ND_ARRAY_TYPE)).to.be.false;
         expect(isAssignableFrom(LITERAL_TYPE, DATA_ARRAY_TYPE)).to.be.false;
@@ -160,5 +160,49 @@ describe('isAssignableFrom()', function () {
         expect(isAssignableFrom(LITERAL_TYPE, 'bool')).to.be.false;
         expect(isAssignableFrom(LITERAL_TYPE, 'int')).to.be.false;
         expect(isAssignableFrom(LITERAL_TYPE, 'float')).to.be.false;
+    });
+
+    it('works with ' + POINT_LIKE_TYPE, function () {
+        // Yes
+        expect(isAssignableFrom(POINT_LIKE_TYPE, 'str')).to.be.true;
+        expect(isAssignableFrom(POINT_LIKE_TYPE, POINT_LIKE_TYPE)).to.be.true;
+        expect(isAssignableFrom(POINT_LIKE_TYPE, POINT_TYPE)).to.be.true;
+        // No
+        expect(isAssignableFrom(POINT_LIKE_TYPE, GEOMETRY_LIKE_TYPE)).to.be.false;
+        expect(isAssignableFrom(POINT_LIKE_TYPE, POLYGON_TYPE)).to.be.false;
+        expect(isAssignableFrom(POINT_LIKE_TYPE, 'bool')).to.be.false;
+        expect(isAssignableFrom(POINT_LIKE_TYPE, 'int')).to.be.false;
+        expect(isAssignableFrom(POINT_LIKE_TYPE, 'float')).to.be.false;
+    });
+
+    it('works with ' + POLYGON_LIKE_TYPE, function () {
+        // Yes
+        expect(isAssignableFrom(POLYGON_LIKE_TYPE, 'str')).to.be.true;
+        expect(isAssignableFrom(POLYGON_LIKE_TYPE, POLYGON_LIKE_TYPE)).to.be.true;
+        expect(isAssignableFrom(POLYGON_LIKE_TYPE, POLYGON_TYPE)).to.be.true;
+        // No
+        expect(isAssignableFrom(POLYGON_LIKE_TYPE, GEOMETRY_LIKE_TYPE)).to.be.false;
+        expect(isAssignableFrom(POLYGON_LIKE_TYPE, POINT_TYPE)).to.be.false;
+        expect(isAssignableFrom(POLYGON_LIKE_TYPE, 'bool')).to.be.false;
+        expect(isAssignableFrom(POLYGON_LIKE_TYPE, 'int')).to.be.false;
+        expect(isAssignableFrom(POLYGON_LIKE_TYPE, 'float')).to.be.false;
+    });
+
+    it('works with ' + GEOMETRY_LIKE_TYPE, function () {
+        // Yes
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, 'str')).to.be.true;
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, GEOMETRY_LIKE_TYPE)).to.be.true;
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, GEOMETRY_TYPE)).to.be.true;
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, POINT_TYPE)).to.be.true;
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, MULTI_POINT_TYPE)).to.be.true;
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, POLYGON_TYPE)).to.be.true;
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, MULTI_POLYGON_TYPE)).to.be.true;
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, LINE_STRING_TYPE)).to.be.true;
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, MULTI_LINE_STRING_TYPE)).to.be.true;
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, GEOMETRY_COLLECTION_TYPE)).to.be.true;
+        // No
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, 'bool')).to.be.false;
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, 'int')).to.be.false;
+        expect(isAssignableFrom(GEOMETRY_LIKE_TYPE, 'float')).to.be.false;
     });
 });
