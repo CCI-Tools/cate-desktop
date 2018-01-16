@@ -109,7 +109,7 @@ ul.cate-list-box li.cate-selected {
     min-height: 100%;
     max-height: 100%;
     /*background-color: yellow;*/
-    cursor: col-resize;
+    cursor: row-resize;
 }
 
 .cate-splitter-ver {
@@ -120,7 +120,7 @@ ul.cate-list-box li.cate-selected {
     min-width: 100%;
     max-width: 100%;
     /*background-color: yellow;*/
-    cursor: row-resize;
+    cursor: col-resize;
 }
 
 .cate-panel-header {
