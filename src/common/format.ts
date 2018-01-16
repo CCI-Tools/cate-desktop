@@ -25,10 +25,14 @@ export function formatDateAsISODateString(date: Date) {
  * @returns {any}
  */
 export function formatDataTypeName(name: string|null, fullyQualified: boolean): string {
-    if (name && !fullyQualified && !name.startsWith('float:')) {
-        const index = name.lastIndexOf('.');
-        if (index >= 0) {
-            return name.substr(index + 1);
+    if (name && !fullyQualified) {
+        const indexColon = name.lastIndexOf(':');
+        if (indexColon >= 1) {
+            name = name.substr(0, indexColon);
+        }
+        const indexDot = name.lastIndexOf('.');
+        if (indexDot >= 0) {
+            name = name.substr(indexDot + 1);
         }
     }
     return name;
