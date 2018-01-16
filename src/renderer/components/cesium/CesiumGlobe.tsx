@@ -135,7 +135,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             fullscreenButton: false,
             geocoder: false,
             homeButton: false,
-            infoBox: true,
+            infoBox: false,
             sceneModePicker: true,
             timeline: false,
             navigationHelpButton: false,
