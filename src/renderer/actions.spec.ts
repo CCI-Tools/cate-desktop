@@ -400,59 +400,62 @@ describe('Actions', () => {
                 ]);
         });
 
-        // TODO (forman): uncomment this important test and make it run green
-        // it('setSelectedVariable - can restore previous layer state', () => {
-        //     const selectedVariableLayerOld = {
-        //         id: SELECTED_VARIABLE_LAYER_ID,
-        //         type: "VariableImage",
-        //         visible: true,
-        //         resName: "res_1",
-        //         varName: "analysed_sst",
-        //         varIndex: [139],
-        //         colorMapName: "inferno",
-        //         alphaBlending: false,
-        //         displayMin: 270,
-        //         displayMax: 300,
-        //         opacity: 1,
-        //         brightness: 1,
-        //         contrast: 1,
-        //         gamma: 1,
-        //         hue: 0,
-        //         saturation: 1,
-        //     };
-        //     const selectedVariableLayerNew = {
-        //         id: SELECTED_VARIABLE_LAYER_ID,
-        //         type: "VariableImage",
-        //         visible: true,
-        //         resName: "res_1",
-        //         varName: "sst_error",
-        //         varIndex: [0],
-        //         colorMapName: "inferno",
-        //         alphaBlending: false,
-        //         displayMin: 0,
-        //         displayMax: 1,
-        //         opacity: 1,
-        //         brightness: 1,
-        //         contrast: 1,
-        //         gamma: 1,
-        //         hue: 0,
-        //         saturation: 1,
-        //     };
-        //
-        //     dispatch(actions.setCurrentWorkspace(workspace as any));
-        //     dispatch(actions.setSelectedWorkspaceResourceName('res_1'));
-        //     dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst')));
-        //     dispatch(actions.updateLayer('world-1', {
-        //         id: SELECTED_VARIABLE_LAYER_ID,
-        //         varIndex: [139],
-        //         displayMax: 300
-        //     } as any));
-        //     expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
-        //     dispatch(actions.setSelectedVariable(getRes(), getVar('sst_error')));
-        //     expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayers]);
-        //     dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst')));
-        //     expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
-        // });
+        it('setSelectedVariable - can restore previous layer state', () => {
+            const selectedVariableLayerOld = {
+                id: SELECTED_VARIABLE_LAYER_ID,
+                type: "VariableImage",
+                name: "Variable: res_1.analysed_sst",
+                visible: true,
+                resId: 0,
+                resName: "res_1",
+                varName: "analysed_sst",
+                varIndex: [139],
+                colorMapName: "inferno",
+                alphaBlending: false,
+                displayMin: 270,
+                displayMax: 300,
+                opacity: 1,
+                brightness: 1,
+                contrast: 1,
+                gamma: 1,
+                hue: 0,
+                saturation: 1,
+            };
+            const selectedVariableLayerNew = {
+                id: SELECTED_VARIABLE_LAYER_ID,
+                type: "VariableImage",
+                name: "Variable: res_1.sst_error",
+                visible: true,
+                resId: 0,
+                resName: "res_1",
+                varName: "sst_error",
+                varIndex: [0],
+                colorMapName: "inferno",
+                alphaBlending: false,
+                displayMin: 0,
+                displayMax: 1,
+                opacity: 1,
+                brightness: 1,
+                contrast: 1,
+                gamma: 1,
+                hue: 0,
+                saturation: 1,
+            };
+
+            dispatch(actions.setCurrentWorkspace(workspace as any));
+            dispatch(actions.setSelectedWorkspaceResourceName('res_1'));
+            dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst'), getState().session.savedLayers));
+            const selectedVarLayer = getActiveView().data.layers[0];
+            dispatch(actions.updateLayer(getActiveView().id, selectedVarLayer, {
+                varIndex: [139],
+                displayMax: 300
+            } as any));
+            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
+            dispatch(actions.setSelectedVariable(getRes(), getVar('sst_error'), getState().session.savedLayers));
+            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayers]);
+            dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst'), getState().session.savedLayers));
+            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
+        });
 
         it('addVariableLayer', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
