@@ -77,7 +77,6 @@ describe('convertLayersToLayerDescriptors', function () {
         expect(ld2.name).to.equal("I has a bucket");
         expect(ld2.visible).to.be.true;
         expect(ld2.resId).to.equal(1);
-        //expect(ld2.resName).to.equal("res_1");
         expect(ld2.dataSource).to.be.a('function');
         expect(ld2.dataSourceOptions).to.deep.equal({
                                                         resId: 1,
@@ -89,7 +88,6 @@ describe('convertLayersToLayerDescriptors', function () {
         expect(ld3.visible).to.be.true;
         expect(ld3.type).to.be.equal("VariableImage");
         expect(ld3.resId).to.equal(2);
-        //expect(ld3.resName).to.equal("res_2");
         expect(ld3.varName).to.equal("sst");
         expect(ld3.imageryProvider).to.be.a('function');
         expect(ld3.imageryProviderOptions).to.exist;

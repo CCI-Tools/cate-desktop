@@ -32,13 +32,12 @@ export function getFeatureUrl(baseUrl: string, baseDir: string, ref: ResourceRef
     return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${ref.resId}/${index}`;
 }
 
-export function getCsvUrl(baseUrl: string, baseDir: string, resName: string, varName?: string | null): string {
-    // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO USE ID
+export function getCsvUrl(baseUrl: string, baseDir: string, ref: ResourceRefState, varName?: string | null): string {
     let varPart = '';
     if (varName) {
         varPart = `?var=${encodeURIComponent(varName)}`;
     }
-    return baseUrl + `ws/res/csv/${encodeURIComponent(baseDir)}/${encodeURIComponent(resName)}${varPart}`;
+    return baseUrl + `ws/res/csv/${encodeURIComponent(baseDir)}/${ref.resId}${varPart}`;
 }
 
 export function getGeoJSONCountriesUrl(baseUrl: string): string {

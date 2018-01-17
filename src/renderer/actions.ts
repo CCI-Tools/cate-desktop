@@ -1283,13 +1283,16 @@ export function loadTableViewData(viewId: string, resName: string, varName: stri
     return (dispatch: Dispatch, getState: GetState) => {
         const restUrl = selectors.webAPIRestUrlSelector(getState());
         const baseDir = selectors.workspaceBaseDirSelector(getState());
-        const csvUrl = getCsvUrl(restUrl, baseDir, resName, varName);
-        dispatch(updateTableViewData(viewId, resName, varName, null, null, true));
-        d3.csv(csvUrl, (dataRows: any[]) => {
-            dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
-        }).on('error', (error: any) => {
-            dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
-        });
+        const resource = selectors.resourcesSelector(getState()).find(res => res.name === resName);
+        if (resource) {
+            const csvUrl = getCsvUrl(restUrl, baseDir, {resId: resource.id}, varName);
+            dispatch(updateTableViewData(viewId, resName, varName, null, null, true));
+            d3.csv(csvUrl, (dataRows: any[]) => {
+                dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
+            }).on('error', (error: any) => {
+                dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
+            });
+        }
     }
 }
 
