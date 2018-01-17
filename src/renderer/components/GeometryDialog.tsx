@@ -30,6 +30,10 @@ export class GeometryDialog extends React.Component<IGeometryDialogProps, IGeome
         this.state = this.toState(this.props.value);
     }
 
+    componentWillReceiveProps(props: IGeometryDialogProps) {
+        this.setState(this.toState(props.value));
+    }
+
     onConfirm() {
         this.props.onConfirm(this.state.value);
     }

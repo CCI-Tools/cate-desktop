@@ -58,7 +58,6 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
                 placeholder = `Enter ${this.props.geometryType} WKT`;
             }
         }
-        // TODO #477 (mz,nf): bug here: current field value is not put into GeometryDialog's text field
         return (
             <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}}>
                 <TextField
