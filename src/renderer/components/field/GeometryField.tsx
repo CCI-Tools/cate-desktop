@@ -5,7 +5,7 @@ import {TextField, TextFieldValue} from "./TextField";
 import {GeometryDialog} from "../GeometryDialog";
 import {GeometryType, validateGeometryValue} from "../../../common/geometry-util";
 import * as Cesium from "cesium";
-import {entityToGeometryWKT} from "../../state-util";
+import {entityToGeometryWKT} from "../../cesium-util";
 
 
 interface IGeometryFieldProps {

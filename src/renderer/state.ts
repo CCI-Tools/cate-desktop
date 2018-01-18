@@ -655,6 +655,28 @@ export interface PlacemarkCollection extends FeatureCollection<Point> {
     features: Placemark[];
 }
 
+export interface VectorLayerStyle {
+    markerSymbol?: string;
+    markerScale?: number;
+    markerColor?: string;
+    fillColor?: string;
+    fillOpacity?: number;
+    strokeWidth?: number;
+    strokeColor?: string;
+    strokeOpacity?: number;
+}
+
+export const DEFAULT_VECTOR_LAYER_STYLE: VectorLayerStyle = {
+    markerSymbol: "",
+    markerScale: 1,
+    markerColor: "#7e7e7e",
+    strokeWidth: 2,
+    strokeColor: "#555555",
+    strokeOpacity: 1.0,
+    fillColor: "#555555",
+    fillOpacity: 0.6,
+};
+
 /**
  * Session state contains information about the human being which is currently using Cate.
  * Session state is only ever read when a component is mounted.
@@ -714,6 +736,8 @@ export interface SessionState {
     showSelectedVariableLayer: boolean;
     showLayerDetails: boolean;
     savedLayers: SavedLayers;
+    applyStyleToAllEntities: boolean;
+    defaultVectorLayerStyle: VectorLayerStyle;
 
     // PlacemarksPanel
     placemarkCollection: PlacemarkCollection | null;

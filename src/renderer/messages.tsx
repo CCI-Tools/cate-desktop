@@ -122,6 +122,13 @@ export const NO_LAYER_SELECTED = (
         visual={ICON_CIRCLE}/>
 );
 
+export const NO_LAYER_PROPERTIES = (
+    <NonIdealState
+        title="No layer properties"
+        description="The selected layer doesn't have any editable properties."
+        visual={ICON_CIRCLE}/>
+);
+
 export const NO_CHARTS = (
     <NonIdealState
         title="No charts"

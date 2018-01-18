@@ -3,7 +3,7 @@ import {
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
     WorkflowStepState, LayerVariableState, SavedLayers,
     FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase,
-    ResourceVectorLayerState, WorldViewDataState
+    ResourceVectorLayerState, WorldViewDataState, VectorLayerState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient, JobStatusEnum} from "./webapi";
@@ -11,11 +11,12 @@ import {DatasetAPI, OperationAPI, WorkspaceAPI, ColorMapsAPI, BackendConfigAPI} 
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
-    getLockForGetWorkspaceVariableStatistics, entityToGeometryWKT
+    getLockForGetWorkspaceVariableStatistics
 } from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
 import * as Cesium from "cesium";
+import {entityToSimpleStyle, SimpleStyle} from "./cesium-util";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -545,6 +546,7 @@ export const selectedVariableAttributesTableDataSelector = createSelector<State,
 export const viewLayoutSelector = (state: State): ViewLayoutState => state.control.viewLayout;
 export const viewsSelector = (state: State): ViewState<any>[] => state.control.views;
 export const activeViewIdSelector = (state: State): string | null => state.control.activeViewId;
+export const applyStyleToAllEntitiesSelector = (state: State): boolean | null => state.session.applyStyleToAllEntities;
 
 export const figureViewsSelector = createSelector<State, ViewState<FigureViewDataState>[], ViewState<any>[]>(
     viewsSelector,
@@ -588,6 +590,16 @@ export const selectedEntitySelector = createSelector<State, Cesium.Entity | null
         if (view && view.type === 'world') {
             const data = view.data as WorldViewDataState;
             return data.selectedEntity;
+        }
+        return null;
+    }
+);
+
+export const selectedEntityStyleSelector = createSelector<State, SimpleStyle | null, Cesium.Entity | null>(
+    selectedEntitySelector,
+    (entity: Cesium.Entity | null) => {
+        if (entity) {
+            return entityToSimpleStyle(entity);
         }
         return null;
     }
@@ -663,6 +675,17 @@ export const selectedVariableImageLayerDisplayMinMaxSelector = createSelector<St
             const displayMin = isNumber(selectedLayer.displayMin) ? selectedLayer.displayMin : 0;
             const displayMax = isNumber(selectedLayer.displayMax) ? selectedLayer.displayMax : displayMin + 1;
             return [displayMin, displayMax];
+        }
+        return null;
+    }
+);
+
+export const selectedVectorLayerSelector = createSelector<State, VectorLayerState | null,
+    LayerState | null>(
+    selectedLayerSelector,
+    (selectedLayer: LayerState | null) => {
+        if (selectedLayer && selectedLayer.type === 'Vector' || selectedLayer.type === 'ResourceVector') {
+            return selectedLayer as VectorLayerState;
         }
         return null;
     }

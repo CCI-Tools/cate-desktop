@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect, DispatchProp} from 'react-redux';
 import {
     State, LayerState, ColorMapCategoryState, ImageLayerState,
-    VariableImageLayerState, VariableState, ResourceState, ColorMapState, ResourceVectorLayerState
+    VariableImageLayerState, VariableState, ResourceState, ColorMapState, ResourceVectorLayerState, VectorLayerState
 } from "../state";
 import {
     AnchorButton, Slider, Popover, Position, PopoverInteractionKind, Switch,
@@ -14,11 +14,14 @@ import * as selectors from "../selectors";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {NumericRangeField} from "../components/field/NumericRangeField";
 import LayerSourcesDialog from "./LayerSourcesDialog";
-import {getLayerDisplayName, SELECTED_VARIABLE_LAYER_ID} from "../state-util";
+import {getLayerDisplayName, getLayerTypeIconName, SELECTED_VARIABLE_LAYER_ID} from "../state-util";
 import {FieldValue} from "../components/field/Field";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {ViewState} from "../components/ViewState";
-import {NO_LAYERS_NO_VIEW, NO_LAYERS_EMPTY_VIEW, NO_LAYER_SELECTED} from "../messages";
+import {NO_LAYERS_NO_VIEW, NO_LAYERS_EMPTY_VIEW, NO_LAYER_SELECTED, NO_LAYER_PROPERTIES} from "../messages";
+import {NumericField} from "../components/field/NumericField";
+import * as Cesium from "cesium";
+import {entityToSimpleStyle, SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../cesium-util";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -47,7 +50,11 @@ interface ILayersPanelProps {
     selectedLayer: LayerState | null;
     selectedImageLayer: ImageLayerState | null;
     selectedVariableImageLayer: VariableImageLayerState | null;
+    selectedVectorLayer: VectorLayerState | null;
     selectedResourceVectorLayer: ResourceVectorLayerState | null;
+    selectedEntity: Cesium.Entity | null;
+    selectedEntityStyle: SimpleStyle | null;
+    applyStyleToAllEntities: boolean;
     showLayerDetails: boolean;
     colorMapCategories: Array<ColorMapCategoryState>;
     selectedColorMap: ColorMapState | null;
@@ -66,7 +73,11 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedLayer: selectors.selectedLayerSelector(state),
         selectedImageLayer: selectors.selectedImageLayerSelector(state),
         selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
+        selectedVectorLayer: selectors.selectedVectorLayerSelector(state),
         selectedResourceVectorLayer: selectors.selectedResourceVectorLayerSelector(state),
+        selectedEntity: selectors.selectedEntitySelector(state),
+        selectedEntityStyle: selectors.selectedEntityStyleSelector(state),
+        applyStyleToAllEntities: selectors.applyStyleToAllEntitiesSelector(state),
         showLayerDetails: state.session.showLayerDetails,
         colorMapCategories: selectors.colorMapCategoriesSelector(state),
         selectedColorMap: selectors.selectedColorMapSelector(state),
@@ -182,13 +193,13 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             return;
         }
         this.props.dispatch(actions.getWorkspaceVariableStatistics(resource.name, variable.name, imageLayer.varIndex,
-            (statistics) => {
-                return actions.updateLayer(this.props.activeView.id, imageLayer, {
-                    displayMin: statistics.min,
-                    displayMax: statistics.max,
-                    statistics
-                });
-            }
+                                                                   (statistics) => {
+                                                                       return actions.updateLayer(this.props.activeView.id, imageLayer, {
+                                                                           displayMin: statistics.min,
+                                                                           displayMax: statistics.max,
+                                                                           statistics
+                                                                       });
+                                                                   }
         ));
     }
 
@@ -203,7 +214,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                        checked={layer.visible}
                        onChange={(event: any) => this.handleChangedLayerVisibility(layer, event.target.checked)}
                 />
-                <span style={{marginLeft: "0.5em"}} className="pt-icon-layout-grid"/>
+                <span style={{marginLeft: "0.5em"}} className={getLayerTypeIconName(layer)}/>
                 <span style={{marginLeft: "0.5em"}}>{getLayerDisplayName(layer)}</span>
             </div>
         );
@@ -295,6 +306,16 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             return NO_LAYER_SELECTED;
         }
 
+        if (this.props.selectedImageLayer) {
+            return this.renderImageLayerDetails();
+        } else if (this.props.selectedVectorLayer) {
+            return this.renderVectorLayerDetails();
+        } else {
+            return NO_LAYER_PROPERTIES;
+        }
+    }
+
+    private renderImageLayerDetails() {
         return (
             <div style={{width: '100%'}}>
                 <label key="spacer" className="pt-label"> </label>
@@ -452,7 +473,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         );
     }
 
-
     private renderDisplayRangeSlider() {
         const layer = this.props.selectedVariableImageLayer;
         if (!layer) {
@@ -526,6 +546,77 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             );
         }
         return null;
+    }
+
+    private renderVectorLayerDetails() {
+
+        let selectedEntity = this.props.selectedEntity;
+
+        let style;
+        if (selectedEntity) {
+            style = entityToSimpleStyle(selectedEntity);
+        }
+        if (!style) {
+            style = SIMPLE_STYLE_DEFAULTS;
+        }
+
+        return (
+            <div style={{width: '100%'}}>
+                <label key="spacer" className="pt-label"> </label>
+                {this.renderStyleContext()}
+                {this.renderFillColorField(style)}
+            </div>
+        );
+    }
+
+    private renderStyleContext() {
+        const selectedEntity = this.props.selectedEntity;
+        return (
+            <Switch key="applyStyleToAllEntities"
+                    checked={this.props.applyStyleToAllEntities}
+                    label="Apply to all entities"
+                    disabled={!selectedEntity}
+                    onChange={this.handleApplyStyleToAllEntities}/>
+        );
+    }
+
+    private renderFillColorField(style: SimpleStyle) {
+
+        const key = "fillColorField";
+
+        const colors = [
+            ["Black", "#000000"],
+            ["Grey", "#555555"],
+            ["White", "#ffffff"],
+            ["Yellow", "#ffff00"],
+            ["Red", "#ff0000"],
+            ["Green", "#00ff00"],
+            ["Blue", "#0000ff"],
+        ];
+
+        const currentColor = style.fill;
+
+        const colorItems = [];
+        colors.forEach(entry => {
+            const name = entry[0];
+            const value = entry[1];
+            if (value === currentColor) {
+                colorItems.push(<option key={name} selected value={value}>{name}</option>);
+            } else {
+                colorItems.push(<option key={name} value={value}>{name}</option>);
+            }
+        });
+
+        return (
+            <div style={{width: '100%'}}>
+                <label key={key} className="pt-label pt-inline">
+                    Fill colour
+                    <div className="pt-select">
+                        <select onSelect={this.handleFillColorSelected}>{colorItems}</select>
+                    </div>
+                </label>
+            </div>
+        );
     }
 }
 

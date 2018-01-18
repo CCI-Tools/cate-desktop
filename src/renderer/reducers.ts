@@ -1,6 +1,6 @@
 import {
     State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
-    LayerState, Placemark
+    LayerState, Placemark, DEFAULT_VECTOR_LAYER_STYLE
 } from './state';
 import * as actions from './actions';
 import * as assert from "../common/assert";
@@ -550,6 +550,8 @@ const initialSessionState: SessionState = {
     offlineMode: false,
     showSelectedVariableLayer: true,
     savedLayers: {},
+    applyStyleToAllEntities: false,
+    defaultVectorLayerStyle: {...DEFAULT_VECTOR_LAYER_STYLE},
 
     selectedDataStoreId: null,
     selectedDataSourceId: null,
