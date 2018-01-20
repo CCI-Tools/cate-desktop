@@ -247,7 +247,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
     private renderVariableValue(index: number): any {
         const selectedEntity = this.props.selectedEntity;
         const variables = this.props.variables;
-        if (selectedEntity) {
+        if (selectedEntity && selectedEntity.properties) {
             const variableName = variables[index].name;
             const property = selectedEntity.properties[variableName];
             if (property) {
