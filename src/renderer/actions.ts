@@ -2,7 +2,8 @@ import {
     WorkspaceState, DataStoreState, TaskState, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
-    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, Placemark, MessageState
+    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, Placemark, MessageState,
+    VectorLayerState
 } from "./state";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi";
 import * as selectors from "./selectors";
@@ -1356,6 +1357,17 @@ function updateLayerImpl(viewId: string, layer: LayerState): Action {
  */
 export function saveLayer(key: string, layer: LayerState): Action {
     return {type: SAVE_LAYER, payload: {key, layer}};
+}
+
+export function setVectorStyleMode(vectorStyleMode: string) {
+    return updateSessionState({vectorStyleMode});
+}
+
+export function setVectorFillColor(fillColor: string,
+                                   vectorStyleMode: "entity" | "layer",
+                                   vectorLayer: VectorLayerState,
+                                   selectedEntity: Cesium.Entity) {
+    return {type: "SET_VECTOR_FILL_COLOR", payload: {fillColor, vectorStyleMode, vectorLayer, selectedEntity}};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

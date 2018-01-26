@@ -738,6 +738,7 @@ export interface SessionState {
     savedLayers: SavedLayers;
     applyStyleToAllEntities: boolean;
     defaultVectorLayerStyle: VectorLayerStyle;
+    vectorStyleMode: "entity" | "layer";
 
     // PlacemarksPanel
     placemarkCollection: PlacemarkCollection | null;

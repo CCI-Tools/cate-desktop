@@ -605,6 +605,8 @@ export const selectedEntityStyleSelector = createSelector<State, SimpleStyle | n
     }
 );
 
+export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer selectors
 
@@ -684,7 +686,7 @@ export const selectedVectorLayerSelector = createSelector<State, VectorLayerStat
     LayerState | null>(
     selectedLayerSelector,
     (selectedLayer: LayerState | null) => {
-        if (selectedLayer && selectedLayer.type === 'Vector' || selectedLayer.type === 'ResourceVector') {
+        if (selectedLayer && (selectedLayer.type === 'Vector' || selectedLayer.type === 'ResourceVector')) {
             return selectedLayer as VectorLayerState;
         }
         return null;

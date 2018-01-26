@@ -6,7 +6,7 @@ import {
 } from "../state";
 import {
     AnchorButton, Slider, Popover, Position, PopoverInteractionKind, Switch,
-    RangeSlider, NumberRange, Tooltip
+    RangeSlider, NumberRange, Tooltip, Radio, RadioGroup
 } from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import * as actions from "../actions";
@@ -19,7 +19,6 @@ import {FieldValue} from "../components/field/Field";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {ViewState} from "../components/ViewState";
 import {NO_LAYERS_NO_VIEW, NO_LAYERS_EMPTY_VIEW, NO_LAYER_SELECTED, NO_LAYER_PROPERTIES} from "../messages";
-import {NumericField} from "../components/field/NumericField";
 import * as Cesium from "cesium";
 import {entityToSimpleStyle, SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../cesium-util";
 
@@ -54,7 +53,7 @@ interface ILayersPanelProps {
     selectedResourceVectorLayer: ResourceVectorLayerState | null;
     selectedEntity: Cesium.Entity | null;
     selectedEntityStyle: SimpleStyle | null;
-    applyStyleToAllEntities: boolean;
+    vectorStyleMode: "entity" | "layer";
     showLayerDetails: boolean;
     colorMapCategories: Array<ColorMapCategoryState>;
     selectedColorMap: ColorMapState | null;
@@ -77,7 +76,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedResourceVectorLayer: selectors.selectedResourceVectorLayerSelector(state),
         selectedEntity: selectors.selectedEntitySelector(state),
         selectedEntityStyle: selectors.selectedEntityStyleSelector(state),
-        applyStyleToAllEntities: selectors.applyStyleToAllEntitiesSelector(state),
+        vectorStyleMode: selectors.vectorStyleModeSelector(state),
         showLayerDetails: state.session.showLayerDetails,
         colorMapCategories: selectors.colorMapCategoriesSelector(state),
         selectedColorMap: selectors.selectedColorMapSelector(state),
@@ -111,6 +110,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.handleChangedDisplayRange = this.handleChangedDisplayRange.bind(this);
         this.handleChangedDisplayAlphaBlend = this.handleChangedDisplayAlphaBlend.bind(this);
         this.handleChangedColorMapName = this.handleChangedColorMapName.bind(this);
+        this.handleChangedVectorStyleMode = this.handleChangedVectorStyleMode.bind(this);
+        this.handleChangedVectorFillColor = this.handleChangedVectorFillColor.bind(this);
         this.renderLayerItem = this.renderLayerItem.bind(this);
     }
 
@@ -201,6 +202,19 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                                                                        });
                                                                    }
         ));
+    }
+
+    private handleChangedVectorStyleMode(event: any) {
+        const vectorStyleMode = event.target.value;
+        this.props.dispatch(actions.setVectorStyleMode(vectorStyleMode));
+    }
+
+    private handleChangedVectorFillColor(event: any) {
+        const fillColor = event.target.value;
+        const vectorStyleMode = this.props.vectorStyleMode;
+        const vectorLayer = this.props.selectedVectorLayer;
+        const selectedEntity = this.props.selectedEntity;
+        this.props.dispatch(actions.setVectorFillColor(fillColor, vectorStyleMode, vectorLayer, selectedEntity));
     }
 
     private static getLayerItemKey(layer: LayerState) {
@@ -570,13 +584,30 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     }
 
     private renderStyleContext() {
+        const selectedVectorLayer = this.props.selectedVectorLayer;
         const selectedEntity = this.props.selectedEntity;
+        let vectorStyleMode;
+        let disabled = true;
+        if (selectedEntity && selectedVectorLayer) {
+            vectorStyleMode = this.props.vectorStyleMode;
+            disabled = false;
+        } else if (selectedEntity) {
+            vectorStyleMode = "entity";
+        } else if (selectedVectorLayer) {
+            vectorStyleMode = "layer";
+        }
         return (
-            <Switch key="applyStyleToAllEntities"
-                    checked={this.props.applyStyleToAllEntities}
-                    label="Apply to all entities"
-                    disabled={!selectedEntity}
-                    onChange={this.handleApplyStyleToAllEntities}/>
+            <RadioGroup
+                key="vectorStyleMode"
+                label="Apply styles to selected"
+                disabled={disabled}
+                inline={true}
+                onChange={this.handleChangedVectorStyleMode}
+                selectedValue={vectorStyleMode}
+            >
+                <Radio label="entity" value="entity" />
+                <Radio label="layer" value="layer" />
+            </RadioGroup>
         );
     }
 
@@ -600,11 +631,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         colors.forEach(entry => {
             const name = entry[0];
             const value = entry[1];
-            if (value === currentColor) {
-                colorItems.push(<option key={name} selected value={value}>{name}</option>);
-            } else {
-                colorItems.push(<option key={name} value={value}>{name}</option>);
-            }
+            colorItems.push(<option key={name} value={value}>{name}</option>);
         });
 
         return (
@@ -612,7 +639,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                 <label key={key} className="pt-label pt-inline">
                     Fill colour
                     <div className="pt-select">
-                        <select onSelect={this.handleFillColorSelected}>{colorItems}</select>
+                        <select value={currentColor} onChange={this.handleChangedVectorFillColor}>{colorItems}</select>
                     </div>
                 </label>
             </div>
