@@ -99,8 +99,10 @@ export const SIMPLE_STYLE_DEFAULTS: SimpleStyle = {
     fillOpacity: 0.6
 };
 
-export function entityToSimpleStyle(entity: Cesium.Entity): SimpleStyle | null {
-    if (entity.point) {
+export function entityToSimpleStyle(entity: Cesium.Entity | null): SimpleStyle | null {
+    if (!entity) {
+        return null;
+    } else if (entity.point) {
         return pointGraphicsToSimpleStyle(entity.point);
     } else if (entity.billboard) {
         return billboardGraphicsToSimpleStyle(entity.billboard);

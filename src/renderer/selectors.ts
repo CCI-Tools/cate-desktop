@@ -3,7 +3,7 @@ import {
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
     WorkflowStepState, LayerVariableState, SavedLayers,
     FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase,
-    ResourceVectorLayerState, WorldViewDataState
+    ResourceVectorLayerState, WorldViewDataState, VectorLayerState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient, JobStatusEnum} from "./webapi";
@@ -18,6 +18,7 @@ import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
 import * as Cesium from "cesium";
 import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
+import {entityToSimpleStyle, SimpleStyle} from "./cesium-util";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -599,12 +600,7 @@ export const selectedGeometryWKTGetterSelector = createSelector<State, GeometryW
 
 export const selectedEntityStyleSelector = createSelector<State, SimpleStyle | null, Cesium.Entity | null>(
     selectedEntitySelector,
-    (entity: Cesium.Entity | null) => {
-        if (entity) {
-            return entityToSimpleStyle(entity);
-        }
-        return null;
-    }
+    entityToSimpleStyle
 );
 
 export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
