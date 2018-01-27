@@ -19,6 +19,7 @@ export function main() {
         const nonLoggedActionTypes = new Set([
                                                  // Too much noise:
                                                  actions.SET_GLOBE_MOUSE_POSITION,
+                                                 actions.SET_GLOBE_VIEW_POSITION,
                                              ]);
         const loggerOptions = {
             level: 'info',
