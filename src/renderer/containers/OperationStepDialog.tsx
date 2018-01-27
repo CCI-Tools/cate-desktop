@@ -124,7 +124,6 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
         const overwrite = this.props.overwrite;
         const opName = operation.name;
         const opArgs = this.getInputArguments();
-        console.log(`OperationStepDialog: handleConfirm: op="${opName}", args=`, opArgs);
         if (!this.props.isEditMode) {
             this.props.dispatch(actions.hideOperationStepDialog(this.props.id,
                                                                 {[opName]: this.state.inputAssignments}));

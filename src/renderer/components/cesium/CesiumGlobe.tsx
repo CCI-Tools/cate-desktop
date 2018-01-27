@@ -10,8 +10,6 @@ interface Placemark extends Feature<Point> {
     id: string;
 }
 
-console.log(Cesium);
-
 const BuildModuleUrl: any = Cesium.buildModuleUrl;
 BuildModuleUrl.setBaseUrl('./');
 

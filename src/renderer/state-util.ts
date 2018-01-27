@@ -261,9 +261,7 @@ export const EXTERNAL_OBJECT_STORE = {id: "global_external_object_store"};
 
 export function getWorldViewSelectedEntity(view: ViewState<any>): Cesium.Entity | null {
     if (view && view.type === 'world') {
-        console.log("EXTERNAL_OBJECT_STORE =", EXTERNAL_OBJECT_STORE);
         const externalObject = EXTERNAL_OBJECT_STORE["CesiumGlobe-" + view.id];
-        console.log("externalObject =", externalObject);
         if (externalObject) {
             const cesiumViewer: Cesium.Viewer = externalObject.object;
             if (cesiumViewer) {

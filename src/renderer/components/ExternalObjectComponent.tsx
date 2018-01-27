@@ -318,8 +318,6 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
     }
 
     private get externalObjectStore(): ExternalObjectStore<E, ES> {
-        console.log("this.props.externalObjectStore =", this.props.externalObjectStore);
-        console.log("ExternalObjectComponent.DEFAULT_EXTERNAL_OBJECT_STORE =", ExternalObjectComponent.DEFAULT_EXTERNAL_OBJECT_STORE);
         return (this.props.externalObjectStore || ExternalObjectComponent.DEFAULT_EXTERNAL_OBJECT_STORE) as ExternalObjectStore<E, ES>;
     }
 }
