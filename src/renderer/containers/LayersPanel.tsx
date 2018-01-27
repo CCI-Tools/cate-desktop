@@ -20,7 +20,9 @@ import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {ViewState} from "../components/ViewState";
 import {NO_LAYERS_NO_VIEW, NO_LAYERS_EMPTY_VIEW, NO_LAYER_SELECTED, NO_LAYER_PROPERTIES} from "../messages";
 import * as Cesium from "cesium";
-import {entityToSimpleStyle, SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../cesium-util";
+import {SimpleStyle} from "../cesium-util";
+import {TextField} from "../components/field/TextField";
+import {NumericField} from "../components/field/NumericField";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -51,6 +53,7 @@ interface ILayersPanelProps {
     selectedVariableImageLayer: VariableImageLayerState | null;
     selectedVectorLayer: VectorLayerState | null;
     selectedResourceVectorLayer: ResourceVectorLayerState | null;
+    selectedEntityId: string | null;
     selectedEntity: Cesium.Entity | null;
     selectedEntityStyle: SimpleStyle | null;
     vectorStyleMode: "entity" | "layer";
@@ -59,6 +62,7 @@ interface ILayersPanelProps {
     selectedColorMap: ColorMapState | null;
     displayMinMax: [number, number];
     isComputingVariableStatistics: boolean;
+    vectorStyle: SimpleStyle;
 }
 
 function mapStateToProps(state: State): ILayersPanelProps {
@@ -74,6 +78,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
         selectedVectorLayer: selectors.selectedVectorLayerSelector(state),
         selectedResourceVectorLayer: selectors.selectedResourceVectorLayerSelector(state),
+        selectedEntityId: selectors.selectedEntityIdSelector(state),
         selectedEntity: selectors.selectedEntitySelector(state),
         selectedEntityStyle: selectors.selectedEntityStyleSelector(state),
         vectorStyleMode: selectors.vectorStyleModeSelector(state),
@@ -81,7 +86,8 @@ function mapStateToProps(state: State): ILayersPanelProps {
         colorMapCategories: selectors.colorMapCategoriesSelector(state),
         selectedColorMap: selectors.selectedColorMapSelector(state),
         displayMinMax: selectors.selectedVariableImageLayerDisplayMinMaxSelector(state),
-        isComputingVariableStatistics: selectors.isComputingVariableStatistics(state)
+        isComputingVariableStatistics: selectors.isComputingVariableStatistics(state),
+        vectorStyle: selectors.vectorStyleSelector(state),
     };
 }
 
@@ -111,7 +117,11 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.handleChangedDisplayAlphaBlend = this.handleChangedDisplayAlphaBlend.bind(this);
         this.handleChangedColorMapName = this.handleChangedColorMapName.bind(this);
         this.handleChangedVectorStyleMode = this.handleChangedVectorStyleMode.bind(this);
-        this.handleChangedVectorFillColor = this.handleChangedVectorFillColor.bind(this);
+        this.handleChangedFillColor = this.handleChangedFillColor.bind(this);
+        this.handleChangedFillOpacity = this.handleChangedFillOpacity.bind(this);
+        this.handleChangedStrokeWidth = this.handleChangedStrokeWidth.bind(this);
+        this.handleChangedStrokeColor = this.handleChangedStrokeColor.bind(this);
+        this.handleChangedStrokeOpacity = this.handleChangedStrokeOpacity.bind(this);
         this.renderLayerItem = this.renderLayerItem.bind(this);
     }
 
@@ -209,12 +219,34 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.props.dispatch(actions.setVectorStyleMode(vectorStyleMode));
     }
 
-    private handleChangedVectorFillColor(event: any) {
-        const fillColor = event.target.value;
-        const vectorStyleMode = this.props.vectorStyleMode;
-        const vectorLayer = this.props.selectedVectorLayer;
-        const selectedEntity = this.props.selectedEntity;
-        this.props.dispatch(actions.setVectorFillColor(fillColor, vectorStyleMode, vectorLayer, selectedEntity));
+    private handleChangedFillColor(value: FieldValue<string>) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, fill: value.value});
+    }
+
+    private handleChangedFillOpacity(fillOpacity: number) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, fillOpacity});
+    }
+
+    private handleChangedStrokeWidth(value: FieldValue<number>) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, strokeWidth: value.value});
+    }
+
+    private handleChangedStrokeColor(value: FieldValue<string>) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, stroke: value.value});
+    }
+
+    private handleChangedStrokeOpacity(strokeOpacity: number) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, strokeOpacity});
+    }
+
+    private handleChangedVectorStyle(style: SimpleStyle) {
+        if (this.props.vectorStyleMode === "layer") {
+            this.props.dispatch(actions.updateLayer(this.props.activeView.id,
+                                                    this.props.selectedVectorLayer,
+                                                    style));
+        } else {
+            this.props.dispatch(actions.updateEntityStyle(this.props.selectedEntity, style));
+        }
     }
 
     private static getLayerItemKey(layer: LayerState) {
@@ -563,25 +595,19 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     }
 
     private renderVectorLayerDetails() {
-
-        let selectedEntity = this.props.selectedEntity;
-
-        let style;
-        if (selectedEntity) {
-            style = entityToSimpleStyle(selectedEntity);
-        }
-        if (!style) {
-            style = SIMPLE_STYLE_DEFAULTS;
-        }
-
         return (
             <div style={{width: '100%'}}>
                 <label key="spacer" className="pt-label"> </label>
                 {this.renderStyleContext()}
-                {this.renderFillColorField(style)}
+                {this.renderFillColor()}
+                {this.renderFillOpacity()}
+                {this.renderStrokeWidth()}
+                {this.renderStrokeColor()}
+                {this.renderStrokeOpacity()}
             </div>
         );
     }
+
 
     private renderStyleContext() {
         const selectedVectorLayer = this.props.selectedVectorLayer;
@@ -605,44 +631,85 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                 onChange={this.handleChangedVectorStyleMode}
                 selectedValue={vectorStyleMode}
             >
-                <Radio label="entity" value="entity" />
-                <Radio label="layer" value="layer" />
+                <Radio label="entity" value="entity"/>
+                <Radio label="layer" value="layer"/>
             </RadioGroup>
         );
     }
 
-    private renderFillColorField(style: SimpleStyle) {
-
-        const key = "fillColorField";
-
-        const colors = [
-            ["Black", "#000000"],
-            ["Grey", "#555555"],
-            ["White", "#ffffff"],
-            ["Yellow", "#ffff00"],
-            ["Red", "#ff0000"],
-            ["Green", "#00ff00"],
-            ["Blue", "#0000ff"],
-        ];
-
-        const currentColor = style.fill;
-
-        const colorItems = [];
-        colors.forEach(entry => {
-            const name = entry[0];
-            const value = entry[1];
-            colorItems.push(<option key={name} value={value}>{name}</option>);
-        });
-
+    private renderFillColor() {
         return (
-            <div style={{width: '100%'}}>
-                <label key={key} className="pt-label pt-inline">
-                    Fill colour
-                    <div className="pt-select">
-                        <select value={currentColor} onChange={this.handleChangedVectorFillColor}>{colorItems}</select>
-                    </div>
-                </label>
-            </div>
+            <label key="fillColor" className="pt-label">
+                Fill colour
+                <TextField value={this.props.vectorStyle.fill}
+                           style={{flex: 'auto', fontFamily: "courier"}}
+                           size={8}
+                           uncontrolled={true}
+                           onChange={this.handleChangedFillColor}
+                />
+            </label>
+        );
+    }
+
+    private renderFillOpacity() {
+        return (
+            <label key={"fillOpacity"} className="pt-label">
+                Fill opacity
+                <div style={LayersPanel.SLIDER_DIV_STYLE_15}>
+                    <Slider min={0.0}
+                            max={1.0}
+                            stepSize={0.05}
+                            labelStepSize={0.25}
+                            value={this.props.vectorStyle.fillOpacity}
+                            onChange={this.handleChangedFillOpacity}
+                    />
+                </div>
+            </label>
+        );
+    }
+
+    private renderStrokeWidth() {
+        return (
+            <label key="strokeWidth" className="pt-label">
+                Stroke colour
+                <NumericField value={this.props.vectorStyle.strokeWidth}
+                              style={{flex: 'auto', fontFamily: "courier"}}
+                              size={8}
+                              uncontrolled={true}
+                              onChange={this.handleChangedStrokeWidth}
+                />
+            </label>
+        );
+    }
+
+    private renderStrokeColor() {
+        return (
+            <label key="strokeColor" className="pt-label">
+                Stroke colour
+                <TextField value={this.props.vectorStyle.stroke}
+                           style={{flex: 'auto', fontFamily: "courier"}}
+                           size={8}
+                           uncontrolled={true}
+                           onChange={this.handleChangedStrokeColor}
+                />
+            </label>
+        );
+    }
+
+    private renderStrokeOpacity() {
+        return (
+            <label key={"strokeOpacity"} className="pt-label">
+                Stroke opacity
+                <div style={LayersPanel.SLIDER_DIV_STYLE_15}>
+                    <Slider min={0.0}
+                            max={1.0}
+                            stepSize={0.05}
+                            labelStepSize={0.25}
+                            value={this.props.vectorStyle.strokeOpacity}
+                            onChange={this.handleChangedStrokeOpacity}
+                    />
+                </div>
+            </label>
         );
     }
 }

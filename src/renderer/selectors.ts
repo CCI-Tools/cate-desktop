@@ -18,7 +18,8 @@ import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
 import * as Cesium from "cesium";
 import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
-import {entityToSimpleStyle, SimpleStyle} from "./cesium-util";
+import {entityToSimpleStyle, SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "./cesium-util";
+import {updateConditionally} from "../common/objutil";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -548,7 +549,6 @@ export const selectedVariableAttributesTableDataSelector = createSelector<State,
 export const viewLayoutSelector = (state: State): ViewLayoutState => state.control.viewLayout;
 export const viewsSelector = (state: State): ViewState<any>[] => state.control.views;
 export const activeViewIdSelector = (state: State): string | null => state.control.activeViewId;
-export const applyStyleToAllEntitiesSelector = (state: State): boolean | null => state.session.applyStyleToAllEntities;
 
 export const figureViewsSelector = createSelector<State, ViewState<FigureViewDataState>[], ViewState<any>[]>(
     viewsSelector,
@@ -586,7 +586,16 @@ export const isSelectedLayerSplitSelector = createSelector<State, boolean | null
     }
 );
 
-export const externalObjectStoreSelector = (state: State) => EXTERNAL_OBJECT_STORE;
+export const selectedEntityIdSelector = createSelector<State, string | null, ViewState<any> | null>(
+    activeViewSelector,
+    (view: ViewState<any>) => {
+        if (view && view.type === 'world') {
+            const data = view.data as WorldViewDataState;
+            return data.selectedEntityId;
+        }
+        return null;
+    }
+);
 
 export const selectedEntitySelector = createSelector<State, Cesium.Entity | null, ViewState<any> | null>(
     activeViewSelector,
@@ -604,6 +613,8 @@ export const selectedEntityStyleSelector = createSelector<State, SimpleStyle | n
 );
 
 export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
+
+export const externalObjectStoreSelector = (state: State) => EXTERNAL_OBJECT_STORE;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer selectors
@@ -690,6 +701,26 @@ export const selectedVectorLayerSelector = createSelector<State, VectorLayerStat
         return null;
     }
 );
+
+export const entityUpdateCountSelector = (state: State) => state.control.entityUpdateCount;
+
+export const vectorStyleSelector = createSelector<State, SimpleStyle, string, VectorLayerState | null, Cesium.Entity | null, number>(
+    vectorStyleModeSelector,
+    selectedVectorLayerSelector,
+    selectedEntitySelector,
+    entityUpdateCountSelector,
+    (vectorStyleMode, selectedVectorLayer, selectedEntity, entityUpdateCount) => {
+        if (vectorStyleMode === "layer" && selectedVectorLayer) {
+            return updateConditionally(selectedVectorLayer, SIMPLE_STYLE_DEFAULTS);
+        } else if (vectorStyleMode === "entity" && selectedEntity) {
+            return updateConditionally(entityToSimpleStyle(selectedEntity), SIMPLE_STYLE_DEFAULTS);
+        } else {
+            return SIMPLE_STYLE_DEFAULTS;
+        }
+    }
+);
+
+
 
 export const selectedResourceVectorLayerSelector = createSelector<State, ResourceVectorLayerState | null,
     LayerState | null>(

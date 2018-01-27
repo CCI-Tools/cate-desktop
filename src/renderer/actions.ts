@@ -22,6 +22,7 @@ import * as d3 from "d3";
 import * as Cesium from "cesium";
 import {isDefined, isNumber, isString} from "../common/types";
 import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
+import {applyStyle, SimpleStyle} from "./cesium-util";
 
 const CANCELLED_CODE = 999;
 
@@ -33,7 +34,7 @@ const CANCELLED_CODE = 999;
  */
 export interface Action extends redux.Action {
     type: string;
-    payload: any;
+    payload?: any;
 }
 
 /**
@@ -1211,7 +1212,8 @@ export const SET_VIEW_MODE = 'SET_VIEW_MODE';
 export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
 export const SET_SELECTED_LAYER_SPLIT = 'SET_SPLIT_LAYER_ID';
 export const SET_SELECTED_LAYER_SPLIT_POS = 'SET_SPLIT_LAYER_POS';
-export const NOTIFY_SELECTED_ENTITY_ID_CHANGE = 'NOTIFY_SELECTED_ENTITY_ID_CHANGE';
+export const SET_SELECTED_ENTITY_ID = 'SET_SELECTED_ENTITY_ID';
+export const INC_ENTITY_UPDATE_COUNT = 'INC_ENTITY_UPDATE_COUNT';
 
 export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
@@ -1232,7 +1234,7 @@ export function setSelectedLayerSplitPos(viewId: string, selectedLayerSplitPos: 
 export function notifySelectedEntityChange(viewId: string, selectedEntity: Cesium.Entity | null): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         const selectedEntityId = selectedEntity && selectedEntity.id;
-        dispatch(notifySelectedEntityIdChange(selectedEntityId));
+        dispatch(setSelectedEntityId(viewId, selectedEntityId || null));
         if (selectedEntity
             && isNumber(selectedEntity._simp)
             && isNumber(selectedEntity._resId)) {
@@ -1254,8 +1256,19 @@ export function notifySelectedEntityChange(viewId: string, selectedEntity: Cesiu
     }
 }
 
-function notifySelectedEntityIdChange(selectedEntityId: string | null): Action {
-    return {type: NOTIFY_SELECTED_ENTITY_ID_CHANGE, payload: {selectedEntityId}};
+function setSelectedEntityId(viewId: string, selectedEntityId: string | null): Action {
+    return {type: SET_SELECTED_ENTITY_ID, payload: {viewId, selectedEntityId}};
+}
+
+export function updateEntityStyle(entity: Cesium.Entity, style: SimpleStyle) {
+    return (dispatch: Dispatch) => {
+        dispatch(incEntityUpdateCount());
+        applyStyle(entity, style);
+    };
+}
+
+function incEntityUpdateCount(): Action {
+    return {type: INC_ENTITY_UPDATE_COUNT};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1303,6 +1316,7 @@ export const REPLACE_LAYER = 'REPLACE_LAYER';
 export const MOVE_LAYER_UP = 'MOVE_LAYER_UP';
 export const MOVE_LAYER_DOWN = 'MOVE_LAYER_DOWN';
 export const SAVE_LAYER = 'SAVE_LAYER';
+export const SET_VECTOR_FILL_COLOR = '"SET_VECTOR_FILL_COLOR"';
 
 export function setSelectedLayerId(viewId: string, selectedLayerId: string | null): Action {
     return {type: SET_SELECTED_LAYER_ID, payload: {viewId, selectedLayerId}};
@@ -1356,13 +1370,6 @@ export function saveLayer(key: string, layer: LayerState): Action {
 
 export function setVectorStyleMode(vectorStyleMode: string) {
     return updateSessionState({vectorStyleMode});
-}
-
-export function setVectorFillColor(fillColor: string,
-                                   vectorStyleMode: "entity" | "layer",
-                                   vectorLayer: VectorLayerState,
-                                   selectedEntity: Cesium.Entity) {
-    return {type: "SET_VECTOR_FILL_COLOR", payload: {fillColor, vectorStyleMode, vectorLayer, selectedEntity}};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

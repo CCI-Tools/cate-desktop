@@ -1,6 +1,6 @@
 import {
     State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
-    LayerState, Placemark, DEFAULT_VECTOR_LAYER_STYLE
+    LayerState, Placemark
 } from './state';
 import * as actions from './actions';
 import * as assert from "../common/assert";
@@ -20,6 +20,8 @@ import {Action, SET_GLOBE_MOUSE_POSITION, SET_GLOBE_VIEW_POSITION} from "./actio
 import {EMPTY_ARRAY} from "./selectors";
 import {isString} from "../common/types";
 import {setSelectedPlacemarkId} from "./actions";
+import {SET_VECTOR_FILL_COLOR} from "./actions";
+import {INC_ENTITY_UPDATE_COUNT} from "./actions";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -127,6 +129,8 @@ const initialControlState: ControlState = {
     activeViewId: initialView.id,
 
     worldViewClickAction: null,
+
+    entityUpdateCount: 0,
 };
 
 
@@ -260,6 +264,10 @@ const controlReducer = (state: ControlState = initialControlState, action: Actio
             const viewLayout = changeViewSplitPos(state.viewLayout, viewPath, delta);
             return {...state, viewLayout};
         }
+        case actions.INC_ENTITY_UPDATE_COUNT: {
+            const entityUpdateCount = state.entityUpdateCount + 1;
+            return {...state, entityUpdateCount};
+        }
         default: {
             const newViews = viewsReducer(state.views, action, state.activeViewId);
             if (newViews !== state.views) {
@@ -335,7 +343,7 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             break;
         }
         // TODO (forman): clean up code duplication here, following actions are basically all the same
-        //                NOTIFY_SELECTED_ENTITY_ID_CHANGE,
+        //                SET_SELECTED_ENTITY_ID,
         //                SET_SELECTED_LAYER_ID,
         //                SET_VIEW_MODE,
         //                SET_PROJECTION_CODE,
@@ -347,6 +355,14 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             if (viewId === state.id && state.type === 'world') {
                 const selectedLayerId = action.payload.selectedLayerId;
                 return {...state, data: {...state.data, selectedLayerId}};
+            }
+            break;
+        }
+        case actions.SET_SELECTED_ENTITY_ID: {
+            const viewId = action.payload.viewId;
+            if (viewId === state.id && state.type === 'world') {
+                const selectedEntityId = action.payload.selectedEntityId;
+                return {...state, data: {...state.data, selectedEntityId}};
             }
             break;
         }
@@ -543,8 +559,6 @@ const initialSessionState: SessionState = {
     offlineMode: false,
     showSelectedVariableLayer: true,
     savedLayers: {},
-    applyStyleToAllEntities: false,
-    defaultVectorLayerStyle: {...DEFAULT_VECTOR_LAYER_STYLE},
 
     selectedDataStoreId: null,
     selectedDataSourceId: null,
@@ -559,7 +573,6 @@ const initialSessionState: SessionState = {
     showOperationDetails: true,
     showVariableDetails: true,
     showLayerDetails: true,
-
 
     panelContainerUndockedMode: false,
     leftPanelContainerLayout: {horPos: 300, verPos: 400},
@@ -593,7 +606,7 @@ const initialSessionState: SessionState = {
 let placemarkCounter = 0;
 const sessionReducer = (state: SessionState = initialSessionState, action: Action) => {
     switch (action.type) {
-        case actions.NOTIFY_SELECTED_ENTITY_ID_CHANGE: {
+        case actions.SET_SELECTED_ENTITY_ID: {
             const selectedEntityId = action.payload.selectedEntityId || null;
             let selectedPlacemarkId = null;
             if (isString(selectedEntityId) && selectedEntityId.startsWith('placemark-')) {

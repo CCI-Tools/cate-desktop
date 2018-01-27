@@ -132,20 +132,20 @@ export function applyStyle(entity: Cesium.Entity, style: SimpleStyle): void {
             }
         }
     } else if (entity.billboard) {
-        const point = entity.point;
+        const billboard = entity.billboard;
         if (style.markerSymbol) {
-            point.image = style.markerSymbol;
+            billboard.image = style.markerSymbol;
         }
         if (style.markerColor) {
-            point.color = Cesium.Color.fromCssColorString(style.markerColor);
+            billboard.color = Cesium.Color.fromCssColorString(style.markerColor);
         }
         if (style.markerSize) {
             if (style.markerSize === "small") {
-                point.scale = 0.5;
+                billboard.scale = 0.5;
             } else if (style.markerSize === "medium") {
-                point.scale = 1.0;
+                billboard.scale = 1.0;
             } else {
-                point.scale = 2.0;
+                billboard.scale = 2.0;
             }
         }
     } else if (entity.label) {
@@ -169,8 +169,8 @@ export function applyStyle(entity: Cesium.Entity, style: SimpleStyle): void {
         const polyline = entity.polyline;
         if (isDefined(style.stroke)) {
             let alpha = 1.0;
-            if (isDefined(style.strokeOpacity)) {
-                alpha = 1.0 - style.strokeOpacity;
+            if (isNumber(style.strokeOpacity)) {
+                alpha = style.strokeOpacity;
             }
             let color = Cesium.Color.fromCssColorString(style.stroke);
             if (alpha < 1) {
@@ -186,8 +186,8 @@ export function applyStyle(entity: Cesium.Entity, style: SimpleStyle): void {
 
         if (isDefined(style.fill)) {
             let alpha = 1.0;
-            if (isDefined(style.fillOpacity)) {
-                alpha = 1.0 - style.fillOpacity;
+            if (isNumber(style.fillOpacity)) {
+                alpha = style.fillOpacity;
             }
             let color = Cesium.Color.fromCssColorString(style.fill);
             if (alpha < 1) {
@@ -198,8 +198,8 @@ export function applyStyle(entity: Cesium.Entity, style: SimpleStyle): void {
 
         if (isDefined(style.stroke)) {
             let alpha = 1.0;
-            if (isDefined(style.strokeOpacity)) {
-                alpha = 1.0 - style.strokeOpacity;
+            if (isNumber(style.strokeOpacity)) {
+                alpha = style.strokeOpacity;
             }
             let color = Cesium.Color.fromCssColorString(style.stroke);
             if (alpha < 1) {
@@ -208,7 +208,7 @@ export function applyStyle(entity: Cesium.Entity, style: SimpleStyle): void {
             polygon.outlineColor = color;
         }
 
-        if (isDefined(style.strokeWidth)) {
+        if (isNumber(style.strokeWidth)) {
             polygon.outlineWidth = style.strokeWidth;
         }
     }
@@ -241,22 +241,25 @@ function rgbToCssColor(r: number, g: number, b: number): string {
 }
 
 function pointGraphicsToSimpleStyle(point: Cesium.PointGraphics) {
+    const now = Cesium.JulianDate.now();
     const pixelSize = point.pixelSize;
     const color = point.color;
     let markerSize: "small" | "medium" | "large";
     let markerColor: string;
     let markerSymbol: string;
-    if (isNumber(pixelSize)) {
-        if (pixelSize < 10) {
+    if (isDefined(pixelSize)) {
+        const pixelSizeValue = pixelSize.getValue(now);
+        if (pixelSizeValue < 10) {
             markerSize = "small";
-        } else if (pixelSize < 20) {
+        } else if (pixelSizeValue < 20) {
             markerSize = "medium";
         } else {
             markerSize = "large";
         }
     }
-    if (color) {
-        markerColor = rgbToCssColor(color.red, color.green, color.blue);
+    if (isDefined(color)) {
+        const colorValue = color.getValue(now);
+        markerColor = rgbToCssColor(colorValue.red, colorValue.green, colorValue.blue);
     }
     return {
         markerSize,
@@ -266,26 +269,32 @@ function pointGraphicsToSimpleStyle(point: Cesium.PointGraphics) {
 }
 
 function billboardGraphicsToSimpleStyle(point: Cesium.BillboardGraphics) {
+    const now = Cesium.JulianDate.now();
     const image = point.image;
     const scale = point.scale;
     const color = point.color;
     let markerSymbol: string;
     let markerSize: "small" | "medium" | "large";
     let markerColor: string;
-    if (isString(image)) {
-        markerSymbol = image;
+    if (isDefined(image)) {
+        const imageValue = image.getValue(now);
+        if (isString(imageValue)) {
+            markerSymbol = imageValue;
+        }
     }
-    if (isNumber(scale)) {
-        if (scale < 1) {
+    if (isDefined(scale)) {
+        const scaleValue = scale.getValue(now);
+        if (scaleValue < 1) {
             markerSize = "small";
-        } else if (scale < 2) {
+        } else if (scaleValue < 2) {
             markerSize = "medium";
         } else {
             markerSize = "large";
         }
     }
-    if (color) {
-        markerColor = rgbToCssColor(color.red, color.green, color.blue);
+    if (isDefined(color)) {
+        const colorValue = color.getValue(now);
+        markerColor = rgbToCssColor(colorValue.red, colorValue.green, colorValue.blue);
     }
     return {
         markerSymbol,
@@ -324,18 +333,20 @@ function labelGraphicsToSimpleStyle(point: Cesium.LabelGraphics) {
 }
 
 function polylineGraphicsToSimpleStyle(polyline: Cesium.PolylineGraphics) {
+    const now = Cesium.JulianDate.now();
     const width = polyline.width;
     const material = polyline.material;
     let stroke: string;
     let strokeOpacity: number;
     let strokeWidth: number;
-    if (isNumber(width)) {
-        strokeWidth = width;
+
+    if (isDefined(width)) {
+        strokeWidth = width.getValue(now);
     }
-    if (material && material.color) {
-        const color = material.color;
+    if (isDefined(material) && isDefined(material.color)) {
+        const color = material.color.getValue(now);
         stroke = rgbToCssColor(color.red, color.green, color.blue);
-        strokeOpacity = 1 - color.alpha;
+        strokeOpacity = color.alpha;
     }
     return {
         stroke,
@@ -345,6 +356,7 @@ function polylineGraphicsToSimpleStyle(polyline: Cesium.PolylineGraphics) {
 }
 
 function polygonGraphicsToSimpleStyle(polygon: Cesium.PolygonGraphics) {
+    const now = Cesium.JulianDate.now();
     const isFilled = polygon.fill;
     const material = polygon.material;
     const isOutlined = polygon.outline;
@@ -356,27 +368,28 @@ function polygonGraphicsToSimpleStyle(polygon: Cesium.PolygonGraphics) {
     let fill: string;
     let fillOpacity: number;
 
-    if (material && material.color) {
-        const color = material.color;
+    if (isDefined(material) && isDefined(material.color)) {
+        const color = material.color.getValue(now);
         fill = rgbToCssColor(color.red, color.green, color.blue);
-        fillOpacity = 1 - color.alpha;
+        fillOpacity = color.alpha;
     } else {
         fill = SIMPLE_STYLE_DEFAULTS.fill;
         fillOpacity = SIMPLE_STYLE_DEFAULTS.fillOpacity;
     }
-    if (isDefined(isFilled) && !isFilled) {
+    if (isDefined(isFilled) && !isFilled.getValue(now)) {
         fillOpacity = 0;
     }
 
-    if (outlineColor) {
-        stroke = rgbToCssColor(outlineColor.red, outlineColor.green, outlineColor.blue);
-        strokeOpacity = 1 - outlineColor.alpha;
+    if (isDefined(outlineColor)) {
+        const colorValue = outlineColor.getValue(now);
+        stroke = rgbToCssColor(colorValue.red, colorValue.green, colorValue.blue);
+        strokeOpacity = colorValue.alpha;
     }
-    if (isDefined(isOutlined) && !isOutlined) {
+    if (isDefined(isOutlined) && !outlineColor.getValue(now)) {
         strokeOpacity = 0;
     }
-    if (isNumber(outlineWidth)) {
-        strokeWidth = outlineWidth;
+    if (isDefined(outlineWidth)) {
+        strokeWidth = outlineWidth.getValue(now);
     }
 
     return {

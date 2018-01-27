@@ -4,7 +4,7 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
 import {Feature, FeatureCollection, Point} from "geojson";
 import {IconName} from "@blueprintjs/core";
-import * as Cesium from "cesium";
+import {SimpleStyle} from "./cesium-util";
 
 /**
  * Interface describing Cate's application state structure.
@@ -348,9 +348,9 @@ export interface WorldViewDataState {
     selectedLayerSplitPos: number;
 
     /**
-     * The selected entity in Cesium 3D globe.
+     * The ID of the selected entity in Cesium 3D globe.
      */
-    //selectedEntity: Cesium.Entity | null;
+    selectedEntityId: string | null;
 }
 
 export interface FigureViewDataState {
@@ -459,9 +459,16 @@ export interface ImageLayerState extends ImageLayerBase {
 }
 
 /**
+ * Base of vector layers.
+ */
+export interface VectorLayerBase extends LayerState, SimpleStyle {
+}
+
+
+/**
  * State of a vector layer.
  */
-export interface VectorLayerState extends LayerState {
+export interface VectorLayerState extends VectorLayerBase {
     /**
      * The layer type.
      */
@@ -541,7 +548,7 @@ export interface VariableImageLayerState extends ImageLayerBase, VariableLayerBa
 /**
  * State of an image layer that displays a variable.
  */
-export interface ResourceVectorLayerState extends LayerState, ResourceRefState {
+export interface ResourceVectorLayerState extends VectorLayerBase, ResourceRefState {
     /**
      * The layer type.
      */
@@ -627,6 +634,9 @@ export interface ControlState {
     activeViewId: string | null;
 
     worldViewClickAction: string | null;
+
+    // Used to force component update after an entity's properties have changed
+    entityUpdateCount: number;
 }
 
 export interface DialogState {
@@ -654,28 +664,6 @@ export interface Placemark extends Feature<Point> {
 export interface PlacemarkCollection extends FeatureCollection<Point> {
     features: Placemark[];
 }
-
-export interface VectorLayerStyle {
-    markerSymbol?: string;
-    markerScale?: number;
-    markerColor?: string;
-    fillColor?: string;
-    fillOpacity?: number;
-    strokeWidth?: number;
-    strokeColor?: string;
-    strokeOpacity?: number;
-}
-
-export const DEFAULT_VECTOR_LAYER_STYLE: VectorLayerStyle = {
-    markerSymbol: "",
-    markerScale: 1,
-    markerColor: "#7e7e7e",
-    strokeWidth: 2,
-    strokeColor: "#555555",
-    strokeOpacity: 1.0,
-    fillColor: "#555555",
-    fillOpacity: 0.6,
-};
 
 /**
  * Session state contains information about the human being which is currently using Cate.
@@ -736,8 +724,6 @@ export interface SessionState {
     showSelectedVariableLayer: boolean;
     showLayerDetails: boolean;
     savedLayers: SavedLayers;
-    applyStyleToAllEntities: boolean;
-    defaultVectorLayerStyle: VectorLayerStyle;
     vectorStyleMode: "entity" | "layer";
 
     // PlacemarksPanel
