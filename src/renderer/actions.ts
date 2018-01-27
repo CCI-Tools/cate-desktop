@@ -1210,7 +1210,7 @@ export const SET_VIEW_MODE = 'SET_VIEW_MODE';
 export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
 export const SET_SELECTED_LAYER_SPLIT = 'SET_SPLIT_LAYER_ID';
 export const SET_SELECTED_LAYER_SPLIT_POS = 'SET_SPLIT_LAYER_POS';
-export const SET_SELECTED_ENTITY = 'SET_SELECTED_ENTITY';
+export const NOTIFY_SELECTED_ENTITY_ID_CHANGE = 'NOTIFY_SELECTED_ENTITY_ID_CHANGE';
 
 export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
@@ -1228,15 +1228,10 @@ export function setSelectedLayerSplitPos(viewId: string, selectedLayerSplitPos: 
     return {type: SET_SELECTED_LAYER_SPLIT_POS, payload: {viewId, selectedLayerSplitPos}};
 }
 
-export function setSelectedEntity(viewId: string, selectedEntity: Cesium.Entity | null): ThunkAction {
+export function notifySelectedEntityChange(viewId: string, selectedEntity: Cesium.Entity | null): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-
-        dispatch(setSelectedEntityImpl(viewId, selectedEntity));
-
-        const entityId = selectedEntity && selectedEntity.id;
-        const placemarkId = (isString(entityId) && entityId.startsWith('placemark-')) ? entityId : null;
-        dispatch(setSelectedPlacemarkId(placemarkId));
-
+        const selectedEntityId = selectedEntity && selectedEntity.id;
+        dispatch(notifySelectedEntityIdChange(selectedEntityId));
         if (selectedEntity
             && isNumber(selectedEntity._simp)
             && isNumber(selectedEntity._resId)) {
@@ -1258,8 +1253,8 @@ export function setSelectedEntity(viewId: string, selectedEntity: Cesium.Entity 
     }
 }
 
-function setSelectedEntityImpl(viewId: string, selectedEntity: Cesium.Entity | null): Action {
-    return {type: SET_SELECTED_ENTITY, payload: {viewId, selectedEntity}};
+function notifySelectedEntityIdChange(selectedEntityId: string | null): Action {
+    return {type: NOTIFY_SELECTED_ENTITY_ID_CHANGE, payload: {selectedEntityId}};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

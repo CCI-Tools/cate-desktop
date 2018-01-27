@@ -19,8 +19,6 @@ export function main() {
         const nonLoggedActionTypes = new Set([
                                                  // Too much noise:
                                                  actions.SET_GLOBE_MOUSE_POSITION,
-                                                 // Freezes app (possibly because Cesium.Entity is complex):
-                                                 actions.SET_SELECTED_ENTITY,
                                              ]);
         const loggerOptions = {
             level: 'info',

@@ -1,15 +1,14 @@
 import * as React from 'react';
-import {IValueEditorProps} from "./ValueEditor";
+import {GeometryWKTGetter, IValueEditorProps} from "./ValueEditor";
 import {FieldValue} from "../../components/field/Field";
 import {GeometryField} from "../../components/field/GeometryField";
 import {GeometryType} from "../../../common/geometry-util";
-import * as Cesium from "cesium";
 
 interface IGeometryValueEditorProps extends IValueEditorProps<string> {
     geometryType: GeometryType;
     placeholder?: string;
     size?: number;
-    selectedEntity?: Cesium.Entity | null;
+    geometryWKTGetter?: GeometryWKTGetter;
 }
 
 export class GeometryValueEditor extends React.Component<IGeometryValueEditorProps, null> {
@@ -32,7 +31,7 @@ export class GeometryValueEditor extends React.Component<IGeometryValueEditorPro
                 size={this.props.size}
                 geometryType={this.props.geometryType}
                 nullable={this.props.input.nullable}
-                selectedEntity={this.props.selectedEntity}/>
+                geometryWKTGetter={this.props.geometryWKTGetter}/>
         );
     }
 }

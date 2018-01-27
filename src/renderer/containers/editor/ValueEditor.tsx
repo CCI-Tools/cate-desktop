@@ -26,13 +26,15 @@ export type InputAssignments = { [inputName: string]: InputAssignment };
 export type ValueEditorValue<T> = FieldValue<T> | T | null;
 export type ValueEditorCallback<T> = (input: OperationInputState, value: ValueEditorValue<T>) => void;
 
+export type GeometryWKTGetter = (() => string) | null;
+
 export interface IValueEditorProps<T> {
     input: OperationInputState;
     value: ValueEditorValue<T>;
     onChange: ValueEditorCallback<T>;
     inputAssignments?: InputAssignments;
     resources?: ResourceState[];
-    selectedEntity?: Cesium.Entity | null;
+    geometryWKTGetter?: GeometryWKTGetter;
 }
 
 export type ValueEditorFactory<T> = (props: IValueEditorProps<T>) => JSX.Element | null;
@@ -97,17 +99,17 @@ function renderTextValueEditor(props: IValueEditorProps<string>) {
 
 function renderPointLikeValueEditor(props: IValueEditorProps<string>) {
     return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Point"
-                                size={16} selectedEntity={props.selectedEntity}/>;
+                                size={16} geometryWKTGetter={props.geometryWKTGetter}/>;
 }
 
 function renderPolygonLikeValueEditor(props: IValueEditorProps<string>) {
     return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange} geometryType="Polygon"
-                                size={32} selectedEntity={props.selectedEntity}/>;
+                                size={32} geometryWKTGetter={props.geometryWKTGetter}/>;
 }
 
 function renderGeometryLikeValueEditor(props: IValueEditorProps<string>) {
     return <GeometryValueEditor input={props.input} value={props.value} onChange={props.onChange}
-                                geometryType="Geometry" size={32} selectedEntity={props.selectedEntity}/>;
+                                geometryType="Geometry" size={32} geometryWKTGetter={props.geometryWKTGetter}/>;
 }
 
 function renderTimeLikeValueEditor(props: IValueEditorProps<string>) {

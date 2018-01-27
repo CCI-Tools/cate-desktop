@@ -75,7 +75,7 @@ export type ExternalObjectStore<E, S> = { [id: string]: ExternalObjectRef<E, S> 
  */
 export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectComponentProps<E, ES>, S>
     extends React.PureComponent<P & ES, S> {
-    private static readonly DEFAULT_EXTERNAL_OBJECT_CACHE: Object = {};
+    private static readonly DEFAULT_EXTERNAL_OBJECT_STORE: Object = {};
 
     private parentContainer: HTMLElement | null;
 
@@ -318,6 +318,8 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
     }
 
     private get externalObjectStore(): ExternalObjectStore<E, ES> {
-        return (this.props.externalObjectStore || ExternalObjectComponent.DEFAULT_EXTERNAL_OBJECT_CACHE) as ExternalObjectStore<E, ES>;
+        console.log("this.props.externalObjectStore =", this.props.externalObjectStore);
+        console.log("ExternalObjectComponent.DEFAULT_EXTERNAL_OBJECT_STORE =", ExternalObjectComponent.DEFAULT_EXTERNAL_OBJECT_STORE);
+        return (this.props.externalObjectStore || ExternalObjectComponent.DEFAULT_EXTERNAL_OBJECT_STORE) as ExternalObjectStore<E, ES>;
     }
 }

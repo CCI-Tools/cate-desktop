@@ -7,9 +7,9 @@ import {
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
 import {isNumber, isString} from "../common/types";
-import {activeViewSelector, EMPTY_ARRAY} from "./selectors";
+import {EMPTY_ARRAY} from "./selectors";
 import * as Cesium from "cesium";
-import {createSelector} from "reselect";
+import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 export const COUNTRIES_LAYER_ID = 'countries';
@@ -90,10 +90,6 @@ export function isDataFrameResource(resource: ResourceState | null): boolean {
 
 export function isSeriesResource(resource: ResourceState | null): boolean {
     return resource && (resource.dataType.endsWith('.Series') || resource.dataType.endsWith('.GeoSeries'));
-}
-
-export function isDataResource(resource: ResourceState | null): boolean {
-    return isDatasetResource(resource) || isDataArrayResource(resource) || isDataFrameResource(resource) || isSeriesResource(resource);
 }
 
 export function getLayerDisplayName(layer: LayerState): string {
@@ -255,6 +251,35 @@ export function newTableView(resName: string, varName: string): ViewState<TableV
         iconName: "pt-icon-th",
         data: newInitialTableViewData(resName, varName),
     };
+}
+
+/**
+ * An object that is used by CesiumGlobe to store the Cesium.Viewer instances.
+ * It can't be a part of our global state object.
+ */
+export const EXTERNAL_OBJECT_STORE = {id: "global_external_object_store"};
+
+export function getWorldViewSelectedEntity(view: ViewState<any>): Cesium.Entity | null {
+    if (view && view.type === 'world') {
+        console.log("EXTERNAL_OBJECT_STORE =", EXTERNAL_OBJECT_STORE);
+        const externalObject = EXTERNAL_OBJECT_STORE["CesiumGlobe-" + view.id];
+        console.log("externalObject =", externalObject);
+        if (externalObject) {
+            const cesiumViewer: Cesium.Viewer = externalObject.object;
+            if (cesiumViewer) {
+                return cesiumViewer.selectedEntity;
+            }
+        }
+    }
+    return null;
+}
+
+export function getWorldViewSelectedGeometryWKTGetter(view: ViewState<any>): GeometryWKTGetter {
+    const selectedEntity = getWorldViewSelectedEntity(view);
+    if (selectedEntity) {
+        return () => entityToGeometryWKT(selectedEntity);
+    }
+    return null;
 }
 
 export function newVariableLayer(resource: ResourceState,
@@ -424,7 +449,7 @@ export function hasWebGL(): boolean {
     return true;
 }
 
-export function entityToGeometryWKT(selectedEntity: Cesium.Entity): string | null {
+export function entityToGeometryWKT(selectedEntity: Cesium.Entity): string {
 
     if (selectedEntity.polyline) {
         const positions = selectedEntity.polyline.positions.getValue(Cesium.JulianDate.now());

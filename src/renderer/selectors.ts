@@ -11,11 +11,13 @@ import {DatasetAPI, OperationAPI, WorkspaceAPI, ColorMapsAPI, BackendConfigAPI} 
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
-    getLockForGetWorkspaceVariableStatistics, entityToGeometryWKT
+    getLockForGetWorkspaceVariableStatistics, EXTERNAL_OBJECT_STORE, getWorldViewSelectedEntity,
+    getWorldViewSelectedGeometryWKTGetter,
 } from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
 import * as Cesium from "cesium";
+import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -540,7 +542,7 @@ export const selectedVariableAttributesTableDataSelector = createSelector<State,
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Viewer selectors
+// View selectors
 
 export const viewLayoutSelector = (state: State): ViewLayoutState => state.control.viewLayout;
 export const viewsSelector = (state: State): ViewState<any>[] => state.control.views;
@@ -582,15 +584,16 @@ export const isSelectedLayerSplitSelector = createSelector<State, boolean | null
     }
 );
 
+export const externalObjectStoreSelector = (state: State) => EXTERNAL_OBJECT_STORE;
+
 export const selectedEntitySelector = createSelector<State, Cesium.Entity | null, ViewState<any> | null>(
     activeViewSelector,
-    (view: ViewState<any>) => {
-        if (view && view.type === 'world') {
-            const data = view.data as WorldViewDataState;
-            return data.selectedEntity;
-        }
-        return null;
-    }
+    getWorldViewSelectedEntity
+);
+
+export const selectedGeometryWKTGetterSelector = createSelector<State, GeometryWKTGetter, ViewState<any> | null>(
+    activeViewSelector,
+    getWorldViewSelectedGeometryWKTGetter
 );
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
