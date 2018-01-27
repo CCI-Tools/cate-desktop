@@ -350,7 +350,7 @@ export interface WorldViewDataState {
     /**
      * The selected entity in Cesium 3D globe.
      */
-    selectedEntity: Cesium.Entity | null;
+    //selectedEntity: Cesium.Entity | null;
 }
 
 export interface FigureViewDataState {

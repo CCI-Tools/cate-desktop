@@ -18,6 +18,8 @@ import {
 } from "./components/ViewState";
 import {Action, SET_GLOBE_MOUSE_POSITION, SET_GLOBE_VIEW_POSITION} from "./actions";
 import {EMPTY_ARRAY} from "./selectors";
+import {isString} from "../common/types";
+import {setSelectedPlacemarkId} from "./actions";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -333,22 +335,13 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             break;
         }
         // TODO (forman): clean up code duplication here, following actions are basically all the same
-        //                SET_SELECTED_ENTITY,
+        //                NOTIFY_SELECTED_ENTITY_ID_CHANGE,
         //                SET_SELECTED_LAYER_ID,
         //                SET_VIEW_MODE,
         //                SET_PROJECTION_CODE,
         //                SET_SPLIT_LAYER_ID,
         //                SET_SPLIT_LAYER_POS
-        // Will Dan Abramov hate us for this?
         //
-        case actions.SET_SELECTED_ENTITY: {
-            const viewId = action.payload.viewId;
-            if (viewId === state.id && state.type === 'world') {
-                const selectedEntity = action.payload.selectedEntity;
-                return {...state, data: {...state.data, selectedEntity}};
-            }
-            break;
-        }
         case actions.SET_SELECTED_LAYER_ID: {
             const viewId = action.payload.viewId;
             if (viewId === state.id && state.type === 'world') {
@@ -600,6 +593,17 @@ const initialSessionState: SessionState = {
 let placemarkCounter = 0;
 const sessionReducer = (state: SessionState = initialSessionState, action: Action) => {
     switch (action.type) {
+        case actions.NOTIFY_SELECTED_ENTITY_ID_CHANGE: {
+            const selectedEntityId = action.payload.selectedEntityId || null;
+            let selectedPlacemarkId = null;
+            if (isString(selectedEntityId) && selectedEntityId.startsWith('placemark-')) {
+                selectedPlacemarkId = selectedEntityId;
+            }
+            if (selectedPlacemarkId !== state.selectedPlacemarkId) {
+                return {...state, selectedPlacemarkId};
+            }
+            break;
+        }
         case actions.UPDATE_INITIAL_STATE:
             return {...state, ...action.payload.session};
         case actions.UPDATE_SESSION_STATE:

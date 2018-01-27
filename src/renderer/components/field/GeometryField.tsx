@@ -4,8 +4,7 @@ import {toTextValue} from "./Field";
 import {TextField, TextFieldValue} from "./TextField";
 import {GeometryDialog} from "../GeometryDialog";
 import {GeometryType, validateGeometryValue} from "../../../common/geometry-util";
-import * as Cesium from "cesium";
-import {entityToGeometryWKT} from "../../cesium-util";
+import {GeometryWKTGetter} from "../../containers/editor/ValueEditor";
 
 
 interface IGeometryFieldProps {
@@ -16,7 +15,7 @@ interface IGeometryFieldProps {
     size?: number;
     nullable?: boolean;
     disabled?: boolean;
-    selectedEntity?: Cesium.Entity | null;
+    geometryWKTGetter?: GeometryWKTGetter;
 }
 
 interface IGeometryFieldState {
@@ -29,17 +28,17 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
         super(props);
         this.validateGeometryText = this.validateGeometryText.bind(this);
         this.state = {isEditorOpen: false};
-        this.setSelectedEntityWKT = this.setSelectedEntityWKT.bind(this);
+        this.setGeometryWKT = this.setGeometryWKT.bind(this);
     }
 
     validateGeometryText(value: string  | null) {
         validateGeometryValue(value, this.props.geometryType);
     }
 
-    setSelectedEntityWKT() {
+    setGeometryWKT() {
         let wkt;
         try {
-            wkt = entityToGeometryWKT(this.props.selectedEntity);
+            wkt = this.props.geometryWKTGetter && this.props.geometryWKTGetter();
         } catch (error) {
             console.error(error);
             wkt = "Error: " + error;
@@ -70,8 +69,8 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
                 />
 
                 <AnchorButton className="pt-intent-primary pt-icon-selection" style={{flex: 'none'}}
-                              disabled={!this.props.selectedEntity}
-                              onClick={this.setSelectedEntityWKT}/>
+                              disabled={!this.props.geometryWKTGetter}
+                              onClick={this.setGeometryWKT}/>
 
                 <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
                               onClick={() => this.setState({isEditorOpen: true})}>...</AnchorButton>

@@ -9,7 +9,10 @@ import {InputEditor} from "./editor/InputEditor";
 import {updatePropertyObject} from "../../common/objutil";
 import {ModalDialog} from "../components/ModalDialog";
 import {isFieldValue} from "../components/field/Field";
-import {hasValueEditorFactory, InputAssignment, InputAssignments, renderValueEditor} from "./editor/ValueEditor";
+import {
+    GeometryWKTGetter, hasValueEditorFactory, InputAssignment, InputAssignments,
+    renderValueEditor
+} from "./editor/ValueEditor";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {isDefined, isString, isUndefinedOrNull} from "../../common/types";
@@ -30,7 +33,7 @@ interface IOperationStepDialogProps extends DialogState, IOperationStepDialogOwn
     operation: OperationState;
     resName: string;
     overwrite: boolean;
-    selectedEntity: Cesium.Entity | null;
+    geometryWKTGetter: GeometryWKTGetter;
 }
 
 interface IOperationStepDialogState {
@@ -83,7 +86,7 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
         operation,
         resName,
         overwrite,
-        selectedEntity: selectors.selectedEntitySelector(state),
+        geometryWKTGetter: selectors.selectedGeometryWKTGetterSelector(state),
     };
 }
 
@@ -121,7 +124,6 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
         const overwrite = this.props.overwrite;
         const opName = operation.name;
         const opArgs = this.getInputArguments();
-        console.log(`OperationStepDialog: handleConfirm: op="${opName}", args=`, opArgs);
         if (!this.props.isEditMode) {
             this.props.dispatch(actions.hideOperationStepDialog(this.props.id,
                                                                 {[opName]: this.state.inputAssignments}));
@@ -273,7 +275,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
             operation.inputs,
             this.state.inputAssignments,
             this.props.workspace.resources,
-            this.props.selectedEntity,
+            this.props.geometryWKTGetter,
             this.onConstantValueChange,
             this.onResourceNameChange
         );
@@ -325,7 +327,7 @@ function getInitialInputAssignments(inputs: OperationInputState[],
 function renderInputEditors(inputs: OperationInputState[],
                             inputAssignments: InputAssignments,
                             resources: ResourceState[],
-                            selectedEntity: Cesium.Entity | null,
+                            geometryWKTGetter: GeometryWKTGetter,
                             onConstantValueChange,
                             onResourceNameChange): JSX.Element[] {
     return inputs
@@ -337,7 +339,7 @@ function renderInputEditors(inputs: OperationInputState[],
                                                       input,
                                                       inputAssignments,
                                                       resources,
-                                                      selectedEntity,
+                                                      geometryWKTGetter,
                                                       value: constantValue,
                                                       onChange: onConstantValueChange
                                                   });

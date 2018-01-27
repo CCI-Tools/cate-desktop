@@ -19,8 +19,6 @@ export function main() {
         const nonLoggedActionTypes = new Set([
                                                  // Too much noise:
                                                  actions.SET_GLOBE_MOUSE_POSITION,
-                                                 // Freezes app (possibly because Cesium.Entity is complex):
-                                                 actions.SET_SELECTED_ENTITY,
                                              ]);
         const loggerOptions = {
             level: 'info',
@@ -28,9 +26,7 @@ export function main() {
             diff: true,
             predicate: (getState, action) => !nonLoggedActionTypes.has(action.type)
         };
-        // TODO #477 (mz,nf): fatal bug: total app freeze if we log and the selected entity changes!
-        // possibly because the action diff between Cesium.Entity values is complex and too deep.
-        //middlewares.push(createLogger(loggerOptions));
+        middlewares.push(createLogger(loggerOptions));
     }
 
     const middleware = applyMiddleware(...middlewares);

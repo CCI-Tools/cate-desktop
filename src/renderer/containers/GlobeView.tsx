@@ -9,11 +9,10 @@ import * as actions from "../actions";
 import {NO_WEB_GL} from "../messages";
 import {EMPTY_ARRAY, EMPTY_OBJECT} from "../selectors";
 import {CesiumGlobe, LayerDescriptors} from "../components/cesium/CesiumGlobe";
-import {findVariableIndexCoordinates, getFeatureUrl} from "../state-util";
+import {findVariableIndexCoordinates} from "../state-util";
 import {ViewState} from "../components/ViewState";
-import {convertLayersToLayerDescriptors, reloadEntityWithOriginalGeometry} from "./globe-view-layers";
+import {convertLayersToLayerDescriptors} from "./globe-view-layers";
 import * as Cesium from "cesium";
-import {isDefined} from "../../common/types";
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -31,6 +30,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     showLayerTextOverlay: boolean;
     debugWorldView: boolean;
     hasWebGL: boolean;
+    externalObjectStore: any;
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -47,6 +47,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         showLayerTextOverlay: state.session.showLayerTextOverlay,
         debugWorldView: state.session.debugWorldView,
         hasWebGL: state.data.appConfig.hasWebGL,
+        externalObjectStore: selectors.externalObjectStoreSelector(state),
     };
 }
 
@@ -115,28 +116,27 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         this.handleMouseMoved = this.handleMouseMoved.bind(this);
         this.handleMouseClicked = this.handleMouseClicked.bind(this);
         this.handleLeftUp = this.handleLeftUp.bind(this);
-        this.handleEntitySelected = this.handleEntitySelected.bind(this);
+        this.handleSelectedEntityChanged = this.handleSelectedEntityChanged.bind(this);
         this.handleSplitLayerPosChange = this.handleSplitLayerPosChange.bind(this);
     }
 
-    handleMouseMoved(position: GeographicPosition) {
+    handleMouseMoved(position: Cesium.GeographicPosition) {
         this.props.dispatch(actions.setGlobeMousePosition(position));
     }
 
-    handleMouseClicked(position: GeographicPosition) {
+    handleMouseClicked(position: Cesium.GeographicPosition) {
         if (this.props.worldViewClickAction === actions.ADD_PLACEMARK && position) {
             this.props.dispatch(actions.addPlacemark(position));
             this.props.dispatch(actions.updateControlState({worldViewClickAction: null}));
         }
     }
 
-    handleLeftUp(position: GeographicPosition) {
+    handleLeftUp(position: Cesium.GeographicPosition) {
         this.props.dispatch(actions.setGlobeViewPosition(position));
     }
 
-    handleEntitySelected(selectedEntity: Cesium.Entity) {
-        console.log("selectedEntity: ", selectedEntity);
-        this.props.dispatch(actions.setSelectedEntity(this.props.view.id, selectedEntity));
+    handleSelectedEntityChanged(selectedEntity: Cesium.Entity | null) {
+        this.props.dispatch(actions.notifySelectedEntityChange(this.props.view.id, selectedEntity));
     }
 
     handleSplitLayerPosChange(splitLayerPos: number) {
@@ -179,6 +179,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         return (
             <CesiumGlobe id={'CesiumGlobe-' + view.id}
                          debug={this.props.debugWorldView}
+                         externalObjectStore={this.props.externalObjectStore}
                          selectedPlacemarkId={this.props.selectedPlacemarkId}
                          placemarks={placemarks}
                          layers={descriptors.imageLayerDescriptors || EMPTY_ARRAY}
@@ -192,7 +193,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          onMouseMoved={this.props.isDialogOpen ? null : this.handleMouseMoved}
                          onMouseClicked={this.props.isDialogOpen ? null : this.handleMouseClicked}
                          onLeftUp={this.props.isDialogOpen ? null : this.handleLeftUp}
-                         onEntitySelected={this.handleEntitySelected}
+                         onSelectedEntityChanged={this.handleSelectedEntityChanged}
             />
         );
     }
