@@ -462,6 +462,12 @@ export interface ImageLayerState extends ImageLayerBase {
  * Base of vector layers.
  */
 export interface VectorLayerBase extends LayerState, SimpleStyle {
+    /**
+     * Stores any edited entity styled.
+     * This object will only contain keys, if an entities style has changed.
+     * Default styles come from the SimpleStyle interface of VectorLayerBase.
+     */
+    entityStyles?: {[entityId: string]: SimpleStyle};
 }
 
 
@@ -633,6 +639,7 @@ export interface ControlState {
     views: ViewState<any>[];
     activeViewId: string | null;
 
+    // Will later be replaced by geometry creation/editing tools.
     worldViewClickAction: string | null;
 
     // Used to force component update after an entity's properties have changed
