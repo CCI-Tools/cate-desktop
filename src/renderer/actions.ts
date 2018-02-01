@@ -3,17 +3,17 @@ import {
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
     OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, Placemark, MessageState,
-    VectorLayerState
 } from "./state";
+import {ViewState, ViewPath} from "./components/ViewState";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi";
 import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName,
-    getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl
+    getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
+    getWorldViewVectorLayerForEntity
 } from "./state-util";
-import {ViewPath} from "./components/ViewState";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
 import {showToast} from "./toast";
@@ -1260,8 +1260,12 @@ function setSelectedEntityId(viewId: string, selectedEntityId: string | null): A
     return {type: SET_SELECTED_ENTITY_ID, payload: {viewId, selectedEntityId}};
 }
 
-export function updateEntityStyle(entity: Cesium.Entity, style: SimpleStyle) {
+export function updateEntityStyle(view: ViewState<any>, entity: Cesium.Entity, style: SimpleStyle) {
     return (dispatch: Dispatch) => {
+        const layer = getWorldViewVectorLayerForEntity(view, entity);
+        if (layer) {
+            dispatch({type: "UPDATE_ENTITY_STYLE", payload: {layerId: layer.id, entityId: entity.id, style}});
+        }
         dispatch(incEntityUpdateCount());
         applyStyle(entity, style);
     };

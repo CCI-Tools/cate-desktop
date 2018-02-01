@@ -2,7 +2,7 @@ import {
     VariableState, VariableRefState, ResourceState, LayerState,
     VariableImageLayerState, OperationState, WorldViewDataState,
     TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState, ResourceRefState,
-    ResourceVectorLayerState, State
+    ResourceVectorLayerState, State, VectorLayerBase
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
@@ -260,15 +260,43 @@ export function newTableView(resName: string, varName: string): ViewState<TableV
  */
 export const EXTERNAL_OBJECT_STORE = {id: "global_external_object_store"};
 
-export function getWorldViewSelectedEntity(view: ViewState<any>): Cesium.Entity | null {
+export function getWorldViewViewer(view: ViewState<any>): Cesium.Viewer | null {
     if (view && view.type === 'world') {
         const externalObject = EXTERNAL_OBJECT_STORE["CesiumGlobe-" + view.id];
         if (externalObject) {
-            const cesiumViewer: Cesium.Viewer = externalObject.object;
-            if (cesiumViewer) {
-                return cesiumViewer.selectedEntity;
+            return externalObject.object;
+        }
+    }
+    return null;
+}
+
+export function getWorldViewSelectedEntity(view: ViewState<any>): Cesium.Entity | null {
+    const viewer: Cesium.Viewer = getWorldViewViewer(view);
+    if (viewer) {
+        return viewer.selectedEntity;
+    }
+    return null;
+}
+
+export function getWorldViewDataSourceIndexForEntity(view: ViewState<any>, entity: Cesium.Entity): number {
+    const viewer: Cesium.Viewer = getWorldViewViewer(view);
+    if (viewer) {
+        for (let index = 0; index < viewer.dataSources.length; index++) {
+            const dataSource: Cesium.DataSource = viewer.dataSources.get(index);
+            if (dataSource.entities.contains(entity)) {
+                return index;
             }
         }
+    }
+    return -1;
+}
+
+export function getWorldViewVectorLayerForEntity(view: ViewState<any>, entity: Cesium.Entity): VectorLayerBase | null {
+    const index = getWorldViewDataSourceIndexForEntity(view, entity);
+    if (index >= 0) {
+        const layer = view.data.layers[index];
+        assert.ok(layer.type === "Vector" || layer.type === "ResourceVector");
+        return layer;
     }
     return null;
 }

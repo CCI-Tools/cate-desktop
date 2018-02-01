@@ -245,7 +245,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                                                     this.props.selectedVectorLayer,
                                                     style));
         } else {
-            this.props.dispatch(actions.updateEntityStyle(this.props.selectedEntity, style));
+            this.props.dispatch(actions.updateEntityStyle(this.props.activeView.id,
+                                                          this.props.selectedEntity,
+                                                          style));
         }
     }
 

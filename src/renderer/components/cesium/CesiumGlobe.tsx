@@ -5,6 +5,7 @@ import * as assert from "../../../common/assert";
 import {Feature, Point} from "geojson";
 import {SplitSlider} from "./SplitSlider";
 import * as Cesium from "cesium";
+import {diff} from "deep-object-diff";
 
 interface Placemark extends Feature<Point> {
     id: string;
@@ -483,6 +484,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                 case 'ADD':
                     dataSource = this.addDataSource(viewer, action.newElement, index);
                     assert.ok(dataSource);
+                    // TODO (nf) #477: apply default styles
                     CesiumGlobe.setDataSourceProps(dataSource, action.newElement);
                     break;
                 case 'REMOVE':
@@ -496,11 +498,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                     oldLayer = action.oldElement;
                     newLayer = action.newElement;
                     if (oldLayer.dataSourceOptions.url !== newLayer.dataSourceOptions.url) {
-                        // It is a pitty that Cesium API does not allow for changing the
-                        // URL in place. The current approach, namely remove/add, causes flickering.
                         viewer.dataSources.remove(dataSource, true);
                         dataSource = this.addDataSource(viewer, newLayer, index);
                     }
+
+                    const styleDiff = diff(oldLayer, newLayer);
+                    console.log("CesiumGlobe: styleDiff =", styleDiff);
+
                     // update imageryLayer
                     CesiumGlobe.setDataSourceProps(dataSource, newLayer);
                     break;
