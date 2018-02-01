@@ -619,7 +619,7 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
                 type: 'Feature',
                 id: genPlacemarkId(),
                 properties: {
-                    name: String.fromCharCode(65 + placemarkCounter % 26),
+                    title: String.fromCharCode(65 + placemarkCounter % 26),
                     visible: true,
                 },
                 geometry: {
