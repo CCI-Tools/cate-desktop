@@ -112,7 +112,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
 
     private handleChangedPlacemarkName(name: FieldValue<string>) {
         const placemark = this.props.selectedPlacemark;
-        const properties = {...placemark.properties, name: name.value};
+        const properties = {...placemark.properties, title: name.value};
         this.props.dispatch(actions.updatePlacemark({...placemark, properties}));
     }
 
@@ -129,7 +129,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     }
 
     private handleCopySelectedName() {
-        PlacemarksPanel.handleCopyName(this.props.selectedPlacemark);
+        PlacemarksPanel.handleCopyTitle(this.props.selectedPlacemark);
     }
 
     private handleCopySelectedPosition() {
@@ -144,9 +144,9 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         PlacemarksPanel.handleCopyPositionWKT(this.props.selectedPlacemark);
     }
 
-    private static handleCopyName(placemark: Placemark) {
+    private static handleCopyTitle(placemark: Placemark) {
         const electron = require('electron');
-        const text = placemark.properties['name'];
+        const text = placemark.properties['title'];
         electron.clipboard.writeText(text);
         // console.log(`copied to clipboard [${text}]`);
     }
@@ -245,7 +245,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     private renderPlacemarkItem(placemark: Placemark) {
         return <PlacemarkItem placemark={placemark}
                               onVisibilityChange={this.handleChangedPlacemarkVisibility}
-                              onCopyName={PlacemarksPanel.handleCopyName}
+                              onCopyName={PlacemarksPanel.handleCopyTitle}
                               onCopyPosition={PlacemarksPanel.handleCopyPosition}
                               onCopyPositionKW={PlacemarksPanel.handleCopyPositionKW}
                               onCopyPositionWKT={PlacemarksPanel.handleCopyPositionWKT}
@@ -264,15 +264,15 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         return (
             <div style={{width: '100%'}}>
                 <label key="spacer" className="pt-label"> </label>
-                {this.renderPlacemarkName()}
+                {this.renderPlacemarkTitle()}
                 {this.renderPlacemarkPosition()}
             </div>
         );
     }
 
-    private renderPlacemarkName() {
+    private renderPlacemarkTitle() {
         const placemark = this.props.selectedPlacemark;
-        const name = placemark.properties['name'];
+        const name = placemark.properties['title'];
         return (
             <label className="pt-label pt-inline">
                 Name
@@ -281,7 +281,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                            onChange={this.handleChangedPlacemarkName}
                            size={16}
                            uncontrolled={true}
-                           placeholder="Enter placemark name"
+                           placeholder="Placemark name"
                 />
             </label>
         );
@@ -355,7 +355,7 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
     public render() {
         const placemark = this.props.placemark;
         const visible = placemark.properties['visible'];
-        const name = placemark.properties['name'];
+        const title = placemark.properties['title'];
         const position = placemark.geometry.coordinates;
         return (
             <div>
@@ -364,7 +364,7 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
                        onChange={this.handleVisibilityChanged}
                 />
                 <span style={PlacemarkItem.ICON_STYLE} className="pt-icon-dot"/>
-                <span style={PlacemarkItem.NAME_STYLE}>{name}</span>
+                <span style={PlacemarkItem.NAME_STYLE}>{title}</span>
                 <span
                     style={PlacemarkItem.POSITION_STYLE}>{` ${position[0].toFixed(3)}, ${position[1].toFixed(3)}`}</span>
             </div>
