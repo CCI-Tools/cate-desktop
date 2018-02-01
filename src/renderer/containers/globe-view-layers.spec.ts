@@ -1,5 +1,8 @@
 import {expect} from 'chai';
 import {convertLayersToLayerDescriptors, transferEntityGeometry} from "./globe-view-layers";
+import {DirectGeometryObject, FeatureCollection} from "geojson";
+import {Placemark, PlacemarkCollection} from "../state";
+import {COUNTRIES_LAYER_ID, PLACEMARKS_LAYER_ID} from "../state-util";
 
 describe('convertLayersToLayerDescriptors', function () {
     it('converts correctly', function () {
@@ -11,7 +14,7 @@ describe('convertLayersToLayerDescriptors', function () {
 
         layers = [
             {
-                id: 'countries',
+                id: COUNTRIES_LAYER_ID,
                 name: 'Countries',
                 type: 'Vector',
                 visible: true,
@@ -22,6 +25,12 @@ describe('convertLayersToLayerDescriptors', function () {
                 type: 'ResourceVector',
                 visible: true,
                 resId: 1
+            },
+            {
+                id: PLACEMARKS_LAYER_ID,
+                name: 'Placemarks',
+                type: 'Vector',
+                visible: true,
             },
             {
                 id: 'L427',
@@ -56,51 +65,88 @@ describe('convertLayersToLayerDescriptors', function () {
             },
         ];
 
-        descriptors = convertLayersToLayerDescriptors([], resources, baseUrl, baseDir);
+        const placemarks = {
+            type: "FeatureCollection",
+            features: [
+                {
+                    type: "Feature",
+                    id: "0",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [10.0, 20.0]
+                    },
+                    properties: {
+                        title: "Pin 1",
+                        description: "I has a bucket"
+                    }
+                } as Placemark,
+                {
+                    type: "Feature",
+                    id: "1",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [10.2, 20.3]
+                    },
+                    properties: {
+                        title: "Pin 2",
+                        description: "No, this is ma bucket"
+                    }
+                } as Placemark,
+            ]
+        } as PlacemarkCollection;
+
+        descriptors = convertLayersToLayerDescriptors([], resources, placemarks, baseUrl, baseDir);
         expect(descriptors).to.deep.equal({});
 
-        descriptors = convertLayersToLayerDescriptors(layers, resources, baseUrl, baseDir);
-        expect(descriptors.vectorLayerDescriptors).to.have.length(2);
+        descriptors = convertLayersToLayerDescriptors(layers, resources, placemarks, baseUrl, baseDir);
+        expect(descriptors.vectorLayerDescriptors).to.have.length(3);
         expect(descriptors.imageLayerDescriptors).to.have.length(1);
 
-        const ld1 = descriptors.vectorLayerDescriptors[0];
-        const ld2 = descriptors.vectorLayerDescriptors[1];
-        const ld3 = descriptors.imageLayerDescriptors[0];
+        const vld1 = descriptors.vectorLayerDescriptors[0];
+        const vld2 = descriptors.vectorLayerDescriptors[1];
+        const vld3 = descriptors.vectorLayerDescriptors[2];
+        const ild = descriptors.imageLayerDescriptors[0];
 
-        expect(ld1.id).to.equal("countries");
-        expect(ld1.name).to.equal("Countries");
-        expect(ld1.visible).to.be.true;
-        expect(ld1.dataSource).to.be.a('function');
-        expect(ld1.dataSourceOptions).to.deep.equal({url: "http://localhost/ws/countries"});
+        expect(vld1.id).to.equal(COUNTRIES_LAYER_ID);
+        expect(vld1.name).to.equal("Countries");
+        expect(vld1.visible).to.be.true;
+        expect(vld1.dataSource).to.be.a('function');
+        expect(vld1.dataSourceOptions).to.deep.equal({data: "http://localhost/ws/countries"});
 
-        expect(ld2.id).to.equal("L423");
-        expect(ld2.name).to.equal("I has a bucket");
-        expect(ld2.visible).to.be.true;
-        expect(ld2.resId).to.equal(1);
-        expect(ld2.dataSource).to.be.a('function');
-        expect(ld2.dataSourceOptions).to.deep.equal({
+        expect(vld2.id).to.equal("L423");
+        expect(vld2.name).to.equal("I has a bucket");
+        expect(vld2.visible).to.be.true;
+        expect(vld2.resId).to.equal(1);
+        expect(vld2.dataSource).to.be.a('function');
+        expect(vld2.dataSourceOptions).to.deep.equal({
                                                         resId: 1,
-                                                        url: "http://localhost/ws/res/geojson/hotte/1"
+                                                        data: "http://localhost/ws/res/geojson/hotte/1"
                                                     });
 
-        expect(ld3.id).to.equal("L427");
-        expect(ld3.name).to.equal("I love ma bucket");
-        expect(ld3.visible).to.be.true;
-        expect(ld3.type).to.be.equal("VariableImage");
-        expect(ld3.resId).to.equal(2);
-        expect(ld3.varName).to.equal("sst");
-        expect(ld3.imageryProvider).to.be.a('function');
-        expect(ld3.imageryProviderOptions).to.exist;
-        expect(ld3.imageryProviderOptions.minimumLevel).to.equal(0);
-        expect(ld3.imageryProviderOptions.maximumLevel).to.equal(4);
-        expect(ld3.imageryProviderOptions.tileWidth).to.equal(360);
-        expect(ld3.imageryProviderOptions.tileHeight).to.equal(180);
-        expect(ld3.imageryProviderOptions.rectangle).to.exist;
-        expect(ld3.imageryProviderOptions.rectangle.west).to.equal(-Math.PI);
-        expect(ld3.imageryProviderOptions.rectangle.south).to.equal(-Math.PI / 2);
-        expect(ld3.imageryProviderOptions.rectangle.east).to.equal(Math.PI);
-        expect(ld3.imageryProviderOptions.rectangle.north).to.equal(Math.PI / 2);
-        expect(ld3.imageryProviderOptions.tilingScheme).to.exist;
+        expect(vld3.id).to.equal(PLACEMARKS_LAYER_ID);
+        expect(vld3.name).to.equal("Placemarks");
+        expect(vld3.visible).to.be.true;
+        expect(vld3.dataSource).to.be.a('function');
+        expect(vld3.dataSourceOptions).to.deep.equal({data: placemarks});
+
+        expect(ild.id).to.equal("L427");
+        expect(ild.name).to.equal("I love ma bucket");
+        expect(ild.visible).to.be.true;
+        expect(ild.type).to.be.equal("VariableImage");
+        expect(ild.resId).to.equal(2);
+        expect(ild.varName).to.equal("sst");
+        expect(ild.imageryProvider).to.be.a('function');
+        expect(ild.imageryProviderOptions).to.exist;
+        expect(ild.imageryProviderOptions.minimumLevel).to.equal(0);
+        expect(ild.imageryProviderOptions.maximumLevel).to.equal(4);
+        expect(ild.imageryProviderOptions.tileWidth).to.equal(360);
+        expect(ild.imageryProviderOptions.tileHeight).to.equal(180);
+        expect(ild.imageryProviderOptions.rectangle).to.exist;
+        expect(ild.imageryProviderOptions.rectangle.west).to.equal(-Math.PI);
+        expect(ild.imageryProviderOptions.rectangle.south).to.equal(-Math.PI / 2);
+        expect(ild.imageryProviderOptions.rectangle.east).to.equal(Math.PI);
+        expect(ild.imageryProviderOptions.rectangle.north).to.equal(Math.PI / 2);
+        expect(ild.imageryProviderOptions.tilingScheme).to.exist;
     });
 });
 

@@ -2,9 +2,8 @@ import {WebAPIClient} from './webapi';
 import {JobStatus, JobFailure, JobProgress} from "./webapi";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
-import {Feature, FeatureCollection, Point} from "geojson";
+import {Feature, FeatureCollection, GeoJsonObject, Point} from "geojson";
 import {IconName} from "@blueprintjs/core";
-import * as Cesium from "cesium";
 
 /**
  * Interface describing Cate's application state structure.
@@ -466,10 +465,11 @@ export interface VectorLayerState extends LayerState {
      * The layer type.
      */
     type: 'Vector';
+
     /**
-     * The (GeoJSON-providing) URL.
+     * The (GeoJSON-providing) URL or GeoJSON object.
      */
-    url?: string;
+    data: string | GeoJsonObject;
 }
 
 /**

@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect, DispatchProp} from "react-redux";
 import {
     State, WorkspaceState, VariableImageLayerState,
-    WorldViewDataState, GeographicPosition, Placemark, ResourceState, LayerState,
+    WorldViewDataState, ResourceState, LayerState, PlacemarkCollection,
 } from "../state";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
@@ -23,7 +23,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     workspace: WorkspaceState | null;
     offlineMode: boolean;
     worldViewClickAction: string | null;
-    placemarks: Placemark[];
+    placemarks: PlacemarkCollection;
     selectedLayerId: string | null;
     selectedPlacemarkId: string | null;
     isDialogOpen: boolean;
@@ -40,7 +40,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         workspace: selectors.workspaceSelector(state),
         offlineMode: selectors.offlineModeSelector(state),
         worldViewClickAction: state.control.worldViewClickAction,
-        placemarks: selectors.placemarksSelector(state),
+        placemarks: selectors.placemarkCollectionSelector(state),
         selectedLayerId: selectors.selectedLayerIdSelector(state),
         selectedPlacemarkId: selectors.selectedPlacemarkIdSelector(state),
         isDialogOpen: selectors.isDialogOpenSelector(state),
@@ -169,7 +169,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         if (workspace) {
             const baseUrl = this.props.baseUrl;
             const baseDir = workspace.baseDir;
-            descriptors = convertLayersToLayerDescriptors(layers, resources, baseUrl, baseDir);
+            descriptors = convertLayersToLayerDescriptors(layers, resources, placemarks, baseUrl, baseDir);
         } else {
             descriptors = EMPTY_OBJECT as LayerDescriptors;
         }
@@ -181,9 +181,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          debug={this.props.debugWorldView}
                          externalObjectStore={this.props.externalObjectStore}
                          selectedPlacemarkId={this.props.selectedPlacemarkId}
-                         placemarks={placemarks}
-                         layers={descriptors.imageLayerDescriptors || EMPTY_ARRAY}
-                         dataSources={descriptors.vectorLayerDescriptors || EMPTY_ARRAY}
+                         imageLayerDescriptors={descriptors.imageLayerDescriptors || EMPTY_ARRAY}
+                         vectorLayerDescriptors={descriptors.vectorLayerDescriptors || EMPTY_ARRAY}
                          overlayHtml={overlayHtml}
                          splitLayerIndex={splitLayerIndex}
                          splitLayerPos={view.data.selectedLayerSplitPos}

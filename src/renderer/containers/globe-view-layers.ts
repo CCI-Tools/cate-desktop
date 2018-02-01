@@ -1,76 +1,77 @@
 import {
     VariableImageLayerState,
     VectorLayerState, ResourceState,
-    ResourceVectorLayerState, LayerState
+    ResourceVectorLayerState, LayerState, PlacemarkCollection
 } from "../state";
 import {
     ImageLayerDescriptor, VectorLayerDescriptor, LayerDescriptors,
 } from "../components/cesium/CesiumGlobe";
 import {
     findVariable, findResource, getTileUrl, getFeatureCollectionUrl, getGeoJSONCountriesUrl,
-    SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID,
+    SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, PLACEMARKS_LAYER_ID,
 } from "../state-util";
 import {memoize} from '../../common/memoize';
 import {EMPTY_OBJECT} from "../selectors";
 import * as Cesium from "cesium";
-import {isDefined, isNumber} from "../../common/types";
+import {isNumber} from "../../common/types";
 
 export function convertLayersToLayerDescriptors(layers: LayerState[],
                                                 resources: ResourceState[],
+                                                placemarkCollection: PlacemarkCollection,
                                                 baseUrl: string,
                                                 baseDir: string): LayerDescriptors {
     if (!layers || !layers.length) {
         return EMPTY_OBJECT;
     }
-    let layerDescriptors: ImageLayerDescriptor[];
-    let dataSourceDescriptors: VectorLayerDescriptor[];
+    let imageLayerDescriptors: ImageLayerDescriptor[];
+    let vectorLayerDescriptors: VectorLayerDescriptor[];
     for (let layer of layers) {
-        let layerDescriptor: ImageLayerDescriptor;
-        let dataSourceDescriptor: VectorLayerDescriptor;
+        let imageLayerDescriptor: ImageLayerDescriptor;
+        let vectorLayerDescriptor: VectorLayerDescriptor;
         switch (layer.type) {
             case 'VariableImage': {
-                layerDescriptor = convertVariableImageLayerToDescriptor(baseUrl, baseDir, resources,
-                                                                        layer as VariableImageLayerState);
+                imageLayerDescriptor = convertVariableImageLayerToDescriptor(layer as VariableImageLayerState,
+                                                                        baseUrl, baseDir, resources);
                 break;
             }
             case 'ResourceVector': {
-                dataSourceDescriptor = convertResourceVectorLayerToDescriptor(baseUrl, baseDir, resources,
-                                                                              layer as ResourceVectorLayerState);
+                vectorLayerDescriptor = convertResourceVectorLayerToDescriptor(layer as ResourceVectorLayerState,
+                                                                              baseUrl, baseDir, resources);
                 break;
             }
             case 'Vector': {
-                dataSourceDescriptor = convertVectorLayerToDescriptor(baseUrl,
-                                                                      layer as VectorLayerState);
+                vectorLayerDescriptor = convertVectorLayerToDescriptor(layer as VectorLayerState,
+                                                                      baseUrl, placemarkCollection);
                 break;
             }
         }
-        if (layerDescriptor) {
-            if (!layerDescriptors) {
-                layerDescriptors = [layerDescriptor];
+        if (imageLayerDescriptor) {
+            if (!imageLayerDescriptors) {
+                imageLayerDescriptors = [imageLayerDescriptor];
             } else {
                 // noinspection JSUnusedAssignment
-                layerDescriptors.push(layerDescriptor);
+                imageLayerDescriptors.push(imageLayerDescriptor);
             }
-        } else if (dataSourceDescriptor) {
-            if (!dataSourceDescriptors) {
-                dataSourceDescriptors = [dataSourceDescriptor];
+        } else if (vectorLayerDescriptor) {
+            if (!vectorLayerDescriptors) {
+                vectorLayerDescriptors = [vectorLayerDescriptor];
             } else {
                 // noinspection JSUnusedAssignment
-                dataSourceDescriptors.push(dataSourceDescriptor);
+                vectorLayerDescriptors.push(vectorLayerDescriptor);
             }
         } else if (layer.id !== SELECTED_VARIABLE_LAYER_ID) {
             console.warn(`GlobeView: layer with ID "${layer.id}" will not be rendered`);
         }
     }
 
-    return {imageLayerDescriptors: layerDescriptors, vectorLayerDescriptors: dataSourceDescriptors};
+    return {imageLayerDescriptors, vectorLayerDescriptors};
 }
 
 
-function convertVariableImageLayerToDescriptor(baseUrl: string,
+function convertVariableImageLayerToDescriptor(layer: VariableImageLayerState,
+                                               baseUrl: string,
                                                baseDir: string,
-                                               resources: ResourceState[],
-                                               layer: VariableImageLayerState): ImageLayerDescriptor | null {
+                                               resources: ResourceState[]): ImageLayerDescriptor | null {
     const variable = findVariable(resources, layer);
     if (!variable) {
         console.warn(`GlobeView: variable "${layer.varName}" not found in resource "${layer.resId}"`);
@@ -105,10 +106,10 @@ function convertVariableImageLayerToDescriptor(baseUrl: string,
     });
 }
 
-function convertResourceVectorLayerToDescriptor(baseUrl: string,
+function convertResourceVectorLayerToDescriptor(layer: ResourceVectorLayerState,
+                                                baseUrl: string,
                                                 baseDir: string,
-                                                resources: ResourceState[],
-                                                layer: ResourceVectorLayerState): VectorLayerDescriptor | null {
+                                                resources: ResourceState[]): VectorLayerDescriptor | null {
     const resource = findResource(resources, layer);
     if (!resource) {
         console.warn(`globe-view-layers: resource "${layer.resId}" not found"`);
@@ -116,29 +117,28 @@ function convertResourceVectorLayerToDescriptor(baseUrl: string,
     }
     return {
         ...layer,
-        dataSource: (viewer: Cesium.Viewer, dataSourceOptions) => {
-            return createResourceGeoJSONDataSource(dataSourceOptions.url, dataSourceOptions.resId);
-        },
+        dataSource: createResourceGeoJSONDataSource,
         dataSourceOptions: {
-            url: getFeatureCollectionUrl(baseUrl, baseDir, layer),
+            data: getFeatureCollectionUrl(baseUrl, baseDir, layer),
             resId: resource.id,
         },
     } as VectorLayerDescriptor;
 }
 
-function convertVectorLayerToDescriptor(baseUrl: string,
-                                        layer: VectorLayerState): VectorLayerDescriptor | null {
-    let url = layer.url;
+function convertVectorLayerToDescriptor(layer: VectorLayerState,
+                                        baseUrl: string,
+                                        placemarkCollection: PlacemarkCollection): VectorLayerDescriptor {
+    let data = layer.data;
     if (layer.id === COUNTRIES_LAYER_ID) {
-        url = getGeoJSONCountriesUrl(baseUrl);
+        data = getGeoJSONCountriesUrl(baseUrl);
+    } else if (layer.id === PLACEMARKS_LAYER_ID) {
+        data = placemarkCollection;
     }
     return {
-        id: layer.id,
-        name: layer.name,
-        visible: layer.visible,
+        ...layer,
         dataSource: createGeoJsonDataSource,
-        dataSourceOptions: {url},
-    };
+        dataSourceOptions: {data},
+    } as VectorLayerDescriptor;
 }
 
 /**
@@ -162,8 +162,20 @@ function createImageryProvider(viewer: Cesium.Viewer, imageryProviderOptions): C
  * @param dataSourceOptions see https://cesiumjs.org/Cesium/Build/Documentation/GeoJsonDataSource.html
  */
 function createGeoJsonDataSource(viewer: Cesium.Viewer, dataSourceOptions): Cesium.DataSource {
-    return Cesium.GeoJsonDataSource.load(dataSourceOptions.url, DEFAULT_GEOJSON_FEATURE_STYLE);
+    return Cesium.GeoJsonDataSource.load(dataSourceOptions.data, DEFAULT_GEOJSON_FEATURE_STYLE);
 }
+
+/**
+ * Creates a Cesium.GeoJsonDataSource instance that loads GeoJSON features from Cate WebAPI REST call.
+ *
+ * @param viewer the Cesium viewer
+ * @param dataSourceOptions see https://cesiumjs.org/Cesium/Build/Documentation/GeoJsonDataSource.html
+ */
+function createResourceGeoJSONDataSource(viewer: Cesium.Viewer, dataSourceOptions) {
+    return createResourceGeoJSONDataSourceImpl(dataSourceOptions.data, dataSourceOptions.resId);
+}
+
+
 
 /**
  * Style must follow simplestyle-spec 1.1, see https://github.com/mapbox/simplestyle-spec
@@ -172,7 +184,7 @@ const DEFAULT_GEOJSON_FEATURE_STYLE = {
     strokeWidth: 2,
     stroke: colorWithAlpha(Cesium.Color.WHITE, 0.75),
     fill: colorWithAlpha(Cesium.Color.WHITE, 0.25),
-    markerSymbol: '?'
+    markerSymbol: 'bus'
 };
 
 const COLORS = [
@@ -205,6 +217,7 @@ function colorWithAlpha(color: Cesium.Color, alpha: number) {
     return Cesium.Color.fromAlpha(color, alpha);
 }
 
+// noinspection JSUnusedLocalSymbols
 const getEntityStyleMap = memoize((resId: number) => {
     return {};
 });
@@ -241,7 +254,7 @@ function styleEntity(entity, entityStyles) {
 
 }
 
-const createResourceGeoJSONDataSource = memoize((url: string, resId: number) => {
+const createResourceGeoJSONDataSourceImpl = memoize((url: string, resId: number) => {
     const customDataSource: Cesium.DataSource = new Cesium.CustomDataSource("Cate Resource #" + resId);
     let numFeatures = 0;
     const worker = new Worker("common/stream-geojson.js");
@@ -400,3 +413,13 @@ export function transferEntityGeometry(fromEntity: Cesium.Entity, toEntity: Cesi
     }
 }
 
+export function getEntityByEntityId(viewer: Cesium.Viewer, entityId: string | number): Cesium.Entity | null {
+    for (let i = 0; i < viewer.dataSources.length; i++) {
+        const dataSource = viewer.dataSources.get(i);
+        const entity = dataSource.entities.getById(entityId);
+        if (entity) {
+            return entity;
+        }
+    }
+    return null;
+}
