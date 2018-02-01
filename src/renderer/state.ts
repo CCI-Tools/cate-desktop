@@ -627,6 +627,8 @@ export interface ControlState {
     activeViewId: string | null;
 
     worldViewClickAction: string | null;
+
+    selectedEntityId: string | null;
 }
 
 export interface DialogState {

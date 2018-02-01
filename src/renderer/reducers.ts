@@ -17,9 +17,7 @@ import {
     addViewToPanel, moveView, selectView
 } from "./components/ViewState";
 import {Action, SET_GLOBE_MOUSE_POSITION, SET_GLOBE_VIEW_POSITION} from "./actions";
-import {EMPTY_ARRAY} from "./selectors";
 import {isString} from "../common/types";
-import {setSelectedPlacemarkId} from "./actions";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -127,11 +125,20 @@ const initialControlState: ControlState = {
     activeViewId: initialView.id,
 
     worldViewClickAction: null,
+
+    selectedEntityId: null,
 };
 
 
 const controlReducer = (state: ControlState = initialControlState, action: Action) => {
     switch (action.type) {
+        case actions.NOTIFY_SELECTED_ENTITY_ID_CHANGE: {
+            const selectedEntityId = action.payload.selectedEntityId || null;
+            if (selectedEntityId !== state.selectedEntityId) {
+                return {...state, selectedEntityId};
+            }
+            break;
+        }
         case actions.RENAME_RESOURCE: {
             const resName = action.payload.resName;
             const newResName = action.payload.newResName;
@@ -587,7 +594,9 @@ const initialSessionState: SessionState = {
 };
 
 
+const PLACEMARK_TITLE_PREFIX = "Placemark ";
 let placemarkCounter = 0;
+
 const sessionReducer = (state: SessionState = initialSessionState, action: Action) => {
     switch (action.type) {
         case actions.NOTIFY_SELECTED_ENTITY_ID_CHANGE: {
@@ -615,11 +624,13 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
         case actions.ADD_PLACEMARK: {
             const position = action.payload.position;
             const features = state.placemarkCollection.features.slice();
+            const letter = String.fromCharCode(65 + placemarkCounter % 26);
             const newPlacemark = {
                 type: 'Feature',
                 id: genPlacemarkId(),
                 properties: {
-                    title: String.fromCharCode(65 + placemarkCounter % 26),
+                    title: PLACEMARK_TITLE_PREFIX + letter,
+                    "marker-symbol": letter,
                     visible: true,
                 },
                 geometry: {
@@ -658,7 +669,26 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
             if (featureIndex >= 0) {
                 features = features.slice();
                 const feature = features[featureIndex];
-                features[featureIndex] = {...feature, ...placemark};
+                const updatedPlacemark = {...feature, ...placemark};
+                const oldTitle = feature.properties["title"];
+                const newTitle = placemark.properties["title"];
+                if (newTitle && newTitle !== oldTitle) {
+                    // Update marker symbol as long as we don't have an editor for symbols
+                    let text;
+                    if (newTitle.startsWith(PLACEMARK_TITLE_PREFIX)) {
+                        text = newTitle.substr(PLACEMARK_TITLE_PREFIX.length);
+                    } else {
+                        text = newTitle;
+                    }
+                    let markerSymbol = updatedPlacemark.properties["marker-symbol"];
+                    if (text.length > 0) {
+                        markerSymbol = text[0];
+                    } else if (!markerSymbol) {
+                        markerSymbol = "?";
+                    }
+                    updatedPlacemark.properties["marker-symbol"] = markerSymbol;
+                }
+                features[featureIndex] = updatedPlacemark;
                 const placemarkCollection = {...state.placemarkCollection, features};
                 return {...state, placemarkCollection};
             }

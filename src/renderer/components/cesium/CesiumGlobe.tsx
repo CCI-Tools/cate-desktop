@@ -6,8 +6,22 @@ import {Feature, FeatureCollection, Point} from "geojson";
 import {SplitSlider} from "./SplitSlider";
 import * as Cesium from "cesium";
 import {isString} from "../../../common/types";
-import {diff} from "deep-object-diff";
 import {getEntityByEntityId} from "../../containers/globe-view-layers";
+
+/**
+ * See
+ * - https://cesiumjs.org/Cesium/Build/Documentation/GeoJsonDataSource.html
+ * - simplestyle-spec 1.1, https://github.com/mapbox/simplestyle-spec
+ */
+export const DEFAULT_GEOJSON_FEATURE_STYLE = {
+    strokeWidth: 10,
+    stroke: Cesium.Color.fromAlpha(Cesium.Color.WHITE, 0.8),
+    fill: Cesium.Color.fromAlpha(Cesium.Color.WHITE, 0.2),
+    markerSymbol: '?',
+    markerSize: 32,
+    markerColor: Cesium.Color.RED,
+};
+
 
 interface Placemark extends Feature<Point> {
     id: string;
@@ -233,13 +247,19 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const nextSplitLayerPos = nextState.splitLayerPos;
 
         if (prevImageLayerDescriptors !== nextImageLayerDescriptors) {
-            this.updateImageLayers(viewer, prevImageLayerDescriptors, nextImageLayerDescriptors);
+            this.updateImageLayers(viewer,
+                                   prevImageLayerDescriptors,
+                                   nextImageLayerDescriptors);
         }
         if (prevVectorLayerDescriptors !== nextVectorLayerDescriptors) {
-            this.updateVectorLayers(viewer, prevVectorLayerDescriptors, nextVectorLayerDescriptors, nextState.dataSourceMap);
+            this.updateVectorLayers(viewer,
+                                    prevVectorLayerDescriptors,
+                                    nextVectorLayerDescriptors,
+                                    nextState.dataSourceMap,
+                                    nextSelectedPlacemarkId);
         }
         if (prevSelectedPlacemarkId !== nextSelectedPlacemarkId) {
-            this.updateSelectedPlacemark(viewer, nextSelectedPlacemarkId);
+            this.updatePlacemarkSelection(viewer, nextSelectedPlacemarkId);
         }
         if (prevOverlayHtml !== nextOverlayHtml) {
             CesiumGlobe.updateOverlayHtml(viewer, prevOverlayHtml, nextOverlayHtml);
@@ -318,7 +338,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 
     //noinspection JSMethodCanBeStatic
-    private updateSelectedPlacemark(viewer: Cesium.Viewer, selectedPlacemarkId: string | null) {
+    private updatePlacemarkSelection(viewer: Cesium.Viewer, selectedPlacemarkId: string | null) {
         const selectedEntity = selectedPlacemarkId && getEntityByEntityId(viewer, selectedPlacemarkId);
         if (this.props.debug) {
             console.log('CesiumGlobe: updating selected placemark: ', viewer.selectedEntity, selectedEntity);
@@ -334,7 +354,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         if (this.props.debug) {
             console.log('CesiumGlobe: updating placemarks');
         }
-        const pinBuilder = new Cesium.PinBuilder();
         const actions = arrayDiff<Placemark>((currentPlacemarks && currentPlacemarks.features) || EMPTY_ARRAY,
             (nextPlacemarks && nextPlacemarks.features) || EMPTY_ARRAY);
         for (let action of actions) {
@@ -344,25 +363,11 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             switch (action.type) {
                 case 'ADD': {
                     const placemark = action.newElement;
-                    const id = placemark.id;
                     const show = placemark.properties['visible'];
-                    const title = placemark.properties['title'] || '';
-                    const positionCoords = placemark.geometry.coordinates;
-                    const position = new Cesium.Cartesian3.fromDegrees(positionCoords[0], positionCoords[1]);
-                    // see http://cesiumjs.org/Cesium/Apps/Sandcastle/index.html?src=Map%20Pins.html&label=All
-                    const billboard = {
-                        image: pinBuilder.fromText(title && title.length
-                                                       ? title[0].toUpperCase()
-                                                       : '?', Cesium.Color.ROYALBLUE, 32).toDataURL(),
-                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                    };
-                    entities.add(new Cesium.Entity({
-                                                       id,
-                                                       name: title,
-                                                       show,
-                                                       position,
-                                                       billboard,
-                                                   }));
+                    const promise = Cesium.GeoJsonDataSource.load(placemark, DEFAULT_GEOJSON_FEATURE_STYLE);
+                    Promise.resolve(promise).then(ds => {
+                        CesiumGlobe.copyEntities(ds.entities, entities, show);
+                    });
                     break;
                 }
                 case 'REMOVE': {
@@ -373,26 +378,12 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                 case 'UPDATE':
                     let oldPlacemark = action.oldElement;
                     let newPlacemark = action.newElement;
-                    let change = action.change;
-                    let entity = entities.getById(oldPlacemark.id);
-                    if (entity) {
-                        if (this.props.debug) {
-                            console.log('Entity change: ', change, oldPlacemark, newPlacemark);
-                        }
-                        const show = newPlacemark.properties['visible'];
-                        const title = newPlacemark.properties['title'] || '';
-                        const positionCoords = newPlacemark.geometry.coordinates;
-                        const position = new Cesium.Cartesian3.fromDegrees(positionCoords[0], positionCoords[1]);
-                        const billboard = {
-                            //image: pinBuilder.fromText(name && name.length ? name[0].toUpperCase() : '?', Cesium.Color.ROYALBLUE, 32).toDataURL(),
-                            image: pinBuilder.fromText((title && title.length) ? title : '?', Cesium.Color.YELLOW, 32).toDataURL(),
-                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                        };
-                        entity.show = show;
-                        entity.name = title;
-                        entity.position = position;
-                        entity.billboard = billboard;
-                    }
+                    const show = newPlacemark.properties['visible'];
+                    const promise = Cesium.GeoJsonDataSource.load(newPlacemark, DEFAULT_GEOJSON_FEATURE_STYLE);
+                    Promise.resolve(promise).then(ds => {
+                        entities.removeById(oldPlacemark.id);
+                        CesiumGlobe.copyEntities(ds.entities, entities, show);
+                    });
                     break;
                 default:
                     console.error(`CesiumGlobe: unhandled placemark action type "${action.type}"`);
@@ -484,7 +475,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     private updateVectorLayers(viewer: Cesium.Viewer,
                                currentLayers: VectorLayerDescriptor[],
                                nextLayers: VectorLayerDescriptor[],
-                               dataSourceMap: DataSourceMap) {
+                               dataSourceMap: DataSourceMap,
+                               selectedPlacemarkId: string | null) {
         const actions = arrayDiff<VectorLayerDescriptor>(currentLayers, nextLayers);
         for (let action of actions) {
             if (this.props.debug) {
@@ -501,7 +493,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                     break;
                 }
                 case 'UPDATE': {
-                    this.updateDataSource(viewer, action.oldElement, action.newElement, dataSourceMap);
+                    this.updateDataSource(viewer, action.oldElement, action.newElement, dataSourceMap, selectedPlacemarkId);
                     break;
                 }
                 case 'MOVE': {
@@ -603,7 +595,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     private updateDataSource(viewer: Cesium.Viewer,
                              oldLayer: VectorLayerDescriptor,
                              newLayer: VectorLayerDescriptor,
-                             dataSourceMap: DataSourceMap) {
+                             dataSourceMap: DataSourceMap,
+                             selectedPlacemarkId: string | null) {
         const layerId = newLayer.id;
         const dataSource = dataSourceMap[layerId];
         if (!dataSource) {
@@ -620,6 +613,12 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             } else {
                 // Change of placemarks (a GeoJSON FeatureCollection)
                 this.updatePlacemarks(dataSource.entities, oldData, newData);
+                if (selectedPlacemarkId) {
+                    const selectedEntity = dataSource.entities.getById(selectedPlacemarkId);
+                    if (selectedEntity && selectedEntity !== viewer.selectedEntity) {
+                        viewer.selectedEntity = selectedEntity;
+                    }
+                }
             }
         }
         CesiumGlobe.setDataSourceProps(dataSource, newLayer);
@@ -661,6 +660,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             //resolvedDataSource.name = dataSourceDescriptor.name;
             resolvedDataSource.show = dataSourceDescriptor.visible;
         });
+    }
+
+    private static copyEntities(from: Cesium.EntityCollection, to: Cesium.EntityCollection, show: boolean) {
+        for (let entity of from.values) {
+            entity.show = show;
+            to.add(entity);
+        }
     }
 }
 

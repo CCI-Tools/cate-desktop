@@ -19,7 +19,7 @@ import {showToast} from "./toast";
 import * as redux from "redux";
 import * as d3 from "d3";
 import * as Cesium from "cesium";
-import {isDefined, isNumber, isString} from "../common/types";
+import {isNumber} from "../common/types";
 import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
 
 const CANCELLED_CODE = 999;
@@ -852,7 +852,7 @@ export function deleteResourceInteractive(resName: string): ThunkAction {
                                           title: 'Remove Resource / Workflow Step',
                                           message: `Do you really want to delete resource/step "${resName}"?`,
                                           detail: 'This will also delete the workflow step that created it.\n' +
-                                          'You will not be able to undo this operation.',
+                                                  'You will not be able to undo this operation.',
                                           buttons: ["Yes", "No"],
                                           defaultId: 1,
                                           cancelId: 1,
@@ -1163,8 +1163,6 @@ export function setSelectedRightBottomPanelId(selectedRightBottomPanelId: string
 // ViewManager actions
 
 export const ADD_WORLD_VIEW = "ADD_WORLD_VIEW";
-export const ADD_CHART_VIEW = "ADD_CHART_VIEW";
-export const ADD_FIGURE_VIEW = "ADD_FIGURE_VIEW";
 export const ADD_TABLE_VIEW = "ADD_TABLE_VIEW";
 export const SELECT_VIEW = "SELECT_VIEW";
 export const CLOSE_VIEW = "CLOSE_VIEW";
@@ -1253,7 +1251,7 @@ export function notifySelectedEntityChange(viewId: string, selectedEntity: Cesiu
     }
 }
 
-function notifySelectedEntityIdChange(selectedEntityId: string | null): Action {
+export function notifySelectedEntityIdChange(selectedEntityId: string | null): Action {
     return {type: NOTIFY_SELECTED_ENTITY_ID_CHANGE, payload: {selectedEntityId}};
 }
 
@@ -1298,7 +1296,6 @@ export const SET_SELECTED_LAYER_ID = 'SET_SELECTED_LAYER_ID';
 export const ADD_LAYER = 'ADD_LAYER';
 export const REMOVE_LAYER = 'REMOVE_LAYER';
 export const UPDATE_LAYER = 'UPDATE_LAYER';
-export const REPLACE_LAYER = 'REPLACE_LAYER';
 export const MOVE_LAYER_UP = 'MOVE_LAYER_UP';
 export const MOVE_LAYER_DOWN = 'MOVE_LAYER_DOWN';
 export const SAVE_LAYER = 'SAVE_LAYER';
