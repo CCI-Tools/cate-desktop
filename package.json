@@ -68,6 +68,7 @@
     "classnames": "^2.2.5",
     "d3": "^3.5.17",
     "deep-equal": "^1.0.1",
+    "deep-object-diff": "^1.0.4",
     "electron": "1.7.9",
     "electron-builder": "19.48.3",
     "electron-devtools-installer": "^2.2.1",
