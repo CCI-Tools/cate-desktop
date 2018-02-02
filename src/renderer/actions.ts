@@ -1212,7 +1212,6 @@ export const SET_SELECTED_LAYER_SPLIT = 'SET_SPLIT_LAYER_ID';
 export const SET_SELECTED_LAYER_SPLIT_POS = 'SET_SPLIT_LAYER_POS';
 export const SET_SELECTED_ENTITY_ID = 'SET_SELECTED_ENTITY_ID';
 export const INC_ENTITY_UPDATE_COUNT = 'INC_ENTITY_UPDATE_COUNT';
-export const NOTIFY_SELECTED_ENTITY_ID_CHANGE = 'NOTIFY_SELECTED_ENTITY_ID_CHANGE';
 
 export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
@@ -1234,7 +1233,6 @@ export function notifySelectedEntityChange(viewId: string, selectedEntity: Cesiu
     return (dispatch: Dispatch, getState: GetState) => {
         const selectedEntityId = selectedEntity && selectedEntity.id;
         dispatch(setSelectedEntityId(viewId, selectedEntityId || null));
-        dispatch(notifySelectedEntityIdChange(selectedEntityId));
         if (selectedEntity
             && isNumber(selectedEntity._simp)
             && isNumber(selectedEntity._resId)) {
@@ -1254,9 +1252,6 @@ export function notifySelectedEntityChange(viewId: string, selectedEntity: Cesiu
             }
         }
     }
-}
-export function notifySelectedEntityIdChange(selectedEntityId: string | null): Action {
-    return {type: NOTIFY_SELECTED_ENTITY_ID_CHANGE, payload: {selectedEntityId}};
 }
 
 function setSelectedEntityId(viewId: string, selectedEntityId: string | null): Action {

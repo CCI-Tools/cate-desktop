@@ -645,8 +645,6 @@ export interface ControlState {
 
     // Used to force component update after an entity's properties have changed
     entityUpdateCount: number;
-
-    selectedEntityId: string | null;
 }
 
 export interface DialogState {
