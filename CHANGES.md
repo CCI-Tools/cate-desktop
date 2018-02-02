@@ -1,5 +1,7 @@
-## Changes in 1.0.1 (in dev)
+## Changes in 1.1.0 (in dev)
 
+* Changing layer visibility also changes layer selection 
+  [#515](https://github.com/CCI-Tools/cate/issues/#515)
 * Outdated links in Cate Desktop's help menu
   [#511](https://github.com/CCI-Tools/cate/issues/#511)
 * Internal error when computing variable statistics for Shapefile variables
