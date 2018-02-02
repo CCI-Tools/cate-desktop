@@ -31,9 +31,6 @@ interface PlacemarkCollection extends FeatureCollection<Point> {
     features: Placemark[];
 }
 
-const BuildModuleUrl: any = Cesium.buildModuleUrl;
-BuildModuleUrl.setBaseUrl('./');
-
 /**
  * Describes a layer to be displayed on the Cesium globe.
  */
@@ -200,6 +197,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 
     private static getStaticNaturalEarthImageryProvider() {
+        Cesium.buildModuleUrl.setBaseUrl('./');
         const baseUrl = Cesium.buildModuleUrl('');
         const imageryProviderOptions = {
             url: baseUrl + 'Assets/Textures/NaturalEarthII/{z}/{x}/{reverseY}.jpg',
