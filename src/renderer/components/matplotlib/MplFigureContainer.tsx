@@ -23,7 +23,7 @@ interface IFigureContainerProps extends IExternalObjectComponentProps<MplFigure,
  */
 export class MplFigureContainer extends ExternalObjectComponent<MplFigure, FigureState, IFigureContainerProps, null> {
 
-    propsToExternalObjectState(props: IFigureContainerProps & FigureState): FigureState {
+    propsToExternalObjectState(props: IFigureContainerProps & FigureState, prevState?: FigureState): FigureState {
         return {figureUpdateCount: props.figureUpdateCount};
     }
 

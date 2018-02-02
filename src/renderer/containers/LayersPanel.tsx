@@ -196,12 +196,19 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         return layer.id;
     }
 
+    private static stopPropagation(event) {
+        event.stopPropagation();
+    }
+
     private renderLayerItem(layer: LayerState) {
         return (
             <div>
                 <input type="checkbox"
                        checked={layer.visible}
-                       onChange={(event: any) => this.handleChangedLayerVisibility(layer, event.target.checked)}
+                       onClick={LayersPanel.stopPropagation}
+                       onChange={(event: any) => {
+                           this.handleChangedLayerVisibility(layer, event.target.checked)
+                       }}
                 />
                 <span style={{marginLeft: "0.5em"}} className="pt-icon-layout-grid"/>
                 <span style={{marginLeft: "0.5em"}}>{getLayerDisplayName(layer)}</span>

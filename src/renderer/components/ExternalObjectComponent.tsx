@@ -71,15 +71,15 @@ export type ExternalObjectStore<E, S> = { [id: string]: ExternalObjectRef<E, S> 
  * Note that the external object is removed from the store only if the "dispose()" method is called.
  *
  * @author Norman Fomferra
- * @version 0.4
+ * @version 0.5
  */
 export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectComponentProps<E, ES>, S>
-    extends React.PureComponent<P & ES, S> {
+    extends React.PureComponent<P, S> {
     private static readonly DEFAULT_EXTERNAL_OBJECT_STORE: Object = {};
 
     private parentContainer: HTMLElement | null;
 
-    constructor(props: P & ES) {
+    constructor(props: P) {
         super(props);
         ExternalObjectComponent.checkProps(props);
         this.parentContainer = null;
@@ -144,12 +144,15 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
     //noinspection JSMethodCanBeStatic
     /**
      * Extract the state of the external object encoded in the given props.
-     * The default implementation simply returns a shallow copy of the given props.
-     * @param props The props.
+     * The default implementation simply returns a shallow copy of the previous state
+     * overwritten by the given props.
+     *
+     * @param props The props which take precedence over the previous state.
+     * @param prevState The previous state.
      * @returns {{}} State of the external object extracted from props.
      */
-    propsToExternalObjectState(props: Readonly<P & ES>): ES {
-        return {...props as any};
+    propsToExternalObjectState(props: Readonly<P>, prevState?: Readonly<ES>): ES {
+        return {...prevState as any, ...props as any};
     }
 
     /**
@@ -291,12 +294,12 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         this.externalObjectUnmounted(externalObjectRef.object, parentContainer, container);
     }
 
-    private updateExternalComponentAndSaveProps(nextProps: Readonly<P & ES>): void {
+    private updateExternalComponentAndSaveProps(nextProps: Readonly<P>): void {
         const externalObjectRef = this.externalObjectStore[nextProps.id];
         assert.ok(externalObjectRef);
         // Get previous props
         const prevState = externalObjectRef.state;
-        const nextState = this.propsToExternalObjectState(nextProps);
+        const nextState = this.propsToExternalObjectState(nextProps, prevState);
         if (this.props.debug) {
             console.log("ExternalObjectComponent: updating existing external object with id =", this.props.id, prevState, nextState);
         }

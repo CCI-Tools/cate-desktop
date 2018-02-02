@@ -1,6 +1,7 @@
 import {should, expect} from 'chai';
 import * as React from 'react';
 import {IExternalObjectComponentProps, ExternalObjectComponent} from './ExternalObjectComponent';
+import {FigureState} from "./matplotlib/MplFigureContainer";
 
 should();
 
@@ -73,7 +74,7 @@ class MyExternalComponent extends ExternalObjectComponent<MyExternalObject, MyEx
         return {id: this.props.id, foo: this.props.foo};
     }
 
-    propsToExternalObjectState(props: MyExternalComponentProps&MyExternalState): MyExternalState {
+    propsToExternalObjectState(props: MyExternalComponentProps&MyExternalState, prevState?: MyExternalState): MyExternalState {
         return {foo: props.foo};
     }
 

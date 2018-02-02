@@ -584,15 +584,20 @@ export const isSelectedLayerSplitSelector = createSelector<State, boolean | null
     }
 );
 
+// noinspection JSUnusedLocalSymbols
 export const externalObjectStoreSelector = (state: State) => EXTERNAL_OBJECT_STORE;
 
-export const selectedEntitySelector = createSelector<State, Cesium.Entity | null, ViewState<any> | null>(
+export const selectedEntityIdSelector = (state: State): string | null => state.control.selectedEntityId;
+
+export const selectedEntitySelector = createSelector<State, Cesium.Entity | null, ViewState<any> | null, string | null>(
     activeViewSelector,
+    selectedEntityIdSelector, /*this is just to make sure the selector is updated*/
     getWorldViewSelectedEntity
 );
 
-export const selectedGeometryWKTGetterSelector = createSelector<State, GeometryWKTGetter, ViewState<any> | null>(
+export const selectedGeometryWKTGetterSelector = createSelector<State, GeometryWKTGetter, ViewState<any> | null, string | null>(
     activeViewSelector,
+    selectedEntityIdSelector, /*this is just to make sure the selector is updated*/
     getWorldViewSelectedGeometryWKTGetter
 );
 
