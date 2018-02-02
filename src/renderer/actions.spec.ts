@@ -4,7 +4,7 @@ import {stateReducer} from './reducers';
 import thunk from 'redux-thunk'
 import {LayerState, ResourceState, State, VariableState} from "./state";
 import {should, expect} from 'chai';
-import {SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID} from "./state-util";
+import {SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, PLACEMARKS_LAYER_ID} from "./state-util";
 
 should();
 
@@ -33,11 +33,18 @@ describe('Actions', () => {
         visible: true,
     };
 
-    const defaultCountriesLayers = {
+    const defaultCountriesLayer = {
         id: COUNTRIES_LAYER_ID,
         name: "Countries",
         type: "Vector",
         visible: false,
+    };
+
+    const defaultPlacemarkLayer = {
+        id: PLACEMARKS_LAYER_ID,
+        name: "Placemarks",
+        type: "Vector",
+        visible: true,
     };
 
     beforeEach(function () {
@@ -380,7 +387,8 @@ describe('Actions', () => {
                         hue: 0,
                         saturation: 1,
                     },
-                    defaultCountriesLayers
+                    defaultCountriesLayer,
+                    defaultPlacemarkLayer
                 ]);
         });
 
@@ -396,7 +404,8 @@ describe('Actions', () => {
                         name: "Variable: profile (not geo-spatial)",
                         visible: true,
                     },
-                    defaultCountriesLayers
+                    defaultCountriesLayer,
+                    defaultPlacemarkLayer
                 ]);
         });
 
@@ -450,27 +459,29 @@ describe('Actions', () => {
                 varIndex: [139],
                 displayMax: 300
             } as any));
-            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
+            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayer, defaultPlacemarkLayer]);
             dispatch(actions.setSelectedVariable(getRes(), getVar('sst_error'), getState().session.savedLayers));
-            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayers]);
+            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayer, defaultPlacemarkLayer]);
             dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst'), getState().session.savedLayers));
-            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
+            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayer, defaultPlacemarkLayer]);
         });
 
         it('addVariableLayer', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.addVariableLayer(getActiveViewId(), getRes(), getVar('analysed_sst'), true));
-            expect(getActiveView().data.layers.length).to.equal(3);
+            expect(getActiveView().data.layers.length).to.equal(4);
             expect(getActiveView().data.layers[0].id).to.equal(SELECTED_VARIABLE_LAYER_ID);
-            expect(getActiveView().data.layers[1]).to.deep.equal(defaultCountriesLayers);
-            expect(getActiveView().data.layers[2].id.startsWith('layer-')).to.be.true;
+            expect(getActiveView().data.layers[1]).to.deep.equal(defaultCountriesLayer);
+            expect(getActiveView().data.layers[2]).to.deep.equal(defaultPlacemarkLayer);
+            expect(getActiveView().data.layers[3].id.startsWith('layer-')).to.be.true;
         });
 
         it('addLayer', () => {
             dispatch(actions.addLayer(getActiveViewId(), {id: 'layer-2', visible: true} as LayerState, true));
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
-                                                                  defaultCountriesLayers,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
                                                                   {id: 'layer-2', visible: true},
                                                               ]);
         });
@@ -481,7 +492,8 @@ describe('Actions', () => {
             dispatch(actions.removeLayer(getActiveViewId(), 'layer-2'));
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
-                                                                  defaultCountriesLayers,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
                                                                   {id: 'layer-1', visible: true},
                                                               ]);
         });
@@ -493,7 +505,8 @@ describe('Actions', () => {
             dispatch(actions.updateLayer(getActiveViewId(), {id: 'layer-2', visible: false} as LayerState));
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
-                                                                  defaultCountriesLayers,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
                                                                   {id: 'layer-1', visible: true},
                                                                   {id: 'layer-2', visible: false},
                                                                   {id: 'layer-3', visible: true},
@@ -501,7 +514,8 @@ describe('Actions', () => {
             dispatch(actions.updateLayer(getActiveViewId(), {id: 'layer-1', name: 'LX'} as LayerState));
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
-                                                                  defaultCountriesLayers,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
                                                                   {id: 'layer-1', name: 'LX', visible: true},
                                                                   {id: 'layer-2', visible: false},
                                                                   {id: 'layer-3', visible: true},
@@ -513,7 +527,8 @@ describe('Actions', () => {
             expect(getState().session.showSelectedVariableLayer).to.equal(true);
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
-                                                                  defaultCountriesLayers,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer
                                                               ]);
 
             dispatch(actions.setShowSelectedVariableLayer(false));
@@ -524,7 +539,8 @@ describe('Actions', () => {
                                                                       visible: false,
                                                                       type: 'Unknown'
                                                                   },
-                                                                  defaultCountriesLayers,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer
                                                               ]);
         });
 
@@ -569,6 +585,12 @@ describe('Actions', () => {
                         visible: false,
                         type: "Vector",
                         name: 'Countries'
+                    },
+                    {
+                        id: PLACEMARKS_LAYER_ID,
+                        visible: true,
+                        type: "Vector",
+                        name: 'Placemarks'
                     },
                     {id: 'L1', resId: 1, resName: 'res_1', varName: 'X'},
                     {id: 'L2', resId: 2, resName: 'bert', varName: 'X'},

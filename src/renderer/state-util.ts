@@ -13,6 +13,7 @@ import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 export const COUNTRIES_LAYER_ID = 'countries';
+export const PLACEMARKS_LAYER_ID = 'myPlaces';
 
 
 export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImageLayerState): string {
@@ -196,7 +197,13 @@ function newInitialWorldViewData(): WorldViewDataState {
                 name: 'Countries',
                 type: 'Vector',
                 visible: false,
-            }
+            },
+            {
+                id: PLACEMARKS_LAYER_ID,
+                name: 'Placemarks',
+                type: 'Vector',
+                visible: true,
+            },
         ],
         selectedLayerId: SELECTED_VARIABLE_LAYER_ID,
         isSelectedLayerSplit: null,

@@ -2,7 +2,7 @@ import {WebAPIClient} from './webapi';
 import {JobStatus, JobFailure, JobProgress} from "./webapi";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
-import {Feature, FeatureCollection, Point} from "geojson";
+import {Feature, FeatureCollection, GeoJsonObject, Point} from "geojson";
 import {IconName} from "@blueprintjs/core";
 import {SimpleStyle} from "./cesium-util";
 
@@ -479,10 +479,11 @@ export interface VectorLayerState extends VectorLayerBase {
      * The layer type.
      */
     type: 'Vector';
+
     /**
-     * The (GeoJSON-providing) URL.
+     * The (GeoJSON-providing) URL or GeoJSON object.
      */
-    url?: string;
+    data: string | GeoJsonObject;
 }
 
 /**
@@ -644,6 +645,8 @@ export interface ControlState {
 
     // Used to force component update after an entity's properties have changed
     entityUpdateCount: number;
+
+    selectedEntityId: string | null;
 }
 
 export interface DialogState {
