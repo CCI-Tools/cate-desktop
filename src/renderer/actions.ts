@@ -1212,6 +1212,7 @@ export const SET_SELECTED_LAYER_SPLIT = 'SET_SPLIT_LAYER_ID';
 export const SET_SELECTED_LAYER_SPLIT_POS = 'SET_SPLIT_LAYER_POS';
 export const SET_SELECTED_ENTITY_ID = 'SET_SELECTED_ENTITY_ID';
 export const INC_ENTITY_UPDATE_COUNT = 'INC_ENTITY_UPDATE_COUNT';
+export const UPDATE_ENTITY_STYLE = "UPDATE_ENTITY_STYLE";
 
 export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
@@ -1261,12 +1262,22 @@ function setSelectedEntityId(viewId: string, selectedEntityId: string | null): A
 export function updateEntityStyle(view: ViewState<any>, entity: Cesium.Entity, style: SimpleStyle) {
     return (dispatch: Dispatch) => {
         const layer = getWorldViewVectorLayerForEntity(view, entity);
+        // We cannot dispatch an action with an entity payload, because action logging will no longer work
+        // (probably vecause Cesium Entities are not plain objects and contain numerous references
+        // to other complex Cesium objects).
+        // This is why we pass an the entity ID as payload.
+        // However entity IDs are only unique within a Cesium Entity DataSource / Cate Vector Layer,
+        // therefore must pass the layer ID and the entity ID to identify the entity.
         if (layer) {
-            dispatch({type: "UPDATE_ENTITY_STYLE", payload: {layerId: layer.id, entityId: entity.id, style}});
+            dispatch(updateEntityStyleImpl(view.id, layer.id, entity.id, style));
         }
         dispatch(incEntityUpdateCount());
         applyStyle(entity, style);
     };
+}
+
+function updateEntityStyleImpl(viewId: string, layerId: string, entityId: string, style: SimpleStyle): Action {
+    return {type: UPDATE_ENTITY_STYLE, payload: {viewId, layerId, entityId, style}};
 }
 
 function incEntityUpdateCount(): Action {

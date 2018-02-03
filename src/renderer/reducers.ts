@@ -1,6 +1,6 @@
 import {
     State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
-    LayerState, Placemark
+    LayerState, Placemark, VectorLayerBase
 } from './state';
 import * as actions from './actions';
 import * as assert from "../common/assert";
@@ -9,7 +9,7 @@ import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
     newWorldView, newTableView, newFigureView, getFigureViewTitle, genPlacemarkId,
-    hasWebGL,
+    hasWebGL, isVectorLayer,
 } from "./state-util";
 import {
     removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
@@ -17,11 +17,8 @@ import {
     addViewToPanel, moveView, selectView
 } from "./components/ViewState";
 import {Action, SET_GLOBE_MOUSE_POSITION, SET_GLOBE_VIEW_POSITION} from "./actions";
-import {EMPTY_ARRAY} from "./selectors";
 import {isString} from "../common/types";
-import {setSelectedPlacemarkId} from "./actions";
-import {SET_VECTOR_FILL_COLOR} from "./actions";
-import {INC_ENTITY_UPDATE_COUNT} from "./actions";
+import deepEqual = require("deep-equal");
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -152,6 +149,13 @@ const controlReducer = (state: ControlState = initialControlState, action: Actio
             if (selectedWorkspaceResourceName !== state.selectedWorkspaceResourceName
                 || views !== state.views) {
                 return {...state, selectedWorkspaceResourceName, views};
+            }
+            return state;
+        }
+        case actions.UPDATE_ENTITY_STYLE: {
+            const views = viewsReducer(state.views, action, state.activeViewId);
+            if (views !== state.views) {
+                return {...state, views};
             }
             return state;
         }
@@ -329,6 +333,16 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
                 if (state.title === title) {
                     title = getFigureViewTitle(action.payload.newResName);
                     return {...state, title};
+                }
+            }
+            break;
+        }
+        case actions.UPDATE_ENTITY_STYLE: {
+            const viewId = action.payload.viewId;
+            if (state.id === viewId && state.type === 'world') {
+                const layers = layersReducer(state.data.layers, action, isActiveView);
+                if (layers !== state.data.layers) {
+                    return {...state, data: {...state.data, layers}};
                 }
             }
             break;
@@ -525,6 +539,19 @@ const layerReducer = (state: LayerState, action: Action, isActiveView: boolean) 
             const newResName = action.payload.newResName;
             if ((state as any).resName === resName) {
                 return {...state, resName: newResName};
+            }
+            break;
+        }
+        case actions.UPDATE_ENTITY_STYLE: {
+            const {layerId, entityId, style} = action.payload;
+            if (state.id === layerId && isVectorLayer(state)) {
+                const vectorLayer = state as VectorLayerBase;
+                const entityStyles = vectorLayer.entityStyles;
+                const oldStyle = entityStyles && entityStyles[entityId];
+                const newStyle = {...oldStyle, ...style};
+                if (!deepEqual(oldStyle, newStyle)) {
+                    return {...state, entityStyles: {...entityStyles, [entityId]: newStyle}};
+                }
             }
             break;
         }

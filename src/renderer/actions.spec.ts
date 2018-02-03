@@ -4,7 +4,7 @@ import {stateReducer} from './reducers';
 import thunk from 'redux-thunk'
 import {LayerState, ResourceState, State, VariableState} from "./state";
 import {should, expect} from 'chai';
-import {SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, PLACEMARKS_LAYER_ID} from "./state-util";
+import {SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, PLACEMARKS_LAYER_ID, EXTERNAL_OBJECT_STORE} from "./state-util";
 
 should();
 
@@ -118,9 +118,9 @@ describe('Actions', () => {
                     {id: 'local-1'},
                     {
                         id: 'local-2', dataSources: [
-                        {id: 'fileset-1'},
-                        {id: 'fileset-2'}
-                    ]
+                            {id: 'fileset-1'},
+                            {id: 'fileset-2'}
+                        ]
                     }
                 ]);
         });
@@ -144,12 +144,12 @@ describe('Actions', () => {
                     {id: 'local-1'},
                     {
                         id: 'local-2', dataSources: [
-                        {
-                            id: 'fileset-1',
-                            temporalCoverage: ['2010-01-01', '2014-12-30']
-                        },
-                        {id: 'fileset-2'}
-                    ]
+                            {
+                                id: 'fileset-1',
+                                temporalCoverage: ['2010-01-01', '2014-12-30']
+                            },
+                            {id: 'fileset-2'}
+                        ]
                     }
                 ]);
         });
@@ -360,7 +360,6 @@ describe('Actions', () => {
             return workspace.resources[0].variables.find(v => v.name === name);
         }
 
-
         it('setSelectedVariable - with image variable', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.setSelectedWorkspaceResourceName('res_1'));
@@ -550,7 +549,179 @@ describe('Actions', () => {
             dispatch(actions.setSelectedLayerId(getActiveViewId(), null));
             expect(getActiveView().data.selectedLayerId).to.be.null;
         });
+
+        it('updateEntityStyle', () => {
+            class EntityCollection {
+                readonly values: any[];
+
+                constructor(values: any[]) {
+                    this.values = values;
+                }
+
+                get(i: number) {
+                    return this.values[i];
+                }
+
+                contains(entity) {
+                    return this.values.indexOf(entity) >= 0;
+                }
+            }
+
+            class DataSource {
+                readonly entities: EntityCollection;
+
+                constructor(entities: any[]) {
+                    this.entities = new EntityCollection(entities);
+                }
+            }
+
+            class DataSourceCollection {
+                readonly length: number;
+                private dataSources: DataSource[];
+
+                constructor(dataSources: DataSource[]) {
+                    this.dataSources = dataSources;
+                    this.length = dataSources.length;
+                }
+
+                get(i: number) {
+                    return this.dataSources[i];
+                }
+            }
+
+            const layer1 = {
+                id: 'user-layer-1',
+                visible: true,
+                type: "Vector"
+            };
+
+            let entity1 = {
+                id: "438",
+            };
+
+            let entity2 = {
+                id: "439",
+            };
+
+            let entity3 = {
+                id: "31-9",
+            };
+
+            let entity4 = {
+                id: 9843,
+            };
+
+            let entity5 = {
+                id: 9843,
+            };
+
+            const countriesDataSource = new DataSource([entity1, entity2]);
+            const placemarksDataSource = new DataSource([entity3]);
+            const userDataSource = new DataSource([entity4, entity5]);
+
+            const cesiumViewer = {
+                dataSources: new DataSourceCollection([countriesDataSource, placemarksDataSource, userDataSource]),
+            };
+
+            const externalObject = {
+                object: cesiumViewer,
+                state: {
+                    dataSourceMap: {
+                        [COUNTRIES_LAYER_ID]: countriesDataSource,
+                        [PLACEMARKS_LAYER_ID]: placemarksDataSource,
+                        "user-layer-1": userDataSource,
+                    }
+                },
+            };
+
+            EXTERNAL_OBJECT_STORE["CesiumGlobe-" + getActiveViewId()] = externalObject;
+
+            dispatch(actions.setCurrentWorkspace(workspace as any));
+            dispatch(actions.addLayer(getActiveViewId(), layer1 as LayerState, false));
+
+            const countriesLayerIndex = 1;
+            const placemarksLayerIndex = 2;
+            const userLayerIndex = 3;
+
+            let countryLayer = getActiveView().data.layers[countriesLayerIndex];
+            let placemarksLayer = getActiveView().data.layers[placemarksLayerIndex];
+            let userLayer = getActiveView().data.layers[userLayerIndex];
+
+            expect(countryLayer.id).to.equal(COUNTRIES_LAYER_ID);
+            expect(placemarksLayer.id).to.equal(PLACEMARKS_LAYER_ID);
+            expect(userLayer.id).to.equal("user-layer-1");
+
+            expect(countryLayer.entityStyles).to.not.exist;
+            expect(placemarksLayer.entityStyles).to.not.exist;
+            expect(userLayer.entityStyles).to.not.exist;
+
+            dispatch(actions.updateEntityStyle(getActiveView(), entity1, {
+                fill: "#123456",
+                fillOpacity: 0.3,
+            }));
+
+            countryLayer = getActiveView().data.layers[countriesLayerIndex];
+            expect(countryLayer.entityStyles).to.exist;
+            expect(countryLayer.entityStyles["438"]).to.exist;
+            expect(countryLayer.entityStyles["438"]).to.deep.equal({
+                                                                       fill: "#123456",
+                                                                       fillOpacity: 0.3,
+                                                                   });
+
+            dispatch(actions.updateEntityStyle(getActiveView(), entity1, {
+                stroke: "#615243",
+                strokeOpacity: 0.9,
+            }));
+
+            countryLayer = getActiveView().data.layers[countriesLayerIndex];
+            expect(countryLayer.entityStyles["438"]).to.deep.equal({
+                                                                       fill: "#123456",
+                                                                       fillOpacity: 0.3,
+                                                                       stroke: "#615243",
+                                                                       strokeOpacity: 0.9,
+                                                                   });
+
+            dispatch(actions.updateEntityStyle(getActiveView(), entity2, {
+                fill: "#112233",
+                fillOpacity: 0.4,
+            }));
+
+            countryLayer = getActiveView().data.layers[countriesLayerIndex];
+            expect(countryLayer.entityStyles["438"]).to.deep.equal({
+                                                                       fill: "#123456",
+                                                                       fillOpacity: 0.3,
+                                                                       stroke: "#615243",
+                                                                       strokeOpacity: 0.9,
+                                                                   });
+            expect(countryLayer.entityStyles["439"]).to.deep.equal({
+                                                                       fill: "#112233",
+                                                                       fillOpacity: 0.4,
+                                                                   });
+
+            dispatch(actions.updateEntityStyle(getActiveView(), entity3, {
+                fill: "#AFAFAF",
+                fillOpacity: 0.36,
+            }));
+
+            placemarksLayer = getActiveView().data.layers[placemarksLayerIndex];
+            expect(placemarksLayer.entityStyles[entity3.id]).to.deep.equal({
+                                                                               fill: "#AFAFAF",
+                                                                               fillOpacity: 0.36,
+                                                                           });
+
+            dispatch(actions.updateEntityStyle(getActiveView(), entity5, {
+                fill: "#FF00FF",
+                fillOpacity: 0.21,
+            }));
+
+            userLayer = getActiveView().data.layers[userLayerIndex];
+            expect(userLayer.entityStyles[entity5.id]).to.deep.equal({
+                                                                         fill: "#FF00FF",
+                                                                         fillOpacity: 0.21,
+                                                                     });
+        });
     });
+
 
     describe('Workspace actions involving layers', () => {
 
@@ -569,8 +740,18 @@ describe('Actions', () => {
 
         it('renameWorkspaceResourceImpl', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
-            dispatch(actions.addLayer(getActiveViewId(), {id: 'L1', resId: 1, resName: 'res_1', varName: 'X'} as any, false));
-            dispatch(actions.addLayer(getActiveViewId(), {id: 'L2', resId: 2, resName: 'res_2', varName: 'X'} as any, false));
+            dispatch(actions.addLayer(getActiveViewId(), {
+                id: 'L1',
+                resId: 1,
+                resName: 'res_1',
+                varName: 'X'
+            } as any, false));
+            dispatch(actions.addLayer(getActiveViewId(), {
+                id: 'L2',
+                resId: 2,
+                resName: 'res_2',
+                varName: 'X'
+            } as any, false));
             dispatch(actions.setSelectedWorkspaceResourceName('res_2'));
             dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
             expect(getActiveView().data.layers).to.deep.equal(

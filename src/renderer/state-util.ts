@@ -18,11 +18,11 @@ export const PLACEMARKS_LAYER_ID = 'myPlaces';
 
 export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImageLayerState): string {
     return baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${layer.resId}/{z}/{y}/{x}.png?`
-        + `&var=${encodeURIComponent(layer.varName)}`
-        + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
-        + `&cmap=${encodeURIComponent(layer.colorMapName) + (layer.alphaBlending ? '_alpha' : '')}`
-        + `&min=${encodeURIComponent(layer.displayMin + '')}`
-        + `&max=${encodeURIComponent(layer.displayMax + '')}`;
+           + `&var=${encodeURIComponent(layer.varName)}`
+           + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
+           + `&cmap=${encodeURIComponent(layer.colorMapName) + (layer.alphaBlending ? '_alpha' : '')}`
+           + `&min=${encodeURIComponent(layer.displayMin + '')}`
+           + `&max=${encodeURIComponent(layer.displayMax + '')}`;
 }
 
 export function getFeatureCollectionUrl(baseUrl: string, baseDir: string, ref: ResourceRefState): string {
@@ -105,7 +105,7 @@ export function getLayerDisplayName(layer: LayerState): string {
 }
 
 export function getLayerTypeIconName(layer: LayerState): string {
-    if (layer.type == "Vector" || layer.type === "ResourceVector") {
+    if (isVectorLayer(layer)) {
         return "pt-icon-map-marker";
     } else if (layer.type == "Image" || layer.type === "VariableImage") {
         return "pt-icon-layout-grid"; // "pt-icon-helper-management" also good
@@ -267,44 +267,61 @@ export function newTableView(resName: string, varName: string): ViewState<TableV
  */
 export const EXTERNAL_OBJECT_STORE = {id: "global_external_object_store"};
 
-export function getWorldViewViewer(view: ViewState<any>): Cesium.Viewer | null {
+function getWorldViewExternalObject(view: ViewState<any>): any {
     if (view && view.type === 'world') {
-        const externalObject = EXTERNAL_OBJECT_STORE["CesiumGlobe-" + view.id];
-        if (externalObject) {
-            return externalObject.object;
-        }
+        return EXTERNAL_OBJECT_STORE["CesiumGlobe-" + view.id];
+    }
+}
+
+export function getWorldViewViewer(view: ViewState<any>): Cesium.Viewer | null {
+    const externalObject = getWorldViewExternalObject(view);
+    if (externalObject) {
+        return externalObject.object as Cesium.Viewer;
     }
     return null;
 }
 
 export function getWorldViewSelectedEntity(view: ViewState<any>): Cesium.Entity | null {
-    const viewer: Cesium.Viewer = getWorldViewViewer(view);
+    const viewer = getWorldViewViewer(view);
     if (viewer) {
         return viewer.selectedEntity;
     }
     return null;
 }
 
-export function getWorldViewDataSourceIndexForEntity(view: ViewState<any>, entity: Cesium.Entity): number {
-    const viewer: Cesium.Viewer = getWorldViewViewer(view);
-    if (viewer) {
-        for (let index = 0; index < viewer.dataSources.length; index++) {
-            const dataSource: Cesium.DataSource = viewer.dataSources.get(index);
-            if (dataSource.entities.contains(entity)) {
-                return index;
+export function getWorldViewVectorLayerForEntity(view: ViewState<any>, entity: Cesium.Entity): VectorLayerBase | null {
+    const externalObject = getWorldViewExternalObject(view);
+    if (!externalObject) {
+        return null;
+    }
+
+    const viewer = externalObject.object as Cesium.Viewer;
+    assert.ok(viewer);
+
+    const dataSourceMap = externalObject.state.dataSourceMap;
+    assert.ok(dataSourceMap);
+
+    const dataSourceCollection = viewer.dataSources;
+    // Find entity in viewer's dataSourceCollection
+    for (let index = 0; index < dataSourceCollection.length; index++) {
+        const dataSource: Cesium.DataSource = dataSourceCollection.get(index);
+        if (dataSource.entities.contains(entity)) {
+            // Find dataSource in dataSourceMap of CesiumGlobe --> layerId
+            for (let layerId of Object.getOwnPropertyNames(dataSourceMap)) {
+                if (dataSource === dataSourceMap[layerId]) {
+                    // Find layer for layerId in views's layer list
+                    for (let layer of view.data.layers) {
+                        if (layer.id === layerId) {
+                            assert.ok(isVectorLayer(layer));
+                            return layer;
+                        }
+                    }
+
+                }
             }
         }
     }
-    return -1;
-}
 
-export function getWorldViewVectorLayerForEntity(view: ViewState<any>, entity: Cesium.Entity): VectorLayerBase | null {
-    const index = getWorldViewDataSourceIndexForEntity(view, entity);
-    if (index >= 0) {
-        const layer = view.data.layers[index];
-        assert.ok(layer.type === "Vector" || layer.type === "ResourceVector");
-        return layer;
-    }
     return null;
 }
 
@@ -314,6 +331,10 @@ export function getWorldViewSelectedGeometryWKTGetter(view: ViewState<any>): Geo
         return () => entityToGeometryWKT(selectedEntity);
     }
     return null;
+}
+
+export function isVectorLayer(layer: LayerState) {
+    return layer.type === "Vector" || layer.type === "ResourceVector";
 }
 
 export function newVariableLayer(resource: ResourceState,
@@ -363,7 +384,6 @@ export function updateSelectedVariableLayer(selectedLayer: LayerState,
     if (spatialImageVariable) {
         const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
         const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
-        // console.log("updateSelectedVariableLayer: ", variable.name, savedLayers, restoredLayer, layerDisplayProperties);
         return {
             ...selectedLayer,
             ...restoredLayer,
