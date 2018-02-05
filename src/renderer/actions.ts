@@ -12,7 +12,7 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
-    getWorldViewVectorLayerForEntity
+    getWorldViewVectorLayerForEntity, PLACEMARKS_LAYER_ID
 } from "./state-util";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
@@ -23,6 +23,7 @@ import * as Cesium from "cesium";
 import {isNumber} from "../common/types";
 import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
 import {applyStyle, SimpleStyle} from "./cesium-util";
+import {DirectGeometryObject} from "geojson";
 
 const CANCELLED_CODE = 999;
 
@@ -61,7 +62,8 @@ export type ThunkAction = (dispatch?: Dispatch, getState?: GetState) => void;
 
 export const ADD_PLACEMARK = 'ADD_PLACEMARK';
 export const REMOVE_PLACEMARK = 'REMOVE_PLACEMARK';
-export const UPDATE_PLACEMARK = 'UPDATE_PLACEMARK';
+export const UPDATE_PLACEMARK_GEOMETRY = 'UPDATE_PLACEMARK_GEOMETRY';
+export const UPDATE_PLACEMARK_PROPERTIES = 'UPDATE_PLACEMARK_PROPERTIES';
 
 export function addPlacemark(position?: GeographicPosition): Action {
     return {type: ADD_PLACEMARK, payload: {position}};
@@ -71,8 +73,12 @@ export function removePlacemark(placemarkId: string): Action {
     return {type: REMOVE_PLACEMARK, payload: {placemarkId}};
 }
 
-export function updatePlacemark(placemark: Placemark): Action {
-    return {type: UPDATE_PLACEMARK, payload: {placemark}};
+export function updatePlacemarkGeometry(placemarkId: string, geometry: DirectGeometryObject | any): Action {
+    return {type: UPDATE_PLACEMARK_GEOMETRY, payload: {placemarkId, geometry}};
+}
+
+export function updatePlacemarkProperties(placemarkId: string, properties: SimpleStyle | any): Action {
+    return {type: UPDATE_PLACEMARK_PROPERTIES, payload: {placemarkId, properties}};
 }
 
 export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Action {
@@ -854,7 +860,7 @@ export function deleteResourceInteractive(resName: string): ThunkAction {
                                           title: 'Remove Resource / Workflow Step',
                                           message: `Do you really want to delete resource/step "${resName}"?`,
                                           detail: 'This will also delete the workflow step that created it.\n' +
-                                                  'You will not be able to undo this operation.',
+                                          'You will not be able to undo this operation.',
                                           buttons: ["Yes", "No"],
                                           defaultId: 1,
                                           cancelId: 1,
@@ -1263,16 +1269,25 @@ export function updateEntityStyle(view: ViewState<any>, entity: Cesium.Entity, s
     return (dispatch: Dispatch) => {
         const layer = getWorldViewVectorLayerForEntity(view, entity);
         // We cannot dispatch an action with an entity payload, because action logging will no longer work
-        // (probably vecause Cesium Entities are not plain objects and contain numerous references
+        // (probably because Cesium Entities are not plain objects and contain numerous references
         // to other complex Cesium objects).
         // This is why we pass an the entity ID as payload.
         // However entity IDs are only unique within a Cesium Entity DataSource / Cate Vector Layer,
         // therefore must pass the layer ID and the entity ID to identify the entity.
         if (layer) {
-            dispatch(updateEntityStyleImpl(view.id, layer.id, entity.id, style));
+            // We will only dispatch actions for entities belong to our own layers.
+            if (layer.id === PLACEMARKS_LAYER_ID) {
+                // If this is the placemarks layer, we store the style change in the placemarks (= feature's)
+                // properties: state.session.placemarkCollection.features[entityId].properties = ...style
+                dispatch(updatePlacemarkProperties(entity.id, style));
+            } else {
+                // For all other layer we update the layer's entity styles:
+                // properties: state.control.views[viewId].data.layers[layerId].entityStyles[entityId] = style
+                dispatch(updateEntityStyleImpl(view.id, layer.id, entity.id, style));
+            }
         }
-        dispatch(incEntityUpdateCount());
-        applyStyle(entity, style);
+        //dispatch(incEntityUpdateCount());
+        //applyStyle(entity, style);
     };
 }
 
@@ -1325,6 +1340,7 @@ export const SET_SELECTED_LAYER_ID = 'SET_SELECTED_LAYER_ID';
 export const ADD_LAYER = 'ADD_LAYER';
 export const REMOVE_LAYER = 'REMOVE_LAYER';
 export const UPDATE_LAYER = 'UPDATE_LAYER';
+export const UPDATE_LAYER_STYLE = 'UPDATE_LAYER_STYLE';
 export const MOVE_LAYER_UP = 'MOVE_LAYER_UP';
 export const MOVE_LAYER_DOWN = 'MOVE_LAYER_DOWN';
 export const SAVE_LAYER = 'SAVE_LAYER';
@@ -1367,6 +1383,10 @@ export function updateLayer(viewId: string, layer: LayerState, ...layerPropertie
 
 function updateLayerImpl(viewId: string, layer: LayerState): Action {
     return {type: UPDATE_LAYER, payload: {viewId, layer}};
+}
+
+export function updateLayerStyle(viewId: string, layerId: string, style: SimpleStyle): Action {
+    return {type: UPDATE_LAYER_STYLE, payload: {viewId, layerId, style}};
 }
 
 /**

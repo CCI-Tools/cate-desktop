@@ -461,9 +461,14 @@ export interface ImageLayerState extends ImageLayerBase {
 /**
  * Base of vector layers.
  */
-export interface VectorLayerBase extends LayerState, SimpleStyle {
+export interface VectorLayerBase extends LayerState {
     /**
-     * Stores any edited entity styled.
+     * Stores the default style for all entities of the layer.
+     */
+    style?: SimpleStyle;
+
+    /**
+     * Stores the style and any edited entities.
      * This object will only contain keys, if an entities style has changed.
      * Default styles come from the SimpleStyle interface of VectorLayerBase.
      */
@@ -738,6 +743,7 @@ export interface SessionState {
     placemarkCollection: PlacemarkCollection | null;
     selectedPlacemarkId: string | null;
     showPlacemarkDetails: boolean;
+    placemarkCounter: number;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

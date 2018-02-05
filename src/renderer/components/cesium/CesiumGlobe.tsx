@@ -7,6 +7,8 @@ import {SplitSlider} from "./SplitSlider";
 import * as Cesium from "cesium";
 import {isString} from "../../../common/types";
 import {getEntityByEntityId} from "../../containers/globe-view-layers";
+import {SimpleStyle} from "../../cesium-util";
+import {diff} from "deep-object-diff"
 
 /**
  * See
@@ -59,6 +61,8 @@ export interface ImageLayerDescriptor extends LayerDescriptor {
  * Describes a vector data layer (entity data source) to be displayed on the Cesium globe.
  */
 export interface VectorLayerDescriptor extends LayerDescriptor {
+    style?: SimpleStyle;
+    entityStyles?: {[layerId: string]: SimpleStyle};
     dataSource?: ((viewer: Cesium.Viewer, options: any) => Cesium.DataSource) | Cesium.DataSource;
     dataSourceOptions?: any;
 }
@@ -618,6 +622,19 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                     }
                 }
             }
+        }
+        const oldStyle = oldLayer.style;
+        const newStyle = newLayer.style;
+        if (oldStyle !== newStyle) {
+            const styleDelta = diff(oldStyle, newStyle);
+            console.log("CesiumGlobe.updateDataSource: styleDelta = ", styleDelta);
+
+        }
+        const oldEntityStyles = oldLayer.entityStyles;
+        const newEntityStyles = newLayer.entityStyles;
+        if (oldEntityStyles !== newEntityStyles) {
+            const entityStylesDelta = diff(oldEntityStyles, newEntityStyles);
+            console.log("CesiumGlobe.updateDataSource: entityStylesDelta = ", entityStylesDelta);
         }
         CesiumGlobe.setDataSourceProps(dataSource, newLayer);
     }

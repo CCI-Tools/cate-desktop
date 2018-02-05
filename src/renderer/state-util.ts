@@ -10,6 +10,7 @@ import {isNumber, isString} from "../common/types";
 import {EMPTY_ARRAY} from "./selectors";
 import * as Cesium from "cesium";
 import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
+import {SIMPLE_STYLE_DEFAULTS} from "./cesium-util";
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 export const COUNTRIES_LAYER_ID = 'countries';
@@ -197,6 +198,7 @@ function newInitialWorldViewData(): WorldViewDataState {
                 name: 'Countries',
                 type: 'Vector',
                 visible: false,
+                style: SIMPLE_STYLE_DEFAULTS,
             },
             {
                 id: PLACEMARKS_LAYER_ID,

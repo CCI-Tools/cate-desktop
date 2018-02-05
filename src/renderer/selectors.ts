@@ -711,7 +711,7 @@ export const vectorStyleSelector = createSelector<State, SimpleStyle, string, Ve
     entityUpdateCountSelector,
     (vectorStyleMode, selectedVectorLayer, selectedEntity, entityUpdateCount) => {
         if (vectorStyleMode === "layer" && selectedVectorLayer) {
-            return updateConditionally(selectedVectorLayer, SIMPLE_STYLE_DEFAULTS);
+            return updateConditionally(selectedVectorLayer.style || {}, SIMPLE_STYLE_DEFAULTS);
         } else if (vectorStyleMode === "entity" && selectedEntity) {
             return updateConditionally(entityToSimpleStyle(selectedEntity), SIMPLE_STYLE_DEFAULTS);
         } else {

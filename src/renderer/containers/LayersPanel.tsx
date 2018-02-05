@@ -241,9 +241,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private handleChangedVectorStyle(style: SimpleStyle) {
         if (this.props.vectorStyleMode === "layer") {
-            this.props.dispatch(actions.updateLayer(this.props.activeView.id,
-                                                    this.props.selectedVectorLayer,
-                                                    style));
+            this.props.dispatch(actions.updateLayerStyle(this.props.activeView.id,
+                                                         this.props.selectedVectorLayer.id,
+                                                         style));
         } else {
             this.props.dispatch(actions.updateEntityStyle(this.props.activeView,
                                                           this.props.selectedEntity,
@@ -684,6 +684,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                 <NumericField value={this.props.vectorStyle.strokeWidth}
                               style={{flex: 'auto', fontFamily: "courier"}}
                               size={8}
+                              min={0}
                               uncontrolled={true}
                               onChange={this.handleChangedStrokeWidth}
                 />

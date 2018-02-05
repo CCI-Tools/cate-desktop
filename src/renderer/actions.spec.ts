@@ -521,6 +521,47 @@ describe('Actions', () => {
                                                               ]);
         });
 
+        it('updateLayerStyle', () => {
+            dispatch(actions.addLayer(getActiveViewId(), {
+                id: 'layer-1',
+                visible: true,
+                type: "Vector"
+            } as LayerState, false));
+            expect(getActiveView().data.layers).to.deep.equal([
+                                                                  defaultSelectedVariableLayer,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
+                                                                  {id: 'layer-1', visible: true, type: "Vector"},
+                                                              ]);
+            dispatch(actions.updateLayerStyle(getActiveViewId(), 'layer-1', {fill: "#123456", fillOpacity: 0.4}));
+            expect(getActiveView().data.layers).to.deep.equal([
+                                                                  defaultSelectedVariableLayer,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
+                                                                  {
+                                                                      id: 'layer-1', visible: true, type: "Vector",
+                                                                      style: {
+                                                                          fill: "#123456", fillOpacity: 0.4
+                                                                      }
+                                                                  },
+                                                              ]);
+            dispatch(actions.updateLayerStyle(getActiveViewId(), 'layer-1', {stroke: "#3053FF", strokeOpacity: 0.6}));
+            expect(getActiveView().data.layers).to.deep.equal([
+                                                                  defaultSelectedVariableLayer,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
+                                                                  {
+                                                                      id: 'layer-1',
+                                                                      visible: true,
+                                                                      type: "Vector",
+                                                                      style: {
+                                                                          fill: "#123456", fillOpacity: 0.4,
+                                                                          stroke: "#3053FF", strokeOpacity: 0.6,
+                                                                      }
+                                                                  },
+                                                              ]);
+        });
+
         it('setShowSelectedVariableLayer', () => {
             dispatch(actions.setShowSelectedVariableLayer(true));
             expect(getState().session.showSelectedVariableLayer).to.equal(true);
@@ -595,6 +636,11 @@ describe('Actions', () => {
                 type: "Vector"
             };
 
+            dispatch(actions.setCurrentWorkspace(workspace as any));
+            dispatch(actions.addLayer(getActiveViewId(), layer1 as LayerState, false));
+            dispatch(actions.addPlacemark({longitude: 11.8, latitude: 8.4}));
+            const placemarkId = getState().session.placemarkCollection.features[0].id;
+
             let entity1 = {
                 id: "438",
             };
@@ -604,7 +650,7 @@ describe('Actions', () => {
             };
 
             let entity3 = {
-                id: "31-9",
+                id: placemarkId,
             };
 
             let entity4 = {
@@ -636,8 +682,6 @@ describe('Actions', () => {
 
             EXTERNAL_OBJECT_STORE["CesiumGlobe-" + getActiveViewId()] = externalObject;
 
-            dispatch(actions.setCurrentWorkspace(workspace as any));
-            dispatch(actions.addLayer(getActiveViewId(), layer1 as LayerState, false));
 
             const countriesLayerIndex = 1;
             const placemarksLayerIndex = 2;
@@ -662,8 +706,8 @@ describe('Actions', () => {
 
             countryLayer = getActiveView().data.layers[countriesLayerIndex];
             expect(countryLayer.entityStyles).to.exist;
-            expect(countryLayer.entityStyles["438"]).to.exist;
-            expect(countryLayer.entityStyles["438"]).to.deep.equal({
+            expect(countryLayer.entityStyles[entity1.id]).to.exist;
+            expect(countryLayer.entityStyles[entity1.id]).to.deep.equal({
                                                                        fill: "#123456",
                                                                        fillOpacity: 0.3,
                                                                    });
@@ -674,7 +718,7 @@ describe('Actions', () => {
             }));
 
             countryLayer = getActiveView().data.layers[countriesLayerIndex];
-            expect(countryLayer.entityStyles["438"]).to.deep.equal({
+            expect(countryLayer.entityStyles[entity1.id]).to.deep.equal({
                                                                        fill: "#123456",
                                                                        fillOpacity: 0.3,
                                                                        stroke: "#615243",
@@ -687,13 +731,13 @@ describe('Actions', () => {
             }));
 
             countryLayer = getActiveView().data.layers[countriesLayerIndex];
-            expect(countryLayer.entityStyles["438"]).to.deep.equal({
+            expect(countryLayer.entityStyles[entity1.id]).to.deep.equal({
                                                                        fill: "#123456",
                                                                        fillOpacity: 0.3,
                                                                        stroke: "#615243",
                                                                        strokeOpacity: 0.9,
                                                                    });
-            expect(countryLayer.entityStyles["439"]).to.deep.equal({
+            expect(countryLayer.entityStyles[entity2.id]).to.deep.equal({
                                                                        fill: "#112233",
                                                                        fillOpacity: 0.4,
                                                                    });
@@ -704,10 +748,22 @@ describe('Actions', () => {
             }));
 
             placemarksLayer = getActiveView().data.layers[placemarksLayerIndex];
-            expect(placemarksLayer.entityStyles[entity3.id]).to.deep.equal({
-                                                                               fill: "#AFAFAF",
-                                                                               fillOpacity: 0.36,
-                                                                           });
+            expect(placemarksLayer.entityStyles).to.not.exist; // placemark styles go into feature properties
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         id: placemarkId,
+                                                                                         type: "Feature",
+                                                                                         geometry: {
+                                                                                             type: "Point",
+                                                                                             coordinates: [11.8, 8.4],
+                                                                                         },
+                                                                                         properties: {
+                                                                                             visible: true,
+                                                                                             "marker-symbol": "A",
+                                                                                             title: "Placemark A",
+                                                                                             fill: "#AFAFAF",
+                                                                                             fillOpacity: 0.36,
+                                                                                         }
+                                                                                     });
 
             dispatch(actions.updateEntityStyle(getActiveView(), entity5, {
                 fill: "#FF00FF",
@@ -722,6 +778,72 @@ describe('Actions', () => {
         });
     });
 
+    describe('Placemark actions', () => {
+
+        it('updatePlacemarkProperties', () => {
+            dispatch(actions.addPlacemark({longitude: 12.6, latitude: 53.1}));
+            expect(getState().session.placemarkCollection).to.exist;
+            expect(getState().session.placemarkCollection.features.length).to.equal(1);
+            const placemark = getState().session.placemarkCollection.features[0];
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...placemark,
+                                                                                         properties: {
+                                                                                             "marker-symbol": "A",
+                                                                                             title: "Placemark A",
+                                                                                             visible: true,
+                                                                                         }
+                                                                                     });
+            dispatch(actions.updatePlacemarkProperties(placemark.id, {title: "Placemark V"}));
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...placemark,
+                                                                                         properties: {
+                                                                                             "marker-symbol": "V",
+                                                                                             title: "Placemark V",
+                                                                                             visible: true,
+                                                                                         }
+                                                                                     });
+            dispatch(actions.updatePlacemarkProperties(placemark.id, {title: "Bibo"}));
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...placemark,
+                                                                                         properties: {
+                                                                                             "marker-symbol": "B",
+                                                                                             title: "Bibo",
+                                                                                             visible: true,
+                                                                                         }
+                                                                                     });
+            dispatch(actions.updatePlacemarkProperties(placemark.id, {"marker-symbol": "bus"}));
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...placemark,
+                                                                                         properties: {
+                                                                                             "marker-symbol": "bus",
+                                                                                             title: "Bibo",
+                                                                                             visible: true,
+                                                                                         }
+                                                                                     });
+        });
+
+        it('updatePlacemarkGeometry', () => {
+            dispatch(actions.addPlacemark({longitude: 12.6, latitude: 53.1}));
+            expect(getState().session.placemarkCollection).to.exist;
+            expect(getState().session.placemarkCollection.features.length).to.equal(1);
+            const placemark = getState().session.placemarkCollection.features[0];
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...placemark,
+                                                                                         geometry: {
+                                                                                             type: "Point",
+                                                                                             coordinates: [12.6, 53.1],
+                                                                                         }
+                                                                                     });
+            dispatch(actions.updatePlacemarkGeometry(placemark.id, {coordinates: [13.2, 53.1]}));
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...placemark,
+                                                                                         geometry: {
+                                                                                             type: "Point",
+                                                                                             coordinates: [13.2, 53.1],
+                                                                                         }
+                                                                                     });
+        });
+    });
 
     describe('Workspace actions involving layers', () => {
 

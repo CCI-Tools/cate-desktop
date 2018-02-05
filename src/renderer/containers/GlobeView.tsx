@@ -125,6 +125,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     }
 
     handleMouseClicked(position: Cesium.GeographicPosition) {
+        console.warn("handleMouseClicked", position)
         if (this.props.worldViewClickAction === actions.ADD_PLACEMARK && position) {
             this.props.dispatch(actions.addPlacemark(position));
             this.props.dispatch(actions.updateControlState({worldViewClickAction: null}));
