@@ -18,8 +18,9 @@ import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
 import * as Cesium from "cesium";
 import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
-import {entityToSimpleStyle, SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "./cesium-util";
+import {entityToSimpleStyle} from "./cesium-util";
 import {updateConditionally} from "../common/objutil";
+import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../common/geojson-simple-style";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -614,6 +615,7 @@ export const selectedEntityStyleSelector = createSelector<State, SimpleStyle | n
 
 export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
 
+// noinspection JSUnusedLocalSymbols
 export const externalObjectStoreSelector = (state: State) => EXTERNAL_OBJECT_STORE;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -704,6 +706,7 @@ export const selectedVectorLayerSelector = createSelector<State, VectorLayerStat
 
 export const entityUpdateCountSelector = (state: State) => state.control.entityUpdateCount;
 
+// noinspection JSUnusedLocalSymbols
 export const vectorStyleSelector = createSelector<State, SimpleStyle, string, VectorLayerState | null, Cesium.Entity | null, number>(
     vectorStyleModeSelector,
     selectedVectorLayerSelector,

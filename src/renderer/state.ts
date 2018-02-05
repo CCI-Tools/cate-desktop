@@ -4,7 +4,7 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
 import {Feature, FeatureCollection, GeoJsonObject, Point} from "geojson";
 import {IconName} from "@blueprintjs/core";
-import {SimpleStyle} from "./cesium-util";
+import {SimpleStyle} from "../common/geojson-simple-style";
 
 /**
  * Interface describing Cate's application state structure.

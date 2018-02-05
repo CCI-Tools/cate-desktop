@@ -2,7 +2,7 @@ import {
     WorkspaceState, DataStoreState, TaskState, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
-    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, Placemark, MessageState,
+    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState,
 } from "./state";
 import {ViewState, ViewPath} from "./components/ViewState";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi";
@@ -22,8 +22,8 @@ import * as d3 from "d3";
 import * as Cesium from "cesium";
 import {isNumber} from "../common/types";
 import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
-import {applyStyle, SimpleStyle} from "./cesium-util";
 import {DirectGeometryObject} from "geojson";
+import {SimpleStyle} from "../common/geojson-simple-style";
 
 const CANCELLED_CODE = 999;
 
@@ -1286,7 +1286,7 @@ export function updateEntityStyle(view: ViewState<any>, entity: Cesium.Entity, s
                 dispatch(updateEntityStyleImpl(view.id, layer.id, entity.id, style));
             }
         }
-        //dispatch(incEntityUpdateCount());
+        dispatch(incEntityUpdateCount());
         //applyStyle(entity, style);
     };
 }
@@ -1344,7 +1344,6 @@ export const UPDATE_LAYER_STYLE = 'UPDATE_LAYER_STYLE';
 export const MOVE_LAYER_UP = 'MOVE_LAYER_UP';
 export const MOVE_LAYER_DOWN = 'MOVE_LAYER_DOWN';
 export const SAVE_LAYER = 'SAVE_LAYER';
-export const SET_VECTOR_FILL_COLOR = '"SET_VECTOR_FILL_COLOR"';
 
 export function setSelectedLayerId(viewId: string, selectedLayerId: string | null): Action {
     return {type: SET_SELECTED_LAYER_ID, payload: {viewId, selectedLayerId}};

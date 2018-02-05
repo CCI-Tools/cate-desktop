@@ -7,8 +7,8 @@ import {SplitSlider} from "./SplitSlider";
 import * as Cesium from "cesium";
 import {isString} from "../../../common/types";
 import {getEntityByEntityId} from "../../containers/globe-view-layers";
-import {SimpleStyle} from "../../cesium-util";
 import {diff} from "deep-object-diff"
+import {SimpleStyle} from "../../../common/geojson-simple-style";
 
 /**
  * See

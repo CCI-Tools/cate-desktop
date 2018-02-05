@@ -20,9 +20,9 @@ import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {ViewState} from "../components/ViewState";
 import {NO_LAYERS_NO_VIEW, NO_LAYERS_EMPTY_VIEW, NO_LAYER_SELECTED, NO_LAYER_PROPERTIES} from "../messages";
 import * as Cesium from "cesium";
-import {SimpleStyle} from "../cesium-util";
 import {TextField} from "../components/field/TextField";
 import {NumericField} from "../components/field/NumericField";
+import {SimpleStyle} from "../../common/geojson-simple-style";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
