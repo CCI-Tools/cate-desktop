@@ -2,7 +2,7 @@ import {
     VariableState, VariableRefState, ResourceState, LayerState,
     VariableImageLayerState, OperationState, WorldViewDataState,
     TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState, ResourceRefState,
-    ResourceVectorLayerState, State, VectorLayerBase
+    ResourceVectorLayerState, VectorLayerBase
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
@@ -10,7 +10,7 @@ import {isNumber, isString} from "../common/types";
 import {EMPTY_ARRAY} from "./selectors";
 import * as Cesium from "cesium";
 import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
-import {SIMPLE_STYLE_DEFAULTS} from "./cesium-util";
+import {entityToGeometryWKT} from "./cesium-util";
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 export const COUNTRIES_LAYER_ID = 'countries';
@@ -80,10 +80,6 @@ export function isFigureResource(resource: ResourceState | null): boolean {
 
 export function isDataFrameResource(resource: ResourceState | null): boolean {
     return resource && (resource.dataType.endsWith('.DataFrame') || resource.dataType.endsWith('.GeoDataFrame'));
-}
-
-export function isSeriesResource(resource: ResourceState | null): boolean {
-    return resource && (resource.dataType.endsWith('.Series') || resource.dataType.endsWith('.GeoSeries'));
 }
 
 export function getLayerDisplayName(layer: LayerState): string {
@@ -198,7 +194,6 @@ function newInitialWorldViewData(): WorldViewDataState {
                 name: 'Countries',
                 type: 'Vector',
                 visible: false,
-                style: SIMPLE_STYLE_DEFAULTS,
             },
             {
                 id: PLACEMARKS_LAYER_ID,
@@ -503,66 +498,4 @@ export function hasWebGL(): boolean {
     canvas = null;
     context = null;
     return true;
-}
-
-export function entityToGeometryWKT(selectedEntity: Cesium.Entity): string {
-
-    if (selectedEntity.polyline) {
-        const positions = selectedEntity.polyline.positions.getValue(Cesium.JulianDate.now());
-        return `LINESTRING (${cartesian3ArrayToWKT(positions)})`;
-    }
-
-    if (selectedEntity.polygon) {
-        const hierarchy = selectedEntity.polygon.hierarchy.getValue(Cesium.JulianDate.now());
-        const positions = hierarchy.positions;
-        const holes = hierarchy.holes;
-        const exterieur = cartesian3ArrayToWKTArray(positions);
-        if (exterieur.length > 2) {
-            exterieur.push(exterieur[0]);
-        }
-        const linearRings = [`(${exterieur.join(', ')})`];
-        if (holes && holes.length) {
-            for (let hole of holes) {
-                const interieur = cartesian3ArrayToWKTArray(hole.positions);
-                if (interieur.length > 2) {
-                    interieur.push(interieur[0]);
-                }
-                linearRings.push(`(${interieur.join(', ')})`);
-            }
-        }
-        return `POLYGON (${linearRings.join(', ')})`;
-    }
-
-    if (selectedEntity.rectangle) {
-        const coordinates = selectedEntity.rectangle.coordinates.getValue(Cesium.JulianDate.now());
-        const x1 = toDeg(coordinates.west);
-        const y1 = toDeg(coordinates.south);
-        const x2 = toDeg(coordinates.east);
-        const y2 = toDeg(coordinates.north);
-        return `POLYGON ((${x1} ${y1}, ${x2} ${y1}, ${x2} ${y2}, ${x1} ${y2}, ${x1} ${y1}))`;
-    }
-
-    if (selectedEntity.position) {
-        const position = selectedEntity.position.getValue(Cesium.JulianDate.now());
-        return `POINT (${cartesian3ToWKT(position)})`
-    }
-
-    throw new TypeError("can't understand geometry of selected entity");
-}
-
-function cartesian3ArrayToWKTArray(positions: Cesium.Cartesian3[]): string[] {
-    return positions.map(p => cartesian3ToWKT(p));
-}
-
-function cartesian3ArrayToWKT(positions: Cesium.Cartesian3[]): string {
-    return cartesian3ArrayToWKTArray(positions).join(', ');
-}
-
-function cartesian3ToWKT(position: Cesium.Cartesian3): string {
-    const cartographic = Cesium.Cartographic.fromCartesian(position);
-    return `${toDeg(cartographic.longitude)} ${toDeg(cartographic.latitude)}`;
-}
-
-function toDeg(x: number): number {
-    return x * (180. / Math.PI);
 }
