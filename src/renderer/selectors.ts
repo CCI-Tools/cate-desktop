@@ -706,19 +706,24 @@ export const selectedVectorLayerSelector = createSelector<State, VectorLayerStat
 export const entityUpdateCountSelector = (state: State) => state.control.entityUpdateCount;
 
 // noinspection JSUnusedLocalSymbols
-export const vectorStyleSelector = createSelector<State, SimpleStyle, string, VectorLayerState | null, Cesium.Entity | null, number>(
+export const vectorStyleSelector = createSelector<State, SimpleStyle, string, VectorLayerState | null, Placemark | null, Cesium.Entity | null, number>(
     vectorStyleModeSelector,
     selectedVectorLayerSelector,
+    selectedPlacemarkSelector,
     selectedEntitySelector,
     entityUpdateCountSelector,
-    (vectorStyleMode, selectedVectorLayer, selectedEntity, entityUpdateCount) => {
+    (vectorStyleMode, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
         if (vectorStyleMode === "layer" && selectedVectorLayer) {
             return updateConditionally(selectedVectorLayer.style || {}, SIMPLE_STYLE_DEFAULTS);
-        } else if (vectorStyleMode === "entity" && selectedEntity) {
-            return updateConditionally(
-                selectedVectorLayer.entityStyles && selectedVectorLayer.entityStyles[selectedEntity.id],
-                entityToSimpleStyle(selectedEntity),
-                SIMPLE_STYLE_DEFAULTS);
+        } else if (vectorStyleMode === "entity") {
+            if (selectedPlacemark) {
+                return updateConditionally(selectedPlacemark.properties, SIMPLE_STYLE_DEFAULTS);
+            } else if (selectedEntity) {
+                return updateConditionally(
+                    selectedVectorLayer.entityStyles && selectedVectorLayer.entityStyles[selectedEntity.id],
+                    entityToSimpleStyle(selectedEntity),
+                    SIMPLE_STYLE_DEFAULTS);
+            }
         } else {
             return SIMPLE_STYLE_DEFAULTS;
         }
