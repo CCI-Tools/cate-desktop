@@ -110,7 +110,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     private handleChangedPlacemarkName(nameField: FieldValue<string>) {
         const placemark = this.props.selectedPlacemark;
         const name = nameField.value;
-        this.props.dispatch(actions.updatePlacemarkProperties(placemark.id, {title: name}));
+        this.props.dispatch(actions.updatePlacemarkStyle(placemark.id, {title: name}));
     }
 
     private handleChangedPlacemarkPosition(position: GeographicPositionFieldValue) {

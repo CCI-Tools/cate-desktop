@@ -12,16 +12,14 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
     getLockForGetWorkspaceVariableStatistics, EXTERNAL_OBJECT_STORE, getWorldViewSelectedEntity,
-    getWorldViewSelectedGeometryWKTGetter, PLACEMARKS_LAYER_ID,
+    getWorldViewSelectedGeometryWKTGetter, getWorldViewVectorLayerForEntity,
 } from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
 import * as Cesium from "cesium";
 import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
 import {entityToSimpleStyle} from "./components/cesium/cesium-util";
-import {updateConditionally} from "../common/objutil";
-import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../common/geojson-simple-style";
-import * as assert from "../common/assert";
+import {SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties} from "../common/geojson-simple-style";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -599,6 +597,7 @@ export const selectedEntityIdSelector = createSelector<State, string | null, Vie
     }
 );
 
+// noinspection JSUnusedLocalSymbols
 export const selectedEntitySelector = createSelector<State, Cesium.Entity | null, ViewState<any> | null, any>(
     activeViewSelector,
     selectedEntityIdSelector, // we need this to invalidate selector on selection changes in Cesium
@@ -706,27 +705,30 @@ export const selectedVectorLayerSelector = createSelector<State, VectorLayerStat
 export const entityUpdateCountSelector = (state: State) => state.control.entityUpdateCount;
 
 // noinspection JSUnusedLocalSymbols
-export const vectorStyleSelector = createSelector<State, SimpleStyle, string, VectorLayerState | null, Placemark | null, Cesium.Entity | null, number>(
+export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<any>, string, VectorLayerState | null, Placemark | null, Cesium.Entity | null, number>(
+    activeViewSelector,
     vectorStyleModeSelector,
     selectedVectorLayerSelector,
     selectedPlacemarkSelector,
     selectedEntitySelector,
     entityUpdateCountSelector,
-    (vectorStyleMode, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
+    (view: ViewState<any>, vectorStyleMode, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
+        let style;
         if (vectorStyleMode === "layer" && selectedVectorLayer) {
-            return updateConditionally(selectedVectorLayer.style || {}, SIMPLE_STYLE_DEFAULTS);
+            style = selectedVectorLayer.style;
         } else if (vectorStyleMode === "entity") {
             if (selectedPlacemark) {
-                return updateConditionally(selectedPlacemark.properties, SIMPLE_STYLE_DEFAULTS);
+                style = simpleStyleFromFeatureProperties(selectedPlacemark.properties);
             } else if (selectedEntity) {
-                return updateConditionally(
-                    selectedVectorLayer.entityStyles && selectedVectorLayer.entityStyles[selectedEntity.id],
-                    entityToSimpleStyle(selectedEntity),
-                    SIMPLE_STYLE_DEFAULTS);
+                const entityStyle = entityToSimpleStyle(selectedEntity);
+                const vectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
+                const savedEntityStyle = vectorLayer.entityStyles
+                                         && vectorLayer.entityStyles[selectedEntity.id];
+                style = {...entityStyle, ...savedEntityStyle};
             }
-        } else {
-            return SIMPLE_STYLE_DEFAULTS;
         }
+        console.log("vectorStyleSelector: style =", style);
+        return {...SIMPLE_STYLE_DEFAULTS, ...style};
     }
 );
 

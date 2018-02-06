@@ -64,6 +64,7 @@ export const ADD_PLACEMARK = 'ADD_PLACEMARK';
 export const REMOVE_PLACEMARK = 'REMOVE_PLACEMARK';
 export const UPDATE_PLACEMARK_GEOMETRY = 'UPDATE_PLACEMARK_GEOMETRY';
 export const UPDATE_PLACEMARK_PROPERTIES = 'UPDATE_PLACEMARK_PROPERTIES';
+export const UPDATE_PLACEMARK_STYLE = 'UPDATE_PLACEMARK_STYLE';
 
 export function addPlacemark(position?: GeographicPosition): Action {
     return {type: ADD_PLACEMARK, payload: {position}};
@@ -77,8 +78,11 @@ export function updatePlacemarkGeometry(placemarkId: string, geometry: DirectGeo
     return {type: UPDATE_PLACEMARK_GEOMETRY, payload: {placemarkId, geometry}};
 }
 
-export function updatePlacemarkProperties(placemarkId: string, properties: SimpleStyle | any): Action {
+export function updatePlacemarkProperties(placemarkId: string, properties: any): Action {
     return {type: UPDATE_PLACEMARK_PROPERTIES, payload: {placemarkId, properties}};
+}
+export function updatePlacemarkStyle(placemarkId: string, style: SimpleStyle): Action {
+    return {type: UPDATE_PLACEMARK_STYLE, payload: {placemarkId, style}};
 }
 
 export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Action {
@@ -1281,7 +1285,7 @@ export function updateEntityStyle(view: ViewState<any>, entity: Cesium.Entity, s
             if (layer.id === PLACEMARKS_LAYER_ID) {
                 // If this is the placemarks layer, we store the style change in the placemarks (= feature's)
                 // properties: state.session.placemarkCollection.features[entityId].properties = ...style
-                dispatch(updatePlacemarkProperties(entity.id, style));
+                dispatch(updatePlacemarkStyle(entity.id, style));
             } else {
                 // For all other layer we update the layer's entity styles:
                 // properties: state.control.views[viewId].data.layers[layerId].entityStyles[entityId] = style

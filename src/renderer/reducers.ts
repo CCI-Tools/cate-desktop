@@ -1,24 +1,25 @@
+import {combineReducers, Reducer} from 'redux';
+import deepEqual = require("deep-equal");
 import {
-    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
-    LayerState, Placemark, VectorLayerBase
+State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
+LayerState, Placemark, VectorLayerBase
 } from './state';
 import * as actions from './actions';
+import {Action} from "./actions";
 import * as assert from "../common/assert";
-import {combineReducers, Reducer} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
     newWorldView, newTableView, newFigureView, getFigureViewTitle, genPlacemarkId,
-    hasWebGL, isVectorLayer,
+    hasWebGL, isVectorLayer, PLACEMARKS_LAYER,
 } from "./state-util";
 import {
-    removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
-    addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos,
-    addViewToPanel, moveView, selectView
+removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
+addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos,
+addViewToPanel, moveView, selectView
 } from "./components/ViewState";
-import {Action, SET_GLOBE_MOUSE_POSITION, SET_GLOBE_VIEW_POSITION} from "./actions";
 import {isString} from "../common/types";
-import deepEqual = require("deep-equal");
+import {featurePropertiesFromSimpleStyle} from "../common/geojson-simple-style";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -680,8 +681,9 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
                 type: 'Feature',
                 id: genPlacemarkId(),
                 properties: {
-                    title: PLACEMARK_TITLE_PREFIX + letter,
+                    ...featurePropertiesFromSimpleStyle(PLACEMARKS_LAYER.style as any),
                     "marker-symbol": letter,
+                    title: PLACEMARK_TITLE_PREFIX + letter,
                     visible: true,
                 },
                 geometry: {
@@ -734,8 +736,25 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
             const featureIndex = features.findIndex(f => f.id === placemarkId);
             const oldFeature = featureIndex >= 0 && features[featureIndex];
             assert.ok(oldFeature);
-            const oldProperties = oldFeature && oldFeature.properties;
+            const oldProperties = oldFeature && oldFeature.geometry;
             const newProperties = {...oldProperties, ...properties};
+            const newFeature = {...oldFeature, properties: newProperties};
+            if (featureIndex >= 0) {
+                features[featureIndex] = newFeature;
+            } else {
+                features.push(newFeature);
+            }
+            const placemarkCollection = {...state.placemarkCollection, features};
+            return {...state, placemarkCollection};
+        }
+        case actions.UPDATE_PLACEMARK_STYLE: {
+            const {placemarkId, style} = action.payload;
+            const features = state.placemarkCollection.features.slice();
+            const featureIndex = features.findIndex(f => f.id === placemarkId);
+            const oldFeature = featureIndex >= 0 && features[featureIndex];
+            assert.ok(oldFeature);
+            const oldProperties = oldFeature && oldFeature.properties;
+            const newProperties = {...oldProperties, ...featurePropertiesFromSimpleStyle(style)};
             const oldTitle = oldProperties && oldProperties["title"];
             const newTitle = newProperties && newProperties["title"];
             if (newTitle && newTitle !== oldTitle) {
@@ -804,10 +823,10 @@ const initialLocationState: LocationState = {
 
 //noinspection JSUnusedLocalSymbols
 const locationReducer = (state: LocationState = initialLocationState, action: Action) => {
-    if (action.type === SET_GLOBE_MOUSE_POSITION) {
+    if (action.type === actions.SET_GLOBE_MOUSE_POSITION) {
         const globeMousePosition = action.payload.position;
         return {...state, globeMousePosition};
-    } else if (action.type === SET_GLOBE_VIEW_POSITION) {
+    } else if (action.type === actions.SET_GLOBE_VIEW_POSITION) {
         const globeViewPosition = action.payload.position;
         return {...state, globeViewPosition};
     }

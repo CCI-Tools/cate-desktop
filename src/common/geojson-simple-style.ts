@@ -2,6 +2,8 @@
  * GeoJSON "standard" for styling geospatial data that can be shared across clients.
  * See https://github.com/mapbox/simplestyle-spec/tree/master/1.1.0
  */
+import {isDefined} from "./types";
+
 export interface SimpleStyle {
     // OPTIONAL: default ""
     // A title to show when this item is clicked or
@@ -93,3 +95,50 @@ export const SIMPLE_STYLE_DEFAULTS: SimpleStyle = {
     fillOpacity: 0.6
 };
 
+export function simpleStyleFromFeatureProperties(properties: any): SimpleStyle {
+    const styleProperties = {
+        title: properties["title"],
+        description: properties["description"],
+        markerSymbol: properties["marker-symbol"],
+        markerSize: properties["marker-size"],
+        markerColor: properties["marker-color"],
+        stroke: properties["stroke"],
+        strokeOpacity: properties["stroke-opacity"],
+        strokeWidth: properties["stroke-width"],
+        fill: properties["fill"],
+        fillOpacity: properties["fill-opacity"],
+    };
+
+    const simpleStyle = {};
+    for (let p of Object.getOwnPropertyNames(styleProperties)) {
+        if (isDefined(styleProperties[p])) {
+            simpleStyle[p] = styleProperties[p];
+        }
+    }
+
+    return simpleStyle;
+}
+
+export function featurePropertiesFromSimpleStyle(style: SimpleStyle): any {
+    const styleProperties = {
+        "title": style.title,
+        "description": style.description,
+        "marker-symbol": style.markerSymbol,
+        "marker-size": style.markerSize,
+        "marker-color": style.markerColor,
+        "stroke": style.stroke,
+        "stroke-opacity": style.strokeOpacity,
+        "stroke-width": style.strokeWidth,
+        "fill": style.fill,
+        "fill-opacity": style.fillOpacity,
+    };
+
+    const properties = {};
+    for (let p of Object.getOwnPropertyNames(styleProperties)) {
+        if (isDefined(styleProperties[p])) {
+            properties[p] = styleProperties[p];
+        }
+    }
+
+    return properties;
+}

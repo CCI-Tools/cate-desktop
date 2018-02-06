@@ -96,7 +96,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     static readonly SLIDER_DIV_STYLE_05 = {width: '100%', paddingLeft: '0.5em', paddingRight: '0.5em'};
     static readonly SLIDER_DIV_STYLE_15 = {width: '100%', paddingLeft: '1.5em', paddingRight: '1.5em'};
-    static readonly LABEL_STYLE = {width: "6em"};
 
     constructor(props: ILayersPanelProps & DispatchProp<State>) {
         super(props);

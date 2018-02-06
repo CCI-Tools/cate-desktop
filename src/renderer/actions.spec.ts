@@ -749,9 +749,9 @@ describe('Actions', () => {
                                                                                          properties: {
                                                                                              visible: true,
                                                                                              "marker-symbol": "A",
-                                                                                             title: "Placemark A",
-                                                                                             fill: "#AFAFAF",
-                                                                                             fillOpacity: 0.36,
+                                                                                             "title": "Placemark A",
+                                                                                             "fill": "#AFAFAF",
+                                                                                             "fill-opacity": 0.36,
                                                                                          }
                                                                                      });
 
@@ -770,7 +770,7 @@ describe('Actions', () => {
 
     describe('Placemark actions', () => {
 
-        it('updatePlacemarkProperties', () => {
+        it('updatePlacemarkStyle', () => {
             dispatch(actions.addPlacemark({longitude: 12.6, latitude: 53.1}));
             expect(getState().session.placemarkCollection).to.exist;
             expect(getState().session.placemarkCollection.features.length).to.equal(1);
@@ -783,7 +783,7 @@ describe('Actions', () => {
                                                                                              visible: true,
                                                                                          }
                                                                                      });
-            dispatch(actions.updatePlacemarkProperties(placemark.id, {title: "Placemark V"}));
+            dispatch(actions.updatePlacemarkStyle(placemark.id, {title: "Placemark V"}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
                                                                                          ...placemark,
                                                                                          properties: {
@@ -792,7 +792,7 @@ describe('Actions', () => {
                                                                                              visible: true,
                                                                                          }
                                                                                      });
-            dispatch(actions.updatePlacemarkProperties(placemark.id, {title: "Bibo"}));
+            dispatch(actions.updatePlacemarkStyle(placemark.id, {title: "Bibo"}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
                                                                                          ...placemark,
                                                                                          properties: {
@@ -801,7 +801,7 @@ describe('Actions', () => {
                                                                                              visible: true,
                                                                                          }
                                                                                      });
-            dispatch(actions.updatePlacemarkProperties(placemark.id, {"marker-symbol": "bus"}));
+            dispatch(actions.updatePlacemarkStyle(placemark.id, {markerSymbol: "bus"}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
                                                                                          ...placemark,
                                                                                          properties: {
