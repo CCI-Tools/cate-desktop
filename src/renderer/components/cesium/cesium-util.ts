@@ -17,9 +17,15 @@ export interface CesiumSimpleStyle {
     description?: string;
 }
 
-const MARKER_SIZE_SMALL = 32;
+const MARKER_SIZE_SMALL = 24;
 const MARKER_SIZE_MEDIUM = 48;
 const MARKER_SIZE_LARGE = 64;
+
+const MARKER_SIZES = {
+    small: MARKER_SIZE_SMALL,
+    medium: MARKER_SIZE_MEDIUM,
+    large: MARKER_SIZE_LARGE,
+};
 
 export function simpleStyleToCesium(style: SimpleStyle, defaults?: SimpleStyle): CesiumSimpleStyle {
     const cStyle: CesiumSimpleStyle = {};
@@ -51,21 +57,21 @@ export function simpleStyleToCesium(style: SimpleStyle, defaults?: SimpleStyle):
         const markerSymbol = getString("markerSymbol", style, defaults, SIMPLE_STYLE_DEFAULTS);
         const markerColor = getString("markerColor", style, defaults, SIMPLE_STYLE_DEFAULTS);
         const color = Cesium.Color.fromCssColorString(markerColor);
-        const size = markerSize === "small" ? MARKER_SIZE_SMALL : markerSize === "large" ? MARKER_SIZE_LARGE : MARKER_SIZE_MEDIUM;
+        const size = MARKER_SIZES[markerSize] || MARKER_SIZE_MEDIUM;
         const pinBuilder = new Cesium.PinBuilder();
-        let markerCanvas;
         if (markerSymbol === "") {
-            markerCanvas = pinBuilder.fromColor(color, size);
+            cStyle.markerCanvas = pinBuilder.fromColor(color, size);
         } else if (markerSymbol.length === 1) {
-            markerCanvas = pinBuilder.fromText(markerSymbol, color, size);
             cStyle.markerSymbol = markerSymbol;
+            cStyle.markerCanvas = pinBuilder.fromText(markerSymbol, color, size);
         } else {
-            markerCanvas = pinBuilder.fromMakiIconId(markerSymbol, color, size);
             cStyle.markerSymbol = markerSymbol;
+            Promise.resolve(pinBuilder.fromMakiIconId(markerSymbol, color, size)).then((markerCanvas) => {
+                cStyle.markerCanvas = markerCanvas;
+            });
         }
         cStyle.markerSize = size;
         cStyle.markerColor = color;
-        cStyle.markerCanvas = markerCanvas;
     }
 
     if (isString(style.title)) {
