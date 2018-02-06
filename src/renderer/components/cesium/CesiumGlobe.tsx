@@ -1,15 +1,17 @@
 import * as React from 'react';
-import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
-import {arrayDiff} from "../../../common/array-diff";
-import * as assert from "../../../common/assert";
-import {Feature, FeatureCollection, Point} from "geojson";
-import {SplitSlider} from "./SplitSlider";
 import * as Cesium from "cesium";
-import {isString} from "../../../common/types";
-import {getEntityByEntityId} from "../../containers/globe-view-layers";
 import {diff} from "deep-object-diff"
+import {Feature, FeatureCollection, Point} from "geojson";
+import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
+import * as assert from "../../../common/assert";
+import {isString} from "../../../common/types";
+import {arrayDiff} from "../../../common/array-diff";
 import {SimpleStyle} from "../../../common/geojson-simple-style";
-import {applyStyleToEntity, applyStyleToEntityCollection, simpleStyleToCesium} from "./cesium-util";
+import {SplitSlider} from "./SplitSlider";
+import {
+    applyStyleToEntity, applyStyleToEntityCollection, getEntityByEntityId,
+    simpleStyleToCesium
+} from "./cesium-util";
 
 interface Placemark extends Feature<Point> {
     id: string;

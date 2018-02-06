@@ -58,10 +58,11 @@ export function simpleStyleToCesium(style: SimpleStyle, defaults?: SimpleStyle):
             markerCanvas = pinBuilder.fromColor(color, size);
         } else if (markerSymbol.length === 1) {
             markerCanvas = pinBuilder.fromText(markerSymbol, color, size);
+            cStyle.markerSymbol = markerSymbol;
         } else {
             markerCanvas = pinBuilder.fromMakiIconId(markerSymbol, color, size);
+            cStyle.markerSymbol = markerSymbol;
         }
-        cStyle.markerSymbol = markerSymbol;
         cStyle.markerSize = size;
         cStyle.markerColor = color;
         cStyle.markerCanvas = markerCanvas;
@@ -389,6 +390,20 @@ export function entityToGeometryWKT(selectedEntity: Cesium.Entity): string | nul
     }
 
     throw new TypeError("can't understand geometry of selected entity");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Helpers
+
+export function getEntityByEntityId(viewer: Cesium.Viewer, entityId: string | number): Cesium.Entity | null {
+    for (let i = 0; i < viewer.dataSources.length; i++) {
+        const dataSource = viewer.dataSources.get(i);
+        const entity = dataSource.entities.getById(entityId);
+        if (entity) {
+            return entity;
+        }
+    }
+    return null;
 }
 
 function cartesian3ArrayToWKTArray(positions: Cesium.Cartesian3[]): string[] {

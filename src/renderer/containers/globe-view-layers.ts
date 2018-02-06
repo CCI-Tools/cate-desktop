@@ -219,8 +219,8 @@ const createResourceGeoJSONDataSourceImpl: ResourceGeoJSONDataSourceFactory =
                       features.forEach(f => featureMap.set(f.id, f));
 
                       // Style for points symbolizing a more complex geometry
-                      const scaleByDistance = new Cesium.NearFarScalar(2e2, 1.0, 1.0e7, 0.01);
-                      const translucencyByDistance = new Cesium.NearFarScalar(2e2, 1.0, 1.0e7, 0.5);
+                      const scaleByDistance = new Cesium.NearFarScalar(2e2, 1.0, 1e7, 0.1);
+                      const translucencyByDistance = new Cesium.NearFarScalar(2e2, 1.0, 1e7, 0.5);
 
                       customDataSource.entities.suspendEvents();
 
@@ -320,15 +320,4 @@ export function transferEntityGeometry(fromEntity: Cesium.Entity, toEntity: Cesi
             toEntity._simp &= ~0x01;
         }
     }
-}
-
-export function getEntityByEntityId(viewer: Cesium.Viewer, entityId: string | number): Cesium.Entity | null {
-    for (let i = 0; i < viewer.dataSources.length; i++) {
-        const dataSource = viewer.dataSources.get(i);
-        const entity = dataSource.entities.getById(entityId);
-        if (entity) {
-            return entity;
-        }
-    }
-    return null;
 }
