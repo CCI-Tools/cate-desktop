@@ -96,6 +96,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     static readonly SLIDER_DIV_STYLE_05 = {width: '100%', paddingLeft: '0.5em', paddingRight: '0.5em'};
     static readonly SLIDER_DIV_STYLE_15 = {width: '100%', paddingLeft: '1.5em', paddingRight: '1.5em'};
+    static readonly LABEL_STYLE = {width: "6em"};
 
     constructor(props: ILayersPanelProps & DispatchProp<State>) {
         super(props);
@@ -118,6 +119,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.handleChangedStrokeWidth = this.handleChangedStrokeWidth.bind(this);
         this.handleChangedStrokeColor = this.handleChangedStrokeColor.bind(this);
         this.handleChangedStrokeOpacity = this.handleChangedStrokeOpacity.bind(this);
+        this.handleChangedMarkerColor = this.handleChangedMarkerColor.bind(this);
+        this.handleChangedMarkerSize = this.handleChangedMarkerSize.bind(this);
+        this.handleChangedMarkerSymbol = this.handleChangedMarkerSymbol.bind(this);
         this.renderLayerItem = this.renderLayerItem.bind(this);
     }
 
@@ -233,6 +237,18 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private handleChangedStrokeOpacity(strokeOpacity: number) {
         this.handleChangedVectorStyle({...this.props.vectorStyle, strokeOpacity});
+    }
+
+    private handleChangedMarkerSize(event) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, markerSize: event.target.value});
+    }
+
+    private handleChangedMarkerColor(value: FieldValue<string>) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, markerColor: value.value});
+    }
+
+    private handleChangedMarkerSymbol(value: FieldValue<string>) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, markerSymbol: value.value});
     }
 
     private handleChangedVectorStyle(style: SimpleStyle) {
@@ -609,6 +625,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                 {this.renderStrokeWidth()}
                 {this.renderStrokeColor()}
                 {this.renderStrokeOpacity()}
+                {this.renderMarkerColor()}
+                {this.renderMarkerSize()}
+                {this.renderMarkerSymbol()}
             </div>
         );
     }
@@ -644,7 +663,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderFillColor() {
         return (
-            <label key="fillColor" className="pt-label">
+            <label className="pt-label pt-inline">
                 Fill colour
                 <TextField value={this.props.vectorStyle.fill}
                            style={{flex: 'auto', fontFamily: "courier"}}
@@ -658,25 +677,23 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderFillOpacity() {
         return (
-            <label key={"fillOpacity"} className="pt-label">
+            <label className="pt-label pt-inline">
                 Fill opacity
-                <div style={LayersPanel.SLIDER_DIV_STYLE_15}>
-                    <Slider min={0.0}
-                            max={1.0}
-                            stepSize={0.05}
-                            labelStepSize={0.25}
-                            value={this.props.vectorStyle.fillOpacity}
-                            onChange={this.handleChangedFillOpacity}
-                    />
-                </div>
+                <Slider min={0.0}
+                        max={1.0}
+                        stepSize={0.05}
+                        labelStepSize={0.25}
+                        value={this.props.vectorStyle.fillOpacity}
+                        onChange={this.handleChangedFillOpacity}
+                />
             </label>
         );
     }
 
     private renderStrokeWidth() {
         return (
-            <label key="strokeWidth" className="pt-label">
-                Stroke colour
+            <label className="pt-label pt-inline">
+                Stroke width
                 <NumericField value={this.props.vectorStyle.strokeWidth}
                               style={{flex: 'auto', fontFamily: "courier"}}
                               size={8}
@@ -690,7 +707,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderStrokeColor() {
         return (
-            <label key="strokeColor" className="pt-label">
+            <label className="pt-label pt-inline">
                 Stroke colour
                 <TextField value={this.props.vectorStyle.stroke}
                            style={{flex: 'auto', fontFamily: "courier"}}
@@ -704,17 +721,59 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderStrokeOpacity() {
         return (
-            <label key={"strokeOpacity"} className="pt-label">
+            <label className="pt-label pt-inline">
                 Stroke opacity
-                <div style={LayersPanel.SLIDER_DIV_STYLE_15}>
-                    <Slider min={0.0}
-                            max={1.0}
-                            stepSize={0.05}
-                            labelStepSize={0.25}
-                            value={this.props.vectorStyle.strokeOpacity}
-                            onChange={this.handleChangedStrokeOpacity}
-                    />
+                <Slider min={0.0}
+                        max={1.0}
+                        stepSize={0.05}
+                        labelStepSize={0.25}
+                        value={this.props.vectorStyle.strokeOpacity}
+                        onChange={this.handleChangedStrokeOpacity}
+                />
+            </label>
+        );
+    }
+
+    private renderMarkerColor() {
+        return (
+            <label className="pt-label pt-inline">
+                Marker colour
+                <TextField value={this.props.vectorStyle.markerColor}
+                           style={{flex: 'auto', fontFamily: "courier"}}
+                           size={8}
+                           uncontrolled={true}
+                           onChange={this.handleChangedMarkerColor}
+                />
+            </label>
+        );
+    }
+
+    private renderMarkerSize() {
+        return (
+            <label className="pt-label pt-inline">
+                Marker size
+                <div className="pt-select">
+                    <select value={this.props.vectorStyle.markerSize}
+                            onChange={this.handleChangedMarkerSize}>
+                        <option value="small">Small</option>
+                        <option value="medium">Medium</option>
+                        <option value="large">Large</option>
+                    </select>
                 </div>
+            </label>
+        );
+    }
+
+    private renderMarkerSymbol() {
+        return (
+            <label className="pt-label pt-inline">
+                Marker symbol
+                <TextField value={this.props.vectorStyle.markerSymbol}
+                           style={{flex: 'auto', fontFamily: "courier"}}
+                           size={8}
+                           uncontrolled={true}
+                           onChange={this.handleChangedMarkerSymbol}
+                />
             </label>
         );
     }
