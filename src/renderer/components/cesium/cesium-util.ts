@@ -1,10 +1,82 @@
-import {isDefined, isNumber, isString} from "../common/types";
-import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../common/geojson-simple-style";
+import {isDefined, isNumber, isString} from "../../../../app/common/types";
+import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../../../../app/common/geojson-simple-style";
 import * as Cesium from "cesium";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SimpleStyle
 
+export interface CesiumSimpleStyle {
+    markerSymbol?: string;
+    markerColor?: Cesium.Color;
+    markerSize?: number;
+    markerCanvas?: HTMLCanvasElement;
+    stroke?: Cesium.Color;
+    strokeWidth?: number;
+    fill?: Cesium.Color;
+    title?: string;
+    description?: string;
+}
+
+const MARKER_SIZE_SMALL = 32;
+const MARKER_SIZE_MEDIUM = 48;
+const MARKER_SIZE_LARGE = 64;
+
+export function simpleStyleToCesium(style: SimpleStyle, defaults?: SimpleStyle): CesiumSimpleStyle {
+    const cStyle: CesiumSimpleStyle = {};
+
+    if (isString(style.stroke) || isNumber(style.strokeOpacity) || isNumber(style.strokeWidth)) {
+        const stroke = getString("stroke", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        let color = Cesium.Color.fromCssColorString(stroke);
+        const strokeWidth = getNumber("strokeWidth", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const strokeOpacity = getNumber("strokeOpacity", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        if (strokeOpacity >= 0.0 && strokeOpacity < 1.0) {
+            color = Cesium.Color.fromAlpha(color, strokeOpacity);
+        }
+        cStyle.stroke = color;
+        cStyle.strokeWidth = strokeWidth;
+    }
+
+    if (isString(style.fill) || isNumber(style.fillOpacity)) {
+        const fill = getString("fill", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        let color = Cesium.Color.fromCssColorString(fill);
+        const fillOpacity = getNumber("fillOpacity", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        if (fillOpacity >= 0.0 && fillOpacity < 1.0) {
+            color = Cesium.Color.fromAlpha(color, fillOpacity);
+        }
+        cStyle.fill = color;
+    }
+
+    if (isString(style.markerSymbol) || isString(style.markerColor) || isNumber(style.markerSize)) {
+        const markerSize = getString("markerSize", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const markerSymbol = getString("markerSymbol", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const markerColor = getString("markerColor", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const color = Cesium.Color.fromCssColorString(markerColor);
+        const size = markerSize === "small" ? MARKER_SIZE_SMALL : markerSize === "large" ? MARKER_SIZE_LARGE : MARKER_SIZE_MEDIUM;
+        const pinBuilder = new Cesium.PinBuilder();
+        let markerCanvas;
+        if (markerSymbol === "") {
+            markerCanvas = pinBuilder.fromColor(color, size);
+        } else if (markerSymbol.length === 1) {
+            markerCanvas = pinBuilder.fromText(markerSymbol, color, size);
+        } else {
+            markerCanvas = pinBuilder.fromMakiIconId(markerSymbol, color, size);
+        }
+        cStyle.markerSymbol = markerSymbol;
+        cStyle.markerSize = size;
+        cStyle.markerColor = color;
+        cStyle.markerCanvas = markerCanvas;
+    }
+
+    if (isString(style.title)) {
+        cStyle.title = style.title;
+    }
+
+    if (isString(style.description)) {
+        cStyle.description = style.description;
+    }
+
+    return cStyle;
+}
 
 export function entityToSimpleStyle(entity: Cesium.Entity | null): SimpleStyle | null {
     if (!entity) {
@@ -23,36 +95,31 @@ export function entityToSimpleStyle(entity: Cesium.Entity | null): SimpleStyle |
     return null;
 }
 
-export function applyStyle(entity: Cesium.Entity, style: SimpleStyle): void {
+export function applyStyleToEntityCollection(style: CesiumSimpleStyle, entities: Cesium.Entity[]): void {
+    for (let entity of entities) {
+        applyStyleToEntity(style, entity);
+    }
+}
+
+export function applyStyleToEntity(style: CesiumSimpleStyle, entity: Cesium.Entity): void {
     if (entity.point) {
         const point = entity.point;
-        if (style.markerColor) {
+        if (isDefined(style.markerColor)) {
             point.color = Cesium.Color.fromCssColorString(style.markerColor);
         }
-        if (style.markerSize) {
-            if (style.markerSize === "small") {
-                point.pixelSize = 8;
-            } else if (style.markerSize === "medium") {
-                point.pixelSize = 16;
-            } else {
-                point.pixelSize = 32;
-            }
+        if (isNumber(style.markerSize)) {
+            point.pixelSize = 16 * (style.markerSize / MARKER_SIZE_SMALL);
         }
     } else if (entity.billboard) {
         const billboard = entity.billboard;
-        if (style.markerSymbol) {
-            billboard.image = style.markerSymbol;
-        }
-        if (style.markerColor) {
-            billboard.color = Cesium.Color.fromCssColorString(style.markerColor);
-        }
-        if (style.markerSize) {
-            if (style.markerSize === "small") {
-                billboard.scale = 0.5;
-            } else if (style.markerSize === "medium") {
-                billboard.scale = 1.0;
-            } else {
-                billboard.scale = 2.0;
+        if (isDefined(style.markerCanvas)) {
+            billboard.image = style.markerCanvas;
+        } else {
+            if (isDefined(style.markerColor)) {
+                billboard.color = style.markerColor;
+            }
+            if (isNumber(style.markerSize)) {
+                billboard.scale = style.markerSize / MARKER_SIZE_MEDIUM;
             }
         }
     } else if (entity.label) {
@@ -61,60 +128,27 @@ export function applyStyle(entity: Cesium.Entity, style: SimpleStyle): void {
             label.text = style.title;
         }
         if (isDefined(style.markerColor)) {
-            label.color = Cesium.Color.fromCssColorString(style.markerColor);
+            label.color = style.markerColor;
         }
-        if (isDefined(style.markerSize)) {
-            if (style.markerSize === "small") {
-                label.scale = 0.5;
-            } else if (style.markerSize === "medium") {
-                label.scale = 1.0;
-            } else {
-                label.scale = 2.0;
-            }
+        if (isNumber(style.markerSize)) {
+            label.scale = style.markerSize / MARKER_SIZE_MEDIUM;
         }
     } else if (entity.polyline) {
         const polyline = entity.polyline;
         if (isDefined(style.stroke)) {
-            let alpha = 1.0;
-            if (isNumber(style.strokeOpacity)) {
-                alpha = style.strokeOpacity;
-            }
-            let color = Cesium.Color.fromCssColorString(style.stroke);
-            if (alpha < 1) {
-                color = color.withAlpha(alpha);
-            }
-            polyline.material = color;
+            polyline.material = style.stroke;
         }
-        if (isDefined(style.strokeWidth)) {
+        if (isNumber(style.strokeWidth)) {
             polyline.width = style.strokeWidth;
         }
     } else if (entity.polygon) {
         const polygon = entity.polygon;
-
         if (isDefined(style.fill)) {
-            let alpha = 1.0;
-            if (isNumber(style.fillOpacity)) {
-                alpha = style.fillOpacity;
-            }
-            let color = Cesium.Color.fromCssColorString(style.fill);
-            if (alpha < 1) {
-                color = color.withAlpha(alpha);
-            }
-            polygon.material = color;
+            polygon.material = style.fill;
         }
-
         if (isDefined(style.stroke)) {
-            let alpha = 1.0;
-            if (isNumber(style.strokeOpacity)) {
-                alpha = style.strokeOpacity;
-            }
-            let color = Cesium.Color.fromCssColorString(style.stroke);
-            if (alpha < 1) {
-                color = color.withAlpha(alpha);
-            }
-            polygon.outlineColor = color;
+            polygon.outlineColor = style.stroke;
         }
-
         if (isNumber(style.strokeWidth)) {
             polygon.outlineWidth = style.strokeWidth;
         }
@@ -373,3 +407,23 @@ function cartesian3ToWKT(position: Cesium.Cartesian3): string {
 function toDeg(x: number): number {
     return x * (180. / Math.PI);
 }
+
+function _getValue(key: string, predicate: (object: any) => boolean, objects: any[]) {
+    for (let o of objects) {
+        if (o) {
+            const v = o[key];
+            if (predicate(v)) {
+                return v;
+            }
+        }
+    }
+}
+
+function getNumber(key, ...objects) {
+    return _getValue(key, isNumber, objects);
+}
+
+function getString(key, ...objects) {
+    return _getValue(key, isString, objects);
+}
+

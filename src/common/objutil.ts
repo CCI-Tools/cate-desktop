@@ -4,7 +4,7 @@
  * @author Norman Fomferra
  */
 
-import {isUndefined} from "./types";
+import {isDefined, isUndefined} from "./types";
 
 /**
  * Encapsulate the idea of passing a new object as the first parameter
@@ -40,11 +40,13 @@ export function updatePropertyObject(target, propertyName: string, newValue) {
  * @returns a new {Object}
  */
 export function updateConditionally(target, ...sources) {
-    target = updateObject(target);
+    target = {...target};
     for (let source of sources) {
-        for (let name of Object.keys(source)) {
-            if (isUndefined(target[name])) {
-                target[name] = source[name];
+        if (isDefined(source)) {
+            for (let name of Object.keys(source)) {
+                if (isUndefined(target[name])) {
+                    target[name] = source[name];
+                }
             }
         }
     }

@@ -4,7 +4,10 @@ import {stateReducer} from './reducers';
 import thunk from 'redux-thunk'
 import {LayerState, ResourceState, State, VariableState} from "./state";
 import {should, expect} from 'chai';
-import {SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, PLACEMARKS_LAYER_ID, EXTERNAL_OBJECT_STORE} from "./state-util";
+import {
+    SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, PLACEMARKS_LAYER_ID, EXTERNAL_OBJECT_STORE,
+    PLACEMARKS_LAYER, COUNTRIES_LAYER, SELECTED_VARIABLE_LAYER
+} from "./state-util";
 
 should();
 
@@ -27,25 +30,9 @@ describe('Actions', () => {
         store.dispatch(action);
     };
 
-    const defaultSelectedVariableLayer = {
-        id: SELECTED_VARIABLE_LAYER_ID,
-        type: 'Unknown',
-        visible: true,
-    };
-
-    const defaultCountriesLayer = {
-        id: COUNTRIES_LAYER_ID,
-        name: "Countries",
-        type: "Vector",
-        visible: false,
-    };
-
-    const defaultPlacemarkLayer = {
-        id: PLACEMARKS_LAYER_ID,
-        name: "Placemarks",
-        type: "Vector",
-        visible: true,
-    };
+    const defaultSelectedVariableLayer = {...SELECTED_VARIABLE_LAYER};
+    const defaultCountriesLayer = {...COUNTRIES_LAYER};
+    const defaultPlacemarkLayer = {...PLACEMARKS_LAYER};
 
     beforeEach(function () {
         const middleware = applyMiddleware(thunk);
@@ -599,10 +586,12 @@ describe('Actions', () => {
                     this.values = values;
                 }
 
+                // noinspection JSUnusedGlobalSymbols
                 get(i: number) {
                     return this.values[i];
                 }
 
+                // noinspection JSUnusedGlobalSymbols
                 contains(entity) {
                     return this.values.indexOf(entity) >= 0;
                 }
@@ -669,6 +658,7 @@ describe('Actions', () => {
                 dataSources: new DataSourceCollection([countriesDataSource, placemarksDataSource, userDataSource]),
             };
 
+            // noinspection UnnecessaryLocalVariableJS
             const externalObject = {
                 object: cesiumViewer,
                 state: {
@@ -878,23 +868,9 @@ describe('Actions', () => {
             dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
             expect(getActiveView().data.layers).to.deep.equal(
                 [
-                    {
-                        id: SELECTED_VARIABLE_LAYER_ID,
-                        visible: true,
-                        type: "Unknown"
-                    },
-                    {
-                        id: COUNTRIES_LAYER_ID,
-                        visible: false,
-                        type: "Vector",
-                        name: 'Countries'
-                    },
-                    {
-                        id: PLACEMARKS_LAYER_ID,
-                        visible: true,
-                        type: "Vector",
-                        name: 'Placemarks'
-                    },
+                    {...SELECTED_VARIABLE_LAYER},
+                    {...COUNTRIES_LAYER},
+                    {...PLACEMARKS_LAYER},
                     {id: 'L1', resId: 1, resName: 'res_1', varName: 'X'},
                     {id: 'L2', resId: 2, resName: 'bert', varName: 'X'},
                 ]);

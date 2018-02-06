@@ -27,7 +27,6 @@ interface IVariablesPanelProps {
     activeViewType: string;
     savedLayers: SavedLayers;
     selectedPlacemark: Placemark | null;
-    selectedEntityId: any | null;
     selectedEntity: Cesium.Entity | null;
 }
 
@@ -44,7 +43,6 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         activeViewType: selectors.activeViewTypeSelector(state),
         savedLayers: selectors.savedLayersSelector(state),
         selectedPlacemark: selectors.selectedPlacemarkSelector(state),
-        selectedEntityId: selectors.selectedEntityIdSelector(state),
         selectedEntity: selectors.selectedEntitySelector(state),
     }
 }

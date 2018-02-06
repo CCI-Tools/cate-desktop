@@ -12,15 +12,16 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
     getLockForGetWorkspaceVariableStatistics, EXTERNAL_OBJECT_STORE, getWorldViewSelectedEntity,
-    getWorldViewSelectedGeometryWKTGetter,
+    getWorldViewSelectedGeometryWKTGetter, PLACEMARKS_LAYER_ID,
 } from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
 import * as Cesium from "cesium";
 import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
-import {entityToSimpleStyle} from "./cesium-util";
+import {entityToSimpleStyle} from "./components/cesium/cesium-util";
 import {updateConditionally} from "../common/objutil";
 import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../common/geojson-simple-style";
+import * as assert from "../common/assert";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -598,19 +599,17 @@ export const selectedEntityIdSelector = createSelector<State, string | null, Vie
     }
 );
 
-export const selectedEntitySelector = createSelector<State, Cesium.Entity | null, ViewState<any> | null>(
+export const selectedEntitySelector = createSelector<State, Cesium.Entity | null, ViewState<any> | null, any>(
     activeViewSelector,
-    getWorldViewSelectedEntity
+    selectedEntityIdSelector, // we need this to invalidate selector on selection changes in Cesium
+    (view: ViewState<any>, unusedEntityId: any) => {
+        return getWorldViewSelectedEntity(view);
+    }
 );
 
 export const selectedGeometryWKTGetterSelector = createSelector<State, GeometryWKTGetter, ViewState<any> | null>(
     activeViewSelector,
     getWorldViewSelectedGeometryWKTGetter
-);
-
-export const selectedEntityStyleSelector = createSelector<State, SimpleStyle | null, Cesium.Entity | null>(
-    selectedEntitySelector,
-    entityToSimpleStyle
 );
 
 export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
@@ -716,14 +715,15 @@ export const vectorStyleSelector = createSelector<State, SimpleStyle, string, Ve
         if (vectorStyleMode === "layer" && selectedVectorLayer) {
             return updateConditionally(selectedVectorLayer.style || {}, SIMPLE_STYLE_DEFAULTS);
         } else if (vectorStyleMode === "entity" && selectedEntity) {
-            return updateConditionally(entityToSimpleStyle(selectedEntity), SIMPLE_STYLE_DEFAULTS);
+            return updateConditionally(
+                selectedVectorLayer.entityStyles && selectedVectorLayer.entityStyles[selectedEntity.id],
+                entityToSimpleStyle(selectedEntity),
+                SIMPLE_STYLE_DEFAULTS);
         } else {
             return SIMPLE_STYLE_DEFAULTS;
         }
     }
 );
-
-
 
 export const selectedResourceVectorLayerSelector = createSelector<State, ResourceVectorLayerState | null,
     LayerState | null>(

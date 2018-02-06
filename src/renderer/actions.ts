@@ -20,7 +20,7 @@ import {showToast} from "./toast";
 import * as redux from "redux";
 import * as d3 from "d3";
 import * as Cesium from "cesium";
-import {isNumber} from "../common/types";
+import {isDefined, isNumber} from "../common/types";
 import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
 import {DirectGeometryObject} from "geojson";
 import {SimpleStyle} from "../common/geojson-simple-style";
@@ -1236,10 +1236,12 @@ export function setSelectedLayerSplitPos(viewId: string, selectedLayerSplitPos: 
     return {type: SET_SELECTED_LAYER_SPLIT_POS, payload: {viewId, selectedLayerSplitPos}};
 }
 
-export function notifySelectedEntityChange(viewId: string, selectedEntity: Cesium.Entity | null): ThunkAction {
+export function notifySelectedEntityChange(viewId: string, layer: LayerState | null, selectedEntity: Cesium.Entity | null): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
+
         const selectedEntityId = selectedEntity && selectedEntity.id;
-        dispatch(setSelectedEntityId(viewId, selectedEntityId || null));
+        dispatch(setSelectedEntityId(viewId, isDefined(selectedEntityId) ? selectedEntityId : null));
+
         if (selectedEntity
             && isNumber(selectedEntity._simp)
             && isNumber(selectedEntity._resId)) {
@@ -1250,11 +1252,11 @@ export function notifySelectedEntityChange(viewId: string, selectedEntity: Cesiu
                     const resId = selectedEntity._resId;
                     const baseUrl = selectors.webAPIRestUrlSelector(getState());
                     const baseDir = workspace.baseDir;
-                    // TODO #477 (mz,nf): how can we know that +selectedEntity.id *is really* the feature index
+                    // TODO #477 (nf): how can we know that +selectedEntity.id *is really* the feature index
                     // within the collection?
                     const featureIndex = +selectedEntity.id;
                     const featureUrl = getFeatureUrl(baseUrl, baseDir, {resId}, featureIndex);
-                    reloadEntityWithOriginalGeometry(selectedEntity, featureUrl);
+                    reloadEntityWithOriginalGeometry(selectedEntity, featureUrl, (layer as any).style);
                 }
             }
         }
@@ -1287,7 +1289,6 @@ export function updateEntityStyle(view: ViewState<any>, entity: Cesium.Entity, s
             }
         }
         dispatch(incEntityUpdateCount());
-        //applyStyle(entity, style);
     };
 }
 

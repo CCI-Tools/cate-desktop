@@ -24,6 +24,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     offlineMode: boolean;
     worldViewClickAction: string | null;
     placemarks: PlacemarkCollection;
+    selectedLayer: LayerState | null;
     selectedLayerId: string | null;
     selectedPlacemarkId: string | null;
     isDialogOpen: boolean;
@@ -41,6 +42,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         offlineMode: selectors.offlineModeSelector(state),
         worldViewClickAction: state.control.worldViewClickAction,
         placemarks: selectors.placemarkCollectionSelector(state),
+        selectedLayer: selectors.selectedLayerSelector(state),
         selectedLayerId: selectors.selectedLayerIdSelector(state),
         selectedPlacemarkId: selectors.selectedPlacemarkIdSelector(state),
         isDialogOpen: selectors.isDialogOpenSelector(state),
@@ -125,7 +127,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     }
 
     handleMouseClicked(position: Cesium.GeographicPosition) {
-        console.warn("handleMouseClicked", position)
+        //console.warn("handleMouseClicked", position);
         if (this.props.worldViewClickAction === actions.ADD_PLACEMARK && position) {
             this.props.dispatch(actions.addPlacemark(position));
             this.props.dispatch(actions.updateControlState({worldViewClickAction: null}));
@@ -137,7 +139,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     }
 
     handleSelectedEntityChanged(selectedEntity: Cesium.Entity | null) {
-        this.props.dispatch(actions.notifySelectedEntityChange(this.props.view.id, selectedEntity));
+        this.props.dispatch(actions.notifySelectedEntityChange(this.props.view.id, this.props.selectedLayer, selectedEntity));
     }
 
     handleSplitLayerPosChange(splitLayerPos: number) {
@@ -159,8 +161,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         const workspace = this.props.workspace;
         const resources = (workspace && workspace.resources) || EMPTY_ARRAY;
 
-        // TODO: Note that following local vars descriptors, splitLayerIndex, overlayHtml
-        // could be provided by selectors but there is a dependency on this.props.view which is
+        // TODO (nf): Note that following local vars descriptors, splitLayerIndex, overlayHtml...
+        // ...could be provided by selectors but there is a dependency on this.props.view which is
         // an own component property.
         // May be solved by
         // - https://github.com/reactjs/reselect/blob/master/README.md#accessing-react-props-in-selectors

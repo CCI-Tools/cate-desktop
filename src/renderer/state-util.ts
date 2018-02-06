@@ -10,12 +10,41 @@ import {isNumber, isString} from "../common/types";
 import {EMPTY_ARRAY} from "./selectors";
 import * as Cesium from "cesium";
 import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
-import {entityToGeometryWKT} from "./cesium-util";
+import {entityToGeometryWKT} from "./components/cesium/cesium-util";
+import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../common/geojson-simple-style";
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 export const COUNTRIES_LAYER_ID = 'countries';
 export const PLACEMARKS_LAYER_ID = 'myPlaces';
 
+export const SELECTED_VARIABLE_LAYER = {
+    id: SELECTED_VARIABLE_LAYER_ID,
+    type: 'Unknown',
+    visible: true,
+};
+
+export const COUNTRIES_LAYER = {
+    id: COUNTRIES_LAYER_ID,
+    name: 'Countries',
+    type: 'Vector',
+    visible: false,
+    style: {
+        ...SIMPLE_STYLE_DEFAULTS,
+        fill: "#FFFFFF",
+    },
+};
+
+export const PLACEMARKS_LAYER = {
+    id: PLACEMARKS_LAYER_ID,
+    name: 'Placemarks',
+    type: 'Vector',
+    visible: true,
+    style: {
+        ...SIMPLE_STYLE_DEFAULTS,
+        markerSize: "small",
+        markerColor: "#FF0000"
+    },
+};
 
 export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImageLayerState): string {
     return baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${layer.resId}/{z}/{y}/{x}.png?`
@@ -178,29 +207,14 @@ export function findVariableIndexCoordinates(resources: ResourceState[], ref: Va
     return coords;
 }
 
-
 function newInitialWorldViewData(): WorldViewDataState {
     return {
         viewMode: "3D",
         projectionCode: 'EPSG:4326',
         layers: [
-            {
-                id: SELECTED_VARIABLE_LAYER_ID,
-                type: 'Unknown',
-                visible: true,
-            },
-            {
-                id: COUNTRIES_LAYER_ID,
-                name: 'Countries',
-                type: 'Vector',
-                visible: false,
-            },
-            {
-                id: PLACEMARKS_LAYER_ID,
-                name: 'Placemarks',
-                type: 'Vector',
-                visible: true,
-            },
+            {...SELECTED_VARIABLE_LAYER},
+            {...COUNTRIES_LAYER},
+            {...PLACEMARKS_LAYER},
         ],
         selectedLayerId: SELECTED_VARIABLE_LAYER_ID,
         isSelectedLayerSplit: null,
@@ -334,6 +348,22 @@ export function isVectorLayer(layer: LayerState) {
     return layer.type === "Vector" || layer.type === "ResourceVector";
 }
 
+const STROKE_COLORS = [
+    "#550000",
+    "#005500",
+    "#000055",
+    "#555555",
+];
+
+const FILL_COLORS = [
+    "#FF0000",
+    "#FFA500",
+    "#FFFF00",
+    "#00FF00",
+    "#0000FF",
+    "#FFFFFF",
+];
+
 export function newVariableLayer(resource: ResourceState,
                                  variable: VariableState,
                                  savedLayers?: { [name: string]: LayerState }): LayerState {
@@ -358,6 +388,7 @@ export function newVariableLayer(resource: ResourceState,
         } as VariableImageLayerState;
     } else {
         const restoredLayer = (savedLayers && savedLayers[variable.name]) as ResourceVectorLayerState;
+        const restoredStyle = restoredLayer && restoredLayer.style;
         return {
             ...restoredLayer,
             id: genLayerId(),
@@ -366,6 +397,7 @@ export function newVariableLayer(resource: ResourceState,
             visible: true,
             resId: resource.id,
             resName: resource.name,
+            style: getResourceVectorStyle(resource.id, restoredStyle)
         } as ResourceVectorLayerState;
     }
 }
@@ -393,13 +425,15 @@ export function updateSelectedVariableLayer(selectedLayer: LayerState,
         };
     } else if (spatialVectorVariable) {
         const restoredLayer = (savedLayers && savedLayers[resource.name]) as ResourceVectorLayerState;
+        const restoredStyle = restoredLayer && restoredLayer.style;
         return {
             ...selectedLayer,
             ...restoredLayer,
             type: 'ResourceVector',
             name: `Resource: ${resource.name}`,
             resId: resource.id,
-            resName: resource.name
+            resName: resource.name,
+            style: getResourceVectorStyle(resource.id, restoredStyle)
         } as ResourceVectorLayerState;
     } else {
         return {
@@ -409,6 +443,15 @@ export function updateSelectedVariableLayer(selectedLayer: LayerState,
             visible: selectedLayer.visible,
         } as any;
     }
+}
+
+function getResourceVectorStyle(resourceId: number, restoredStyle: SimpleStyle) {
+    return {
+        ...SIMPLE_STYLE_DEFAULTS,
+        stroke: STROKE_COLORS[resourceId % STROKE_COLORS.length],
+        fill: FILL_COLORS[resourceId % FILL_COLORS.length],
+        ...restoredStyle,
+    };
 }
 
 export function getLockForLoadDataSources(dataStoreId: string) {

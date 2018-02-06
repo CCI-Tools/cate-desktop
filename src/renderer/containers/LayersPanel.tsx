@@ -53,9 +53,7 @@ interface ILayersPanelProps {
     selectedVariableImageLayer: VariableImageLayerState | null;
     selectedVectorLayer: VectorLayerState | null;
     selectedResourceVectorLayer: ResourceVectorLayerState | null;
-    selectedEntityId: string | null;
     selectedEntity: Cesium.Entity | null;
-    selectedEntityStyle: SimpleStyle | null;
     vectorStyleMode: "entity" | "layer";
     showLayerDetails: boolean;
     colorMapCategories: Array<ColorMapCategoryState>;
@@ -78,9 +76,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
         selectedVectorLayer: selectors.selectedVectorLayerSelector(state),
         selectedResourceVectorLayer: selectors.selectedResourceVectorLayerSelector(state),
-        selectedEntityId: selectors.selectedEntityIdSelector(state),
         selectedEntity: selectors.selectedEntitySelector(state),
-        selectedEntityStyle: selectors.selectedEntityStyleSelector(state),
         vectorStyleMode: selectors.vectorStyleModeSelector(state),
         showLayerDetails: state.session.showLayerDetails,
         colorMapCategories: selectors.colorMapCategoriesSelector(state),
