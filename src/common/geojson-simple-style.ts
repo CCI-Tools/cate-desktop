@@ -1,9 +1,9 @@
+import {isDefined} from "./types";
+
 /**
  * GeoJSON "standard" for styling geospatial data that can be shared across clients.
  * See https://github.com/mapbox/simplestyle-spec/tree/master/1.1.0
  */
-import {isDefined} from "./types";
-
 export interface SimpleStyle {
     // OPTIONAL: default ""
     // A title to show when this item is clicked or
