@@ -40,9 +40,10 @@ export const PLACEMARKS_LAYER = {
     type: 'Vector',
     visible: true,
     style: {
-        ...SIMPLE_STYLE_DEFAULTS,
+        title: "",
         markerSize: "small",
-        markerColor: "#FF0000"
+        markerColor: "#FF0000",
+        markerSymbol: "",
     },
 };
 

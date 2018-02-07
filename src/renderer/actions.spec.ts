@@ -8,6 +8,7 @@ import {
     SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, PLACEMARKS_LAYER_ID, EXTERNAL_OBJECT_STORE,
     PLACEMARKS_LAYER, COUNTRIES_LAYER, SELECTED_VARIABLE_LAYER
 } from "./state-util";
+import {ExternalObjectComponent} from "./components/ExternalObjectComponent";
 
 should();
 
@@ -579,6 +580,14 @@ describe('Actions', () => {
         });
 
         it('updateEntityStyle', () => {
+            // Note: this is a rather complex test because updateEntityStyle() need to consider the various
+            // places vector styles are stored:
+            // 1. state.control.views[i].data.layers[j].entityStyles[k]
+            // 2. state.session.placemarkCollection.features[i].properties
+            //
+            // We also need a rather complex test setup to simulate a Cesium component.
+
+            // Cesium.EntityCollection mock
             class EntityCollection {
                 readonly values: any[];
 
@@ -597,6 +606,7 @@ describe('Actions', () => {
                 }
             }
 
+            // Cesium.DataSource mock
             class DataSource {
                 readonly entities: EntityCollection;
 
@@ -605,6 +615,7 @@ describe('Actions', () => {
                 }
             }
 
+            // Cesium.DataSourceCollection mock
             class DataSourceCollection {
                 readonly length: number;
                 private dataSources: DataSource[];
@@ -619,45 +630,67 @@ describe('Actions', () => {
                 }
             }
 
+            // Some user layer
             const layer1 = {
                 id: 'user-layer-1',
                 visible: true,
                 type: "Vector"
             };
 
+            // Prepare test scenario with one user layer and one placemark
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.addLayer(getActiveViewId(), layer1 as LayerState, false));
             dispatch(actions.addPlacemark({longitude: 11.8, latitude: 8.4}));
             const placemarkId = getState().session.placemarkCollection.features[0].id;
+            const expectedPlacemark = {
+                id: placemarkId,
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [11.8, 8.4],
+                },
+                properties: {
+                    visible: true,
+                    "title": "Placemark A",
+                    "marker-symbol": "A",
+                    "marker-size": "small",
+                    "marker-color": "#FF0000",
+                }
+            };
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal(expectedPlacemark);
 
+            // Cesium entity mocks for Country layer
             let entity1 = {
                 id: "438",
             };
-
             let entity2 = {
                 id: "439",
             };
 
+            // Cesium entity mock for Placemarks layer
             let entity3 = {
                 id: placemarkId,
             };
 
+            // Cesium entity mocks for user layer
             let entity4 = {
                 id: 9843,
             };
-
             let entity5 = {
                 id: 9843,
             };
 
+            // Cesium.DataSource mock instances
             const countriesDataSource = new DataSource([entity1, entity2]);
             const placemarksDataSource = new DataSource([entity3]);
             const userDataSource = new DataSource([entity4, entity5]);
 
+            // Cesium.Viewer mock instance
             const cesiumViewer = {
                 dataSources: new DataSourceCollection([countriesDataSource, placemarksDataSource, userDataSource]),
             };
 
+            // ExternalObjectComponent state mock instance
             // noinspection UnnecessaryLocalVariableJS
             const externalObject = {
                 object: cesiumViewer,
@@ -670,8 +703,8 @@ describe('Actions', () => {
                 },
             };
 
+            // Register our Cesium.Viewer mock instance
             EXTERNAL_OBJECT_STORE["CesiumGlobe-" + getActiveViewId()] = externalObject;
-
 
             const countriesLayerIndex = 1;
             const placemarksLayerIndex = 2;
@@ -689,6 +722,8 @@ describe('Actions', () => {
             expect(placemarksLayer.entityStyles).to.not.exist;
             expect(userLayer.entityStyles).to.not.exist;
 
+            // Style change on entity of Countries layer --> change in countryLayer.entityStyles
+            //
             dispatch(actions.updateEntityStyle(getActiveView(), entity1, {
                 fill: "#123456",
                 fillOpacity: 0.3,
@@ -702,6 +737,8 @@ describe('Actions', () => {
                                                                        fillOpacity: 0.3,
                                                                    });
 
+            // Another style change on entity of Countries layer--> change in countryLayer.entityStyles
+            //
             dispatch(actions.updateEntityStyle(getActiveView(), entity1, {
                 stroke: "#615243",
                 strokeOpacity: 0.9,
@@ -715,6 +752,8 @@ describe('Actions', () => {
                                                                        strokeOpacity: 0.9,
                                                                    });
 
+            // Yet another style change on another entity of Countries layer --> change in countryLayer.entityStyles
+            //
             dispatch(actions.updateEntityStyle(getActiveView(), entity2, {
                 fill: "#112233",
                 fillOpacity: 0.4,
@@ -732,29 +771,24 @@ describe('Actions', () => {
                                                                        fillOpacity: 0.4,
                                                                    });
 
+            // Style change on a placemark entity --> change in state.session.placemarkCollection
+            //
             dispatch(actions.updateEntityStyle(getActiveView(), entity3, {
-                fill: "#AFAFAF",
-                fillOpacity: 0.36,
+                markerSize: "large",
+                markerSymbol: "bus",
             }));
 
             placemarksLayer = getActiveView().data.layers[placemarksLayerIndex];
             expect(placemarksLayer.entityStyles).to.not.exist; // placemark styles go into feature properties
-            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
-                                                                                         id: placemarkId,
-                                                                                         type: "Feature",
-                                                                                         geometry: {
-                                                                                             type: "Point",
-                                                                                             coordinates: [11.8, 8.4],
-                                                                                         },
-                                                                                         properties: {
-                                                                                             visible: true,
-                                                                                             "marker-symbol": "A",
-                                                                                             "title": "Placemark A",
-                                                                                             "fill": "#AFAFAF",
-                                                                                             "fill-opacity": 0.36,
-                                                                                         }
-                                                                                     });
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({...expectedPlacemark,
+                                                                                     properties: {
+                                                                                         ...expectedPlacemark.properties,
+                                                                                         "marker-size": "large",
+                                                                                         "marker-symbol": "bus",
+                                                                                     }});
 
+            // Style change on a user entity --> change in userLayer.entityStyles
+            //
             dispatch(actions.updateEntityStyle(getActiveView(), entity5, {
                 fill: "#FF00FF",
                 fillOpacity: 0.21,
@@ -778,36 +812,44 @@ describe('Actions', () => {
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
                                                                                          ...placemark,
                                                                                          properties: {
-                                                                                             "marker-symbol": "A",
-                                                                                             title: "Placemark A",
                                                                                              visible: true,
+                                                                                             "title": "Placemark A",
+                                                                                             "marker-symbol": "A",
+                                                                                             "marker-size": "small",
+                                                                                             "marker-color": "#FF0000",
                                                                                          }
                                                                                      });
             dispatch(actions.updatePlacemarkStyle(placemark.id, {title: "Placemark V"}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
                                                                                          ...placemark,
                                                                                          properties: {
-                                                                                             "marker-symbol": "V",
-                                                                                             title: "Placemark V",
                                                                                              visible: true,
+                                                                                             "title": "Placemark V",
+                                                                                             "marker-symbol": "V",
+                                                                                             "marker-size": "small",
+                                                                                             "marker-color": "#FF0000",
                                                                                          }
                                                                                      });
             dispatch(actions.updatePlacemarkStyle(placemark.id, {title: "Bibo"}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
                                                                                          ...placemark,
                                                                                          properties: {
-                                                                                             "marker-symbol": "B",
-                                                                                             title: "Bibo",
                                                                                              visible: true,
+                                                                                             "title": "Bibo",
+                                                                                             "marker-symbol": "B",
+                                                                                             "marker-size": "small",
+                                                                                             "marker-color": "#FF0000",
                                                                                          }
                                                                                      });
             dispatch(actions.updatePlacemarkStyle(placemark.id, {markerSymbol: "bus"}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
                                                                                          ...placemark,
                                                                                          properties: {
-                                                                                             "marker-symbol": "bus",
-                                                                                             title: "Bibo",
                                                                                              visible: true,
+                                                                                             "title": "Bibo",
+                                                                                             "marker-symbol": "bus",
+                                                                                             "marker-size": "small",
+                                                                                             "marker-color": "#FF0000",
                                                                                          }
                                                                                      });
         });
