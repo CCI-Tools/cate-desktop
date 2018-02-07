@@ -1,5 +1,5 @@
-import {isDefined, isNumber, isString} from "../../../../app/common/types";
-import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../../../../app/common/geojson-simple-style";
+import {isDefined, isNumber, isString} from "../../../common/types";
+import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../../../common/geojson-simple-style";
 import * as Cesium from "cesium";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
