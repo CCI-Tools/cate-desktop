@@ -9,9 +9,10 @@ language: node_js
 node_js:
   - "6"
 
-cache:
-  directories:
-    - node_modules
+# 20180208: build failed with weird syntax errors from "tsc"
+#cache:
+#  directories:
+#    - node_modules
 
 install:
   - npm install

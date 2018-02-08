@@ -8,8 +8,9 @@ environment:
   nodejs_version: "6.9.0"
   apiUrl : "https://ci.appveyor.com/api"
 
-cache:
-  - node_modules -> package.json
+# 20180208: build failed with weird syntax errors from "tsc"
+#cache:
+#  - node_modules -> package.json
 
 install:
   - ps: $apiUrl
