@@ -2,11 +2,11 @@ import * as React from 'react';
 import {connect, DispatchProp} from 'react-redux';
 import {
     State, LayerState, ColorMapCategoryState, ImageLayerState,
-    VariableImageLayerState, VariableState, ResourceState, ColorMapState, ResourceVectorLayerState
+    VariableImageLayerState, VariableState, ResourceState, ColorMapState, ResourceVectorLayerState, VectorLayerState
 } from "../state";
 import {
     AnchorButton, Slider, Popover, Position, PopoverInteractionKind, Switch,
-    RangeSlider, NumberRange, Tooltip
+    RangeSlider, NumberRange, Tooltip, Radio, RadioGroup
 } from "@blueprintjs/core";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import * as actions from "../actions";
@@ -14,11 +14,15 @@ import * as selectors from "../selectors";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {NumericRangeField} from "../components/field/NumericRangeField";
 import LayerSourcesDialog from "./LayerSourcesDialog";
-import {getLayerDisplayName, SELECTED_VARIABLE_LAYER_ID} from "../state-util";
+import {getLayerDisplayName, getLayerTypeIconName, SELECTED_VARIABLE_LAYER_ID} from "../state-util";
 import {FieldValue} from "../components/field/Field";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {ViewState} from "../components/ViewState";
-import {NO_LAYERS_NO_VIEW, NO_LAYERS_EMPTY_VIEW, NO_LAYER_SELECTED} from "../messages";
+import {NO_LAYERS_NO_VIEW, NO_LAYERS_EMPTY_VIEW, NO_LAYER_SELECTED, NO_LAYER_PROPERTIES} from "../messages";
+import * as Cesium from "cesium";
+import {TextField} from "../components/field/TextField";
+import {NumericField} from "../components/field/NumericField";
+import {SimpleStyle} from "../../common/geojson-simple-style";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -47,12 +51,16 @@ interface ILayersPanelProps {
     selectedLayer: LayerState | null;
     selectedImageLayer: ImageLayerState | null;
     selectedVariableImageLayer: VariableImageLayerState | null;
+    selectedVectorLayer: VectorLayerState | null;
     selectedResourceVectorLayer: ResourceVectorLayerState | null;
+    selectedEntity: Cesium.Entity | null;
+    vectorStyleMode: "entity" | "layer";
     showLayerDetails: boolean;
     colorMapCategories: Array<ColorMapCategoryState>;
     selectedColorMap: ColorMapState | null;
     displayMinMax: [number, number];
     isComputingVariableStatistics: boolean;
+    vectorStyle: SimpleStyle;
 }
 
 function mapStateToProps(state: State): ILayersPanelProps {
@@ -66,12 +74,16 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedLayer: selectors.selectedLayerSelector(state),
         selectedImageLayer: selectors.selectedImageLayerSelector(state),
         selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
+        selectedVectorLayer: selectors.selectedVectorLayerSelector(state),
         selectedResourceVectorLayer: selectors.selectedResourceVectorLayerSelector(state),
+        selectedEntity: selectors.selectedEntitySelector(state),
+        vectorStyleMode: selectors.vectorStyleModeSelector(state),
         showLayerDetails: state.session.showLayerDetails,
         colorMapCategories: selectors.colorMapCategoriesSelector(state),
         selectedColorMap: selectors.selectedColorMapSelector(state),
         displayMinMax: selectors.selectedVariableImageLayerDisplayMinMaxSelector(state),
-        isComputingVariableStatistics: selectors.isComputingVariableStatistics(state)
+        isComputingVariableStatistics: selectors.isComputingVariableStatistics(state),
+        vectorStyle: selectors.vectorStyleSelector(state),
     };
 }
 
@@ -100,6 +112,15 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.handleChangedDisplayRange = this.handleChangedDisplayRange.bind(this);
         this.handleChangedDisplayAlphaBlend = this.handleChangedDisplayAlphaBlend.bind(this);
         this.handleChangedColorMapName = this.handleChangedColorMapName.bind(this);
+        this.handleChangedVectorStyleMode = this.handleChangedVectorStyleMode.bind(this);
+        this.handleChangedFillColor = this.handleChangedFillColor.bind(this);
+        this.handleChangedFillOpacity = this.handleChangedFillOpacity.bind(this);
+        this.handleChangedStrokeWidth = this.handleChangedStrokeWidth.bind(this);
+        this.handleChangedStrokeColor = this.handleChangedStrokeColor.bind(this);
+        this.handleChangedStrokeOpacity = this.handleChangedStrokeOpacity.bind(this);
+        this.handleChangedMarkerColor = this.handleChangedMarkerColor.bind(this);
+        this.handleChangedMarkerSize = this.handleChangedMarkerSize.bind(this);
+        this.handleChangedMarkerSymbol = this.handleChangedMarkerSymbol.bind(this);
         this.renderLayerItem = this.renderLayerItem.bind(this);
     }
 
@@ -182,14 +203,63 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             return;
         }
         this.props.dispatch(actions.getWorkspaceVariableStatistics(resource.name, variable.name, imageLayer.varIndex,
-            (statistics) => {
-                return actions.updateLayer(this.props.activeView.id, imageLayer, {
-                    displayMin: statistics.min,
-                    displayMax: statistics.max,
-                    statistics
-                });
-            }
+                                                                   (statistics) => {
+                                                                       return actions.updateLayer(this.props.activeView.id, imageLayer, {
+                                                                           displayMin: statistics.min,
+                                                                           displayMax: statistics.max,
+                                                                           statistics
+                                                                       });
+                                                                   }
         ));
+    }
+
+    private handleChangedVectorStyleMode(event: any) {
+        const vectorStyleMode = event.target.value;
+        this.props.dispatch(actions.setVectorStyleMode(vectorStyleMode));
+    }
+
+    private handleChangedFillColor(value: FieldValue<string>) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, fill: value.value});
+    }
+
+    private handleChangedFillOpacity(fillOpacity: number) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, fillOpacity});
+    }
+
+    private handleChangedStrokeWidth(value: FieldValue<number>) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, strokeWidth: value.value});
+    }
+
+    private handleChangedStrokeColor(value: FieldValue<string>) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, stroke: value.value});
+    }
+
+    private handleChangedStrokeOpacity(strokeOpacity: number) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, strokeOpacity});
+    }
+
+    private handleChangedMarkerSize(event) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, markerSize: event.target.value});
+    }
+
+    private handleChangedMarkerColor(value: FieldValue<string>) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, markerColor: value.value});
+    }
+
+    private handleChangedMarkerSymbol(value: FieldValue<string>) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, markerSymbol: value.value});
+    }
+
+    private handleChangedVectorStyle(style: SimpleStyle) {
+        if (this.props.vectorStyleMode === "layer") {
+            this.props.dispatch(actions.updateLayerStyle(this.props.activeView.id,
+                                                         this.props.selectedVectorLayer.id,
+                                                         style));
+        } else {
+            this.props.dispatch(actions.updateEntityStyle(this.props.activeView,
+                                                          this.props.selectedEntity,
+                                                          style));
+        }
     }
 
     private static getLayerItemKey(layer: LayerState) {
@@ -210,7 +280,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                            this.handleChangedLayerVisibility(layer, event.target.checked)
                        }}
                 />
-                <span style={{marginLeft: "0.5em"}} className="pt-icon-layout-grid"/>
+                <span style={{marginLeft: "0.5em"}} className={getLayerTypeIconName(layer)}/>
                 <span style={{marginLeft: "0.5em"}}>{getLayerDisplayName(layer)}</span>
             </div>
         );
@@ -302,6 +372,16 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             return NO_LAYER_SELECTED;
         }
 
+        if (this.props.selectedImageLayer) {
+            return this.renderImageLayerDetails();
+        } else if (this.props.selectedVectorLayer) {
+            return this.renderVectorLayerDetails();
+        } else {
+            return NO_LAYER_PROPERTIES;
+        }
+    }
+
+    private renderImageLayerDetails() {
         return (
             <div style={{width: '100%'}}>
                 <label key="spacer" className="pt-label"> </label>
@@ -459,7 +539,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         );
     }
 
-
     private renderDisplayRangeSlider() {
         const layer = this.props.selectedVariableImageLayer;
         if (!layer) {
@@ -533,6 +612,169 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             );
         }
         return null;
+    }
+
+    private renderVectorLayerDetails() {
+        return (
+            <div style={{width: '100%'}}>
+                <label key="spacer" className="pt-label"> </label>
+                {this.renderStyleContext()}
+                {this.renderFillColor()}
+                {this.renderFillOpacity()}
+                {this.renderStrokeWidth()}
+                {this.renderStrokeColor()}
+                {this.renderStrokeOpacity()}
+                {this.renderMarkerColor()}
+                {this.renderMarkerSize()}
+                {this.renderMarkerSymbol()}
+            </div>
+        );
+    }
+
+
+    private renderStyleContext() {
+        const selectedVectorLayer = this.props.selectedVectorLayer;
+        const selectedEntity = this.props.selectedEntity;
+        let vectorStyleMode;
+        let disabled = true;
+        if (selectedEntity && selectedVectorLayer) {
+            vectorStyleMode = this.props.vectorStyleMode;
+            disabled = false;
+        } else if (selectedEntity) {
+            vectorStyleMode = "entity";
+        } else if (selectedVectorLayer) {
+            vectorStyleMode = "layer";
+        }
+        return (
+            <RadioGroup
+                key="vectorStyleMode"
+                label="Apply styles to selected"
+                disabled={disabled}
+                inline={true}
+                onChange={this.handleChangedVectorStyleMode}
+                selectedValue={vectorStyleMode}
+            >
+                <Radio label="entity" value="entity"/>
+                <Radio label="layer" value="layer"/>
+            </RadioGroup>
+        );
+    }
+
+    private renderFillColor() {
+        return (
+            <label className="pt-label pt-inline">
+                Fill colour
+                <TextField value={this.props.vectorStyle.fill}
+                           style={{flex: 'auto', fontFamily: "courier"}}
+                           size={8}
+                           uncontrolled={true}
+                           onChange={this.handleChangedFillColor}
+                />
+            </label>
+        );
+    }
+
+    private renderFillOpacity() {
+        return (
+            <label className="pt-label pt-inline">
+                Fill opacity
+                <Slider min={0.0}
+                        max={1.0}
+                        stepSize={0.05}
+                        labelStepSize={0.25}
+                        value={this.props.vectorStyle.fillOpacity}
+                        onChange={this.handleChangedFillOpacity}
+                />
+            </label>
+        );
+    }
+
+    private renderStrokeWidth() {
+        return (
+            <label className="pt-label pt-inline">
+                Stroke width
+                <NumericField value={this.props.vectorStyle.strokeWidth}
+                              style={{flex: 'auto', fontFamily: "courier"}}
+                              size={8}
+                              min={0}
+                              uncontrolled={true}
+                              onChange={this.handleChangedStrokeWidth}
+                />
+            </label>
+        );
+    }
+
+    private renderStrokeColor() {
+        return (
+            <label className="pt-label pt-inline">
+                Stroke colour
+                <TextField value={this.props.vectorStyle.stroke}
+                           style={{flex: 'auto', fontFamily: "courier"}}
+                           size={8}
+                           uncontrolled={true}
+                           onChange={this.handleChangedStrokeColor}
+                />
+            </label>
+        );
+    }
+
+    private renderStrokeOpacity() {
+        return (
+            <label className="pt-label pt-inline">
+                Stroke opacity
+                <Slider min={0.0}
+                        max={1.0}
+                        stepSize={0.05}
+                        labelStepSize={0.25}
+                        value={this.props.vectorStyle.strokeOpacity}
+                        onChange={this.handleChangedStrokeOpacity}
+                />
+            </label>
+        );
+    }
+
+    private renderMarkerColor() {
+        return (
+            <label className="pt-label pt-inline">
+                Marker colour
+                <TextField value={this.props.vectorStyle.markerColor}
+                           style={{flex: 'auto', fontFamily: "courier"}}
+                           size={8}
+                           uncontrolled={true}
+                           onChange={this.handleChangedMarkerColor}
+                />
+            </label>
+        );
+    }
+
+    private renderMarkerSize() {
+        return (
+            <label className="pt-label pt-inline">
+                Marker size
+                <div className="pt-select">
+                    <select value={this.props.vectorStyle.markerSize}
+                            onChange={this.handleChangedMarkerSize}>
+                        <option value="small">Small</option>
+                        <option value="medium">Medium</option>
+                        <option value="large">Large</option>
+                    </select>
+                </div>
+            </label>
+        );
+    }
+
+    private renderMarkerSymbol() {
+        return (
+            <label className="pt-label pt-inline">
+                Marker symbol
+                <TextField value={this.props.vectorStyle.markerSymbol}
+                           style={{flex: 'auto', fontFamily: "courier"}}
+                           size={8}
+                           uncontrolled={true}
+                           onChange={this.handleChangedMarkerSymbol}
+                />
+            </label>
+        );
     }
 }
 

@@ -3,7 +3,7 @@ import {
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
     WorkflowStepState, LayerVariableState, SavedLayers,
     FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase,
-    ResourceVectorLayerState, WorldViewDataState
+    ResourceVectorLayerState, WorldViewDataState, VectorLayerState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
 import {WebAPIClient, JobStatusEnum} from "./webapi";
@@ -12,12 +12,14 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
     getLockForGetWorkspaceVariableStatistics, EXTERNAL_OBJECT_STORE, getWorldViewSelectedEntity,
-    getWorldViewSelectedGeometryWKTGetter,
+    getWorldViewSelectedGeometryWKTGetter, getWorldViewVectorLayerForEntity,
 } from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
 import * as Cesium from "cesium";
 import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
+import {entityToSimpleStyle} from "./components/cesium/cesium-util";
+import {SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties} from "../common/geojson-simple-style";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -584,22 +586,35 @@ export const isSelectedLayerSplitSelector = createSelector<State, boolean | null
     }
 );
 
-// noinspection JSUnusedLocalSymbols
-export const externalObjectStoreSelector = (state: State) => EXTERNAL_OBJECT_STORE;
-
-export const selectedEntityIdSelector = (state: State): string | null => state.control.selectedEntityId;
-
-export const selectedEntitySelector = createSelector<State, Cesium.Entity | null, ViewState<any> | null, string | null>(
+export const selectedEntityIdSelector = createSelector<State, string | null, ViewState<any> | null>(
     activeViewSelector,
-    selectedEntityIdSelector, /*this is just to make sure the selector is updated*/
-    getWorldViewSelectedEntity
+    (view: ViewState<any>) => {
+        if (view && view.type === 'world') {
+            const data = view.data as WorldViewDataState;
+            return data.selectedEntityId;
+        }
+        return null;
+    }
 );
 
-export const selectedGeometryWKTGetterSelector = createSelector<State, GeometryWKTGetter, ViewState<any> | null, string | null>(
+// noinspection JSUnusedLocalSymbols
+export const selectedEntitySelector = createSelector<State, Cesium.Entity | null, ViewState<any> | null, any>(
     activeViewSelector,
-    selectedEntityIdSelector, /*this is just to make sure the selector is updated*/
+    selectedEntityIdSelector, // we need this to invalidate selector on selection changes in Cesium
+    (view: ViewState<any>, unusedEntityId: any) => {
+        return getWorldViewSelectedEntity(view);
+    }
+);
+
+export const selectedGeometryWKTGetterSelector = createSelector<State, GeometryWKTGetter, ViewState<any> | null>(
+    activeViewSelector,
     getWorldViewSelectedGeometryWKTGetter
 );
+
+export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
+
+// noinspection JSUnusedLocalSymbols
+export const externalObjectStoreSelector = (state: State) => EXTERNAL_OBJECT_STORE;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer selectors
@@ -673,6 +688,47 @@ export const selectedVariableImageLayerDisplayMinMaxSelector = createSelector<St
             return [displayMin, displayMax];
         }
         return null;
+    }
+);
+
+export const selectedVectorLayerSelector = createSelector<State, VectorLayerState | null,
+    LayerState | null>(
+    selectedLayerSelector,
+    (selectedLayer: LayerState | null) => {
+        if (selectedLayer && (selectedLayer.type === 'Vector' || selectedLayer.type === 'ResourceVector')) {
+            return selectedLayer as VectorLayerState;
+        }
+        return null;
+    }
+);
+
+export const entityUpdateCountSelector = (state: State) => state.control.entityUpdateCount;
+
+// noinspection JSUnusedLocalSymbols
+export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<any>, string, VectorLayerState | null, Placemark | null, Cesium.Entity | null, number>(
+    activeViewSelector,
+    vectorStyleModeSelector,
+    selectedVectorLayerSelector,
+    selectedPlacemarkSelector,
+    selectedEntitySelector,
+    entityUpdateCountSelector,
+    (view: ViewState<any>, vectorStyleMode, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
+        let style;
+        if (vectorStyleMode === "layer" && selectedVectorLayer) {
+            style = selectedVectorLayer.style;
+        } else if (vectorStyleMode === "entity") {
+            if (selectedPlacemark) {
+                style = simpleStyleFromFeatureProperties(selectedPlacemark.properties);
+            } else if (selectedEntity) {
+                const entityStyle = entityToSimpleStyle(selectedEntity);
+                const vectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
+                const savedEntityStyle = vectorLayer.entityStyles
+                                         && vectorLayer.entityStyles[selectedEntity.id];
+                style = {...entityStyle, ...savedEntityStyle};
+            }
+        }
+        console.log("vectorStyleSelector: style =", style);
+        return {...SIMPLE_STYLE_DEFAULTS, ...style};
     }
 );
 

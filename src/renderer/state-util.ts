@@ -2,7 +2,7 @@ import {
     VariableState, VariableRefState, ResourceState, LayerState,
     VariableImageLayerState, OperationState, WorldViewDataState,
     TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState, ResourceRefState,
-    ResourceVectorLayerState, State
+    ResourceVectorLayerState, VectorLayerBase
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
@@ -10,19 +10,50 @@ import {isNumber, isString} from "../common/types";
 import {EMPTY_ARRAY} from "./selectors";
 import * as Cesium from "cesium";
 import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
+import {entityToGeometryWKT} from "./components/cesium/cesium-util";
+import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../common/geojson-simple-style";
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 export const COUNTRIES_LAYER_ID = 'countries';
 export const PLACEMARKS_LAYER_ID = 'myPlaces';
 
+export const SELECTED_VARIABLE_LAYER = {
+    id: SELECTED_VARIABLE_LAYER_ID,
+    type: 'Unknown',
+    visible: true,
+};
+
+export const COUNTRIES_LAYER = {
+    id: COUNTRIES_LAYER_ID,
+    name: 'Countries',
+    type: 'Vector',
+    visible: false,
+    style: {
+        ...SIMPLE_STYLE_DEFAULTS,
+        fill: "#FFFFFF",
+    },
+};
+
+export const PLACEMARKS_LAYER = {
+    id: PLACEMARKS_LAYER_ID,
+    name: 'Placemarks',
+    type: 'Vector',
+    visible: true,
+    style: {
+        title: "",
+        markerSize: "small",
+        markerColor: "#FF0000",
+        markerSymbol: "",
+    },
+};
 
 export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImageLayerState): string {
     return baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${layer.resId}/{z}/{y}/{x}.png?`
-        + `&var=${encodeURIComponent(layer.varName)}`
-        + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
-        + `&cmap=${encodeURIComponent(layer.colorMapName) + (layer.alphaBlending ? '_alpha' : '')}`
-        + `&min=${encodeURIComponent(layer.displayMin + '')}`
-        + `&max=${encodeURIComponent(layer.displayMax + '')}`;
+           + `&var=${encodeURIComponent(layer.varName)}`
+           + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
+           + `&cmap=${encodeURIComponent(layer.colorMapName) + (layer.alphaBlending ? '_alpha' : '')}`
+           + `&min=${encodeURIComponent(layer.displayMin + '')}`
+           + `&max=${encodeURIComponent(layer.displayMax + '')}`;
 }
 
 export function getFeatureCollectionUrl(baseUrl: string, baseDir: string, ref: ResourceRefState): string {
@@ -77,20 +108,8 @@ export function isFigureResource(resource: ResourceState | null): boolean {
     return resource && isNumber(resource.id) && resource.dataType.endsWith('.Figure');
 }
 
-export function isDatasetResource(resource: ResourceState | null): boolean {
-    return resource && resource.dataType.endsWith('.Dataset');
-}
-
-export function isDataArrayResource(resource: ResourceState | null): boolean {
-    return resource && resource.dataType.endsWith('.DataArray');
-}
-
 export function isDataFrameResource(resource: ResourceState | null): boolean {
     return resource && (resource.dataType.endsWith('.DataFrame') || resource.dataType.endsWith('.GeoDataFrame'));
-}
-
-export function isSeriesResource(resource: ResourceState | null): boolean {
-    return resource && (resource.dataType.endsWith('.Series') || resource.dataType.endsWith('.GeoSeries'));
 }
 
 export function getLayerDisplayName(layer: LayerState): string {
@@ -110,6 +129,15 @@ export function getLayerDisplayName(layer: LayerState): string {
         }
     }
     return layer.id;
+}
+
+export function getLayerTypeIconName(layer: LayerState): string {
+    if (isVectorLayer(layer)) {
+        return "pt-icon-map-marker";
+    } else if (layer.type == "Image" || layer.type === "VariableImage") {
+        return "pt-icon-layout-grid"; // "pt-icon-helper-management" also good
+    }
+    return "pt-icon-layer";
 }
 
 export function findResource(resources: ResourceState[], ref: ResourceRefState): ResourceState | null {
@@ -180,29 +208,14 @@ export function findVariableIndexCoordinates(resources: ResourceState[], ref: Va
     return coords;
 }
 
-
 function newInitialWorldViewData(): WorldViewDataState {
     return {
         viewMode: "3D",
         projectionCode: 'EPSG:4326',
         layers: [
-            {
-                id: SELECTED_VARIABLE_LAYER_ID,
-                type: 'Unknown',
-                visible: true,
-            },
-            {
-                id: COUNTRIES_LAYER_ID,
-                name: 'Countries',
-                type: 'Vector',
-                visible: false,
-            },
-            {
-                id: PLACEMARKS_LAYER_ID,
-                name: 'Placemarks',
-                type: 'Vector',
-                visible: true,
-            },
+            {...SELECTED_VARIABLE_LAYER},
+            {...COUNTRIES_LAYER},
+            {...PLACEMARKS_LAYER},
         ],
         selectedLayerId: SELECTED_VARIABLE_LAYER_ID,
         isSelectedLayerSplit: null,
@@ -266,16 +279,61 @@ export function newTableView(resName: string, varName: string): ViewState<TableV
  */
 export const EXTERNAL_OBJECT_STORE = {id: "global_external_object_store"};
 
-export function getWorldViewSelectedEntity(view: ViewState<any>): Cesium.Entity | null {
+function getWorldViewExternalObject(view: ViewState<any>): any {
     if (view && view.type === 'world') {
-        const externalObject = EXTERNAL_OBJECT_STORE["CesiumGlobe-" + view.id];
-        if (externalObject) {
-            const cesiumViewer: Cesium.Viewer = externalObject.object;
-            if (cesiumViewer) {
-                return cesiumViewer.selectedEntity;
+        return EXTERNAL_OBJECT_STORE["CesiumGlobe-" + view.id];
+    }
+}
+
+export function getWorldViewViewer(view: ViewState<any>): Cesium.Viewer | null {
+    const externalObject = getWorldViewExternalObject(view);
+    if (externalObject) {
+        return externalObject.object as Cesium.Viewer;
+    }
+    return null;
+}
+
+export function getWorldViewSelectedEntity(view: ViewState<any>): Cesium.Entity | null {
+    const viewer = getWorldViewViewer(view);
+    if (viewer) {
+        return viewer.selectedEntity;
+    }
+    return null;
+}
+
+export function getWorldViewVectorLayerForEntity(view: ViewState<any>, entity: Cesium.Entity): VectorLayerBase | null {
+    const externalObject = getWorldViewExternalObject(view);
+    if (!externalObject) {
+        return null;
+    }
+
+    const viewer = externalObject.object as Cesium.Viewer;
+    assert.ok(viewer);
+
+    const dataSourceMap = externalObject.state.dataSourceMap;
+    assert.ok(dataSourceMap);
+
+    const dataSourceCollection = viewer.dataSources;
+    // Find entity in viewer's dataSourceCollection
+    for (let index = 0; index < dataSourceCollection.length; index++) {
+        const dataSource: Cesium.DataSource = dataSourceCollection.get(index);
+        if (dataSource.entities.contains(entity)) {
+            // Find dataSource in dataSourceMap of CesiumGlobe --> layerId
+            for (let layerId of Object.getOwnPropertyNames(dataSourceMap)) {
+                if (dataSource === dataSourceMap[layerId]) {
+                    // Find layer for layerId in views's layer list
+                    for (let layer of view.data.layers) {
+                        if (layer.id === layerId) {
+                            assert.ok(isVectorLayer(layer));
+                            return layer;
+                        }
+                    }
+
+                }
             }
         }
     }
+
     return null;
 }
 
@@ -286,6 +344,26 @@ export function getWorldViewSelectedGeometryWKTGetter(view: ViewState<any>): Geo
     }
     return null;
 }
+
+export function isVectorLayer(layer: LayerState) {
+    return layer.type === "Vector" || layer.type === "ResourceVector";
+}
+
+const STROKE_COLORS = [
+    "#550000",
+    "#005500",
+    "#000055",
+    "#555555",
+];
+
+const FILL_COLORS = [
+    "#FF0000",
+    "#FFA500",
+    "#FFFF00",
+    "#00FF00",
+    "#0000FF",
+    "#FFFFFF",
+];
 
 export function newVariableLayer(resource: ResourceState,
                                  variable: VariableState,
@@ -311,6 +389,7 @@ export function newVariableLayer(resource: ResourceState,
         } as VariableImageLayerState;
     } else {
         const restoredLayer = (savedLayers && savedLayers[variable.name]) as ResourceVectorLayerState;
+        const restoredStyle = restoredLayer && restoredLayer.style;
         return {
             ...restoredLayer,
             id: genLayerId(),
@@ -319,6 +398,7 @@ export function newVariableLayer(resource: ResourceState,
             visible: true,
             resId: resource.id,
             resName: resource.name,
+            style: getResourceVectorStyle(resource.id, restoredStyle)
         } as ResourceVectorLayerState;
     }
 }
@@ -334,7 +414,6 @@ export function updateSelectedVariableLayer(selectedLayer: LayerState,
     if (spatialImageVariable) {
         const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
         const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
-        // console.log("updateSelectedVariableLayer: ", variable.name, savedLayers, restoredLayer, layerDisplayProperties);
         return {
             ...selectedLayer,
             ...restoredLayer,
@@ -347,13 +426,15 @@ export function updateSelectedVariableLayer(selectedLayer: LayerState,
         };
     } else if (spatialVectorVariable) {
         const restoredLayer = (savedLayers && savedLayers[resource.name]) as ResourceVectorLayerState;
+        const restoredStyle = restoredLayer && restoredLayer.style;
         return {
             ...selectedLayer,
             ...restoredLayer,
             type: 'ResourceVector',
             name: `Resource: ${resource.name}`,
             resId: resource.id,
-            resName: resource.name
+            resName: resource.name,
+            style: getResourceVectorStyle(resource.id, restoredStyle)
         } as ResourceVectorLayerState;
     } else {
         return {
@@ -363,6 +444,15 @@ export function updateSelectedVariableLayer(selectedLayer: LayerState,
             visible: selectedLayer.visible,
         } as any;
     }
+}
+
+function getResourceVectorStyle(resourceId: number, restoredStyle: SimpleStyle) {
+    return {
+        ...SIMPLE_STYLE_DEFAULTS,
+        stroke: STROKE_COLORS[resourceId % STROKE_COLORS.length],
+        fill: FILL_COLORS[resourceId % FILL_COLORS.length],
+        ...restoredStyle,
+    };
 }
 
 export function getLockForLoadDataSources(dataStoreId: string) {
@@ -452,66 +542,4 @@ export function hasWebGL(): boolean {
     canvas = null;
     context = null;
     return true;
-}
-
-export function entityToGeometryWKT(selectedEntity: Cesium.Entity): string {
-
-    if (selectedEntity.polyline) {
-        const positions = selectedEntity.polyline.positions.getValue(Cesium.JulianDate.now());
-        return `LINESTRING (${cartesian3ArrayToWKT(positions)})`;
-    }
-
-    if (selectedEntity.polygon) {
-        const hierarchy = selectedEntity.polygon.hierarchy.getValue(Cesium.JulianDate.now());
-        const positions = hierarchy.positions;
-        const holes = hierarchy.holes;
-        const exterieur = cartesian3ArrayToWKTArray(positions);
-        if (exterieur.length > 2) {
-            exterieur.push(exterieur[0]);
-        }
-        const linearRings = [`(${exterieur.join(', ')})`];
-        if (holes && holes.length) {
-            for (let hole of holes) {
-                const interieur = cartesian3ArrayToWKTArray(hole.positions);
-                if (interieur.length > 2) {
-                    interieur.push(interieur[0]);
-                }
-                linearRings.push(`(${interieur.join(', ')})`);
-            }
-        }
-        return `POLYGON (${linearRings.join(', ')})`;
-    }
-
-    if (selectedEntity.rectangle) {
-        const coordinates = selectedEntity.rectangle.coordinates.getValue(Cesium.JulianDate.now());
-        const x1 = toDeg(coordinates.west);
-        const y1 = toDeg(coordinates.south);
-        const x2 = toDeg(coordinates.east);
-        const y2 = toDeg(coordinates.north);
-        return `POLYGON ((${x1} ${y1}, ${x2} ${y1}, ${x2} ${y2}, ${x1} ${y2}, ${x1} ${y1}))`;
-    }
-
-    if (selectedEntity.position) {
-        const position = selectedEntity.position.getValue(Cesium.JulianDate.now());
-        return `POINT (${cartesian3ToWKT(position)})`
-    }
-
-    throw new TypeError("can't understand geometry of selected entity");
-}
-
-function cartesian3ArrayToWKTArray(positions: Cesium.Cartesian3[]): string[] {
-    return positions.map(p => cartesian3ToWKT(p));
-}
-
-function cartesian3ArrayToWKT(positions: Cesium.Cartesian3[]): string {
-    return cartesian3ArrayToWKTArray(positions).join(', ');
-}
-
-function cartesian3ToWKT(position: Cesium.Cartesian3): string {
-    const cartographic = Cesium.Cartographic.fromCartesian(position);
-    return `${toDeg(cartographic.longitude)} ${toDeg(cartographic.latitude)}`;
-}
-
-function toDeg(x: number): number {
-    return x * (180. / Math.PI);
 }

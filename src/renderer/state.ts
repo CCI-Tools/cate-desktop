@@ -4,6 +4,7 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
 import {Feature, FeatureCollection, GeoJsonObject, Point} from "geojson";
 import {IconName} from "@blueprintjs/core";
+import {SimpleStyle} from "../common/geojson-simple-style";
 
 /**
  * Interface describing Cate's application state structure.
@@ -347,9 +348,9 @@ export interface WorldViewDataState {
     selectedLayerSplitPos: number;
 
     /**
-     * The selected entity in Cesium 3D globe.
+     * The ID of the selected entity in Cesium 3D globe.
      */
-    //selectedEntity: Cesium.Entity | null;
+    selectedEntityId: string | null;
 }
 
 export interface FigureViewDataState {
@@ -458,9 +459,27 @@ export interface ImageLayerState extends ImageLayerBase {
 }
 
 /**
+ * Base of vector layers.
+ */
+export interface VectorLayerBase extends LayerState {
+    /**
+     * Stores the default style for all entities of the layer.
+     */
+    style?: SimpleStyle;
+
+    /**
+     * Stores the style and any edited entities.
+     * This object will only contain keys, if an entities style has changed.
+     * Default styles come from the SimpleStyle interface of VectorLayerBase.
+     */
+    entityStyles?: {[entityId: string]: SimpleStyle};
+}
+
+
+/**
  * State of a vector layer.
  */
-export interface VectorLayerState extends LayerState {
+export interface VectorLayerState extends VectorLayerBase {
     /**
      * The layer type.
      */
@@ -541,7 +560,7 @@ export interface VariableImageLayerState extends ImageLayerBase, VariableLayerBa
 /**
  * State of an image layer that displays a variable.
  */
-export interface ResourceVectorLayerState extends LayerState, ResourceRefState {
+export interface ResourceVectorLayerState extends VectorLayerBase, ResourceRefState {
     /**
      * The layer type.
      */
@@ -626,9 +645,11 @@ export interface ControlState {
     views: ViewState<any>[];
     activeViewId: string | null;
 
+    // Will later be replaced by geometry creation/editing tools.
     worldViewClickAction: string | null;
 
-    selectedEntityId: string | null;
+    // Used to force component update after an entity's properties have changed
+    entityUpdateCount: number;
 }
 
 export interface DialogState {
@@ -716,11 +737,13 @@ export interface SessionState {
     showSelectedVariableLayer: boolean;
     showLayerDetails: boolean;
     savedLayers: SavedLayers;
+    vectorStyleMode: "entity" | "layer";
 
     // PlacemarksPanel
     placemarkCollection: PlacemarkCollection | null;
     selectedPlacemarkId: string | null;
     showPlacemarkDetails: boolean;
+    placemarkCounter: number;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

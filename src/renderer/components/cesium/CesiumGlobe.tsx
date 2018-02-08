@@ -1,27 +1,17 @@
 import * as React from 'react';
-import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
-import {arrayDiff} from "../../../common/array-diff";
-import * as assert from "../../../common/assert";
-import {Feature, FeatureCollection, Point} from "geojson";
-import {SplitSlider} from "./SplitSlider";
 import * as Cesium from "cesium";
+import {diff} from "deep-object-diff"
+import {Feature, FeatureCollection, Point} from "geojson";
+import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
+import * as assert from "../../../common/assert";
 import {isString} from "../../../common/types";
-import {getEntityByEntityId} from "../../containers/globe-view-layers";
-
-/**
- * See
- * - https://cesiumjs.org/Cesium/Build/Documentation/GeoJsonDataSource.html
- * - simplestyle-spec 1.1, https://github.com/mapbox/simplestyle-spec
- */
-export const DEFAULT_GEOJSON_FEATURE_STYLE = {
-    strokeWidth: 10,
-    stroke: Cesium.Color.fromAlpha(Cesium.Color.WHITE, 0.8),
-    fill: Cesium.Color.fromAlpha(Cesium.Color.WHITE, 0.2),
-    markerSymbol: '?',
-    markerSize: 32,
-    markerColor: Cesium.Color.RED,
-};
-
+import {arrayDiff} from "../../../common/array-diff";
+import {SimpleStyle} from "../../../common/geojson-simple-style";
+import {SplitSlider} from "./SplitSlider";
+import {
+    applyStyleToEntity, applyStyleToEntityCollection, getEntityByEntityId,
+    simpleStyleToCesium
+} from "./cesium-util";
 
 interface Placemark extends Feature<Point> {
     id: string;
@@ -59,6 +49,8 @@ export interface ImageLayerDescriptor extends LayerDescriptor {
  * Describes a vector data layer (entity data source) to be displayed on the Cesium globe.
  */
 export interface VectorLayerDescriptor extends LayerDescriptor {
+    style?: SimpleStyle;
+    entityStyles?: { [layerId: string]: SimpleStyle };
     dataSource?: ((viewer: Cesium.Viewer, options: any) => Cesium.DataSource) | Cesium.DataSource;
     dataSourceOptions?: any;
 }
@@ -78,7 +70,6 @@ Cesium.BingMapsApi.defaultKey = 'AnCcpOxnAAgq-KyFcczSZYZ_iFvCOmWl0Mx-6QzQ_rzMtpg
 
 interface CesiumGlobeStateBase {
     selectedPlacemarkId?: string;
-    //placemarks: PlacemarkCollection;
     imageLayerDescriptors?: ImageLayerDescriptor[];
     vectorLayerDescriptors?: VectorLayerDescriptor[];
     overlayHtml?: HTMLElement | null;
@@ -348,7 +339,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
 
     private updatePlacemarks(entities: Cesium.EntityCollection,
                              currentPlacemarks: PlacemarkCollection,
-                             nextPlacemarks: PlacemarkCollection) {
+                             nextPlacemarks: PlacemarkCollection,
+                             style: SimpleStyle) {
         if (this.props.debug) {
             console.log('CesiumGlobe: updating placemarks');
         }
@@ -362,7 +354,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                 case 'ADD': {
                     const placemark = action.newElement;
                     const show = placemark.properties['visible'];
-                    const promise = Cesium.GeoJsonDataSource.load(placemark, DEFAULT_GEOJSON_FEATURE_STYLE);
+                    const promise = Cesium.GeoJsonDataSource.load(placemark, simpleStyleToCesium(style));
                     Promise.resolve(promise).then(ds => {
                         CesiumGlobe.copyEntities(ds.entities, entities, show);
                     });
@@ -377,7 +369,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                     let oldPlacemark = action.oldElement;
                     let newPlacemark = action.newElement;
                     const show = newPlacemark.properties['visible'];
-                    const promise = Cesium.GeoJsonDataSource.load(newPlacemark, DEFAULT_GEOJSON_FEATURE_STYLE);
+                    const promise = Cesium.GeoJsonDataSource.load(newPlacemark, simpleStyleToCesium(style));
                     Promise.resolve(promise).then(ds => {
                         entities.removeById(oldPlacemark.id);
                         CesiumGlobe.copyEntities(ds.entities, entities, show);
@@ -408,11 +400,10 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             switch (action.type) {
                 case 'ADD':
                     imageryLayer = this.addLayer(viewer, action.newElement, cesiumIndex);
-                    // TODO (forman): FIXME! Keep assertion here and below, but they currently fail.
-                    //                Possible reason, new globe views may not have their
-                    //                'selectedVariable' layer correctly initialized. Same problem in OpenLayersMap!
-                    //assert.ok(imageryLayer);
                     if (!imageryLayer) {
+                        // TODO (forman): Check, if we still get here.
+                        //                Possible reason, new globe views may not have their
+                        //                'selectedVariable' layer correctly initialized.
                         console.error('CesiumGlobe: no imageryLayer at index ' + cesiumIndex);
                         break;
                     }
@@ -509,7 +500,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         if (nextOverlayHtml) {
             if (prevOverlayHtml) {
                 if (!viewer.container.contains(prevOverlayHtml)) {
-                    // TODO (forman): FIXME! Why does this happen?
+                    // TODO (forman): Check, if we still get here.
                     console.warn("CesiumGlobe: previous HTML element is not a child", prevOverlayHtml);
                     return;
                 }
@@ -519,7 +510,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             }
         } else if (prevOverlayHtml) {
             if (!viewer.container.contains(prevOverlayHtml)) {
-                // TODO (forman): FIXME! Why does this happen?
+                // TODO (forman): Check, if we still get here.
                 console.warn("CesiumGlobe: previous HTML element is not a child", prevOverlayHtml);
                 return;
             }
@@ -610,11 +601,37 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                 this.addDataSource(viewer, newLayer, dataSourceMap);
             } else {
                 // Change of placemarks (a GeoJSON FeatureCollection)
-                this.updatePlacemarks(dataSource.entities, oldData, newData);
+                this.updatePlacemarks(dataSource.entities, oldData, newData, newLayer.style);
                 if (selectedPlacemarkId) {
                     const selectedEntity = dataSource.entities.getById(selectedPlacemarkId);
                     if (selectedEntity && selectedEntity !== viewer.selectedEntity) {
                         viewer.selectedEntity = selectedEntity;
+                    }
+                }
+            }
+        }
+        const oldStyle = oldLayer.style;
+        const newStyle = newLayer.style;
+        if (oldStyle !== newStyle) {
+            const styleDelta = diff(oldStyle, newStyle);
+            console.log("CesiumGlobe.updateDataSource: styleDelta = ", styleDelta);
+            if (Object.getOwnPropertyNames(styleDelta).length > 0) {
+                const cStyle = simpleStyleToCesium(styleDelta, newStyle);
+                applyStyleToEntityCollection(cStyle, dataSource.entities.values);
+            }
+        }
+        const oldEntityStyles = oldLayer.entityStyles;
+        const newEntityStyles = newLayer.entityStyles;
+        if (oldEntityStyles !== newEntityStyles) {
+            const entityStylesDelta = diff(oldEntityStyles, newEntityStyles);
+            console.log("CesiumGlobe.updateDataSource: entityStylesDelta = ", entityStylesDelta);
+            for (let entityId of Object.getOwnPropertyNames(entityStylesDelta)) {
+                const entity = dataSource.entities.getById(entityId);
+                if (entity) {
+                    const entityStyleDelta = entityStylesDelta[entityId];
+                    if (Object.getOwnPropertyNames(entityStyleDelta).length > 0) {
+                        const cStyle = simpleStyleToCesium(entityStyleDelta, newEntityStyles[entityId]);
+                        applyStyleToEntity(cStyle, entity)
                     }
                 }
             }
@@ -647,7 +664,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         imageryLayer.hue = layerDescriptor.hue;
         imageryLayer.saturation = layerDescriptor.saturation;
         imageryLayer.gamma = layerDescriptor.gamma;
-        // TODO (mz,nf): set from layerDescriptor.interpolation prop (NEAREST / BILINEAR);
         imageryLayer.minificationFilter = Cesium.TextureMinificationFilter.NEAREST;
         imageryLayer.magnificationFilter = Cesium.TextureMagnificationFilter.NEAREST;
     }

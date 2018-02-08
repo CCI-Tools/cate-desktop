@@ -1,23 +1,25 @@
+import {combineReducers, Reducer} from 'redux';
+import deepEqual = require("deep-equal");
 import {
-    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
-    LayerState, Placemark
+State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
+LayerState, Placemark, VectorLayerBase
 } from './state';
 import * as actions from './actions';
+import {Action} from "./actions";
 import * as assert from "../common/assert";
-import {combineReducers, Reducer} from 'redux';
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
     newWorldView, newTableView, newFigureView, getFigureViewTitle, genPlacemarkId,
-    hasWebGL,
+    hasWebGL, isVectorLayer, PLACEMARKS_LAYER,
 } from "./state-util";
 import {
-    removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
-    addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos,
-    addViewToPanel, moveView, selectView
+removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
+addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos,
+addViewToPanel, moveView, selectView
 } from "./components/ViewState";
-import {Action, SET_GLOBE_MOUSE_POSITION, SET_GLOBE_VIEW_POSITION} from "./actions";
 import {isString} from "../common/types";
+import {featurePropertiesFromSimpleStyle} from "../common/geojson-simple-style";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -126,19 +128,12 @@ const initialControlState: ControlState = {
 
     worldViewClickAction: null,
 
-    selectedEntityId: null,
+    entityUpdateCount: 0,
 };
 
 
 const controlReducer = (state: ControlState = initialControlState, action: Action) => {
     switch (action.type) {
-        case actions.NOTIFY_SELECTED_ENTITY_ID_CHANGE: {
-            const selectedEntityId = action.payload.selectedEntityId || null;
-            if (selectedEntityId !== state.selectedEntityId) {
-                return {...state, selectedEntityId};
-            }
-            break;
-        }
         case actions.RENAME_RESOURCE: {
             const resName = action.payload.resName;
             const newResName = action.payload.newResName;
@@ -155,6 +150,13 @@ const controlReducer = (state: ControlState = initialControlState, action: Actio
             if (selectedWorkspaceResourceName !== state.selectedWorkspaceResourceName
                 || views !== state.views) {
                 return {...state, selectedWorkspaceResourceName, views};
+            }
+            return state;
+        }
+        case actions.UPDATE_ENTITY_STYLE: {
+            const views = viewsReducer(state.views, action, state.activeViewId);
+            if (views !== state.views) {
+                return {...state, views};
             }
             return state;
         }
@@ -267,6 +269,10 @@ const controlReducer = (state: ControlState = initialControlState, action: Actio
             const viewLayout = changeViewSplitPos(state.viewLayout, viewPath, delta);
             return {...state, viewLayout};
         }
+        case actions.INC_ENTITY_UPDATE_COUNT: {
+            const entityUpdateCount = state.entityUpdateCount + 1;
+            return {...state, entityUpdateCount};
+        }
         default: {
             const newViews = viewsReducer(state.views, action, state.activeViewId);
             if (newViews !== state.views) {
@@ -332,6 +338,16 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             }
             break;
         }
+        case actions.UPDATE_ENTITY_STYLE: {
+            const viewId = action.payload.viewId;
+            if (state.id === viewId && state.type === 'world') {
+                const layers = layersReducer(state.data.layers, action, isActiveView);
+                if (layers !== state.data.layers) {
+                    return {...state, data: {...state.data, layers}};
+                }
+            }
+            break;
+        }
         case actions.SET_SHOW_SELECTED_VARIABLE_LAYER: {
             if (state.type === 'world') {
                 const layers = layersReducer(state.data.layers, action, isActiveView);
@@ -342,7 +358,7 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             break;
         }
         // TODO (forman): clean up code duplication here, following actions are basically all the same
-        //                NOTIFY_SELECTED_ENTITY_ID_CHANGE,
+        //                SET_SELECTED_ENTITY_ID,
         //                SET_SELECTED_LAYER_ID,
         //                SET_VIEW_MODE,
         //                SET_PROJECTION_CODE,
@@ -354,6 +370,14 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             if (viewId === state.id && state.type === 'world') {
                 const selectedLayerId = action.payload.selectedLayerId;
                 return {...state, data: {...state.data, selectedLayerId}};
+            }
+            break;
+        }
+        case actions.SET_SELECTED_ENTITY_ID: {
+            const viewId = action.payload.viewId;
+            if (viewId === state.id && state.type === 'world') {
+                const selectedEntityId = action.payload.selectedEntityId;
+                return {...state, data: {...state.data, selectedEntityId}};
             }
             break;
         }
@@ -470,6 +494,20 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             }
             break;
         }
+        case actions.UPDATE_LAYER_STYLE: {
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'world');
+                const {layerId, style} = action.payload;
+                const layers = state.data.layers.slice();
+                const layerIndex = layers.findIndex(l => l.id === layerId);
+                assert.ok(layerIndex >= 0, "layerIndex >= 0");
+                let layer = layers[layerIndex];
+                layers[layerIndex] = {...layer, style: {...layer.style, ...style}};
+                return {...state, data: {...state.data, layers}};
+            }
+            break;
+        }
         case actions.UPDATE_TABLE_VIEW_DATA: {
             const viewId = action.payload.viewId;
             if (viewId === state.id) {
@@ -519,6 +557,19 @@ const layerReducer = (state: LayerState, action: Action, isActiveView: boolean) 
             }
             break;
         }
+        case actions.UPDATE_ENTITY_STYLE: {
+            const {layerId, entityId, style} = action.payload;
+            if (state.id === layerId && isVectorLayer(state)) {
+                const vectorLayer = state as VectorLayerBase;
+                const entityStyles = vectorLayer.entityStyles;
+                const oldStyle = entityStyles && entityStyles[entityId];
+                const newStyle = {...oldStyle, ...style};
+                if (!deepEqual(oldStyle, newStyle)) {
+                    return {...state, entityStyles: {...entityStyles, [entityId]: newStyle}};
+                }
+            }
+            break;
+        }
         case actions.SET_SHOW_SELECTED_VARIABLE_LAYER: {
             if (state.id === SELECTED_VARIABLE_LAYER_ID) {
                 const showSelectedVariableLayer = action.payload.showSelectedVariableLayer;
@@ -565,7 +616,6 @@ const initialSessionState: SessionState = {
     showVariableDetails: true,
     showLayerDetails: true,
 
-
     panelContainerUndockedMode: false,
     leftPanelContainerLayout: {horPos: 300, verPos: 400},
     rightPanelContainerLayout: {horPos: 300, verPos: 400},
@@ -579,12 +629,14 @@ const initialSessionState: SessionState = {
     },
     selectedPlacemarkId: null,
     showPlacemarkDetails: true,
+    placemarkCounter: 0,
 
     workspacePanelMode: 'steps',
 
     showDataSourceTitles: true,
     showLayerTextOverlay: true,
     debugWorldView: false,
+    vectorStyleMode: "layer",
 
     backendConfig: {
         dataStoresPath: null,
@@ -595,11 +647,10 @@ const initialSessionState: SessionState = {
 
 
 const PLACEMARK_TITLE_PREFIX = "Placemark ";
-let placemarkCounter = 0;
 
 const sessionReducer = (state: SessionState = initialSessionState, action: Action) => {
     switch (action.type) {
-        case actions.NOTIFY_SELECTED_ENTITY_ID_CHANGE: {
+        case actions.SET_SELECTED_ENTITY_ID: {
             const selectedEntityId = action.payload.selectedEntityId || null;
             let selectedPlacemarkId = null;
             if (isString(selectedEntityId) && selectedEntityId.startsWith('placemark-')) {
@@ -624,13 +675,15 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
         case actions.ADD_PLACEMARK: {
             const position = action.payload.position;
             const features = state.placemarkCollection.features.slice();
+            const placemarkCounter = state.placemarkCounter;
             const letter = String.fromCharCode(65 + placemarkCounter % 26);
             const newPlacemark = {
                 type: 'Feature',
                 id: genPlacemarkId(),
                 properties: {
-                    title: PLACEMARK_TITLE_PREFIX + letter,
+                    ...featurePropertiesFromSimpleStyle(PLACEMARKS_LAYER.style as any),
                     "marker-symbol": letter,
+                    title: PLACEMARK_TITLE_PREFIX + letter,
                     visible: true,
                 },
                 geometry: {
@@ -638,10 +691,9 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
                     coordinates: position ? [position.longitude, position.latitude] : [0, 0]
                 }
             } as Placemark;
-            placemarkCounter++;
             features.push(newPlacemark);
             const placemarkCollection = {...state.placemarkCollection, features};
-            return {...state, placemarkCollection, selectedPlacemarkId: newPlacemark.id};
+            return {...state, placemarkCollection, placemarkCounter: placemarkCounter + 1, selectedPlacemarkId: newPlacemark.id};
         }
         case actions.REMOVE_PLACEMARK: {
             const placemarkId = action.payload.placemarkId;
@@ -661,37 +713,74 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
             }
             break;
         }
-        case actions.UPDATE_PLACEMARK: {
-            const placemark = action.payload.placemark;
-            const placemarkId = placemark.id;
-            let features = state.placemarkCollection.features;
+        case actions.UPDATE_PLACEMARK_GEOMETRY: {
+            const {placemarkId, geometry} = action.payload;
+            const features = state.placemarkCollection.features.slice();
             const featureIndex = features.findIndex(f => f.id === placemarkId);
+            const oldFeature = featureIndex >= 0 && features[featureIndex];
+            assert.ok(oldFeature);
+            const oldGeometry = oldFeature && oldFeature.geometry;
+            const newGeometry = {...oldGeometry, ...geometry};
+            const newFeature = {...oldFeature, geometry: newGeometry};
             if (featureIndex >= 0) {
-                features = features.slice();
-                const feature = features[featureIndex];
-                const updatedPlacemark = {...feature, ...placemark};
-                const oldTitle = feature.properties["title"];
-                const newTitle = placemark.properties["title"];
-                if (newTitle && newTitle !== oldTitle) {
-                    // Update marker symbol as long as we don't have an editor for symbols
-                    let text;
-                    if (newTitle.startsWith(PLACEMARK_TITLE_PREFIX)) {
-                        text = newTitle.substr(PLACEMARK_TITLE_PREFIX.length);
-                    } else {
-                        text = newTitle;
-                    }
-                    let markerSymbol = updatedPlacemark.properties["marker-symbol"];
-                    if (text.length > 0) {
-                        markerSymbol = text[0];
-                    } else if (!markerSymbol) {
-                        markerSymbol = "?";
-                    }
-                    updatedPlacemark.properties["marker-symbol"] = markerSymbol;
-                }
-                features[featureIndex] = updatedPlacemark;
-                const placemarkCollection = {...state.placemarkCollection, features};
-                return {...state, placemarkCollection};
+                features[featureIndex] = newFeature;
+            } else {
+                features.push(newFeature);
             }
+            const placemarkCollection = {...state.placemarkCollection, features};
+            return {...state, placemarkCollection};
+        }
+        case actions.UPDATE_PLACEMARK_PROPERTIES: {
+            const {placemarkId, properties} = action.payload;
+            const features = state.placemarkCollection.features.slice();
+            const featureIndex = features.findIndex(f => f.id === placemarkId);
+            const oldFeature = featureIndex >= 0 && features[featureIndex];
+            assert.ok(oldFeature);
+            const oldProperties = oldFeature && oldFeature.geometry;
+            const newProperties = {...oldProperties, ...properties};
+            const newFeature = {...oldFeature, properties: newProperties};
+            if (featureIndex >= 0) {
+                features[featureIndex] = newFeature;
+            } else {
+                features.push(newFeature);
+            }
+            const placemarkCollection = {...state.placemarkCollection, features};
+            return {...state, placemarkCollection};
+        }
+        case actions.UPDATE_PLACEMARK_STYLE: {
+            const {placemarkId, style} = action.payload;
+            const features = state.placemarkCollection.features.slice();
+            const featureIndex = features.findIndex(f => f.id === placemarkId);
+            const oldFeature = featureIndex >= 0 && features[featureIndex];
+            assert.ok(oldFeature);
+            const oldProperties = oldFeature && oldFeature.properties;
+            const newProperties = {...oldProperties, ...featurePropertiesFromSimpleStyle(style)};
+            const oldTitle = oldProperties && oldProperties["title"];
+            const newTitle = newProperties && newProperties["title"];
+            if (newTitle && newTitle !== oldTitle) {
+                // Update marker symbol as long as we don't have an editor for symbols
+                let text;
+                if (newTitle.startsWith(PLACEMARK_TITLE_PREFIX)) {
+                    text = newTitle.substr(PLACEMARK_TITLE_PREFIX.length);
+                } else {
+                    text = newTitle;
+                }
+                let markerSymbol = newProperties["marker-symbol"];
+                if (text.length > 0) {
+                    markerSymbol = text[0];
+                } else if (!markerSymbol) {
+                    markerSymbol = "?";
+                }
+                newProperties["marker-symbol"] = markerSymbol;
+            }
+            const newFeature = {...oldFeature, properties: newProperties};
+            if (featureIndex >= 0) {
+                features[featureIndex] = newFeature;
+            } else {
+                features.push(newFeature);
+            }
+            const placemarkCollection = {...state.placemarkCollection, features};
+            return {...state, placemarkCollection};
         }
 
     }
@@ -734,10 +823,10 @@ const initialLocationState: LocationState = {
 
 //noinspection JSUnusedLocalSymbols
 const locationReducer = (state: LocationState = initialLocationState, action: Action) => {
-    if (action.type === SET_GLOBE_MOUSE_POSITION) {
+    if (action.type === actions.SET_GLOBE_MOUSE_POSITION) {
         const globeMousePosition = action.payload.position;
         return {...state, globeMousePosition};
-    } else if (action.type === SET_GLOBE_VIEW_POSITION) {
+    } else if (action.type === actions.SET_GLOBE_VIEW_POSITION) {
         const globeViewPosition = action.payload.position;
         return {...state, globeViewPosition};
     }

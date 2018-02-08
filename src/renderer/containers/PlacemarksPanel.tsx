@@ -92,8 +92,6 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     }
 
     private handleAddPlacemarkFromPositionButtonClicked() {
-        // remove selection, otherwise two clicks are needed
-        this.props.dispatch(actions.setSelectedPlacemarkId(null));
         this.props.dispatch(actions.updateControlState({worldViewClickAction: actions.ADD_PLACEMARK}));
     }
 
@@ -106,22 +104,20 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     }
 
     private handleChangedPlacemarkVisibility(placemark: Placemark, visible: boolean) {
-        const properties = {...placemark.properties, visible};
-        this.props.dispatch(actions.updatePlacemark({...placemark, properties}));
+        this.props.dispatch(actions.updatePlacemarkProperties(placemark.id, {visible}));
     }
 
     private handleChangedPlacemarkName(nameField: FieldValue<string>) {
         const placemark = this.props.selectedPlacemark;
         const name = nameField.value;
-        const properties = {...placemark.properties, title: name};
-        this.props.dispatch(actions.updatePlacemark({...placemark, properties}));
+        this.props.dispatch(actions.updatePlacemarkStyle(placemark.id, {title: name}));
     }
 
     private handleChangedPlacemarkPosition(position: GeographicPositionFieldValue) {
         const placemark = this.props.selectedPlacemark;
         const lonLat = position.value;
         const geometry = {...placemark.geometry, coordinates: [lonLat.longitude, lonLat.latitude]};
-        this.props.dispatch(actions.updatePlacemark({...placemark, geometry}));
+        this.props.dispatch(actions.updatePlacemarkGeometry(placemark.id, geometry));
     }
 
     private handleChangedPlacemarkSelection(newSelection: string[]) {

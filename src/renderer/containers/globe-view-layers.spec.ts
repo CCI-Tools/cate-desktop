@@ -1,8 +1,9 @@
 import {expect} from 'chai';
 import {convertLayersToLayerDescriptors, transferEntityGeometry} from "./globe-view-layers";
-import {DirectGeometryObject, FeatureCollection} from "geojson";
+import {FeatureCollection} from "geojson";
 import {Placemark, PlacemarkCollection} from "../state";
-import {COUNTRIES_LAYER_ID, PLACEMARKS_LAYER_ID} from "../state-util";
+import {COUNTRIES_LAYER, COUNTRIES_LAYER_ID, PLACEMARKS_LAYER, PLACEMARKS_LAYER_ID} from "../state-util";
+import {SIMPLE_STYLE_DEFAULTS} from "../../common/geojson-simple-style";
 
 describe('convertLayersToLayerDescriptors', function () {
     it('converts correctly', function () {
@@ -13,25 +14,19 @@ describe('convertLayersToLayerDescriptors', function () {
         let layers, resources, descriptors;
 
         layers = [
-            {
-                id: COUNTRIES_LAYER_ID,
-                name: 'Countries',
-                type: 'Vector',
-                visible: true,
-            },
+            {...COUNTRIES_LAYER},
             {
                 id: 'L423',
                 name: 'I has a bucket',
                 type: 'ResourceVector',
                 visible: true,
-                resId: 1
+                resId: 1,
+                style: {
+                    fill: "#FFA500",
+                    fillOpacity: 0.3
+                }
             },
-            {
-                id: PLACEMARKS_LAYER_ID,
-                name: 'Placemarks',
-                type: 'Vector',
-                visible: true,
-            },
+            {...PLACEMARKS_LAYER},
             {
                 id: 'L427',
                 name: 'I love ma bucket',
@@ -109,9 +104,12 @@ describe('convertLayersToLayerDescriptors', function () {
 
         expect(vld1.id).to.equal(COUNTRIES_LAYER_ID);
         expect(vld1.name).to.equal("Countries");
-        expect(vld1.visible).to.be.true;
+        expect(vld1.visible).to.be.false;
         expect(vld1.dataSource).to.be.a('function');
-        expect(vld1.dataSourceOptions).to.deep.equal({data: "http://localhost/ws/countries"});
+        expect(vld1.dataSourceOptions).to.deep.equal({
+                                                         data: "http://localhost/ws/countries",
+                                                         style: COUNTRIES_LAYER.style
+                                                     });
 
         expect(vld2.id).to.equal("L423");
         expect(vld2.name).to.equal("I has a bucket");
@@ -119,15 +117,22 @@ describe('convertLayersToLayerDescriptors', function () {
         expect(vld2.resId).to.equal(1);
         expect(vld2.dataSource).to.be.a('function');
         expect(vld2.dataSourceOptions).to.deep.equal({
-                                                        resId: 1,
-                                                        data: "http://localhost/ws/res/geojson/hotte/1"
-                                                    });
+                                                         resId: 1,
+                                                         data: "http://localhost/ws/res/geojson/hotte/1",
+                                                         style: {
+                                                             fill: "#FFA500",
+                                                             fillOpacity: 0.3
+                                                         }
+                                                     });
 
         expect(vld3.id).to.equal(PLACEMARKS_LAYER_ID);
         expect(vld3.name).to.equal("Placemarks");
         expect(vld3.visible).to.be.true;
         expect(vld3.dataSource).to.be.a('function');
-        expect(vld3.dataSourceOptions).to.deep.equal({data: placemarks});
+        expect(vld3.dataSourceOptions).to.deep.equal({
+                                                         data: placemarks,
+                                                         style: PLACEMARKS_LAYER.style
+                                                     });
 
         expect(ild.id).to.equal("L427");
         expect(ild.name).to.equal("I love ma bucket");

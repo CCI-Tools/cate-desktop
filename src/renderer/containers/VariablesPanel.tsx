@@ -27,7 +27,7 @@ interface IVariablesPanelProps {
     activeViewType: string;
     savedLayers: SavedLayers;
     selectedPlacemark: Placemark | null;
-    selectedEntityGetter: () => Cesium.Entity | null;
+    selectedEntity: Cesium.Entity | null;
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
@@ -43,7 +43,7 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         activeViewType: selectors.activeViewTypeSelector(state),
         savedLayers: selectors.savedLayersSelector(state),
         selectedPlacemark: selectors.selectedPlacemarkSelector(state),
-        selectedEntityGetter: selectors.selectedEntitySelector(state),
+        selectedEntity: selectors.selectedEntitySelector(state),
     }
 }
 
@@ -245,7 +245,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
     }
 
     private renderVariableValue(index: number): any {
-        const selectedEntity = this.props.selectedEntityGetter && this.props.selectedEntityGetter();
+        const selectedEntity = this.props.selectedEntity;
         const variables = this.props.variables;
         if (selectedEntity && selectedEntity.properties) {
             const variableName = variables[index].name;
