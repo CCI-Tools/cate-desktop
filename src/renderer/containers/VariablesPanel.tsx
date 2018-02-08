@@ -20,7 +20,7 @@ interface IVariablesPanelProps {
     selectedResource: ResourceState | null;
     selectedVariableName: string | null;
     selectedVariable: VariableState | null;
-    selectedVariableAttributesTableData: [[string, any]];
+    selectedVariableAttributesTableData: [string, any][];
     showVariableDetails: boolean;
     showSelectedVariableLayer: boolean;
     activeViewId: string;

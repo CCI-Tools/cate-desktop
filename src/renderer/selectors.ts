@@ -516,13 +516,13 @@ export const selectedVariableSelector = createSelector<State, VariableState | nu
     }
 );
 
-export const selectedVariableAttributesTableDataSelector = createSelector<State, [[string, any]] | null, VariableState | null>(
+export const selectedVariableAttributesTableDataSelector = createSelector<State, [string, any][] | null, VariableState | null>(
     selectedVariableSelector,
     (selectedVariable: VariableState | null) => {
         if (!selectedVariable) {
             return null;
         }
-        const tableData: [[string, any]] = [
+        const tableData: [string, any][] = [
             ['Data type', selectedVariable.dataType],
             ['Units', selectedVariable.units || ''],
             ['Valid minimum', selectedVariable.validMin],
