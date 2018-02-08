@@ -713,21 +713,25 @@ export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<
     selectedEntitySelector,
     entityUpdateCountSelector,
     (view: ViewState<any>, vectorStyleMode, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
+        const selectedLayerStyle = selectedVectorLayer && selectedVectorLayer.style;
         let style;
-        if (vectorStyleMode === "layer" && selectedVectorLayer) {
-            style = selectedVectorLayer.style;
+        if (vectorStyleMode === "layer") {
+            style = selectedLayerStyle;
         } else if (vectorStyleMode === "entity") {
             if (selectedPlacemark) {
-                style = simpleStyleFromFeatureProperties(selectedPlacemark.properties);
+                const placemarkStyle = simpleStyleFromFeatureProperties(selectedPlacemark.properties);
+                const placemarkVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
+                style = {...selectedLayerStyle, ...placemarkVectorLayer, ...placemarkStyle};
             } else if (selectedEntity) {
                 const entityStyle = entityToSimpleStyle(selectedEntity);
-                const vectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
-                const savedEntityStyle = vectorLayer.entityStyles
-                                         && vectorLayer.entityStyles[selectedEntity.id];
-                style = {...entityStyle, ...savedEntityStyle};
+                const entityVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
+                const entityVectorLayerStyle = entityVectorLayer && entityVectorLayer.style;
+                const savedEntityStyle = entityVectorLayer
+                                         && entityVectorLayer.entityStyles
+                                         && entityVectorLayer.entityStyles[selectedEntity.id];
+                style = {...selectedLayerStyle, ...entityVectorLayerStyle, ...entityStyle, ...savedEntityStyle};
             }
         }
-        console.log("vectorStyleSelector: style =", style);
         return {...SIMPLE_STYLE_DEFAULTS, ...style};
     }
 );
