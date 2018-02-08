@@ -64,4 +64,4 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch & 
         }
     }
 }
-export default connect(mapStateToProps, mapDispatchToProps)(TasksPanel);
+export default connect(mapStateToProps, mapDispatchToProps)(TasksPanel as any);

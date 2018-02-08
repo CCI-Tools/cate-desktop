@@ -54,6 +54,8 @@ interface IDataSourcesPanelDispatch {
 
     setControlState(propertyName: string, value: any): void;
 
+    setSessionState(propertyName: string, value: any): void;
+
     updateSessionState(sessionState: any): void;
 
     loadTemporalCoverage(dataStoreId: string, dataSourceId: string): void;
@@ -67,6 +69,7 @@ const mapDispatchToProps = {
     setSelectedDataStoreId: actions.setSelectedDataStoreId,
     setSelectedDataSourceId: actions.setSelectedDataSourceId,
     setDataSourceFilterExpr: actions.setDataSourceFilterExpr,
+    setSessionState: actions.setSessionProperty,
     setControlState: actions.setControlProperty,
     updateSessionState: actions.updateSessionState,
     loadTemporalCoverage: actions.loadTemporalCoverage,
@@ -125,7 +128,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
     }
 
     private handleShowDetailsChanged(value: boolean) {
-        this.props.setControlState('showDataSourceDetails', value);
+        this.props.setSessionState('showDataSourceDetails', value);
     }
 
     private handleShowDataSourceTitlesChanged(ev: any) {
@@ -580,4 +583,4 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(DataSourcesPanel);
+export default connect(mapStateToProps, mapDispatchToProps)(DataSourcesPanel as any);

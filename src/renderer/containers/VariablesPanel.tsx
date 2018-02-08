@@ -4,14 +4,16 @@ import {State, VariableState, ResourceState, SavedLayers, Placemark} from "../st
 import * as assert from "../../common/assert";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
 import {AnchorButton, Tooltip, Position} from "@blueprintjs/core";
-import {Cell, Column, Table, TruncatedFormat} from "@blueprintjs/table";
+import {Cell, Column, Table, TruncatedFormat, SelectionModes, Regions} from "@blueprintjs/table";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE} from "../messages";
 import {CSSProperties} from "react";
+import {IRegion} from "@blueprintjs/table/src/regions";
+import {ICoordinateData} from "@blueprintjs/table/src/interactions/draggable";
+import * as Cesium from "cesium";
 
 interface IVariablesPanelProps {
     variables: VariableState[];
@@ -25,6 +27,7 @@ interface IVariablesPanelProps {
     activeViewType: string;
     savedLayers: SavedLayers;
     selectedPlacemark: Placemark | null;
+    selectedEntity: Cesium.Entity | null;
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
@@ -34,12 +37,13 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         selectedVariableName: selectors.selectedVariableNameSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
         selectedVariableAttributesTableData: selectors.selectedVariableAttributesTableDataSelector(state),
-        showVariableDetails: state.control.showVariableDetails,
+        showVariableDetails: state.session.showVariableDetails,
         showSelectedVariableLayer: state.session.showSelectedVariableLayer,
         activeViewId: selectors.activeViewIdSelector(state),
         activeViewType: selectors.activeViewTypeSelector(state),
         savedLayers: selectors.savedLayersSelector(state),
         selectedPlacemark: selectors.selectedPlacemarkSelector(state),
+        selectedEntity: selectors.selectedEntitySelector(state),
     }
 }
 
@@ -53,7 +57,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
 
     constructor(props: IVariablesPanelProps & DispatchProp<State>) {
         super(props);
-        this.handleSelectedVariableName = this.handleSelectedVariableName.bind(this);
+        this.handleSelectedVariable = this.handleSelectedVariable.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleShowSelectedVariableLayer = this.handleShowSelectedVariableLayer.bind(this);
         this.handleAddVariableLayer = this.handleAddVariableLayer.bind(this);
@@ -62,14 +66,16 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         this.handleShowVariableTableView = this.handleShowVariableTableView.bind(this);
         this.renderAttributeName = this.renderAttributeName.bind(this);
         this.renderAttributeValue = this.renderAttributeValue.bind(this);
+        this.renderVariableName = this.renderVariableName.bind(this);
+        this.renderVariableValue = this.renderVariableValue.bind(this);
     }
 
-    private handleSelectedVariableName(newSelection: Array<React.Key>) {
+    private handleSelectedVariable(selectedRegions: IRegion[]) {
         const resource = this.props.selectedResource;
         assert.ok(resource);
-        if (newSelection && newSelection.length) {
-            const selectedVariableName = newSelection[0] as string;
-            const selectedVariable = this.props.variables.find(v => v.name === selectedVariableName);
+        if (selectedRegions && selectedRegions.length && selectedRegions[0].rows) {
+            const selectedVariableIndex = selectedRegions[0].rows[0];
+            const selectedVariable = this.props.variables[selectedVariableIndex];
             assert.ok(selectedVariable);
             this.props.dispatch(actions.setSelectedVariable(resource, selectedVariable, this.props.savedLayers));
         } else {
@@ -78,7 +84,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
     }
 
     private handleShowDetailsChanged(value: boolean) {
-        this.props.dispatch(actions.setControlProperty('showVariableDetails', value));
+        this.props.dispatch(actions.setSessionProperty('showVariableDetails', value));
     }
 
     private handleShowSelectedVariableLayer() {
@@ -148,7 +154,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
                                          isSplitPanel={true}
                                          initialContentHeight={200}
                                          actionComponent={this.renderVariableActionRow()}>
-                    {this.renderVariablesList()}
+                    {this.renderVariablesTable()}
                     {this.renderVariableDetails()}
                 </ContentWithDetailsPanel>
             );
@@ -229,23 +235,55 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         );
     }
 
-    private static getItemKey(variable: VariableState) {
-        return variable.name;
-    }
-
     private static renderItem(variable: VariableState) {
         return <LabelWithType label={variable.name} dataType={variable.dataType}/>;
     }
 
-    private renderVariablesList() {
+    private renderVariableName(index: number): any {
+        const variable = this.props.variables[index];
+        return <Cell>{VariablesPanel.renderItem(variable)}</Cell>;
+    }
+
+    private renderVariableValue(index: number): any {
+        const selectedEntity = this.props.selectedEntity;
+        const variables = this.props.variables;
+        if (selectedEntity && selectedEntity.properties) {
+            const variableName = variables[index].name;
+            const property = selectedEntity.properties[variableName];
+            if (property) {
+                return <Cell>{property.getValue()}</Cell>;
+            }
+        }
+        return <Cell/>;
+    }
+
+    private static selectedCompleteRow(region: IRegion, event: MouseEvent, coords?: ICoordinateData): IRegion{
+        return Regions.row(region.rows[0]);
+    }
+
+    private renderVariablesTable() {
+        const variables = this.props.variables;
+        const selectedVariable = this.props.selectedVariable;
+
+        let selectedRegions = null;
+        if (selectedVariable) {
+            const index = variables.indexOf(selectedVariable);
+            if (index >= 0) {
+                selectedRegions = [Regions.row(index)];
+            }
+        }
         return (
             <ScrollablePanelContent>
-                <ListBox items={this.props.variables}
-                         getItemKey={VariablesPanel.getItemKey}
-                         renderItem={VariablesPanel.renderItem}
-                         selection={this.props.selectedVariableName}
-                         selectionMode={ListBoxSelectionMode.SINGLE}
-                         onSelection={this.handleSelectedVariableName}/>
+                <Table numRows={variables.length}
+                       isRowHeaderShown={false}
+                       allowMultipleSelection={false}
+                       selectionModes={SelectionModes.ROWS_AND_CELLS}
+                       selectedRegionTransform={VariablesPanel.selectedCompleteRow}
+                       selectedRegions={selectedRegions}
+                       onSelection={this.handleSelectedVariable}>
+                    <Column name="Name" renderCell={this.renderVariableName}/>
+                    <Column name="Value" renderCell={this.renderVariableValue}/>
+                </Table>
             </ScrollablePanelContent>
         );
     }

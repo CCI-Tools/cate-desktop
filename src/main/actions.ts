@@ -235,7 +235,7 @@ export const actions = {
     openWebsite: {
         label: 'Website',
         click: function () {
-            electron.shell.openExternal('https://cci-tools.github.io/')
+            electron.shell.openExternal('https://climatetoolbox.io/')
         },
         category: 'help',
     },
@@ -243,7 +243,7 @@ export const actions = {
     openDocumentation: {
         label: 'Documentation',
         click: function () {
-            electron.shell.openExternal('http://ect-core.readthedocs.io/en/latest/')
+            electron.shell.openExternal('http://cate.readthedocs.io/en/latest/')
         },
         category: 'help',
     },

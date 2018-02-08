@@ -1,13 +1,14 @@
 import * as React from 'react';
 import {
-    State, WorkspaceState, VariableImageLayerState, VariableVectorLayerState,
-    VariableRefState, VariableState, ResourceState, VectorLayerState, WorldViewDataState
+    State, WorkspaceState, VariableImageLayerState,
+    VariableRefState, VariableState, ResourceState, VectorLayerState, WorldViewDataState, ResourceVectorLayerState,
+    ResourceRefState
 } from "../state";
 import {OpenLayersMap, LayerDescriptor} from "../components/openlayers/OpenLayersMap";
 import {connect, DispatchProp} from "react-redux";
 import * as ol from 'openlayers';
 import {
-    findVariable, findResource, getGeoJSONUrl, getTileUrl, getGeoJSONCountriesUrl,
+    findVariable, findResource, getFeatureCollectionUrl, getTileUrl, getGeoJSONCountriesUrl,
     COUNTRIES_LAYER_ID, SELECTED_VARIABLE_LAYER_ID
 } from "../state-util";
 import {ViewState} from "../components/ViewState";
@@ -46,8 +47,8 @@ class MapView extends React.Component<IMapViewProps & DispatchProp<State>, null>
                     case 'VariableImage':
                         mapLayer = this.convertVariableImageLayerToMapLayer(layer as VariableImageLayerState);
                         break;
-                    case 'VariableVector':
-                        mapLayer = this.convertVariableVectorLayerToMapLayer(layer as VariableVectorLayerState);
+                    case 'ResourceVector':
+                        mapLayer = this.convertResourceVectorLayerToMapLayer(layer as ResourceVectorLayerState);
                         break;
                     case 'Vector':
                         mapLayer = this.convertVectorLayerToMapLayer(layer as VectorLayerState);
@@ -71,7 +72,7 @@ class MapView extends React.Component<IMapViewProps & DispatchProp<State>, null>
         );
     }
 
-    private getResource(ref: VariableRefState): ResourceState {
+    private getResource(ref: ResourceRefState): ResourceState {
         return findResource(this.props.workspace.resources, ref);
     }
 
@@ -82,12 +83,12 @@ class MapView extends React.Component<IMapViewProps & DispatchProp<State>, null>
     private convertVariableImageLayerToMapLayer(layer: VariableImageLayerState): LayerDescriptor | null {
         const variable = this.getVariable(layer);
         if (!variable) {
-            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
+            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resId}"`);
             return null;
         }
         const imageLayout = variable.imageLayout;
         if (!variable.imageLayout) {
-            console.warn(`MapView: variable "${layer.varName}" of resource "${layer.resName}" has no imageLayout`);
+            console.warn(`MapView: variable "${layer.varName}" of resource "${layer.resId}" has no imageLayout`);
             return null;
         }
         const baseDir = this.props.workspace.baseDir;
@@ -130,15 +131,9 @@ class MapView extends React.Component<IMapViewProps & DispatchProp<State>, null>
         };
     }
 
-    private convertVariableVectorLayerToMapLayer(layer: VariableVectorLayerState): LayerDescriptor | null {
-        const resource = this.getResource(layer);
-        const variable = this.getVariable(layer);
-        if (!variable) {
-            console.warn(`MapView: variable "${layer.varName}" not found in resource "${layer.resName}"`);
-            return null;
-        }
+    private convertResourceVectorLayerToMapLayer(layer: ResourceVectorLayerState): LayerDescriptor | null {
         const baseDir = this.props.workspace.baseDir;
-        const url = getGeoJSONUrl(this.props.baseUrl, baseDir, layer);
+        const url = getFeatureCollectionUrl(this.props.baseUrl, baseDir, layer);
 
         const streamFeatures = function (extend: ol.Extent, resolution: number, projection: ol.proj.Projection) {
             const source = (this as any) as ol.source.Vector;
@@ -188,7 +183,7 @@ class MapView extends React.Component<IMapViewProps & DispatchProp<State>, null>
     }
 
     private convertVectorLayerToMapLayer(layer: VectorLayerState): LayerDescriptor | null {
-        let url = layer.url;
+        let url = layer.data;
         if (layer.id === COUNTRIES_LAYER_ID) {
             url = getGeoJSONCountriesUrl(this.props.baseUrl);
         }

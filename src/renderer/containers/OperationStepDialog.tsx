@@ -9,12 +9,15 @@ import {InputEditor} from "./editor/InputEditor";
 import {updatePropertyObject} from "../../common/objutil";
 import {ModalDialog} from "../components/ModalDialog";
 import {isFieldValue} from "../components/field/Field";
-import {hasValueEditorFactory, InputAssignment, InputAssignments, renderValueEditor} from "./editor/ValueEditor";
+import {
+    GeometryWKTGetter, hasValueEditorFactory, InputAssignment, InputAssignments,
+    renderValueEditor
+} from "./editor/ValueEditor";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {isDefined, isString, isUndefinedOrNull} from "../../common/types";
 import {isUndefined} from "util";
-
+import * as Cesium from "cesium";
 
 type InputErrors = { [inputName: string]: Error };
 
@@ -30,6 +33,7 @@ interface IOperationStepDialogProps extends DialogState, IOperationStepDialogOwn
     operation: OperationState;
     resName: string;
     overwrite: boolean;
+    geometryWKTGetter: GeometryWKTGetter;
 }
 
 interface IOperationStepDialogState {
@@ -82,6 +86,7 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
         operation,
         resName,
         overwrite,
+        geometryWKTGetter: selectors.selectedGeometryWKTGetterSelector(state),
     };
 }
 
@@ -119,7 +124,6 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
         const overwrite = this.props.overwrite;
         const opName = operation.name;
         const opArgs = this.getInputArguments();
-        console.log(`OperationStepDialog: handleConfirm: op="${opName}", args=`, opArgs);
         if (!this.props.isEditMode) {
             this.props.dispatch(actions.hideOperationStepDialog(this.props.id,
                                                                 {[opName]: this.state.inputAssignments}));
@@ -271,6 +275,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
             operation.inputs,
             this.state.inputAssignments,
             this.props.workspace.resources,
+            this.props.geometryWKTGetter,
             this.onConstantValueChange,
             this.onResourceNameChange
         );
@@ -322,6 +327,7 @@ function getInitialInputAssignments(inputs: OperationInputState[],
 function renderInputEditors(inputs: OperationInputState[],
                             inputAssignments: InputAssignments,
                             resources: ResourceState[],
+                            geometryWKTGetter: GeometryWKTGetter,
                             onConstantValueChange,
                             onResourceNameChange): JSX.Element[] {
     return inputs
@@ -333,6 +339,7 @@ function renderInputEditors(inputs: OperationInputState[],
                                                       input,
                                                       inputAssignments,
                                                       resources,
+                                                      geometryWKTGetter,
                                                       value: constantValue,
                                                       onChange: onConstantValueChange
                                                   });

@@ -260,7 +260,6 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
             properties: [
                 'openDirectory' as OpenDialogProperty,
                 'createDirectory' as OpenDialogProperty,
-                'promptToCreate' as OpenDialogProperty,
             ],
             filter: [],
         };

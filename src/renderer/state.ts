@@ -1,9 +1,10 @@
 import {WebAPIClient} from './webapi';
-import {JobStatus, JobFailure, JobProgress} from "./webapi/Job";
+import {JobStatus, JobFailure, JobProgress} from "./webapi";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {ViewLayoutState, ViewState} from "./components/ViewState";
-import {Feature, FeatureCollection, Point} from "geojson";
+import {Feature, FeatureCollection, GeoJsonObject, Point} from "geojson";
 import {IconName} from "@blueprintjs/core";
+import {SimpleStyle} from "../common/geojson-simple-style";
 
 /**
  * Interface describing Cate's application state structure.
@@ -345,6 +346,11 @@ export interface WorldViewDataState {
      * The split position of the selected layer, a ratio 0 to 1.
      */
     selectedLayerSplitPos: number;
+
+    /**
+     * The ID of the selected entity in Cesium 3D globe.
+     */
+    selectedEntityId: string | null;
 }
 
 export interface FigureViewDataState {
@@ -379,7 +385,7 @@ export interface LayerState {
     /**
      * Layer type
      */
-    type: 'VariableImage' | 'VariableVector' | 'Image' | 'Vector' | 'Unknown';
+    type: 'VariableImage' | 'ResourceVector' | 'Image' | 'Vector' | 'Unknown';
 
     /**
      * Layer name.
@@ -447,33 +453,58 @@ export interface ImageLayerBase extends LayerState {
  */
 export interface ImageLayerState extends ImageLayerBase {
     /**
-     * The image type ID.
+     * The layer type.
      */
     type: 'Image';
 }
 
 /**
+ * Base of vector layers.
+ */
+export interface VectorLayerBase extends LayerState {
+    /**
+     * Stores the default style for all entities of the layer.
+     */
+    style?: SimpleStyle;
+
+    /**
+     * Stores the style and any edited entities.
+     * This object will only contain keys, if an entities style has changed.
+     * Default styles come from the SimpleStyle interface of VectorLayerBase.
+     */
+    entityStyles?: {[entityId: string]: SimpleStyle};
+}
+
+
+/**
  * State of a vector layer.
  */
-export interface VectorLayerState extends LayerState {
+export interface VectorLayerState extends VectorLayerBase {
     /**
-     * The image type ID.
+     * The layer type.
      */
     type: 'Vector';
+
     /**
-     * The (GeoJSON-providing) URL.
+     * The (GeoJSON-providing) URL or GeoJSON object.
      */
-    url?: string;
+    data: string | GeoJsonObject;
+}
+
+/**
+ * Resource reference
+ */
+export interface ResourceRefState {
+    /**
+     * The id of the resource that contains the variable.
+     */
+    resId: number;
 }
 
 /**
  * Variable reference
  */
-export interface VariableRefState {
-    /**
-     * The name of the resource that contains the variable.
-     */
-    resName: string;
+export interface VariableRefState extends ResourceRefState {
     /**
      * The name of the variable.
      */
@@ -521,7 +552,7 @@ export interface VariableLayerBase extends LayerState, VariableDataRefState {
  */
 export interface VariableImageLayerState extends ImageLayerBase, VariableLayerBase {
     /**
-     * The image type ID.
+     * The layer type.
      */
     type: 'VariableImage';
 }
@@ -529,11 +560,11 @@ export interface VariableImageLayerState extends ImageLayerBase, VariableLayerBa
 /**
  * State of an image layer that displays a variable.
  */
-export interface VariableVectorLayerState extends VariableLayerBase {
+export interface ResourceVectorLayerState extends VectorLayerBase, ResourceRefState {
     /**
-     * The image type ID.
+     * The layer type.
      */
-    type: 'VariableVector';
+    type: 'ResourceVector';
 }
 
 /**
@@ -596,33 +627,15 @@ export interface TaskState {
  * URL or in the HTML5 History API.
  */
 export interface ControlState {
-    // TODO (forman): move some global view properties into session, so they are stored in preferences
-    // TODO (forman): Move some local selection properties into workspace so they can be stored.
 
-    // DataSourcesPanel
-    selectedDataStoreId: string | null;
-    selectedDataSourceId: string | null;
-    dataSourceFilterExpr: string;
-    showDataSourceDetails: boolean;
-
-    // OperationsPanel
-    selectedOperationName: string | null;
-    operationFilterTags: string[];
-    operationFilterExpr: string;
-    showOperationDetails: boolean;
-
+    // TODO (forman): Move following selection properties into workspace so they can be stored.
     // WorkspacePanel
-    showResourceDetails: boolean;
     selectedWorkspaceResourceName: string | null;
-    showWorkflowStepDetails: boolean;
     selectedWorkflowStepId: string | null;
-
     // VariablesPanel
     selectedVariableName: string | null;
-    showVariableDetails: boolean;
 
     // LayersPanel
-    showLayerDetails: boolean;
 
     // A map that stores the last state of any dialog given a dialogId
     dialogs: { [dialogId: string]: DialogState };
@@ -632,7 +645,11 @@ export interface ControlState {
     views: ViewState<any>[];
     activeViewId: string | null;
 
+    // Will later be replaced by geometry creation/editing tools.
     worldViewClickAction: string | null;
+
+    // Used to force component update after an entity's properties have changed
+    entityUpdateCount: number;
 }
 
 export interface DialogState {
@@ -667,7 +684,7 @@ export interface PlacemarkCollection extends FeatureCollection<Point> {
  * Session state can be used to save preferences.
  */
 export interface SessionState {
-    lastDir?: string;
+    lastWorkspaceDir?: string | null;
     mainWindowBounds?: { x: number; y: number; width: number; height: number };
     devToolsOpened?: boolean;
     /**
@@ -677,8 +694,6 @@ export interface SessionState {
     reopenLastWorkspace?: boolean;
     offlineMode: boolean;
     autoShowNewFigures: boolean;
-    showSelectedVariableLayer: boolean;
-    savedLayers: SavedLayers;
 
     // ApplicationPage
     panelContainerUndockedMode: boolean;
@@ -689,13 +704,6 @@ export interface SessionState {
     selectedRightTopPanelId: string | null;
     selectedRightBottomPanelId: string | null;
 
-    placemarkCollection: PlacemarkCollection | null;
-    selectedPlacemarkId: string | null;
-    showPlacemarkDetails: boolean;
-
-    workspacePanelMode: 'resources' | 'steps';
-
-    showDataSourceTitles: boolean;
     showLayerTextOverlay: boolean;
     debugWorldView: boolean;
 
@@ -703,6 +711,39 @@ export interface SessionState {
      * backendConfig settings are applied on restart (of the WebAPI) only.
      */
     backendConfig: BackendConfigState;
+
+    // DataSourcesPanel
+    selectedDataStoreId: string | null;
+    selectedDataSourceId: string | null;
+    dataSourceFilterExpr: string;
+    showDataSourceDetails: boolean;
+    showDataSourceTitles: boolean;
+
+    // OperationsPanel
+    selectedOperationName: string | null;
+    operationFilterTags: string[];
+    operationFilterExpr: string;
+    showOperationDetails: boolean;
+
+    // WorkspacePanel
+    workspacePanelMode: 'resources' | 'steps';
+    showResourceDetails: boolean;
+    showWorkflowStepDetails: boolean;
+
+    // VariablePanel
+    showVariableDetails: boolean;
+
+    // LayersPanel
+    showSelectedVariableLayer: boolean;
+    showLayerDetails: boolean;
+    savedLayers: SavedLayers;
+    vectorStyleMode: "entity" | "layer";
+
+    // PlacemarksPanel
+    placemarkCollection: PlacemarkCollection | null;
+    selectedPlacemarkId: string | null;
+    showPlacemarkDetails: boolean;
+    placemarkCounter: number;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

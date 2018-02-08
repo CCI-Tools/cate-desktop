@@ -31,7 +31,6 @@ function mapStateToProps(state: State): ILayerSourcesDialogProps {
     };
 }
 
-
 class LayerSourcesDialog extends React.Component<DispatchProp<State> & ILayerSourcesDialogProps, ILayerSourcesDialogState> {
     static readonly DIALOG_ID = 'layerSourcesDialog';
     static readonly DIALOG_TITLE = 'Add Layer';
@@ -93,7 +92,7 @@ class LayerSourcesDialog extends React.Component<DispatchProp<State> & ILayerSou
             return null;
         }
         if (!this.props.layerVariables.length) {
-            return (<p>There are currently no variables that could be added as layers.</p>);
+            return (<p>There are currently no resource or variables that could be added as layers.</p>);
         }
         return (
             <ScrollablePanelContent>
@@ -129,5 +128,3 @@ class LayerSourcesDialog extends React.Component<DispatchProp<State> & ILayerSou
 }
 
 export default connect(mapStateToProps)(LayerSourcesDialog);
-
-
