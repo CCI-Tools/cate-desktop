@@ -75,8 +75,6 @@
     "enzyme": "^3.3.0",
     "mocha": "^4.1.0",
     "oboe": "^2.1.4",
-    "openlayers": "^4.6.4",
-    "proj4": "^2.4.4",
     "react": "^16.2.0",
     "react-addons-css-transition-group": "^15.6.2",
     "react-color": "^2.13.8",
