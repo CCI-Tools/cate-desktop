@@ -18,7 +18,7 @@ import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
 import {showToast} from "./toast";
 import * as redux from "redux";
-import * as d3 from "d3";
+import * as d3 from "d3-fetch";
 import * as Cesium from "cesium";
 import {isDefined, isNumber} from "../common/types";
 import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
@@ -81,6 +81,7 @@ export function updatePlacemarkGeometry(placemarkId: string, geometry: DirectGeo
 export function updatePlacemarkProperties(placemarkId: string, properties: any): Action {
     return {type: UPDATE_PLACEMARK_PROPERTIES, payload: {placemarkId, properties}};
 }
+
 export function updatePlacemarkStyle(placemarkId: string, style: SimpleStyle): Action {
     return {type: UPDATE_PLACEMARK_STYLE, payload: {placemarkId, style}};
 }
@@ -864,7 +865,7 @@ export function deleteResourceInteractive(resName: string): ThunkAction {
                                           title: 'Remove Resource / Workflow Step',
                                           message: `Do you really want to delete resource/step "${resName}"?`,
                                           detail: 'This will also delete the workflow step that created it.\n' +
-                                          'You will not be able to undo this operation.',
+                                                  'You will not be able to undo this operation.',
                                           buttons: ["Yes", "No"],
                                           defaultId: 1,
                                           cancelId: 1,
@@ -1329,11 +1330,13 @@ export function loadTableViewData(viewId: string, resName: string, varName: stri
         if (resource) {
             const csvUrl = getCsvUrl(restUrl, baseDir, {resId: resource.id}, varName);
             dispatch(updateTableViewData(viewId, resName, varName, null, null, true));
-            d3.csv(csvUrl, (dataRows: any[]) => {
-                dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
-            }).on('error', (error: any) => {
-                dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
-            });
+            d3.csv(csvUrl)
+              .then((dataRows: any[]) => {
+                  dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
+              })
+              .catch((error: any) => {
+                  dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
+              });
         }
     }
 }

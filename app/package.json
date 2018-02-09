@@ -13,7 +13,7 @@
     "@blueprintjs/table": "^1.31.2",
     "cesium": "^1.42.1",
     "classnames": "^2.2.5",
-    "d3": "^3.5.17",
+    "d3-fetch": "^1.0.1",
     "deep-equal": "^1.0.1",
     "deep-object-diff": "^1.1.0",
     "electron-devtools-installer": "^2.2.1",
