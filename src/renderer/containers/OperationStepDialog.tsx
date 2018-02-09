@@ -16,8 +16,7 @@ import {
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {isDefined, isString, isUndefinedOrNull} from "../../common/types";
-import {isUndefined} from "util";
-import * as Cesium from "cesium";
+import {isUndefined} from "../../common/types";
 
 type InputErrors = { [inputName: string]: Error };
 
@@ -91,7 +90,6 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
 }
 
 class OperationStepDialog extends React.Component<IOperationStepDialogProps & DispatchProp<State>, IOperationStepDialogState> {
-    static readonly DIALOG_ID = 'operationStepDialog';
 
     constructor(props: IOperationStepDialogProps & DispatchProp<State>) {
         super(props);
