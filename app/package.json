@@ -17,6 +17,7 @@
     "deep-equal": "^1.0.1",
     "deep-object-diff": "^1.1.0",
     "electron-devtools-installer": "^2.2.1",
+    "electron-updater": "^2.20.1",
     "oboe": "^2.1.4",
     "react": "^16.2.0",
     "react-addons-css-transition-group": "^15.6.2",
