@@ -685,6 +685,7 @@ function checkForUpdates() {
 }
 
 
+// TODO (nf): The checkForUpdates() action is just to test the _updateWindow
 (app as any).checkForUpdates = checkForUpdates;
 
 function openUpdateWindow() {
