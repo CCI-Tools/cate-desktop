@@ -367,6 +367,7 @@ export function init() {
                                               width: 750,
                                               height: 300,
                                               center: true,
+                                              show: true,
                                               useContentSize: true,
                                               frame: false,
                                               alwaysOnTop: false,
@@ -379,8 +380,11 @@ export function init() {
                                               width: 750,
                                               height: 400,
                                               center: true,
-                                              //frame: false,
+                                              show: false,
+                                              useContentSize: true,
+                                              frame: false,
                                               alwaysOnTop: false,
+                                              transparent: false,
                                               parent: _mainWindow
                                           });
 
@@ -689,6 +693,7 @@ function checkForUpdates() {
 (app as any).checkForUpdates = checkForUpdates;
 
 function openUpdateWindow() {
+    _updateWindow.show();
     _updateWindow.loadURL(url.format({
                                          pathname: path.join(app.getAppPath(), 'update.html'),
                                          protocol: 'file:',
