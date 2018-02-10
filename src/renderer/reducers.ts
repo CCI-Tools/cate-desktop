@@ -597,6 +597,7 @@ const layerReducer = (state: LayerState, action: Action, isActiveView: boolean) 
 const initialSessionState: SessionState = {
     reopenLastWorkspace: false,
     lastWorkspacePath: null,
+    autoUpdateSoftware: true,
     autoShowNewFigures: true,
     offlineMode: false,
     showSelectedVariableLayer: true,

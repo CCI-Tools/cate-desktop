@@ -5,7 +5,7 @@ import {connect, DispatchProp} from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {TextField} from "../components/field/TextField";
-import {OpenDialogProperty} from "../actions";
+import {OpenDialogProperty, showMessageBox} from "../actions";
 import * as deepEqual from 'deep-equal';
 import {ModalDialog} from "../components/ModalDialog";
 import {showToast} from "../toast";
@@ -45,13 +45,15 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
         this.props.dispatch(actions.hidePreferencesDialog());
         if (!deepEqual(this.props.preferences, this.state)) {
             const backendConfig = this.state.backendConfig;
+            const autoUpdateSoftwareChangeDetected = this.props.preferences.autoUpdateSoftware !== this.state.autoUpdateSoftware;
             const backendChangesDetected = !deepEqual(this.props.preferences.backendConfig, backendConfig);
             this.props.dispatch(actions.updatePreferences(this.state));
-            if (backendChangesDetected) {
+            if (autoUpdateSoftwareChangeDetected || backendChangesDetected) {
                 this.props.dispatch(actions.storeBackendConfig(backendConfig));
-                showToast({
+                showMessageBox({
                     type: 'info',
-                    text: 'Some changes will be effective only after restart.'
+                    title: PreferencesDialog.DIALOG_TITLE,
+                    message: 'Some changes will be effective only after restart.'
                 });
             }
         } else {
@@ -103,6 +105,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
         return (
             <div style={{width: '100%', marginTop: '1em'}}>
                 {this.renderReopenLastWorkspace()}
+                {this.renderAutoUpdates()}
                 {this.renderAutoShowNewFigures()}
                 {this.renderOfflineMode()}
                 {this.renderPanelContainerUndockedMode()}
@@ -125,6 +128,14 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
             'reopenLastWorkspace',
             false,
             "Reopen last workspace on startup"
+        );
+    }
+
+    private renderAutoUpdates() {
+        return this.renderBooleanValue(
+            'autoUpdateSoftware',
+            false,
+            "Automatic software updates"
         );
     }
 
@@ -231,10 +242,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
     private getChangeHandler(propertyName: string, isBackend: boolean) {
         return (value: any) => {
             const change = {};
-            // TODO (forman): this needs a better fix
-            // change[propertyName] = value;
             change[propertyName] = isDefined(value) ? (isDefined(value.value) ? value.value : value) : null;
-            // console.log('getChangeHandler', propertyName, isBackend, change);
             if (isBackend) {
                 this.setBackendConfig(change);
             } else {
