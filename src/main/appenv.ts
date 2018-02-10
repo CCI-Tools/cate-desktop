@@ -11,7 +11,7 @@ import {pep440ToSemver} from "../common/version";
  * @type {string}
  */
 // export const APP_CLI_VERSION_RANGE = ">=0.9.0-dev.5 <=0.9.0-dev.7";
-export const APP_CLI_VERSION_RANGE = ">=1.0.0 <=1.0.1-dev.1";
+export const APP_CLI_VERSION_RANGE = ">=1.1.0-dev1 <1.2.0";
 
 
 const app = electron.app;

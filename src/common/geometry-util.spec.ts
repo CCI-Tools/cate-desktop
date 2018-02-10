@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import {validateGeometryValue} from "./geometry-util";
 
-describe('GeometryDialog', function () {
+describe('geometry-util', function () {
 
     describe('validateGeometryValue()', function () {
         it('can detect WKT syntax errors', function () {

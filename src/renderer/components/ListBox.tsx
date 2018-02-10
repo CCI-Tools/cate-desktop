@@ -89,7 +89,7 @@ export class ListBox extends React.PureComponent<IListBoxProps, any> {
         const selectedItemStyle = Object.assign({}, normalItemStyle, {});
 
         const selection = new Set<any>(toSelectionArray(this.props.selection));
-        const getItemKey = this.props.getItemKey || (itemIndex => itemIndex);
+        const getItemKey = this.props.getItemKey || ((item: any, itemIndex: number) => itemIndex);
         const renderItem = this.props.renderItem;
         //noinspection JSMismatchedCollectionQueryUpdate
         let renderedItems: Array<JSX.Element> = [];

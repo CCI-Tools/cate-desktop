@@ -4,7 +4,11 @@ import {stateReducer} from './reducers';
 import thunk from 'redux-thunk'
 import {LayerState, ResourceState, State, VariableState} from "./state";
 import {should, expect} from 'chai';
-import {SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID} from "./state-util";
+import {
+    SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, PLACEMARKS_LAYER_ID, EXTERNAL_OBJECT_STORE,
+    PLACEMARKS_LAYER, COUNTRIES_LAYER, SELECTED_VARIABLE_LAYER
+} from "./state-util";
+import {ExternalObjectComponent} from "./components/ExternalObjectComponent";
 
 should();
 
@@ -27,18 +31,9 @@ describe('Actions', () => {
         store.dispatch(action);
     };
 
-    const defaultSelectedVariableLayer = {
-        id: SELECTED_VARIABLE_LAYER_ID,
-        type: 'Unknown',
-        visible: true,
-    };
-
-    const defaultCountriesLayers = {
-        id: COUNTRIES_LAYER_ID,
-        name: "Countries",
-        type: "Vector",
-        visible: false,
-    };
+    const defaultSelectedVariableLayer = {...SELECTED_VARIABLE_LAYER};
+    const defaultCountriesLayer = {...COUNTRIES_LAYER};
+    const defaultPlacemarkLayer = {...PLACEMARKS_LAYER};
 
     beforeEach(function () {
         const middleware = applyMiddleware(thunk);
@@ -57,10 +52,10 @@ describe('Actions', () => {
     describe('Session/Preferences actions', () => {
 
         it('updatePreferences', () => {
-            dispatch(actions.updatePreferences({lastDir: 'a/b'}));
-            expect(getState().session.lastDir).to.deep.equal('a/b');
+            dispatch(actions.updatePreferences({lastWorkspacePath: 'a/b'}));
+            expect(getState().session.lastWorkspacePath).to.deep.equal('a/b');
             dispatch(actions.updatePreferences({lastVar: 'c'}));
-            expect(getState().session.lastDir).to.deep.equal('a/b');
+            expect(getState().session.lastWorkspacePath).to.deep.equal('a/b');
             expect((getState().session as any).lastVar).to.deep.equal('c');
         });
 
@@ -111,9 +106,9 @@ describe('Actions', () => {
                     {id: 'local-1'},
                     {
                         id: 'local-2', dataSources: [
-                        {id: 'fileset-1'},
-                        {id: 'fileset-2'}
-                    ]
+                            {id: 'fileset-1'},
+                            {id: 'fileset-2'}
+                        ]
                     }
                 ]);
         });
@@ -137,12 +132,12 @@ describe('Actions', () => {
                     {id: 'local-1'},
                     {
                         id: 'local-2', dataSources: [
-                        {
-                            id: 'fileset-1',
-                            temporalCoverage: ['2010-01-01', '2014-12-30']
-                        },
-                        {id: 'fileset-2'}
-                    ]
+                            {
+                                id: 'fileset-1',
+                                temporalCoverage: ['2010-01-01', '2014-12-30']
+                            },
+                            {id: 'fileset-2'}
+                        ]
                     }
                 ]);
         });
@@ -154,23 +149,23 @@ describe('Actions', () => {
                     {id: 'local-2', dataSources: []}
                 ] as any));
             dispatch(actions.setSelectedDataStoreId('local-2'));
-            expect(getState().control.selectedDataStoreId).to.equal('local-2');
+            expect(getState().session.selectedDataStoreId).to.equal('local-2');
             dispatch(actions.setSelectedDataStoreId(null));
-            expect(getState().control.selectedDataStoreId).to.be.null;
+            expect(getState().session.selectedDataStoreId).to.be.null;
         });
 
         it('setSelectedDataSourceId', () => {
             dispatch(actions.setSelectedDataSourceId('ds-1'));
-            expect(getState().control.selectedDataSourceId).to.equal('ds-1');
+            expect(getState().session.selectedDataSourceId).to.equal('ds-1');
             dispatch(actions.setSelectedDataSourceId(null));
-            expect(getState().control.selectedDataSourceId).to.be.null;
+            expect(getState().session.selectedDataSourceId).to.be.null;
         });
 
         it('setDataSourceFilterExpr', () => {
             dispatch(actions.setDataSourceFilterExpr('oz mon'));
-            expect(getState().control.dataSourceFilterExpr).to.equal('oz mon');
+            expect(getState().session.dataSourceFilterExpr).to.equal('oz mon');
             dispatch(actions.setDataSourceFilterExpr(null));
-            expect(getState().control.dataSourceFilterExpr).to.be.null;
+            expect(getState().session.dataSourceFilterExpr).to.be.null;
         });
     });
 
@@ -191,23 +186,23 @@ describe('Actions', () => {
 
         it('setSelectedOperationName', () => {
             dispatch(actions.setSelectedOperationName('op-2'));
-            expect(getState().control.selectedOperationName).to.equal('op-2');
+            expect(getState().session.selectedOperationName).to.equal('op-2');
             dispatch(actions.setSelectedOperationName(null));
-            expect(getState().control.selectedOperationName).to.be.null;
+            expect(getState().session.selectedOperationName).to.be.null;
         });
 
         it('setOperationFilterTags', () => {
             dispatch(actions.setOperationFilterTags(['a', 'b']));
-            expect(getState().control.operationFilterTags).to.deep.equal(['a', 'b']);
+            expect(getState().session.operationFilterTags).to.deep.equal(['a', 'b']);
             dispatch(actions.setOperationFilterTags(null));
-            expect(getState().control.operationFilterTags).to.be.null;
+            expect(getState().session.operationFilterTags).to.be.null;
         });
 
         it('setOperationFilterExpr', () => {
             dispatch(actions.setOperationFilterExpr('read wri'));
-            expect(getState().control.operationFilterExpr).to.equal('read wri');
+            expect(getState().session.operationFilterExpr).to.equal('read wri');
             dispatch(actions.setOperationFilterExpr(null));
-            expect(getState().control.operationFilterExpr).to.be.null;
+            expect(getState().session.operationFilterExpr).to.be.null;
         });
     });
 
@@ -353,7 +348,6 @@ describe('Actions', () => {
             return workspace.resources[0].variables.find(v => v.name === name);
         }
 
-
         it('setSelectedVariable - with image variable', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.setSelectedWorkspaceResourceName('res_1'));
@@ -362,9 +356,10 @@ describe('Actions', () => {
                 [
                     {
                         id: SELECTED_VARIABLE_LAYER_ID,
-                        name: "Sel. var.: res_1/analysed_sst",
+                        name: "Variable: res_1.analysed_sst",
                         type: "VariableImage",
                         visible: true,
+                        resId: 0,
                         resName: "res_1",
                         varName: "analysed_sst",
                         varIndex: [0],
@@ -379,7 +374,8 @@ describe('Actions', () => {
                         hue: 0,
                         saturation: 1,
                     },
-                    defaultCountriesLayers
+                    defaultCountriesLayer,
+                    defaultPlacemarkLayer
                 ]);
         });
 
@@ -392,84 +388,87 @@ describe('Actions', () => {
                     {
                         id: SELECTED_VARIABLE_LAYER_ID,
                         type: "Unknown",
-                        name: "Sel. var.: none (not geo-spatial)",
+                        name: "Variable: profile (not geo-spatial)",
                         visible: true,
-                        resName: null,
-                        varName: null,
-                        varIndex: null,
                     },
-                    defaultCountriesLayers
+                    defaultCountriesLayer,
+                    defaultPlacemarkLayer
                 ]);
         });
 
-        // TODO (forman): uncomment this important test and make it run green
-        // it('setSelectedVariable - can restore previous layer state', () => {
-        //     const selectedVariableLayerOld = {
-        //         id: SELECTED_VARIABLE_LAYER_ID,
-        //         type: "VariableImage",
-        //         visible: true,
-        //         resName: "res_1",
-        //         varName: "analysed_sst",
-        //         varIndex: [139],
-        //         colorMapName: "inferno",
-        //         alphaBlending: false,
-        //         displayMin: 270,
-        //         displayMax: 300,
-        //         opacity: 1,
-        //         brightness: 1,
-        //         contrast: 1,
-        //         gamma: 1,
-        //         hue: 0,
-        //         saturation: 1,
-        //     };
-        //     const selectedVariableLayerNew = {
-        //         id: SELECTED_VARIABLE_LAYER_ID,
-        //         type: "VariableImage",
-        //         visible: true,
-        //         resName: "res_1",
-        //         varName: "sst_error",
-        //         varIndex: [0],
-        //         colorMapName: "inferno",
-        //         alphaBlending: false,
-        //         displayMin: 0,
-        //         displayMax: 1,
-        //         opacity: 1,
-        //         brightness: 1,
-        //         contrast: 1,
-        //         gamma: 1,
-        //         hue: 0,
-        //         saturation: 1,
-        //     };
-        //
-        //     dispatch(actions.setCurrentWorkspace(workspace as any));
-        //     dispatch(actions.setSelectedWorkspaceResourceName('res_1'));
-        //     dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst')));
-        //     dispatch(actions.updateLayer('world-1', {
-        //         id: SELECTED_VARIABLE_LAYER_ID,
-        //         varIndex: [139],
-        //         displayMax: 300
-        //     } as any));
-        //     expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
-        //     dispatch(actions.setSelectedVariable(getRes(), getVar('sst_error')));
-        //     expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayers]);
-        //     dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst')));
-        //     expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayers]);
-        // });
+        it('setSelectedVariable - can restore previous layer state', () => {
+            const selectedVariableLayerOld = {
+                id: SELECTED_VARIABLE_LAYER_ID,
+                type: "VariableImage",
+                name: "Variable: res_1.analysed_sst",
+                visible: true,
+                resId: 0,
+                resName: "res_1",
+                varName: "analysed_sst",
+                varIndex: [139],
+                colorMapName: "inferno",
+                alphaBlending: false,
+                displayMin: 270,
+                displayMax: 300,
+                opacity: 1,
+                brightness: 1,
+                contrast: 1,
+                gamma: 1,
+                hue: 0,
+                saturation: 1,
+            };
+            const selectedVariableLayerNew = {
+                id: SELECTED_VARIABLE_LAYER_ID,
+                type: "VariableImage",
+                name: "Variable: res_1.sst_error",
+                visible: true,
+                resId: 0,
+                resName: "res_1",
+                varName: "sst_error",
+                varIndex: [0],
+                colorMapName: "inferno",
+                alphaBlending: false,
+                displayMin: 0,
+                displayMax: 1,
+                opacity: 1,
+                brightness: 1,
+                contrast: 1,
+                gamma: 1,
+                hue: 0,
+                saturation: 1,
+            };
+
+            dispatch(actions.setCurrentWorkspace(workspace as any));
+            dispatch(actions.setSelectedWorkspaceResourceName('res_1'));
+            dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst'), getState().session.savedLayers));
+            const selectedVarLayer = getActiveView().data.layers[0];
+            dispatch(actions.updateLayer(getActiveView().id, selectedVarLayer, {
+                varIndex: [139],
+                displayMax: 300
+            } as any));
+            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayer, defaultPlacemarkLayer]);
+            dispatch(actions.setSelectedVariable(getRes(), getVar('sst_error'), getState().session.savedLayers));
+            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayer, defaultPlacemarkLayer]);
+            dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst'), getState().session.savedLayers));
+            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayer, defaultPlacemarkLayer]);
+        });
 
         it('addVariableLayer', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.addVariableLayer(getActiveViewId(), getRes(), getVar('analysed_sst'), true));
-            expect(getActiveView().data.layers.length).to.equal(3);
+            expect(getActiveView().data.layers.length).to.equal(4);
             expect(getActiveView().data.layers[0].id).to.equal(SELECTED_VARIABLE_LAYER_ID);
-            expect(getActiveView().data.layers[1]).to.deep.equal(defaultCountriesLayers);
-            expect(getActiveView().data.layers[2].id.startsWith('layer-')).to.be.true;
+            expect(getActiveView().data.layers[1]).to.deep.equal(defaultCountriesLayer);
+            expect(getActiveView().data.layers[2]).to.deep.equal(defaultPlacemarkLayer);
+            expect(getActiveView().data.layers[3].id.startsWith('layer-')).to.be.true;
         });
 
         it('addLayer', () => {
             dispatch(actions.addLayer(getActiveViewId(), {id: 'layer-2', visible: true} as LayerState, true));
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
-                                                                  defaultCountriesLayers,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
                                                                   {id: 'layer-2', visible: true},
                                                               ]);
         });
@@ -480,7 +479,8 @@ describe('Actions', () => {
             dispatch(actions.removeLayer(getActiveViewId(), 'layer-2'));
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
-                                                                  defaultCountriesLayers,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
                                                                   {id: 'layer-1', visible: true},
                                                               ]);
         });
@@ -492,7 +492,8 @@ describe('Actions', () => {
             dispatch(actions.updateLayer(getActiveViewId(), {id: 'layer-2', visible: false} as LayerState));
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
-                                                                  defaultCountriesLayers,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
                                                                   {id: 'layer-1', visible: true},
                                                                   {id: 'layer-2', visible: false},
                                                                   {id: 'layer-3', visible: true},
@@ -500,10 +501,52 @@ describe('Actions', () => {
             dispatch(actions.updateLayer(getActiveViewId(), {id: 'layer-1', name: 'LX'} as LayerState));
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
-                                                                  defaultCountriesLayers,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
                                                                   {id: 'layer-1', name: 'LX', visible: true},
                                                                   {id: 'layer-2', visible: false},
                                                                   {id: 'layer-3', visible: true},
+                                                              ]);
+        });
+
+        it('updateLayerStyle', () => {
+            dispatch(actions.addLayer(getActiveViewId(), {
+                id: 'layer-1',
+                visible: true,
+                type: "Vector"
+            } as LayerState, false));
+            expect(getActiveView().data.layers).to.deep.equal([
+                                                                  defaultSelectedVariableLayer,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
+                                                                  {id: 'layer-1', visible: true, type: "Vector"},
+                                                              ]);
+            dispatch(actions.updateLayerStyle(getActiveViewId(), 'layer-1', {fill: "#123456", fillOpacity: 0.4}));
+            expect(getActiveView().data.layers).to.deep.equal([
+                                                                  defaultSelectedVariableLayer,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
+                                                                  {
+                                                                      id: 'layer-1', visible: true, type: "Vector",
+                                                                      style: {
+                                                                          fill: "#123456", fillOpacity: 0.4
+                                                                      }
+                                                                  },
+                                                              ]);
+            dispatch(actions.updateLayerStyle(getActiveViewId(), 'layer-1', {stroke: "#3053FF", strokeOpacity: 0.6}));
+            expect(getActiveView().data.layers).to.deep.equal([
+                                                                  defaultSelectedVariableLayer,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer,
+                                                                  {
+                                                                      id: 'layer-1',
+                                                                      visible: true,
+                                                                      type: "Vector",
+                                                                      style: {
+                                                                          fill: "#123456", fillOpacity: 0.4,
+                                                                          stroke: "#3053FF", strokeOpacity: 0.6,
+                                                                      }
+                                                                  },
                                                               ]);
         });
 
@@ -512,7 +555,8 @@ describe('Actions', () => {
             expect(getState().session.showSelectedVariableLayer).to.equal(true);
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
-                                                                  defaultCountriesLayers,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer
                                                               ]);
 
             dispatch(actions.setShowSelectedVariableLayer(false));
@@ -523,7 +567,8 @@ describe('Actions', () => {
                                                                       visible: false,
                                                                       type: 'Unknown'
                                                                   },
-                                                                  defaultCountriesLayers,
+                                                                  defaultCountriesLayer,
+                                                                  defaultPlacemarkLayer
                                                               ]);
         });
 
@@ -532,6 +577,303 @@ describe('Actions', () => {
             expect(getActiveView().data.selectedLayerId).to.equal('var2');
             dispatch(actions.setSelectedLayerId(getActiveViewId(), null));
             expect(getActiveView().data.selectedLayerId).to.be.null;
+        });
+
+        it('updateEntityStyle', () => {
+            // Note: this is a rather complex test because updateEntityStyle() need to consider the various
+            // places vector styles are stored:
+            // 1. state.control.views[i].data.layers[j].entityStyles[k]
+            // 2. state.session.placemarkCollection.features[i].properties
+            //
+            // We also need a rather complex test setup to simulate a Cesium component.
+
+            // Cesium.EntityCollection mock
+            class EntityCollection {
+                readonly values: any[];
+
+                constructor(values: any[]) {
+                    this.values = values;
+                }
+
+                // noinspection JSUnusedGlobalSymbols
+                get(i: number) {
+                    return this.values[i];
+                }
+
+                // noinspection JSUnusedGlobalSymbols
+                contains(entity) {
+                    return this.values.indexOf(entity) >= 0;
+                }
+            }
+
+            // Cesium.DataSource mock
+            class DataSource {
+                readonly entities: EntityCollection;
+
+                constructor(entities: any[]) {
+                    this.entities = new EntityCollection(entities);
+                }
+            }
+
+            // Cesium.DataSourceCollection mock
+            class DataSourceCollection {
+                readonly length: number;
+                private dataSources: DataSource[];
+
+                constructor(dataSources: DataSource[]) {
+                    this.dataSources = dataSources;
+                    this.length = dataSources.length;
+                }
+
+                get(i: number) {
+                    return this.dataSources[i];
+                }
+            }
+
+            // Some user layer
+            const layer1 = {
+                id: 'user-layer-1',
+                visible: true,
+                type: "Vector"
+            };
+
+            // Prepare test scenario with one user layer and one placemark
+            dispatch(actions.setCurrentWorkspace(workspace as any));
+            dispatch(actions.addLayer(getActiveViewId(), layer1 as LayerState, false));
+            dispatch(actions.addPlacemark({longitude: 11.8, latitude: 8.4}));
+            const placemarkId = getState().session.placemarkCollection.features[0].id;
+            const expectedPlacemark = {
+                id: placemarkId,
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [11.8, 8.4],
+                },
+                properties: {
+                    visible: true,
+                    "title": "Placemark A",
+                    "marker-symbol": "A",
+                    "marker-size": "small",
+                    "marker-color": "#FF0000",
+                }
+            };
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal(expectedPlacemark);
+
+            // Cesium entity mocks for Country layer
+            let entity1 = {
+                id: "438",
+            };
+            let entity2 = {
+                id: "439",
+            };
+
+            // Cesium entity mock for Placemarks layer
+            let entity3 = {
+                id: placemarkId,
+            };
+
+            // Cesium entity mocks for user layer
+            let entity4 = {
+                id: 9843,
+            };
+            let entity5 = {
+                id: 9843,
+            };
+
+            // Cesium.DataSource mock instances
+            const countriesDataSource = new DataSource([entity1, entity2]);
+            const placemarksDataSource = new DataSource([entity3]);
+            const userDataSource = new DataSource([entity4, entity5]);
+
+            // Cesium.Viewer mock instance
+            const cesiumViewer = {
+                dataSources: new DataSourceCollection([countriesDataSource, placemarksDataSource, userDataSource]),
+            };
+
+            // ExternalObjectComponent state mock instance
+            // noinspection UnnecessaryLocalVariableJS
+            const externalObject = {
+                object: cesiumViewer,
+                state: {
+                    dataSourceMap: {
+                        [COUNTRIES_LAYER_ID]: countriesDataSource,
+                        [PLACEMARKS_LAYER_ID]: placemarksDataSource,
+                        "user-layer-1": userDataSource,
+                    }
+                },
+            };
+
+            // Register our Cesium.Viewer mock instance
+            EXTERNAL_OBJECT_STORE["CesiumGlobe-" + getActiveViewId()] = externalObject;
+
+            const countriesLayerIndex = 1;
+            const placemarksLayerIndex = 2;
+            const userLayerIndex = 3;
+
+            let countryLayer = getActiveView().data.layers[countriesLayerIndex];
+            let placemarksLayer = getActiveView().data.layers[placemarksLayerIndex];
+            let userLayer = getActiveView().data.layers[userLayerIndex];
+
+            expect(countryLayer.id).to.equal(COUNTRIES_LAYER_ID);
+            expect(placemarksLayer.id).to.equal(PLACEMARKS_LAYER_ID);
+            expect(userLayer.id).to.equal("user-layer-1");
+
+            expect(countryLayer.entityStyles).to.not.exist;
+            expect(placemarksLayer.entityStyles).to.not.exist;
+            expect(userLayer.entityStyles).to.not.exist;
+
+            // Style change on entity of Countries layer --> change in countryLayer.entityStyles
+            //
+            dispatch(actions.updateEntityStyle(getActiveView(), entity1, {
+                fill: "#123456",
+                fillOpacity: 0.3,
+            }));
+
+            countryLayer = getActiveView().data.layers[countriesLayerIndex];
+            expect(countryLayer.entityStyles).to.exist;
+            expect(countryLayer.entityStyles[entity1.id]).to.exist;
+            expect(countryLayer.entityStyles[entity1.id]).to.deep.equal({
+                                                                       fill: "#123456",
+                                                                       fillOpacity: 0.3,
+                                                                   });
+
+            // Another style change on entity of Countries layer--> change in countryLayer.entityStyles
+            //
+            dispatch(actions.updateEntityStyle(getActiveView(), entity1, {
+                stroke: "#615243",
+                strokeOpacity: 0.9,
+            }));
+
+            countryLayer = getActiveView().data.layers[countriesLayerIndex];
+            expect(countryLayer.entityStyles[entity1.id]).to.deep.equal({
+                                                                       fill: "#123456",
+                                                                       fillOpacity: 0.3,
+                                                                       stroke: "#615243",
+                                                                       strokeOpacity: 0.9,
+                                                                   });
+
+            // Yet another style change on another entity of Countries layer --> change in countryLayer.entityStyles
+            //
+            dispatch(actions.updateEntityStyle(getActiveView(), entity2, {
+                fill: "#112233",
+                fillOpacity: 0.4,
+            }));
+
+            countryLayer = getActiveView().data.layers[countriesLayerIndex];
+            expect(countryLayer.entityStyles[entity1.id]).to.deep.equal({
+                                                                       fill: "#123456",
+                                                                       fillOpacity: 0.3,
+                                                                       stroke: "#615243",
+                                                                       strokeOpacity: 0.9,
+                                                                   });
+            expect(countryLayer.entityStyles[entity2.id]).to.deep.equal({
+                                                                       fill: "#112233",
+                                                                       fillOpacity: 0.4,
+                                                                   });
+
+            // Style change on a placemark entity --> change in state.session.placemarkCollection
+            //
+            dispatch(actions.updateEntityStyle(getActiveView(), entity3, {
+                markerSize: "large",
+                markerSymbol: "bus",
+            }));
+
+            placemarksLayer = getActiveView().data.layers[placemarksLayerIndex];
+            expect(placemarksLayer.entityStyles).to.not.exist; // placemark styles go into feature properties
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({...expectedPlacemark,
+                                                                                     properties: {
+                                                                                         ...expectedPlacemark.properties,
+                                                                                         "marker-size": "large",
+                                                                                         "marker-symbol": "bus",
+                                                                                     }});
+
+            // Style change on a user entity --> change in userLayer.entityStyles
+            //
+            dispatch(actions.updateEntityStyle(getActiveView(), entity5, {
+                fill: "#FF00FF",
+                fillOpacity: 0.21,
+            }));
+
+            userLayer = getActiveView().data.layers[userLayerIndex];
+            expect(userLayer.entityStyles[entity5.id]).to.deep.equal({
+                                                                         fill: "#FF00FF",
+                                                                         fillOpacity: 0.21,
+                                                                     });
+        });
+    });
+
+    describe('Placemark actions', () => {
+
+        it('updatePlacemarkStyle', () => {
+            dispatch(actions.addPlacemark({longitude: 12.6, latitude: 53.1}));
+            expect(getState().session.placemarkCollection).to.exist;
+            expect(getState().session.placemarkCollection.features.length).to.equal(1);
+            const placemark = getState().session.placemarkCollection.features[0];
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...placemark,
+                                                                                         properties: {
+                                                                                             visible: true,
+                                                                                             "title": "Placemark A",
+                                                                                             "marker-symbol": "A",
+                                                                                             "marker-size": "small",
+                                                                                             "marker-color": "#FF0000",
+                                                                                         }
+                                                                                     });
+            dispatch(actions.updatePlacemarkStyle(placemark.id, {title: "Placemark V"}));
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...placemark,
+                                                                                         properties: {
+                                                                                             visible: true,
+                                                                                             "title": "Placemark V",
+                                                                                             "marker-symbol": "V",
+                                                                                             "marker-size": "small",
+                                                                                             "marker-color": "#FF0000",
+                                                                                         }
+                                                                                     });
+            dispatch(actions.updatePlacemarkStyle(placemark.id, {title: "Bibo"}));
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...placemark,
+                                                                                         properties: {
+                                                                                             visible: true,
+                                                                                             "title": "Bibo",
+                                                                                             "marker-symbol": "B",
+                                                                                             "marker-size": "small",
+                                                                                             "marker-color": "#FF0000",
+                                                                                         }
+                                                                                     });
+            dispatch(actions.updatePlacemarkStyle(placemark.id, {markerSymbol: "bus"}));
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...placemark,
+                                                                                         properties: {
+                                                                                             visible: true,
+                                                                                             "title": "Bibo",
+                                                                                             "marker-symbol": "bus",
+                                                                                             "marker-size": "small",
+                                                                                             "marker-color": "#FF0000",
+                                                                                         }
+                                                                                     });
+        });
+
+        it('updatePlacemarkGeometry', () => {
+            dispatch(actions.addPlacemark({longitude: 12.6, latitude: 53.1}));
+            expect(getState().session.placemarkCollection).to.exist;
+            expect(getState().session.placemarkCollection.features.length).to.equal(1);
+            const placemark = getState().session.placemarkCollection.features[0];
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...placemark,
+                                                                                         geometry: {
+                                                                                             type: "Point",
+                                                                                             coordinates: [12.6, 53.1],
+                                                                                         }
+                                                                                     });
+            dispatch(actions.updatePlacemarkGeometry(placemark.id, {coordinates: [13.2, 53.1]}));
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...placemark,
+                                                                                         geometry: {
+                                                                                             type: "Point",
+                                                                                             coordinates: [13.2, 53.1],
+                                                                                         }
+                                                                                     });
         });
     });
 
@@ -552,25 +894,27 @@ describe('Actions', () => {
 
         it('renameWorkspaceResourceImpl', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
-            dispatch(actions.addLayer(getActiveViewId(), {id: 'L1', resName: 'res_1', varName: 'X'} as any, false));
-            dispatch(actions.addLayer(getActiveViewId(), {id: 'L2', resName: 'res_2', varName: 'X'} as any, false));
+            dispatch(actions.addLayer(getActiveViewId(), {
+                id: 'L1',
+                resId: 1,
+                resName: 'res_1',
+                varName: 'X'
+            } as any, false));
+            dispatch(actions.addLayer(getActiveViewId(), {
+                id: 'L2',
+                resId: 2,
+                resName: 'res_2',
+                varName: 'X'
+            } as any, false));
             dispatch(actions.setSelectedWorkspaceResourceName('res_2'));
             dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
             expect(getActiveView().data.layers).to.deep.equal(
                 [
-                    {
-                        id: SELECTED_VARIABLE_LAYER_ID,
-                        visible: true,
-                        type: "Unknown"
-                    },
-                    {
-                        id: COUNTRIES_LAYER_ID,
-                        visible: false,
-                        type: "Vector",
-                        name: 'Countries'
-                    },
-                    {id: 'L1', resName: 'res_1', varName: 'X'},
-                    {id: 'L2', resName: 'bert', varName: 'X'},
+                    {...SELECTED_VARIABLE_LAYER},
+                    {...COUNTRIES_LAYER},
+                    {...PLACEMARKS_LAYER},
+                    {id: 'L1', resId: 1, resName: 'res_1', varName: 'X'},
+                    {id: 'L2', resId: 2, resName: 'bert', varName: 'X'},
                 ]);
             expect(getState().control.selectedWorkspaceResourceName).to.equal('bert');
         });

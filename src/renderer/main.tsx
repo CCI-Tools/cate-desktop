@@ -16,12 +16,16 @@ export function main() {
     const middlewares: Middleware[] = [thunkMiddleware];
 
     if (process.env.NODE_ENV === 'development') {
-        const nonLoggedActionTypes = [actions.SET_GLOBE_MOUSE_POSITION];
+        const nonLoggedActionTypes = new Set([
+                                                 // Too much noise:
+                                                 actions.SET_GLOBE_MOUSE_POSITION,
+                                                 actions.SET_GLOBE_VIEW_POSITION,
+                                             ]);
         const loggerOptions = {
             level: 'info',
             collapsed: true,
             diff: true,
-            predicate: (getState, action) => (nonLoggedActionTypes.indexOf(action.type) === -1)
+            predicate: (getState, action) => !nonLoggedActionTypes.has(action.type)
         };
         middlewares.push(createLogger(loggerOptions));
     }

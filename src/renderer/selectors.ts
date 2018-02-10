@@ -1,24 +1,25 @@
 import {
     LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
     ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
-    WorkflowStepState, VariableVectorLayerState, LayerVariableState, SavedLayers,
-    FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase
+    WorkflowStepState, LayerVariableState, SavedLayers,
+    FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase,
+    ResourceVectorLayerState, WorldViewDataState, VectorLayerState
 } from "./state";
 import {createSelector, Selector} from 'reselect';
-import {WebAPIClient} from "./webapi/WebAPIClient";
-import {DatasetAPI} from "./webapi/apis/DatasetAPI";
-import {OperationAPI} from "./webapi/apis/OperationAPI";
-import {WorkspaceAPI} from "./webapi/apis/WorkspaceAPI";
-import {ColorMapsAPI} from "./webapi/apis/ColorMapsAPI";
-import {BackendConfigAPI} from "./webapi/apis/BackendConfigAPI";
+import {WebAPIClient, JobStatusEnum} from "./webapi";
+import {DatasetAPI, OperationAPI, WorkspaceAPI, ColorMapsAPI, BackendConfigAPI} from "./webapi/apis";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
-    computingVariableStatisticsLock
+    getLockForGetWorkspaceVariableStatistics, EXTERNAL_OBJECT_STORE, getWorldViewSelectedEntity,
+    getWorldViewSelectedGeometryWKTGetter, getWorldViewVectorLayerForEntity,
 } from "./state-util";
 import {ViewState, ViewLayoutState} from "./components/ViewState";
 import {isNumber} from "../common/types";
-import {JobStatusEnum} from "./webapi/Job";
+import * as Cesium from "cesium";
+import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
+import {entityToSimpleStyle} from "./components/cesium/cesium-util";
+import {SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties} from "../common/geojson-simple-style";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -72,17 +73,17 @@ export const colorMapsAPISelector = createSelector(
     }
 );
 
-export const activeRequestLocksSelector = (state: State): string[] => {
-    const array = [];
+export const activeRequestLocksSelector = (state: State): Set<string> => {
+    const activeRequestLocks = new Set<string>();
     for (let jobId in state.communication.tasks) {
         const task = state.communication.tasks[jobId];
         if (task.status == JobStatusEnum.NEW ||
             task.status == JobStatusEnum.SUBMITTED ||
             task.status == JobStatusEnum.IN_PROGRESS) {
-            array.push(task.requestLock)
+            activeRequestLocks.add(task.requestLock);
         }
     }
-    return array;
+    return activeRequestLocks;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,9 +157,9 @@ export const globeViewPositionSelector = (state: State): GeographicPosition | nu
 // Operation selectors
 
 export const operationsSelector = (state: State): OperationState[] | null => state.data.operations;
-export const operationFilterTagsSelector = (state: State): string[] | null => state.control.operationFilterTags;
-export const operationFilterExprSelector = (state: State): string | null => state.control.operationFilterExpr;
-export const selectedOperationNameSelector = (state: State): string | null => state.control.selectedOperationName;
+export const operationFilterTagsSelector = (state: State): string[] | null => state.session.operationFilterTags;
+export const operationFilterExprSelector = (state: State): string | null => state.session.operationFilterExpr;
+export const selectedOperationNameSelector = (state: State): string | null => state.session.selectedOperationName;
 
 export const selectedOperationSelector = createSelector<State, OperationState | null, OperationState[] | null,
     string | null>(
@@ -191,12 +192,14 @@ export const filteredOperationsSelector = createSelector<State, OperationState[]
                     return parts.every(part => op.name.toLowerCase().includes(part));
                 };
             } else {
+                // noinspection JSUnusedLocalSymbols
                 nameMatches = op => true;
             }
             let hasTag;
             if (hasFilterTags) {
                 hasTag = op => !operationFilterTags.length || operationFilterTags.every(tag => new Set(op.tags).has(tag));
             } else {
+                // noinspection JSUnusedLocalSymbols
                 hasTag = op => true;
             }
             return operations.filter(op => nameMatches(op) && hasTag(op));
@@ -220,10 +223,10 @@ export const operationsTagCountsSelector = createSelector<State, Map<string, num
 // Data store and data source selectors
 
 export const dataStoresSelector = (state: State) => state.data.dataStores;
-export const selectedDataStoreIdSelector = (state: State) => state.control.selectedDataStoreId;
-export const selectedDataSourceIdSelector = (state: State) => state.control.selectedDataSourceId;
-export const dataSourceFilterExprSelector = (state: State) => state.control.dataSourceFilterExpr;
-export const showDataSourceDetailsSelector = (state: State) => state.control.showDataSourceDetails;
+export const selectedDataStoreIdSelector = (state: State) => state.session.selectedDataStoreId;
+export const selectedDataSourceIdSelector = (state: State) => state.session.selectedDataSourceId;
+export const dataSourceFilterExprSelector = (state: State) => state.session.dataSourceFilterExpr;
+export const showDataSourceDetailsSelector = (state: State) => state.session.showDataSourceDetails;
 export const showDataSourceTitlesSelector = (state: State): boolean => state.session.showDataSourceTitles;
 
 export const selectedDataStoreSelector = createSelector<State, DataStoreState | null,
@@ -309,8 +312,13 @@ export const selectedDataSourceTemporalCoverageSelector = createSelector<State, 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Workspace, resource, step, and variable selectors
 
+// lastWorkspaceDir
+
 export const workspaceSelector = (state: State): WorkspaceState | null => {
     return state.data.workspace;
+};
+export const isScratchWorkspaceSelector = (state: State): boolean => {
+    return state.data.workspace && state.data.workspace.isScratch;
 };
 export const workspaceBaseDirSelector = (state: State): string | null => {
     return state.data.workspace && state.data.workspace.baseDir;
@@ -321,14 +329,17 @@ export const resourcesSelector = (state: State): ResourceState[] => {
 export const workflowStepsSelector = (state: State): WorkflowStepState[] => {
     return state.data.workspace ? state.data.workspace.workflow.steps : EMPTY_ARRAY;
 };
+export const lastWorkspacePathSelector = (state: State): string | null => {
+    return state.session.lastWorkspacePath;
+};
 export const showResourceDetailsSelector = (state: State): boolean => {
-    return state.control.showResourceDetails;
+    return state.session.showResourceDetails;
 };
 export const selectedResourceNameSelector = (state: State): string | null => {
     return state.control.selectedWorkspaceResourceName;
 };
 export const showWorkflowStepDetailsSelector = (state: State): boolean => {
-    return state.control.showWorkflowStepDetails;
+    return state.session.showWorkflowStepDetails;
 };
 export const selectedWorkflowStepIdSelector = (state: State): string | null => {
     return state.control.selectedWorkflowStepId || selectedResourceNameSelector(state);
@@ -336,6 +347,43 @@ export const selectedWorkflowStepIdSelector = (state: State): string | null => {
 export const selectedVariableNameSelector = (state: State): string | null => {
     return state.control.selectedVariableName;
 };
+
+export const workspaceNameSelector = createSelector<State, string | null, string | null>(
+    workspaceBaseDirSelector,
+    (baseDir: string | null) => {
+        return getFileName(baseDir);
+    }
+);
+
+export const workspaceDirSelector = createSelector<State, string | null, string | null>(
+    workspaceBaseDirSelector,
+    (baseDir: string | null) => {
+        return getParentDir(baseDir);
+    }
+);
+
+export const lastWorkspaceDirSelector = createSelector<State, string | null, string | null>(
+    lastWorkspacePathSelector,
+    (baseDir: string | null) => {
+        return getParentDir(baseDir);
+    }
+);
+
+function getFileName(path: string | null): string | null {
+    if (!path) {
+        return null;
+    }
+    let index = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+    return index >= 0 ? path.substring(index + 1) : path;
+}
+
+function getParentDir(path: string | null): string | null {
+    if (!path) {
+        return null;
+    }
+    let index = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+    return index >= 0 ? path.substring(0, index) : "";
+}
 
 export const resourceNamesSelector = createSelector<State, string[], ResourceState[]>(
     resourcesSelector,
@@ -468,13 +516,13 @@ export const selectedVariableSelector = createSelector<State, VariableState | nu
     }
 );
 
-export const selectedVariableAttributesTableDataSelector = createSelector<State, [[string, any]] | null, VariableState | null>(
+export const selectedVariableAttributesTableDataSelector = createSelector<State, [string, any][] | null, VariableState | null>(
     selectedVariableSelector,
     (selectedVariable: VariableState | null) => {
         if (!selectedVariable) {
             return null;
         }
-        const tableData: [[string, any]] = [
+        const tableData: [string, any][] = [
             ['Data type', selectedVariable.dataType],
             ['Units', selectedVariable.units || ''],
             ['Valid minimum', selectedVariable.validMin],
@@ -496,7 +544,7 @@ export const selectedVariableAttributesTableDataSelector = createSelector<State,
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Viewer selectors
+// View selectors
 
 export const viewLayoutSelector = (state: State): ViewLayoutState => state.control.viewLayout;
 export const viewsSelector = (state: State): ViewState<any>[] => state.control.views;
@@ -531,11 +579,42 @@ export const isSelectedLayerSplitSelector = createSelector<State, boolean | null
     activeViewSelector,
     (view: ViewState<any>) => {
         if (view && view.type === 'world') {
-            return view.data.isSelectedLayerSplit;
+            const data = view.data as WorldViewDataState;
+            return data.isSelectedLayerSplit;
         }
         return null;
     }
 );
+
+export const selectedEntityIdSelector = createSelector<State, string | null, ViewState<any> | null>(
+    activeViewSelector,
+    (view: ViewState<any>) => {
+        if (view && view.type === 'world') {
+            const data = view.data as WorldViewDataState;
+            return data.selectedEntityId;
+        }
+        return null;
+    }
+);
+
+// noinspection JSUnusedLocalSymbols
+export const selectedEntitySelector = createSelector<State, Cesium.Entity | null, ViewState<any> | null, any>(
+    activeViewSelector,
+    selectedEntityIdSelector, // we need this to invalidate selector on selection changes in Cesium
+    (view: ViewState<any>, unusedEntityId: any) => {
+        return getWorldViewSelectedEntity(view);
+    }
+);
+
+export const selectedGeometryWKTGetterSelector = createSelector<State, GeometryWKTGetter, ViewState<any> | null>(
+    activeViewSelector,
+    getWorldViewSelectedGeometryWKTGetter
+);
+
+export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
+
+// noinspection JSUnusedLocalSymbols
+export const externalObjectStoreSelector = (state: State) => EXTERNAL_OBJECT_STORE;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer selectors
@@ -612,17 +691,61 @@ export const selectedVariableImageLayerDisplayMinMaxSelector = createSelector<St
     }
 );
 
-export const selectedVariableVectorLayerSelector = createSelector<State, VariableVectorLayerState | null,
+export const selectedVectorLayerSelector = createSelector<State, VectorLayerState | null,
     LayerState | null>(
     selectedLayerSelector,
     (selectedLayer: LayerState | null) => {
-        if (selectedLayer && selectedLayer.type === 'VariableVector') {
-            return selectedLayer as VariableVectorLayerState;
+        if (selectedLayer && (selectedLayer.type === 'Vector' || selectedLayer.type === 'ResourceVector')) {
+            return selectedLayer as VectorLayerState;
         }
         return null;
     }
 );
 
+export const entityUpdateCountSelector = (state: State) => state.control.entityUpdateCount;
+
+// noinspection JSUnusedLocalSymbols
+export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<any>, string, VectorLayerState | null, Placemark | null, Cesium.Entity | null, number>(
+    activeViewSelector,
+    vectorStyleModeSelector,
+    selectedVectorLayerSelector,
+    selectedPlacemarkSelector,
+    selectedEntitySelector,
+    entityUpdateCountSelector,
+    (view: ViewState<any>, vectorStyleMode, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
+        const selectedLayerStyle = selectedVectorLayer && selectedVectorLayer.style;
+        let style;
+        if (vectorStyleMode === "layer") {
+            style = selectedLayerStyle;
+        } else if (vectorStyleMode === "entity") {
+            if (selectedPlacemark) {
+                const placemarkStyle = simpleStyleFromFeatureProperties(selectedPlacemark.properties);
+                const placemarkVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
+                style = {...selectedLayerStyle, ...placemarkVectorLayer, ...placemarkStyle};
+            } else if (selectedEntity) {
+                const entityStyle = entityToSimpleStyle(selectedEntity);
+                const entityVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
+                const entityVectorLayerStyle = entityVectorLayer && entityVectorLayer.style;
+                const savedEntityStyle = entityVectorLayer
+                                         && entityVectorLayer.entityStyles
+                                         && entityVectorLayer.entityStyles[selectedEntity.id];
+                style = {...selectedLayerStyle, ...entityVectorLayerStyle, ...entityStyle, ...savedEntityStyle};
+            }
+        }
+        return {...SIMPLE_STYLE_DEFAULTS, ...style};
+    }
+);
+
+export const selectedResourceVectorLayerSelector = createSelector<State, ResourceVectorLayerState | null,
+    LayerState | null>(
+    selectedLayerSelector,
+    (selectedLayer: LayerState | null) => {
+        if (selectedLayer && selectedLayer.type === 'ResourceVector') {
+            return selectedLayer as ResourceVectorLayerState;
+        }
+        return null;
+    }
+);
 
 export const selectedLayerVariablesSelector = createSelector<State, LayerVariableState[] | null, ResourceState[]>(
     resourcesSelector,
@@ -642,21 +765,23 @@ export const selectedLayerVariablesSelector = createSelector<State, LayerVariabl
 );
 
 export const isComputingVariableStatistics = createSelector<State, boolean,
-    ResourceState | null, VariableState | null, VariableLayerBase | null, VariableLayerBase | null, string[]>(
+    ResourceState | null, VariableState | null, VariableLayerBase | null, Set<string>>(
     selectedResourceSelector,
     selectedVariableSelector,
     selectedVariableImageLayerSelector,
-    selectedVariableVectorLayerSelector,
     activeRequestLocksSelector,
-    (selectedResource: ResourceState | null, selectedVariable: VariableState | null,
-     selectedVariableImageLayer: VariableLayerBase | null, selectedVariableVectorLayer: VariableLayerBase | null,
-     activeRequestLocks: string[]) => {
-        const layer = selectedVariableImageLayer || selectedVariableVectorLayer;
-        if (!selectedResource || !selectedVariable || !layer) {
+    (selectedResource: ResourceState | null,
+     selectedVariable: VariableState | null,
+     selectedVariableImageLayer: VariableLayerBase | null,
+     activeRequestLocks: Set<string>) => {
+        const imageLayer = selectedVariableImageLayer;
+        if (!selectedResource || !selectedVariable || !imageLayer) {
             return false;
         }
-        const requestLock = computingVariableStatisticsLock(selectedResource.name, selectedVariable.name, layer.varIndex);
-        return activeRequestLocks.indexOf(requestLock) > -1;
+        const requestLock = getLockForGetWorkspaceVariableStatistics(selectedResource.name,
+                                                                     selectedVariable.name,
+                                                                     imageLayer.varIndex);
+        return activeRequestLocks.has(requestLock);
     }
 );
 
@@ -690,8 +815,3 @@ export const selectedColorMapSelector = createSelector<State, ColorMapState, Col
 function canFind(array: any[], id: string): boolean {
     return array && array.length && !!id;
 }
-
-
-
-
-

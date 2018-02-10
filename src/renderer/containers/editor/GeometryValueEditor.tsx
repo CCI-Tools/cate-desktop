@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {IValueEditorProps} from "./ValueEditor";
+import {GeometryWKTGetter, IValueEditorProps} from "./ValueEditor";
 import {FieldValue} from "../../components/field/Field";
 import {GeometryField} from "../../components/field/GeometryField";
 import {GeometryType} from "../../../common/geometry-util";
@@ -8,6 +8,7 @@ interface IGeometryValueEditorProps extends IValueEditorProps<string> {
     geometryType: GeometryType;
     placeholder?: string;
     size?: number;
+    geometryWKTGetter?: GeometryWKTGetter;
 }
 
 export class GeometryValueEditor extends React.Component<IGeometryValueEditorProps, null> {
@@ -29,7 +30,8 @@ export class GeometryValueEditor extends React.Component<IGeometryValueEditorPro
                 placeholder={this.props.placeholder}
                 size={this.props.size}
                 geometryType={this.props.geometryType}
-                nullable={this.props.input.nullable}/>
+                nullable={this.props.input.nullable}
+                geometryWKTGetter={this.props.geometryWKTGetter}/>
         );
     }
 }

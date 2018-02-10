@@ -1,45 +1,79 @@
 import {
-    VariableState, VariableRefState, ResourceState, LayerState, VariableVectorLayerState,
+    VariableState, VariableRefState, ResourceState, LayerState,
     VariableImageLayerState, OperationState, WorldViewDataState,
-    TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState
+    TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState, ResourceRefState,
+    ResourceVectorLayerState, VectorLayerBase
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
 import {isNumber, isString} from "../common/types";
 import {EMPTY_ARRAY} from "./selectors";
+import * as Cesium from "cesium";
+import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
+import {entityToGeometryWKT} from "./components/cesium/cesium-util";
+import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../common/geojson-simple-style";
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 export const COUNTRIES_LAYER_ID = 'countries';
+export const PLACEMARKS_LAYER_ID = 'myPlaces';
 
+export const SELECTED_VARIABLE_LAYER = {
+    id: SELECTED_VARIABLE_LAYER_ID,
+    type: 'Unknown',
+    visible: true,
+};
+
+export const COUNTRIES_LAYER = {
+    id: COUNTRIES_LAYER_ID,
+    name: 'Countries',
+    type: 'Vector',
+    visible: false,
+    style: {
+        ...SIMPLE_STYLE_DEFAULTS,
+        fill: "#FFFFFF",
+    },
+};
+
+export const PLACEMARKS_LAYER = {
+    id: PLACEMARKS_LAYER_ID,
+    name: 'Placemarks',
+    type: 'Vector',
+    visible: true,
+    style: {
+        title: "",
+        markerSize: "small",
+        markerColor: "#FF0000",
+        markerSymbol: "",
+    },
+};
 
 export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImageLayerState): string {
-    return baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/{z}/{y}/{x}.png?`
-        + `&var=${encodeURIComponent(layer.varName)}`
-        + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
-        + `&cmap=${encodeURIComponent(layer.colorMapName) + (layer.alphaBlending ? '_alpha' : '')}`
-        + `&min=${encodeURIComponent(layer.displayMin + '')}`
-        + `&max=${encodeURIComponent(layer.displayMax + '')}`;
+    return baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${layer.resId}/{z}/{y}/{x}.png?`
+           + `&var=${encodeURIComponent(layer.varName)}`
+           + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
+           + `&cmap=${encodeURIComponent(layer.colorMapName) + (layer.alphaBlending ? '_alpha' : '')}`
+           + `&min=${encodeURIComponent(layer.displayMin + '')}`
+           + `&max=${encodeURIComponent(layer.displayMax + '')}`;
 }
 
-export function getGeoJSONUrl(baseUrl: string, baseDir: string, layer: VariableVectorLayerState): string {
-    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${encodeURIComponent(layer.resName)}/8?`
-        + `&var=${encodeURIComponent(layer.varName)}`
-        + `&index=${encodeURIComponent((layer.varIndex || []).join())}`
-        + `&cmap=${encodeURIComponent(layer.colorMapName)}`
-        + `&min=${encodeURIComponent(layer.displayMin + '')}`
-        + `&max=${encodeURIComponent(layer.displayMax + '')}`;
+export function getFeatureCollectionUrl(baseUrl: string, baseDir: string, ref: ResourceRefState): string {
+    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${ref.resId}`;
 }
 
-export function getCsvUrl(baseUrl: string, baseDir: string, resName: string, varName?: string | null): string {
+export function getFeatureUrl(baseUrl: string, baseDir: string, ref: ResourceRefState, index: number): string {
+    return baseUrl + `ws/res/geojson/${encodeURIComponent(baseDir)}/${ref.resId}/${index}`;
+}
+
+export function getCsvUrl(baseUrl: string, baseDir: string, ref: ResourceRefState, varName?: string | null): string {
     let varPart = '';
     if (varName) {
         varPart = `?var=${encodeURIComponent(varName)}`;
     }
-    return baseUrl + `ws/res/csv/${encodeURIComponent(baseDir)}/${encodeURIComponent(resName)}${varPart}`;
+    return baseUrl + `ws/res/csv/${encodeURIComponent(baseDir)}/${ref.resId}${varPart}`;
 }
 
 export function getGeoJSONCountriesUrl(baseUrl: string): string {
-    return baseUrl + 'ws/countries/0';
+    return baseUrl + 'ws/countries';
 }
 
 export function getMPLWebSocketUrl(baseUrl: string, baseDir: string, figureId: number): string {
@@ -74,24 +108,8 @@ export function isFigureResource(resource: ResourceState | null): boolean {
     return resource && isNumber(resource.id) && resource.dataType.endsWith('.Figure');
 }
 
-export function isDatasetResource(resource: ResourceState | null): boolean {
-    return resource && resource.dataType.endsWith('.Dataset');
-}
-
-export function isDataArrayResource(resource: ResourceState | null): boolean {
-    return resource && resource.dataType.endsWith('.DataArray');
-}
-
 export function isDataFrameResource(resource: ResourceState | null): boolean {
     return resource && (resource.dataType.endsWith('.DataFrame') || resource.dataType.endsWith('.GeoDataFrame'));
-}
-
-export function isSeriesResource(resource: ResourceState | null): boolean {
-    return resource && (resource.dataType.endsWith('.Series') || resource.dataType.endsWith('.GeoSeries'));
-}
-
-export function isDataResource(resource: ResourceState | null): boolean {
-    return isDatasetResource(resource) || isDataArrayResource(resource) || isDataFrameResource(resource) || isSeriesResource(resource);
 }
 
 export function getLayerDisplayName(layer: LayerState): string {
@@ -113,12 +131,25 @@ export function getLayerDisplayName(layer: LayerState): string {
     return layer.id;
 }
 
-export function findResource(resources: ResourceState[], ref: VariableRefState): ResourceState | null {
-    return resources.find(r => r.name === ref.resName);
+export function getLayerTypeIconName(layer: LayerState): string {
+    if (isVectorLayer(layer)) {
+        return "pt-icon-map-marker";
+    } else if (layer.type == "Image" || layer.type === "VariableImage") {
+        return "pt-icon-layout-grid"; // "pt-icon-helper-management" also good
+    }
+    return "pt-icon-layer";
+}
+
+export function findResource(resources: ResourceState[], ref: ResourceRefState): ResourceState | null {
+    return findResourceById(resources, ref.resId);
 }
 
 export function findResourceByName(resources: ResourceState[], name: string): ResourceState | null {
     return resources.find(r => r.name === name);
+}
+
+export function findResourceById(resources: ResourceState[], id: number): ResourceState | null {
+    return resources.find(r => r.id === id);
 }
 
 export function findVariable(resources: ResourceState[], ref: VariableRefState): VariableState | null {
@@ -131,7 +162,7 @@ export function findOperation(operations: OperationState[], name: string): Opera
 }
 
 export function findVariableIndexCoordinates(resources: ResourceState[], ref: VariableDataRefState): any[] {
-    const resource = findResourceByName(resources, ref.resName);
+    const resource = findResourceById(resources, ref.resId);
     if (!resource) {
         return EMPTY_ARRAY;
     }
@@ -177,23 +208,14 @@ export function findVariableIndexCoordinates(resources: ResourceState[], ref: Va
     return coords;
 }
 
-
 function newInitialWorldViewData(): WorldViewDataState {
     return {
         viewMode: "3D",
         projectionCode: 'EPSG:4326',
         layers: [
-            {
-                id: SELECTED_VARIABLE_LAYER_ID,
-                type: 'Unknown',
-                visible: true,
-            },
-            {
-                id: COUNTRIES_LAYER_ID,
-                name: 'Countries',
-                type: 'Vector',
-                visible: false,
-            }
+            {...SELECTED_VARIABLE_LAYER},
+            {...COUNTRIES_LAYER},
+            {...PLACEMARKS_LAYER},
         ],
         selectedLayerId: SELECTED_VARIABLE_LAYER_ID,
         isSelectedLayerSplit: null,
@@ -243,13 +265,105 @@ export function getFigureViewTitle(resourceName: string): string {
 
 export function newTableView(resName: string, varName: string): ViewState<TableViewDataState> {
     return {
-        title: varName ? `${resName} / ${varName}` : resName,
+        title: varName ? `${resName}.${varName}` : resName,
         id: genSimpleId('table-'),
         type: 'table',
         iconName: "pt-icon-th",
         data: newInitialTableViewData(resName, varName),
     };
 }
+
+/**
+ * An object that is used by CesiumGlobe to store the Cesium.Viewer instances.
+ * It can't be a part of our global state object.
+ */
+export const EXTERNAL_OBJECT_STORE = {id: "global_external_object_store"};
+
+function getWorldViewExternalObject(view: ViewState<any>): any {
+    if (view && view.type === 'world') {
+        return EXTERNAL_OBJECT_STORE["CesiumGlobe-" + view.id];
+    }
+}
+
+export function getWorldViewViewer(view: ViewState<any>): Cesium.Viewer | null {
+    const externalObject = getWorldViewExternalObject(view);
+    if (externalObject) {
+        return externalObject.object as Cesium.Viewer;
+    }
+    return null;
+}
+
+export function getWorldViewSelectedEntity(view: ViewState<any>): Cesium.Entity | null {
+    const viewer = getWorldViewViewer(view);
+    if (viewer) {
+        return viewer.selectedEntity;
+    }
+    return null;
+}
+
+export function getWorldViewVectorLayerForEntity(view: ViewState<any>, entity: Cesium.Entity | null): VectorLayerBase | null {
+    const externalObject = getWorldViewExternalObject(view);
+    if (!entity || !externalObject) {
+        return null;
+    }
+
+    const viewer = externalObject.object as Cesium.Viewer;
+    assert.ok(viewer);
+
+    const dataSourceMap = externalObject.state.dataSourceMap;
+    assert.ok(dataSourceMap);
+
+    const dataSourceCollection = viewer.dataSources;
+    // Find entity in viewer's dataSourceCollection
+    for (let index = 0; index < dataSourceCollection.length; index++) {
+        const dataSource: Cesium.DataSource = dataSourceCollection.get(index);
+        if (dataSource.entities.contains(entity)) {
+            // Find dataSource in dataSourceMap of CesiumGlobe --> layerId
+            for (let layerId of Object.getOwnPropertyNames(dataSourceMap)) {
+                if (dataSource === dataSourceMap[layerId]) {
+                    // Find layer for layerId in views's layer list
+                    for (let layer of view.data.layers) {
+                        if (layer.id === layerId) {
+                            assert.ok(isVectorLayer(layer));
+                            return layer;
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
+export function getWorldViewSelectedGeometryWKTGetter(view: ViewState<any>): GeometryWKTGetter {
+    const selectedEntity = getWorldViewSelectedEntity(view);
+    if (selectedEntity) {
+        return () => entityToGeometryWKT(selectedEntity);
+    }
+    return null;
+}
+
+export function isVectorLayer(layer: LayerState) {
+    return layer.type === "Vector" || layer.type === "ResourceVector";
+}
+
+const STROKE_COLORS = [
+    "#550000",
+    "#005500",
+    "#000055",
+    "#555555",
+];
+
+const FILL_COLORS = [
+    "#FF0000",
+    "#FFA500",
+    "#FFFF00",
+    "#00FF00",
+    "#0000FF",
+    "#FFFFFF",
+];
 
 export function newVariableLayer(resource: ResourceState,
                                  variable: VariableState,
@@ -259,57 +373,102 @@ export function newVariableLayer(resource: ResourceState,
     const spatialImageVariable = variable && isSpatialImageVariable(variable);
     const spatialVectorVariable = variable && isSpatialVectorVariable(variable);
     assert.ok(spatialImageVariable || spatialVectorVariable, 'geo-spatial variable expected');
-    const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
-    const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
-    return {
-        ...restoredLayer,
-        id: genLayerId(),
-        type: spatialImageVariable ? 'VariableImage' : 'VariableVector',
-        name: `${resource.name}/${variable.name}`,
-        visible: true,
-        resName: resource.name,
-        varName: variable.name,
-        ...layerDisplayProperties
-    };
+    if (spatialImageVariable) {
+        const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
+        const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
+        return {
+            ...restoredLayer,
+            id: genLayerId(),
+            type: 'VariableImage',
+            name: `${resource.name}.${variable.name}`,
+            visible: true,
+            resId: resource.id,
+            resName: resource.name,
+            varName: variable.name,
+            ...layerDisplayProperties
+        } as VariableImageLayerState;
+    } else {
+        const restoredLayer = (savedLayers && savedLayers[variable.name]) as ResourceVectorLayerState;
+        const restoredStyle = restoredLayer && restoredLayer.style;
+        return {
+            ...restoredLayer,
+            id: genLayerId(),
+            type: 'ResourceVector',
+            name: `${resource.name}`,
+            visible: true,
+            resId: resource.id,
+            resName: resource.name,
+            style: getResourceVectorStyle(resource.id, restoredStyle)
+        } as ResourceVectorLayerState;
+    }
 }
 
-export function updateSelectedVariableLayer(selectedVariableLayer: LayerState,
+export function updateSelectedVariableLayer(selectedLayer: LayerState,
                                             resource: ResourceState,
                                             variable: VariableState,
                                             savedLayers?: SavedLayers): LayerState {
-    assert.ok(selectedVariableLayer);
-    assert.ok(selectedVariableLayer.id === SELECTED_VARIABLE_LAYER_ID);
+    assert.ok(selectedLayer);
+    assert.ok(selectedLayer.id === SELECTED_VARIABLE_LAYER_ID);
     const spatialImageVariable = variable && isSpatialImageVariable(variable);
     const spatialVectorVariable = variable && isSpatialVectorVariable(variable);
-    if (spatialImageVariable || spatialVectorVariable) {
+    if (spatialImageVariable) {
         const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
         const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
-        // console.log("updateSelectedVariableLayer: ", variable.name, savedLayers, restoredLayer, layerDisplayProperties);
         return {
-            ...selectedVariableLayer,
+            ...selectedLayer,
             ...restoredLayer,
-            type: spatialImageVariable ? 'VariableImage' : 'VariableVector',
-            name: `Sel. var.: ${resource.name}/${variable.name}`,
+            type: 'VariableImage',
+            name: `Variable: ${resource.name}.${variable.name}`,
+            resId: resource.id,
             resName: resource.name,
             varName: variable.name,
             ...layerDisplayProperties
         };
+    } else if (spatialVectorVariable) {
+        const restoredLayer = (savedLayers && savedLayers[resource.name]) as ResourceVectorLayerState;
+        const restoredStyle = restoredLayer && restoredLayer.style;
+        return {
+            ...selectedLayer,
+            ...restoredLayer,
+            type: 'ResourceVector',
+            name: `Resource: ${resource.name}`,
+            resId: resource.id,
+            resName: resource.name,
+            style: getResourceVectorStyle(resource.id, restoredStyle)
+        } as ResourceVectorLayerState;
     } else {
         return {
             id: SELECTED_VARIABLE_LAYER_ID,
             type: 'Unknown' as any,
-            name: variable ? 'Sel. var.: none (not geo-spatial)' : 'Sel. var.: none (no selection)',
-            visible: selectedVariableLayer.visible,
-            resName: null,
-            varName: null,
-            varIndex: null,
+            name: variable ? `Variable: ${variable.name} (not geo-spatial)` : '(no selection)',
+            visible: selectedLayer.visible,
         } as any;
     }
 }
 
-export function computingVariableStatisticsLock(resName: string, varName: string, varIndex: Array<number>) {
-    const varIndexString = varIndex.join("_");
-    return `compute statistics "${resName}" "${varName}" "${varIndexString}" `;
+function getResourceVectorStyle(resourceId: number, restoredStyle: SimpleStyle) {
+    return {
+        ...SIMPLE_STYLE_DEFAULTS,
+        stroke: STROKE_COLORS[resourceId % STROKE_COLORS.length],
+        fill: FILL_COLORS[resourceId % FILL_COLORS.length],
+        ...restoredStyle,
+    };
+}
+
+export function getLockForLoadDataSources(dataStoreId: string) {
+    return `loadDataSources("${dataStoreId}")`;
+}
+
+export function getLockForGetWorkspaceVariableStatistics(resName: string, varName: string, varIndex?: number[]) {
+    return getVariableLock('getWorkspaceVariableStatistics', resName, varName, varIndex);
+}
+
+function getVariableLock(op: string, resName: string, varName: string, varIndex: number[]) {
+    if (varIndex && varIndex.length) {
+        return `${op}("${resName}", "${varName}", [${varIndex}])`;
+    } else {
+        return `${op}("${resName}", "${varName}")`;
+    }
 }
 
 /**

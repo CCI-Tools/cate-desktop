@@ -12,7 +12,6 @@
     "sourceRoot": "src",
     "rootDir": "src",
     "types": [
-      "node",
       "mocha",
       "chai"
     ],
