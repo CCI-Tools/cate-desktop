@@ -96,7 +96,8 @@
         "nsis",
         "zip"
       ],
-      "publisherName": "Brockmann Consult GmbH"
+      "publisherName": "Brockmann Consult GmbH",
+      "electronUpdaterCompatibility": ">=1.1.0"
     },
     "nsis": {
       "oneClick": true
@@ -105,7 +106,8 @@
       "target": [
         "dmg"
       ],
-      "category": "public.app-category.education"
+      "category": "public.app-category.education",
+      "electronUpdaterCompatibility": ">=1.1.0"
     },
     "linux": {
       "target": [
