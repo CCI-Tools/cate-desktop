@@ -90,24 +90,25 @@
   },
   "build": {
     "appId": "org.esa.ccitools.Cate",
+    "productName": "CCI Toolbox (Cate)",
     "win": {
       "target": [
         "nsis",
         "zip"
       ],
-      "icon": "app/resources/win32/cate-icon.ico",
+      "icon": "./app/resources/win32/cate-icon.ico",
       "publisherName": "Brockmann Consult GmbH"
     },
     "nsis": {
       "oneClick": true,
-      "installerHeaderIcon": "app/resources/win32/cate-icon.ico"
+      "installerHeaderIcon": "./app/resources/win32/cate-icon.ico"
     },
     "mac": {
-      "icon": "app/resources/darwin/icon.icns",
-      "category": "app.category.climate-science"
+      "icon": "./app/resources/darwin/icon.icns",
+      "category": "public.app-category.education"
     },
     "dmg": {
-      "icon": "app/resources/darwin/icon.icns"
+      "icon": "./app/resources/darwin/icon.icns"
     },
     "linux": {
       "target": [
