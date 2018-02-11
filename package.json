@@ -90,7 +90,6 @@
   },
   "build": {
     "appId": "org.esa.ccitools.Cate",
-    "productName": "CCI Toolbox (Cate)",
     "win": {
       "target": [
         "nsis",
