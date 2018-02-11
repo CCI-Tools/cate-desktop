@@ -96,19 +96,16 @@
         "nsis",
         "zip"
       ],
-      "icon": "./app/resources/win32/cate-icon.ico",
       "publisherName": "Brockmann Consult GmbH"
     },
     "nsis": {
-      "oneClick": true,
-      "installerHeaderIcon": "./app/resources/win32/cate-icon.ico"
+      "oneClick": true
     },
     "mac": {
-      "icon": "./app/resources/darwin/icon.icns",
+      "target": [
+        "dmg"
+      ],
       "category": "public.app-category.education"
-    },
-    "dmg": {
-      "icon": "./app/resources/darwin/icon.icns"
     },
     "linux": {
       "target": [
