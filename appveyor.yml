@@ -5,7 +5,7 @@ build: off
 version: '{build}'
 
 environment:
-  nodejs_version: "6.9.0"
+  nodejs_version: "8.9.4"
   apiUrl : "https://ci.appveyor.com/api"
 
 cache:
