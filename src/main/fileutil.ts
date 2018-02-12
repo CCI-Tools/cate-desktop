@@ -126,8 +126,7 @@ export function downloadFile(sourceUrl: string,
                 file.close();
             });
             res.on("error", function (e: Error) {
-                fs.unlink(targetFile);
-                reject(e);
+                fs.unlink(targetFile, () => reject(e));
             });
         };
 
@@ -139,8 +138,7 @@ export function downloadFile(sourceUrl: string,
         }
 
         request.on("error", function (e: Error) {
-            fs.unlink(targetFile);
-            reject(e);
+            fs.unlink(targetFile, () => reject(e));
         });
     });
 }
