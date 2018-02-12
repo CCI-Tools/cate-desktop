@@ -351,8 +351,8 @@ export function init() {
         });
 
         _splashWindow = new BrowserWindow({
-                                              width: 750,
-                                              height: 300,
+                                              width: 800,
+                                              height: 286,
                                               center: true,
                                               useContentSize: true,
                                               frame: false,
