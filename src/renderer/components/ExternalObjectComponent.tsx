@@ -44,7 +44,7 @@ export type ExternalObjectStore<E, S> = { [id: string]: ExternalObjectRef<E, S> 
  *   - Both the displayed content in the DOM child elements and associated JavaScript state are expensive to regenerate
  *     from the virtual DOM when implemented as a pure React component.
  *
- * Examples for native components are the *Cesium.View* of the CesiumJS library or the *ol.Map* object of the
+ * Examples for native components are the *Cesium.Viewer* of the CesiumJS library or the *ol.Map* object of the
  * OpenLayers 3 library.
  *
  * Note that this is different from React's notion of an "uncontrolled component", where form data is handled

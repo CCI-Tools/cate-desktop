@@ -1,4 +1,4 @@
-import {isNullOrUndefined} from "util";
+import {isUndefinedOrNull} from "./types";
 
 export interface MemoizedFunction {
     (...args): any;
@@ -29,7 +29,7 @@ export function memoize(func: Function, maxSize?: number): MemoizedFunction {
             return memo[key];
         } else {
             const value = func(...args);
-            if (isNullOrUndefined(maxSize) || maxSize > 0 && size < maxSize) {
+            if (isUndefinedOrNull(maxSize) || maxSize > 0 && size < maxSize) {
                 memo[key] = value;
                 size++;
             }

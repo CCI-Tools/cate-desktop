@@ -301,9 +301,9 @@ export function getWorldViewSelectedEntity(view: ViewState<any>): Cesium.Entity 
     return null;
 }
 
-export function getWorldViewVectorLayerForEntity(view: ViewState<any>, entity: Cesium.Entity): VectorLayerBase | null {
+export function getWorldViewVectorLayerForEntity(view: ViewState<any>, entity: Cesium.Entity | null): VectorLayerBase | null {
     const externalObject = getWorldViewExternalObject(view);
-    if (!externalObject) {
+    if (!entity || !externalObject) {
         return null;
     }
 

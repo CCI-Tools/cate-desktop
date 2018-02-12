@@ -1,0 +1,9 @@
+Welcome to Cate 1.1
+The Climate Analysis 
+Toolbox of the ESA
+Climate Change Initiative.
+
+climatetoolbox.io
+© 2017-2018 CCI Toolbox Project Partners. 
+All Rights Reserved.
+Cate is provided under the MIT Open Source License.

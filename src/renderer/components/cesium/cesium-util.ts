@@ -112,7 +112,7 @@ export function applyStyleToEntity(style: CesiumSimpleStyle, entity: Cesium.Enti
     if (entity.point) {
         const point = entity.point;
         if (isDefined(style.markerColor)) {
-            point.color = Cesium.Color.fromCssColorString(style.markerColor);
+            point.color = style.markerColor;
         }
         if (isNumber(style.markerSize)) {
             point.pixelSize = 16 * (style.markerSize / MARKER_SIZE_SMALL);
