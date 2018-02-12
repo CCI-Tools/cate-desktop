@@ -116,7 +116,6 @@ Utilities:
 * [electron-devtools-installer](https://github.com/MarshallOfSound/electron-devtools-installer) is and 
   easy way to install Chrome's DevTool extensions into Electron. 
 * [Oboe.js](http://oboejs.com/) for loading JSON using streaming.
-* [proj4js](http://proj4js.org/) to transform coordinates from one coordinate system to another.
 
 ## Development Tools and Libraries in use
 
@@ -134,8 +133,6 @@ For testing:
   (BDD) API to `mocha`. 
 * [spectron](https://github.com/electron/spectron#application-api) for end-to-end testing of the GUI applications.
   See script `test:e2e` in `package.json`.
-* [enzyme](http://airbnb.io/enzyme/) is a JavaScript Testing utility for React that makes it easier to assert, 
-  manipulate, and traverse React Components' output.
 * [react-addons-test-utils](https://facebook.github.io/react/docs/test-utils.html) makes it easy to test React 
   components in any testing framework.  
 

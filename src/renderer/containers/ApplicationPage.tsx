@@ -1,6 +1,5 @@
 import * as React from 'react';
 import GlobeView from './GlobeView'
-import MapView from "./MapView";
 import FigureView from "./FigureView";
 import TableView from "./TableView";
 import DataSourcesPanel from "./DataSourcesPanel";
@@ -27,7 +26,10 @@ import {CSSProperties} from "react";
 
 
 function renderWorldView(view: ViewState<WorldViewDataState>) {
-    return view.data.viewMode === "3D" ? (<GlobeView view={view}/>) : (<MapView view={view}/>);
+    // See #390, Drop 2D map view https://github.com/CCI-Tools/cate/issues/390.
+    // See tag "1.1.0.dev1-with-ol".
+    // return view.data.viewMode === "3D" ? (<GlobeView view={view}/>) : (<MapView view={view}/>);
+    return <GlobeView view={view}/>;
 }
 
 function renderFigureView(view: ViewState<FigureViewDataState>) {

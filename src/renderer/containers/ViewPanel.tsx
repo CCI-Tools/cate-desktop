@@ -2,16 +2,12 @@ import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {FigureViewDataState, ResourceState, State, WorldViewDataState} from "../state";
 import {RadioGroup, Radio, AnchorButton, Checkbox} from "@blueprintjs/core";
-import {ProjectionField} from "../components/field/ProjectionField";
 import {FieldValue} from "../components/field/Field";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {ViewState} from "../components/ViewState";
 import {Card} from "../components/Card";
 import {NO_ACTIVE_VIEW} from "../messages";
-
-// Drop 2D map view #390
-const HAS_WORLD_VIEW_2D = false;
 
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
@@ -127,47 +123,9 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
 
         if (activeView.type === 'world') {
 
-            let globeMapSwitch;
-            let projectionField;
-
-            if (HAS_WORLD_VIEW_2D) {
-                const worldView = activeView as ViewState<WorldViewDataState>;
-
-                // Drop 2D map view #390
-                const is3DGlobe = worldView.data.viewMode === '3D';
-
-                // Drop 2D map view #390
-                const globeMapSwitch = (
-                    <div style={ViewPanel.PROPERTY_ITEM_STYLE}>
-                        <RadioGroup
-                            label="View mode"
-                            onChange={this.onViewModeChange}
-                            selectedValue={worldView.data.viewMode}>
-                            <Radio label="3D Globe" value="3D"/>
-                            <Radio label="2D Map" value="2D"/>
-                        </RadioGroup>
-                    </div>
-                );
-
-                // Drop 2D map view #390
-                const projectionField = (
-                    <label className="pt-label" style={ViewPanel.PROPERTY_ITEM_STYLE}>
-                        Projection
-                        {is3DGlobe ? <span className="pt-text-muted"> (for 2D Map only)</span> : null}
-                        <ProjectionField
-                            disabled={is3DGlobe}
-                            value={worldView.data.projectionCode}
-                            onChange={this.onProjectionCodeChange}
-                        />
-                    </label>
-                );
-            }
-
             return (
                 <div>
                     {titleField}
-                    {globeMapSwitch}
-                    {projectionField}
 
                     <Checkbox label="Show layer text overlay"
                               style={ViewPanel.PROPERTY_ITEM_STYLE}
