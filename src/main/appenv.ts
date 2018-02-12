@@ -7,11 +7,11 @@ import {pep440ToSemver} from "../common/version";
 
 /**
  * Identifies the required version of the Cate WebAPI.
- * The value is a node-semver (https://github.com/npm/node-semver) compatible version range string.
+ * The value is a SemVer (https://github.com/npm/semver) compatible version range string.
  * @type {string}
  */
 // export const APP_CLI_VERSION_RANGE = ">=0.9.0-dev.5 <=0.9.0-dev.7";
-export const APP_CLI_VERSION_RANGE = ">=1.1.0-dev1 <1.2.0";
+export const APP_CLI_VERSION_RANGE = ">=1.1.0-dev.1 <1.2.0";
 
 
 const app = electron.app;
