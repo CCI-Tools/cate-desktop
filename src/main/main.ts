@@ -14,6 +14,7 @@ import {error, isNumber} from "util";
 import {getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE} from "./appenv";
 import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
+import {isDefined} from "../common/types";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -367,6 +368,7 @@ export function init() {
                                               width: 800,
                                               height: 286,
                                               center: true,
+                                              show: true,
                                               useContentSize: true,
                                               frame: false,
                                               alwaysOnTop: false,
@@ -379,8 +381,11 @@ export function init() {
                                               width: 750,
                                               height: 400,
                                               center: true,
-                                              //frame: false,
+                                              show: false,
+                                              useContentSize: true,
+                                              frame: false,
                                               alwaysOnTop: false,
+                                              transparent: false,
                                               parent: _mainWindow
                                           });
 
@@ -437,8 +442,11 @@ export function init() {
         }
     });
 
-    if (process.env.NODE_ENV !== 'development' && _prefs.data.autoUpdateEnabled) {
-        installAutoUpdate();
+    if (process.env.NODE_ENV !== 'development') {
+        const autoUpdateSoftware = _prefs.data.autoUpdateSoftware || !isDefined(_prefs.data.autoUpdateSoftware);
+        if (autoUpdateSoftware) {
+            installAutoUpdate();
+        }
     }
 }
 
@@ -682,9 +690,11 @@ function checkForUpdates() {
 }
 
 
+// TODO (nf): The checkForUpdates() action is just to test the _updateWindow
 (app as any).checkForUpdates = checkForUpdates;
 
 function openUpdateWindow() {
+    _updateWindow.show();
     _updateWindow.loadURL(url.format({
                                          pathname: path.join(app.getAppPath(), 'update.html'),
                                          protocol: 'file:',

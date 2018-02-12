@@ -181,6 +181,7 @@ class InstallOrUpdateCate extends Requirement {
     }
 }
 
+// TODO (nf): call this function from main.ts when there is no Cate CLI yet or if it's WebAPI version is out-of-date.
 export function updateCateCli() {
     //const minicondaInstallDir = path.join(os.homedir(), 'cate-test-1');
     const minicondaInstallDir = 'D:\\cate-test-2';
