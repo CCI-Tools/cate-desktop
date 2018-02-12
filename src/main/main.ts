@@ -215,8 +215,9 @@ export function init() {
     });
     _config.set('webAPIConfig', webAPIConfig);
 
+    console.log(CATE_DESKTOP_PREFIX, 'appPath:', app.getAppPath());
     console.log(CATE_DESKTOP_PREFIX, 'appConfig:', _config.data);
-    // console.log(CATE_DESKTOP_PREFIX, 'userPrefs:', _prefs.data);
+    //console.log(CATE_DESKTOP_PREFIX, 'userPrefs:', _prefs.data);
 
     let webAPIStarted = false;
     let webAPIError = null;
