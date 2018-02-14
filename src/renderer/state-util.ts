@@ -295,7 +295,7 @@ export function getWorldViewViewer(view: ViewState<any>): Cesium.Viewer | null {
 
 export function getWorldViewSelectedEntity(view: ViewState<any>): Cesium.Entity | null {
     const viewer = getWorldViewViewer(view);
-    if (viewer) {
+    if (viewer && viewer.selectedEntity) {
         return viewer.selectedEntity;
     }
     return null;
