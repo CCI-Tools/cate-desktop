@@ -4,12 +4,9 @@ import {Store, createStore, Middleware, applyMiddleware} from 'redux';
 import {createLogger} from 'redux-logger';
 import thunkMiddleware from 'redux-thunk';
 import {Provider} from 'react-redux';
-import {ipcRenderer} from 'electron';
 import {State} from "./state";
 import {stateReducer} from "./reducers";
-import {ApplicationPage} from "./ApplicationPage";
-
-
+import {SetupContainer} from "./containers/SetupContainer";
 
 export function main() {
     const middlewares: Middleware[] = [thunkMiddleware];
@@ -26,12 +23,12 @@ export function main() {
     const middleware = applyMiddleware(...middlewares);
     const store = createStore(stateReducer, middleware) as Store<State>;
 
-        ReactDOM.render(
-            <Provider store={store}>
-                <ApplicationPage/>
-            </Provider>,
-            document.getElementById('container')
-        );
+    ReactDOM.render(
+        <Provider store={store}>
+            <SetupContainer/>
+        </Provider>,
+        document.getElementById('container')
+    );
 }
 
 

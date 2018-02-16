@@ -15,6 +15,7 @@ import {getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE}
 import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
 import {isDefined} from "../common/types";
+import {openSetupWindow} from "./setup";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -721,33 +722,3 @@ function openUpdateWindow() {
     });
 }
 
-function openSetupWindow() {
-    const setupWindow = new BrowserWindow({
-                                              title: "Cate Desktop Setup",
-                                              width: 600,
-                                              height: 350,
-                                              center: true,
-                                              show: true,
-                                              minimizable: false,
-                                              maximizable: false,
-                                              fullscreenable: false,
-                                              useContentSize: true,
-                                              alwaysOnTop: false,
-                                              icon: getAppIconPath(),
-                                          });
-    setupWindow.setMenu(null);
-    setupWindow.loadURL(url.format({
-                                       pathname: path.join(app.getAppPath(), 'setup.html'),
-                                       protocol: 'file:',
-                                       slashes: true
-                                   }));
-
-    setupWindow.on('closed', () => {
-    });
-
-    setupWindow.webContents.openDevTools();
-
-    electron.ipcMain.on("cancel", () => {
-        electron.app.quit();
-    })
-}
