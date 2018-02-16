@@ -4,7 +4,8 @@ import {should, expect} from 'chai';
 import * as actions from './actions';
 import {stateReducer} from './reducers';
 import {
-    SCREEN_ID_CATE_INSTALL, SCREEN_ID_CONDA_INSTALL, SCREEN_ID_END, SETUP_MODE_AUTO, SETUP_MODE_USER,
+    SCREEN_ID_CATE_INSTALL, SCREEN_ID_CONDA_INSTALL, SCREEN_ID_END, SCREEN_ID_TASK_MONITOR, SETUP_MODE_AUTO,
+    SETUP_MODE_USER,
     State
 } from "./state";
 
@@ -31,6 +32,8 @@ describe('Setup/actions', () => {
         it('can move forward from auto mode', () => {
             expect(getState().setupMode).to.equal(SETUP_MODE_AUTO);
             dispatch(actions.moveForward());
+            expect(getState().screenId).to.equal(SCREEN_ID_TASK_MONITOR);
+            dispatch(actions.moveForward());
             expect(getState().screenId).to.equal(SCREEN_ID_END);
         });
 
@@ -40,6 +43,8 @@ describe('Setup/actions', () => {
             expect(getState().screenId).to.equal(SCREEN_ID_CONDA_INSTALL);
             dispatch(actions.moveForward());
             expect(getState().screenId).to.equal(SCREEN_ID_CATE_INSTALL);
+            dispatch(actions.moveForward());
+            expect(getState().screenId).to.equal(SCREEN_ID_TASK_MONITOR);
             dispatch(actions.moveForward());
             expect(getState().screenId).to.equal(SCREEN_ID_END);
         });
