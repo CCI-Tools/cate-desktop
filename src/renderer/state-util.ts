@@ -295,7 +295,7 @@ export function getWorldViewViewer(view: ViewState<any>): Cesium.Viewer | null {
 
 export function getWorldViewSelectedEntity(view: ViewState<any>): Cesium.Entity | null {
     const viewer = getWorldViewViewer(view);
-    if (viewer) {
+    if (viewer && viewer.selectedEntity) {
         return viewer.selectedEntity;
     }
     return null;
@@ -403,45 +403,47 @@ export function newVariableLayer(resource: ResourceState,
     }
 }
 
-export function updateSelectedVariableLayer(selectedLayer: LayerState,
+export function updateSelectedVariableLayer(layer: LayerState,
                                             resource: ResourceState,
                                             variable: VariableState,
                                             savedLayers?: SavedLayers): LayerState {
-    assert.ok(selectedLayer);
-    assert.ok(selectedLayer.id === SELECTED_VARIABLE_LAYER_ID);
+    assert.ok(layer);
+    assert.ok(layer.id === SELECTED_VARIABLE_LAYER_ID);
     const spatialImageVariable = variable && isSpatialImageVariable(variable);
     const spatialVectorVariable = variable && isSpatialVectorVariable(variable);
     if (spatialImageVariable) {
         const restoredLayer = (savedLayers && savedLayers[variable.name]) as VariableImageLayerState;
         const layerDisplayProperties = updateVariableLayerVarIndex(variable, restoredLayer);
         return {
-            ...selectedLayer,
+            ...layer,
             ...restoredLayer,
             type: 'VariableImage',
             name: `Variable: ${resource.name}.${variable.name}`,
             resId: resource.id,
             resName: resource.name,
             varName: variable.name,
-            ...layerDisplayProperties
+            ...layerDisplayProperties,
+            id: layer.id,
         };
     } else if (spatialVectorVariable) {
         const restoredLayer = (savedLayers && savedLayers[resource.name]) as ResourceVectorLayerState;
         const restoredStyle = restoredLayer && restoredLayer.style;
         return {
-            ...selectedLayer,
+            ...layer,
             ...restoredLayer,
             type: 'ResourceVector',
             name: `Resource: ${resource.name}`,
             resId: resource.id,
             resName: resource.name,
-            style: getResourceVectorStyle(resource.id, restoredStyle)
+            style: getResourceVectorStyle(resource.id, restoredStyle),
+            id: layer.id,
         } as ResourceVectorLayerState;
     } else {
         return {
             id: SELECTED_VARIABLE_LAYER_ID,
             type: 'Unknown' as any,
             name: variable ? `Variable: ${variable.name} (not geo-spatial)` : '(no selection)',
-            visible: selectedLayer.visible,
+            visible: layer.visible,
         } as any;
     }
 }

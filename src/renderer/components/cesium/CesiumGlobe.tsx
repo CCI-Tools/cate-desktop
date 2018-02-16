@@ -708,4 +708,5 @@ function screenToCartographic(viewer: Cesium.Viewer, screenPoint?: Cesium.Cartes
             return cartographic;
         }
     }
+    return null;
 }
