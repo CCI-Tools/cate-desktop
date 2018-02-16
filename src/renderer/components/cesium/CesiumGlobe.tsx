@@ -201,12 +201,12 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 
     propsToExternalObjectState(props: ICesiumGlobeProps & CesiumGlobeState, prevState?: CesiumGlobeState): CesiumGlobeState {
-        const selectedPlacemarkId = this.props.selectedPlacemarkId;
-        const imageLayerDescriptors = this.props.imageLayerDescriptors || EMPTY_ARRAY;
-        const vectorLayerDescriptors = this.props.vectorLayerDescriptors || EMPTY_ARRAY;
-        const overlayHtml = this.props.overlayHtml || null;
-        const splitLayerIndex = this.props.splitLayerIndex;
-        const splitLayerPos = this.props.splitLayerPos;
+        const selectedPlacemarkId = props.selectedPlacemarkId;
+        const imageLayerDescriptors = props.imageLayerDescriptors || EMPTY_ARRAY;
+        const vectorLayerDescriptors = props.vectorLayerDescriptors || EMPTY_ARRAY;
+        const overlayHtml = props.overlayHtml || null;
+        const splitLayerIndex = props.splitLayerIndex;
+        const splitLayerPos = props.splitLayerPos;
         const dataSourceMap = (prevState && prevState.dataSourceMap) || {};
         return {
             selectedPlacemarkId,
