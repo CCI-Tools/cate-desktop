@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+
+        /*
+         * Assign all available viewport space to html and body and our top-level container
+         */
+        html, body, #container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /*
+         * For a single-page app, if the <body> is styled with width: 100% and height: 100%,
+         * a blueprint's Portal (or Overlay) may take up extra whitespace and cause the window
+         * to undesirably scroll. To fix this, instead apply position: absolute to the <body> tag.
+         * See http://blueprintjs.com/docs/#components.portal
+         */
+        body {
+            position: absolute;
+        }
+
+        /*
+         * Get rid of all margins, paddings, borders.
+         */
+        body, #container {
+            margin: 0;
+            padding: 0;
+            border: 0;
+        }
+
+    </style>
+    <link href="node_modules/@blueprintjs/core/dist/blueprint.css" rel="stylesheet"/>
+    <link href="node_modules/@blueprintjs/table/dist/table.css" rel="stylesheet"/>
+    <link href="node_modules/@blueprintjs/datetime/dist/blueprint-datetime.css" rel="stylesheet"/>
+</head>
+<body>
+<div id="container" style="overflow: hidden;"></div>
+<script src="renderer-setup.js"></script>
+</body>
+</html>

@@ -89,6 +89,16 @@ function getOptionArg(options: string[]): string | null {
     return null;
 }
 
+function getOptionFlag(options: string[]): boolean {
+    let args: Array<string> = process.argv.slice(1);
+    for (let i = 0; i < args.length; i++) {
+        if (options.indexOf(args[i]) >= 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function loadConfiguration(options: string[], defaultConfigFile: string, configType: string): Configuration {
     let config = new Configuration();
     let configFile = getOptionArg(options);
@@ -186,6 +196,7 @@ function getMPLWebSocketsUrl(webAPIConfig) {
 export function init() {
     console.log(__dirname);
 
+    let forceSetup = getOptionFlag(['-s', '--setup']);
     let modulePath = getOptionArg(['-r', '--run']);
     if (modulePath) {
         try {
@@ -407,6 +418,11 @@ export function init() {
 
     // Emitted when Electron has finished initializing.
     app.on('ready', (): void => {
+        if (forceSetup) {
+            openSetupWindow();
+            return;
+        }
+
         initBrowserWindows();
         loadSplashWindow(() => {
             console.log(CATE_DESKTOP_PREFIX, 'Ready.');
@@ -703,4 +719,35 @@ function openUpdateWindow() {
     _updateWindow.on('closed', () => {
         _updateWindow = null;
     });
+}
+
+function openSetupWindow() {
+    const setupWindow = new BrowserWindow({
+                                              title: "Cate Desktop Setup",
+                                              width: 600,
+                                              height: 350,
+                                              center: true,
+                                              show: true,
+                                              minimizable: false,
+                                              maximizable: false,
+                                              fullscreenable: false,
+                                              useContentSize: true,
+                                              alwaysOnTop: false,
+                                              icon: getAppIconPath(),
+                                          });
+    setupWindow.setMenu(null);
+    setupWindow.loadURL(url.format({
+                                       pathname: path.join(app.getAppPath(), 'setup.html'),
+                                       protocol: 'file:',
+                                       slashes: true
+                                   }));
+
+    setupWindow.on('closed', () => {
+    });
+
+    setupWindow.webContents.openDevTools();
+
+    electron.ipcMain.on("cancel", () => {
+        electron.app.quit();
+    })
 }
