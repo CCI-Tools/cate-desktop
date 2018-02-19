@@ -662,10 +662,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderFillColor() {
         return (
-            <label className="pt-label pt-inline">
-                Fill colour
+            <label className="pt-label pt-inline" style={{display: 'flex'}}>
+                <span style={{flexBasis: '100px'}}>Fill colour</span>
                 <TextField value={this.props.vectorStyle.fill}
-                           style={{flex: 'auto', fontFamily: "courier"}}
+                           style={{flex: 'auto', fontFamily: "courier", textAlign: 'right'}}
                            size={8}
                            uncontrolled={true}
                            onChange={this.handleChangedFillColor}
@@ -691,8 +691,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderStrokeWidth() {
         return (
-            <label className="pt-label pt-inline">
-                Stroke width
+            <label className="pt-label pt-inline" style={{display: 'flex'}}>
+                <span style={{flexBasis: '100px'}}>Stroke width</span>
                 <NumericField value={this.props.vectorStyle.strokeWidth}
                               style={{flex: 'auto', fontFamily: "courier"}}
                               size={8}
@@ -706,10 +706,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderStrokeColor() {
         return (
-            <label className="pt-label pt-inline">
-                Stroke colour
+            <label className="pt-label pt-inline" style={{display: 'flex'}}>
+                <span style={{flexBasis: '100px'}}>Stroke colour</span>
                 <TextField value={this.props.vectorStyle.stroke}
-                           style={{flex: 'auto', fontFamily: "courier"}}
+                           style={{flex: 'auto', fontFamily: "courier", textAlign: 'right'}}
                            size={8}
                            uncontrolled={true}
                            onChange={this.handleChangedStrokeColor}
@@ -735,10 +735,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderMarkerColor() {
         return (
-            <label className="pt-label pt-inline">
-                Marker colour
+            <label className="pt-label pt-inline" style={{display: 'flex'}}>
+                <span style={{flexBasis: '100px'}}>Marker colour</span>
                 <TextField value={this.props.vectorStyle.markerColor}
-                           style={{flex: 'auto', fontFamily: "courier"}}
+                           style={{flex: 'auto', fontFamily: "courier", textAlign: 'right'}}
                            size={8}
                            uncontrolled={true}
                            onChange={this.handleChangedMarkerColor}
@@ -749,8 +749,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderMarkerSize() {
         return (
-            <label className="pt-label pt-inline">
-                Marker size
+            <label className="pt-label pt-inline" style={{display: 'flex'}}>
+                <span style={{flexBasis: '100px'}}>Marker size</span>
                 <div className="pt-select">
                     <select value={this.props.vectorStyle.markerSize}
                             onChange={this.handleChangedMarkerSize}>
@@ -765,10 +765,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderMarkerSymbol() {
         return (
-            <label className="pt-label pt-inline">
-                Marker symbol
+            <label className="pt-label pt-inline" style={{display: 'flex'}}>
+                <span style={{flexBasis: '100px'}}>Marker symbol</span>
                 <TextField value={this.props.vectorStyle.markerSymbol}
-                           style={{flex: 'auto', fontFamily: "courier"}}
+                           style={{flex: 'auto', fontFamily: "courier", textAlign: 'right'}}
                            size={8}
                            uncontrolled={true}
                            onChange={this.handleChangedMarkerSymbol}
