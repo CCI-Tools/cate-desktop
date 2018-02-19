@@ -292,16 +292,16 @@ export const actions = {
                                                title: `About ${app.getName()}`,
                                                message: `${app.getName()}, version ${app.getVersion()}`,
                                                detail: '' +
-                                               `Program: ${app.getAppPath()}\n` +
-                                               `Data: ${getAppDataDir()}\n` +
-                                               `CLI: ${getAppCliLocation()}\n` +
-                                               `Requires Cate Core ${APP_CLI_VERSION_RANGE}\n` +
-                                               '\n' +
-                                               'Cate is open source software distributed under the MIT license.\n\n' +
-                                               'Cate is developed on top of numerous 3rd party software packages.\n' +
-                                               'Notably, the Cate project team would like to acknowledge following projects:\n' +
-                                               'Python, Conda, Xarray, Dask, Pandas, Numpy, Matplotlib, Tornado, and more for Cate Core;\n' +
-                                               'TypeScript, Electron, React, Redux, BlueprintJS, Cesium, and more for Cate Desktop.',
+                                                       `Program: ${app.getAppPath()}\n` +
+                                                       `Data: ${getAppDataDir()}\n` +
+                                                       `CLI: ${getAppCliLocation()}\n` +
+                                                       `Requires Cate Core ${APP_CLI_VERSION_RANGE}\n` +
+                                                       '\n' +
+                                                       'Cate is open source software distributed under the MIT license.\n\n' +
+                                                       'Cate is developed on top of numerous 3rd party software packages.\n' +
+                                                       'Notably, the Cate project team would like to acknowledge following projects:\n' +
+                                                       'Python, Conda, Xarray, Dask, Pandas, Numpy, Matplotlib, Tornado, and more for Cate Core;\n' +
+                                                       'TypeScript, Electron, React, Redux, BlueprintJS, Cesium, and more for Cate Desktop.',
                                                icon: iconImage,
                                            });
         },

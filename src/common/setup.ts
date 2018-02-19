@@ -15,4 +15,5 @@ export interface SetupOptions {
     newCateDir?: string;
     oldCateDir?: string;
     condaDir?: string;
+    keepCateUpToDate: boolean
 }

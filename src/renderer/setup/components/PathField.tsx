@@ -36,7 +36,12 @@ export function PathField(props: IPathFieldProps) {
 
 
     if (props.validation) {
-        pathField = <Tooltip content={props.validation}>{pathField}</Tooltip>;
+        pathField = (
+            <div>
+                {pathField}
+                <span style={{fontSize: "0.8em", color: "#A82A2A"}}>{props.validation}</span>
+            </div>
+        );
     }
 
     return pathField;

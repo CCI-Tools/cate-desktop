@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as assert from "../../common/assert";
 import {shallowEqual} from "../../common/shallow-equal";
+import deepEqual = require("deep-equal");
 
 export interface IExternalObjectComponentProps<E, ES> {
     id: string;
@@ -83,6 +84,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         super(props);
         ExternalObjectComponent.checkProps(props);
         this.parentContainer = null;
+        this.remountExternalObject = this.remountExternalObject.bind(this);
     }
 
     private static checkProps(props: any) {
@@ -188,6 +190,11 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      * @param nextProps the next props
      */
     componentWillUpdate(nextProps: Readonly<P & ES>) {
+        if (this.props.debug) {
+            console.log("ExternalObjectComponent.componentWillUpdate(), nextProps =", nextProps);
+            console.log("      this.props.id =", this.props.id);
+            console.log("      nextProps.id  =", nextProps.id);
+        }
         ExternalObjectComponent.checkProps(nextProps);
         if (nextProps.id in this.externalObjectStore) {
             this.updateExternalComponentAndSaveProps(nextProps);
@@ -203,15 +210,17 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      * @returns {JSX.Element}
      */
     render(): JSX.Element {
-        const onRef = (parentContainer: HTMLElement | null) => {
-            this.remountExternalObject(parentContainer);
-        };
+        // const onRef = (parentContainer: HTMLElement | null) => {
+        //     this.remountExternalObject(parentContainer);
+        // };
+
+        console.log("ExternalObjectComponent.render()");
 
         return (
             <div id={this.props.id}
                  className={this.props.className}
                  style={this.props.style}
-                 ref={onRef}>
+                 ref={this.remountExternalObject}>
                 {this.renderChildren()}
             </div>
         );
@@ -252,6 +261,9 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
 
     private mountNewExternalObject(parentContainer: HTMLElement) {
         const container = this.newContainer(this.props.id);
+        if (this.props.debug) {
+            console.log("ExternalObjectComponent.mountNewExternalObject(): id =", this.props.id);
+        }
         if (container) {
             if (this.props.debug) {
                 console.log("ExternalObjectComponent: attaching new external object with id =", this.props.id);
@@ -266,6 +278,9 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
     }
 
     private mountExistingExternalObject(parentContainer: HTMLElement) {
+        if (this.props.debug) {
+            console.log("ExternalObjectComponent.mountExistingExternalObject(): id =", this.props.id);
+        }
         const externalObjectRef = this.externalObjectStore[this.props.id];
         assert.ok(externalObjectRef);
         const container = externalObjectRef.container;
@@ -281,6 +296,9 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
     }
 
     private unmountExternalObject(parentContainer: HTMLElement) {
+        if (this.props.debug) {
+            console.log("ExternalObjectComponent.unmountExternalObject(): id =", parentContainer.id);
+        }
         const externalObjectRef = this.externalObjectStore[parentContainer.id];
         assert.ok(externalObjectRef);
         const container = externalObjectRef.container;
@@ -301,7 +319,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         const prevState = externalObjectRef.state;
         const nextState = this.propsToExternalObjectState(nextProps, prevState);
         if (this.props.debug) {
-            console.log("ExternalObjectComponent: updating existing external object with id =", this.props.id, prevState, nextState);
+            console.log("ExternalObjectComponent: updating existing external object with id =", nextProps.id, prevState, nextState);
         }
         if (this.shouldExternalObjectUpdate(prevState, nextState)) {
             this.updateExternalObject(

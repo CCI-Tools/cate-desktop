@@ -13,19 +13,19 @@ export interface DispatchProp {
 export function moveForward() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
         dispatch({type: "MOVE_FORWARD"});
-        validateCatePath(dispatch, getState);
+        validatePaths(dispatch, getState);
     };
 }
 
 export function moveBack() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
         dispatch({type: "MOVE_BACK"});
-        validateCatePath(dispatch, getState);
+        validatePaths(dispatch, getState);
     };
 }
 
-export function setSilentMode(silentMode: boolean) {
-    return {type: "SET_SILENT_MODE", payload: {silentMode}};
+export function setAutoUpdateCate(autoUpdateCate: boolean) {
+    return {type: "SET_AUTO_UPDATE_CATE", payload: {autoUpdateCate}};
 }
 
 export function setSetupMode(setupMode: SetupMode) {
@@ -39,27 +39,27 @@ export function setCateMode(cateMode: CateMode) {
 export function setNewCateDir(newCateDir: string) {
     return (dispatch: Dispatch<any>, getState: () => State) => {
         dispatch({type: "SET_NEW_CATE_DIR", payload: {newCateDir}});
-        validateCatePath(dispatch, getState);
+        validatePaths(dispatch, getState);
     };
 }
 
 export function setOldCateDir(oldCateDir: string) {
     return (dispatch: Dispatch<any>, getState: () => State) => {
         dispatch({type: "SET_OLD_CATE_DIR", payload: {oldCateDir}});
-        validateCatePath(dispatch, getState);
+        validatePaths(dispatch, getState);
     };
 }
 
 export function setCondaDir(condaDir: string) {
     return (dispatch: Dispatch<any>, getState: () => State) => {
         dispatch({type: "SET_CONDA_DIR", payload: {condaDir}});
-        validateCatePath(dispatch, getState);
+        validatePaths(dispatch, getState);
     };
 }
 
 export function browseNewCateDir() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
-        const listener = (event, newCateDir: string) => dispatch(setOldCateDir(newCateDir));
+        const listener = (event, newCateDir: string) => dispatch(setNewCateDir(newCateDir));
         ipcRenderer && ipcRenderer.once("browseNewCateDir-response", listener);
         ipcRenderer && ipcRenderer.send("browseNewCateDir", getState().newCateDir);
     };
@@ -90,7 +90,6 @@ export function setValidation(screenId: string, validation: any) {
     return {type: "SET_VALIDATION", payload: {screenId, validation}};
 }
 
-
 export function cancelSetup() {
     return () => {
         ipcRenderer && ipcRenderer.send("cancelSetup");
@@ -103,7 +102,7 @@ export function endSetup() {
     };
 }
 
-function validateCatePath(dispatch: Dispatch<any>, getState: () => State) {
+function validatePaths(dispatch: Dispatch<any>, getState: () => State) {
     if (getState().screenId === SCREEN_ID_CATE_INSTALL) {
         if (getState().cateMode === CATE_MODE_NEW_CATE_DIR) {
             validateNewCateDir(dispatch, getState);

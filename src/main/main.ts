@@ -11,7 +11,10 @@ import * as assert from '../common/assert';
 import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
 import {error, isNumber} from "util";
-import {getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE} from "./appenv";
+import {
+    getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE, setCateCliLocation,
+    getCateCliUpdateInfo, CATE_CLI_EXECUTABLE
+} from "./appenv";
 import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
 import {isDefined} from "../common/types";
@@ -257,8 +260,26 @@ export function init() {
 
     function startWebAPIService(callback: (process: child_process.ChildProcess) => void) {
 
-        const appCliLocation = getAppCliLocation();
-        if (!checkCliLocation(appCliLocation)) {
+        let updateInfo = getCateCliUpdateInfo();
+        console.log(CATE_DESKTOP_PREFIX, "update-info: ", updateInfo);
+
+        const {cateDir, updateRequired} = updateInfo;
+        if (updateRequired) {
+            if (!cateDir) {
+                openSetupWindow();
+            } else {
+            }
+        }
+
+        if (process.platform === 'win32') {
+            child_process.exec(`"${cateDir}\\Scripts\\activate" "${cateDir}" & "${cateDir}\\python" -c "import cate; print(cate.__version__)"`,
+                               (error: Error | null, stdout: string, stderr: string) => {
+                                   console.log(CATE_DESKTOP_PREFIX, error, stdout, stderr);
+                               });
+        }
+
+        const cateCliLocation = path.join(cateDir, CATE_CLI_EXECUTABLE);
+        if (!checkCliLocation(cateCliLocation)) {
             return null;
         }
 
@@ -276,9 +297,9 @@ export function init() {
             webAPIConfig.servicePort = freePort;
 
             const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
-            console.log(CATE_DESKTOP_PREFIX, `Starting Cate service: ${appCliLocation} [${webAPIStartArgs}]`);
+            console.log(CATE_DESKTOP_PREFIX, `Starting Cate service: ${cateCliLocation} [${webAPIStartArgs}]`);
 
-            webAPIProcess = child_process.spawn(appCliLocation, webAPIStartArgs, processOptions);
+            webAPIProcess = child_process.spawn(cateCliLocation, webAPIStartArgs, processOptions);
             console.log(CATE_DESKTOP_PREFIX, 'Cate service started.');
             webAPIProcess.stdout.on('data', (data: any) => {
                 console.log(CATE_WEBAPI_PREFIX, `${data}`);

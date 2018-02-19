@@ -4,7 +4,6 @@ import {SCREEN_ID_CATE_INSTALL, SCREEN_ID_END, SCREEN_ID_START, SCREEN_ID_TASK_M
 
 const initialState: State = {
     screenId: SCREEN_ID_START,
-    silentMode: false,
     setupMode: SETUP_MODE_AUTO,
     cateMode: CATE_MODE_NEW_CATE_DIR,
     condaDir: "",
@@ -12,6 +11,7 @@ const initialState: State = {
     oldCateDir: "",
     progress: null,
     validations: {},
+    keepCateUpToDate: true,
 };
 
 export const stateReducer: Reducer<State> = (state: State = initialState, action: AnyAction) => {
@@ -39,7 +39,7 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
             switch (state.screenId) {
                 case SCREEN_ID_CATE_INSTALL:
                     return {...state, screenId: SCREEN_ID_START};
-                case SCREEN_ID_END:
+                case SCREEN_ID_TASK_MONITOR:
                     switch (state.setupMode) {
                         case SETUP_MODE_AUTO:
                             return {...state, screenId: SCREEN_ID_START};
@@ -47,20 +47,20 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
                             return {...state, screenId: SCREEN_ID_CATE_INSTALL};
                     }
                     break;
+                case SCREEN_ID_END:
+                    return {...state, screenId: SCREEN_ID_TASK_MONITOR};
             }
             break;
-        case "SET_SILENT_MODE":
-            return {...state, silentMode: action.payload.silentMode};
         case "SET_SETUP_MODE":
             return {...state, setupMode: action.payload.setupMode};
-        case "SET_CONDA_MODE":
-            return {...state, condaMode: action.payload.condaMode};
         case "SET_CATE_MODE":
             return {...state, cateMode: action.payload.cateMode};
-        case "SET_TARGET_DIR":
-            return {...state, targetDir: action.payload.targetDir};
-        case "SET_PYTHON_EXE":
-            return {...state, pythonExe: action.payload.pythonExe};
+        case "SET_NEW_CATE_DIR":
+            return {...state, newCateDir: action.payload.newCateDir};
+        case "SET_OLD_CATE_DIR":
+            return {...state, oldCateDir: action.payload.oldCateDir};
+        case "SET_CATE_DIR":
+            return {...state, cateDir: action.payload.cateDir};
         case "SET_PROGRESS":
             return {...state, progress: action.payload.progress};
         case "SET_VALIDATION":
@@ -68,6 +68,8 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
                 ...state,
                 validations: {...state.validations, [action.payload.screenId]: action.payload.validation}
             };
+        case "SET_AUTO_UPDATE_CATE":
+            return {...state, autoUpdateCate: action.payload.autoUpdateCate};
     }
 
     return state;

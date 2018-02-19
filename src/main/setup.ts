@@ -1,13 +1,14 @@
 import * as url from "url";
 import * as fs from "fs";
 import * as path from "path";
-import {getAppIconPath} from "./appenv";
+import {CATE_EXECUTABLES, CONDA_EXECUTABLES, getAppIconPath} from "./appenv";
 import * as electron from "electron";
 import {ifInternet} from "./dnsutil";
 import {CATE_MODE_NEW_CATE_DIR, SETUP_MODE_AUTO, SETUP_MODE_USER, SetupOptions} from "../common/setup";
 import {DownloadMiniconda, InstallMiniconda, InstallOrUpdateCate} from "./update-backend";
 import {isNumber} from "../common/types";
 import {RequirementSet} from "./requirement";
+
 
 export function openSetupWindow() {
     const dialogTitle = "Cate Desktop Setup";
@@ -34,15 +35,15 @@ export function openSetupWindow() {
                                        }));
 
         setupWindow.webContents.openDevTools();
-
         setupWindow.on('closed', quitApp);
-
         electron.ipcMain.on("endSetup", quitApp);
         electron.ipcMain.on("cancelSetup", quitApp);
-        electron.ipcMain.on("browseTargetDir", selectTargetDir);
-        electron.ipcMain.on("browsePythonExe", selectPythonExe);
-        electron.ipcMain.on("validateFileIsExecutable", validateFileIsExecutable);
-        electron.ipcMain.on("validateExistingDirIsEmpty", validateExistingDirIsEmpty);
+        electron.ipcMain.on("browseNewCateDir", browseNewCateDir);
+        electron.ipcMain.on("browseOldCateDir", browseOldCateDir);
+        electron.ipcMain.on("browseCondaDir", browseCondaDir);
+        electron.ipcMain.on("validateNewCateDir", validateNewCateDir);
+        electron.ipcMain.on("validateOldCateDir", validateOldCateDir);
+        electron.ipcMain.on("validateCondaDir", validateCondaDir);
         electron.ipcMain.on("performSetupTasks", performSetupTasks);
     }).catch(() => {
         const messageBoxOptions = {
@@ -60,80 +61,107 @@ function quitApp() {
     electron.app.quit();
 }
 
-function selectTargetDir(event, targetDir: string) {
+function browseNewCateDir(event, newCateDir: string) {
+    browseDir(event,
+              "browseNewCateDir-response",
+              "Select Cate Installation Directory",
+              newCateDir);
+}
+
+function browseOldCateDir(event, oldCateDir: string) {
+    browseDir(event,
+              "browseOldCateDir-response",
+              "Select Cate Installation Directory",
+              oldCateDir);
+}
+
+function browseCondaDir(event, condaDir: string) {
+    browseDir(event,
+              "browseCondaDir-response",
+              "Select Anaconda/Miniconda Installation Directory",
+              condaDir);
+}
+
+function browseDir(event, channel: string, title: string, defaultPath: string) {
     const options: electron.OpenDialogOptions = {
-        title: "Select Target Directory",
+        title,
+        defaultPath,
         properties: ["createDirectory", "openDirectory", "showHiddenFiles"],
-        defaultPath: targetDir,
         buttonLabel: "Select",
     };
     electron.dialog.showOpenDialog(options, (filePaths: string[]) => {
-        const targetDir = (filePaths && filePaths.length) ? filePaths[0] : null;
-        if (targetDir) {
-            event.sender.send("browseTargetDir-response", targetDir);
+        const dirPath = (filePaths && filePaths.length) ? filePaths[0] : null;
+        if (dirPath) {
+            event.sender.send(channel, dirPath);
         }
     });
 }
 
-function selectPythonExe(event, pythonExe: string) {
-    const options: electron.OpenDialogOptions = {
-        title: "Select Python Executable File",
-        properties: ["openFile", "showHiddenFiles"],
-        defaultPath: pythonExe,
-        filters: [{name: "Executables", extensions: ["exe"]}, {name: 'All Files', extensions: ['*']}],
-        buttonLabel: "Select",
-    };
-    electron.dialog.showOpenDialog(options, (filePaths: string[]) => {
-        const pythonExe = (filePaths && filePaths.length) ? filePaths[0] : null;
-        if (pythonExe) {
-            event.sender.send("browsePythonExe-response", pythonExe);
-        }
-    });
-}
-
-function validateFileIsExecutable(event, exeFile: string) {
-    const channel = "validateFileIsExecutable-response";
-    if (!path.isAbsolute(exeFile)) {
-        event.sender.send(channel, `Executable file path must be absolute`);
-        return;
+function validateNewCateDir(event, newCateDir: string) {
+    const channel = "validateNewCateDir-response";
+    if (validateAbsoluteDir(event, channel, newCateDir)) {
+        fs.access(newCateDir, fs.constants.O_DIRECTORY | fs.constants.R_OK | fs.constants.W_OK, (err) => {
+            if (err) {
+                if (err.code === "ENOENT") {
+                    event.sender.send(channel, null);
+                } else {
+                    event.sender.send(channel, `${newCateDir} has access restrictions`);
+                }
+            } else {
+                fs.readdir(newCateDir, (err, files) => {
+                    if (err) {
+                        event.sender.send(channel, `${newCateDir} is not readable`);
+                    } else if (files && files.length > 0) {
+                        event.sender.send(channel, `${newCateDir} is not empty`);
+                    } else {
+                        event.sender.send(channel, null);
+                    }
+                });
+            }
+        });
     }
-    fs.access(exeFile, fs.constants.F_OK | fs.constants.X_OK, (err) => {
-        if (err) {
-            console.log("access ERROR", err);
-            event.sender.send(channel, `${exeFile} is not executable`);
-        } else {
-            event.sender.send(channel, null);
-        }
-    });
 }
 
-function validateExistingDirIsEmpty(event, dirPath: string) {
-    const channel = "validateExistingDirIsEmpty-response";
+function validateOldCateDir(event, oldCateDir: string) {
+    const channel = "validateOldCateDir-response";
+    if (validateAbsoluteDir(event, channel, oldCateDir)) {
+        validateExecutables(event, channel, oldCateDir, CATE_EXECUTABLES);
+    }
+}
+
+function validateCondaDir(event, condaDir: string) {
+    const channel = "validateCondaDir-response";
+    if (validateAbsoluteDir(event, channel, condaDir)) {
+        validateExecutables(event, channel, condaDir, CONDA_EXECUTABLES);
+    }
+}
+
+function validateAbsoluteDir(event, channel: string, dirPath: string): boolean {
+    if (!dirPath || dirPath === "") {
+        event.sender.send(channel, `Directory must be given`);
+        return false;
+    }
     if (!path.isAbsolute(dirPath)) {
         event.sender.send(channel, `Directory path must be absolute`);
-        return;
+        return false;
     }
-    fs.access(dirPath, fs.constants.O_DIRECTORY | fs.constants.R_OK | fs.constants.W_OK, (err) => {
-        if (err) {
-            if (err.code === "ENOENT") {
-                event.sender.send(channel, null);
-            } else {
-                event.sender.send(channel, `${dirPath} has access restrictions`);
-            }
-        } else {
-            fs.readdir(dirPath, (err, files) => {
-                if (err) {
-                    event.sender.send(channel, `${dirPath} is not readable`);
-                } else if (files && files.length > 0) {
-                    event.sender.send(channel, `${dirPath} is not empty`);
-                } else {
-                    event.sender.send(channel, null);
-                }
-            });
-        }
-    });
+    return true;
 }
 
+function validateExecutables(event, channel: string, dirPath: string, executables: string[]) {
+    let hasError = false;
+    for (let i = 0; i < executables.length && !hasError; i++) {
+        let exeFile = path.join(dirPath, executables[i]);
+        fs.access(exeFile, fs.constants.F_OK | fs.constants.X_OK, (err) => {
+            if (err) {
+                hasError = true;
+                event.sender.send(channel, `${exeFile} not found or not executable`);
+            } else if (i === executables.length - 1) {
+                event.sender.send(channel, null);
+            }
+        });
+    }
+}
 
 export function performSetupTasks(event, setupOptions: SetupOptions) {
     //const minicondaInstallDir = path.join(os.homedir(), 'cate-test-1');
@@ -172,3 +200,6 @@ export function performSetupTasks(event, setupOptions: SetupOptions) {
         console.error(reason);
     });
 }
+
+
+

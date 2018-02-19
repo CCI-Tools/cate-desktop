@@ -62,8 +62,8 @@ class _CateInstallScreen extends React.PureComponent<ICateInstallScreenProps & a
                     for the data processing.
                 </p>
 
-                <p className="pt-text-muted">The Python package <code>cate</code>
-                    offers additional functionality such as a Python API to extend Cate's functionality,
+                <p className="pt-text-muted">The Python package <code>cate</code> offers
+                    additional functionality such as a Python API to extend Cate's functionality,
                     and a command-line interface <code>cate-cli</code> to access and process data in batch mode.
                     For more information, please refer to the <a href="http://cate.readthedocs.io/en/latest/"
                                                                  target="_blank">documentation</a>.
@@ -83,7 +83,7 @@ class _CateInstallScreen extends React.PureComponent<ICateInstallScreenProps & a
                                value={CATE_MODE_NEW_CATE_DIR}/>
                         <Radio label="Use an existing Cate installation or environment"
                                value={CATE_MODE_OLD_CATE_DIR}/>
-                        <Radio label={`Install a dedicated Python environment "cate-env"`}
+                        <Radio label={'Install a dedicated Python environment "cate-env"'}
                                value={CATE_MODE_CONDA_DIR}/>
                     </RadioGroup>
                 </div>

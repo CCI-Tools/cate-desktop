@@ -35,7 +35,7 @@ type Screens = { [screenId: string]: Screen };
 
 const SCREENS: Screens = {
     [SCREEN_ID_START]: {
-        title: "Install Cate's Processing Service",
+        title: "Additional Setup Required",
         panel: <StartScreen/>,
     },
     [SCREEN_ID_CATE_INSTALL]: {

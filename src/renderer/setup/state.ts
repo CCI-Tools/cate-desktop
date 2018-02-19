@@ -9,7 +9,6 @@ export type ScreenId = "start" | "cateInstall" | "taskMonitor" | "end";
 
 export interface State extends SetupOptions {
     screenId: ScreenId;
-    silentMode: boolean,
     progress: number | null;
     validations: {[screenId: string]: string};
 }

@@ -26,7 +26,7 @@ class _TaskMonitorScreen extends React.PureComponent<ITaskMonitorScreenProps & a
     }
 
     incProgress() {
-        let progress = this.props.progress === null ? 0 : this.props.progress + 0.025;
+        let progress = this.props.progress === null ? 0 : this.props.progress + 0.05;
         if (progress >= 1) {
             this.props.dispatch(actions.setProgress(1));
         } else {
