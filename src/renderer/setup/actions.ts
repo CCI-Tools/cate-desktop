@@ -1,13 +1,27 @@
 import {ipcRenderer} from 'electron';
 import {Dispatch} from "react-redux";
-import {CateMode, CondaMode, SetupMode, State} from "./state";
+import {
+    CateMode, SetupMode, CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, CATE_MODE_CONDA_DIR,
+} from "../../common/setup";
+import {SCREEN_ID_CATE_INSTALL, State} from "./state";
+
+// Strange, we must use this, imports from "react-redux" produce TS syntax errors
+export interface DispatchProp {
+    dispatch?: (action: any) => void;
+}
 
 export function moveForward() {
-    return {type: "MOVE_FORWARD"};
+    return (dispatch: Dispatch<any>, getState: () => State) => {
+        dispatch({type: "MOVE_FORWARD"});
+        validateCatePath(dispatch, getState);
+    };
 }
 
 export function moveBack() {
-    return {type: "MOVE_BACK"};
+    return (dispatch: Dispatch<any>, getState: () => State) => {
+        dispatch({type: "MOVE_BACK"});
+        validateCatePath(dispatch, getState);
+    };
 }
 
 export function setSilentMode(silentMode: boolean) {
@@ -18,52 +32,127 @@ export function setSetupMode(setupMode: SetupMode) {
     return {type: "SET_SETUP_MODE", payload: {setupMode}};
 }
 
-export function setCondaMode(condaMode: CondaMode) {
-    return {type: "SET_CONDA_MODE", payload: {condaMode}};
-}
-
 export function setCateMode(cateMode: CateMode) {
     return {type: "SET_CATE_MODE", payload: {cateMode}};
 }
 
-export function setPythonExe(pythonExe: string) {
-    return {type: "SET_PYTHON_EXE", payload: {pythonExe}};
+export function setNewCateDir(newCateDir: string) {
+    return (dispatch: Dispatch<any>, getState: () => State) => {
+        dispatch({type: "SET_NEW_CATE_DIR", payload: {newCateDir}});
+        validateCatePath(dispatch, getState);
+    };
 }
 
-export function setTargetDir(targetDir: string) {
-    return {type: "SET_TARGET_DIR", payload: {targetDir}};
+export function setOldCateDir(oldCateDir: string) {
+    return (dispatch: Dispatch<any>, getState: () => State) => {
+        dispatch({type: "SET_OLD_CATE_DIR", payload: {oldCateDir}});
+        validateCatePath(dispatch, getState);
+    };
+}
+
+export function setCondaDir(condaDir: string) {
+    return (dispatch: Dispatch<any>, getState: () => State) => {
+        dispatch({type: "SET_CONDA_DIR", payload: {condaDir}});
+        validateCatePath(dispatch, getState);
+    };
+}
+
+export function browseNewCateDir() {
+    return (dispatch: Dispatch<any>, getState: () => State) => {
+        const listener = (event, newCateDir: string) => dispatch(setOldCateDir(newCateDir));
+        ipcRenderer && ipcRenderer.once("browseNewCateDir-response", listener);
+        ipcRenderer && ipcRenderer.send("browseNewCateDir", getState().newCateDir);
+    };
+}
+
+
+export function browseOldCateDir() {
+    return (dispatch: Dispatch<any>, getState: () => State) => {
+        const listener = (event, oldCateDir: string) => dispatch(setOldCateDir(oldCateDir));
+        ipcRenderer && ipcRenderer.once("browseOldCateDir-response", listener);
+        ipcRenderer && ipcRenderer.send("browseOldCateDir", getState().oldCateDir);
+    };
+}
+
+export function browseCondaDir() {
+    return (dispatch: Dispatch<any>, getState: () => State) => {
+        const listener = (event, condaDir: string) => dispatch(setCondaDir(condaDir));
+        ipcRenderer && ipcRenderer.once("browseCondaDir-response", listener);
+        ipcRenderer && ipcRenderer.send("browseCondaDir", getState().condaDir);
+    };
 }
 
 export function setProgress(progress: number) {
     return {type: "SET_PROGRESS", payload: {progress}};
 }
 
-export function browsePythonExe() {
-    return (dispatch: Dispatch<any>, getState: () => State) => {
-        ipcRenderer.once("browsePythonExe-response", (event, pythonExe: string) => {
-            dispatch(setPythonExe(pythonExe));
-        });
-        ipcRenderer.send("browsePythonExe", getState().pythonExe);
-    };
+export function setValidation(screenId: string, validation: any) {
+    return {type: "SET_VALIDATION", payload: {screenId, validation}};
 }
 
-export function browseTargetDir() {
-    return (dispatch: Dispatch<any>, getState: () => State) => {
-        ipcRenderer.once("browseTargetDir-response", (event, targetDir: string) => {
-            dispatch(setTargetDir(targetDir));
-        });
-        ipcRenderer.send("browseTargetDir", getState().targetDir);
-    };
-}
 
 export function cancelSetup() {
     return () => {
-        ipcRenderer.send("cancelSetup");
+        ipcRenderer && ipcRenderer.send("cancelSetup");
     };
 }
 
 export function endSetup() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
-        ipcRenderer.send("endSetup", getState());
+        ipcRenderer && ipcRenderer.send("endSetup", getState());
     };
 }
+
+function validateCatePath(dispatch: Dispatch<any>, getState: () => State) {
+    if (getState().screenId === SCREEN_ID_CATE_INSTALL) {
+        if (getState().cateMode === CATE_MODE_NEW_CATE_DIR) {
+            validateNewCateDir(dispatch, getState);
+        } else if (getState().cateMode === CATE_MODE_OLD_CATE_DIR) {
+            validateOldCateDir(dispatch, getState);
+        } else if (getState().cateMode === CATE_MODE_CONDA_DIR) {
+            validateCondaDir(dispatch, getState);
+        }
+    }
+}
+
+function validateNewCateDir(dispatch: Dispatch<any>, getState: () => State) {
+    const newCateDir = getState().newCateDir && getState().newCateDir.trim();
+    if (!newCateDir || newCateDir === "") {
+        dispatch(setValidation(getState().screenId, "Cate directory must be given"));
+    } else {
+        const listener = (event, validation: string | null) => dispatch(setValidation(getState().screenId, validation));
+        ipcRenderer && ipcRenderer.once("validateNewCateDir-response", listener);
+        ipcRenderer && ipcRenderer.send("validateNewCateDir", newCateDir);
+    }
+}
+
+function validateOldCateDir(dispatch: Dispatch<any>, getState: () => State) {
+    const oldCateDir = getState().oldCateDir && getState().oldCateDir.trim();
+    if (!oldCateDir || oldCateDir === "") {
+        dispatch(setValidation(getState().screenId, "Cate directory must be given"));
+    } else {
+        const listener = (event, validation: string | null) => dispatch(setValidation(getState().screenId, validation));
+        ipcRenderer && ipcRenderer.once("validateOldCateDir-response", listener);
+        ipcRenderer && ipcRenderer.send("validateOldCateDir", oldCateDir);
+    }
+}
+
+function validateCondaDir(dispatch: Dispatch<any>, getState: () => State) {
+    const condaDir = getState().condaDir && getState().condaDir.trim();
+    if (!condaDir || condaDir === "") {
+        dispatch(setValidation(getState().screenId, "Anaconda/Miniconda directory must be given"));
+    } else {
+        const listener = (event, validation: string | null) => dispatch(setValidation(getState().screenId, validation));
+        ipcRenderer && ipcRenderer.once("validateCondaDir-response", listener);
+        ipcRenderer && ipcRenderer.send("validateCondaDir", condaDir);
+    }
+}
+
+export function performSetupTasks() {
+    return (dispatch: Dispatch<any>, getState: () => State) => {
+        const listener = (event, progress: any) => dispatch({type: "SET_TASK_PROGRESS", payload: {progress}});
+        ipcRenderer && ipcRenderer.on("performSetupTasks-response", listener);
+        ipcRenderer && ipcRenderer.send("performSetupTasks", getState());
+    }
+}
+

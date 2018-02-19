@@ -60,6 +60,8 @@ export function existsFile(file: string): Promise<boolean> {
     });
 }
 
+
+
 /**
  * Delete a file.
  *

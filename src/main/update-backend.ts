@@ -18,7 +18,7 @@ function _getOutput(output: FileExecOutput) {
 }
 
 
-class DownloadMiniconda extends Requirement {
+export class DownloadMiniconda extends Requirement {
 
     constructor() {
         super('DownloadMiniconda', [], 'Download Miniconda');
@@ -68,7 +68,7 @@ class DownloadMiniconda extends Requirement {
 }
 
 
-class InstallMiniconda extends Requirement {
+export class InstallMiniconda extends Requirement {
     minicondaInstallDir: string;
 
     constructor(minicondaInstallDir: string) {
@@ -125,7 +125,7 @@ class InstallMiniconda extends Requirement {
     }
 }
 
-class InstallOrUpdateCate extends Requirement {
+export class InstallOrUpdateCate extends Requirement {
     cateVersion: string;
 
     constructor(cateVersion: string) {

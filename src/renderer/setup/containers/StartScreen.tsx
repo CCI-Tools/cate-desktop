@@ -1,25 +1,25 @@
 import * as React from "react";
-import {connect, DispatchProp} from "react-redux";
+import {connect} from "react-redux";
 import {Checkbox, Radio, RadioGroup} from "@blueprintjs/core";
+import {
+    SETUP_MODE_AUTO, SETUP_MODE_USER, SetupMode,
+} from "../../../common/setup";
 import * as actions from "../actions";
-import {SETUP_MODE_AUTO, SETUP_MODE_USER, SetupMode, State} from "../state";
-import {FormEvent} from "react";
+import {State} from "../state";
 
 interface IStartScreenProps {
-    setupReason: string;
     setupMode: SetupMode;
     silentMode: boolean;
 }
 
 function mapStateToProps(state: State): IStartScreenProps {
     return {
-        setupReason: state.setupReason,
         setupMode: state.setupMode,
         silentMode: state.silentMode,
     };
 }
 
-class _StartScreen extends React.PureComponent<IStartScreenProps & DispatchProp<IStartScreenProps>> {
+class _StartScreen extends React.PureComponent<IStartScreenProps & actions.DispatchProp> {
 
     render() {
 
@@ -29,7 +29,7 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & DispatchProp<
                 <div style={{marginTop: 32, marginLeft: 32}}>
                     <Checkbox label="Remember my decision and don't ask again"
                               checked={this.props.silentMode}
-                    onChange={(event: any) => this.props.dispatch(actions.setSilentMode(event.target.checked))}/>
+                              onChange={(event: any) => this.props.dispatch(actions.setSilentMode(event.target.checked))}/>
                 </div>
             );
         }
@@ -39,9 +39,7 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & DispatchProp<
 
                 <p>Cate Desktop requires some additional setup before it can be started.</p>
 
-                <p className="pt-text-muted">This screen occurs only when Cate requires
-                    additional setup. The reason
-                    for the current setup is: {this.props.setupReason}</p>
+                <p className="pt-text-muted">Note: This screen occurs only when Cate requires additional setup.</p>
 
                 <p>Please select an option:</p>
 

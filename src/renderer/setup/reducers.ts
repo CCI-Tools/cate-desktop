@@ -1,67 +1,44 @@
 import {AnyAction, Reducer} from 'redux';
-import {
-    CATE_MODE_NEW_ENV, CATE_MODE_TOP_LEVEL, CONDA_MODE_EXISTING,
-    CONDA_MODE_NEW,
-    CondaMode, SCREEN_ID_CATE_INSTALL, SCREEN_ID_CONDA_INSTALL, SCREEN_ID_END, SCREEN_ID_PYTHON_EXE, SCREEN_ID_START,
-    SCREEN_ID_TARGET_DIR, SCREEN_ID_TASK_MONITOR,
-    SETUP_MODE_AUTO,
-    SETUP_MODE_USER,
-    State
-} from "./state";
+import {CATE_MODE_NEW_CATE_DIR, SETUP_MODE_AUTO, SETUP_MODE_USER} from "../../common/setup";
+import {SCREEN_ID_CATE_INSTALL, SCREEN_ID_END, SCREEN_ID_START, SCREEN_ID_TASK_MONITOR, State} from "./state";
 
 const initialState: State = {
     screenId: SCREEN_ID_START,
     silentMode: false,
-    setupReason: "Install Cate's Python back-end",
     setupMode: SETUP_MODE_AUTO,
-    condaMode: CONDA_MODE_NEW,
-    cateMode: null,
-    targetDir: "~/cate/python",
-    pythonExe: "",
+    cateMode: CATE_MODE_NEW_CATE_DIR,
+    condaDir: "",
+    newCateDir: "cate",
+    oldCateDir: "",
     progress: null,
+    validations: {},
 };
 
 export const stateReducer: Reducer<State> = (state: State = initialState, action: AnyAction) => {
     switch (action.type) {
         case "MOVE_FORWARD":
+            if (state.validations[state.screenId]) {
+                return state;
+            }
             switch (state.screenId) {
                 case SCREEN_ID_START:
                     switch (state.setupMode) {
                         case SETUP_MODE_AUTO:
                             return {...state, screenId: SCREEN_ID_TASK_MONITOR};
                         case SETUP_MODE_USER:
-                            return {...state, screenId: SCREEN_ID_CONDA_INSTALL};
-                    }
-                    break;
-                case SCREEN_ID_CONDA_INSTALL:
-                    let cateMode;
-                    switch (state.condaMode) {
-                        case CONDA_MODE_NEW:
-                            cateMode = state.cateMode || CATE_MODE_TOP_LEVEL;
-                            return {...state, screenId: SCREEN_ID_CATE_INSTALL, cateMode};
-                        case CONDA_MODE_EXISTING:
-                            cateMode = state.cateMode || CATE_MODE_NEW_ENV;
-                            return {...state, screenId: SCREEN_ID_CATE_INSTALL, cateMode};
+                            return {...state, screenId: SCREEN_ID_CATE_INSTALL};
                     }
                     break;
                 case SCREEN_ID_CATE_INSTALL:
-                    switch (state.cateMode) {
-                        case CATE_MODE_NEW_ENV:
-                            return {...state, screenId: SCREEN_ID_TASK_MONITOR};
-                        case CATE_MODE_TOP_LEVEL:
-                            return {...state, screenId: SCREEN_ID_TASK_MONITOR};
-                    }
-                    break;
+                    return {...state, screenId: SCREEN_ID_TASK_MONITOR};
                 case SCREEN_ID_TASK_MONITOR:
                     return {...state, screenId: SCREEN_ID_END};
             }
             break;
         case "MOVE_BACK":
             switch (state.screenId) {
-                case SCREEN_ID_CONDA_INSTALL:
-                    return {...state, screenId: SCREEN_ID_START};
                 case SCREEN_ID_CATE_INSTALL:
-                    return {...state, screenId: SCREEN_ID_CONDA_INSTALL};
+                    return {...state, screenId: SCREEN_ID_START};
                 case SCREEN_ID_END:
                     switch (state.setupMode) {
                         case SETUP_MODE_AUTO:
@@ -86,6 +63,11 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
             return {...state, pythonExe: action.payload.pythonExe};
         case "SET_PROGRESS":
             return {...state, progress: action.payload.progress};
+        case "SET_VALIDATION":
+            return {
+                ...state,
+                validations: {...state.validations, [action.payload.screenId]: action.payload.validation}
+            };
     }
 
     return state;

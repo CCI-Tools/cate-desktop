@@ -1,13 +1,10 @@
 import {createStore, applyMiddleware} from 'redux';
 import thunk from 'redux-thunk'
 import {should, expect} from 'chai';
+import {SETUP_MODE_AUTO, SETUP_MODE_USER,} from "../../common/setup";
 import * as actions from './actions';
 import {stateReducer} from './reducers';
-import {
-    SCREEN_ID_CATE_INSTALL, SCREEN_ID_CONDA_INSTALL, SCREEN_ID_END, SCREEN_ID_TASK_MONITOR, SETUP_MODE_AUTO,
-    SETUP_MODE_USER,
-    State
-} from "./state";
+import {SCREEN_ID_CATE_INSTALL, SCREEN_ID_END, SCREEN_ID_TASK_MONITOR, State} from "./state";
 
 should();
 
@@ -39,8 +36,6 @@ describe('Setup/actions', () => {
 
         it('can move forward from user mode', () => {
             dispatch(actions.setSetupMode(SETUP_MODE_USER));
-            dispatch(actions.moveForward());
-            expect(getState().screenId).to.equal(SCREEN_ID_CONDA_INSTALL);
             dispatch(actions.moveForward());
             expect(getState().screenId).to.equal(SCREEN_ID_CATE_INSTALL);
             dispatch(actions.moveForward());

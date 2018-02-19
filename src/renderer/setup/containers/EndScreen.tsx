@@ -1,6 +1,7 @@
 import * as React from "react";
-import {connect, DispatchProp} from "react-redux";
+import {connect} from "react-redux";
 import {State} from "../state";
+import * as actions from "../actions";
 
 interface IEndScreenProps {
 }
@@ -9,7 +10,7 @@ function mapStateToProps(state: State): IEndScreenProps {
     return {};
 }
 
-class _EndScreen extends React.PureComponent<IEndScreenProps & DispatchProp<IEndScreenProps>> {
+class _EndScreen extends React.PureComponent<IEndScreenProps & actions.DispatchProp> {
     render() {
         return (
             <div>

@@ -49,22 +49,22 @@ function _getAppCliLocation() {
     const fileNames = fs.readdirSync(dataDir);
     const cliLocations = {};
     for (let fileName of fileNames) {
-        const locationFile = path.join(dataDir, fileName, 'cate.location');
-        if (fs.existsSync(locationFile)) {
-            let location = fs.readFileSync(locationFile, 'utf8');
-            if (location) {
-                location = location.trim();
-                const cateCliExe = path.join(location, process.platform === 'win32' ? 'Scripts\\cate-cli.bat' : 'bin/cate-cli');
-                if (fs.existsSync(cateCliExe)) {
-                    const version = pep440ToSemver(fileName);
-                    if (semver.valid(version, true)) {
-                        // Return immediately if the versions are equal.
-                        if (semver.eq(version, app.getVersion(), true)) {
-                            return cateCliExe;
-                        }
-                        cliLocations[version] = cateCliExe;
-                    }
+        const version = pep440ToSemver(fileName);
+        if (semver.valid(version, true)) {
+            const locationFile = path.join(dataDir, fileName, 'cate.location');
+            let location;
+            try {
+                location = fs.readFileSync(locationFile, 'utf8').trim();
+            } catch (err) {
+                continue;
+            }
+            const cateCliExe = getCateCliPath(location);
+            if (isExec(cateCliExe)) {
+                // Return immediately if the versions are equal.
+                if (semver.eq(version, app.getVersion(), true)) {
+                    return cateCliExe;
                 }
+                cliLocations[version] = cateCliExe;
             }
         }
     }
@@ -80,5 +80,18 @@ function _getAppCliLocation() {
     }
 
     return null;
+}
+
+export function getCateCliPath(dirPath: string): string {
+    return path.join(dirPath, process.platform === 'win32' ? 'Scripts\\cate-cli.bat' : 'bin/cate-cli');
+}
+
+function isExec(path: string): boolean {
+    try {
+        fs.accessSync(path, fs.constants.X_OK);
+        return true;
+    } catch (err) {
+        return false;
+    }
 }
 
