@@ -33,7 +33,10 @@ export function setSetupMode(setupMode: SetupMode) {
 }
 
 export function setCateMode(cateMode: CateMode) {
-    return {type: "SET_CATE_MODE", payload: {cateMode}};
+    return (dispatch: Dispatch<any>, getState: () => State) => {
+        dispatch({type: "SET_CATE_MODE", payload: {cateMode}});
+        validatePaths(dispatch, getState);
+    };
 }
 
 export function setNewCateDir(newCateDir: string) {
