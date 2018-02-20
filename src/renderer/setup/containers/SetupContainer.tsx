@@ -98,7 +98,7 @@ class _SetupContainer extends React.PureComponent<ISetupContainerProps & actions
         let endButton;
 
         if (this.props.screenId !== SCREEN_ID_START && canMoveBack) {
-            backButton = <Button style={{marginLeft: 2, marginRight: 2}}
+            backButton = <Button style={{marginRight: 2}}
                                  text="Back"
                                  iconName="arrow-left"
                                  intent={Intent.PRIMARY}
@@ -106,14 +106,14 @@ class _SetupContainer extends React.PureComponent<ISetupContainerProps & actions
         }
 
         if (this.props.screenId === SCREEN_ID_END) {
-            endButton = <Button style={{marginLeft: 2}}
+            endButton = <Button style={{marginRight: 24 }}
                                 text="Done"
                                 disabled={!canMoveForward}
                                 iconName="tick-circle"
                                 intent={Intent.PRIMARY}
                                 onClick={() => this.props.dispatch(actions.endSetup())}/>;
         } else {
-            nextButton = <Button style={{marginLeft: 2}}
+            nextButton = <Button style={{marginRight: 24}}
                                  text="Next"
                                  disabled={!canMoveForward}
                                  iconName="arrow-right"
@@ -121,15 +121,14 @@ class _SetupContainer extends React.PureComponent<ISetupContainerProps & actions
                                  onClick={() => this.props.dispatch(actions.moveForward())}/>;
         }
 
-        const cancelButton = <Button style={{marginRight: 24}}
-                                     text="Cancel"
+        const cancelButton = <Button text="Cancel"
                                      onClick={() => this.props.dispatch(actions.cancelSetup())}/>;
 
         return (
             <div style={_SetupContainer.containerStyle}>
                 <div style={_SetupContainer.headerStyle}>{screen.title}</div>
                 <div style={_SetupContainer.middleStyle}>{screen.panel}</div>
-                <div style={_SetupContainer.footerStyle}>{cancelButton}{backButton}{nextButton}{endButton}</div>
+                <div style={_SetupContainer.footerStyle}>{backButton}{nextButton}{endButton}{cancelButton}</div>
             </div>
         );
     }
