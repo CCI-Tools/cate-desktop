@@ -1,5 +1,4 @@
 import * as dns from "dns";
-import {FileExecOutput} from "./fileutil";
 
 
 const DEFAULT_HOST_NAMES = ["google.com", "microsoft.com", "apple.com", "amazon.com", "github.com"];
@@ -20,7 +19,7 @@ export function checkInternet(callback: (isConnected: boolean) => any, hostNames
         if (index === hostNames.length) {
             callback(false);
         } else {
-            dns.lookup(hostNames[index],(err) => {
+            dns.lookup(hostNames[index],(err: NodeJS.ErrnoException) => {
                 if (err && err.code === "ENOTFOUND") {
                     checkHost(index + 1);
                 } else {
@@ -42,5 +41,5 @@ export function ifInternet(hostNames?: string[]): Promise<boolean> {
                 reject(new Error("No internet connection"));
             }
         }, hostNames);
-    }, );
+    });
 }
