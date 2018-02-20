@@ -12,7 +12,7 @@ import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
 import {error, isNumber} from "util";
 import {
-    getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE, setCateCliLocation,
+    getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE,
     getCateCliUpdateInfo, CATE_CLI_EXECUTABLE
 } from "./appenv";
 import * as net from "net";
