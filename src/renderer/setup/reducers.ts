@@ -59,8 +59,8 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
             return {...state, newCateDir: action.payload.newCateDir};
         case "SET_OLD_CATE_DIR":
             return {...state, oldCateDir: action.payload.oldCateDir};
-        case "SET_CATE_DIR":
-            return {...state, cateDir: action.payload.cateDir};
+        case "SET_CONDA_DIR":
+            return {...state, condaDir: action.payload.condaDir};
         case "SET_PROGRESS":
             return {...state, progress: action.payload.progress};
         case "SET_VALIDATION":
