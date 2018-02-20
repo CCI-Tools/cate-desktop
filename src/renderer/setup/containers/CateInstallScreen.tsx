@@ -33,21 +33,21 @@ class _CateInstallScreen extends React.PureComponent<ICateInstallScreenProps & a
 
         let pathField;
         if (this.props.cateMode === CATE_MODE_NEW_CATE_DIR) {
-            pathField = <PathField label="Select a new Cate installation directory:"
+            pathField = <PathField label="Cate installation directory (must be empty):"
                                    placeholder="Directory path"
                                    value={this.props.newCateDir}
                                    validation={this.props.validation}
                                    onChange={(event) => this.props.dispatch(actions.setNewCateDir(event.target.value))}
                                    onBrowse={() => this.props.dispatch(actions.browseNewCateDir())}/>;
         } else if (this.props.cateMode === CATE_MODE_OLD_CATE_DIR) {
-            pathField = <PathField label="Select an existing Cate installation directory:"
+            pathField = <PathField label="Cate installation directory:"
                                    placeholder="Directory path"
                                    value={this.props.oldCateDir}
                                    validation={this.props.validation}
                                    onChange={(event) => this.props.dispatch(actions.setOldCateDir(event.target.value))}
                                    onBrowse={() => this.props.dispatch(actions.browseOldCateDir())}/>;
         } else if (this.props.cateMode === CATE_MODE_CONDA_DIR) {
-            pathField = <PathField label="Select an Anaconda/Miniconda installation directory:"
+            pathField = <PathField label="Anaconda/Miniconda installation directory:"
                                    placeholder="Directory path"
                                    value={this.props.condaDir}
                                    validation={this.props.validation}
