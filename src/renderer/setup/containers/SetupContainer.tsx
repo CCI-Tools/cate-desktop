@@ -35,11 +35,11 @@ type Screens = { [screenId: string]: Screen };
 
 const SCREENS: Screens = {
     [SCREEN_ID_START]: {
-        title: "Additional Setup Required",
+        title: "Cate Desktop Setup",
         panel: <StartScreen/>,
     },
     [SCREEN_ID_CATE_INSTALL]: {
-        title: "Install Cate Python Package",
+        title: "Install or Update Cate Python Package",
         panel: <CateInstallScreen/>,
     },
     [SCREEN_ID_TASK_MONITOR]: {
@@ -135,4 +135,3 @@ class _SetupContainer extends React.PureComponent<ISetupContainerProps & actions
 }
 
 export const SetupContainer = connect(mapStateToProps)(_SetupContainer);
-

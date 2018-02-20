@@ -1,4 +1,4 @@
-import {SetupOptions} from "../../common/setup";
+import {SetupInfo, SetupOptions} from "../../common/setup";
 
 export const SCREEN_ID_START = "start";
 export const SCREEN_ID_END = "end";
@@ -8,6 +8,7 @@ export const SCREEN_ID_TASK_MONITOR = "taskMonitor";
 export type ScreenId = "start" | "cateInstall" | "taskMonitor" | "end";
 
 export interface State extends SetupOptions {
+    setupInfo: SetupInfo;
     screenId: ScreenId;
     progress: number | null;
     validations: {[screenId: string]: string};

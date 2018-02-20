@@ -85,11 +85,7 @@ export class InstallMiniconda extends Requirement {
     }
 
     getPythonExecutable() {
-        if (process.platform === "win32") {
-            return path.join(this.minicondaInstallDir, 'python.exe');
-        } else {
-            return path.join(this.minicondaInstallDir, 'bin', 'python');
-        }
+        return getCondaPythonExecutable(this.minicondaInstallDir);
     }
 
     newInitialState(context: RequirementContext): RequirementState {
@@ -125,48 +121,84 @@ export class InstallMiniconda extends Requirement {
     }
 }
 
+export class InstallCondaEnv extends Requirement {
+    condaDir: string;
+
+    constructor(condaDir: string) {
+        super('InstallOrUpdateCate', [], 'Installing Conda environment');
+        this.condaDir = condaDir;
+    }
+
+    getCondaDir() {
+        return this.condaDir;
+    }
+
+    getCondaExecutable() {
+        return getCondaExecutable(this.getCondaDir());
+    }
+
+    getCondaEnvDir() {
+        return path.join(this.getCondaDir(), "envs", "cate-env");
+    }
+
+    getEnvPythonExecutable() {
+        return getCondaPythonExecutable(this.getCondaEnvDir());
+    }
+
+    newInitialState(context: RequirementContext): RequirementState {
+        return {
+            condaDir: this.condaDir,
+        };
+    }
+
+    fulfilled(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<boolean> {
+        const pythonExecutable = this.getEnvPythonExecutable();
+        return execFile(pythonExecutable, ['--version']).then((output: FileExecOutput) => {
+            const line = _getOutput(output);
+            return line.startsWith("Python 3.");
+        }).catch(() => {
+            return false;
+        });
+    }
+
+    fulfill(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<any> {
+        const condaExecutable = this.getCondaExecutable();
+        return execFile(condaExecutable, ['conda', 'env', 'create', '-n', 'cate-env', 'python=3'], onProgress);
+    }
+}
+
 export class InstallOrUpdateCate extends Requirement {
     cateVersion: string;
+    cateDir: string;
 
-    constructor(cateVersion: string) {
-        super('InstallOrUpdateCate', ['InstallMiniconda'], 'Install Cate or update Cate to version ' + cateVersion);
+    constructor(cateVersion: string, cateDir: string, requires: string[]) {
+        super('InstallOrUpdateCate', requires, 'Install or update to cate-' + cateVersion);
         this.cateVersion = cateVersion;
+        this.cateDir = cateDir;
     }
 
     // noinspection JSMethodCanBeStatic
-    getMinicondaInstallDir(context: RequirementContext) {
-        return context.getRequirementState('InstallMiniconda').minicondaInstallDir;
+    getCateDir() {
+        return this.cateDir;
     }
 
-    getCateCliExecutable(context: RequirementContext) {
-        const installDir = this.getMinicondaInstallDir(context);
-        if (process.platform === "win32") {
-            return path.join(installDir, 'Scripts', 'cate-cli.bat');
-        } else {
-            return path.join(installDir, 'bin', 'cate-cli.sh');
-        }
+    getCateCliExecutable() {
+        return getCateCliExecutable(this.getCateDir());
     }
 
-    getCondaExecutable(context: RequirementContext) {
-        const installDir = this.getMinicondaInstallDir(context);
-        if (process.platform === "win32") {
-            return path.join(installDir, 'Scripts', 'conda.exe');
-        } else {
-            return path.join(installDir, 'bin', 'conda');
-        }
+    getCondaExecutable() {
+        return getCondaExecutable(this.getCateDir());
     }
 
     newInitialState(context: RequirementContext): RequirementState {
         return {
             cateVersion: this.cateVersion,
-            installDir: this.getMinicondaInstallDir(context),
-            cateCliExecutable: this.getCateCliExecutable(context),
-            condaExecutable: this.getCondaExecutable(context),
+            cateDir: this.getCateDir(),
         };
     }
 
     fulfilled(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<boolean> {
-        const cateCliExecutable = this.getCateCliExecutable(context);
+        const cateCliExecutable = this.getCateCliExecutable();
         return execFile(cateCliExecutable, ['cate', '--version']).then((output: FileExecOutput) => {
             const line = _getOutput(output);
             return line.startsWith(this.cateVersion);
@@ -176,8 +208,8 @@ export class InstallOrUpdateCate extends Requirement {
     }
 
     fulfill(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<any> {
-        const condaExecutable = this.getCondaExecutable(context);
-        return execFile(condaExecutable, ['install', '--yes', '-c', 'ccitools', '-c', 'conda-forge', 'cate-cli'], onProgress);
+        const condaExecutable = this.getCondaExecutable();
+        return execFile(condaExecutable, ['install', '--yes', '-c', 'ccitools', '-c', 'conda-forge', 'cate-cli=' + this.cateVersion], onProgress);
     }
 }
 
@@ -189,10 +221,10 @@ export function updateCateCli() {
 
     let downloadMiniconda = new DownloadMiniconda();
     let installMiniconda = new InstallMiniconda(minicondaInstallDir);
-    let installOrUpdateCate = new InstallOrUpdateCate(cateVersion);
-    let requirementSet = new RequirementSet(downloadMiniconda,
-                                            installMiniconda,
-                                            installOrUpdateCate);
+    let installOrUpdateCate = new InstallOrUpdateCate(cateVersion, minicondaInstallDir, [installMiniconda.id]);
+    let requirementSet = new RequirementSet([downloadMiniconda,
+                                             installMiniconda,
+                                             installOrUpdateCate]);
     let done = false;
     requirementSet.fulfillRequirement(installOrUpdateCate.id, progress => {
         console.log(progress);
@@ -208,4 +240,28 @@ export function updateCateCli() {
 // noinspection JSUnusedGlobalSymbols
 export function run() {
     updateCateCli();
+}
+
+function getCondaPythonExecutable(condaDir: string) {
+    if (process.platform === "win32") {
+        return path.join(condaDir, 'python.exe');
+    } else {
+        return path.join(condaDir, 'bin', 'python');
+    }
+}
+
+function getCondaExecutable(condaDir: string) {
+    if (process.platform === "win32") {
+        return path.join(condaDir, 'Scripts', 'conda.exe');
+    } else {
+        return path.join(condaDir, 'bin', 'conda');
+    }
+}
+
+function getCateCliExecutable(condaDir: string) {
+    if (process.platform === "win32") {
+        return path.join(condaDir, 'Scripts', 'cate-cli.bat');
+    } else {
+        return path.join(condaDir, 'bin', 'cate-cli.sh');
+    }
 }

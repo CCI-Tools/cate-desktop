@@ -85,10 +85,12 @@ export class RequirementSet implements RequirementContext {
     private _requirements: { [id: string]: Requirement };
     private _requirementStates: { [id: string]: RequirementState };
 
-    constructor(...requirements: Requirement[]) {
+    constructor(requirements?: Requirement[]) {
         this._requirements = {};
         this._requirementStates = {};
-        this.addRequirements(...requirements);
+        if (requirements) {
+            this.addRequirements(requirements);
+        }
     }
 
     getRequirementIds(): string[] {
@@ -121,7 +123,7 @@ export class RequirementSet implements RequirementContext {
         this._requirements[requirement.id] = requirement;
     }
 
-    addRequirements(...requirements: Requirement[]) {
+    addRequirements(requirements: Requirement[]) {
         for (let requirement of requirements) {
             this.addRequirement(requirement);
         }

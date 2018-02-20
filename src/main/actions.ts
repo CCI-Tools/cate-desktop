@@ -1,5 +1,5 @@
 import * as electron from 'electron';
-import {getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE} from "./appenv";
+import {getAppDataDir, getAppIconPath, APP_CLI_VERSION_RANGE, getCateCliPath} from "./appenv";
 
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
@@ -275,8 +275,9 @@ export const actions = {
     checkForUpdates: {
         label: 'Check for Updates...',
         click: function () {
-            const app: any = electron.app;
-            app.checkForUpdates();
+            // TODO (nf): check how this may be implemented later
+            // const app: any = electron.app;
+            // app.checkForUpdates();
         },
         category: 'help',
     },
@@ -294,7 +295,7 @@ export const actions = {
                                                detail: '' +
                                                        `Program: ${app.getAppPath()}\n` +
                                                        `Data: ${getAppDataDir()}\n` +
-                                                       `CLI: ${getAppCliLocation()}\n` +
+                                                       `CLI: ${getCateCliPath()}\n` +
                                                        `Requires Cate Core ${APP_CLI_VERSION_RANGE}\n` +
                                                        '\n' +
                                                        'Cate is open source software distributed under the MIT license.\n\n' +

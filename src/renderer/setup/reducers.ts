@@ -1,21 +1,45 @@
 import {AnyAction, Reducer} from 'redux';
-import {CATE_MODE_NEW_CATE_DIR, SETUP_MODE_AUTO, SETUP_MODE_USER} from "../../common/setup";
+import {
+    CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, SETUP_MODE_AUTO, SETUP_MODE_USER, SETUP_REASON_INSTALL_CATE,
+    SETUP_REASON_UPDATE_CATE,
+    SetupReason
+} from "../../common/setup";
 import {SCREEN_ID_CATE_INSTALL, SCREEN_ID_END, SCREEN_ID_START, SCREEN_ID_TASK_MONITOR, State} from "./state";
 
 const initialState: State = {
+    setupInfo: {
+        //setupReason: SETUP_REASON_UPDATE_CATE,
+        setupReason: SETUP_REASON_INSTALL_CATE,
+        newCateDir: "",
+        oldCateDir: "",
+        newCateVersion: "X",
+        oldCateVersion: "Y",
+    },
     screenId: SCREEN_ID_START,
     setupMode: SETUP_MODE_AUTO,
     cateMode: CATE_MODE_NEW_CATE_DIR,
     condaDir: "",
-    newCateDir: "cate",
+    newCateDir: "",
     oldCateDir: "",
     progress: null,
     validations: {},
-    keepCateUpToDate: true,
+    autoUpdateCate: true,
 };
 
 export const stateReducer: Reducer<State> = (state: State = initialState, action: AnyAction) => {
     switch (action.type) {
+        case "SET_SETUP_INFO": {
+            const setupInfo = action.payload.setupInfo;
+            const newCateDir = setupInfo.newCateDir || state.newCateDir;
+            const oldCateDir = setupInfo.oldCateDir || state.oldCateDir;
+            let cateMode;
+            if (setupInfo.setupReason === SETUP_REASON_INSTALL_CATE) {
+                cateMode = setupInfo.oldCateDir ? CATE_MODE_NEW_CATE_DIR : state.cateMode;
+            } else if (setupInfo.setupReason === SETUP_REASON_UPDATE_CATE) {
+                cateMode = setupInfo.oldCateDir ? CATE_MODE_OLD_CATE_DIR : state.cateMode;
+            }
+            return {...state, setupInfo, newCateDir, oldCateDir, cateMode};
+        }
         case "MOVE_FORWARD":
             if (state.validations[state.screenId]) {
                 return state;

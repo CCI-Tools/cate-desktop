@@ -4,14 +4,20 @@ import * as path from "path";
 import {CATE_EXECUTABLES, CONDA_EXECUTABLES, getAppIconPath} from "./appenv";
 import * as electron from "electron";
 import {ifInternet} from "./dnsutil";
-import {CATE_MODE_NEW_CATE_DIR, SETUP_MODE_AUTO, SETUP_MODE_USER, SetupOptions} from "../common/setup";
-import {DownloadMiniconda, InstallMiniconda, InstallOrUpdateCate} from "./update-backend";
+import {
+    CATE_MODE_CONDA_DIR,
+    CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, SETUP_MODE_AUTO, SETUP_MODE_USER, SETUP_REASON_INSTALL_CATE,
+    SETUP_REASON_UPDATE_CATE,
+    SetupInfo,
+    SetupOptions
+} from "../common/setup";
+import {DownloadMiniconda, InstallCondaEnv, InstallMiniconda, InstallOrUpdateCate} from "./update-backend";
 import {isNumber} from "../common/types";
 import {RequirementSet} from "./requirement";
 
 
-export function openSetupWindow() {
-    const dialogTitle = "Cate Desktop Setup";
+export function doSetup(setupInfo: SetupInfo, callback: (cateDir: string | null) => void) {
+    const dialogTitle = `Cate Desktop ${electron.app.getVersion()} Setup`;
 
     ifInternet().then(() => {
         const setupWindow = new electron.BrowserWindow({
@@ -33,11 +39,18 @@ export function openSetupWindow() {
                                            protocol: 'file:',
                                            slashes: true
                                        }));
-
+        setupWindow.webContents.on('did-finish-load', () => {
+            setupWindow.webContents.send("setSetupInfo", setupInfo);
+        });
         setupWindow.webContents.openDevTools();
-        setupWindow.on('closed', quitApp);
-        electron.ipcMain.on("endSetup", quitApp);
-        electron.ipcMain.on("cancelSetup", quitApp);
+        electron.ipcMain.on("endSetup", (event, cateDir: string) => {
+            setupWindow.hide();
+            callback(cateDir)
+        });
+        electron.ipcMain.on("cancelSetup", () => {
+            setupWindow.hide();
+            callback(null)
+        });
         electron.ipcMain.on("browseNewCateDir", browseNewCateDir);
         electron.ipcMain.on("browseOldCateDir", browseOldCateDir);
         electron.ipcMain.on("browseCondaDir", browseCondaDir);
@@ -51,7 +64,7 @@ export function openSetupWindow() {
             title: dialogTitle,
             icon: getAppIconPath() as any,
             message: "Internet connection required.",
-            detail: "Cate Desktop wants to perform some setup tasks for which additional online resources are needed.",
+            detail: "Cate Desktop requires performing some setup tasks for which additional online resources are needed.",
         };
         electron.dialog.showMessageBox(messageBoxOptions, quitApp);
     });
@@ -163,41 +176,53 @@ function validateExecutables(event, channel: string, dirPath: string, executable
     }
 }
 
-export function performSetupTasks(event, setupOptions: SetupOptions) {
+export function performSetupTasks(event, setupInfo: SetupInfo, setupOptions: SetupOptions) {
     //const minicondaInstallDir = path.join(os.homedir(), 'cate-test-1');
     const channel = "performSetupTasks-response";
 
-    let condaMode;
-    let cateMode;
-    let newCateDir;
-    let oldCateDir;
-    let condaDir;
+
+    const {newCateVersion} = setupInfo;
+    const {newCateDir, oldCateDir, condaDir} = setupOptions;
+    let cateMode = setupOptions.cateMode;
+
     if (setupOptions.setupMode === SETUP_MODE_AUTO) {
-        cateMode = CATE_MODE_NEW_CATE_DIR;
-        newCateDir = path.join(electron.app.getPath("home"), "cate");
-    } else if (setupOptions.setupMode === SETUP_MODE_USER) {
-        cateMode = setupOptions.cateMode;
-        newCateDir = setupOptions.newCateDir;
-        oldCateDir = setupOptions.oldCateDir;
-        condaDir = setupOptions.condaDir;
+        if (setupInfo.setupReason === SETUP_REASON_INSTALL_CATE) {
+            cateMode = CATE_MODE_NEW_CATE_DIR;
+        } else if (setupInfo.setupReason === SETUP_REASON_UPDATE_CATE) {
+            cateMode = CATE_MODE_OLD_CATE_DIR;
+        }
     }
 
-    let downloadMiniconda = new DownloadMiniconda();
-    let installMiniconda = new InstallMiniconda(newCateDir);
-    let installOrUpdateCate = new InstallOrUpdateCate(newCateDir || oldCateDir);
-    let requirementSet = new RequirementSet(downloadMiniconda,
-                                            installMiniconda,
-                                            installOrUpdateCate);
+    let requirements;
+    if (cateMode === CATE_MODE_NEW_CATE_DIR) {
+        const downloadMiniconda = new DownloadMiniconda();
+        const installMiniconda = new InstallMiniconda(newCateDir);
+        const installOrUpdateCate = new InstallOrUpdateCate(newCateVersion, newCateDir, [installMiniconda.id]);
+        requirements = [downloadMiniconda, installMiniconda, installOrUpdateCate];
+    } else if (cateMode === CATE_MODE_OLD_CATE_DIR) {
+        const installOrUpdateCate = new InstallOrUpdateCate(newCateVersion, oldCateDir, []);
+        requirements = [installOrUpdateCate];
+    } else if (cateMode === CATE_MODE_CONDA_DIR) {
+        const installCondaEnv = new InstallCondaEnv(condaDir);
+        const installOrUpdateCate = new InstallOrUpdateCate(newCateVersion, installCondaEnv.getCondaEnvDir(), [installCondaEnv.id]);
+        requirements = [installCondaEnv, installOrUpdateCate];
+    } else {
+        event.sender.send(channel, {error: "?"});
+        return;
+    }
 
-    let done = false;
-    requirementSet.fulfillRequirement(installOrUpdateCate.id, progress => {
+    const requirementSet = new RequirementSet(requirements);
+    requirementSet.fulfillRequirement(requirements[requirements.length - 1].id, progress => {
+        const isDone = isNumber(progress.worked) && progress.worked >= progress.totalWork;
+        event.sender.send(channel, {progress, isDone});
         console.log(progress);
-        done = isNumber(progress.worked) && progress.worked === progress.totalWork;
     }).then(() => {
-        console.log('Cate CLI updated successfully.')
-    }).catch(reason => {
-        console.error('Failed to update Cate CLI due to the following error:');
-        console.error(reason);
+        event.sender.send(channel, null);
+        console.log('Cate Desktop has been successfully set up.')
+    }).catch(error => {
+        event.sender.send(channel, {error});
+        console.error('Failed to perform setup due to the following error:');
+        console.error(error);
     });
 }
 

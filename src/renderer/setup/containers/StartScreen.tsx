@@ -2,17 +2,23 @@ import * as React from "react";
 import {connect} from "react-redux";
 import {Checkbox, Radio, RadioGroup} from "@blueprintjs/core";
 import {
-    SETUP_MODE_AUTO, SETUP_MODE_USER, SetupMode,
+    SETUP_MODE_AUTO, SETUP_MODE_USER, SETUP_REASON_INSTALL_CATE, SetupMode, SetupReason,
 } from "../../../common/setup";
 import * as actions from "../actions";
 import {State} from "../state";
 
 interface IStartScreenProps {
+    setupReason: SetupReason;
+    oldCateVersion: string;
+    newCateVersion: string;
     setupMode: SetupMode;
 }
 
 function mapStateToProps(state: State): IStartScreenProps {
     return {
+        setupReason: state.setupInfo.setupReason,
+        oldCateVersion: state.setupInfo.oldCateVersion,
+        newCateVersion: state.setupInfo.newCateVersion,
         setupMode: state.setupMode,
     };
 }
@@ -21,12 +27,19 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & actions.Dispa
 
     render() {
 
+        let reasonText;
+        if (this.props.setupReason === SETUP_REASON_INSTALL_CATE) {
+            reasonText = <p>Cate Desktop requires installing the Python
+                package <code>{`cate-${this.props.newCateVersion}`}</code>.</p>;
+        } else {
+            reasonText = <p>Cate Desktop requires an update of the Python
+                package <code>{`cate-${this.props.oldCateVersion}`}</code> to <code>{`cate-${this.props.newCateVersion}`}</code>.
+            </p>;
+        }
+
         return (
             <div>
-
-                <p>Cate Desktop requires some additional setup before it can be started.</p>
-
-                <p className="pt-text-muted">Note: This screen occurs only when Cate requires additional setup.</p>
+                {reasonText}
 
                 <p>Please select an option:</p>
 
@@ -38,6 +51,15 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & actions.Dispa
                         <Radio label="User-defined setup" value={SETUP_MODE_USER}/>
                     </RadioGroup>
                 </div>
+
+                <p className="pt-text-muted" style={{marginTop: 32}}>Background: The Python package <code><a
+                    href="https://github.com/CCI-Tools/cate" target="_blank">cate</a></code> provides
+                    provides the data processing and visualisation service to Cate Desktop.
+                    In addition, it offers a command-line interface <code>cate-cli</code> to
+                    access and process data in batch mode. It also has an API to add new functions to Cate easily.
+                    For more information, please refer to
+                    the <a href="http://cate.readthedocs.io/en/latest/" target="_blank">documentation</a>.
+                </p>
 
             </div>
         );

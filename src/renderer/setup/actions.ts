@@ -1,9 +1,11 @@
 import {ipcRenderer} from 'electron';
 import {Dispatch} from "react-redux";
 import {
-    CateMode, SetupMode, CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, CATE_MODE_CONDA_DIR,
+    CateMode, SetupMode, CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, CATE_MODE_CONDA_DIR, SetupInfo,
 } from "../../common/setup";
-import {SCREEN_ID_CATE_INSTALL, State} from "./state";
+import {SCREEN_ID_CATE_INSTALL, SCREEN_ID_TASK_MONITOR, State} from "./state";
+import * as path from "path";
+import * as assert from "../../common/assert";
 
 // Strange, we must use this, imports from "react-redux" produce TS syntax errors
 export interface DispatchProp {
@@ -14,6 +16,9 @@ export function moveForward() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
         dispatch({type: "MOVE_FORWARD"});
         validatePaths(dispatch, getState);
+        if (getState().screenId === SCREEN_ID_TASK_MONITOR) {
+            dispatch(performSetupTasks());
+        }
     };
 }
 
@@ -22,6 +27,10 @@ export function moveBack() {
         dispatch({type: "MOVE_BACK"});
         validatePaths(dispatch, getState);
     };
+}
+
+export function setSetupInfo(setupInfo: SetupInfo) {
+    return {type: "SET_SETUP_INFO", payload: {setupInfo}};
 }
 
 export function setAutoUpdateCate(autoUpdateCate: boolean) {
@@ -101,7 +110,16 @@ export function cancelSetup() {
 
 export function endSetup() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
-        ipcRenderer && ipcRenderer.send("endSetup", getState());
+        const state = getState();
+        let cateDir;
+        if (state.cateMode === CATE_MODE_NEW_CATE_DIR) {
+            cateDir = state.newCateDir;
+        } else if (state.cateMode === CATE_MODE_OLD_CATE_DIR) {
+            cateDir = state.oldCateDir;
+        } else if (state.cateMode === CATE_MODE_CONDA_DIR) {
+            cateDir = path.join(state.condaDir, "envs", "cate-env");
+        }
+        ipcRenderer && ipcRenderer.send("endSetup", cateDir);
     };
 }
 
@@ -152,9 +170,9 @@ function validateCondaDir(dispatch: Dispatch<any>, getState: () => State) {
 
 export function performSetupTasks() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
-        const listener = (event, progress: any) => dispatch({type: "SET_TASK_PROGRESS", payload: {progress}});
-        ipcRenderer && ipcRenderer.on("performSetupTasks-response", listener);
-        ipcRenderer && ipcRenderer.send("performSetupTasks", getState());
+        //const listener = (event, progress: any) => dispatch({type: "SET_TASK_PROGRESS", payload: {progress}});
+        //ipcRenderer && ipcRenderer.on("performSetupTasks-response", listener);
+        ipcRenderer && ipcRenderer.send("performSetupTasks", getState().setupInfo, getState());
     }
 }
 

@@ -14,31 +14,29 @@ describe('RequirementSet', function () {
 
     it('can get requirement IDs', () => {
         const rSet = new RequirementSet();
-        rSet.addRequirements(new Requirement('r1'),
-                             new Requirement('r2', ['r1']),
-                             new Requirement('r3', ['r2']));
+        rSet.addRequirements([new Requirement('r1'),
+                              new Requirement('r2', ['r1']),
+                              new Requirement('r3', ['r2'])]);
         let requirementIds = rSet.getRequirementIds();
         expect(new Set(requirementIds)).to.deep.equal(new Set(['r1', 'r2', 'r3']));
     });
 
     it('can collect requirements', () => {
         const rSet = new RequirementSet();
-        rSet.addRequirements(new Requirement('r1'),
-                             new Requirement('r2', ['r1']),
-                             new Requirement('r3', ['r2']));
+        rSet.addRequirements([new Requirement('r1'),
+                              new Requirement('r2', ['r1']),
+                              new Requirement('r3', ['r2'])]);
         let requirements = rSet.collectRequirements('r3');
-        expect(requirements).to.deep.equal([
-                                               rSet.getRequirement('r1'),
-                                               rSet.getRequirement('r2'),
-                                               rSet.getRequirement('r3'),
-                                           ]);
+        expect(requirements).to.deep.equal([rSet.getRequirement('r1'),
+                                            rSet.getRequirement('r2'),
+                                            rSet.getRequirement('r3')]);
     });
 
     it('can resolve requirements', () => {
         const rSet = new RequirementSet();
-        rSet.addRequirements(new Requirement('r1'),
-                             new Requirement('r2', ['r1']),
-                             new Requirement('r3', ['r2']));
+        rSet.addRequirements([new Requirement('r1'),
+                              new Requirement('r2', ['r1']),
+                              new Requirement('r3', ['r2'])]);
         let promise = rSet.fulfillRequirement('r3');
         return expect(promise).to.eventually.be.fulfilled;
     });
@@ -62,9 +60,9 @@ describe('RequirementSet', function () {
             }
         }
 
-        rSet.addRequirements(new MyRequirement('r1'),
-                             new MyRequirement('r2', ['r1']),
-                             new MyRequirement('r3', ['r2']));
+        rSet.addRequirements([new MyRequirement('r1'),
+                              new MyRequirement('r2', ['r1']),
+                              new MyRequirement('r3', ['r2'])]);
 
         let progressTrace = [];
         let onProgress = (progress) => {
@@ -117,9 +115,9 @@ describe('RequirementSet', function () {
             }
         }
 
-        rSet.addRequirements(new MyRequirement('r1'),
-                             new MyRequirement('r2', ['r1']),
-                             new MyRequirement('r3', ['r2']));
+        rSet.addRequirements([new MyRequirement('r1'),
+                              new MyRequirement('r2', ['r1']),
+                              new MyRequirement('r3', ['r2'])]);
 
         let progressTrace = [];
         let onProgress = (progress) => {

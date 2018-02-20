@@ -7,18 +7,17 @@ import * as fs from 'fs';
 import * as child_process from 'child_process'
 import {request} from './request';
 import {updateConditionally} from '../common/objutil';
-import * as assert from '../common/assert';
 import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
 import {error, isNumber} from "util";
 import {
-    getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE,
-    getCateCliUpdateInfo, CATE_CLI_EXECUTABLE
+    getAppDataDir, getAppIconPath,
+    getCateCliSetupInfo, setCateDir, getCateCliPath, getCateCliVersion
 } from "./appenv";
 import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
 import {isDefined} from "../common/types";
-import {openSetupWindow} from "./setup";
+import {doSetup} from "./setup";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -40,16 +39,11 @@ const WEBAPI_MISSING = 3;
 const WEBAPI_NO_FREE_PORT = 4;
 const WEBAPI_BAD_EXIT = 1000;
 
-// As the first port in the dynamic/private range (49152-65535),
-// this port is commonly used by applications that utilize a dynamic/random/configurable port.
-const WEBAPI_PORT_RANGE = [49152, 65535];
-
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let _mainWindow;
 let _splashWindow;
-let _updateWindow;
 
 /**
  * Preferences loaded from $home/.cate/preferences.json
@@ -196,6 +190,14 @@ function getMPLWebSocketsUrl(webAPIConfig) {
     return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/mpl/figures/`;
 }
 
+function logCateVersion() {
+    getCateCliVersion().then(version => {
+        console.info(CATE_DESKTOP_PREFIX, "cate-cli version: ", version);
+    }).catch(err => {
+        console.error(CATE_DESKTOP_PREFIX, "failed to get cate-cli version: ", err);
+    });
+}
+
 // noinspection JSUnusedGlobalSymbols
 export function init() {
     console.log(__dirname);
@@ -248,7 +250,6 @@ export function init() {
     console.log(CATE_DESKTOP_PREFIX, 'appConfig:', _config.data);
     //console.log(CATE_DESKTOP_PREFIX, 'userPrefs:', _prefs.data);
 
-    let webAPIStarted = false;
     let webAPIError = null;
     let webAPIProcess = null;
 
@@ -258,31 +259,34 @@ export function init() {
         ...webAPIConfig.processOptions
     };
 
-    function startWebAPIService(callback: (process: child_process.ChildProcess) => void) {
-
-        let updateInfo = getCateCliUpdateInfo();
-        console.log(CATE_DESKTOP_PREFIX, "update-info: ", updateInfo);
-
-        const {cateDir, updateRequired} = updateInfo;
-        if (updateRequired) {
-            if (!cateDir) {
-                openSetupWindow();
-            } else {
+    function ensureValidCateCliDir(callback: () => void) {
+        const setupInfo = getCateCliSetupInfo();
+        console.log(CATE_DESKTOP_PREFIX, "setupInfo: ", setupInfo);
+        if (setupInfo.setupReason) {
+            if (!_splashWindow.isDestroyed() && _splashWindow.isVisible()) {
+                _splashWindow.hide();
             }
+            doSetup(setupInfo, (cateDir: string | null) => {
+                if (cateDir) {
+                    setCateDir(cateDir);
+                    if (!_splashWindow.isDestroyed()) {
+                        _splashWindow.show();
+                    }
+                    callback();
+                } else {
+                    app.quit();
+                }
+            });
+        } else {
+            setCateDir(setupInfo.oldCateDir);
+            callback();
         }
+    }
 
-        if (process.platform === 'win32') {
-            child_process.exec(`"${cateDir}\\Scripts\\activate" "${cateDir}" & "${cateDir}\\python" -c "import cate; print(cate.__version__)"`,
-                               (error: Error | null, stdout: string, stderr: string) => {
-                                   console.log(CATE_DESKTOP_PREFIX, error, stdout, stderr);
-                               });
-        }
+    function startWebAPIService(callback: (process: child_process.ChildProcess) => void) {
+        logCateVersion();
 
-        const cateCliLocation = path.join(cateDir, CATE_CLI_EXECUTABLE);
-        if (!checkCliLocation(cateCliLocation)) {
-            return null;
-        }
-
+        const cateCliPath = getCateCliPath();
         showSplashMessage('Searching unused port...');
         findFreePort(webAPIConfig.servicePort, null, (freePort: number) => {
             if (freePort < webAPIConfig.servicePort) {
@@ -297,9 +301,9 @@ export function init() {
             webAPIConfig.servicePort = freePort;
 
             const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
-            console.log(CATE_DESKTOP_PREFIX, `Starting Cate service: ${cateCliLocation} [${webAPIStartArgs}]`);
+            console.log(CATE_DESKTOP_PREFIX, `Starting Cate service: ${cateCliPath} [${webAPIStartArgs}]`);
 
-            webAPIProcess = child_process.spawn(cateCliLocation, webAPIStartArgs, processOptions);
+            webAPIProcess = child_process.spawn(cateCliPath, webAPIStartArgs, processOptions);
             console.log(CATE_DESKTOP_PREFIX, 'Cate service started.');
             webAPIProcess.stdout.on('data', (data: any) => {
                 console.log(CATE_WEBAPI_PREFIX, `${data}`);
@@ -337,13 +341,11 @@ export function init() {
         if (!webAPIProcess) {
             return;
         }
-        const appCliLocation = getAppCliLocation();
-        assert.ok(appCliLocation);
-
+        const cateCliPath = getCateCliPath();
         const webAPIStopArgs = getWebAPIStopArgs(webAPIConfig);
         console.log(CATE_DESKTOP_PREFIX, `Stopping Cate service using arguments: ${webAPIStopArgs}`);
         // this must be sync to make sure the stop is performed before this process ends
-        child_process.spawnSync(appCliLocation, webAPIStopArgs, webAPIConfig.options);
+        child_process.spawnSync(cateCliPath, webAPIStopArgs, webAPIConfig.options);
     }
 
     const msServiceAccessTimeout = 1000; // ms
@@ -375,14 +377,14 @@ export function init() {
                     }
                 };
                 if (!webAPIProcess) {
-                    startWebAPIService(callback);
+                    ensureValidCateCliDir(() => startWebAPIService(callback));
                 } else {
                     callback();
                 }
             });
     }
 
-    let initBrowserWindows = function () {
+    function initBrowserWindows() {
 
         const mainWindowBounds = _prefs.data.mainWindowBounds || {width: 1366, height: 768};
         _mainWindow = new BrowserWindow({
@@ -398,8 +400,8 @@ export function init() {
         });
 
         _splashWindow = new BrowserWindow({
-                                              width: 800,
-                                              height: 286,
+                                              width: 830,
+                                              height: 320,
                                               center: true,
                                               show: true,
                                               useContentSize: true,
@@ -408,21 +410,7 @@ export function init() {
                                               transparent: true,
                                               parent: _mainWindow
                                           });
-
-
-        _updateWindow = new BrowserWindow({
-                                              width: 750,
-                                              height: 400,
-                                              center: true,
-                                              show: false,
-                                              useContentSize: true,
-                                              frame: false,
-                                              alwaysOnTop: false,
-                                              transparent: false,
-                                              parent: _mainWindow
-                                          });
-
-    };
+    }
 
     const shouldQuit = app.makeSingleInstance(() => {
         // Someone tried to run a second instance, we should focus our window.
@@ -440,11 +428,6 @@ export function init() {
 
     // Emitted when Electron has finished initializing.
     app.on('ready', (): void => {
-        if (forceSetup) {
-            openSetupWindow();
-            return;
-        }
-
         initBrowserWindows();
         loadSplashWindow(() => {
             console.log(CATE_DESKTOP_PREFIX, 'Ready.');
@@ -489,21 +472,17 @@ export function init() {
 }
 
 function loadSplashWindow(callback: () => void) {
-
     _splashWindow.loadURL(url.format({
                                          pathname: path.join(app.getAppPath(), 'splash.html'),
                                          protocol: 'file:',
                                          slashes: true
                                      }));
-    _splashWindow.on('closed', () => {
-        _splashWindow = null;
-    });
     _splashWindow.webContents.on('did-finish-load', callback);
 }
 
 function showSplashMessage(message: string) {
     console.log(CATE_DESKTOP_PREFIX, 'Splash says:', message);
-    if (_splashWindow && _splashWindow.isVisible()) {
+    if (_splashWindow && !_splashWindow.isDestroyed() && _splashWindow.isVisible()) {
         _splashWindow.webContents.send('update-splash-message', message);
     } else {
         console.warn(CATE_DESKTOP_PREFIX, 'showSplashMessage: splash not visible', message);
@@ -518,7 +497,7 @@ function loadMainWindow() {
             const devToolExtension = devTools[devToolsExtensionName];
             if (devToolExtension) {
                 installDevToolsExtension(devToolExtension)
-                    .then((name) => console.log(CATE_DESKTOP_PREFIX, `Added DevTools extension "${devToolsExtensionName}"`))
+                    .then(() => console.log(CATE_DESKTOP_PREFIX, `Added DevTools extension "${devToolsExtensionName}"`))
                     .catch((err) => console.error(CATE_DESKTOP_PREFIX, 'Failed to add DevTools extension: ', err));
             }
         }
@@ -537,22 +516,21 @@ function loadMainWindow() {
 
     _mainWindow.webContents.on('did-finish-load', () => {
         showSplashMessage('Done.');
-        if (_splashWindow) {
+        if (_splashWindow && !_splashWindow.isDestroyed()) {
             _splashWindow.close();
-
-            const webAPIConfig = _config.data.webAPIConfig;
-            _mainWindow.webContents.send('apply-initial-state', {
-                session: _prefs.data,
-                appConfig: Object.assign({}, _config.data, {
-                    appPath: app.getAppPath(),
-                    webAPIConfig: Object.assign({}, webAPIConfig, {
-                        restUrl: getWebAPIRestUrl(webAPIConfig),
-                        apiWebSocketUrl: getAPIWebSocketsUrl(webAPIConfig),
-                        mplWebSocketUrl: getMPLWebSocketsUrl(webAPIConfig),
-                    }),
-                })
-            });
         }
+        const webAPIConfig = _config.data.webAPIConfig;
+        _mainWindow.webContents.send('apply-initial-state', {
+            session: _prefs.data,
+            appConfig: Object.assign({}, _config.data, {
+                appPath: app.getAppPath(),
+                webAPIConfig: Object.assign({}, webAPIConfig, {
+                    restUrl: getWebAPIRestUrl(webAPIConfig),
+                    apiWebSocketUrl: getAPIWebSocketsUrl(webAPIConfig),
+                    mplWebSocketUrl: getMPLWebSocketsUrl(webAPIConfig),
+                }),
+            })
+        });
     });
 
     if (_prefs.data.devToolsOpened) {
@@ -678,25 +656,6 @@ function loadMainWindow() {
     });
 }
 
-function checkCliLocation(appCliLocation: string | null): boolean {
-    if (appCliLocation && fs.existsSync(appCliLocation)) {
-        return true;
-    }
-
-    let moreDetails = '';
-    if (appCliLocation) {
-        moreDetails = `The configured location is:\n${appCliLocation}\n`;
-    }
-    electron.dialog.showErrorBox(`${app.getName()} - Configuration Error`,
-        `${app.getName()} requires Cate Core ${APP_CLI_VERSION_RANGE}.\n` +
-        'A compatible version could not be found.\n' +
-        `${moreDetails}` +
-        'Please install a compatible Cate Core first.\n\n' +
-        `${app.getName()} will exit now.`,
-    );
-    app.exit(WEBAPI_MISSING); // exit immediately
-    return false;
-}
 
 function findFreePort(fromPort?: number, toPort?: number, callback?: (port: number) => void) {
     fromPort = fromPort || 49152;
@@ -722,24 +681,4 @@ function findFreePort(fromPort?: number, toPort?: number, callback?: (port: numb
     findPort(fromPort);
 }
 
-
-function checkForUpdates() {
-    openUpdateWindow();
-}
-
-
-// TODO (nf): The checkForUpdates() action is just to test the _updateWindow
-(app as any).checkForUpdates = checkForUpdates;
-
-function openUpdateWindow() {
-    _updateWindow.show();
-    _updateWindow.loadURL(url.format({
-                                         pathname: path.join(app.getAppPath(), 'update.html'),
-                                         protocol: 'file:',
-                                         slashes: true
-                                     }));
-    _updateWindow.on('closed', () => {
-        _updateWindow = null;
-    });
-}
 
