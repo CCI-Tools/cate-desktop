@@ -42,6 +42,7 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
         }
         case "MOVE_FORWARD":
             if (state.validations[state.screenId]) {
+                // Don't move forward, if this screen's validation failed.
                 return state;
             }
             switch (state.screenId) {
