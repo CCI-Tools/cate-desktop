@@ -1,30 +1,13 @@
 import {should, expect} from 'chai';
-import {LogElementFactory, LogProcessor} from "./log-processor";
+import {
+    parseTerminalOutput, TextElement, TextElementType, unwrapTextElements
+} from "./terminal-output";
 
 should();
 
-describe('LogProcessor', () => {
+describe('terminal-output', () => {
 
-
-    it("can convert messages", () => {
-        class TextLogElementFactory implements LogElementFactory<string[]> {
-
-            createNewLineElement(): string[] {
-                return ["\n"];
-            }
-
-            createSpanElement(): string[] {
-                return [""];
-            }
-
-            getSpanElementText(element: string[]): string {
-                return element[0];
-            }
-
-            setSpanElementText(element: string[], text: string) {
-                element[0] = text;
-            }
-        }
+    it("parseTerminalOutput", () => {
 
         // original output from conda
         const messages = [
@@ -38,18 +21,20 @@ describe('LogProcessor', () => {
             {stdout: 'python-dateuti 100% |###############################| Time: 0:00:00 676.24 kB/s\r\r\nscipy-1.0.0-py   0% |                              | ETA:  --:--:--   0.00  B/s\rscipy-1.0.0-py   0% |                               | Time: 0:00:00   8.19 MB/s\rscipy-1.0.0-py   0% |                               | Time: 0:00:00   2.14 MB/s\rscipy-1.0.0-py   0% |                               | Time: 0:00:00   2.14 MB/s\rscipy-1.0.0-py   0% |                               | Time: 0:00:00   1.98 MB/s\rscipy-1.0.0-py   0% |                               | Time: 0:00:00   2.05 MB/s\rscipy-1.0.0-py   0% |                               | Time: 0:00:00   2.09 MB/s\rscipy-1.0.0-py   0% |                               | Time: 0:00:00   2.12 MB/s\rscipy-1.0.0-py   0% |                               | Time: 0:00:00   2.11 MB/s\rscipy-1.0.0-py   1% |                               | Time: 0:00:00   2.19 MB/s\rscipy-1.0.0-py   1% |                               | Time: 0:00:00   2.18 MB/s\rscipy-1.0.0-py   1% |                               | Time: 0:00:00   2.20 MB/s\rscipy-1.0.0-py   1% |                               | Time: 0:00:00   2.23 MB/s\rscipy-1.0.0-py   1% |                               | Time: 0:00:00   2.26 MB/s\rscipy-1.0.0-py   1% |                               | Time: 0:00:00   2.16 MB/s\rscipy-1.0.0-py   1% |                               | Time: 0:00:00   2.21 MB/s\rscipy-1.0.0-py   1% |                               | Time: 0:00:00   2.24 MB/s\rscipy-1.0.0-py   2% |                               | Time: 0:00:00   2.24 MB/s\rscipy-1.0.0-py   2% |                               | Time: 0:00:00   2.28 MB/s\rscipy-1.0.0-py   2% |                               | Time: 0:00:00   2.30 MB/s\rscipy-1.0.0-py   2% |                               | Time: 0:00:00   2.34 MB/s\rscipy-1.0.0-py   2% |                               | Time: 0:00:00   2.35 MB/s\rscipy-1.0.0-py   2% |                               | Time: 0:00:00   2.38 MB/s\rscipy-1.0.0-py   2% |                               | Time: 0:00:00   2.40 MB/s\rscipy-1.0.0-py   2% |                               | Time: 0:00:00   2.42 MB/s\rscipy-1.0.0-py   2% |                               | Time: 0:00:00   2.45 MB/s\rscipy-1.0.0-py   3% |                               | Time: 0:00:00   2.47 MB/s\rscipy-1.0.0-py   3% |#                              | Time: 0:00:00   2.48 MB/s\rscipy-1.0.0-py   3% |#                              | Time: 0:00:00   2.51 MB/s\rscipy-1.0.0-py   3% |#                              | Time: 0:00:00   2.52 MB/s\rscipy-1.0.0-py   3% |#                              | Time: 0:00:00   2.55 MB/s\rscipy-1.0.0-py   3% |#                              | Time: 0:00:00   2.57 MB/s\rscipy-1.0.0-py   3% |#                              | Time: 0:00:00   2.60 MB/s\rscipy-1.0.0-py   3% |#                              | Time: 0:00:00   2.61 MB/s\rscipy-1.0.0-py   4% |#                              | Time: 0:00:00   2.64 MB/s\rscipy-1.0.0-py   4% |#                              | Time: 0:00:00   2.65 MB/s\rscipy-1.0.0-py   4% |#                              | Time: 0:00:00   2.67 MB/s\rscipy-1.0.0-py   4% |#                              | Time: 0:00:00   2.69 MB/s\rscipy-1.0.0-py   4% |#                              | Time: 0:00:00   2.71 MB/s\rscipy-1.0.0-py   4% |#                              | Time: 0:00:00   2.72 MB/s\rscipy-1.0.0-py   4% |#                              | Time: 0:00:00   2.75 MB/s\rscipy-1.0.0-py   4% |#                              | Time: 0:00:00   2.76 MB/s\rscipy-1.0.0-py   5% |#                              | Time: 0:00:00   2.78 MB/s\rscipy-1.0.0-py   5% |#                              | Time: 0:00:00   2.80 MB/s\rscipy-1.0.0-py   5% |#                              | Time: 0:00:00   2.82 MB/s\rscipy-1.0.0-py   5% |#                              | Time: 0:00:00   2.84 MB/s\rscipy-1.0.0-py   5% |#                              | Time: 0:00:00   2.84 MB/s\rscipy-1.0.0-py   5% |#                              | Time: 0:00:00   2.86 MB/s\rscipy-1.0.0-py   5% |#                              | Time: 0:00:00   2.87 MB/s\rscipy-1.0.0-py   5% |#                              | Time: 0:00:00   2.89 MB/s\rscipy-1.0.0-py   5% |#                              | Time: 0:00:00   2.90 MB/s\rscipy-1.0.0-py   6% |#                              | Time: 0:00:00   2.92 MB/s\rscipy-1.0.0-py   6% |#                              | Time: 0:00:00   2.94 MB/s\rscipy-1.0.0-py   6% |#                              | Time: 0:00:00   2.94 MB/s\rscipy-1.0.0-py   6% |##                             | Time: 0:00:00   2.97 MB/s\rscipy-1.0.0-py   6% |##                             | Time: 0:00:00   2.98 MB/s\rscipy-1.0.0-py   6% |##                             | Time: 0:00:00   3.00 MB/s\rscipy-1.0.0-py   6% |##                             | Time: 0:00:00   3.01 MB/s\rscipy-1.0.0-py   6% |##                             | Time: 0:00:00   3.03 MB/s\rscipy-1.0.0-py   7% |##                             | Time: 0:00:00   3.04 MB/s\rscipy-1.0.0-py   7% |##                             | Time: 0:00:00   2.96 MB/s\rscipy-1.0.0-py   7% |##                             | Time: 0:00:00   3.01 MB/s\rscipy-1.0.0-py   7% |##                             | Time: 0:00:00   3.06 MB/s\rscipy-1.0.0-py   7% |##                             | Time: 0:00:00   3.06 MB/s\rscipy-1.0.0-py   7% |##                             | Time: 0:00:00   3.05 MB/s\rscipy-1.0.0-py   7% |##                             | Time: 0:00:00   3.06 MB/s\rscipy-1.0.0-py   7% |##                             | Time: 0:00:00   3.06 MB/s\rscipy-1.0.0-py   8% |##                             | Time: 0:00:00   3.05 MB/s\rscipy-1.0.0-py   8% |##                             | Time: 0:00:00   3.06 MB/s\rscipy-1.0.0-py   8% |##                             | Time: 0:00:00   3.06 MB/s\rscipy-1.0.0-py   8% |##                             | Time: 0:00:00   3.06 MB/s\rscipy-1.0.0-py   8% |##                             | Time: 0:00:00   3.06 MB/s\rscipy-1.0.0-py   8% |##                             | Time: 0:00:00   3.06 MB/s\rscipy-1.0.0-py   8% |##                             | Time: 0:00:00   3.07 MB/s\rscipy-1.0.0-py   8% |##                             | Time: 0:00:00   3.07 MB/s\rscipy-1.0.0-py   8% |##                             | Time: 0:00:00   3.07 MB/s\rscipy-1.0.0-py   9% |##                             | Time: 0:00:00   3.00 MB/s\rscipy-1.0.0-py   9% |##                             | Time: 0:00:00   3.04 MB/s\rscipy-1.0.0-py   9% |##                             | Time: 0:00:00   3.08 MB/s\rscipy-1.0.0-py   9% |##                             | Time: 0:00:00   3.06 MB/s\rscipy-1.0.0-py   9% |##                             | Time: 0:00:00   3.04 MB/s\rscipy-1.0.0-py   9% |###                            | Time: 0:00:00   3.03 MB/s\rscipy-1.0.0-py   9% |###                            | Time: 0:00:00   3.02 MB/s\rscipy-1.0.0-py   9% |###                            | Time: 0:00:00   3.01 MB/s\rscipy-1.0.0-py  10% |###                            | Time: 0:00:00   3.00 MB/s\rscipy-1.0.0-py  10% |###                            | Time: 0:00:00   2.93 MB/s\rscipy-1.0.0-py  10% |###                            | Time: 0:00:00   2.96 MB/s\rscipy-1.0.0-py  10% |###                            | Time: 0:00:00   2.96 MB/s\rscipy-1.0.0-py  10% |###                            | Time: 0:00:00   2.93 MB/s\rscipy-1.0.0-py  10% |###                            | Time: 0:00:00   2.91 MB/s\rscipy-1.0.0-py  10% |###                            | Time: 0:00:00   2.88 MB/s\rscipy-1.0.0-py  10% |###                            | Time: 0:00:00   2.87 MB/s\rscipy-1.0.0-py  11% |###                            | Time: 0:00:00   2.82 MB/s\rscipy-1.0.0-py  11% |###                            | Time: 0:00:00   2.81 MB/s\rscipy-1.0.0-py  11% |###                            | Time: 0:00:00   2.78 MB/s\rscipy-1.0.0-py  11% |###                            | Time: 0:00:00   2.75 MB/s\rscipy-1.0.0-py  11% |###                            | Time: 0:00:00   2.72 MB/s\rscipy-1.0.0-py  11% |###                            | Time: 0:00:00   2.69 MB/s\rscipy-1.0.0-py  11% |###                            | Time: 0:00:00   2.67 MB/s\rscipy-1.0.0-py  11% |###                            | Time: 0:00:00   2.66 MB/s\rscipy-1.0.0-py  11% |###                            | Time: 0:00:00   2.63 MB/s\rscipy-1.0.0-py  12% |###                            | Time: 0:00:00   2.59 MB/s\r'},
         ];
 
-        let logProcessor = new LogProcessor<string[]>(new TextLogElementFactory());
+        const elementFactory = new TextElementType();
+        let textElements: TextElement[];
         for (let message of messages) {
-            logProcessor.processMessage(message.stdout);
+            let updatedTextElements = parseTerminalOutput(message.stdout, elementFactory, textElements);
+            expect(updatedTextElements !== textElements).to.be.true;
+            textElements = updatedTextElements;
         }
 
-        // unpack elements
-        const elements = logProcessor.elements.map(e => e[0]);
+        const elements = unwrapTextElements(textElements);
 
-        console.log("===== message start =============");
-        console.log(messages.map(e => e.stdout).join(""));
-        console.log("===== message end =============");
-        console.log("elements = ", elements);
+        //console.log("elements = ", elements);
+        //console.log("===== message start =============");
+        //console.log(messages.map(e => e.stdout).join(""));
+        //console.log("===== message end =============");
 
         expect(elements).to.deep.equal([
                                            "numba-0.36.2-n 100% |###############################| Time: 0:00:01   1.62 MB/s",
