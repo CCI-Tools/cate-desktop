@@ -139,10 +139,12 @@ function validateNewCateDir(dispatch: Dispatch<any>, getState: () => State) {
     const newCateDir = getState().newCateDir && getState().newCateDir.trim();
     if (!newCateDir || newCateDir === "") {
         dispatch(setValidation(getState().screenId, "Cate directory must be given"));
-    } else {
+    } else if (ipcRenderer) {
         const listener = (event, validation: string | null) => dispatch(setValidation(getState().screenId, validation));
-        ipcRenderer && ipcRenderer.once("validateNewCateDir-response", listener);
-        ipcRenderer && ipcRenderer.send("validateNewCateDir", newCateDir);
+        ipcRenderer.once("validateNewCateDir-response", listener);
+        ipcRenderer.send("validateNewCateDir", newCateDir);
+    } else {
+        dispatch(setValidation(getState().screenId, null));
     }
 }
 
@@ -150,10 +152,12 @@ function validateOldCateDir(dispatch: Dispatch<any>, getState: () => State) {
     const oldCateDir = getState().oldCateDir && getState().oldCateDir.trim();
     if (!oldCateDir || oldCateDir === "") {
         dispatch(setValidation(getState().screenId, "Cate directory must be given"));
-    } else {
+    } else if (ipcRenderer) {
         const listener = (event, validation: string | null) => dispatch(setValidation(getState().screenId, validation));
-        ipcRenderer && ipcRenderer.once("validateOldCateDir-response", listener);
-        ipcRenderer && ipcRenderer.send("validateOldCateDir", oldCateDir);
+        ipcRenderer.once("validateOldCateDir-response", listener);
+        ipcRenderer.send("validateOldCateDir", oldCateDir);
+    } else {
+        dispatch(setValidation(getState().screenId, null));
     }
 }
 
@@ -161,10 +165,12 @@ function validateCondaDir(dispatch: Dispatch<any>, getState: () => State) {
     const condaDir = getState().condaDir && getState().condaDir.trim();
     if (!condaDir || condaDir === "") {
         dispatch(setValidation(getState().screenId, "Anaconda/Miniconda directory must be given"));
-    } else {
+    } else if (ipcRenderer) {
         const listener = (event, validation: string | null) => dispatch(setValidation(getState().screenId, validation));
-        ipcRenderer && ipcRenderer.once("validateCondaDir-response", listener);
-        ipcRenderer && ipcRenderer.send("validateCondaDir", condaDir);
+        ipcRenderer.once("validateCondaDir-response", listener);
+        ipcRenderer.send("validateCondaDir", condaDir);
+    } else {
+        dispatch(setValidation(getState().screenId, null));
     }
 }
 
