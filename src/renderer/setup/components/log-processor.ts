@@ -1,4 +1,3 @@
-
 export interface LogElementFactory<E> {
     createNewLineElement(): E;
 
@@ -30,8 +29,8 @@ export class LogProcessor<E> {
         if (this._elements.length === 0) {
             this._elements.push(this._elementFactory.createSpanElement());
         }
-        const messageLines = message.replace("\r", "").split('\n');
-        if (!LogProcessor.isEmptySplit(messageLines)) {
+        const messageLines = message.split('\n');
+        if (messageLines && messageLines.length !== 0) { // should always be true
             this.updateLastElement(messageLines[0]);
             for (let i = 1; i < messageLines.length; i++) {
                 this._elements.push(this._elementFactory.createNewLineElement());
@@ -42,20 +41,19 @@ export class LogProcessor<E> {
     }
 
     private updateLastElement(line: string) {
-        const lineParts = line.split('\b');
-        if (!LogProcessor.isEmptySplit(lineParts)) {
+        const lineParts = line.split('\r');
+        if (lineParts && lineParts.length !== 0) { // should always be true
             let lastElement = this._elements[this._elements.length - 1];
             let text = this._elementFactory.getSpanElementText(lastElement);
-            if (lineParts.length === 1) {
-                text += lineParts[0];
-            } else {
-                text = lineParts[lineParts.length - 1];
+            for (let linePart of lineParts) {
+                if (text.length > linePart.length) {
+                    text = linePart + text.substr(linePart.length);
+                } else {
+                    text = linePart;
+                }
             }
             this._elementFactory.setSpanElementText(lastElement, text);
         }
     }
 
-    private static isEmptySplit(parts) {
-        return parts.length === 0 || parts.length === 1 && parts[0] === "";
-    }
 }
