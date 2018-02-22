@@ -1,5 +1,7 @@
 import {expect} from 'chai';
 import 'chai-as-promised';
+import deepEqual = require("deep-equal");
+import {isDefined} from "./types";
 import {
     RequirementSet,
     Requirement,
@@ -7,8 +9,6 @@ import {
     RequirementContext,
     RequirementProgressHandler
 } from './requirement';
-import deepEqual = require("deep-equal");
-import {isDefined} from "../common/types";
 
 describe('RequirementSet', function () {
 

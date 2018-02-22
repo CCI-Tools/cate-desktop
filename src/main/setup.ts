@@ -13,7 +13,7 @@ import {
 } from "../common/setup";
 import {DownloadMiniconda, InstallCondaEnv, InstallMiniconda, InstallOrUpdateCate} from "./update-backend";
 import {isNumber} from "../common/types";
-import {RequirementSet} from "./requirement";
+import {RequirementSet} from "../common/requirement";
 
 
 export function doSetup(setupInfo: SetupInfo, callback: (cateDir: string | null) => void) {

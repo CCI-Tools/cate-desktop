@@ -1,8 +1,8 @@
 import * as React from "react";
-import {TextElement} from "./terminal-output";
+import {TextLine} from "../../../common/terminal-output";
 
 export interface ILogFieldProps {
-    textElements: TextElement[];
+    textElements: TextLine[];
 }
 
 export class LogField extends React.PureComponent<ILogFieldProps> {
@@ -21,20 +21,6 @@ export class LogField extends React.PureComponent<ILogFieldProps> {
     }
 
     render() {
-
-        // TODO (nf) avoid recreation of elements by using a state cache
-        const lines = [];
-        let i = 0;
-        for (let textElement of this.props.textElements) {
-            const text = textElement[0];
-            if (text === "\n") {
-                lines.push(<br key={i}/>);
-            } else {
-                lines.push(<span key={i}>{text}</span>);
-            }
-            i++;
-        }
-
-        return (<div style={LogField.STYLE}>{lines}</div>);
+        return (<div style={LogField.STYLE}>{this.props.textElements}</div>);
     }
 }

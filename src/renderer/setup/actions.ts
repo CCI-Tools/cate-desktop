@@ -3,9 +3,13 @@ import {Dispatch} from "react-redux";
 import {
     CateMode, SetupMode, CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, CATE_MODE_CONDA_DIR, SetupInfo,
 } from "../../common/setup";
-import {SCREEN_ID_CATE_INSTALL, SCREEN_ID_TASK_MONITOR, State} from "./state";
+import {
+    SCREEN_ID_CONFIG, SCREEN_ID_RUN, SETUP_STATUS_IN_PROGRESS, SETUP_STATUS_NOT_STARTED, SetupStatus,
+    State
+} from "./state";
 import * as path from "path";
 import * as assert from "../../common/assert";
+import {RequirementProgress} from "../../common/requirement";
 
 // Strange, we must use this, imports from "react-redux" produce TS syntax errors
 export interface DispatchProp {
@@ -16,7 +20,8 @@ export function moveForward() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
         dispatch({type: "MOVE_FORWARD"});
         validatePaths(dispatch, getState);
-        if (getState().screenId === SCREEN_ID_TASK_MONITOR) {
+        if (getState().screenId === SCREEN_ID_RUN) {
+            dispatch(setSetupStatus(SETUP_STATUS_IN_PROGRESS));
             dispatch(performSetupTasks());
         }
     };
@@ -94,8 +99,12 @@ export function browseCondaDir() {
     };
 }
 
-export function setProgress(progress: number) {
-    return {type: "SET_PROGRESS", payload: {progress}};
+export function setSetupStatus(setupStatus: SetupStatus) {
+    return {type: "SET_SETUP_STATUS", payload: {setupStatus}};
+}
+
+export function updateProgress(progress: RequirementProgress) {
+    return {type: "UPDATE_PROGRESS", payload: {progress}};
 }
 
 export function setValidation(screenId: string, validation: any) {
@@ -124,7 +133,7 @@ export function endSetup() {
 }
 
 function validatePaths(dispatch: Dispatch<any>, getState: () => State) {
-    if (getState().screenId === SCREEN_ID_CATE_INSTALL) {
+    if (getState().screenId === SCREEN_ID_CONFIG) {
         if (getState().cateMode === CATE_MODE_NEW_CATE_DIR) {
             validateNewCateDir(dispatch, getState);
         } else if (getState().cateMode === CATE_MODE_OLD_CATE_DIR) {

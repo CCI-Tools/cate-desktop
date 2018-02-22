@@ -8,7 +8,7 @@ import {
     Requirement,
     RequirementContext,
     RequirementProgressHandler, RequirementState
-} from './requirement';
+} from '../common/requirement';
 import {isNumber} from "../common/types";
 
 

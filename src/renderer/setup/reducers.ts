@@ -4,7 +4,11 @@ import {
     SETUP_REASON_UPDATE_CATE,
     SetupReason
 } from "../../common/setup";
-import {SCREEN_ID_CATE_INSTALL, SCREEN_ID_END, SCREEN_ID_START, SCREEN_ID_TASK_MONITOR, State} from "./state";
+import {
+    SCREEN_ID_CONFIG, SCREEN_ID_DONE, SCREEN_ID_START, SCREEN_ID_RUN, SETUP_STATUS_NOT_STARTED,
+    State, SETUP_STATUS_SUCCEEDED, SETUP_STATUS_CANCELLED, SETUP_STATUS_FAILED
+} from "./state";
+import {parseTerminalOutput, TEXT_LINE_TYPE, TextLineType} from "../../common/terminal-output";
 
 const initialState: State = {
     setupInfo: {
@@ -22,7 +26,9 @@ const initialState: State = {
     newCateDir: "",
     oldCateDir: "",
     progress: null,
+    messageLog: [],
     validations: {},
+    setupStatus: SETUP_STATUS_NOT_STARTED,
     autoUpdateCate: true,
 };
 
@@ -49,31 +55,37 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
                 case SCREEN_ID_START:
                     switch (state.setupMode) {
                         case SETUP_MODE_AUTO:
-                            return {...state, screenId: SCREEN_ID_TASK_MONITOR};
+                            if (state.setupStatus === SETUP_STATUS_NOT_STARTED) {
+                                return {...state, screenId: SCREEN_ID_RUN};
+                            }
+                            break;
                         case SETUP_MODE_USER:
-                            return {...state, screenId: SCREEN_ID_CATE_INSTALL};
+                            return {...state, screenId: SCREEN_ID_CONFIG};
                     }
                     break;
-                case SCREEN_ID_CATE_INSTALL:
-                    return {...state, screenId: SCREEN_ID_TASK_MONITOR};
-                case SCREEN_ID_TASK_MONITOR:
-                    return {...state, screenId: SCREEN_ID_END};
+                case SCREEN_ID_CONFIG:
+                    if (state.setupStatus === SETUP_STATUS_NOT_STARTED) {
+                        return {...state, screenId: SCREEN_ID_RUN};
+                    }
+                    break;
+                case SCREEN_ID_RUN:
+                    if (state.setupStatus === SETUP_STATUS_SUCCEEDED
+                        || state.setupStatus === SETUP_STATUS_FAILED
+                        || state.setupStatus === SETUP_STATUS_CANCELLED ) {
+                        return {...state, screenId: SCREEN_ID_DONE};
+                    }
+                    break;
             }
             break;
         case "MOVE_BACK":
             switch (state.screenId) {
-                case SCREEN_ID_CATE_INSTALL:
+                case SCREEN_ID_CONFIG:
                     return {...state, screenId: SCREEN_ID_START};
-                case SCREEN_ID_TASK_MONITOR:
-                    switch (state.setupMode) {
-                        case SETUP_MODE_AUTO:
-                            return {...state, screenId: SCREEN_ID_START};
-                        case SETUP_MODE_USER:
-                            return {...state, screenId: SCREEN_ID_CATE_INSTALL};
-                    }
+                case SCREEN_ID_RUN:
+                    // We cannot leave SCREEN_ID_RUN
                     break;
-                case SCREEN_ID_END:
-                    return {...state, screenId: SCREEN_ID_TASK_MONITOR};
+                case SCREEN_ID_DONE:
+                    return {...state, screenId: SCREEN_ID_RUN};
             }
             break;
         case "SET_SETUP_MODE":
@@ -86,13 +98,23 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
             return {...state, oldCateDir: action.payload.oldCateDir};
         case "SET_CONDA_DIR":
             return {...state, condaDir: action.payload.condaDir};
-        case "SET_PROGRESS":
-            return {...state, progress: action.payload.progress};
         case "SET_VALIDATION":
             return {
                 ...state,
                 validations: {...state.validations, [action.payload.screenId]: action.payload.validation}
             };
+        case "SET_SETUP_STATUS":
+            return {...state, setupStatus: action.payload.setupStatus};
+        case "UPDATE_PROGRESS":
+            let progress = action.payload.progress;
+            let messageLog = state.messageLog;
+            if (progress.stdout) {
+                messageLog = parseTerminalOutput(progress.stdout, TEXT_LINE_TYPE, messageLog);
+            }
+            if (progress.stderr) {
+                messageLog = parseTerminalOutput(progress.stderr, TEXT_LINE_TYPE, messageLog);
+            }
+            return {...state, progress: {...state.progress, ...progress}, messageLog};
         case "SET_AUTO_UPDATE_CATE":
             return {...state, autoUpdateCate: action.payload.autoUpdateCate};
     }

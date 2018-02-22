@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect} from "react-redux";
 import {Button, Intent} from "@blueprintjs/core";
 import {
-SCREEN_ID_CATE_INSTALL, SCREEN_ID_END, SCREEN_ID_START, SCREEN_ID_TASK_MONITOR, ScreenId,
+SCREEN_ID_CONFIG, SCREEN_ID_DONE, SCREEN_ID_START, SCREEN_ID_RUN, ScreenId,
 State
 } from "../state";
 import * as actions from "../actions";
@@ -10,11 +10,12 @@ import {StartScreen} from "./StartScreen";
 import {CateInstallScreen} from "./CateInstallScreen";
 import {TaskMonitorScreen} from "./TaskMonitorScreen";
 import {EndScreen} from "./EndScreen";
+import {RequirementProgress} from "../../../common/requirement";
 
 
 interface ISetupContainerProps {
     screenId: ScreenId;
-    progress: number | null;
+    progress: RequirementProgress;
     validations: { [screenId: string]: any };
 }
 
@@ -38,15 +39,15 @@ const SCREENS: Screens = {
         title: "Cate Desktop Setup",
         panel: <StartScreen/>,
     },
-    [SCREEN_ID_CATE_INSTALL]: {
+    [SCREEN_ID_CONFIG]: {
         title: "Install or Update Cate Python Package",
         panel: <CateInstallScreen/>,
     },
-    [SCREEN_ID_TASK_MONITOR]: {
+    [SCREEN_ID_RUN]: {
         title: "Run Setup Tasks",
         panel: <TaskMonitorScreen/>,
     },
-    [SCREEN_ID_END]: {
+    [SCREEN_ID_DONE]: {
         title: "Setup Successful",
         panel: <EndScreen/>,
     },
@@ -105,7 +106,7 @@ class _SetupContainer extends React.PureComponent<ISetupContainerProps & actions
                                  onClick={() => this.props.dispatch(actions.moveBack())}/>;
         }
 
-        if (this.props.screenId === SCREEN_ID_END) {
+        if (this.props.screenId === SCREEN_ID_DONE) {
             endButton = <Button style={{marginRight: 24 }}
                                 text="Done"
                                 disabled={!canMoveForward}
