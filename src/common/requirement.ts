@@ -1,6 +1,7 @@
-export interface RequirementProgress {
+import {FileExecOutput} from "../main/fileutil";
+
+export interface RequirementProgress extends FileExecOutput {
     name?: string;
-    message?: string;
     worked?: number;
     totalWork?: number;
     done?: boolean;

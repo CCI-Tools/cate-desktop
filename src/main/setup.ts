@@ -13,7 +13,7 @@ import {
 } from "../common/setup";
 import {DownloadMiniconda, InstallCondaEnv, InstallMiniconda, InstallOrUpdateCate} from "./update-backend";
 import {isNumber} from "../common/types";
-import {RequirementSet} from "../common/requirement";
+import {RequirementError, RequirementProgress, RequirementSet} from "../common/requirement";
 
 
 export function doSetup(setupInfo: SetupInfo, callback: (cateDir: string | null) => void) {
@@ -215,13 +215,13 @@ export function performSetupTasks(event, setupInfo: SetupInfo, setupOptions: Set
     }
 
     const requirementSet = new RequirementSet(requirements);
-    requirementSet.fulfillRequirement(requirements[requirements.length - 1].id, progress => {
+    requirementSet.fulfillRequirement(requirements[requirements.length - 1].id, (progress: RequirementProgress) => {
         console.log(progress);
         event.sender.send(channel, 0, null, progress);
     }).then(() => {
         event.sender.send(channel, 0);
         console.log('Cate Desktop has been successfully set up.')
-    }).catch(error => {
+    }).catch((error: RequirementError) => {
         event.sender.send(channel, -1, error);
         console.error('Failed to perform setup due to the following error:');
         console.error(error);

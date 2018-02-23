@@ -1,8 +1,8 @@
 import {SetupInfo, SetupOptions} from "../../common/setup";
 import {RequirementProgress} from "../../common/requirement";
 
-//export const SETUP_TEST_MODE = true;
-export const SETUP_TEST_MODE = false;
+export const SETUP_TEST_MODE = true;
+//export const SETUP_TEST_MODE = false;
 
 export const SCREEN_ID_START = "START";
 export const SCREEN_ID_DONE = "DONE";

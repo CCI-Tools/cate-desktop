@@ -9,6 +9,7 @@ import {
     State, SETUP_STATUS_SUCCEEDED, SETUP_STATUS_CANCELLED, SETUP_STATUS_FAILED, SETUP_STATUS_IN_PROGRESS
 } from "./state";
 import {parseTerminalOutput, TEXT_LINE_TYPE, TextLineType} from "../../common/terminal-output";
+import {updateConditionally2} from "../../common/objutil";
 
 const initialState: State = {
     setupInfo: {
@@ -107,7 +108,7 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
             return {...state, setupStatus: action.payload.setupStatus};
         case "TOGGLE_LOG_OPEN":
             return {...state, isLogOpen: !state.isLogOpen};
-        case "PROGRESS": {
+        case "UPDATE_PROGRESS": {
             let progressDelta = action.payload.progress;
             let logLines = state.logLines;
             if (progressDelta.stdout) {
@@ -117,19 +118,8 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
                 logLines = parseTerminalOutput(progressDelta.stderr, TEXT_LINE_TYPE, logLines);
             }
             const setupStatus = SETUP_STATUS_IN_PROGRESS;
-            const progress = {...state.progress, ...progressDelta};
+            const progress = updateConditionally2(state.progress, progressDelta);
             return {...state, setupStatus, progress, logLines};
-        }
-        case "FAIL": {
-            const setupStatus = SETUP_STATUS_FAILED;
-            const error = action.payload.error;
-            return {...state, setupStatus, error};
-        }
-        case "CANCEL": {
-            return {...state, setupStatus: SETUP_STATUS_CANCELLED};
-        }
-        case "DONE": {
-            return {...state, setupStatus: SETUP_STATUS_SUCCEEDED};
         }
         case "SET_AUTO_UPDATE_CATE":
             return {...state, autoUpdateCate: action.payload.autoUpdateCate};

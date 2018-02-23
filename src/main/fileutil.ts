@@ -3,7 +3,11 @@ import * as https from 'https';
 import * as fs from 'fs';
 import * as child_process from "child_process";
 
-export type FileExecOutput = { stdout: string, stderr: string };
+export interface FileExecOutput {
+    message?: string;
+    stdout?: string;
+    stderr?: string;
+}
 
 /**
  * Execute a file.
@@ -14,10 +18,10 @@ export type FileExecOutput = { stdout: string, stderr: string };
  * @returns {Promise<number | FileExecOutput>}
  */
 export function execFile(file: string, args: string[], onProgress?: (progress: any) => any): Promise<number | FileExecOutput> {
-    console.log('execFile:', file, args);
+    const message = `running ${file} ` + args.map(a => a.indexOf(' ') >= 0 ? `"${a}"` : a).join(' ');
     if (onProgress) {
         return new Promise<number>((resolve: (code: number) => any, reject: (error: Error) => any) => {
-            onProgress({message: `running ${file} ` + args.map(a => a.indexOf(' ') >= 0 ? `"${a}"` : a).join(' ')});
+            onProgress({message});
             const child = child_process.spawn(file, args);
             child.stdout.on('data', (data) => {
                 onProgress({stdout: data.toString()});
@@ -36,11 +40,9 @@ export function execFile(file: string, args: string[], onProgress?: (progress: a
         return new Promise<FileExecOutput>((resolve: (output: FileExecOutput) => any, reject: (error: Error) => any) => {
             child_process.execFile(file, args, (error, stdout, stderr) => {
                 if (error) {
-                    console.log('execFile: reject: error = ', error);
                     reject(error);
                 } else {
-                    console.log('execFile: resolve: output = ', {stdout, stderr});
-                    resolve({stdout, stderr});
+                    resolve({message, stdout, stderr});
                 }
             });
         });
