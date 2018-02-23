@@ -216,14 +216,13 @@ export function performSetupTasks(event, setupInfo: SetupInfo, setupOptions: Set
 
     const requirementSet = new RequirementSet(requirements);
     requirementSet.fulfillRequirement(requirements[requirements.length - 1].id, progress => {
-        const isDone = isNumber(progress.worked) && progress.worked >= progress.totalWork;
-        event.sender.send(channel, {progress, isDone});
         console.log(progress);
+        event.sender.send(channel, 0, null, progress);
     }).then(() => {
-        event.sender.send(channel, null);
+        event.sender.send(channel, 0);
         console.log('Cate Desktop has been successfully set up.')
     }).catch(error => {
-        event.sender.send(channel, {error});
+        event.sender.send(channel, -1, error);
         console.error('Failed to perform setup due to the following error:');
         console.error(error);
     });

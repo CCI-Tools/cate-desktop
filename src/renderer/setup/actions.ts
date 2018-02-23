@@ -4,7 +4,8 @@ import {
     CateMode, SetupMode, CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, CATE_MODE_CONDA_DIR, SetupInfo,
 } from "../../common/setup";
 import {
-    SCREEN_ID_CONFIG, SCREEN_ID_RUN, SETUP_STATUS_IN_PROGRESS, SETUP_STATUS_NOT_STARTED, SETUP_TEST_MODE, SetupStatus,
+    SCREEN_ID_CONFIG, SCREEN_ID_RUN, SETUP_STATUS_FAILED, SETUP_STATUS_IN_PROGRESS, SETUP_STATUS_NOT_STARTED,
+    SETUP_TEST_MODE, SetupStatus,
     State
 } from "./state";
 import * as path from "path";
@@ -187,8 +188,17 @@ function validateCondaDir(dispatch: Dispatch<any>, getState: () => State) {
 
 export function performSetupTasks() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
-        //const listener = (event, progress: any) => dispatch({type: "SET_TASK_PROGRESS", payload: {progress}});
-        //ipcRenderer && ipcRenderer.on("performSetupTasks-response", listener);
+        const listener = (event, errorCode: number, error?: any, progress?: any) => {
+            console.log("performSetupTasks-response: ", errorCode, error, progress);
+            if (errorCode !== 0) {
+                dispatch({type: "FAIL", payload: {errorCode, error}});
+            } else if (progress) {
+                dispatch({type: "PROGRESS", payload: {progress}});
+            } else {
+                dispatch({type: "DONE"});
+            }
+        };
+        ipcRenderer && ipcRenderer.on("performSetupTasks-response", listener);
         ipcRenderer && ipcRenderer.send("performSetupTasks", getState().setupInfo, getState());
     }
 }
