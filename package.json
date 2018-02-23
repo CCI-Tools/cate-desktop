@@ -53,6 +53,7 @@
     "@types/openlayers": "^3.20.6",
     "@types/proj4": "^2.3.4",
     "@types/react": "^16.0.28",
+    "@types/react-color": "^2.13.4",
     "@types/react-dom": "^16.0.3",
     "@types/react-redux": "^5.0.14",
     "@types/react-test-renderer": "^16.0.0",

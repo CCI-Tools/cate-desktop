@@ -1,28 +1,29 @@
 import * as React from 'react';
 import {connect, DispatchProp} from 'react-redux';
+import {SketchPicker} from 'react-color';
 import {
     State, LayerState, ColorMapCategoryState, ImageLayerState,
     VariableImageLayerState, VariableState, ResourceState, ColorMapState, ResourceVectorLayerState, VectorLayerState
-} from "../state";
+} from '../state';
 import {
     AnchorButton, Slider, Popover, Position, PopoverInteractionKind, Switch,
-    RangeSlider, NumberRange, Tooltip, Radio, RadioGroup
-} from "@blueprintjs/core";
-import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
-import {NumericRangeField} from "../components/field/NumericRangeField";
-import LayerSourcesDialog from "./LayerSourcesDialog";
-import {getLayerDisplayName, getLayerTypeIconName, SELECTED_VARIABLE_LAYER_ID} from "../state-util";
-import {FieldValue} from "../components/field/Field";
-import {ScrollablePanelContent} from "../components/ScrollableContent";
-import {ViewState} from "../components/ViewState";
-import {NO_LAYERS_NO_VIEW, NO_LAYERS_EMPTY_VIEW, NO_LAYER_SELECTED, NO_LAYER_PROPERTIES} from "../messages";
-import * as Cesium from "cesium";
-import {TextField} from "../components/field/TextField";
-import {NumericField} from "../components/field/NumericField";
-import {SimpleStyle} from "../../common/geojson-simple-style";
+    RangeSlider, NumberRange, Tooltip, Radio, RadioGroup, Intent, Button
+} from '@blueprintjs/core';
+import {ListBox, ListBoxSelectionMode} from '../components/ListBox';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import {ContentWithDetailsPanel} from '../components/ContentWithDetailsPanel';
+import {NumericRangeField} from '../components/field/NumericRangeField';
+import LayerSourcesDialog from './LayerSourcesDialog';
+import {getLayerDisplayName, getLayerTypeIconName, SELECTED_VARIABLE_LAYER_ID} from '../state-util';
+import {FieldValue} from '../components/field/Field';
+import {ScrollablePanelContent} from '../components/ScrollableContent';
+import {ViewState} from '../components/ViewState';
+import {NO_LAYERS_NO_VIEW, NO_LAYERS_EMPTY_VIEW, NO_LAYER_SELECTED, NO_LAYER_PROPERTIES} from '../messages';
+import * as Cesium from 'cesium';
+import {TextField} from '../components/field/TextField';
+import {NumericField} from '../components/field/NumericField';
+import {SimpleStyle} from '../../common/geojson-simple-style';
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -54,7 +55,7 @@ interface ILayersPanelProps {
     selectedVectorLayer: VectorLayerState | null;
     selectedResourceVectorLayer: ResourceVectorLayerState | null;
     selectedEntity: Cesium.Entity | null;
-    vectorStyleMode: "entity" | "layer";
+    vectorStyleMode: 'entity' | 'layer';
     showLayerDetails: boolean;
     colorMapCategories: Array<ColorMapCategoryState>;
     selectedColorMap: ColorMapState | null;
@@ -95,6 +96,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
 class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State>, null> {
 
     static readonly SLIDER_DIV_STYLE_05 = {width: '100%', paddingLeft: '0.5em', paddingRight: '0.5em'};
+    static readonly SLIDER_DIV_STYLE_10 = {width: '100%', paddingLeft: '1em', paddingRight: '1em'};
     static readonly SLIDER_DIV_STYLE_15 = {width: '100%', paddingLeft: '1.5em', paddingRight: '1.5em'};
 
     constructor(props: ILayersPanelProps & DispatchProp<State>) {
@@ -203,13 +205,13 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             return;
         }
         this.props.dispatch(actions.getWorkspaceVariableStatistics(resource.name, variable.name, imageLayer.varIndex,
-                                                                   (statistics) => {
-                                                                       return actions.updateLayer(this.props.activeView.id, imageLayer, {
-                                                                           displayMin: statistics.min,
-                                                                           displayMax: statistics.max,
-                                                                           statistics
-                                                                       });
-                                                                   }
+            (statistics) => {
+                return actions.updateLayer(this.props.activeView.id, imageLayer, {
+                    displayMin: statistics.min,
+                    displayMax: statistics.max,
+                    statistics
+                });
+            }
         ));
     }
 
@@ -251,14 +253,14 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     }
 
     private handleChangedVectorStyle(style: SimpleStyle) {
-        if (this.props.vectorStyleMode === "layer") {
+        if (this.props.vectorStyleMode === 'layer') {
             this.props.dispatch(actions.updateLayerStyle(this.props.activeView.id,
-                                                         this.props.selectedVectorLayer.id,
-                                                         style));
+                this.props.selectedVectorLayer.id,
+                style));
         } else {
             this.props.dispatch(actions.updateEntityStyle(this.props.activeView,
-                                                          this.props.selectedEntity,
-                                                          style));
+                this.props.selectedEntity,
+                style));
         }
     }
 
@@ -280,8 +282,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                            this.handleChangedLayerVisibility(layer, event.target.checked)
                        }}
                 />
-                <span style={{marginLeft: "0.5em"}} className={getLayerTypeIconName(layer)}/>
-                <span style={{marginLeft: "0.5em"}}>{getLayerDisplayName(layer)}</span>
+                <span style={{marginLeft: '0.5em'}} className={getLayerTypeIconName(layer)}/>
+                <span style={{marginLeft: '0.5em'}}>{getLayerDisplayName(layer)}</span>
             </div>
         );
     }
@@ -495,8 +497,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             if (max > 0) {
                 const value = layer.varIndex[i];
                 dimensionRows.push(
-                    <label key={dimension + "_index"} className="pt-label pt-inline">
-                        {"Index into " + dimension}
+                    <label key={dimension + '_index'} className="pt-label pt-inline">
+                        {'Index into ' + dimension}
                         <div style={LayersPanel.SLIDER_DIV_STYLE_05}>
                             <Slider min={0}
                                     max={max}
@@ -570,8 +572,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderColorBarButton(layer: VariableImageLayerState, disabled: boolean) {
         const selectedColorMapName = layer.colorMapName;
         const selectedColorMapImage = this.renderColorMapImage(this.props.selectedColorMap);
-        const buttonContent = (selectedColorMapImage || (selectedColorMapName || "Select Color Bar"));
-        return (<AnchorButton style={{width: "100%"}} disabled={disabled}>{buttonContent}</AnchorButton>);
+        const buttonContent = (selectedColorMapImage || (selectedColorMapName || 'Select Color Bar'));
+        return (<AnchorButton style={{width: '100%'}} disabled={disabled}>{buttonContent}</AnchorButton>);
     }
 
     private renderColorBarBox(layer: VariableImageLayerState) {
@@ -579,14 +581,14 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         for (let cat of this.props.colorMapCategories) {
             const colorMaps = cat.colorMaps;
             children.push(
-                <p key={cat.name + "_head"} style={{marginTop: 2, marginBottom: 2}}>
+                <p key={cat.name + '_head'} style={{marginTop: 2, marginBottom: 2}}>
                     <Tooltip content={cat.description}>
                         {cat.name}
                     </Tooltip>
                 </p>
             );
             children.push(
-                <ListBox key={cat.name + "_list"}
+                <ListBox key={cat.name + '_list'}
                          items={colorMaps}
                          getItemKey={(item: ColorMapState) => item.name}
                          renderItem={(item: ColorMapState) => this.renderColorMapImage(item)}
@@ -597,7 +599,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             );
         }
 
-        return <div style={{padding: 5, overflowY: "auto"}}>{children}</div>;
+        return <div style={{padding: 5, overflowY: 'auto'}}>{children}</div>;
     }
 
     //noinspection JSMethodCanBeStatic
@@ -607,7 +609,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                 <Tooltip content={colorMap.name}>
                     <img src={`data:image/png;base64,${colorMap.imageData}`}
                          alt={colorMap.name}
-                         style={{width: "100%", height: "1em"}}/>
+                         style={{width: '100%', height: '1em'}}/>
                 </Tooltip>
             );
         }
@@ -641,9 +643,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             vectorStyleMode = this.props.vectorStyleMode;
             disabled = false;
         } else if (selectedEntity) {
-            vectorStyleMode = "entity";
+            vectorStyleMode = 'entity';
         } else if (selectedVectorLayer) {
-            vectorStyleMode = "layer";
+            vectorStyleMode = 'layer';
         }
         return (
             <RadioGroup
@@ -665,11 +667,21 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
                 <span style={{flexBasis: '100px'}}>Fill colour</span>
                 <TextField value={this.props.vectorStyle.fill}
-                           style={{flex: 'auto', fontFamily: "courier", textAlign: 'right'}}
+                           style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
                            size={8}
                            uncontrolled={true}
                            onChange={this.handleChangedFillColor}
                 />
+                <Popover
+                    interactionKind={PopoverInteractionKind.CLICK}
+                    popoverClassName="pt-minimal"
+                    position={Position.LEFT_TOP}
+                >
+                    <Button intent={Intent.PRIMARY} style={{marginLeft: '1em'}}>
+                        Pick color
+                    </Button>
+                    <SketchPicker/>
+                </Popover>
             </label>
         );
     }
@@ -678,13 +690,15 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         return (
             <label className="pt-label pt-inline">
                 Fill opacity
-                <Slider min={0.0}
-                        max={1.0}
-                        stepSize={0.05}
-                        labelStepSize={0.25}
-                        value={this.props.vectorStyle.fillOpacity}
-                        onChange={this.handleChangedFillOpacity}
-                />
+                <div style={LayersPanel.SLIDER_DIV_STYLE_10}>
+                    <Slider min={0.0}
+                            max={1.0}
+                            stepSize={0.05}
+                            labelStepSize={0.25}
+                            value={this.props.vectorStyle.fillOpacity}
+                            onChange={this.handleChangedFillOpacity}
+                    />
+                </div>
             </label>
         );
     }
@@ -694,7 +708,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
                 <span style={{flexBasis: '100px'}}>Stroke width</span>
                 <NumericField value={this.props.vectorStyle.strokeWidth}
-                              style={{flex: 'auto', fontFamily: "courier"}}
+                              style={{flex: 'auto', fontFamily: 'courier'}}
                               size={8}
                               min={0}
                               uncontrolled={true}
@@ -709,7 +723,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
                 <span style={{flexBasis: '100px'}}>Stroke colour</span>
                 <TextField value={this.props.vectorStyle.stroke}
-                           style={{flex: 'auto', fontFamily: "courier", textAlign: 'right'}}
+                           style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
                            size={8}
                            uncontrolled={true}
                            onChange={this.handleChangedStrokeColor}
@@ -722,13 +736,15 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         return (
             <label className="pt-label pt-inline">
                 Stroke opacity
-                <Slider min={0.0}
-                        max={1.0}
-                        stepSize={0.05}
-                        labelStepSize={0.25}
-                        value={this.props.vectorStyle.strokeOpacity}
-                        onChange={this.handleChangedStrokeOpacity}
-                />
+                <div style={LayersPanel.SLIDER_DIV_STYLE_10}>
+                    <Slider min={0.0}
+                            max={1.0}
+                            stepSize={0.05}
+                            labelStepSize={0.25}
+                            value={this.props.vectorStyle.strokeOpacity}
+                            onChange={this.handleChangedStrokeOpacity}
+                    />
+                </div>
             </label>
         );
     }
@@ -738,7 +754,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
                 <span style={{flexBasis: '100px'}}>Marker colour</span>
                 <TextField value={this.props.vectorStyle.markerColor}
-                           style={{flex: 'auto', fontFamily: "courier", textAlign: 'right'}}
+                           style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
                            size={8}
                            uncontrolled={true}
                            onChange={this.handleChangedMarkerColor}
@@ -768,7 +784,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
                 <span style={{flexBasis: '100px'}}>Marker symbol</span>
                 <TextField value={this.props.vectorStyle.markerSymbol}
-                           style={{flex: 'auto', fontFamily: "courier", textAlign: 'right'}}
+                           style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
                            size={8}
                            uncontrolled={true}
                            onChange={this.handleChangedMarkerSymbol}
