@@ -9,14 +9,16 @@ import {
     CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, SETUP_MODE_AUTO, SETUP_MODE_USER, SETUP_REASON_INSTALL_CATE,
     SETUP_REASON_UPDATE_CATE,
     SetupInfo,
-    SetupOptions
+    SetupOptions, SetupResult
 } from "../common/setup";
 import {DownloadMiniconda, InstallCondaEnv, InstallMiniconda, InstallOrUpdateCate} from "./update-backend";
 import {isNumber} from "../common/types";
 import {RequirementError, RequirementProgress, RequirementSet} from "../common/requirement";
+import BrowserWindow = Electron.BrowserWindow;
+import {CATE_DESKTOP_PREFIX} from "./main";
 
 
-export function doSetup(setupInfo: SetupInfo, callback: (cateDir: string | null) => void) {
+export function doSetup(setupInfo: SetupInfo, callback: (result?: SetupResult) => void) {
     const dialogTitle = `Cate Desktop ${electron.app.getVersion()} Setup`;
 
     ifInternet().then(() => {
@@ -43,17 +45,9 @@ export function doSetup(setupInfo: SetupInfo, callback: (cateDir: string | null)
             setupWindow.webContents.send("setSetupInfo", setupInfo);
         });
         setupWindow.webContents.openDevTools();
-        setupWindow.on('close', () => {
-            callback(null);
-        });
-        electron.ipcMain.on("cancelSetup", () => {
-            setupWindow.hide();
-            callback(null);
-        });
-        electron.ipcMain.on("endSetup", (event, cateDir: string) => {
-            setupWindow.hide();
-            callback(cateDir);
-        });
+        setupWindow.on('close', () => callback());
+        electron.ipcMain.on("cancelSetup", cancelSetup(setupWindow, callback));
+        electron.ipcMain.on("endSetup", endSetup(setupWindow, callback));
         electron.ipcMain.on("browseNewCateDir", browseNewCateDir);
         electron.ipcMain.on("browseOldCateDir", browseOldCateDir);
         electron.ipcMain.on("browseCondaDir", browseCondaDir);
@@ -75,6 +69,39 @@ export function doSetup(setupInfo: SetupInfo, callback: (cateDir: string | null)
 
 function quitApp() {
     electron.app.quit();
+}
+
+function endSetup(setupWindow: BrowserWindow, callback: (setupResult: SetupResult | null) => void) {
+    return (event, setupResult: SetupResult) => {
+        endSetupImpl(setupWindow, callback, setupResult);
+    };
+}
+
+function endSetupImpl(setupWindow: BrowserWindow, callback: (setupResult: SetupResult | null) => void, setupResult: SetupResult | null) {
+    setupWindow.hide();
+    callback(setupResult);
+}
+
+function cancelSetup(setupWindow: BrowserWindow, callback: (setupResult: SetupResult | null) => void) {
+
+    return (event, inProgress: boolean) => {
+        if (inProgress) {
+            let title = "Cate Desktop Setup";
+            electron.dialog.showMessageBox(setupWindow, {
+                title,
+                detail: `${title} is currently in progress. If you cancel now, won't be able to use Cate.`,
+                message: `Really cancel ${title}?`,
+                type: "question",
+                buttons: ["Yes", "No"],
+            }, (response => {
+                if (response === 0) {
+                    endSetupImpl(setupWindow, callback, null);
+                }
+            }));
+        } else {
+            endSetupImpl(setupWindow, callback, null);
+        }
+    };
 }
 
 function browseNewCateDir(event, newCateDir: string) {
@@ -180,9 +207,7 @@ function validateExecutables(event, channel: string, dirPath: string, executable
 }
 
 export function performSetupTasks(event, setupInfo: SetupInfo, setupOptions: SetupOptions) {
-    //const minicondaInstallDir = path.join(os.homedir(), 'cate-test-1');
     const channel = "performSetupTasks-response";
-
 
     const {newCateVersion} = setupInfo;
     const {newCateDir, oldCateDir, condaDir} = setupOptions;
@@ -219,14 +244,10 @@ export function performSetupTasks(event, setupInfo: SetupInfo, setupOptions: Set
         console.log(progress);
         event.sender.send(channel, 0, null, progress);
     }).then(() => {
+        console.log(CATE_DESKTOP_PREFIX, 'Setup successful')
         event.sender.send(channel, 0);
-        console.log('Cate Desktop has been successfully set up.')
     }).catch((error: RequirementError) => {
-        event.sender.send(channel, -1, error);
-        console.error('Failed to perform setup due to the following error:');
-        console.error(error);
+        console.error(CATE_DESKTOP_PREFIX, 'Setup failed:', error);
+        event.sender.send(channel, -1, error.reason);
     });
 }
-
-
-

@@ -29,3 +29,8 @@ export interface SetupOptions {
     condaDir?: string;
     autoUpdateCate: boolean
 }
+
+export interface SetupResult {
+    cateDir: string;
+    cateVersion: string;
+}

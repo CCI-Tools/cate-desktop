@@ -5,7 +5,7 @@ import {CATE_MODE_NEW_CATE_DIR, SETUP_MODE_AUTO, SETUP_MODE_USER,} from "../../c
 import * as actions from './actions';
 import {stateReducer} from './reducers';
 import {
-    SCREEN_ID_CONFIG, SCREEN_ID_DONE, SCREEN_ID_START, SCREEN_ID_RUN, State, SETUP_STATUS_SUCCEEDED,
+    SCREEN_ID_CONFIG, SCREEN_ID_END, SCREEN_ID_START, SCREEN_ID_RUN, State, SETUP_STATUS_SUCCEEDED,
     SETUP_STATUS_IN_PROGRESS, SETUP_STATUS_NOT_STARTED
 } from "./state";
 
@@ -37,7 +37,7 @@ describe('Setup/actions', () => {
             expect(getState().screenId).to.equal(SCREEN_ID_RUN);
             dispatch(actions.setSetupStatus(SETUP_STATUS_SUCCEEDED));
             dispatch(actions.moveForward());
-            expect(getState().screenId).to.equal(SCREEN_ID_DONE);
+            expect(getState().screenId).to.equal(SCREEN_ID_END);
             dispatch(actions.moveBack());
             expect(getState().screenId).to.equal(SCREEN_ID_RUN);
             dispatch(actions.moveBack());
@@ -57,7 +57,7 @@ describe('Setup/actions', () => {
             expect(getState().setupStatus).to.equal(SETUP_STATUS_IN_PROGRESS);
             dispatch(actions.setSetupStatus(SETUP_STATUS_SUCCEEDED));
             dispatch(actions.moveForward());
-            expect(getState().screenId).to.equal(SCREEN_ID_DONE);
+            expect(getState().screenId).to.equal(SCREEN_ID_END);
             dispatch(actions.moveBack());
             expect(getState().screenId).to.equal(SCREEN_ID_RUN);
             dispatch(actions.moveBack());

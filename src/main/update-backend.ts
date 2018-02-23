@@ -56,8 +56,10 @@ export class DownloadMiniconda extends Requirement {
     fulfill(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<any> {
         const targetFile = this.getMinicondaInstallerExecutable();
         let progressHandler = (bytesReceived: number, bytesTotal: number) => {
-            const percent = Math.round(100 * bytesReceived / bytesTotal);
-            onProgress({message: `Downloading ${targetFile}: ${bytesReceived} of ${bytesTotal} bytes received, ${percent}%`});
+            const subWorked = bytesReceived / bytesTotal;
+            const percent = Math.round(100 * subWorked);
+            const message = `Downloading ${targetFile}: ${bytesReceived} of ${bytesTotal} bytes received, ${percent}%`;
+            onProgress({message, subWorked});
         };
         return downloadFile(this.getMinicondaInstallerUrl(), targetFile, progressHandler);
     }

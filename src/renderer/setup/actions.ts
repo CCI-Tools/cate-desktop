@@ -5,12 +5,13 @@ import {
 } from "../../common/setup";
 import {
     SCREEN_ID_CONFIG, SCREEN_ID_RUN, SETUP_STATUS_FAILED, SETUP_STATUS_IN_PROGRESS, SETUP_STATUS_NOT_STARTED,
+    SETUP_STATUS_SUCCEEDED,
     SETUP_TEST_MODE, SetupStatus,
     State
 } from "./state";
 import * as path from "path";
 import * as assert from "../../common/assert";
-import {RequirementProgress} from "../../common/requirement";
+import {RequirementError, RequirementProgress} from "../../common/requirement";
 
 // Strange, we must use this, imports from "react-redux" produce TS syntax errors
 export interface DispatchProp {
@@ -115,8 +116,9 @@ export function setValidation(screenId: string, validation: any) {
 }
 
 export function cancelSetup() {
-    return () => {
-        ipcRenderer && ipcRenderer.send("cancelSetup");
+    return (dispatch: Dispatch<any>, getState: () => State) => {
+        const inProgress = getState().setupStatus === SETUP_STATUS_IN_PROGRESS;
+        ipcRenderer && ipcRenderer.send("cancelSetup", inProgress);
     };
 }
 
@@ -124,14 +126,17 @@ export function endSetup() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
         const state = getState();
         let cateDir;
+        let cateVersion = state.setupInfo.newCateVersion;
         if (state.cateMode === CATE_MODE_NEW_CATE_DIR) {
             cateDir = state.newCateDir;
         } else if (state.cateMode === CATE_MODE_OLD_CATE_DIR) {
             cateDir = state.oldCateDir;
         } else if (state.cateMode === CATE_MODE_CONDA_DIR) {
             cateDir = path.join(state.condaDir, "envs", "cate-env");
+        } else {
+            assert.ok(false, "illegal state.cateMode = " + state.cateMode);
         }
-        ipcRenderer && ipcRenderer.send("endSetup", cateDir);
+        ipcRenderer && ipcRenderer.send("endSetup", {cateDir, cateVersion});
     };
 }
 
@@ -188,14 +193,15 @@ function validateCondaDir(dispatch: Dispatch<any>, getState: () => State) {
 
 export function performSetupTasks() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
-        const listener = (event, errorCode: number, error?: any, progress?: any) => {
+        const listener = (event, errorCode: number, error?: RequirementError, progress?: RequirementProgress) => {
             console.log("performSetupTasks-response: ", errorCode, error, progress);
             if (errorCode !== 0) {
+                dispatch(setSetupStatus(SETUP_STATUS_FAILED, ));
                 dispatch({type: "FAIL", payload: {errorCode, error}});
             } else if (progress) {
-                dispatch({type: "PROGRESS", payload: {progress}});
+                dispatch(updateProgress(progress));
             } else {
-                dispatch({type: "DONE"});
+                dispatch(setSetupStatus(SETUP_STATUS_SUCCEEDED));
             }
         };
         ipcRenderer && ipcRenderer.on("performSetupTasks-response", listener);

@@ -1,15 +1,16 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {Button, Collapse, ProgressBar} from "@blueprintjs/core";
+import {Button, Collapse, Intent, ProgressBar} from "@blueprintjs/core";
 import {
-    SETUP_STATUS_CANCELLED, SETUP_STATUS_FAILED, SETUP_STATUS_SUCCEEDED, SETUP_TEST_MODE, SetupStatus,
+    SETUP_STATUS_CANCELLED, SETUP_STATUS_FAILED, SETUP_STATUS_IN_PROGRESS, SETUP_STATUS_SUCCEEDED, SETUP_TEST_MODE,
+    SetupStatus,
     State
 } from "../state";
 import * as actions from "../actions";
 import {RequirementProgress} from "../../../common/requirement";
 import {LogField} from "../components/LogField";
 import {SetupScreen} from "../components/SetupScreen";
-import {isDefined} from "../../../common/types";
+import {isDefined, isNumber} from "../../../common/types";
 
 interface IRunScreenProps {
     setupStatus: SetupStatus;
@@ -44,85 +45,111 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
 
     render() {
 
-        const progress = this.props.progress;
-
-        let statusMessage;
-        let progressBar;
-        let logPanel;
-        if (!progress) {
-            statusMessage = "Waiting for background tasks to be started...";
-            progressBar = <ProgressBar/>;
-        } else {
-            if (progress.worked < progress.totalWork) {
-                let name = progress.name;
-                let message = progress.message;
-                if (name || message) {
-                    if (name && message) {
-                        statusMessage = `${name}: ${message}`;
-                    } else if (name) {
-                        statusMessage = name;
-                    } else if (message) {
-                        statusMessage = message;
-                    } else {
-                        statusMessage = "Running setup tasks. This may take several minutes.";
-                    }
-                }
-                const ratio = progress.worked / progress.totalWork;
-                progressBar = <ProgressBar value={ratio}/>;
-            } else {
-                statusMessage = "All tasks completed.";
-            }
-
-            let messageField;
-            if (!this.props.isLogOpen) {
-                let name = progress.name;
-                let message = progress.message;
-                if (name || message) {
-                    messageField = (
-                        <div>
-                            <h5>{name}</h5>
-                            <span>{message}</span>
-                        </div>
-                    );
-                }
-            }
-
-            logPanel = (
-                <React.Fragment>
-                    <Button style={{marginTop: 4, marginBottom: 2}}
-                            className="pt-small"
-                            onClick={() => this.props.dispatch(actions.toggleLogOpen())}
-                            iconName={this.props.isLogOpen ? "caret-up" : "caret-down"}
-                            text={this.props.isLogOpen ? "Hide Log" : "Show Log"}/>
-                    <Collapse isOpen={this.props.isLogOpen}>
-                        <LogField lines={this.props.logLines}/>
-                    </Collapse>
-                </React.Fragment>
-            );
-        }
-
-        const messagePanel = <div style={{marginBottom: 4}}>{statusMessage}</div>;
-
         const panel = (
             <div>
-                {messagePanel}
-                {progressBar}
-                {logPanel}
+                {this.renderStatusMessage()}
+                {this.renderProgressBar()}
+                {this.renderMessageLog()}
             </div>
         );
 
-        const isDone = this.props.setupStatus === SETUP_STATUS_SUCCEEDED
-                       || this.props.setupStatus === SETUP_STATUS_FAILED
-                       || this.props.setupStatus === SETUP_STATUS_CANCELLED;
+        return (
+            <SetupScreen title="Run Setup Tasks"
+                         panel={panel}
+                         backButtonDisabled={true}
+                         nextButtonDisabled={!(this.props.setupStatus === SETUP_STATUS_SUCCEEDED)}
+                         onNextButtonClick={() => this.props.dispatch(actions.moveForward())}
+                         onCancelClick={() => this.props.dispatch(actions.cancelSetup())}
+            />
+        );
+    }
 
-        return <SetupScreen
-            title="Run Setup Tasks"
-            panel={panel}
-            backButtonDisabled={true}
-            nextButtonDisabled={!isDone}
-            onNextButtonClick={() => this.props.dispatch(actions.moveForward())}
-            onCancelClick={() => this.props.dispatch(actions.cancelSetup())}
-        />;
+    private renderStatusMessage() {
+        const progress = this.props.progress;
+        const setupStatus = this.props.setupStatus;
+        let statusMessage;
+        if (progress) {
+            let name = progress.name;
+            let message = progress.message;
+            if (name && message) {
+                statusMessage = `${name}: ${message}`;
+            } else if (name) {
+                statusMessage = name;
+            } else if (message) {
+                statusMessage = message;
+            }
+        }
+        let statusIntent;
+        switch (setupStatus) {
+            case SETUP_STATUS_IN_PROGRESS: {
+                statusMessage = statusMessage || "Executing background tasks...";
+                break;
+            }
+            case SETUP_STATUS_SUCCEEDED: {
+                statusMessage = "All tasks successfully completed.";
+                statusIntent = Intent.PRIMARY;
+                break;
+            }
+            case SETUP_STATUS_FAILED: {
+                statusMessage = statusMessage || "Setup failed.";
+                statusIntent = Intent.DANGER;
+                break;
+            }
+            case SETUP_STATUS_CANCELLED: {
+                statusMessage = "Setup cancelled.";
+                statusIntent = Intent.WARNING;
+                break;
+            }
+        }
+        return <div className={statusIntent} style={{marginBottom: 4}}>{statusMessage}</div>;
+    }
+
+    renderMessageLog() {
+        let isLogOpen = this.props.isLogOpen;
+        let logLines = this.props.logLines;
+        return (
+            <React.Fragment>
+                <Button style={{marginTop: 4, marginBottom: 2}}
+                        className="pt-small"
+                        onClick={() => this.props.dispatch(actions.toggleLogOpen())}
+                        iconName={isLogOpen ? "caret-up" : "caret-down"}
+                        text={isLogOpen ? "Hide Log" : "Show Log"}/>
+                <Collapse isOpen={isLogOpen}>
+                    <LogField lines={logLines}/>
+                </Collapse>
+            </React.Fragment>
+        );
+    }
+
+    renderProgressBar() {
+        const progress = this.props.progress;
+        const setupStatus = this.props.setupStatus;
+
+        let value;
+        if (progress) {
+            let worked = progress.worked;
+            let totalWork = progress.totalWork;
+            if (progress.done) {
+                // set value to zero
+                value = 0;
+            } else if (isNumber(worked) && isNumber(totalWork)) {
+                let subWorked = progress.subWorked;
+                if (isNumber(subWorked)) {
+                    worked += subWorked;
+                }
+                value = worked / totalWork;
+            }
+        }
+
+        if (!isNumber(value)) {
+            if (setupStatus !== SETUP_STATUS_IN_PROGRESS) {
+                // value remains undefined --> indeterminate state
+            } else {
+                value = 0;
+            }
+        }
+
+        return <ProgressBar value={value}/>;
     }
 
     componentDidMount() {
@@ -146,6 +173,7 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
 
         let worked;
         let totalWork;
+        let done;
         let name;
         let message;
         let stdout;
@@ -158,12 +186,13 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
             name = `Task ${worked + 1}`;
             message = `Running task ${worked + 1} out of ${totalWork}`;
             stdout = `\n`;
+            done = worked === totalWork;
             this.worked++;
         } else {
             stdout = `\rReceived output ${this.counter} on stdout`;
         }
 
-        this.props.dispatch(actions.updateProgress({name, message, worked, totalWork, stdout}));
+        this.props.dispatch(actions.updateProgress({name, message, worked, totalWork, done, stdout}));
         if (this.counter < NUM_PROGRESSES) {
             this.timerId = setTimeout(() => this.incProgress(), PROGRESS_TIMEOUT);
         } else {

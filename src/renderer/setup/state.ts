@@ -1,15 +1,15 @@
 import {SetupInfo, SetupOptions} from "../../common/setup";
 import {RequirementProgress} from "../../common/requirement";
 
-export const SETUP_TEST_MODE = true;
-//export const SETUP_TEST_MODE = false;
+//export const SETUP_TEST_MODE = true;
+export const SETUP_TEST_MODE = false;
 
 export const SCREEN_ID_START = "START";
-export const SCREEN_ID_DONE = "DONE";
 export const SCREEN_ID_CONFIG = "CONFIG";
 export const SCREEN_ID_RUN = "RUN";
+export const SCREEN_ID_END = "END";
 
-export type ScreenId = "START" | "DONE" | "CONFIG" | "RUN";
+export type ScreenId = "START" | "CONFIG" | "RUN" | "END";
 
 export const SETUP_STATUS_NOT_STARTED = "NOT_STARTED";
 export const SETUP_STATUS_IN_PROGRESS = "IN_PROGRESS";

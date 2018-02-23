@@ -1,14 +1,14 @@
 import * as React from 'react';
 import {connect} from "react-redux";
 import {
-    SCREEN_ID_CONFIG, SCREEN_ID_DONE, SCREEN_ID_START, SCREEN_ID_RUN, ScreenId,
+    SCREEN_ID_CONFIG, SCREEN_ID_END, SCREEN_ID_START, SCREEN_ID_RUN, ScreenId,
     State
 } from "../state";
 import * as actions from "../actions";
 import {StartScreen} from "./StartScreen";
 import {ConfigScreen} from "./ConfigScreen";
 import {RunScreen} from "./RunScreen";
-import {DoneScreen} from "./DoneScreen";
+import {EndScreen} from "./EndScreen";
 
 
 interface ISetupContainerProps {
@@ -31,8 +31,8 @@ class _SetupContainer extends React.PureComponent<ISetupContainerProps & actions
                 return <ConfigScreen/>;
             case SCREEN_ID_RUN:
                 return <RunScreen/>;
-            case SCREEN_ID_DONE:
-                return <DoneScreen/>;
+            case SCREEN_ID_END:
+                return <EndScreen/>;
         }
     }
 }

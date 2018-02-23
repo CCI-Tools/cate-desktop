@@ -4,6 +4,7 @@ export interface RequirementProgress extends FileExecOutput {
     name?: string;
     worked?: number;
     totalWork?: number;
+    subWorked?: number;
     done?: boolean;
     error?: RequirementError;
 }
@@ -157,7 +158,7 @@ export class RequirementSet implements RequirementContext {
             return p.then(() => {
                 onProgress({name: r.name});
                 return r.ensureFulfilled(this, onProgress).then(value => {
-                    onProgress({worked: i + 1, totalWork: requirements.length, done: i === requirements.length - 1});
+                    onProgress({worked: i + 1, totalWork: requirements.length, subWorked: 0, done: i === requirements.length - 1});
                     return value;
                 }).catch(reason => {
                     throw new RequirementError(r, i, reason);
@@ -168,14 +169,14 @@ export class RequirementSet implements RequirementContext {
     }
 
     private newRollbackSequence(requirements: Requirement[], error: RequirementError, onProgress: RequirementProgressHandler) {
-        onProgress({error: error});
+        onProgress({error});
         const rollbackRequirements = requirements.slice(0, error.index + 1);
         let rollbackReducer = (p: Promise<void>, r: Requirement, i: number) => {
             //console.log(`adding ${r.name}`);
             return p.then(() => {
                 onProgress({name: `Rolling back "${r.name}"`});
                 return r.rollback(this, onProgress).then(value => {
-                    onProgress({worked: i, totalWork: requirements.length, done: i == 0});
+                    onProgress({worked: i, totalWork: requirements.length, subWorked: 0, done: i === 0});
                     return value;
                 });
             });

@@ -18,11 +18,12 @@ import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
 import {isDefined} from "../common/types";
 import {doSetup} from "./setup";
+import {SetupResult} from "../common/setup";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
 const CATE_WEBAPI_PREFIX = 'cate-webapi:';
-const CATE_DESKTOP_PREFIX = 'cate-desktop:';
+export const CATE_DESKTOP_PREFIX = 'cate-desktop:';
 
 // Module to control application life.
 const app = electron.app;
@@ -266,13 +267,25 @@ export function init() {
             if (!_splashWindow.isDestroyed() && _splashWindow.isVisible()) {
                 _splashWindow.hide();
             }
-            doSetup(setupInfo, (cateDir: string | null) => {
-                if (cateDir) {
+            doSetup(setupInfo, (setupResult: SetupResult) => {
+                console.log(CATE_DESKTOP_PREFIX, "After setup: setupResult =", setupResult);
+                if (setupResult) {
+                    const {cateDir, cateVersion} = setupResult;
                     setCateDir(cateDir);
                     if (!_splashWindow.isDestroyed()) {
                         _splashWindow.show();
                     }
-                    callback();
+                    const locationFile = path.join(getAppDataDir(), cateVersion, "cate.location");
+                    console.warn(CATE_DESKTOP_PREFIX, "Writing ", locationFile);
+                    fs.writeFile(locationFile, cateDir, {encoding: 'utf8'}, err => {
+                        if (!err) {
+                            callback();
+                        } else {
+                            console.error(CATE_DESKTOP_PREFIX, "Writing failed: ", err);
+                            electron.dialog.showErrorBox(`${app.getName()} - Error`,
+                                                         `Writing to ${locationFile} failed:\n${err}`);
+                        }
+                    });
                 } else {
                     app.exit(0);
                 }
@@ -295,7 +308,7 @@ export function init() {
                 app.exit(WEBAPI_NO_FREE_PORT);
                 return;
             }
-            if (freePort != webAPIConfig.servicePort) {
+            if (freePort !== webAPIConfig.servicePort) {
                 console.warn(CATE_DESKTOP_PREFIX, `Cate has been configured to use port ${webAPIConfig.servicePort}, but next free port is ${freePort}`);
             }
             webAPIConfig.servicePort = freePort;
@@ -323,7 +336,7 @@ export function init() {
             webAPIProcess.on('close', (code: number) => {
                 let message = `Cate service process exited with code ${code}.`;
                 console.log(CATE_WEBAPI_PREFIX, message);
-                if (code != 0) {
+                if (code !== 0) {
                     if (!webAPIError) {
                         electron.dialog.showErrorBox(`${app.getName()} - Internal Error`, message);
                     }
@@ -565,7 +578,7 @@ function loadMainWindow() {
                 };
                 const callback = (response: number, checkboxChecked: boolean) => {
                     _prefs.set('suppressExitConfirm', checkboxChecked);
-                    const exitConfirmed = response == 1;
+                    const exitConfirmed = response === 1;
                     if (exitConfirmed) {
                         requestPreferencesUpdate(event);
                         app.quit();
@@ -587,8 +600,6 @@ function loadMainWindow() {
     _mainWindow.on('closed', () => {
         console.log(CATE_DESKTOP_PREFIX, 'Main window closed.');
         storeUserPrefs(_prefs);
-        _prefs = null;
-        _config = null;
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.

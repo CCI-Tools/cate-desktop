@@ -5,11 +5,12 @@ import {
     SetupReason
 } from "../../common/setup";
 import {
-    SCREEN_ID_CONFIG, SCREEN_ID_DONE, SCREEN_ID_START, SCREEN_ID_RUN, SETUP_STATUS_NOT_STARTED,
+    SCREEN_ID_CONFIG, SCREEN_ID_END, SCREEN_ID_START, SCREEN_ID_RUN, SETUP_STATUS_NOT_STARTED,
     State, SETUP_STATUS_SUCCEEDED, SETUP_STATUS_CANCELLED, SETUP_STATUS_FAILED, SETUP_STATUS_IN_PROGRESS
 } from "./state";
 import {parseTerminalOutput, TEXT_LINE_TYPE, TextLineType} from "../../common/terminal-output";
 import {updateConditionally2} from "../../common/objutil";
+import {isString} from "../../common/types";
 
 const initialState: State = {
     setupInfo: {
@@ -73,7 +74,7 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
                     if (state.setupStatus === SETUP_STATUS_SUCCEEDED
                         || state.setupStatus === SETUP_STATUS_FAILED
                         || state.setupStatus === SETUP_STATUS_CANCELLED ) {
-                        return {...state, screenId: SCREEN_ID_DONE};
+                        return {...state, screenId: SCREEN_ID_END};
                     }
                     break;
             }
@@ -85,7 +86,7 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
                 case SCREEN_ID_RUN:
                     // We cannot leave SCREEN_ID_RUN
                     break;
-                case SCREEN_ID_DONE:
+                case SCREEN_ID_END:
                     return {...state, screenId: SCREEN_ID_RUN};
             }
             break;
@@ -109,16 +110,27 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
         case "TOGGLE_LOG_OPEN":
             return {...state, isLogOpen: !state.isLogOpen};
         case "UPDATE_PROGRESS": {
-            let progressDelta = action.payload.progress;
+            const progressDelta = action.payload.progress;
             let logLines = state.logLines;
+            let setupStatus = state.setupStatus;
             if (progressDelta.stdout) {
                 logLines = parseTerminalOutput(progressDelta.stdout, TEXT_LINE_TYPE, logLines);
             }
             if (progressDelta.stderr) {
                 logLines = parseTerminalOutput(progressDelta.stderr, TEXT_LINE_TYPE, logLines);
             }
-            const setupStatus = SETUP_STATUS_IN_PROGRESS;
-            const progress = updateConditionally2(state.progress, progressDelta);
+            const error = progressDelta.error;
+            let progress;
+            if (error) {
+                console.error(error);
+                const reason = error.reason;
+                logLines = logLines.slice();
+                logLines.push(`\n${reason}\n`);
+                setupStatus = SETUP_STATUS_FAILED;
+                progress = updateConditionally2(state.progress, progressDelta, {message: `${reason}`});
+            } else {
+                progress = updateConditionally2(state.progress, progressDelta);
+            }
             return {...state, setupStatus, progress, logLines};
         }
         case "SET_AUTO_UPDATE_CATE":

@@ -65,13 +65,14 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & actions.Dispa
             </div>
         );
 
-        return <SetupScreen
-            title="Cate Desktop Setup"
-            panel={panel}
-            noBackButton={true}
-            onNextButtonClick={() => this.props.dispatch(actions.moveForward())}
-            onCancelClick={() => this.props.dispatch(actions.cancelSetup())}
-        />;
+        return (
+            <SetupScreen title="Cate Desktop Setup"
+                         panel={panel}
+                         noBackButton={true}
+                         onNextButtonClick={() => this.props.dispatch(actions.moveForward())}
+                         onCancelClick={() => this.props.dispatch(actions.cancelSetup())}
+            />
+        );
     }
 }
 
