@@ -274,7 +274,7 @@ export function init() {
                     }
                     callback();
                 } else {
-                    app.quit();
+                    app.exit(0);
                 }
             });
         } else {

@@ -1,11 +1,12 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {Checkbox, Radio, RadioGroup} from "@blueprintjs/core";
+import {Radio, RadioGroup} from "@blueprintjs/core";
 import {
     SETUP_MODE_AUTO, SETUP_MODE_USER, SETUP_REASON_INSTALL_CATE, SetupMode, SetupReason,
 } from "../../../common/setup";
 import * as actions from "../actions";
 import {State} from "../state";
+import {SetupScreen} from "../components/SetupScreen";
 
 interface IStartScreenProps {
     setupReason: SetupReason;
@@ -37,7 +38,7 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & actions.Dispa
             </p>;
         }
 
-        return (
+        const panel = (
             <div>
                 {reasonText}
 
@@ -63,6 +64,14 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & actions.Dispa
 
             </div>
         );
+
+        return <SetupScreen
+            title="Cate Desktop Setup"
+            panel={panel}
+            noBackButton={true}
+            onNextButtonClick={() => this.props.dispatch(actions.moveForward())}
+            onCancelClick={() => this.props.dispatch(actions.cancelSetup())}
+        />;
     }
 }
 

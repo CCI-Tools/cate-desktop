@@ -43,13 +43,16 @@ export function doSetup(setupInfo: SetupInfo, callback: (cateDir: string | null)
             setupWindow.webContents.send("setSetupInfo", setupInfo);
         });
         setupWindow.webContents.openDevTools();
-        electron.ipcMain.on("endSetup", (event, cateDir: string) => {
-            setupWindow.hide();
-            callback(cateDir)
+        setupWindow.on('close', () => {
+            callback(null);
         });
         electron.ipcMain.on("cancelSetup", () => {
             setupWindow.hide();
-            callback(null)
+            callback(null);
+        });
+        electron.ipcMain.on("endSetup", (event, cateDir: string) => {
+            setupWindow.hide();
+            callback(cateDir);
         });
         electron.ipcMain.on("browseNewCateDir", browseNewCateDir);
         electron.ipcMain.on("browseOldCateDir", browseOldCateDir);

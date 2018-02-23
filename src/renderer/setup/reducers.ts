@@ -12,7 +12,6 @@ import {parseTerminalOutput, TEXT_LINE_TYPE, TextLineType} from "../../common/te
 
 const initialState: State = {
     setupInfo: {
-        //setupReason: SETUP_REASON_UPDATE_CATE,
         setupReason: SETUP_REASON_INSTALL_CATE,
         newCateDir: "",
         oldCateDir: "",
@@ -26,10 +25,11 @@ const initialState: State = {
     newCateDir: "",
     oldCateDir: "",
     progress: null,
-    messageLog: [],
+    logLines: [],
     validations: {},
     setupStatus: SETUP_STATUS_NOT_STARTED,
     autoUpdateCate: true,
+    isLogOpen: false,
 };
 
 export const stateReducer: Reducer<State> = (state: State = initialState, action: AnyAction) => {
@@ -105,16 +105,18 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
             };
         case "SET_SETUP_STATUS":
             return {...state, setupStatus: action.payload.setupStatus};
+        case "TOGGLE_LOG_OPEN":
+            return {...state, isLogOpen: !state.isLogOpen};
         case "UPDATE_PROGRESS":
             let progress = action.payload.progress;
-            let messageLog = state.messageLog;
+            let logLines = state.logLines;
             if (progress.stdout) {
-                messageLog = parseTerminalOutput(progress.stdout, TEXT_LINE_TYPE, messageLog);
+                logLines = parseTerminalOutput(progress.stdout, TEXT_LINE_TYPE, logLines);
             }
             if (progress.stderr) {
-                messageLog = parseTerminalOutput(progress.stderr, TEXT_LINE_TYPE, messageLog);
+                logLines = parseTerminalOutput(progress.stderr, TEXT_LINE_TYPE, logLines);
             }
-            return {...state, progress: {...state.progress, ...progress}, messageLog};
+            return {...state, progress: {...state.progress, ...progress}, logLines};
         case "SET_AUTO_UPDATE_CATE":
             return {...state, autoUpdateCate: action.payload.autoUpdateCate};
     }

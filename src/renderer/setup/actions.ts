@@ -4,7 +4,7 @@ import {
     CateMode, SetupMode, CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, CATE_MODE_CONDA_DIR, SetupInfo,
 } from "../../common/setup";
 import {
-    SCREEN_ID_CONFIG, SCREEN_ID_RUN, SETUP_STATUS_IN_PROGRESS, SETUP_STATUS_NOT_STARTED, SetupStatus,
+    SCREEN_ID_CONFIG, SCREEN_ID_RUN, SETUP_STATUS_IN_PROGRESS, SETUP_STATUS_NOT_STARTED, SETUP_TEST_MODE, SetupStatus,
     State
 } from "./state";
 import * as path from "path";
@@ -22,7 +22,9 @@ export function moveForward() {
         validatePaths(dispatch, getState);
         if (getState().screenId === SCREEN_ID_RUN) {
             dispatch(setSetupStatus(SETUP_STATUS_IN_PROGRESS));
-            dispatch(performSetupTasks());
+            if (!SETUP_TEST_MODE) {
+                dispatch(performSetupTasks());
+            }
         }
     };
 }
@@ -189,5 +191,9 @@ export function performSetupTasks() {
         //ipcRenderer && ipcRenderer.on("performSetupTasks-response", listener);
         ipcRenderer && ipcRenderer.send("performSetupTasks", getState().setupInfo, getState());
     }
+}
+
+export function toggleLogOpen() {
+    return {type: "TOGGLE_LOG_OPEN"};
 }
 

@@ -9,8 +9,9 @@ import {
 import {State} from "../state";
 import {Radio, RadioGroup} from "@blueprintjs/core";
 import {PathField} from "../components/PathField";
+import {SetupScreen} from "../components/SetupScreen";
 
-interface ICateInstallScreenProps {
+interface IConfigScreenProps {
     setupReason: SetupReason;
     cateMode: CateMode;
     newCateDir: string;
@@ -19,7 +20,7 @@ interface ICateInstallScreenProps {
     validation?: string;
 }
 
-function mapStateToProps(state: State): ICateInstallScreenProps {
+function mapStateToProps(state: State): IConfigScreenProps {
     return {
         setupReason: state.setupInfo.setupReason,
         cateMode: state.cateMode,
@@ -30,7 +31,7 @@ function mapStateToProps(state: State): ICateInstallScreenProps {
     };
 }
 
-class _CateInstallScreen extends React.PureComponent<ICateInstallScreenProps & actions.DispatchProp> {
+class _ConfigScreen extends React.PureComponent<IConfigScreenProps & actions.DispatchProp> {
 
     render() {
 
@@ -61,7 +62,7 @@ class _CateInstallScreen extends React.PureComponent<ICateInstallScreenProps & a
                                    onBrowse={() => this.props.dispatch(actions.browseCondaDir())}/>;
         }
 
-        return (
+        const panel = (
             <div>
 
                 <p>Here you can customize how you want the Python package <code>cate</code> to be installed or updated.</p>
@@ -92,7 +93,16 @@ class _CateInstallScreen extends React.PureComponent<ICateInstallScreenProps & a
 
             </div>
         );
+
+        return <SetupScreen
+            title="Configure Setup"
+            panel={panel}
+            nextButtonDisabled={!!this.props.validation}
+            onBackButtonClick={() => this.props.dispatch(actions.moveBack())}
+            onNextButtonClick={() => this.props.dispatch(actions.moveForward())}
+            onCancelClick={() => this.props.dispatch(actions.cancelSetup())}
+        />;
     }
 }
 
-export const CateInstallScreen = connect(mapStateToProps)(_CateInstallScreen);
+export const ConfigScreen = connect(mapStateToProps)(_ConfigScreen);

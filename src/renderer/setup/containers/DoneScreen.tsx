@@ -1,22 +1,25 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {Checkbox} from "@blueprintjs/core";
-import {State} from "../state";
+import {SETUP_STATUS_SUCCEEDED, SetupStatus, State} from "../state";
 import * as actions from "../actions";
+import {SetupScreen} from "../components/SetupScreen";
 
-interface IEndScreenProps {
+interface IDoneScreenProps {
+    setupStatus: SetupStatus;
     autoUpdateCate: boolean;
 }
 
-function mapStateToProps(state: State): IEndScreenProps {
+function mapStateToProps(state: State): IDoneScreenProps {
     return {
+        setupStatus: state.setupStatus,
         autoUpdateCate: state.autoUpdateCate,
     };
 }
 
-class _EndScreen extends React.PureComponent<IEndScreenProps & actions.DispatchProp> {
+class _DoneScreen extends React.PureComponent<IDoneScreenProps & actions.DispatchProp> {
     render() {
-        return (
+        const panel = (
             <div>
                 <p>Cate Desktop is now ready to be used. Thanks for your patience!</p>
 
@@ -32,7 +35,17 @@ class _EndScreen extends React.PureComponent<IEndScreenProps & actions.DispatchP
                 <p style={{marginTop: 64}}>Click <strong>Done</strong> to end setup and start Cate Desktop.</p>
             </div>
         );
+
+        return <SetupScreen
+            title="Run Setup Tasks"
+            panel={panel}
+            noNextButton={this.props.setupStatus !== SETUP_STATUS_SUCCEEDED}
+            nextButtonLabel={"End"}
+            nextButtonIcon={"tick-circle"}
+            onNextButtonClick={() => this.props.dispatch(actions.endSetup())}
+            onCancelClick={() => this.props.dispatch(actions.cancelSetup())}
+        />;
     }
 }
 
-export const EndScreen = connect(mapStateToProps)(_EndScreen);
+export const DoneScreen = connect(mapStateToProps)(_DoneScreen);
