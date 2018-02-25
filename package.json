@@ -93,21 +93,18 @@
     "appId": "org.esa.ccitools.Cate",
     "win": {
       "target": [
-        "nsis",
-        "zip"
+        "nsis"
       ],
       "publisherName": "Brockmann Consult GmbH",
-      "electronUpdaterCompatibility": ">=1.1.0"
     },
     "nsis": {
       "oneClick": true
     },
     "mac": {
       "target": [
-        "dmg"
+        "dmg", "zip"
       ],
-      "category": "public.app-category.education",
-      "electronUpdaterCompatibility": ">=1.1.0"
+      "category": "public.app-category.education"
     },
     "linux": {
       "target": [
