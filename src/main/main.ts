@@ -1,6 +1,7 @@
 import * as electron from 'electron';
 import installDevToolsExtension from 'electron-devtools-installer';
 import * as devTools from 'electron-devtools-installer';
+import * as log from "electron-log";
 import * as path from 'path';
 import * as url from 'url';
 import * as fs from 'fs';
@@ -22,8 +23,9 @@ import {SetupResult} from "../common/setup";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
+const RUN_OPTIONS = [ '--run', '-r'];
+
 const CATE_WEBAPI_PREFIX = 'cate-webapi:';
-export const CATE_DESKTOP_PREFIX = 'cate-desktop:';
 
 // Module to control application life.
 const app = electron.app;
@@ -36,7 +38,6 @@ const dialog = electron.dialog;
 
 const WEBAPI_INTERNAL_ERROR = 1;
 const WEBAPI_TIMEOUT = 2;
-const WEBAPI_MISSING = 3;
 const WEBAPI_NO_FREE_PORT = 4;
 const WEBAPI_BAD_EXIT = 1000;
 
@@ -88,16 +89,6 @@ function getOptionArg(options: string[]): string | null {
     return null;
 }
 
-function getOptionFlag(options: string[]): boolean {
-    let args: Array<string> = process.argv.slice(1);
-    for (let i = 0; i < args.length; i++) {
-        if (options.indexOf(args[i]) >= 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
 function loadConfiguration(options: string[], defaultConfigFile: string, configType: string): Configuration {
     let config = new Configuration();
     let configFile = getOptionArg(options);
@@ -109,9 +100,9 @@ function loadConfiguration(options: string[], defaultConfigFile: string, configT
     }
     config.load(configFile, (err) => {
         if (err) {
-            console.error(CATE_DESKTOP_PREFIX, `${configType} could not be loaded from "${configFile}"`, err);
+            log.error(`${configType} could not be loaded from "${configFile}"`, err);
         } else {
-            console.log(CATE_DESKTOP_PREFIX, `${configType} successfully loaded from "${configFile}"`);
+            log.info(`${configType} successfully loaded from "${configFile}"`);
         }
     });
     return config;
@@ -128,9 +119,9 @@ function storeConfiguration(config: Configuration, options: string[], defaultCon
     }
     config.store(configFile, (err) => {
         if (err) {
-            console.error(CATE_DESKTOP_PREFIX, `${configType} could not be stored in "${configFile}"`, err);
+            log.error(`${configType} could not be stored in "${configFile}"`, err);
         } else {
-            console.log(CATE_DESKTOP_PREFIX, `${configType} successfully stored in "${configFile}"`);
+            log.info(`${configType} successfully stored in "${configFile}"`);
         }
     });
 }
@@ -193,18 +184,21 @@ function getMPLWebSocketsUrl(webAPIConfig) {
 
 function logCateVersion() {
     getCateCliVersion().then(version => {
-        console.info(CATE_DESKTOP_PREFIX, "cate-cli version: ", version);
+        log.info("cate-cli version: ", version);
     }).catch(err => {
-        console.error(CATE_DESKTOP_PREFIX, "failed to get cate-cli version: ", err);
+        log.error("failed to get cate-cli version: ", err);
     });
 }
 
 // noinspection JSUnusedGlobalSymbols
 export function init() {
-    console.log(__dirname);
 
-    let forceSetup = getOptionFlag(['-s', '--setup']);
-    let modulePath = getOptionArg(['-r', '--run']);
+    /**
+     * We use the '--run' option to execute modules in electron / node environment.
+     *
+     * @type {string | null}
+     */
+    let modulePath = getOptionArg(RUN_OPTIONS);
     if (modulePath) {
         try {
             const module = require(modulePath);
@@ -215,12 +209,12 @@ export function init() {
                 process.exit(exitCode);
             }
         } catch (e) {
-            console.error(e);
+            log.error(e);
             process.exit(1);
         }
     }
 
-    console.log(process.versions);
+    log.info("process.versions =", process.versions);
 
     if (process.platform === 'darwin') {
         // Try getting around https://github.com/CCI-Tools/cate-desktop/issues/32
@@ -235,7 +229,7 @@ export function init() {
 
     // By default NODE_ENV will be 'production' so react is much faster
     process.env.NODE_ENV = _config.get('NODE_ENV', 'production');
-    console.log(CATE_DESKTOP_PREFIX, 'process.env.NODE_ENV = ' + process.env.NODE_ENV);
+    log.info('process.env.NODE_ENV = ' + process.env.NODE_ENV);
 
     let webAPIConfig = _config.get('webAPIConfig', {});
     webAPIConfig = updateConditionally(webAPIConfig, {
@@ -247,9 +241,9 @@ export function init() {
     });
     _config.set('webAPIConfig', webAPIConfig);
 
-    console.log(CATE_DESKTOP_PREFIX, 'appPath:', app.getAppPath());
-    console.log(CATE_DESKTOP_PREFIX, 'appConfig:', _config.data);
-    //console.log(CATE_DESKTOP_PREFIX, 'userPrefs:', _prefs.data);
+    log.info('appPath:', app.getAppPath());
+    log.info('appConfig:', _config.data);
+    //log.info('userPrefs:', _prefs.data);
 
     let webAPIError = null;
     let webAPIProcess = null;
@@ -262,13 +256,13 @@ export function init() {
 
     function ensureValidCateCliDir(callback: () => void) {
         const setupInfo = getCateCliSetupInfo();
-        console.log(CATE_DESKTOP_PREFIX, "setupInfo: ", setupInfo);
+        log.info("setupInfo: ", setupInfo);
         if (setupInfo.setupReason) {
             if (!_splashWindow.isDestroyed() && _splashWindow.isVisible()) {
                 _splashWindow.hide();
             }
             doSetup(setupInfo, (setupResult: SetupResult) => {
-                console.log(CATE_DESKTOP_PREFIX, "After setup: setupResult =", setupResult);
+                log.info("After setup: setupResult =", setupResult);
                 if (setupResult) {
                     const {cateDir, cateVersion} = setupResult;
                     setCateDir(cateDir);
@@ -276,12 +270,12 @@ export function init() {
                         _splashWindow.show();
                     }
                     const locationFile = path.join(getAppDataDir(), cateVersion, "cate.location");
-                    console.warn(CATE_DESKTOP_PREFIX, "Writing ", locationFile);
+                    log.warn("Writing ", locationFile);
                     fs.writeFile(locationFile, cateDir, {encoding: 'utf8'}, err => {
                         if (!err) {
                             callback();
                         } else {
-                            console.error(CATE_DESKTOP_PREFIX, "Writing failed: ", err);
+                            log.error("Writing failed: ", err);
                             electron.dialog.showErrorBox(`${app.getName()} - Error`,
                                                          `Writing to ${locationFile} failed:\n${err}`);
                         }
@@ -303,29 +297,29 @@ export function init() {
         showSplashMessage('Searching unused port...');
         findFreePort(webAPIConfig.servicePort, null, (freePort: number) => {
             if (freePort < webAPIConfig.servicePort) {
-                console.error(CATE_DESKTOP_PREFIX, "Can't find any free port");
+                log.error("Can't find any free port");
                 electron.dialog.showErrorBox(`${app.getName()} - Error`, "Can't find any free port");
                 app.exit(WEBAPI_NO_FREE_PORT);
                 return;
             }
             if (freePort !== webAPIConfig.servicePort) {
-                console.warn(CATE_DESKTOP_PREFIX, `Cate has been configured to use port ${webAPIConfig.servicePort}, but next free port is ${freePort}`);
+                log.warn(`Cate has been configured to use port ${webAPIConfig.servicePort}, but next free port is ${freePort}`);
             }
             webAPIConfig.servicePort = freePort;
 
             const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
-            console.log(CATE_DESKTOP_PREFIX, `Starting Cate service: ${cateCliPath} [${webAPIStartArgs}]`);
+            log.info(`Starting Cate service: ${cateCliPath} [${webAPIStartArgs}]`);
 
             webAPIProcess = child_process.spawn(cateCliPath, webAPIStartArgs, processOptions);
-            console.log(CATE_DESKTOP_PREFIX, 'Cate service started.');
+            log.info('Cate service started.');
             webAPIProcess.stdout.on('data', (data: any) => {
-                console.log(CATE_WEBAPI_PREFIX, `${data}`);
+                log.info(CATE_WEBAPI_PREFIX, `${data}`);
             });
             webAPIProcess.stderr.on('data', (data: any) => {
-                console.error(CATE_WEBAPI_PREFIX, `${data}`);
+                log.error(CATE_WEBAPI_PREFIX, `${data}`);
             });
             webAPIProcess.on('error', (err: Error) => {
-                console.error(CATE_WEBAPI_PREFIX, err);
+                log.error(CATE_WEBAPI_PREFIX, err);
                 if (!webAPIError) {
                     electron.dialog.showErrorBox(`${app.getName()} - Internal Error`,
                                                  'Failed to start Cate service.');
@@ -335,7 +329,7 @@ export function init() {
             });
             webAPIProcess.on('close', (code: number) => {
                 let message = `Cate service process exited with code ${code}.`;
-                console.log(CATE_WEBAPI_PREFIX, message);
+                log.log(CATE_WEBAPI_PREFIX, message);
                 if (code !== 0) {
                     if (!webAPIError) {
                         electron.dialog.showErrorBox(`${app.getName()} - Internal Error`, message);
@@ -356,7 +350,7 @@ export function init() {
         }
         const cateCliPath = getCateCliPath();
         const webAPIStopArgs = getWebAPIStopArgs(webAPIConfig);
-        console.log(CATE_DESKTOP_PREFIX, `Stopping Cate service using arguments: ${webAPIStopArgs}`);
+        log.info(`Stopping Cate service using arguments: ${webAPIStopArgs}`);
         // this must be sync to make sure the stop is performed before this process ends
         child_process.spawnSync(cateCliPath, webAPIStopArgs, webAPIConfig.options);
     }
@@ -368,18 +362,18 @@ export function init() {
     let webAPIRestUrl = getWebAPIRestUrl(webAPIConfig);
 
     function startUpWithWebAPIService() {
-        console.log(CATE_DESKTOP_PREFIX, `Waiting for response from Cate service ${webAPIRestUrl}`);
+        log.info(`Waiting for response from Cate service ${webAPIRestUrl}`);
         showSplashMessage('Waiting for Cate service response...');
         request(webAPIRestUrl, msServiceAccessTimeout)
             .then((response: string) => {
-                console.log(CATE_WEBAPI_PREFIX, response);
+                log.info(CATE_WEBAPI_PREFIX, response);
                 loadMainWindow();
             })
             .catch((err) => {
-                console.log(CATE_DESKTOP_PREFIX, `No response from Cate service after ${msSpend} ms`);
+                log.info(`No response from Cate service after ${msSpend} ms`);
                 let callback = () => {
                     if (msSpend > msServiceStartTimeout) {
-                        console.error(CATE_DESKTOP_PREFIX, `Failed to start Cate service within ${msSpend} ms.`, err);
+                        log.error(`Failed to start Cate service within ${msSpend} ms.`, err);
                         if (!webAPIError) {
                             electron.dialog.showErrorBox(`${app.getName()} - Internal Error`, `Failed to start Cate service within ${msSpend} ms.`);
                         }
@@ -408,7 +402,7 @@ export function init() {
                                         });
 
         _mainWindow.once('ready-to-show', () => {
-            console.log(CATE_DESKTOP_PREFIX, 'Ready to show.');
+            log.info('Ready to show.');
             _mainWindow.show();
         });
 
@@ -443,14 +437,14 @@ export function init() {
     app.on('ready', (): void => {
         initBrowserWindows();
         loadSplashWindow(() => {
-            console.log(CATE_DESKTOP_PREFIX, 'Ready.');
+            log.info('Ready.');
             startUpWithWebAPIService();
         });
     });
 
     // Emitted when all windows have been closed and the application will quit.
     app.on('quit', () => {
-        console.log(CATE_DESKTOP_PREFIX, 'Quit.');
+        log.info('Quit.');
         stopWebAPIService(webAPIProcess);
     });
 
@@ -494,11 +488,11 @@ function loadSplashWindow(callback: () => void) {
 }
 
 function showSplashMessage(message: string) {
-    console.log(CATE_DESKTOP_PREFIX, 'Splash says:', message);
+    log.info('Splash says:', message);
     if (_splashWindow && !_splashWindow.isDestroyed() && _splashWindow.isVisible()) {
         _splashWindow.webContents.send('update-splash-message', message);
     } else {
-        console.warn(CATE_DESKTOP_PREFIX, 'showSplashMessage: splash not visible', message);
+        log.warn('showSplashMessage: splash not visible', message);
     }
 }
 
@@ -510,8 +504,8 @@ function loadMainWindow() {
             const devToolExtension = devTools[devToolsExtensionName];
             if (devToolExtension) {
                 installDevToolsExtension(devToolExtension)
-                    .then(() => console.log(CATE_DESKTOP_PREFIX, `Added DevTools extension "${devToolsExtensionName}"`))
-                    .catch((err) => console.error(CATE_DESKTOP_PREFIX, 'Failed to add DevTools extension: ', err));
+                    .then(() => log.info(`Added DevTools extension "${devToolsExtensionName}"`))
+                    .catch((err) => log.error('Failed to add DevTools extension: ', err));
             }
         }
     }
@@ -553,7 +547,7 @@ function loadMainWindow() {
 
     const requestPreferencesUpdate = (event) => {
         _prefsUpdateRequestedOnClose = true;
-        console.log(CATE_DESKTOP_PREFIX, 'Main window is going to be closed, fetching user preferences...');
+        log.info('Main window is going to be closed, fetching user preferences...');
         _prefs.set('mainWindowBounds', _mainWindow.getBounds());
         _prefs.set('devToolsOpened', _mainWindow.webContents.isDevToolsOpened());
         event.sender.send('get-preferences');
@@ -590,15 +584,15 @@ function loadMainWindow() {
             }
         } else if (!_prefsUpdatedOnClose) {
             event.preventDefault();
-            console.log(CATE_DESKTOP_PREFIX, 'Main window is going to be closed, must still update preferences...');
+            log.info('Main window is going to be closed, must still update preferences...');
         } else {
-            console.log(CATE_DESKTOP_PREFIX, 'Main window is going to be closed, nothing more to do...');
+            log.info('Main window is going to be closed, nothing more to do...');
         }
     });
 
     // Emitted when the window is closed.
     _mainWindow.on('closed', () => {
-        console.log(CATE_DESKTOP_PREFIX, 'Main window closed.');
+        log.info('Main window closed.');
         storeUserPrefs(_prefs);
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
@@ -608,7 +602,6 @@ function loadMainWindow() {
 
     ipcMain.on('show-open-dialog', (event, openDialogOptions, synchronous?: boolean) => {
         dialog.showOpenDialog(_mainWindow, openDialogOptions, (filePaths: Array<string>) => {
-            // console.log('show-open-dialog: filePaths =', filePaths);
             if (synchronous) {
                 event.returnValue = filePaths && filePaths.length ? filePaths : null;
             } else {
@@ -619,7 +612,6 @@ function loadMainWindow() {
 
     ipcMain.on('show-save-dialog', (event, saveDialogOptions, synchronous?: boolean) => {
         dialog.showSaveDialog(_mainWindow, saveDialogOptions, (filePath: string) => {
-            // console.log('show-save-dialog: filePath =', filePath);
             if (synchronous) {
                 event.returnValue = filePath ? filePath : null;
             } else {
@@ -647,7 +639,6 @@ function loadMainWindow() {
                 ];
                 electron.clipboard.writeText(reportEntries.join('\n\n'));
             }
-            // console.log('show-message-box: buttonIndex =', buttonIndex);
             if (synchronous) {
                 event.returnValue = {buttonIndex, checkboxChecked};
             } else {

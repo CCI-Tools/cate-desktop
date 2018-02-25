@@ -1,15 +1,15 @@
 import {autoUpdater} from "electron-updater";
 import * as log from "electron-log";
-import {CATE_DESKTOP_PREFIX} from "./main";
 
 
 export function installAutoUpdate() {
+    log.info("Installing auto-update...");
 
     log.transports.file.level = 'info';
     autoUpdater.logger = log;
 
     autoUpdater.checkForUpdatesAndNotify().then(() => {
-        log.info(CATE_DESKTOP_PREFIX, "Update-checking installed.");
+        log.info("Update-checking installed.");
     });
 
     //-------------------------------------------------------------------

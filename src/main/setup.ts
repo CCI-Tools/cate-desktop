@@ -1,21 +1,20 @@
+import * as electron from "electron";
+import * as log from "electron-log";
 import * as url from "url";
 import * as fs from "fs";
 import * as path from "path";
 import {CATE_EXECUTABLES, CONDA_EXECUTABLES, getAppIconPath} from "./appenv";
-import * as electron from "electron";
 import {ifInternet} from "./dnsutil";
 import {
     CATE_MODE_CONDA_DIR,
-    CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, SETUP_MODE_AUTO, SETUP_MODE_USER, SETUP_REASON_INSTALL_CATE,
+    CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, SETUP_MODE_AUTO, SETUP_REASON_INSTALL_CATE,
     SETUP_REASON_UPDATE_CATE,
     SetupInfo,
     SetupOptions, SetupResult
 } from "../common/setup";
 import {DownloadMiniconda, InstallCondaEnv, InstallMiniconda, InstallOrUpdateCate} from "./update-backend";
-import {isNumber} from "../common/types";
 import {RequirementError, RequirementProgress, RequirementSet} from "../common/requirement";
 import BrowserWindow = Electron.BrowserWindow;
-import {CATE_DESKTOP_PREFIX} from "./main";
 
 
 export function doSetup(setupInfo: SetupInfo, callback: (result?: SetupResult) => void) {
@@ -241,13 +240,13 @@ export function performSetupTasks(event, setupInfo: SetupInfo, setupOptions: Set
 
     const requirementSet = new RequirementSet(requirements);
     requirementSet.fulfillRequirement(requirements[requirements.length - 1].id, (progress: RequirementProgress) => {
-        console.log(progress);
+        log.silly(progress);
         event.sender.send(channel, 0, null, progress);
     }).then(() => {
-        console.log(CATE_DESKTOP_PREFIX, 'Setup successful')
+        log.info('Setup successful');
         event.sender.send(channel, 0);
     }).catch((error: RequirementError) => {
-        console.error(CATE_DESKTOP_PREFIX, 'Setup failed:', error);
+        log.error('Setup failed:', error);
         event.sender.send(channel, -1, error.reason);
     });
 }

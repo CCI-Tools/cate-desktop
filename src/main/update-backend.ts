@@ -1,15 +1,13 @@
 import * as path from 'path';
-import * as os from 'os';
-import {existsFile, execFile, deleteFile, downloadFile, FileExecOutput} from './fileutil';
 import {URL} from "url";
+import {existsFile, execFile, deleteFile, downloadFile, FileExecOutput} from './fileutil';
+
 
 import {
-    RequirementSet,
     Requirement,
     RequirementContext,
     RequirementProgressHandler, RequirementState
 } from '../common/requirement';
-import {isNumber} from "../common/types";
 
 
 function _getOutput(output: FileExecOutput) {
@@ -213,35 +211,6 @@ export class InstallOrUpdateCate extends Requirement {
         const condaExecutable = this.getCondaExecutable();
         return execFile(condaExecutable, ['install', '--yes', '-c', 'ccitools', '-c', 'conda-forge', 'cate-cli=' + this.cateVersion], onProgress);
     }
-}
-
-// TODO (nf): call this function from main.ts when there is no Cate CLI yet or if it's WebAPI version is out-of-date.
-export function updateCateCli() {
-    //const minicondaInstallDir = path.join(os.homedir(), 'cate-test-1');
-    const minicondaInstallDir = 'D:\\cate-test-2';
-    const cateVersion = '1.0.1.dev1';
-
-    let downloadMiniconda = new DownloadMiniconda();
-    let installMiniconda = new InstallMiniconda(minicondaInstallDir);
-    let installOrUpdateCate = new InstallOrUpdateCate(cateVersion, minicondaInstallDir, [installMiniconda.id]);
-    let requirementSet = new RequirementSet([downloadMiniconda,
-                                             installMiniconda,
-                                             installOrUpdateCate]);
-    let done = false;
-    requirementSet.fulfillRequirement(installOrUpdateCate.id, progress => {
-        console.log(progress);
-        done = isNumber(progress.worked) && progress.worked === progress.totalWork;
-    }).then(() => {
-        console.log('Cate CLI updated successfully.')
-    }).catch(reason => {
-        console.error('Failed to update Cate CLI due to the following error:');
-        console.error(reason);
-    });
-}
-
-// noinspection JSUnusedGlobalSymbols
-export function run() {
-    updateCateCli();
 }
 
 function getCondaPythonExecutable(condaDir: string) {
