@@ -1,16 +1,20 @@
-import {autoUpdater} from "electron-updater";
+import {autoUpdater, UpdateCheckResult} from "electron-updater";
 import * as log from "electron-log";
 
 
 export function installAutoUpdate() {
-    log.info("Installing auto-update...");
 
-    log.transports.file.level = 'info';
     autoUpdater.logger = log;
 
-    autoUpdater.checkForUpdatesAndNotify().then(() => {
-        log.info("Update-checking installed.");
-    });
+    log.info("Installing update-check...");
+    const promise = autoUpdater.checkForUpdatesAndNotify();
+    if (promise) {
+        promise && promise.then((result: UpdateCheckResult) => {
+            log.info("Update-check result:", result);
+        });
+    } else {
+        log.error("Update-check NOT installed");
+    }
 
     //-------------------------------------------------------------------
     // Auto updates - Option 2 - More control
