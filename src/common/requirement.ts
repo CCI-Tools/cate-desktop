@@ -152,7 +152,7 @@ export class RequirementSet implements RequirementContext {
     }
 
     private newFulfillSequence(requirements: Requirement[], onProgress: RequirementProgressHandler) {
-        onProgress({worked: 0, totalWork: requirements.length, done: requirements.length === 0});
+        onProgress({worked: 0, totalWork: requirements.length, subWorked: 0, done: requirements.length === 0});
         let ensureFulfilledReducer = (p: Promise<void>, r: Requirement, i: number) => {
             //console.log(`adding ${r.name}`);
             return p.then(() => {

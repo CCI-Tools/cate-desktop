@@ -71,19 +71,19 @@ describe('RequirementSet', function () {
 
         let promise = rSet.fulfillRequirement('r3', onProgress).then(() => progressTrace);
         return expect(promise).to.eventually.become([
-                                                        {worked: 0, totalWork: 3, done: false},
+                                                        {worked: 0, totalWork: 3, subWorked: 0, done: false},
                                                         {name: 'r1'},
                                                         {message: "checking r1"},
                                                         {message: "fulfilling r1"},
-                                                        {worked: 1, totalWork: 3, done: false},
+                                                        {worked: 1, totalWork: 3, subWorked: 0, done: false},
                                                         {name: 'r2'},
                                                         {message: "checking r2"},
                                                         {message: "fulfilling r2"},
-                                                        {worked: 2, totalWork: 3, done: false},
+                                                        {worked: 2, totalWork: 3, subWorked: 0, done: false},
                                                         {name: 'r3'},
                                                         {message: "checking r3"},
                                                         {message: "fulfilling r3"},
-                                                        {worked: 3, totalWork: 3, done: true},
+                                                        {worked: 3, totalWork: 3, subWorked: 0, done: true},
                                                     ] as any);
     });
 
