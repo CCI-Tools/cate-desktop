@@ -193,6 +193,9 @@ function logCateVersion() {
 // noinspection JSUnusedGlobalSymbols
 export function init() {
 
+    // Configure logging
+    log.transports.file.level = 'info';
+
     /**
      * We use the '--run' option to execute modules in electron / node environment.
      *
