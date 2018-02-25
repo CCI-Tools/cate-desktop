@@ -41,6 +41,8 @@ const WEBAPI_TIMEOUT = 2;
 const WEBAPI_NO_FREE_PORT = 4;
 const WEBAPI_BAD_EXIT = 1000;
 
+const WEBAPI_TIMEOUT_MAX = 10000;
+
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -193,8 +195,20 @@ function logCateVersion() {
 // noinspection JSUnusedGlobalSymbols
 export function init() {
 
+    // Ensure we have a valid "~/.cate/"
+    const appDataDir = getAppDataDir();
+    if (!fs.existsSync(appDataDir)) {
+        try {
+            fs.mkdirSync(appDataDir);
+        } catch (err) {
+            log.error(err);
+            return;
+        }
+    }
+
     // Configure logging
     log.transports.file.level = 'info';
+    log.transports.file.file = path.join(getAppDataDir(), 'cate-desktop.log');
 
     /**
      * We use the '--run' option to execute modules in electron / node environment.
@@ -272,18 +286,31 @@ export function init() {
                     if (!_splashWindow.isDestroyed()) {
                         _splashWindow.show();
                     }
-                    const locationFile = path.join(getAppDataDir(), cateVersion, "cate.location");
+                    const versionDir = path.join(getAppDataDir(), cateVersion);
+                    const locationFile = path.join(versionDir, "cate.location");
+                    const errorHandler = (err) => {
+                        log.error("Writing failed: ", err);
+                        electron.dialog.showErrorBox(`${app.getName()} - Error`,
+                                                     `Writing to ${locationFile} failed:\n${err}`);
+                        app.exit(0);
+                    };
                     log.warn("Writing ", locationFile);
+                    if (!fs.existsSync(versionDir)) {
+                        try {
+                            fs.mkdirSync(versionDir);
+                        } catch (err) {
+                            errorHandler(err);
+                        }
+                    }
                     fs.writeFile(locationFile, cateDir, {encoding: 'utf8'}, err => {
                         if (!err) {
                             callback();
                         } else {
-                            log.error("Writing failed: ", err);
-                            electron.dialog.showErrorBox(`${app.getName()} - Error`,
-                                                         `Writing to ${locationFile} failed:\n${err}`);
+                            errorHandler(err);
                         }
                     });
                 } else {
+                    // User cancelled update: exit immediately
                     app.exit(0);
                 }
             });
@@ -359,7 +386,7 @@ export function init() {
     }
 
     const msServiceAccessTimeout = 1000; // ms
-    const msServiceStartTimeout = 5000; // ms
+    const msServiceStartTimeout = WEBAPI_TIMEOUT_MAX; // ms
     const msDelay = 500; // ms
     let msSpend = 0; // ms
     let webAPIRestUrl = getWebAPIRestUrl(webAPIConfig);
