@@ -708,6 +708,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                     <ChromePicker
                         color={this.props.vectorStyle.fill}
                         onChange={this.handleChangedFillColorInPicker}
+                        disableAlpha={true}
                     />
                 </Popover>
             </label>
