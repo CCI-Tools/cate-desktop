@@ -261,13 +261,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         }
     }
 
-    externalObjectMounted(viewer: Cesium.Viewer): void {
+    externalObjectMounted(viewer: Cesium.Viewer, props: Readonly<ICesiumGlobeProps>): void {
         this.mouseClickHandler = new Cesium.ScreenSpaceEventHandler();
         this.mouseClickHandler.setInputAction(
             (event) => {
                 const cartographic = screenToCartographic(viewer, event.position, true);
-                if (this.props.onMouseClicked) {
-                    this.props.onMouseClicked(cartographic);
+                if (props.onMouseClicked) {
+                    props.onMouseClicked(cartographic);
                 }
             },
             Cesium.ScreenSpaceEventType.LEFT_CLICK
@@ -278,8 +278,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             (event) => {
                 const point = event.endPosition;
                 const cartographic = screenToCartographic(viewer, point, true);
-                if (this.props.onMouseMoved) {
-                    this.props.onMouseMoved(cartographic);
+                if (props.onMouseMoved) {
+                    props.onMouseMoved(cartographic);
                 }
             },
             Cesium.ScreenSpaceEventType.MOUSE_MOVE
@@ -291,26 +291,26 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                 let point; // = undefined, good.
                 //noinspection JSUnusedAssignment
                 const cartographic = screenToCartographic(viewer, point, true);
-                if (this.props.onLeftUp) {
-                    this.props.onLeftUp(cartographic);
+                if (props.onLeftUp) {
+                    props.onLeftUp(cartographic);
                 }
             },
             Cesium.ScreenSpaceEventType.LEFT_UP
         );
 
         this.selectedEntityChangeHandler = (selectedEntity: Cesium.Entity | null) => {
-            if (this.props.onSelectedEntityChanged) {
-                this.props.onSelectedEntityChanged(selectedEntity);
+            if (props.onSelectedEntityChanged) {
+                props.onSelectedEntityChanged(selectedEntity);
             }
         };
         viewer.selectedEntityChanged.addEventListener(this.selectedEntityChangeHandler);
 
-        if (this.props.onViewerMounted) {
-            this.props.onViewerMounted(this.props.id, viewer);
+        if (props.onViewerMounted) {
+            props.onViewerMounted(props.id, viewer);
         }
     }
 
-    externalObjectUnmounted(viewer: Cesium.Viewer): void {
+    externalObjectUnmounted(viewer: Cesium.Viewer, props: Readonly<ICesiumGlobeProps>): void {
         this.mouseClickHandler = this.mouseClickHandler && this.mouseClickHandler.destroy();
         this.mouseClickHandler = null;
         this.mouseMoveHandler = this.mouseMoveHandler && this.mouseMoveHandler.destroy();
@@ -321,8 +321,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         viewer.selectedEntityChanged.removeEventListener(this.selectedEntityChangeHandler);
         this.selectedEntityChangeHandler = null;
 
-        if (this.props.onViewerUnmounted) {
-            this.props.onViewerUnmounted(this.props.id, viewer);
+        if (props.onViewerUnmounted) {
+            props.onViewerUnmounted(props.id, viewer);
         }
     }
 
@@ -332,7 +332,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         if (this.props.debug) {
             console.log('CesiumGlobe: updating selected placemark: ', viewer.selectedEntity, selectedEntity);
         }
-        if (viewer.selectedEntity !== selectedEntity) {
+        if (viewer.selectedEntity != selectedEntity) {
+            // here we do not use '!==' because in that case 'undefined' and 'null' would trigger a unwanted change
             viewer.selectedEntity = selectedEntity;
         }
     }
@@ -602,6 +603,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             } else {
                 // Change of placemarks (a GeoJSON FeatureCollection)
                 this.updatePlacemarks(dataSource.entities, oldData, newData, newLayer.style);
+                // TODO return a promise from 'updatePlacemarks'
                 if (selectedPlacemarkId) {
                     const selectedEntity = dataSource.entities.getById(selectedPlacemarkId);
                     if (selectedEntity && selectedEntity !== viewer.selectedEntity) {

@@ -4,7 +4,7 @@ import {shallowEqual} from "../../common/shallow-equal";
 
 export interface IExternalObjectComponentProps<E, ES> {
     id: string;
-    externalObjectStore?: ExternalObjectStore<E, ES>;
+    externalObjectStore: ExternalObjectStore<E, ES>;
     style?: Object;
     className?: string;
     debug?: boolean;
@@ -75,7 +75,6 @@ export type ExternalObjectStore<E, S> = { [id: string]: ExternalObjectRef<E, S> 
  */
 export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectComponentProps<E, ES>, S>
     extends React.PureComponent<P, S> {
-    private static readonly DEFAULT_EXTERNAL_OBJECT_STORE: Object = {};
 
     private parentContainer: HTMLElement | null;
 
@@ -83,7 +82,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         super(props);
         ExternalObjectComponent.checkProps(props);
         this.parentContainer = null;
-        this.remountExternalObject = this.remountExternalObject.bind(this);
+        this.onRef = this.onRef.bind(this);
     }
 
     private static checkProps(props: any) {
@@ -101,7 +100,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      * @returns the external object reference or null.
      */
     getExternalObjectRef(): ExternalObjectRef<E, ES> | null {
-        return this.externalObjectStore[this.props.id] || null;
+        return this.props.externalObjectStore[this.props.id] || null;
     }
 
     // TODO (forman): we can probably simplify ExternalObjectComponent by getting rid of the intermediate container
@@ -160,20 +159,22 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      * Called if the *externalObject* has been mounted and is now a child of the *parentContainer*.
      *
      * @param object The external object.
+     * @param props The props for the external object to be mounted.
      * @param parentContainer The parent container HTML element which either holds *container* or the *object*.
      * @param container The HTML element created by *newContainer()*, if any.
      */
-    externalObjectMounted(object: E, parentContainer: HTMLElement, container: HTMLElement): void {
+    externalObjectMounted(object: E, props: Readonly<P>, parentContainer: HTMLElement, container: HTMLElement): void {
     }
 
     /**
      * Called if the *externalObject* has been unmounted and is no longer a child of *parentContainer*.
      *
      * @param object The external object.
+     * @param props The props for the external object to be unmounted.
      * @param parentContainer The parent container HTML element which either holds *container* or the *object*.
      * @param container The HTML element created by *newContainer()*, if any.
      */
-    externalObjectUnmounted(object: E, parentContainer: HTMLElement, container: HTMLElement): void {
+    externalObjectUnmounted(object: E, props: Readonly<P>, parentContainer: HTMLElement, container: HTMLElement): void {
     }
 
 
@@ -189,12 +190,22 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      * @param nextProps the next props
      */
     componentWillUpdate(nextProps: Readonly<P & ES>) {
+        if (this.props.debug) {
+            console.log("ExternalObjectComponent.componentWillUpdate nextProps.id =", nextProps.id);
+        }
         ExternalObjectComponent.checkProps(nextProps);
-        if (nextProps.id in this.externalObjectStore) {
+        if (this.props.id == nextProps.id) {
             this.updateExternalComponentAndSaveProps(nextProps);
         } else if (this.parentContainer) {
-            this.remountExternalObject(this.parentContainer);
+            this.remountExternalObject(this.parentContainer, nextProps);
         }
+    }
+
+    private onRef(parentContainer: HTMLElement | null){
+        if (this.props.debug) {
+            console.log("ExternalObjectComponent.onRef: this.props =", this.props);
+        }
+        this.remountExternalObject(parentContainer, this.props as Readonly<P & ES>);
     }
 
     /**
@@ -204,16 +215,11 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      * @returns {JSX.Element}
      */
     render(): JSX.Element {
-        // const onRef = (parentContainer: HTMLElement | null) => {
-        //     this.remountExternalObject(parentContainer);
-        // };
-
         return (
             <div id={this.props.id}
                  className={this.props.className}
                  style={this.props.style}
-                 // ref={onRef}
-                 ref={this.remountExternalObject}
+                 ref={this.onRef}
             >
                 {this.renderChildren()}
             </div>
@@ -230,84 +236,90 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      * Clients may call this method to force a regeneration of their external component.
      */
     forceRegeneration() {
-        let externalObjectStore = this.externalObjectStore;
+        let externalObjectStore = this.props.externalObjectStore;
         let externalObjectRef = externalObjectStore[this.props.id];
         if (externalObjectRef) {
             delete externalObjectStore[this.props.id];
             if (this.parentContainer && externalObjectRef.container) {
                 this.parentContainer.removeChild(externalObjectRef.container);
             }
-            this.remountExternalObject(this.parentContainer);
+            this.remountExternalObject(this.parentContainer, this.props as Readonly<P & ES>);
         }
     }
 
-    protected remountExternalObject(parentContainer: HTMLElement | null) {
+    protected remountExternalObject(parentContainer: HTMLElement | null, props: Readonly<P & ES>) {
+        if (this.props.debug) {
+            console.log("ExternalObjectComponent.remountExternalObject: props.id =", props && props.id);
+        }
         if (parentContainer) {
-            if (this.props.id in this.externalObjectStore) {
-                this.mountExistingExternalObject(parentContainer);
+            if (parentContainer.id != props.id) {
+                this.unmountExternalObject(parentContainer, this.props as Readonly<P & ES>);
+            }
+            if (props.id in props.externalObjectStore) {
+                this.mountExistingExternalObject(parentContainer, props);
             } else {
-                this.mountNewExternalObject(parentContainer);
+                this.mountNewExternalObject(parentContainer, props);
             }
         } else if (this.parentContainer) {
-            this.unmountExternalObject(this.parentContainer);
+            this.unmountExternalObject(this.parentContainer, props);
         }
     }
 
-    private mountNewExternalObject(parentContainer: HTMLElement) {
-        if (this.props.debug) {
-            console.log("ExternalObjectComponent.mountNewExternalObject: this.props.id =", this.props.id);
+    private mountNewExternalObject(parentContainer: HTMLElement, props: Readonly<P & ES>) {
+        if (props.debug) {
+            console.log("ExternalObjectComponent.mountNewExternalObject: props.id =", props.id);
         }
-        const container = this.newContainer(this.props.id);
+        const container = this.newContainer(props.id);
         if (container) {
-            if (this.props.debug) {
-                console.log("ExternalObjectComponent: attaching new external object with id =", this.props.id);
+            if (props.debug) {
+                console.log("ExternalObjectComponent: attaching new external object with id =", props.id);
             }
             parentContainer.appendChild(container);
         }
         const object = this.newExternalObject(parentContainer, container);
-        this.externalObjectStore[this.props.id] = {object, container};
+        props.externalObjectStore[props.id] = {object, container};
         this.parentContainer = parentContainer;
-        this.externalObjectMounted(object, parentContainer, container);
-        this.updateExternalComponentAndSaveProps(this.props);
+        this.externalObjectMounted(object, props, parentContainer, container);
+        this.updateExternalComponentAndSaveProps(props);
     }
 
-    private mountExistingExternalObject(parentContainer: HTMLElement) {
-        if (this.props.debug) {
-            console.log("ExternalObjectComponent.mountExistingExternalObject: this.props.id =", this.props.id);
+    private mountExistingExternalObject(parentContainer: HTMLElement, props: Readonly<P & ES>) {
+        if (props.debug) {
+            console.log("ExternalObjectComponent.mountExistingExternalObject: props.id =", props.id);
         }
-        const externalObjectRef = this.externalObjectStore[this.props.id];
+        const externalObjectRef = props.externalObjectStore[props.id];
         assert.ok(externalObjectRef);
         const container = externalObjectRef.container;
         if (container && !parentContainer.contains(container)) {
-            if (this.props.debug) {
-                console.log("ExternalObjectComponent: attaching existing external object with id =", this.props.id);
+            if (props.debug) {
+                console.log("ExternalObjectComponent: attaching existing external object with id =", props.id);
             }
             parentContainer.appendChild(container);
         }
         this.parentContainer = parentContainer;
-        this.externalObjectMounted(externalObjectRef.object, parentContainer, container);
-        this.updateExternalComponentAndSaveProps(this.props);
+        this.externalObjectMounted(externalObjectRef.object, props, parentContainer, container);
+        this.updateExternalComponentAndSaveProps(props);
     }
 
-    private unmountExternalObject(parentContainer: HTMLElement) {
+    private unmountExternalObject(parentContainer: HTMLElement, props: Readonly<P & ES>) {
         if (this.props.debug) {
             console.log("ExternalObjectComponent.unmountExternalObject: parentContainer.id =", parentContainer.id);
         }
-        const externalObjectRef = this.externalObjectStore[parentContainer.id];
+        const externalObjectRef = props.externalObjectStore[parentContainer.id];
         assert.ok(externalObjectRef);
         const container = externalObjectRef.container;
         if (container && parentContainer.contains(container)) {
-            if (this.props.debug) {
+            if (props.debug) {
                 console.log("ExternalObjectComponent: detaching external object with id =", container.id);
             }
             parentContainer.removeChild(container);
         }
         this.parentContainer = null;
-        this.externalObjectUnmounted(externalObjectRef.object, parentContainer, container);
+        this.externalObjectUnmounted(externalObjectRef.object, props, parentContainer, container);
     }
 
     private updateExternalComponentAndSaveProps(nextProps: Readonly<P>): void {
-        const externalObjectRef = this.externalObjectStore[nextProps.id];
+        const externalObjectRef = nextProps.externalObjectStore[nextProps.id];
         assert.ok(externalObjectRef);
         // Get previous props
         const prevState = externalObjectRef.state;
@@ -334,9 +346,5 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
     //noinspection JSMethodCanBeStatic
     protected shouldExternalObjectUpdate(prevState: ES, nextState: ES): boolean {
         return !shallowEqual(prevState, nextState);
-    }
-
-    private get externalObjectStore(): ExternalObjectStore<E, ES> {
-        return (this.props.externalObjectStore || ExternalObjectComponent.DEFAULT_EXTERNAL_OBJECT_STORE) as ExternalObjectStore<E, ES>;
     }
 }
