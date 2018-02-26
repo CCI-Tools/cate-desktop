@@ -1,13 +1,31 @@
 import * as React from 'react';
 import {connect, DispatchProp} from 'react-redux';
-import {SketchPicker} from 'react-color';
 import {
-    State, LayerState, ColorMapCategoryState, ImageLayerState,
-    VariableImageLayerState, VariableState, ResourceState, ColorMapState, ResourceVectorLayerState, VectorLayerState
+    ColorMapCategoryState,
+    ColorMapState,
+    ImageLayerState,
+    LayerState,
+    ResourceState,
+    ResourceVectorLayerState,
+    State,
+    VariableImageLayerState,
+    VariableState,
+    VectorLayerState
 } from '../state';
 import {
-    AnchorButton, Slider, Popover, Position, PopoverInteractionKind, Switch,
-    RangeSlider, NumberRange, Tooltip, Radio, RadioGroup, Intent, Button
+    AnchorButton,
+    Button,
+    Intent,
+    NumberRange,
+    Popover,
+    PopoverInteractionKind,
+    Position,
+    Radio,
+    RadioGroup,
+    RangeSlider,
+    Slider,
+    Switch,
+    Tooltip
 } from '@blueprintjs/core';
 import {ListBox, ListBoxSelectionMode} from '../components/ListBox';
 import * as actions from '../actions';
@@ -19,11 +37,13 @@ import {getLayerDisplayName, getLayerTypeIconName, SELECTED_VARIABLE_LAYER_ID} f
 import {FieldValue} from '../components/field/Field';
 import {ScrollablePanelContent} from '../components/ScrollableContent';
 import {ViewState} from '../components/ViewState';
-import {NO_LAYERS_NO_VIEW, NO_LAYERS_EMPTY_VIEW, NO_LAYER_SELECTED, NO_LAYER_PROPERTIES} from '../messages';
+import {NO_LAYER_PROPERTIES, NO_LAYER_SELECTED, NO_LAYERS_EMPTY_VIEW, NO_LAYERS_NO_VIEW} from '../messages';
 import * as Cesium from 'cesium';
 import {TextField} from '../components/field/TextField';
 import {NumericField} from '../components/field/NumericField';
 import {SimpleStyle} from '../../common/geojson-simple-style';
+import ChromePicker from 'react-color/lib/components/chrome/Chrome';
+import {ColorResult} from 'react-color';
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -116,6 +136,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.handleChangedColorMapName = this.handleChangedColorMapName.bind(this);
         this.handleChangedVectorStyleMode = this.handleChangedVectorStyleMode.bind(this);
         this.handleChangedFillColor = this.handleChangedFillColor.bind(this);
+        this.handleChangedFillColorInPicker = this.handleChangedFillColorInPicker.bind(this);
         this.handleChangedFillOpacity = this.handleChangedFillOpacity.bind(this);
         this.handleChangedStrokeWidth = this.handleChangedStrokeWidth.bind(this);
         this.handleChangedStrokeColor = this.handleChangedStrokeColor.bind(this);
@@ -222,6 +243,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private handleChangedFillColor(value: FieldValue<string>) {
         this.handleChangedVectorStyle({...this.props.vectorStyle, fill: value.value});
+    }
+
+    private handleChangedFillColorInPicker(color: ColorResult) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, fill: color.hex});
     }
 
     private handleChangedFillOpacity(fillOpacity: number) {
@@ -680,7 +705,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                     <Button intent={Intent.PRIMARY} style={{marginLeft: '1em'}}>
                         Pick color
                     </Button>
-                    <SketchPicker/>
+                    <ChromePicker
+                        color={this.props.vectorStyle.fill}
+                        onChange={this.handleChangedFillColorInPicker}
+                    />
                 </Popover>
             </label>
         );
