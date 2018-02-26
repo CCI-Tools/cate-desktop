@@ -15,7 +15,6 @@ import {
 import {
     AnchorButton,
     Button,
-    Intent,
     NumberRange,
     Popover,
     PopoverInteractionKind,
@@ -42,8 +41,8 @@ import * as Cesium from 'cesium';
 import {TextField} from '../components/field/TextField';
 import {NumericField} from '../components/field/NumericField';
 import {SimpleStyle} from '../../common/geojson-simple-style';
-import ChromePicker from 'react-color/lib/components/chrome/Chrome';
 import {ColorResult} from 'react-color';
+import SketchPicker from 'react-color/lib/components/sketch/Sketch';
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -700,27 +699,28 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderFillColor() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '100px'}}>Fill colour</span>
-                <TextField value={this.props.vectorStyle.fill}
-                           style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
-                           size={8}
-                           uncontrolled={true}
-                           onChange={this.handleChangedFillColor}
-                />
-                <Popover
-                    interactionKind={PopoverInteractionKind.CLICK}
-                    popoverClassName="pt-minimal"
-                    position={Position.LEFT_TOP}
-                >
-                    <Button intent={Intent.PRIMARY} style={{marginLeft: '1em'}}>
-                        Pick colour
-                    </Button>
-                    <ChromePicker
-                        color={this.props.vectorStyle.fill}
-                        onChange={this.handleChangedFillColorFromPicker}
-                        disableAlpha={true}
+                <span style={{flexBasis: '150px'}}>Fill colour</span>
+                <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
+                    <TextField value={this.props.vectorStyle.fill}
+                               style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
+                               size={8}
+                               uncontrolled={true}
+                               onChange={this.handleChangedFillColor}
                     />
-                </Popover>
+                    <Popover
+                        interactionKind={PopoverInteractionKind.CLICK}
+                        popoverClassName="pt-minimal"
+                        position={Position.LEFT_TOP}
+                        className="pt-input-action"
+                    >
+                        <Button style={{backgroundColor: this.props.vectorStyle.fill}}/>
+                        <SketchPicker
+                            color={this.props.vectorStyle.fill}
+                            onChange={this.handleChangedFillColorFromPicker}
+                            disableAlpha={true}
+                        />
+                    </Popover>
+                </div>
             </label>
         );
     }
@@ -745,9 +745,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderStrokeWidth() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '100px'}}>Stroke width</span>
+                <span style={{flexBasis: '150px'}}>Stroke width</span>
                 <NumericField value={this.props.vectorStyle.strokeWidth}
-                              style={{flex: 'auto', fontFamily: 'courier'}}
+                              style={{flex: 'auto 1', fontFamily: 'courier'}}
                               size={8}
                               min={0}
                               uncontrolled={true}
@@ -760,27 +760,28 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderStrokeColor() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '100px'}}>Stroke colour</span>
-                <TextField value={this.props.vectorStyle.stroke}
-                           style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
-                           size={8}
-                           uncontrolled={true}
-                           onChange={this.handleChangedStrokeColor}
-                />
-                <Popover
-                    interactionKind={PopoverInteractionKind.CLICK}
-                    popoverClassName="pt-minimal"
-                    position={Position.LEFT_TOP}
-                >
-                    <Button intent={Intent.PRIMARY} style={{marginLeft: '1em'}}>
-                        Pick colour
-                    </Button>
-                    <ChromePicker
-                        color={this.props.vectorStyle.stroke}
-                        onChange={this.handleChangedStrokeColorFromPicker}
-                        disableAlpha={true}
+                <span style={{flexBasis: '150px'}}>Stroke colour</span>
+                <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
+                    <TextField value={this.props.vectorStyle.stroke}
+                               style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
+                               size={8}
+                               uncontrolled={true}
+                               onChange={this.handleChangedStrokeColor}
                     />
-                </Popover>
+                    <Popover
+                        interactionKind={PopoverInteractionKind.CLICK}
+                        popoverClassName="pt-minimal"
+                        position={Position.LEFT_TOP}
+                        className="pt-input-action"
+                    >
+                        <Button style={{backgroundColor: this.props.vectorStyle.stroke}}/>
+                        <SketchPicker
+                            color={this.props.vectorStyle.stroke}
+                            onChange={this.handleChangedStrokeColorFromPicker}
+                            disableAlpha={true}
+                        />
+                    </Popover>
+                </div>
             </label>
         );
     }
@@ -805,27 +806,28 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderMarkerColor() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '100px'}}>Marker colour</span>
-                <TextField value={this.props.vectorStyle.markerColor}
-                           style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
-                           size={8}
-                           uncontrolled={true}
-                           onChange={this.handleChangedMarkerColor}
-                />
-                <Popover
-                    interactionKind={PopoverInteractionKind.CLICK}
-                    popoverClassName="pt-minimal"
-                    position={Position.LEFT_TOP}
-                >
-                    <Button intent={Intent.PRIMARY} style={{marginLeft: '1em'}}>
-                        Pick colour
-                    </Button>
-                    <ChromePicker
-                        color={this.props.vectorStyle.markerColor}
-                        onChange={this.handleChangedMarkerColorFromPicker}
-                        disableAlpha={true}
+                <span style={{flexBasis: '150px'}}>Marker colour</span>
+                <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
+                    <TextField value={this.props.vectorStyle.markerColor}
+                               style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
+                               size={8}
+                               uncontrolled={true}
+                               onChange={this.handleChangedMarkerColor}
                     />
-                </Popover>
+                    <Popover
+                        interactionKind={PopoverInteractionKind.CLICK}
+                        popoverClassName="pt-minimal"
+                        position={Position.LEFT_TOP}
+                        className="pt-input-action"
+                    >
+                        <Button style={{backgroundColor: this.props.vectorStyle.markerColor}}/>
+                        <SketchPicker
+                            color={this.props.vectorStyle.markerColor}
+                            onChange={this.handleChangedMarkerColorFromPicker}
+                            disableAlpha={true}
+                        />
+                    </Popover>
+                </div>
             </label>
         );
     }
@@ -833,10 +835,11 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderMarkerSize() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '100px'}}>Marker size</span>
-                <div className="pt-select">
+                <span style={{flexBasis: '150px'}}>Marker size</span>
+                <div className="pt-select" style={{flex: 'auto 1'}}>
                     <select value={this.props.vectorStyle.markerSize}
-                            onChange={this.handleChangedMarkerSize}>
+                            onChange={this.handleChangedMarkerSize}
+                    >
                         <option value="small">Small</option>
                         <option value="medium">Medium</option>
                         <option value="large">Large</option>
@@ -849,7 +852,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderMarkerSymbol() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '100px'}}>Marker symbol</span>
+                <span style={{flexBasis: '150px'}}>Marker symbol</span>
                 <TextField value={this.props.vectorStyle.markerSymbol}
                            style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
                            size={8}
