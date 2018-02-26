@@ -457,8 +457,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         }
 
         return (
-            <label key="cmap" className="pt-label pt-inline">
-                Colour bar
+            <label key="cmap" className="pt-label pt-inline" style={{display: 'flex'}}>
+                <span style={{flexBasis: '100px'}}>Colour bar</span>
                 {colorBarButton}
             </label>
         );
@@ -531,9 +531,9 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             if (max > 0) {
                 const value = layer.varIndex[i];
                 dimensionRows.push(
-                    <label key={dimension + '_index'} className="pt-label pt-inline">
-                        {'Index into ' + dimension}
-                        <div style={LayersPanel.SLIDER_DIV_STYLE_05}>
+                    <label key={dimension + '_index'} className="pt-label pt-inline" style={{display: 'flex'}}>
+                        <span style={{flexBasis: '100px'}}>{'Index into ' + dimension}</span>
+                        <div style={{...LayersPanel.SLIDER_DIV_STYLE_10, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                             <Slider min={0}
                                     max={max}
                                     stepSize={1}
@@ -560,14 +560,13 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         };
 
         return (
-            <label key={key} className="pt-label">
-                {label}
-                <div style={LayersPanel.SLIDER_DIV_STYLE_05}>
+            <label key={key} className="pt-label" style={{display: 'flex'}}>
+                <span style={{flexBasis: '100px'}}>{label}</span>
+                <div style={{...LayersPanel.SLIDER_DIV_STYLE_05, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={min}
                             max={max}
                             stepSize={(max - min) / 10.}
-                            labelStepSize={max - min}
-                            renderLabel={(x) => formatNumber(x, 1)}
+                            renderLabel={false}
                             value={layer[key]}
                             onChange={(value: number) => handleChangedImageEnhancement(key, value)}/>
                 </div>
@@ -607,7 +606,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         const selectedColorMapName = layer.colorMapName;
         const selectedColorMapImage = this.renderColorMapImage(this.props.selectedColorMap);
         const buttonContent = (selectedColorMapImage || (selectedColorMapName || 'Select Color Bar'));
-        return (<AnchorButton style={{width: '100%'}} disabled={disabled}>{buttonContent}</AnchorButton>);
+        return (<AnchorButton className="pt-minimal" style={{width: '100%'}} disabled={disabled}>{buttonContent}</AnchorButton>);
     }
 
     private renderColorBarBox(layer: VariableImageLayerState) {
