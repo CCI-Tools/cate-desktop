@@ -19,8 +19,8 @@ export class HttpError extends Error {
  *
  * <pre>
  *     request('https://www.random.org/integers/?num=1&min=1&max=100&col=1&base=10&format=plain&rnd=new')
- *     .then((html) => console.log(html))
- *     .catch((err) => console.error(err));
+ *     .then((html) => log.info(html))
+ *     .catch((err) => log.error(err));
  * </pre>
  *
  * JavaScript version stolen from from https://www.tomas-dvorak.cz/posts/nodejs-request-without-dependencies/.
