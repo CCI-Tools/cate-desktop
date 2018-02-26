@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style type='text/css'>
+        html {
+            font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
+        }
+        #progress-bar {
+            font-weight: bolder;
+            font-size: 1.2em;
+        }
+        #install-log {
+            white-space: nowrap;
+            overflow: scroll;
+            font-weight: lighter;
+            font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.8em;
+        }
+    </style>
+    <script>
+        function isEmptySplit(parts) {
+            return parts.length === 0 || parts.length === 1 && parts[0] === "";
+        }
+
+        function isNoSplit(parts) {
+            return parts.length === 1 && parts[0] !== "";
+        }
+
+        function init() {
+            const installLog = document.getElementById('install-log');
+            const progressBar = document.getElementById('progress-bar');
+
+            function updateInstallLogLine(line) {
+                const lastSpan = installLog.lastElementChild;
+                const parts = line.split('\b');
+                if (!isEmptySplit(parts)) {
+                    lastSpan.textContent += parts[0].replace(/\s/g, '\u00a0');
+                    for (let i = 1; i < parts.length; i++) {
+                        lastSpan.textContent = parts[i].replace(/\s/g, '\u00a0');
+                    }
+                }
+            }
+
+            function updateInstallLog(message, error) {
+
+                if (installLog.lastElementChild === null) {
+                    installLog.appendChild(document.createElement("span"));
+                }
+
+                const lines = message.split('\n');
+                if (!isEmptySplit(lines)) {
+                    updateInstallLogLine(lines[0]);
+                    // lines.length >= 2
+                    for (let i = 1; i < lines.length; i++) {
+                        installLog.appendChild(document.createElement("br"));
+                        installLog.appendChild(document.createElement("span"));
+                        updateInstallLogLine(lines[i]);
+                    }
+                }
+            }
+
+            function updateProgressBar(name, worked, totalWork) {
+                progressBar.textContent = `Step ${worked} of ${totalWork}: ${name}`;
+            }
+
+            let start = 1000;
+            const delta = 200;
+
+            const steps = ['Downloading Miniconda', 'Installing Miniconda', 'Installing cate-cli'];
+
+            let step;
+            for (let i = 0; i < steps.length; i++) {
+                step = steps[i];
+                const start0 = start;
+                setTimeout(updateProgressBar, start += delta, step, i + 1, steps.length);
+                setTimeout(updateInstallLog, start += delta,   '' + step + ' |##                  | 10%');
+                setTimeout(updateInstallLog, start += delta, '\b' + step + ' |####                | 20%');
+                setTimeout(updateInstallLog, start += delta, '\b' + step + ' |######              | 30%');
+                setTimeout(updateInstallLog, start += delta, '\b' + step + ' |########            | 40%');
+                setTimeout(updateInstallLog, start += delta, '\b' + step + ' |##########          | 50%');
+                setTimeout(updateInstallLog, start += delta, '\b' + step + ' |############        | 60%');
+                setTimeout(updateInstallLog, start += delta, '\b' + step + ' |##############      | 70%');
+                setTimeout(updateInstallLog, start += delta, '\b' + step + ' |################    | 80%');
+                setTimeout(updateInstallLog, start += delta, '\b' + step + ' |##################  | 90%');
+                setTimeout(updateInstallLog, start += delta, '\b' + step + ' |####################| 100%\n');
+                setTimeout(updateInstallLog, start += delta, 'Done ' + step + '\nTook ' + (start - start0) / 1000 + ' seconds\n');
+            }
+            setTimeout(updateProgressBar, start += delta, step, steps.length, steps.length);
+
+            const ipcRenderer = require('electron').ipcRenderer;
+            let totalWork;
+            let worked;
+            let name;
+            ipcRenderer.on('update-progress', (event, progress) => {
+                name = progress.name || name;
+                totalWork = progress.totalWork || totalWork;
+                worked = progress.worked || worked;
+                if (name && worked && totalWork) {
+                    updateProgressBar(name, worked, totalWork);
+                }
+                if (progress.stdout) {
+                    updateInstallLog(progress.stdout, false);
+                }
+                if (progress.stderr) {
+                    updateInstallLog(progress.stderr, true);
+                }
+            });
+        }
+    </script>
+</head>
+<body onload="init()" style="overflow: hidden;">
+<div>
+    <div id="info">
+        <img src="resources/images/in-progress.gif" style="float: right; margin: 10px; height: 80px;"/>
+        <div id="progress-bar"></div>
+        Cate Desktop is now updating its Python environment. This may take several minutes.
+    </div>
+    <div id="install-log" style="clear: right"></div>
+</div>
+</body>
+</html>

@@ -1,7 +1,7 @@
 {
   "name": "cate-desktop",
   "productName": "Cate Desktop",
-  "version": "1.1.0-dev.1",
+  "version": "1.1.0-dev.6",
   "description": "A graphical user interface for the ESA CCI Toolbox (Cate)",
   "private": true,
   "scripts": {
@@ -13,6 +13,9 @@
     "compile": "tsc",
     "compile:trace": "tsc --traceResolution",
     "build": "build --x64 --publish never",
+    "publish": "build --x64 --publish always",
+    "publish:win": "build --x64 --win --publish always",
+    "publish:mac": "build --x64 --mac --publish always",
     "dist": "npm run clean && npm run compile && npm run build",
     "pack": "npm run clean && npm run compile && build --x64 --publish never --dir",
     "clean": "rimraf app/main app/renderer app/common npm-debug.log",
@@ -68,7 +71,9 @@
     "deep-object-diff": "^1.1.0",
     "electron": "1.7.11",
     "electron-builder": "19.56.0",
-    "electron-devtools-installer": "^2.2.1",
+    "electron-devtools-installer": "2.2.1",
+    "electron-log": "2.2.14",
+    "electron-updater": "2.20.1",
     "mocha": "^4.1.0",
     "oboe": "^2.1.4",
     "react": "^16.2.0",
@@ -92,8 +97,7 @@
     "appId": "org.esa.ccitools.Cate",
     "win": {
       "target": [
-        "nsis",
-        "zip"
+        "nsis"
       ],
       "publisherName": "Brockmann Consult GmbH"
     },
@@ -102,7 +106,8 @@
     },
     "mac": {
       "target": [
-        "dmg"
+        "dmg",
+        "zip"
       ],
       "category": "public.app-category.education"
     },

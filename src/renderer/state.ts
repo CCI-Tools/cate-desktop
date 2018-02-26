@@ -693,6 +693,7 @@ export interface SessionState {
     lastWorkspacePath?: string;
     reopenLastWorkspace?: boolean;
     offlineMode: boolean;
+    autoUpdateSoftware: boolean;
     autoShowNewFigures: boolean;
 
     // ApplicationPage

@@ -1,7 +1,8 @@
 import * as electron from 'electron';
-import {getAppDataDir, getAppIconPath, getAppCliLocation, APP_CLI_VERSION_RANGE} from "./appenv";
+import {getAppDataDir, getAppIconPath, APP_CLI_VERSION_RANGE, getCateCliPath} from "./appenv";
 
 const app = electron.app;
+const BrowserWindow = electron.BrowserWindow;
 
 function ifDarwinOrElse(darwinValue, elseValue) {
     if (process.platform == 'darwin')
@@ -271,6 +272,16 @@ export const actions = {
         category: 'help',
     },
 
+    checkForUpdates: {
+        label: 'Check for Updates...',
+        click: function () {
+            // TODO (nf): check how this may be implemented later
+            // const app: any = electron.app;
+            // app.checkForUpdates();
+        },
+        category: 'help',
+    },
+
     openAboutWindow: {
         label: 'About ' + app.getName(),
         role: 'about',
@@ -279,24 +290,22 @@ export const actions = {
             const iconPath = getAppIconPath();
             const iconImage = electron.nativeImage.createFromPath(iconPath);
             electron.dialog.showMessageBox({
-                title: `About ${app.getName()}`,
-                message: `${app.getName()}, version ${app.getVersion()}`,
-                detail: '' +
-                `Program: ${app.getAppPath()}\n` +
-                `Data: ${getAppDataDir()}\n` +
-                `CLI: ${getAppCliLocation()}\n` +
-                `Requires Cate Core ${APP_CLI_VERSION_RANGE}\n` +
-                '\n' +
-                'Cate is open source software distributed under the MIT license.\n\n' +
-                'Cate is developed on top of numerous 3rd party software packages.\n' +
-                'Notably, the Cate project team would like to acknowledge following projects:\n' +
-                'Python, Conda, Xarray, Dask, Pandas, Numpy, Matplotlib, Tornado, and more for Cate Core;\n' +
-                'TypeScript, Electron, React, Redux, BlueprintJS, Cesium, and more for Cate Desktop.',
-                icon: iconImage,
-            });
+                                               title: `About ${app.getName()}`,
+                                               message: `${app.getName()}, version ${app.getVersion()}`,
+                                               detail: '' +
+                                                       `Program: ${app.getAppPath()}\n` +
+                                                       `Data: ${getAppDataDir()}\n` +
+                                                       `CLI: ${getCateCliPath()}\n` +
+                                                       `Requires Cate Core ${APP_CLI_VERSION_RANGE}\n` +
+                                                       '\n' +
+                                                       'Cate is open source software distributed under the MIT license.\n\n' +
+                                                       'Cate is developed on top of numerous 3rd party software packages.\n' +
+                                                       'Notably, the Cate project team would like to acknowledge following projects:\n' +
+                                                       'Python, Conda, Xarray, Dask, Pandas, Numpy, Matplotlib, Tornado, and more for Cate Core;\n' +
+                                                       'TypeScript, Electron, React, Redux, BlueprintJS, Cesium, and more for Cate Desktop.',
+                                               icon: iconImage,
+                                           });
         },
     },
 };
-
-
 
