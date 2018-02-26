@@ -87,6 +87,10 @@ ul.cate-list-box li.cate-selected {
     background-color: rgba(128, 128, 255, 0.6);
 }
 
+.cate-radiogroup {
+    display: flex;
+}
+
 .cate-split-pane-hor {
     width: 100%;
     display: flex;

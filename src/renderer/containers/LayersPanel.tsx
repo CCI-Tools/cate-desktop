@@ -652,7 +652,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderVectorLayerDetails() {
         return (
-            <div style={{width: '100%'}}>
+            <div style={{width: '100%', marginTop: '30px'}}>
                 <label key="spacer" className="pt-label"> </label>
                 {this.renderStyleContext()}
                 {this.renderFillColor()}
@@ -684,14 +684,15 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         return (
             <RadioGroup
                 key="vectorStyleMode"
-                label="Apply styles to selected"
+                label="Selection type"
                 disabled={disabled}
                 inline={true}
                 onChange={this.handleChangedVectorStyleMode}
                 selectedValue={vectorStyleMode}
+                className="cate-radiogroup"
             >
-                <Radio label="entity" value="entity"/>
-                <Radio label="layer" value="layer"/>
+                <Radio label="entity" value="entity" style={{marginLeft: 'auto'}}/>
+                <Radio label="layer" value="layer" style={{marginLeft: '15px', marginRight: '10px'}}/>
             </RadioGroup>
         );
     }
@@ -727,13 +728,13 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderFillOpacity() {
         return (
-            <label className="pt-label pt-inline">
-                Fill opacity
-                <div style={LayersPanel.SLIDER_DIV_STYLE_10}>
+            <label className="pt-label pt-inline" style={{display: 'flex'}}>
+                <span style={{flexBasis: '150px'}}>Fill opacity</span>
+                <div style={{...LayersPanel.SLIDER_DIV_STYLE_05, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={0.0}
                             max={1.0}
                             stepSize={0.05}
-                            labelStepSize={0.25}
+                            renderLabel={false}
                             value={this.props.vectorStyle.fillOpacity}
                             onChange={this.handleChangedFillOpacity}
                     />
@@ -763,7 +764,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                 <span style={{flexBasis: '150px'}}>Stroke colour</span>
                 <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.stroke}
-                               style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
+                               style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
                                size={8}
                                uncontrolled={true}
                                onChange={this.handleChangedStrokeColor}
@@ -788,13 +789,13 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderStrokeOpacity() {
         return (
-            <label className="pt-label pt-inline">
-                Stroke opacity
-                <div style={LayersPanel.SLIDER_DIV_STYLE_10}>
+            <label className="pt-label pt-inline" style={{display: 'flex'}}>
+                <span style={{flexBasis: '150px'}}>Stroke opacity</span>
+                <div style={{...LayersPanel.SLIDER_DIV_STYLE_05, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={0.0}
                             max={1.0}
                             stepSize={0.05}
-                            labelStepSize={0.25}
+                            renderLabel={false}
                             value={this.props.vectorStyle.strokeOpacity}
                             onChange={this.handleChangedStrokeOpacity}
                     />
@@ -809,7 +810,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                 <span style={{flexBasis: '150px'}}>Marker colour</span>
                 <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.markerColor}
-                               style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
+                               style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
                                size={8}
                                uncontrolled={true}
                                onChange={this.handleChangedMarkerColor}
