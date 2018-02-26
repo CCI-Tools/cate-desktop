@@ -136,12 +136,14 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.handleChangedColorMapName = this.handleChangedColorMapName.bind(this);
         this.handleChangedVectorStyleMode = this.handleChangedVectorStyleMode.bind(this);
         this.handleChangedFillColor = this.handleChangedFillColor.bind(this);
-        this.handleChangedFillColorInPicker = this.handleChangedFillColorInPicker.bind(this);
+        this.handleChangedFillColorFromPicker = this.handleChangedFillColorFromPicker.bind(this);
         this.handleChangedFillOpacity = this.handleChangedFillOpacity.bind(this);
         this.handleChangedStrokeWidth = this.handleChangedStrokeWidth.bind(this);
         this.handleChangedStrokeColor = this.handleChangedStrokeColor.bind(this);
+        this.handleChangedStrokeColorFromPicker = this.handleChangedStrokeColorFromPicker.bind(this);
         this.handleChangedStrokeOpacity = this.handleChangedStrokeOpacity.bind(this);
         this.handleChangedMarkerColor = this.handleChangedMarkerColor.bind(this);
+        this.handleChangedMarkerColorFromPicker = this.handleChangedMarkerColorFromPicker.bind(this);
         this.handleChangedMarkerSize = this.handleChangedMarkerSize.bind(this);
         this.handleChangedMarkerSymbol = this.handleChangedMarkerSymbol.bind(this);
         this.renderLayerItem = this.renderLayerItem.bind(this);
@@ -245,7 +247,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.handleChangedVectorStyle({...this.props.vectorStyle, fill: value.value});
     }
 
-    private handleChangedFillColorInPicker(color: ColorResult) {
+    private handleChangedFillColorFromPicker(color: ColorResult) {
         this.handleChangedVectorStyle({...this.props.vectorStyle, fill: color.hex});
     }
 
@@ -261,6 +263,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.handleChangedVectorStyle({...this.props.vectorStyle, stroke: value.value});
     }
 
+    private handleChangedStrokeColorFromPicker(color: ColorResult) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, stroke: color.hex});
+    }
+
     private handleChangedStrokeOpacity(strokeOpacity: number) {
         this.handleChangedVectorStyle({...this.props.vectorStyle, strokeOpacity});
     }
@@ -271,6 +277,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private handleChangedMarkerColor(value: FieldValue<string>) {
         this.handleChangedVectorStyle({...this.props.vectorStyle, markerColor: value.value});
+    }
+
+    private handleChangedMarkerColorFromPicker(color: ColorResult) {
+        this.handleChangedVectorStyle({...this.props.vectorStyle, markerColor: color.hex});
     }
 
     private handleChangedMarkerSymbol(value: FieldValue<string>) {
@@ -703,11 +713,11 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                     position={Position.LEFT_TOP}
                 >
                     <Button intent={Intent.PRIMARY} style={{marginLeft: '1em'}}>
-                        Pick color
+                        Pick colour
                     </Button>
                     <ChromePicker
                         color={this.props.vectorStyle.fill}
-                        onChange={this.handleChangedFillColorInPicker}
+                        onChange={this.handleChangedFillColorFromPicker}
                         disableAlpha={true}
                     />
                 </Popover>
@@ -757,6 +767,20 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                            uncontrolled={true}
                            onChange={this.handleChangedStrokeColor}
                 />
+                <Popover
+                    interactionKind={PopoverInteractionKind.CLICK}
+                    popoverClassName="pt-minimal"
+                    position={Position.LEFT_TOP}
+                >
+                    <Button intent={Intent.PRIMARY} style={{marginLeft: '1em'}}>
+                        Pick colour
+                    </Button>
+                    <ChromePicker
+                        color={this.props.vectorStyle.stroke}
+                        onChange={this.handleChangedStrokeColorFromPicker}
+                        disableAlpha={true}
+                    />
+                </Popover>
             </label>
         );
     }
@@ -788,6 +812,20 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                            uncontrolled={true}
                            onChange={this.handleChangedMarkerColor}
                 />
+                <Popover
+                    interactionKind={PopoverInteractionKind.CLICK}
+                    popoverClassName="pt-minimal"
+                    position={Position.LEFT_TOP}
+                >
+                    <Button intent={Intent.PRIMARY} style={{marginLeft: '1em'}}>
+                        Pick colour
+                    </Button>
+                    <ChromePicker
+                        color={this.props.vectorStyle.markerColor}
+                        onChange={this.handleChangedMarkerColorFromPicker}
+                        disableAlpha={true}
+                    />
+                </Popover>
             </label>
         );
     }
