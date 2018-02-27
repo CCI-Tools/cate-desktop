@@ -3,73 +3,73 @@ import 'chai-as-promised';
 import deepEqual = require("deep-equal");
 import {isDefined} from "./types";
 import {
-    RequirementSet,
-    Requirement,
-    RequirementError,
-    RequirementContext,
-    RequirementProgressHandler
-} from './requirement';
+    TransactionSet,
+    Transaction,
+    TransactionError,
+    TransactionContext,
+    TransactionProgressHandler
+} from './transaction';
 
-describe('RequirementSet', function () {
+describe('TransactionSet', function () {
 
-    it('can get requirement IDs', () => {
-        const rSet = new RequirementSet();
-        rSet.addRequirements([new Requirement('r1'),
-                              new Requirement('r2', ['r1']),
-                              new Requirement('r3', ['r2'])]);
-        let requirementIds = rSet.getRequirementIds();
-        expect(new Set(requirementIds)).to.deep.equal(new Set(['r1', 'r2', 'r3']));
+    it('can get transaction IDs', () => {
+        const rSet = new TransactionSet();
+        rSet.addTransactions([new Transaction('r1'),
+                              new Transaction('r2', ['r1']),
+                              new Transaction('r3', ['r2'])]);
+        let transactionIds = rSet.getTransactionIds();
+        expect(new Set(transactionIds)).to.deep.equal(new Set(['r1', 'r2', 'r3']));
     });
 
-    it('can collect requirements', () => {
-        const rSet = new RequirementSet();
-        rSet.addRequirements([new Requirement('r1'),
-                              new Requirement('r2', ['r1']),
-                              new Requirement('r3', ['r2'])]);
-        let requirements = rSet.collectRequirements('r3');
-        expect(requirements).to.deep.equal([rSet.getRequirement('r1'),
-                                            rSet.getRequirement('r2'),
-                                            rSet.getRequirement('r3')]);
+    it('can collect transactions', () => {
+        const rSet = new TransactionSet();
+        rSet.addTransactions([new Transaction('r1'),
+                              new Transaction('r2', ['r1']),
+                              new Transaction('r3', ['r2'])]);
+        let transactions = rSet.collectTransactions('r3');
+        expect(transactions).to.deep.equal([rSet.getTransaction('r1'),
+                                            rSet.getTransaction('r2'),
+                                            rSet.getTransaction('r3')]);
     });
 
-    it('can resolve requirements', () => {
-        const rSet = new RequirementSet();
-        rSet.addRequirements([new Requirement('r1'),
-                              new Requirement('r2', ['r1']),
-                              new Requirement('r3', ['r2'])]);
-        let promise = rSet.fulfillRequirement('r3');
+    it('can resolve transactions', () => {
+        const tSet = new TransactionSet();
+        tSet.addTransactions([new Transaction('r1'),
+                              new Transaction('r2', ['r1']),
+                              new Transaction('r3', ['r2'])]);
+        let promise = tSet.fulfillTransaction('r3');
         return expect(promise).to.eventually.be.fulfilled;
     });
 
     it('does use progress callback', () => {
-        const rSet = new RequirementSet();
+        const tSet = new TransactionSet();
 
-        class MyRequirement extends Requirement {
+        class MyTransaction extends Transaction {
 
-            fulfilled(context: RequirementContext, progress: RequirementProgressHandler): Promise<boolean> {
+            fulfilled(context: TransactionContext, progress: TransactionProgressHandler): Promise<boolean> {
                 return Promise.resolve().then(() => {
                     progress({message: `checking ${this.name}`});
                     return false;
                 });
             }
 
-            fulfill(context: RequirementContext, progress: RequirementProgressHandler): Promise<any> {
+            fulfill(context: TransactionContext, progress: TransactionProgressHandler): Promise<any> {
                 return Promise.resolve().then(() => {
                     progress({message: `fulfilling ${this.name}`});
                 });
             }
         }
 
-        rSet.addRequirements([new MyRequirement('r1'),
-                              new MyRequirement('r2', ['r1']),
-                              new MyRequirement('r3', ['r2'])]);
+        tSet.addTransactions([new MyTransaction('r1'),
+                              new MyTransaction('r2', ['r1']),
+                              new MyTransaction('r3', ['r2'])]);
 
         let progressTrace = [];
         let onProgress = (progress) => {
             progressTrace.push(progress);
         };
 
-        let promise = rSet.fulfillRequirement('r3', onProgress).then(() => progressTrace);
+        let promise = tSet.fulfillTransaction('r3', onProgress).then(() => progressTrace);
         return expect(promise).to.eventually.become([
                                                         {worked: 0, totalWork: 3, subWorked: 0, done: false},
                                                         {name: 'r1'},
@@ -86,18 +86,19 @@ describe('RequirementSet', function () {
                                                         {worked: 3, totalWork: 3, subWorked: 0, done: true},
                                                     ] as any);
     });
-    describe('RequirementSet failures', function () {
 
-        class MyRequirementFailingOnR3 extends Requirement {
+    describe('TransactionSet failures', function () {
 
-            fulfilled(context: RequirementContext, progress: RequirementProgressHandler): Promise<boolean> {
+        class MyTransactionFailingOnR3 extends Transaction {
+
+            fulfilled(context: TransactionContext, progress: TransactionProgressHandler): Promise<boolean> {
                 return Promise.resolve().then(() => {
                     progress({message: `checking ${this.name} files exist`});
                     return false;
                 });
             }
 
-            fulfill(context: RequirementContext, progress: RequirementProgressHandler): Promise<any> {
+            fulfill(context: TransactionContext, progress: TransactionProgressHandler): Promise<any> {
                 return Promise.resolve().then(() => {
                     progress({message: `adding ${this.name} files`});
                     if (this.name === 'r3') {
@@ -106,34 +107,34 @@ describe('RequirementSet', function () {
                 });
             }
 
-            rollback(context: RequirementContext, progress: RequirementProgressHandler): Promise<any> {
+            rollback(context: TransactionContext, progress: TransactionProgressHandler): Promise<any> {
                 return Promise.resolve().then(() => {
                     progress({message: `removing ${this.name} files`});
                 });
             }
         }
 
-        it('will be rejected', () => {
-            const rSet = new RequirementSet();
-            rSet.addRequirements([new MyRequirementFailingOnR3('r1'),
-                                  new MyRequirementFailingOnR3('r2', ['r1']),
-                                  new MyRequirementFailingOnR3('r3', ['r2'])]);
-            return rSet.fulfillRequirement('r3').should.be.rejected;
+        it('will reject', () => {
+            const tSet = new TransactionSet();
+            tSet.addTransactions([new MyTransactionFailingOnR3('r1'),
+                                  new MyTransactionFailingOnR3('r2', ['r1']),
+                                  new MyTransactionFailingOnR3('r3', ['r2'])]);
+            return tSet.fulfillTransaction('r3').should.be.rejected;
         });
 
         it('will rollback', () => {
-            const rSet = new RequirementSet();
-            rSet.addRequirements([new MyRequirementFailingOnR3('r1'),
-                                  new MyRequirementFailingOnR3('r2', ['r1']),
-                                  new MyRequirementFailingOnR3('r3', ['r2'])]);
+            const tSet = new TransactionSet();
+            tSet.addTransactions([new MyTransactionFailingOnR3('r1'),
+                                  new MyTransactionFailingOnR3('r2', ['r1']),
+                                  new MyTransactionFailingOnR3('r3', ['r2'])]);
 
             let progressTrace = [];
             let onProgress = (progress) => {
                 progressTrace.push(progress);
             };
 
-            let promise = rSet.fulfillRequirement('r3', onProgress).catch(() => progressTrace);
-            let expectedError = new RequirementError(rSet.getRequirement('r3'), 2, new Error('disk full'));
+            let promise = tSet.fulfillTransaction('r3', onProgress).catch(() => progressTrace);
+            let expectedError = new TransactionError(tSet.getTransaction('r3'), 2, new Error('disk full'));
 
             const expectedProgressTrace = [
                 {worked: 0, totalWork: 3, subWorked: 0, done: false},
