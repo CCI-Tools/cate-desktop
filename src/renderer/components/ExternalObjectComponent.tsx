@@ -4,7 +4,7 @@ import {shallowEqual} from "../../common/shallow-equal";
 
 export interface IExternalObjectComponentProps<E, ES> {
     id: string;
-    externalObjectStore: ExternalObjectStore<E, ES>;
+    externalObjectStore?: ExternalObjectStore<E, ES>;
     style?: Object;
     className?: string;
     debug?: boolean;
@@ -75,6 +75,7 @@ export type ExternalObjectStore<E, S> = { [id: string]: ExternalObjectRef<E, S> 
  */
 export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectComponentProps<E, ES>, S>
     extends React.PureComponent<P, S> {
+    private static readonly DEFAULT_EXTERNAL_OBJECT_STORE: Object = {};
 
     private parentContainer: HTMLElement | null;
 
@@ -89,9 +90,6 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         if (!props.id) {
             throw new Error("cannot construct ExternalObjectComponent without id");
         }
-        if (!props.externalObjectStore) {
-            throw new Error("cannot construct ExternalObjectComponent without externalObjectStore");
-        }
     }
 
     /**
@@ -103,7 +101,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      * @returns the external object reference or null.
      */
     getExternalObjectRef(): ExternalObjectRef<E, ES> | null {
-        return this.props.externalObjectStore[this.props.id] || null;
+        return this.externalObjectStore[this.props.id] || null;
     }
 
     // TODO (forman): we can probably simplify ExternalObjectComponent by getting rid of the intermediate container
@@ -239,7 +237,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      * Clients may call this method to force a regeneration of their external component.
      */
     forceRegeneration() {
-        let externalObjectStore = this.props.externalObjectStore;
+        let externalObjectStore = this.externalObjectStore;
         let externalObjectRef = externalObjectStore[this.props.id];
         if (externalObjectRef) {
             delete externalObjectStore[this.props.id];
@@ -258,7 +256,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
             if (parentContainer.id !== props.id) {
                 this.unmountExternalObject(parentContainer, this.props as Readonly<P & ES>);
             }
-            if (props.id in props.externalObjectStore) {
+            if (props.id in this.externalObjectStore) {
                 this.mountExistingExternalObject(parentContainer, props);
             } else {
                 this.mountNewExternalObject(parentContainer, props);
@@ -280,7 +278,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
             parentContainer.appendChild(container);
         }
         const object = this.newExternalObject(parentContainer, container);
-        props.externalObjectStore[props.id] = {object, container};
+        this.externalObjectStore[props.id] = {object, container};
         this.parentContainer = parentContainer;
         this.externalObjectMounted(object, props, parentContainer, container);
         this.updateExternalComponentAndSaveProps(props);
@@ -290,7 +288,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         if (props.debug) {
             console.log("ExternalObjectComponent.mountExistingExternalObject: props.id =", props.id);
         }
-        const externalObjectRef = props.externalObjectStore[props.id];
+        const externalObjectRef = this.externalObjectStore[props.id];
         assert.ok(externalObjectRef);
         const container = externalObjectRef.container;
         if (container && !parentContainer.contains(container)) {
@@ -308,7 +306,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         if (this.props.debug) {
             console.log("ExternalObjectComponent.unmountExternalObject: parentContainer.id =", parentContainer.id);
         }
-        const externalObjectRef = props.externalObjectStore[parentContainer.id];
+        const externalObjectRef = this.externalObjectStore[parentContainer.id];
         assert.ok(externalObjectRef);
         const container = externalObjectRef.container;
         if (container && parentContainer.contains(container)) {
@@ -322,7 +320,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
     }
 
     private updateExternalComponentAndSaveProps(nextProps: Readonly<P>): void {
-        const externalObjectRef = nextProps.externalObjectStore[nextProps.id];
+        const externalObjectRef = this.externalObjectStore[nextProps.id];
         assert.ok(externalObjectRef);
         // Get previous props
         const prevState = externalObjectRef.state;
@@ -349,5 +347,9 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
     //noinspection JSMethodCanBeStatic
     protected shouldExternalObjectUpdate(prevState: ES, nextState: ES): boolean {
         return !shallowEqual(prevState, nextState);
+    }
+
+    private get externalObjectStore(): ExternalObjectStore<E, ES> {
+        return (this.props.externalObjectStore || ExternalObjectComponent.DEFAULT_EXTERNAL_OBJECT_STORE) as ExternalObjectStore<E, ES>;
     }
 }

@@ -3,12 +3,9 @@ import {MplFigureCommandListener, MplFigureCommandSourceImpl} from './MplFigure'
 import {MplFigureContainer} from './MplFigureContainer';
 import {AnchorButton, Tag, Tooltip} from "@blueprintjs/core";
 import {CSSProperties} from "react";
-import * as selectors from "../../selectors";
-import {connect} from "react-redux";
-import {State} from "../../state";
 
 
-interface IFigurePanelOwnProps {
+interface IFigurePanelProps {
     id: string;
     figureId: number;
     figureUpdateCount: number;
@@ -18,35 +15,19 @@ interface IFigurePanelOwnProps {
     onDownload: MplFigureCommandListener;
 }
 
-interface IFigurePanelProps extends IFigurePanelOwnProps {
-    externalObjectStore: any;
-}
-
 interface IFigurePanelState {
     message?: string;
 }
 
 const FIGURE_COMMAND_SOURCE = new MplFigureCommandSourceImpl();
 
-function mapStateToProps(state: State, ownProps: IFigurePanelOwnProps): IFigurePanelProps {
-    return {
-        id: ownProps.id,
-        figureId: ownProps.figureId,
-        figureUpdateCount: ownProps.figureUpdateCount,
-        figureName: ownProps.figureName,
-        figureHeight: ownProps.figureHeight,
-        webSocketUrl: ownProps.webSocketUrl,
-        onDownload: ownProps.onDownload,
-        externalObjectStore: selectors.externalObjectStoreSelector(state),
-    };
-}
 
 /**
  * A component that wraps a div that holds a matplotlib figure.
  *
  * @author Norman Fomferra
  */
-class MplFigurePanel extends React.Component<IFigurePanelProps, IFigurePanelState> {
+export class MplFigurePanel extends React.Component<IFigurePanelProps, IFigurePanelState> {
     static readonly DIV_STYLE: CSSProperties = {width: '100%', overflow: 'auto'};
     static readonly CONTAINER_DIV_STYLE: CSSProperties = {width: '100%', overflow: 'hidden', padding: '0.2em 0.2em 0 0.2em'};
 
@@ -76,8 +57,7 @@ class MplFigurePanel extends React.Component<IFigurePanelProps, IFigurePanelStat
                                     webSocketUrl={this.props.webSocketUrl}
                                     style={MplFigurePanel.CONTAINER_DIV_STYLE}
                                     commandSource={FIGURE_COMMAND_SOURCE}
-                                    onMessage={this.handleFigureMessage}
-                                    externalObjectStore={this.props.externalObjectStore}/>
+                                    onMessage={this.handleFigureMessage}/>
                 <MplFigureToolbar figureId={this.props.figureId}
                                   message={this.state.message}
                                   onCommand={FIGURE_COMMAND_SOURCE.dispatchCommand}
@@ -86,8 +66,6 @@ class MplFigurePanel extends React.Component<IFigurePanelProps, IFigurePanelStat
         );
     }
 }
-
-export default connect(mapStateToProps)(MplFigurePanel);
 
 interface IMplFigureToolbarProps {
     figureId: number;
