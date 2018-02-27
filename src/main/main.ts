@@ -21,6 +21,7 @@ import {isDefined} from "../common/types";
 import {doSetup} from "./setup";
 import {SetupResult} from "../common/setup";
 
+
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
 const RUN_OPTIONS = ['--run', '-r'];
@@ -500,14 +501,15 @@ export function init() {
         }
     });
 
-    app.on('ready', () => {
-        if (process.env.NODE_ENV !== 'development') {
-            const autoUpdateSoftware = _prefs.data.autoUpdateSoftware || !isDefined(_prefs.data.autoUpdateSoftware);
-            if (autoUpdateSoftware) {
-                installAutoUpdate();
-            }
+}
+
+function maybeInstallAutoUpdate(mainWindow: electron.BrowserWindow) {
+    if (process.env.NODE_ENV !== 'development') {
+        const autoUpdateSoftware = _prefs.data.autoUpdateSoftware || !isDefined(_prefs.data.autoUpdateSoftware);
+        if (autoUpdateSoftware) {
+            installAutoUpdate(mainWindow);
         }
-    });
+    }
 }
 
 function loadSplashWindow(callback: () => void) {
@@ -570,6 +572,8 @@ function loadMainWindow() {
                 }),
             })
         });
+
+        maybeInstallAutoUpdate(_mainWindow);
     });
 
     if (_prefs.data.devToolsOpened) {
@@ -579,7 +583,7 @@ function loadMainWindow() {
 
     const requestPreferencesUpdate = (event) => {
         _prefsUpdateRequestedOnClose = true;
-        log.info('Main window is going to be closed, fetching user preferences...');
+        log.info('Main window is going to be closed, requesting user preferences update...');
         _prefs.set('mainWindowBounds', _mainWindow.getBounds());
         _prefs.set('devToolsOpened', _mainWindow.webContents.isDevToolsOpened());
         event.sender.send('get-preferences');

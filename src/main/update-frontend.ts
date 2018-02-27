@@ -3,10 +3,13 @@ import {autoUpdater, UpdateCheckResult, UpdateInfo, CancellationToken} from "ele
 import * as log from "electron-log";
 
 
-const USER_INTERACTION = true;
+const TITLE = "Cate Desktop Update";
+const USER_INTERACTION = false;
+
+let _autoQuitAndInstall = false;
 
 
-export function installAutoUpdate() {
+export function installAutoUpdate(mainWindow: electron.BrowserWindow) {
 
     autoUpdater.logger = log;
 
@@ -28,6 +31,11 @@ export function installAutoUpdate() {
             log.error("Update-check NOT installed");
         }
     } else {
+
+        // TODO (nf): this update Option 2 is preferred, but doesn't work yet.
+        // autoUpdater.quitAndInstall() on "update-downloaded" doesn't install the update
+        // and doesn't restart Cate Desktop :(
+
         //-------------------------------------------------------------------
         // Auto updates - Option 2 - More control
         //
@@ -51,27 +59,30 @@ export function installAutoUpdate() {
         autoUpdater.on('checking-for-update', () => {
         });
 
-        autoUpdater.on('update-available', (info) => {
-            let options: electron.MessageBoxOptions = {
-                title: "Cate Desktop",
-                message: `Do you want to download and install it now?`,
-                detail: `A new version of Cate Desktop is available:\nVersion ${info.version} from ${info.releaseDate}`,
-                //checkboxLabel: "Disable automatic updates",
-                //checkboxChecked: false,
-                buttons: ["Yes", "No"],
-            };
-            electron.dialog.showMessageBox(options, (response: number/*, checkboxChecked: boolean*/) => {
-                if (response === 0) {
-                    autoUpdater.downloadUpdate(cancellationToken);
-                }
-            });
+        autoUpdater.on('update-available', (info: UpdateInfo) => {
+            if (!mainWindow.isDestroyed()) {
+                let options: electron.MessageBoxOptions = {
+                    title: TITLE,
+                    message: `An update of Cate Desktop is available!`,
+                    detail: `Version: ${info.version}\nRelease date: ${info.releaseDate}\n\nDo you want to download and install it now?`,
+                    checkboxLabel: "Shutdown immediately after download and install update.",
+                    checkboxChecked: _autoQuitAndInstall,
+                    buttons: ["OK", "Cancel"],
+                };
+                electron.dialog.showMessageBox(mainWindow, options, (response: number, checkboxChecked: boolean) => {
+                    if (response === 0) {
+                        _autoQuitAndInstall = checkboxChecked;
+                        autoUpdater.downloadUpdate(cancellationToken);
+                    }
+                });
+            }
         });
 
         autoUpdater.on('update-not-available', (info) => {
         });
 
         autoUpdater.on('error', (err) => {
-            electron.dialog.showErrorBox("Cate Desktop Update", (err && err.toString()) || "Unknown error.");
+            electron.dialog.showErrorBox(TITLE, (err && err.toString()) || "An unknown error occurred during update.");
         });
 
         autoUpdater.on('download-progress', (progressObj) => {
@@ -79,19 +90,21 @@ export function installAutoUpdate() {
         });
 
         autoUpdater.on('update-downloaded', (info: UpdateInfo) => {
-            let options: electron.MessageBoxOptions = {
-                title: "Cate Desktop Update",
-                message: `Update to version ${info.version} (from ${info.releaseDate})?`,
-                detail: "A new version of Cate Desktop is ready to be installed.",
-                //checkboxLabel: "Disable automatic updates",
-                //checkboxChecked: false,
-                buttons: ["Yes", "No"],
-            };
-            electron.dialog.showMessageBox(options, (response: number/*, checkboxChecked: boolean*/) => {
-                if (response === 0) {
-                    autoUpdater.quitAndInstall();
-                }
-            });
+            if (_autoQuitAndInstall) {
+                autoUpdater.quitAndInstall();
+            } else if (!mainWindow.isDestroyed()) {
+                let options: electron.MessageBoxOptions = {
+                    title: TITLE,
+                    message: "The update is now ready to be installed.",
+                    detail: "Clicking OK will shutdown Cate Desktop and install the update.",
+                    buttons: ["OK", "Cancel"],
+                };
+                electron.dialog.showMessageBox(mainWindow, options, (response: number) => {
+                    if (response === 0) {
+                        autoUpdater.quitAndInstall();
+                    }
+                });
+            }
         });
     }
 }
