@@ -74,7 +74,7 @@
     "electron-devtools-installer": "2.2.1",
     "electron-log": "2.2.14",
     "electron-updater": "2.20.1",
-    "mocha": "^4.1.0",
+    "mocha": "^5.0.1",
     "oboe": "^2.1.4",
     "react": "^16.2.0",
     "react-addons-css-transition-group": "^15.6.2",
