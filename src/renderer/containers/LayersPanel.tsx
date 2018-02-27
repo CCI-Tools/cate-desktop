@@ -471,23 +471,21 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         }
 
         return (
-            <div style={{width: '100%'}}>
-                <label key="drange" className="pt-label">
-                    Display range
-                    <div>
-                        <div style={{width: '100%', display: 'flex', alignItems: 'center'}}>
-                            <NumericRangeField value={this.props.displayMinMax}
-                                               style={{flex: 'auto'}}
-                                               onChange={this.handleChangedDisplayMinMax}
-                                               uncontrolled={true}
-                            />
-                            <Tooltip content="Compute valid min/max" position={Position.LEFT}>
-                                <AnchorButton className="pt-intent-primary" iconName="arrows-horizontal"
-                                              style={{flex: 'none'}}
-                                              disabled={this.props.isComputingVariableStatistics}
-                                              onClick={this.handleUpdateDisplayStatistics}/>
-                            </Tooltip>
-                        </div>
+            <div style={{width: '100%', marginBottom: '20px'}}>
+                <label key="drange" className="pt-label" style={{display: 'flex'}}>
+                    <span style={{flexBasis: '100px', margin: 'auto 0'}}>Display range</span>
+                    <div style={{display: 'flex', alignItems: 'center'}}>
+                        <NumericRangeField value={this.props.displayMinMax}
+                                           style={{flex: 'auto'}}
+                                           onChange={this.handleChangedDisplayMinMax}
+                                           uncontrolled={true}
+                        />
+                        <Tooltip content="Compute valid min/max" position={Position.LEFT}>
+                            <AnchorButton className="pt-intent-primary" iconName="arrows-horizontal"
+                                          style={{flex: 'none', marginTop: '5px'}}
+                                          disabled={this.props.isComputingVariableStatistics}
+                                          onClick={this.handleUpdateDisplayStatistics}/>
+                        </Tooltip>
                     </div>
                 </label>
                 <div style={LayersPanel.SLIDER_DIV_STYLE_15}>
@@ -533,7 +531,12 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                 dimensionRows.push(
                     <label key={dimension + '_index'} className="pt-label pt-inline" style={{display: 'flex'}}>
                         <span style={{flexBasis: '100px'}}>{'Index into ' + dimension}</span>
-                        <div style={{...LayersPanel.SLIDER_DIV_STYLE_10, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
+                        <div style={{
+                            ...LayersPanel.SLIDER_DIV_STYLE_10,
+                            width: undefined,
+                            flex: 'auto 1',
+                            margin: 'auto 0'
+                        }}>
                             <Slider min={0}
                                     max={max}
                                     stepSize={1}
@@ -562,7 +565,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         return (
             <label key={key} className="pt-label" style={{display: 'flex'}}>
                 <span style={{flexBasis: '100px'}}>{label}</span>
-                <div style={{...LayersPanel.SLIDER_DIV_STYLE_05, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
+                <div style={{...LayersPanel.SLIDER_DIV_STYLE_10, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={min}
                             max={max}
                             stepSize={(max - min) / 10.}
@@ -606,7 +609,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         const selectedColorMapName = layer.colorMapName;
         const selectedColorMapImage = this.renderColorMapImage(this.props.selectedColorMap);
         const buttonContent = (selectedColorMapImage || (selectedColorMapName || 'Select Color Bar'));
-        return (<AnchorButton className="pt-minimal" style={{width: '100%'}} disabled={disabled}>{buttonContent}</AnchorButton>);
+        return (<AnchorButton className="pt-minimal" style={{width: '100%'}}
+                              disabled={disabled}>{buttonContent}</AnchorButton>);
     }
 
     private renderColorBarBox(layer: VariableImageLayerState) {
