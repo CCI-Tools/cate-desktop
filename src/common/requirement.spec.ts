@@ -1,4 +1,4 @@
-import {expect} from 'chai';
+import {expect, assert} from 'chai';
 import 'chai-as-promised';
 import deepEqual = require("deep-equal");
 import {isDefined} from "./types";
@@ -86,11 +86,9 @@ describe('RequirementSet', function () {
                                                         {worked: 3, totalWork: 3, subWorked: 0, done: true},
                                                     ] as any);
     });
+    describe('RequirementSet failures', function () {
 
-    it('can rollback', () => {
-        const rSet = new RequirementSet();
-
-        class MyRequirement extends Requirement {
+        class MyRequirementFailingOnR3 extends Requirement {
 
             fulfilled(context: RequirementContext, progress: RequirementProgressHandler): Promise<boolean> {
                 return Promise.resolve().then(() => {
@@ -115,54 +113,71 @@ describe('RequirementSet', function () {
             }
         }
 
-        rSet.addRequirements([new MyRequirement('r1'),
-                              new MyRequirement('r2', ['r1']),
-                              new MyRequirement('r3', ['r2'])]);
-
-        let progressTrace = [];
-        let onProgress = (progress) => {
-            progressTrace.push(progress);
-        };
-
-        let promise = rSet.fulfillRequirement('r3', onProgress).then(() => progressTrace);
-        const expectedProgressTrace = [
-            {worked: 0, totalWork: 3, done: false},
-            {name: 'r1'},
-            {message: 'checking r1 files exist'},
-            {message: 'adding r1 files'},
-            {worked: 1, totalWork: 3, done: false},
-            {name: 'r2'},
-            {message: 'checking r2 files exist'},
-            {message: 'adding r2 files'},
-            {worked: 2, totalWork: 3, done: false},
-            {name: 'r3'},
-            {message: 'checking r3 files exist'},
-            {message: 'adding r3 files'},
-            /*12*/{error: new RequirementError(rSet.getRequirement('r3'), 2, new Error('disk full'))},
-            {name: 'Rolling back "r3"'},
-            {message: 'removing r3 files'},
-            {worked: 2, totalWork: 3, done: false},
-            {name: 'Rolling back "r2"'},
-            {message: 'removing r2 files'},
-            {worked: 1, totalWork: 3, done: false},
-            {name: 'Rolling back "r1"'},
-            {message: 'removing r1 files'},
-            {worked: 0, totalWork: 3, done: true},
-        ];
-        promise.then(r => console.log(r));
-
-        expect(promise, "number of events").to.eventually.satisfy((actualProgressTrace) => {
-            return actualProgressTrace.length === expectedProgressTrace.length;
+        it('will be rejected', () => {
+            const rSet = new RequirementSet();
+            rSet.addRequirements([new MyRequirementFailingOnR3('r1'),
+                                  new MyRequirementFailingOnR3('r2', ['r1']),
+                                  new MyRequirementFailingOnR3('r3', ['r2'])]);
+            return rSet.fulfillRequirement('r3').should.be.rejected;
         });
 
-        expect(promise, "error at index 12").to.eventually.satisfy((actualProgressTrace) => {
-            return isDefined(actualProgressTrace[12].error);
-        });
+        it('will rollback', () => {
+            const rSet = new RequirementSet();
+            rSet.addRequirements([new MyRequirementFailingOnR3('r1'),
+                                  new MyRequirementFailingOnR3('r2', ['r1']),
+                                  new MyRequirementFailingOnR3('r3', ['r2'])]);
 
-        expect(promise, "all events are deeply equal").to.eventually.satisfy((actualProgressTrace) => {
-            actualProgressTrace[12] = null;
-            expectedProgressTrace[12] = null;
-            return deepEqual(actualProgressTrace, expectedProgressTrace);
+            let progressTrace = [];
+            let onProgress = (progress) => {
+                progressTrace.push(progress);
+            };
+
+            let promise = rSet.fulfillRequirement('r3', onProgress).catch(() => progressTrace);
+            let expectedError = new RequirementError(rSet.getRequirement('r3'), 2, new Error('disk full'));
+
+            const expectedProgressTrace = [
+                {worked: 0, totalWork: 3, subWorked: 0, done: false},
+                {name: 'r1'},
+                {message: 'checking r1 files exist'},
+                {message: 'adding r1 files'},
+                {worked: 1, totalWork: 3, subWorked: 0, done: false},
+                {name: 'r2'},
+                {message: 'checking r2 files exist'},
+                {message: 'adding r2 files'},
+                {worked: 2, totalWork: 3, subWorked: 0, done: false},
+                {name: 'r3'},
+                {message: 'checking r3 files exist'},
+                {message: 'adding r3 files'},
+                {error: expectedError},
+                {name: 'Rolling back "r3"'},
+                {message: 'removing r3 files'},
+                {worked: 2, totalWork: 3, subWorked: 0, done: false},
+                {name: 'Rolling back "r2"'},
+                {message: 'removing r2 files'},
+                {worked: 1, totalWork: 3, subWorked: 0, done: false},
+                {name: 'Rolling back "r1"'},
+                {message: 'removing r1 files'},
+                {worked: 0, totalWork: 3, subWorked: 0, done: true},
+            ];
+            promise.then(r => console.log(r));
+
+            const p1 = expect(promise, "number of events").to.eventually.satisfy((actualProgressTrace) => {
+                return actualProgressTrace.length === expectedProgressTrace.length;
+            });
+
+            const p2 = expect(promise, "error at index 12").to.eventually.satisfy((actualProgressTrace) => {
+                return isDefined(actualProgressTrace[12].error);
+            });
+
+            const p3 = expect(promise, "all events are deeply equal").to.eventually.satisfy((actualProgressTrace) => {
+                // Exclude error at index 12 from comparison
+                actualProgressTrace[12] = null;
+                expectedProgressTrace[12] = null;
+                return deepEqual(actualProgressTrace, expectedProgressTrace);
+            });
+
+            return Promise.all([p1, p2, p3]);
         });
     });
+
 });

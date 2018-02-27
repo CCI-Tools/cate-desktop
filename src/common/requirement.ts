@@ -142,12 +142,14 @@ export class RequirementSet implements RequirementContext {
         onProgress = onProgress || RequirementSet.NO_PROGRESS_HANDLER;
         this._requirementStates = {};
         const requirements = this.collectRequirements(requirementId);
-        let fulfillSequence = this.newFulfillSequence(requirements, onProgress);
+        const fulfillSequence = this.newFulfillSequence(requirements, onProgress);
         return fulfillSequence.catch(reason => {
             if (!(reason instanceof RequirementError)) {
                 throw reason;
             }
-            return this.newRollbackSequence(requirements, reason, onProgress);
+            let rollbackSequence = this.newRollbackSequence(requirements, reason, onProgress);
+            // Now force the rollbackSequence to fail.
+            return rollbackSequence.then(() => Promise.reject(reason));
         });
     }
 
