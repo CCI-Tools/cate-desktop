@@ -89,6 +89,9 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         if (!props.id) {
             throw new Error("cannot construct ExternalObjectComponent without id");
         }
+        if (!props.externalObjectStore) {
+            throw new Error("cannot construct ExternalObjectComponent without externalObjectStore");
+        }
     }
 
     /**
@@ -194,7 +197,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
             console.log("ExternalObjectComponent.componentWillUpdate nextProps.id =", nextProps.id);
         }
         ExternalObjectComponent.checkProps(nextProps);
-        if (this.props.id == nextProps.id) {
+        if (this.props.id === nextProps.id) {
             this.updateExternalComponentAndSaveProps(nextProps);
         } else if (this.parentContainer) {
             this.remountExternalObject(this.parentContainer, nextProps);
@@ -248,11 +251,11 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
     }
 
     protected remountExternalObject(parentContainer: HTMLElement | null, props: Readonly<P & ES>) {
-        if (this.props.debug) {
-            console.log("ExternalObjectComponent.remountExternalObject: props.id =", props && props.id);
+        if (props.debug) {
+            console.log("ExternalObjectComponent.remountExternalObject: props.id =", props.id);
         }
         if (parentContainer) {
-            if (parentContainer.id != props.id) {
+            if (parentContainer.id !== props.id) {
                 this.unmountExternalObject(parentContainer, this.props as Readonly<P & ES>);
             }
             if (props.id in props.externalObjectStore) {

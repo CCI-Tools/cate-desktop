@@ -328,12 +328,12 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
 
     //noinspection JSMethodCanBeStatic
     private updatePlacemarkSelection(viewer: Cesium.Viewer, selectedPlacemarkId: string | null) {
-        const selectedEntity = selectedPlacemarkId && getEntityByEntityId(viewer, selectedPlacemarkId);
+        const selectedEntity = (selectedPlacemarkId && getEntityByEntityId(viewer, selectedPlacemarkId)) || null;
+        const selectedEntityInViewer = viewer.selectedEntity || null;
         if (this.props.debug) {
-            console.log('CesiumGlobe: updating selected placemark: ', viewer.selectedEntity, selectedEntity);
+            console.log('CesiumGlobe: updating selected placemark: ', selectedEntityInViewer, selectedEntity);
         }
-        if (viewer.selectedEntity != selectedEntity) {
-            // here we do not use '!==' because in that case 'undefined' and 'null' would trigger a unwanted change
+        if (selectedEntityInViewer !== selectedEntity) {
             viewer.selectedEntity = selectedEntity;
         }
     }
