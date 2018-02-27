@@ -160,7 +160,7 @@ describe('TransactionSet', function () {
                 {message: 'removing r1 files'},
                 {worked: 0, totalWork: 3, subWorked: 0, done: true},
             ];
-            promise.then(r => console.log(r));
+            //promise.then(r => console.log(r));
 
             const p1 = expect(promise, "number of events").to.eventually.satisfy((actualProgressTrace) => {
                 return actualProgressTrace.length === expectedProgressTrace.length;

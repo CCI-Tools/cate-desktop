@@ -23,7 +23,7 @@ import {SetupResult} from "../common/setup";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
-const RUN_OPTIONS = [ '--run', '-r'];
+const RUN_OPTIONS = ['--run', '-r'];
 
 const CATE_WEBAPI_PREFIX = 'cate-webapi:';
 
@@ -500,12 +500,14 @@ export function init() {
         }
     });
 
-    if (process.env.NODE_ENV !== 'development') {
-        const autoUpdateSoftware = _prefs.data.autoUpdateSoftware || !isDefined(_prefs.data.autoUpdateSoftware);
-        if (autoUpdateSoftware) {
-            installAutoUpdate();
+    app.on('ready', () => {
+        if (process.env.NODE_ENV !== 'development') {
+            const autoUpdateSoftware = _prefs.data.autoUpdateSoftware || !isDefined(_prefs.data.autoUpdateSoftware);
+            if (autoUpdateSoftware) {
+                installAutoUpdate();
+            }
         }
-    }
+    });
 }
 
 function loadSplashWindow(callback: () => void) {

@@ -195,15 +195,15 @@ export class TransactionSet implements TransactionContext {
 
     private newFulfillSequence(transactions: Transaction[], onProgress: TransactionProgressHandler) {
         onProgress({worked: 0, totalWork: transactions.length, subWorked: 0, done: transactions.length === 0});
-        let ensureFulfilledReducer = (p: Promise<void>, r: Transaction, i: number) => {
+        let ensureFulfilledReducer = (p: Promise<void>, t: Transaction, i: number) => {
             //console.log(`adding ${r.name}`);
             return p.then(() => {
-                onProgress({name: r.name});
-                return r.ensureFulfilled(this, onProgress).then(value => {
+                onProgress({name: t.name});
+                return t.ensureFulfilled(this, onProgress).then(value => {
                     onProgress({worked: i + 1, totalWork: transactions.length, subWorked: 0, done: i === transactions.length - 1});
                     return value;
                 }).catch(reason => {
-                    throw new TransactionError(r, i, reason);
+                    throw new TransactionError(t, i, reason);
                 });
             });
         };
@@ -213,11 +213,11 @@ export class TransactionSet implements TransactionContext {
     private newRollbackSequence(transactions: Transaction[], error: TransactionError, onProgress: TransactionProgressHandler) {
         onProgress({error});
         const rollbackTransactions = transactions.slice(0, error.index + 1);
-        let rollbackReducer = (p: Promise<void>, r: Transaction, i: number) => {
+        let rollbackReducer = (p: Promise<void>, t: Transaction, i: number) => {
             //console.log(`adding ${r.name}`);
             return p.then(() => {
-                onProgress({name: `Rolling back "${r.name}"`});
-                return r.rollback(this, onProgress).then(value => {
+                onProgress({name: `Rolling back "${t.name}"`});
+                return t.rollback(this, onProgress).then(value => {
                     onProgress({worked: i, totalWork: transactions.length, subWorked: 0, done: i === 0});
                     return value;
                 });
