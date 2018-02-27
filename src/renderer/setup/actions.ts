@@ -11,7 +11,7 @@ import {
 } from "./state";
 import * as path from "path";
 import * as assert from "../../common/assert";
-import {RequirementError, RequirementProgress} from "../../common/requirement";
+import {TransactionError, TransactionProgress} from "../../common/transaction";
 
 // Strange, we must use this, imports from "react-redux" produce TS syntax errors
 export interface DispatchProp {
@@ -107,7 +107,7 @@ export function setSetupStatus(setupStatus: SetupStatus) {
     return {type: "SET_SETUP_STATUS", payload: {setupStatus}};
 }
 
-export function updateProgress(progress: RequirementProgress) {
+export function updateProgress(progress: TransactionProgress) {
     return {type: "UPDATE_PROGRESS", payload: {progress}};
 }
 
@@ -193,7 +193,7 @@ function validateCondaDir(dispatch: Dispatch<any>, getState: () => State) {
 
 export function performSetupTasks() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
-        const listener = (event, errorCode: number, error?: RequirementError, progress?: RequirementProgress) => {
+        const listener = (event, errorCode: number, error?: TransactionError, progress?: TransactionProgress) => {
             console.log("performSetupTasks-response: ", errorCode, error, progress);
             if (errorCode !== 0) {
                 dispatch(setSetupStatus(SETUP_STATUS_FAILED, ));

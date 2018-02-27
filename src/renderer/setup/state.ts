@@ -1,5 +1,5 @@
 import {SetupInfo, SetupOptions} from "../../common/setup";
-import {RequirementProgress} from "../../common/requirement";
+import {TransactionProgress} from "../../common/transaction";
 
 //export const SETUP_TEST_MODE = true;
 export const SETUP_TEST_MODE = false;
@@ -23,7 +23,7 @@ export interface State extends SetupOptions {
     setupInfo: SetupInfo;
     screenId: ScreenId;
     validations: { [screenId: string]: string };
-    progress: RequirementProgress;
+    progress: TransactionProgress;
     logLines: string[];
     setupStatus: SetupStatus;
     isLogOpen: boolean;

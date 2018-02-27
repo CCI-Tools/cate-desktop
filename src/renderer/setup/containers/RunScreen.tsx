@@ -7,14 +7,14 @@ import {
     State
 } from "../state";
 import * as actions from "../actions";
-import {RequirementProgress} from "../../../common/requirement";
+import {TransactionProgress} from "../../../common/transaction";
 import {LogField} from "../components/LogField";
 import {SetupScreen} from "../components/SetupScreen";
 import {isDefined, isNumber} from "../../../common/types";
 
 interface IRunScreenProps {
     setupStatus: SetupStatus;
-    progress: RequirementProgress;
+    progress: TransactionProgress;
     logLines: string[];
     isLogOpen: boolean;
 }
@@ -178,7 +178,7 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
         let message;
         let stdout;
         //let stderr;
-        //let error: RequirementError;
+        //let error: TransactionError;
 
         if (this.counter % 10 === 0) {
             totalWork = NUM_TASKS;
