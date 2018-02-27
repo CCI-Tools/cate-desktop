@@ -39,6 +39,7 @@ import {ViewState} from '../components/ViewState';
 import {NO_LAYER_PROPERTIES, NO_LAYER_SELECTED, NO_LAYERS_EMPTY_VIEW, NO_LAYERS_NO_VIEW} from '../messages';
 import * as Cesium from 'cesium';
 import {TextField} from '../components/field/TextField';
+import {SubPanelHeader} from '../components/SubPanelHeader';
 import {NumericField} from '../components/field/NumericField';
 import {SimpleStyle} from '../../common/geojson-simple-style';
 import {ColorResult} from 'react-color';
@@ -306,6 +307,18 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         event.stopPropagation();
     }
 
+    private static renderSeparatorLineWithTitle(title: string) {
+        return (
+            <div style={{margin: '10px 0', padding: '5px', backgroundColor: '#293742'}}>
+                <span style={{color: 'white', fontSize: '12px', fontWeight: 100}}>{title}</span>
+            </div>
+        )
+    }
+
+    private static capitalizeFirstLetter(string: string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
     private renderLayerItem(layer: LayerState) {
         return (
             <div>
@@ -421,10 +434,13 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         return (
             <div style={{width: '100%'}}>
                 <label key="spacer" className="pt-label"> </label>
+                <SubPanelHeader title="DATA SELECTION"/>
+                {this.renderFormVarIndex()}
+                <SubPanelHeader title="COLOUR MAPPING"/>
+                {this.renderFormAlphaBlending()}
                 {this.renderFormDisplayMinMax()}
                 {this.renderFormDisplayColorBar()}
-                {this.renderFormAlphaBlending()}
-                {this.renderFormVarIndex()}
+                <SubPanelHeader title="IMAGE ENHANCEMENTS"/>
                 {this.renderFormImageEnhancement('opacity', 'Opacity', 0., 1.)}
                 {this.renderFormImageEnhancement('brightness', 'Brightness', 0., 2.)}
                 {this.renderFormImageEnhancement('contrast', 'Contrast', 0., 2.)}
@@ -458,7 +474,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
         return (
             <label key="cmap" className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '100px'}}>Colour bar</span>
+                <span style={{flexBasis: '100px', paddingLeft: '5px'}}>Colour bar</span>
                 {colorBarButton}
             </label>
         );
@@ -473,7 +489,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         return (
             <div style={{width: '100%', marginBottom: '20px'}}>
                 <label key="drange" className="pt-label" style={{display: 'flex'}}>
-                    <span style={{flexBasis: '100px', margin: 'auto 0'}}>Display range</span>
+                    <span style={{flexBasis: '100px', paddingLeft: '5px', margin: 'auto 0'}}>Display range</span>
                     <div style={{display: 'flex', alignItems: 'center'}}>
                         <NumericRangeField value={this.props.displayMinMax}
                                            style={{flex: 'auto'}}
@@ -530,7 +546,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                 const value = layer.varIndex[i];
                 dimensionRows.push(
                     <label key={dimension + '_index'} className="pt-label pt-inline" style={{display: 'flex'}}>
-                        <span style={{flexBasis: '100px'}}>{'Index into ' + dimension}</span>
+                        <span style={{
+                            flexBasis: '100px',
+                            paddingLeft: '5px'
+                        }}>{LayersPanel.capitalizeFirstLetter(dimension) + ' index'}</span>
                         <div style={{
                             ...LayersPanel.SLIDER_DIV_STYLE_10,
                             width: undefined,
@@ -564,7 +583,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
         return (
             <label key={key} className="pt-label" style={{display: 'flex'}}>
-                <span style={{flexBasis: '100px'}}>{label}</span>
+                <span style={{flexBasis: '100px', paddingLeft: '5px'}}>{label}</span>
                 <div style={{...LayersPanel.SLIDER_DIV_STYLE_10, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={min}
                             max={max}
@@ -658,11 +677,14 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             <div style={{width: '100%', marginTop: '30px'}}>
                 <label key="spacer" className="pt-label"> </label>
                 {this.renderStyleContext()}
+                <SubPanelHeader title="FILL"/>
                 {this.renderFillColor()}
                 {this.renderFillOpacity()}
+                <SubPanelHeader title="STROKE"/>
                 {this.renderStrokeWidth()}
                 {this.renderStrokeColor()}
                 {this.renderStrokeOpacity()}
+                <SubPanelHeader title="MARKER"/>
                 {this.renderMarkerColor()}
                 {this.renderMarkerSize()}
                 {this.renderMarkerSymbol()}
@@ -703,7 +725,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderFillColor() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '150px'}}>Fill colour</span>
+                <span style={{flexBasis: '150px', paddingLeft: '5px'}}>Fill colour</span>
                 <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.fill}
                                style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
@@ -732,7 +754,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderFillOpacity() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '150px'}}>Fill opacity</span>
+                <span style={{flexBasis: '150px', paddingLeft: '5px'}}>Fill opacity</span>
                 <div style={{...LayersPanel.SLIDER_DIV_STYLE_05, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={0.0}
                             max={1.0}
@@ -749,7 +771,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderStrokeWidth() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '150px'}}>Stroke width</span>
+                <span style={{flexBasis: '150px', paddingLeft: '5px'}}>Stroke width</span>
                 <NumericField value={this.props.vectorStyle.strokeWidth}
                               style={{flex: 'auto 1', fontFamily: 'courier'}}
                               size={8}
@@ -764,7 +786,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderStrokeColor() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '150px'}}>Stroke colour</span>
+                <span style={{flexBasis: '150px', paddingLeft: '5px'}}>Stroke colour</span>
                 <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.stroke}
                                style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
@@ -793,7 +815,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderStrokeOpacity() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '150px'}}>Stroke opacity</span>
+                <span style={{flexBasis: '150px', paddingLeft: '5px'}}>Stroke opacity</span>
                 <div style={{...LayersPanel.SLIDER_DIV_STYLE_05, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={0.0}
                             max={1.0}
@@ -810,7 +832,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderMarkerColor() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '150px'}}>Marker colour</span>
+                <span style={{flexBasis: '150px', paddingLeft: '5px'}}>Marker colour</span>
                 <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.markerColor}
                                style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
@@ -839,7 +861,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderMarkerSize() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '150px'}}>Marker size</span>
+                <span style={{flexBasis: '150px', paddingLeft: '5px'}}>Marker size</span>
                 <div className="pt-select" style={{flex: 'auto 1'}}>
                     <select value={this.props.vectorStyle.markerSize}
                             onChange={this.handleChangedMarkerSize}
@@ -856,7 +878,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderMarkerSymbol() {
         return (
             <label className="pt-label pt-inline" style={{display: 'flex'}}>
-                <span style={{flexBasis: '150px'}}>Marker symbol</span>
+                <span style={{flexBasis: '150px', paddingLeft: '5px'}}>Marker symbol</span>
                 <TextField value={this.props.vectorStyle.markerSymbol}
                            style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
                            size={8}
