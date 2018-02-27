@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import {URL} from "url";
 import {existsFile, execFile, deleteFile, downloadFile, FileExecOutput} from './fileutil';
@@ -34,25 +36,33 @@ export class DownloadMiniconda extends Requirement {
         throw new Error(`${this.name}: platform "${platform}" is not supported`);
     }
 
-    getMinicondaInstallerExecutable(): string {
-        const sourceUrl = new URL(this.getMinicondaInstallerUrl());
-        const pos = sourceUrl.pathname.lastIndexOf('/');
-        return pos >= 0 ? sourceUrl.pathname.slice(pos + 1) : sourceUrl.pathname;
+    getMinicondaInstallerExecutable(context: RequirementContext): string {
+        const state = this.getState(context);
+        let minicondaInstallerExecutable = state.minicondaInstallerExecutable;
+        if (!minicondaInstallerExecutable) {
+            const sourceUrl = new URL(this.getMinicondaInstallerUrl());
+            const pos = sourceUrl.pathname.lastIndexOf('/');
+            const fileName = pos >= 0 ? sourceUrl.pathname.slice(pos + 1) : sourceUrl.pathname;
+            const tmpDir = os.tmpdir();
+            minicondaInstallerExecutable = path.join(fs.mkdtempSync(`${tmpDir}${path.sep}cate-`), fileName);
+            state.minicondaInstallerExecutable = minicondaInstallerExecutable;
+        }
+        return minicondaInstallerExecutable;
     }
 
     newInitialState(context: RequirementContext): RequirementState {
         return {
             minicondaInstallerUrl: this.getMinicondaInstallerUrl(),
-            minicondaInstallerExecutable: this.getMinicondaInstallerExecutable(),
+            minicondaInstallerExecutable: null,
         };
     }
 
     fulfilled(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<boolean> {
-        return existsFile(this.getMinicondaInstallerExecutable());
+        return existsFile(this.getMinicondaInstallerExecutable(context));
     }
 
     fulfill(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<any> {
-        const targetFile = this.getMinicondaInstallerExecutable();
+        const targetFile = this.getMinicondaInstallerExecutable(context);
         let progressHandler = (bytesReceived: number, bytesTotal: number) => {
             const subWorked = bytesReceived / bytesTotal;
             const percent = Math.round(100 * subWorked);
@@ -63,7 +73,7 @@ export class DownloadMiniconda extends Requirement {
     }
 
     rollback(context: RequirementContext, onProgress: RequirementProgressHandler): Promise<any> {
-        return deleteFile(this.getMinicondaInstallerExecutable(), true);
+        return deleteFile(this.getMinicondaInstallerExecutable(context), true);
     }
 }
 
