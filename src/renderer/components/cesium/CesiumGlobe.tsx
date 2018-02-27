@@ -347,6 +347,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         }
         const actions = arrayDiff<Placemark>((currentPlacemarks && currentPlacemarks.features) || EMPTY_ARRAY,
             (nextPlacemarks && nextPlacemarks.features) || EMPTY_ARRAY);
+        const promises = [];
         for (let action of actions) {
             if (this.props.debug) {
                 console.log('CesiumGlobe: next placemark action', action);
@@ -356,9 +357,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                     const placemark = action.newElement;
                     const show = placemark.properties['visible'];
                     const promise = Cesium.GeoJsonDataSource.load(placemark, simpleStyleToCesium(style));
-                    Promise.resolve(promise).then(ds => {
+                    promises.push(Promise.resolve(promise).then(ds => {
                         CesiumGlobe.copyEntities(ds.entities, entities, show);
-                    });
+                    }));
                     break;
                 }
                 case 'REMOVE': {
@@ -371,15 +372,16 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                     let newPlacemark = action.newElement;
                     const show = newPlacemark.properties['visible'];
                     const promise = Cesium.GeoJsonDataSource.load(newPlacemark, simpleStyleToCesium(style));
-                    Promise.resolve(promise).then(ds => {
+                    promises.push(Promise.resolve(promise).then(ds => {
                         entities.removeById(oldPlacemark.id);
                         CesiumGlobe.copyEntities(ds.entities, entities, show);
-                    });
+                    }));
                     break;
                 default:
                     console.error(`CesiumGlobe: unhandled placemark action type "${action.type}"`);
             }
         }
+        return Promise.all(promises);
     }
 
     private updateImageLayers(viewer: Cesium.Viewer,
@@ -606,14 +608,14 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                 this.addDataSource(viewer, newLayer, dataSourceMap);
             } else {
                 // Change of placemarks (a GeoJSON FeatureCollection)
-                this.updatePlacemarks(dataSource.entities, oldData, newData, newLayer.style);
-                // TODO return a promise from 'updatePlacemarks'
-                if (selectedPlacemarkId) {
-                    const selectedEntity = dataSource.entities.getById(selectedPlacemarkId);
-                    if (selectedEntity && selectedEntity !== viewer.selectedEntity) {
-                        viewer.selectedEntity = selectedEntity;
+                this.updatePlacemarks(dataSource.entities, oldData, newData, newLayer.style).then(() => {
+                    if (selectedPlacemarkId) {
+                        const selectedEntity = dataSource.entities.getById(selectedPlacemarkId);
+                        if (selectedEntity && selectedEntity !== viewer.selectedEntity) {
+                            viewer.selectedEntity = selectedEntity;
+                        }
                     }
-                }
+                });
             }
         }
         const oldStyle = oldLayer.style;
