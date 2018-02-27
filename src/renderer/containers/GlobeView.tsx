@@ -169,10 +169,12 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         // - https://github.com/reactjs/reselect/blob/master/README.md#q-how-do-i-create-a-selector-that-takes-an-argument
         //
         let descriptors;
+        let selectedPlacemarkId = null;
         if (workspace) {
             const baseUrl = this.props.baseUrl;
             const baseDir = workspace.baseDir;
             descriptors = convertLayersToLayerDescriptors(layers, resources, placemarks, baseUrl, baseDir);
+            selectedPlacemarkId = this.props.selectedPlacemarkId;
         } else {
             descriptors = EMPTY_OBJECT as LayerDescriptors;
         }
@@ -183,7 +185,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
             <CesiumGlobe id={'CesiumGlobe-' + view.id}
                          debug={this.props.debugWorldView}
                          externalObjectStore={this.props.externalObjectStore}
-                         selectedPlacemarkId={this.props.selectedPlacemarkId}
+                         selectedPlacemarkId={selectedPlacemarkId}
                          imageLayerDescriptors={descriptors.imageLayerDescriptors || EMPTY_ARRAY}
                          vectorLayerDescriptors={descriptors.vectorLayerDescriptors || EMPTY_ARRAY}
                          overlayHtml={overlayHtml}
