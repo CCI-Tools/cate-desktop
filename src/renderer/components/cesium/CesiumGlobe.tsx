@@ -386,7 +386,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                               currentLayers: ImageLayerDescriptor[],
                               nextLayers: ImageLayerDescriptor[]) {
         if (this.props.debug) {
-            console.log('CesiumGlobe: updating layers');
+            console.log('CesiumGlobe: updating image layers');
         }
         const actions = arrayDiff<ImageLayerDescriptor>(currentLayers, nextLayers);
         let imageryLayer: Cesium.ImageryLayer;
@@ -394,7 +394,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         let oldLayer: ImageLayerDescriptor;
         for (let action of actions) {
             if (this.props.debug) {
-                console.log('CesiumGlobe: next layer action', action);
+                console.log('CesiumGlobe: next image layer action', action);
             }
             // cesiumIndex is +1 because of its base layer at cesiumIndex=0
             const cesiumIndex = action.index + 1;
@@ -467,10 +467,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                                nextLayers: VectorLayerDescriptor[],
                                dataSourceMap: DataSourceMap,
                                selectedPlacemarkId: string | null) {
+        if (this.props.debug) {
+            console.log('CesiumGlobe: updating vector layers');
+        }
         const actions = arrayDiff<VectorLayerDescriptor>(currentLayers, nextLayers);
         for (let action of actions) {
             if (this.props.debug) {
-                console.log('CesiumGlobe: next data source action', action);
+                console.log('CesiumGlobe: next vector layer action', action);
             }
             //const index = action.index;
             switch (action.type) {
@@ -596,6 +599,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const oldData = oldLayer.dataSourceOptions.data;
         const newData = newLayer.dataSourceOptions.data;
         if (oldData !== newData) {
+            console.log("CesiumGlobe.updateDataSource: updateData");
             if (isString(newData)) {
                 // URL change: must load new dataSource
                 this.removeDataSource(viewer, oldLayer, dataSourceMap);
