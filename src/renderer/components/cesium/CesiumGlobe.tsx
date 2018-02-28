@@ -105,9 +105,7 @@ Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
  * @author Norman Fomferra
  */
 export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGlobeState, ICesiumGlobeProps, null> {
-    private mouseClickHandler: any;
-    private mouseMoveHandler: any;
-    private leftUpHandler: any;
+    private cesiumEventHandler: any;
     private selectedEntityChangeHandler: any;
 
     constructor(props: ICesiumGlobeProps) {
@@ -262,8 +260,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 
     externalObjectMounted(viewer: Cesium.Viewer, props: Readonly<ICesiumGlobeProps>): void {
-        this.mouseClickHandler = new Cesium.ScreenSpaceEventHandler();
-        this.mouseClickHandler.setInputAction(
+        this.cesiumEventHandler = new Cesium.ScreenSpaceEventHandler();
+        this.cesiumEventHandler.setInputAction(
             (event) => {
                 const cartographic = screenToCartographic(viewer, event.position, true);
                 if (props.onMouseClicked) {
@@ -273,8 +271,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             Cesium.ScreenSpaceEventType.LEFT_CLICK
         );
 
-        this.mouseMoveHandler = new Cesium.ScreenSpaceEventHandler();
-        this.mouseMoveHandler.setInputAction(
+        this.cesiumEventHandler.setInputAction(
             (event) => {
                 const point = event.endPosition;
                 const cartographic = screenToCartographic(viewer, point, true);
@@ -285,8 +282,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             Cesium.ScreenSpaceEventType.MOUSE_MOVE
         );
 
-        this.leftUpHandler = new Cesium.ScreenSpaceEventHandler();
-        this.leftUpHandler.setInputAction(
+        this.cesiumEventHandler.setInputAction(
             () => {
                 let point; // = undefined, good.
                 //noinspection JSUnusedAssignment
@@ -311,12 +307,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 
     externalObjectUnmounted(viewer: Cesium.Viewer, props: Readonly<ICesiumGlobeProps>): void {
-        this.mouseClickHandler = this.mouseClickHandler && this.mouseClickHandler.destroy();
-        this.mouseClickHandler = null;
-        this.mouseMoveHandler = this.mouseMoveHandler && this.mouseMoveHandler.destroy();
-        this.mouseMoveHandler = null;
-        this.leftUpHandler = this.leftUpHandler && this.leftUpHandler.destroy();
-        this.leftUpHandler = null;
+        this.cesiumEventHandler = this.cesiumEventHandler && this.cesiumEventHandler.destroy();
+        this.cesiumEventHandler = null;
 
         viewer.selectedEntityChanged.removeEventListener(this.selectedEntityChangeHandler);
         this.selectedEntityChangeHandler = null;
