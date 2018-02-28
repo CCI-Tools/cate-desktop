@@ -4,22 +4,22 @@ import {
     WorkflowStepState, LayerVariableState, SavedLayers,
     FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase,
     ResourceVectorLayerState, WorldViewDataState, VectorLayerState
-} from "./state";
+} from './state';
 import {createSelector, Selector} from 'reselect';
-import {WebAPIClient, JobStatusEnum} from "./webapi";
-import {DatasetAPI, OperationAPI, WorkspaceAPI, ColorMapsAPI, BackendConfigAPI} from "./webapi/apis";
-import {PanelContainerLayout} from "./components/PanelContainer";
+import {WebAPIClient, JobStatusEnum} from './webapi';
+import {DatasetAPI, OperationAPI, WorkspaceAPI, ColorMapsAPI, BackendConfigAPI} from './webapi/apis';
+import {PanelContainerLayout} from './components/PanelContainer';
 import {
     isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
     getLockForGetWorkspaceVariableStatistics, EXTERNAL_OBJECT_STORE, getWorldViewSelectedEntity,
     getWorldViewSelectedGeometryWKTGetter, getWorldViewVectorLayerForEntity,
-} from "./state-util";
-import {ViewState, ViewLayoutState} from "./components/ViewState";
-import {isNumber} from "../common/types";
-import * as Cesium from "cesium";
-import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
-import {entityToSimpleStyle} from "./components/cesium/cesium-util";
-import {SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties} from "../common/geojson-simple-style";
+} from './state-util';
+import {ViewState, ViewLayoutState} from './components/ViewState';
+import {isNumber} from '../common/types';
+import * as Cesium from 'cesium';
+import {GeometryWKTGetter} from './containers/editor/ValueEditor';
+import {entityToSimpleStyle} from './components/cesium/cesium-util';
+import {SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties} from '../common/geojson-simple-style';
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -187,7 +187,7 @@ export const filteredOperationsSelector = createSelector<State, OperationState[]
             let nameMatches;
             if (hasFilterExpr) {
                 const filterExprLC = operationFilterExpr.toLowerCase();
-                const parts = filterExprLC.split(" ");
+                const parts = filterExprLC.split(' ');
                 nameMatches = op => {
                     return parts.every(part => op.name.toLowerCase().includes(part));
                 };
@@ -262,7 +262,7 @@ export const filteredDataSourcesSelector = createSelector<State, DataSourceState
         const hasFilterExpr = dataSourceFilterExpr && dataSourceFilterExpr !== '';
         if (hasDataSources && hasFilterExpr) {
             const dataSourceFilterExprLC = dataSourceFilterExpr.toLowerCase();
-            const parts = dataSourceFilterExprLC.split(" ");
+            const parts = dataSourceFilterExprLC.split(' ');
             const dsMatcher = showDataSourceTitles ? matchesIdOrTitle : matchesId;
             return selectedDataSources.filter(ds => dsMatcher(ds, parts));
         }
@@ -382,7 +382,7 @@ function getParentDir(path: string | null): string | null {
         return null;
     }
     let index = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
-    return index >= 0 ? path.substring(0, index) : "";
+    return index >= 0 ? path.substring(0, index) : '';
 }
 
 export const resourceNamesSelector = createSelector<State, string[], ResourceState[]>(
@@ -611,8 +611,6 @@ export const selectedGeometryWKTGetterSelector = createSelector<State, GeometryW
     getWorldViewSelectedGeometryWKTGetter
 );
 
-export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
-
 // noinspection JSUnusedLocalSymbols
 export const externalObjectStoreSelector = (state: State) => EXTERNAL_OBJECT_STORE;
 
@@ -704,10 +702,26 @@ export const selectedVectorLayerSelector = createSelector<State, VectorLayerStat
 
 export const entityUpdateCountSelector = (state: State) => state.control.entityUpdateCount;
 
+export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
+
+export const effectiveStyleModeSelector = createSelector(
+    vectorStyleModeSelector,
+    selectedEntitySelector,
+    selectedLayerSelector,
+    (vectorStyleModeSelector, selectedEntitySelector, selectedLayerSelector): 'entity' | 'layer' => {
+        if (selectedEntitySelector && selectedLayerSelector) {
+            return vectorStyleModeSelector;
+        } else if (selectedEntitySelector) {
+            return 'entity';
+        } else {
+            return 'layer';
+        }
+    });
+
 // noinspection JSUnusedLocalSymbols
 export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<any>, string, VectorLayerState | null, Placemark | null, Cesium.Entity | null, number>(
     activeViewSelector,
-    vectorStyleModeSelector,
+    effectiveStyleModeSelector,
     selectedVectorLayerSelector,
     selectedPlacemarkSelector,
     selectedEntitySelector,
@@ -715,9 +729,9 @@ export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<
     (view: ViewState<any>, vectorStyleMode, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
         const selectedLayerStyle = selectedVectorLayer && selectedVectorLayer.style;
         let style;
-        if (vectorStyleMode === "layer") {
+        if (vectorStyleMode === 'layer') {
             style = selectedLayerStyle;
-        } else if (vectorStyleMode === "entity") {
+        } else if (vectorStyleMode === 'entity') {
             if (selectedPlacemark) {
                 const placemarkStyle = simpleStyleFromFeatureProperties(selectedPlacemark.properties);
                 const placemarkVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
@@ -727,8 +741,8 @@ export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<
                 const entityVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
                 const entityVectorLayerStyle = entityVectorLayer && entityVectorLayer.style;
                 const savedEntityStyle = entityVectorLayer
-                                         && entityVectorLayer.entityStyles
-                                         && entityVectorLayer.entityStyles[selectedEntity.id];
+                    && entityVectorLayer.entityStyles
+                    && entityVectorLayer.entityStyles[selectedEntity.id];
                 style = {...selectedLayerStyle, ...entityVectorLayerStyle, ...entityStyle, ...savedEntityStyle};
             }
         }

@@ -98,7 +98,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedVectorLayer: selectors.selectedVectorLayerSelector(state),
         selectedResourceVectorLayer: selectors.selectedResourceVectorLayerSelector(state),
         selectedEntity: selectors.selectedEntitySelector(state),
-        vectorStyleMode: selectors.vectorStyleModeSelector(state),
+        vectorStyleMode: selectors.effectiveStyleModeSelector(state),
         showLayerDetails: state.session.showLayerDetails,
         colorMapCategories: selectors.colorMapCategoriesSelector(state),
         selectedColorMap: selectors.selectedColorMapSelector(state),
@@ -228,13 +228,13 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             return;
         }
         this.props.dispatch(actions.getWorkspaceVariableStatistics(resource.name, variable.name, imageLayer.varIndex,
-            (statistics) => {
-                return actions.updateLayer(this.props.activeView.id, imageLayer, {
-                    displayMin: statistics.min,
-                    displayMax: statistics.max,
-                    statistics
-                });
-            }
+                                                                   (statistics) => {
+                                                                       return actions.updateLayer(this.props.activeView.id, imageLayer, {
+                                                                           displayMin: statistics.min,
+                                                                           displayMax: statistics.max,
+                                                                           statistics
+                                                                       });
+                                                                   }
         ));
     }
 
@@ -290,12 +290,12 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private handleChangedVectorStyle(style: SimpleStyle) {
         if (this.props.vectorStyleMode === 'layer') {
             this.props.dispatch(actions.updateLayerStyle(this.props.activeView.id,
-                this.props.selectedVectorLayer.id,
-                style));
+                                                         this.props.selectedVectorLayer.id,
+                                                         style));
         } else {
             this.props.dispatch(actions.updateEntityStyle(this.props.activeView,
-                this.props.selectedEntity,
-                style));
+                                                          this.props.selectedEntity,
+                                                          style));
         }
     }
 
@@ -305,14 +305,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private static stopPropagation(event) {
         event.stopPropagation();
-    }
-
-    private static renderSeparatorLineWithTitle(title: string) {
-        return (
-            <div style={{margin: '10px 0', padding: '5px', backgroundColor: '#293742'}}>
-                <span style={{color: 'white', fontSize: '12px', fontWeight: 100}}>{title}</span>
-            </div>
-        )
     }
 
     private static capitalizeFirstLetter(string: string) {
@@ -696,16 +688,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     private renderStyleContext() {
         const selectedVectorLayer = this.props.selectedVectorLayer;
         const selectedEntity = this.props.selectedEntity;
-        let vectorStyleMode;
-        let disabled = true;
-        if (selectedEntity && selectedVectorLayer) {
-            vectorStyleMode = this.props.vectorStyleMode;
-            disabled = false;
-        } else if (selectedEntity) {
-            vectorStyleMode = 'entity';
-        } else if (selectedVectorLayer) {
-            vectorStyleMode = 'layer';
-        }
+        let disabled = !(selectedEntity && selectedVectorLayer);
+        let vectorStyleMode = this.props.vectorStyleMode;
         return (
             <RadioGroup
                 key="vectorStyleMode"
