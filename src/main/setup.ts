@@ -43,7 +43,9 @@ export function doSetup(setupInfo: SetupInfo, callback: (result?: SetupResult) =
         setupWindow.webContents.on('did-finish-load', () => {
             setupWindow.webContents.send("setSetupInfo", setupInfo);
         });
-        setupWindow.webContents.openDevTools();
+        if (process.env.NODE_ENV === 'development') {
+            setupWindow.webContents.openDevTools();
+        }
         setupWindow.on('close', () => callback());
         electron.ipcMain.on("cancelSetup", cancelSetup(setupWindow, callback));
         electron.ipcMain.on("endSetup", endSetup(setupWindow, callback));
