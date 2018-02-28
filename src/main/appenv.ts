@@ -96,6 +96,17 @@ export function getCateCliSetupInfo(): SetupInfo {
                 } catch (err) {
                     continue;
                 }
+
+                // We should actually use getCateCliVersion() here, as the true version number may differ
+                // from the version number indicated by the directory name in which we found the "cate.location" file.
+                // However, executing "cate-cli --version" for multiple installed Cates could drastically slow
+                // down start-up process.
+                //
+                // oldCateVersion = getCateCliVersion(oldCateDir).then(v => {
+                //     const version = pep440ToSemver(oldCateVersion); // SemVer
+                // });
+                // version = pep440ToSemver(oldCateVersion); // SemVer
+                //
                 const cateCliExe = path.join(oldCateDir, CATE_CLI_EXECUTABLE);
                 if (isExec(cateCliExe)) {
                     const updateInfo = {oldCateDir, newCateDir, oldCateVersion, newCateVersion, setupReason: null};
