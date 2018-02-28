@@ -322,7 +322,7 @@ export function init() {
     }
 
     function startWebAPIService(callback: (process: child_process.ChildProcess) => void) {
-        logCateVersion();
+        //logCateVersion();
 
         const cateCliPath = getCateCliPath();
         showSplashMessage('Searching unused port...');
