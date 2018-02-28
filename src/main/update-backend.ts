@@ -69,7 +69,7 @@ export class DownloadMiniconda extends Transaction {
             const message = `Downloading ${targetFile}: ${bytesReceived} of ${bytesTotal} bytes received, ${percent}%`;
             onProgress({message, subWorked});
         };
-        return downloadFile(this.getMinicondaInstallerUrl(), targetFile, progressHandler);
+        return downloadFile(this.getMinicondaInstallerUrl(), targetFile, 0o777, progressHandler);
     }
 
     rollback(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {

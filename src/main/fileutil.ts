@@ -98,15 +98,17 @@ export function deleteFile(file: string, ignoreFailure?: boolean): Promise<boole
  *
  * @param sourceUrl The URL
  * @param targetFile The local file
+ * @param targetMode The access mode of the target file. e.g. 0o777
  * @param progress Called while downloading. Signature: (bytesReceived: number, bytesTotal: number) => void
  */
 export function downloadFile(sourceUrl: string,
                              targetFile: string,
+                             targetMode: number,
                              progress: (bytesReceived: number, bytesTotal: number) => void): Promise<void> {
 
     return new Promise<void>((resolve, reject) => {
         const tempTargetFile = targetFile + ".download";
-        const file = fs.createWriteStream(tempTargetFile);
+        const file = fs.createWriteStream(tempTargetFile, {mode: targetMode});
         const resHandler = (res: http.IncomingMessage) => {
             const bytesTotal = parseInt(res.headers['content-length'] as string);
             let bytesReceived = 0;
