@@ -13,7 +13,7 @@ import {
     SetupOptions, SetupResult
 } from "../common/setup";
 import {DownloadMiniconda, InstallCondaEnv, InstallMiniconda, InstallOrUpdateCate} from "./update-backend";
-import {RequirementError, RequirementProgress, RequirementSet} from "../common/requirement";
+import {TransactionError, TransactionProgress, TransactionSet} from "../common/transaction";
 import BrowserWindow = Electron.BrowserWindow;
 
 
@@ -220,32 +220,32 @@ export function performSetupTasks(event, setupInfo: SetupInfo, setupOptions: Set
         }
     }
 
-    let requirements;
+    let transactions;
     if (cateMode === CATE_MODE_NEW_CATE_DIR) {
         const downloadMiniconda = new DownloadMiniconda();
         const installMiniconda = new InstallMiniconda(newCateDir);
         const installOrUpdateCate = new InstallOrUpdateCate(newCateVersion, newCateDir, [installMiniconda.id]);
-        requirements = [downloadMiniconda, installMiniconda, installOrUpdateCate];
+        transactions = [downloadMiniconda, installMiniconda, installOrUpdateCate];
     } else if (cateMode === CATE_MODE_OLD_CATE_DIR) {
         const installOrUpdateCate = new InstallOrUpdateCate(newCateVersion, oldCateDir, []);
-        requirements = [installOrUpdateCate];
+        transactions = [installOrUpdateCate];
     } else if (cateMode === CATE_MODE_CONDA_DIR) {
         const installCondaEnv = new InstallCondaEnv(condaDir);
         const installOrUpdateCate = new InstallOrUpdateCate(newCateVersion, installCondaEnv.getCondaEnvDir(), [installCondaEnv.id]);
-        requirements = [installCondaEnv, installOrUpdateCate];
+        transactions = [installCondaEnv, installOrUpdateCate];
     } else {
         event.sender.send(channel, {error: "?"});
         return;
     }
 
-    const requirementSet = new RequirementSet(requirements);
-    requirementSet.fulfillRequirement(requirements[requirements.length - 1].id, (progress: RequirementProgress) => {
+    const transactionSet = new TransactionSet(transactions);
+    transactionSet.fulfillTransaction(transactions[transactions.length - 1].id, (progress: TransactionProgress) => {
         log.silly(progress);
         event.sender.send(channel, 0, null, progress);
     }).then(() => {
         log.info('Setup successful');
         event.sender.send(channel, 0);
-    }).catch((error: RequirementError) => {
+    }).catch((error: TransactionError) => {
         log.error('Setup failed:', error);
         event.sender.send(channel, -1, error.reason);
     });

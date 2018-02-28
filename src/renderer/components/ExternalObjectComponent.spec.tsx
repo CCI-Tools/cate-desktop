@@ -1,7 +1,6 @@
 import {should, expect} from 'chai';
 import * as React from 'react';
 import {IExternalObjectComponentProps, ExternalObjectComponent} from './ExternalObjectComponent';
-import {FigureState} from "./matplotlib/MplFigureContainer";
 
 should();
 
@@ -61,8 +60,8 @@ class MyExternalComponent extends ExternalObjectComponent<MyExternalObject, MyEx
         super(props);
     }
 
-    mount(parentContainer: HTMLElement|null) {
-        this.remountExternalObject(parentContainer as any);
+    mount(parentContainer: HTMLElement|null, props: any) {
+        this.remountExternalObject(parentContainer as any, props);
     }
 
     newContainer(id: string): HTMLElement {
@@ -103,7 +102,7 @@ describe('PermanentComponent', function () {
 
         let parentContainer1 = new HTMLElementMock("div", "ID6");
 
-        instance1.mount(parentContainer1 as any);
+        instance1.mount(parentContainer1 as any, instance1.props);
         expect(instance1.trace).to.deep.equal([
             {
                 method: "create"
@@ -139,7 +138,7 @@ describe('PermanentComponent', function () {
             }]);
         instance1.trace = [];
 
-        instance1.mount(null);
+        instance1.mount(null, instance1.props);
         expect(instance1.trace).to.deep.equal([{
             method: "externalObjectUnmounted",
             object: {id: "ID6", foo: 6}

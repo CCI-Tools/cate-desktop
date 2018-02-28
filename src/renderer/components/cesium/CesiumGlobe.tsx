@@ -201,12 +201,12 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 
     propsToExternalObjectState(props: ICesiumGlobeProps & CesiumGlobeState, prevState?: CesiumGlobeState): CesiumGlobeState {
-        const selectedPlacemarkId = this.props.selectedPlacemarkId;
-        const imageLayerDescriptors = this.props.imageLayerDescriptors || EMPTY_ARRAY;
-        const vectorLayerDescriptors = this.props.vectorLayerDescriptors || EMPTY_ARRAY;
-        const overlayHtml = this.props.overlayHtml || null;
-        const splitLayerIndex = this.props.splitLayerIndex;
-        const splitLayerPos = this.props.splitLayerPos;
+        const selectedPlacemarkId = props.selectedPlacemarkId;
+        const imageLayerDescriptors = props.imageLayerDescriptors || EMPTY_ARRAY;
+        const vectorLayerDescriptors = props.vectorLayerDescriptors || EMPTY_ARRAY;
+        const overlayHtml = props.overlayHtml || null;
+        const splitLayerIndex = props.splitLayerIndex;
+        const splitLayerPos = props.splitLayerPos;
         const dataSourceMap = (prevState && prevState.dataSourceMap) || {};
         return {
             selectedPlacemarkId,
@@ -261,13 +261,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         }
     }
 
-    externalObjectMounted(viewer: Cesium.Viewer): void {
+    externalObjectMounted(viewer: Cesium.Viewer, props: Readonly<ICesiumGlobeProps>): void {
         this.mouseClickHandler = new Cesium.ScreenSpaceEventHandler();
         this.mouseClickHandler.setInputAction(
             (event) => {
                 const cartographic = screenToCartographic(viewer, event.position, true);
-                if (this.props.onMouseClicked) {
-                    this.props.onMouseClicked(cartographic);
+                if (props.onMouseClicked) {
+                    props.onMouseClicked(cartographic);
                 }
             },
             Cesium.ScreenSpaceEventType.LEFT_CLICK
@@ -278,8 +278,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             (event) => {
                 const point = event.endPosition;
                 const cartographic = screenToCartographic(viewer, point, true);
-                if (this.props.onMouseMoved) {
-                    this.props.onMouseMoved(cartographic);
+                if (props.onMouseMoved) {
+                    props.onMouseMoved(cartographic);
                 }
             },
             Cesium.ScreenSpaceEventType.MOUSE_MOVE
@@ -291,26 +291,26 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                 let point; // = undefined, good.
                 //noinspection JSUnusedAssignment
                 const cartographic = screenToCartographic(viewer, point, true);
-                if (this.props.onLeftUp) {
-                    this.props.onLeftUp(cartographic);
+                if (props.onLeftUp) {
+                    props.onLeftUp(cartographic);
                 }
             },
             Cesium.ScreenSpaceEventType.LEFT_UP
         );
 
         this.selectedEntityChangeHandler = (selectedEntity: Cesium.Entity | null) => {
-            if (this.props.onSelectedEntityChanged) {
-                this.props.onSelectedEntityChanged(selectedEntity);
+            if (props.onSelectedEntityChanged) {
+                props.onSelectedEntityChanged(selectedEntity);
             }
         };
         viewer.selectedEntityChanged.addEventListener(this.selectedEntityChangeHandler);
 
-        if (this.props.onViewerMounted) {
-            this.props.onViewerMounted(this.props.id, viewer);
+        if (props.onViewerMounted) {
+            props.onViewerMounted(props.id, viewer);
         }
     }
 
-    externalObjectUnmounted(viewer: Cesium.Viewer): void {
+    externalObjectUnmounted(viewer: Cesium.Viewer, props: Readonly<ICesiumGlobeProps>): void {
         this.mouseClickHandler = this.mouseClickHandler && this.mouseClickHandler.destroy();
         this.mouseClickHandler = null;
         this.mouseMoveHandler = this.mouseMoveHandler && this.mouseMoveHandler.destroy();
@@ -321,18 +321,19 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         viewer.selectedEntityChanged.removeEventListener(this.selectedEntityChangeHandler);
         this.selectedEntityChangeHandler = null;
 
-        if (this.props.onViewerUnmounted) {
-            this.props.onViewerUnmounted(this.props.id, viewer);
+        if (props.onViewerUnmounted) {
+            props.onViewerUnmounted(props.id, viewer);
         }
     }
 
     //noinspection JSMethodCanBeStatic
     private updatePlacemarkSelection(viewer: Cesium.Viewer, selectedPlacemarkId: string | null) {
-        const selectedEntity = selectedPlacemarkId && getEntityByEntityId(viewer, selectedPlacemarkId);
+        const selectedEntity = (selectedPlacemarkId && getEntityByEntityId(viewer, selectedPlacemarkId)) || null;
+        const selectedEntityInViewer = viewer.selectedEntity || null;
         if (this.props.debug) {
-            console.log('CesiumGlobe: updating selected placemark: ', viewer.selectedEntity, selectedEntity);
+            console.log('CesiumGlobe: updating selected placemark: ', selectedEntityInViewer, selectedEntity);
         }
-        if (viewer.selectedEntity !== selectedEntity) {
+        if (selectedEntityInViewer !== selectedEntity) {
             viewer.selectedEntity = selectedEntity;
         }
     }
@@ -346,6 +347,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         }
         const actions = arrayDiff<Placemark>((currentPlacemarks && currentPlacemarks.features) || EMPTY_ARRAY,
             (nextPlacemarks && nextPlacemarks.features) || EMPTY_ARRAY);
+        const promises = [];
         for (let action of actions) {
             if (this.props.debug) {
                 console.log('CesiumGlobe: next placemark action', action);
@@ -355,9 +357,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                     const placemark = action.newElement;
                     const show = placemark.properties['visible'];
                     const promise = Cesium.GeoJsonDataSource.load(placemark, simpleStyleToCesium(style));
-                    Promise.resolve(promise).then(ds => {
+                    promises.push(Promise.resolve(promise).then(ds => {
                         CesiumGlobe.copyEntities(ds.entities, entities, show);
-                    });
+                    }));
                     break;
                 }
                 case 'REMOVE': {
@@ -370,22 +372,23 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                     let newPlacemark = action.newElement;
                     const show = newPlacemark.properties['visible'];
                     const promise = Cesium.GeoJsonDataSource.load(newPlacemark, simpleStyleToCesium(style));
-                    Promise.resolve(promise).then(ds => {
+                    promises.push(Promise.resolve(promise).then(ds => {
                         entities.removeById(oldPlacemark.id);
                         CesiumGlobe.copyEntities(ds.entities, entities, show);
-                    });
+                    }));
                     break;
                 default:
                     console.error(`CesiumGlobe: unhandled placemark action type "${action.type}"`);
             }
         }
+        return Promise.all(promises);
     }
 
     private updateImageLayers(viewer: Cesium.Viewer,
                               currentLayers: ImageLayerDescriptor[],
                               nextLayers: ImageLayerDescriptor[]) {
         if (this.props.debug) {
-            console.log('CesiumGlobe: updating layers');
+            console.log('CesiumGlobe: updating image layers');
         }
         const actions = arrayDiff<ImageLayerDescriptor>(currentLayers, nextLayers);
         let imageryLayer: Cesium.ImageryLayer;
@@ -393,7 +396,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         let oldLayer: ImageLayerDescriptor;
         for (let action of actions) {
             if (this.props.debug) {
-                console.log('CesiumGlobe: next layer action', action);
+                console.log('CesiumGlobe: next image layer action', action);
             }
             // cesiumIndex is +1 because of its base layer at cesiumIndex=0
             const cesiumIndex = action.index + 1;
@@ -466,10 +469,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                                nextLayers: VectorLayerDescriptor[],
                                dataSourceMap: DataSourceMap,
                                selectedPlacemarkId: string | null) {
+        if (this.props.debug) {
+            console.log('CesiumGlobe: updating vector layers');
+        }
         const actions = arrayDiff<VectorLayerDescriptor>(currentLayers, nextLayers);
         for (let action of actions) {
             if (this.props.debug) {
-                console.log('CesiumGlobe: next data source action', action);
+                console.log('CesiumGlobe: next vector layer action', action);
             }
             //const index = action.index;
             switch (action.type) {
@@ -595,19 +601,21 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const oldData = oldLayer.dataSourceOptions.data;
         const newData = newLayer.dataSourceOptions.data;
         if (oldData !== newData) {
+            console.log("CesiumGlobe.updateDataSource: updateData");
             if (isString(newData)) {
                 // URL change: must load new dataSource
                 this.removeDataSource(viewer, oldLayer, dataSourceMap);
                 this.addDataSource(viewer, newLayer, dataSourceMap);
             } else {
                 // Change of placemarks (a GeoJSON FeatureCollection)
-                this.updatePlacemarks(dataSource.entities, oldData, newData, newLayer.style);
-                if (selectedPlacemarkId) {
-                    const selectedEntity = dataSource.entities.getById(selectedPlacemarkId);
-                    if (selectedEntity && selectedEntity !== viewer.selectedEntity) {
-                        viewer.selectedEntity = selectedEntity;
+                this.updatePlacemarks(dataSource.entities, oldData, newData, newLayer.style).then(() => {
+                    if (selectedPlacemarkId) {
+                        const selectedEntity = dataSource.entities.getById(selectedPlacemarkId);
+                        if (selectedEntity && selectedEntity !== viewer.selectedEntity) {
+                            viewer.selectedEntity = selectedEntity;
+                        }
                     }
-                }
+                });
             }
         }
         const oldStyle = oldLayer.style;

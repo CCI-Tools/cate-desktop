@@ -21,9 +21,10 @@ import {isDefined} from "../common/types";
 import {doSetup} from "./setup";
 import {SetupResult} from "../common/setup";
 
+
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
-const RUN_OPTIONS = [ '--run', '-r'];
+const RUN_OPTIONS = ['--run', '-r'];
 
 const CATE_WEBAPI_PREFIX = 'cate-webapi:';
 
@@ -274,54 +275,63 @@ export function init() {
     function ensureValidCateCliDir(callback: () => void) {
         const setupInfo = getCateCliSetupInfo();
         log.info("setupInfo: ", setupInfo);
-        if (setupInfo.setupReason) {
-            if (!_splashWindow.isDestroyed() && _splashWindow.isVisible()) {
-                _splashWindow.hide();
-            }
-            doSetup(setupInfo, (setupResult: SetupResult) => {
-                log.info("After setup: setupResult =", setupResult);
-                if (setupResult) {
-                    const {cateDir, cateVersion} = setupResult;
-                    setCateDir(cateDir);
-                    if (!_splashWindow.isDestroyed()) {
-                        _splashWindow.show();
-                    }
-                    const versionDir = path.join(getAppDataDir(), cateVersion);
-                    const locationFile = path.join(versionDir, "cate.location");
-                    const errorHandler = (err) => {
-                        log.error("Writing failed: ", err);
-                        electron.dialog.showErrorBox(`${app.getName()} - Error`,
-                                                     `Writing to ${locationFile} failed:\n${err}`);
-                        app.exit(0);
-                    };
-                    log.warn("Writing ", locationFile);
-                    if (!fs.existsSync(versionDir)) {
-                        try {
-                            fs.mkdirSync(versionDir);
-                        } catch (err) {
-                            errorHandler(err);
-                        }
-                    }
-                    fs.writeFile(locationFile, cateDir, {encoding: 'utf8'}, err => {
-                        if (!err) {
-                            callback();
-                        } else {
-                            errorHandler(err);
-                        }
-                    });
-                } else {
-                    // User cancelled update: exit immediately
-                    app.exit(0);
-                }
-            });
-        } else {
+
+        if (setupInfo.oldCateDir) {
             setCateDir(setupInfo.oldCateDir);
-            callback();
         }
+
+        // When there is no reason to setup anything, we're done.
+        if (!setupInfo.setupReason) {
+            callback();
+            return;
+        }
+
+        // Close splash screen, because we now bring up the setup dialog
+        if (!_splashWindow.isDestroyed() && _splashWindow.isVisible()) {
+            _splashWindow.hide();
+        }
+
+        // Bring up the setup dialog
+        doSetup(setupInfo, (setupResult: SetupResult) => {
+            log.info("After setup: setupResult =", setupResult);
+            if (setupResult) {
+                const {cateDir, cateVersion} = setupResult;
+                setCateDir(cateDir);
+                if (!_splashWindow.isDestroyed()) {
+                    _splashWindow.show();
+                }
+                const versionDir = path.join(getAppDataDir(), cateVersion);
+                const locationFile = path.join(versionDir, "cate.location");
+                const errorHandler = (err) => {
+                    log.error("Writing failed: ", err);
+                    electron.dialog.showErrorBox(`${app.getName()} - Error`,
+                                                 `Writing to ${locationFile} failed:\n${err}`);
+                    app.exit(0);
+                };
+                log.warn("Writing ", locationFile);
+                if (!fs.existsSync(versionDir)) {
+                    try {
+                        fs.mkdirSync(versionDir);
+                    } catch (err) {
+                        errorHandler(err);
+                    }
+                }
+                fs.writeFile(locationFile, cateDir, {encoding: 'utf8'}, err => {
+                    if (!err) {
+                        callback();
+                    } else {
+                        errorHandler(err);
+                    }
+                });
+            } else {
+                // User cancelled update: exit immediately
+                app.exit(0);
+            }
+        });
     }
 
     function startWebAPIService(callback: (process: child_process.ChildProcess) => void) {
-        logCateVersion();
+        //logCateVersion();
 
         const cateCliPath = getCateCliPath();
         showSplashMessage('Searching unused port...');
@@ -500,10 +510,13 @@ export function init() {
         }
     });
 
+}
+
+function maybeInstallAutoUpdate(mainWindow: electron.BrowserWindow) {
     if (process.env.NODE_ENV !== 'development') {
         const autoUpdateSoftware = _prefs.data.autoUpdateSoftware || !isDefined(_prefs.data.autoUpdateSoftware);
         if (autoUpdateSoftware) {
-            installAutoUpdate();
+            installAutoUpdate(mainWindow);
         }
     }
 }
@@ -568,6 +581,8 @@ function loadMainWindow() {
                 }),
             })
         });
+
+        maybeInstallAutoUpdate(_mainWindow);
     });
 
     if (_prefs.data.devToolsOpened) {
@@ -577,7 +592,7 @@ function loadMainWindow() {
 
     const requestPreferencesUpdate = (event) => {
         _prefsUpdateRequestedOnClose = true;
-        log.info('Main window is going to be closed, fetching user preferences...');
+        log.info('Main window is going to be closed, requesting user preferences update...');
         _prefs.set('mainWindowBounds', _mainWindow.getBounds());
         _prefs.set('devToolsOpened', _mainWindow.webContents.isDevToolsOpened());
         event.sender.send('get-preferences');

@@ -97,7 +97,6 @@ describe('GeometryTool', function () {
         expect(toolContext.entities).to.exist;
         expect(toolContext.entities.length).to.equal(1);
         const entity = toolContext.entities[0];
-        console.log("test: entity = ", entity);
         expect(entity.polyline).to.exist;
         expect(entity.polyline.positions).to.exist;
         expect(entity.polyline.positions.length).to.equal(3);
