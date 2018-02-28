@@ -11,6 +11,7 @@ import ViewPanel from "./ViewPanel";
 import TaskPanel from "./TasksPanel";
 import StatusBar from "./StatusBar";
 import LayersPanel from "./LayersPanel";
+import StylesPanel from "./StylesPanel";
 import NewWorkspaceDialog from "./NewWorkspaceDialog";
 import SaveWorkspaceAsDialog from "./SaveWorkspaceAsDialog";
 import PreferencesDialog from "./PreferencesDialog";
@@ -207,12 +208,14 @@ class _RightPanel extends React.PureComponent<IRightPanelProps & IDispatch, null
             >
                 <Panel id="workspace" position="top" iconName="pt-icon-flows" title="Workspace"
                        body={<WorkspacePanel/>}/>
+                <Panel id="variables" position="top" iconName="pt-icon-variable" title="Variables"
+                       body={<VariablePanel/>}/>
                 <Panel id="layers" position="top" iconName="pt-icon-layers" title="Layers"
                        body={<LayersPanel/>}/>
                 <Panel id="placemarks" position="top" iconName="pt-icon-map-marker" title="Placemarks"
                        body={<PlacemarksPanel/>}/>
-                <Panel id="variables" position="bottom" iconName="pt-icon-variable" title="Variables"
-                       body={<VariablePanel/>}/>
+                <Panel id="style" position="bottom" iconName="pt-icon-style" title="Styles"
+                       body={<StylesPanel/>}/>
                 <Panel id="view" position="bottom" iconName="pt-icon-eye-open" title="View"
                        body={<ViewPanel/>}/>
                 <Panel id="tasks" position="bottom" iconName="pt-icon-play" title="Tasks"

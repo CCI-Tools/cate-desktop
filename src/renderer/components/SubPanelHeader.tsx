@@ -27,8 +27,10 @@ export class SubPanelHeader extends React.PureComponent<ISubPanelHeaderProps, an
 
     render() {
         return (
-            <div style={this.props.divStyle ? this.props.divStyle : SubPanelHeader.DIV_STYLE}>
-                <span style={this.props.titleStyle ? this.props.titleStyle : SubPanelHeader.SPAN_STYLE}>
+            <div
+                style={this.props.divStyle ? {...SubPanelHeader.DIV_STYLE, ...this.props.divStyle} : SubPanelHeader.DIV_STYLE}>
+                <span
+                    style={this.props.titleStyle ? {...SubPanelHeader.SPAN_STYLE, ...this.props.titleStyle} : SubPanelHeader.SPAN_STYLE}>
                     {this.props.title}
                 </span>
             </div>
