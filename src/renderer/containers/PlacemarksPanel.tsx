@@ -37,7 +37,7 @@ function mapStateToProps(state: State): IPlacemarksPanelProps {
         showPlacemarkDetails: selectors.showPlacemarkDetailsSelector(state),
         activeView: selectors.activeViewSelector(state),
         worldViewClickAction: state.control.worldViewClickAction,
-        globeViewPosition: state.location.globeViewPosition,
+        globeViewPosition: selectors.globeViewPositionSelector(state),
     };
 }
 
@@ -199,7 +199,9 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                 <Tooltip content="Add a new placemark" position={Position.LEFT}>
                     <AnchorButton className={add2ClassName}
                                   onClick={this.handleAddPlacemarkButtonClicked}
-                                  iconName="add"/>
+                                  iconName="add"
+                                  disabled={!this.props.globeViewPosition}
+                    />
                 </Tooltip>
                 <Tooltip content="Remove selected placemark" position={Position.LEFT}>
                     <AnchorButton disabled={!this.props.selectedPlacemarkId}
