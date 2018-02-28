@@ -1,11 +1,13 @@
-import {FileExecOutput} from "../main/fileutil";
 
-export interface TransactionProgress extends FileExecOutput {
+export interface TransactionProgress {
     name?: string;
+    message?: string;
     worked?: number;
     totalWork?: number;
     subWorked?: number;
     done?: boolean;
+    stdout?: string;
+    stderr?: string;
     error?: TransactionError;
 }
 
