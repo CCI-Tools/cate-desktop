@@ -129,6 +129,14 @@ export class WorkspaceAPI {
                                       responseToWorkspace);
     }
 
+    runOpInWorkspace(baseDir: string,
+                     opName: string,
+                     opArgs: OperationKWArgs,
+                     onProgress: (progress: JobProgress) => void): JobPromise<any> {
+        return this.webAPIClient.call('run_op_in_workspace',
+            [baseDir, opName, opArgs], onProgress);
+    }
+
     renameWorkspaceResource(baseDir: string, resName: string, newResName: string): JobPromise<WorkspaceState> {
         return this.webAPIClient.call('rename_workspace_resource',
                                       [baseDir, resName, newResName],

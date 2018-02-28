@@ -12,7 +12,7 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
-    getWorldViewVectorLayerForEntity, PLACEMARKS_LAYER_ID
+    getWorldViewVectorLayerForEntity, PLACEMARKS_LAYER_ID, findVariableIndexCoordinates
 } from "./state-util";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
@@ -108,7 +108,52 @@ export function setGlobeMousePosition(position: GeographicPosition): Action {
     return {type: SET_GLOBE_MOUSE_POSITION, payload: {position}};
 }
 
-export function setGlobeViewPosition(position: GeographicPosition): Action {
+export function setGlobeViewPosition(position: GeographicPosition): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        dispatch(setGlobeViewPositionImpl(position));
+        if (position) {
+            const baseDir = selectors.workspaceBaseDirSelector(getState());
+            assert.ok(baseDir);
+            const resource = selectors.selectedResourceSelector(getState());
+            const layer = selectors.selectedVariableImageLayerSelector(getState());
+            if (!layer || ! resource) {
+                return;
+            }
+
+            const indexCoords = findVariableIndexCoordinates([resource], layer);
+            const dimIndex = {};
+            for (let coord of indexCoords) {
+                if (coord[1] != '-' && coord[1] != '?') {
+                    dimIndex[coord[0]] = coord[1];
+                }
+            }
+
+            function call(onProgress) {
+                const opName = 'subset_point';
+                const opArgs = {
+                    ds: {source: resource.name},
+                    point: {value: `${position.longitude}, ${position.latitude}`},
+                    dim_index: {value: dimIndex},
+                };
+                console.log("subset_point args:", opArgs);
+                return selectors.workspaceAPISelector(getState()).runOpInWorkspace(baseDir,
+                    opName,
+                    opArgs,
+                    onProgress);
+            }
+
+            function action(result: any) {
+                console.log("subset_point result:", result);
+                // dispatch(setVariableValues(result));
+            }
+
+            callAPI(dispatch, 'Loading pixel values', call, action);
+        } else {
+            // dispatch(setVariableValues(null));
+        }
+    }
+}
+function setGlobeViewPositionImpl(position: GeographicPosition): Action  {
     return {type: SET_GLOBE_VIEW_POSITION, payload: {position}};
 }
 

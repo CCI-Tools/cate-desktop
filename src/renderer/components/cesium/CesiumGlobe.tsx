@@ -273,8 +273,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
 
         this.cesiumEventHandler.setInputAction(
             (event) => {
-                const point = event.endPosition;
-                const cartographic = screenToCartographic(viewer, point, true);
+                const cartographic = screenToCartographic(viewer, event.endPosition, true);
                 if (props.onMouseMoved) {
                     props.onMouseMoved(cartographic);
                 }
@@ -283,10 +282,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         );
 
         this.cesiumEventHandler.setInputAction(
-            () => {
-                let point; // = undefined, good.
-                //noinspection JSUnusedAssignment
-                const cartographic = screenToCartographic(viewer, point, true);
+            (event) => {
+                const cartographic = screenToCartographic(viewer, event.position, true);
                 if (props.onLeftUp) {
                     props.onLeftUp(cartographic);
                 }
