@@ -24,7 +24,7 @@ export function doSetup(setupInfo: SetupInfo, callback: (result?: SetupResult) =
         const setupWindow = new electron.BrowserWindow({
                                                            title: dialogTitle,
                                                            width: 600,
-                                                           height: 440,
+                                                           height: 380,
                                                            center: true,
                                                            show: true,
                                                            minimizable: false,
