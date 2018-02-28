@@ -28,6 +28,7 @@ function mapStateToProps(state: State): IRunScreenProps {
     };
 }
 
+// For testing only
 const NUM_TASKS = 30;
 const NUM_SUB_PROGRESSES = 10;
 const PROGRESS_TIME = 10000; // ms
@@ -35,31 +36,51 @@ const NUM_PROGRESSES = NUM_TASKS * NUM_SUB_PROGRESSES;
 const PROGRESS_TIMEOUT = PROGRESS_TIME / NUM_PROGRESSES;
 
 class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchProp> {
+    static readonly SCREEN_STYLE: React.CSSProperties = {display: "flex", flexDirection: "column", height: "100%"};
+    static readonly BUTTON_STYLE: React.CSSProperties = {marginTop: 4, marginBottom: 2, alignSelf: "flex-end"};
+    static readonly ITEM_STYLE: React.CSSProperties = {marginBottom: 4};
+
     private timerId;
     private counter;
     private worked;
 
     constructor(props: IRunScreenProps) {
         super(props);
+        this.handleShowLogClicked = this.handleShowLogClicked.bind(this);
+        this.handleNextClicked = this.handleNextClicked.bind(this);
+        this.handleCancelClicked = this.handleCancelClicked.bind(this);
+    }
+
+    handleShowLogClicked() {
+        this.props.dispatch(actions.openLog());
+    }
+
+    handleNextClicked() {
+        this.props.dispatch(actions.moveForward());
+    }
+
+    handleCancelClicked() {
+        this.props.dispatch(actions.cancelSetup());
     }
 
     render() {
 
         const panel = (
-            <div>
+            <div style={_RunScreen.SCREEN_STYLE}>
                 {this.renderStatusMessage()}
                 {this.renderProgressBar()}
                 {this.renderMessageLog()}
             </div>
         );
 
+        const canProceed = this.props.setupStatus === SETUP_STATUS_SUCCEEDED;
         return (
             <SetupScreen title="Run Setup Tasks"
                          panel={panel}
                          backButtonDisabled={true}
-                         nextButtonDisabled={!(this.props.setupStatus === SETUP_STATUS_SUCCEEDED)}
-                         onNextButtonClick={() => this.props.dispatch(actions.moveForward())}
-                         onCancelClick={() => this.props.dispatch(actions.cancelSetup())}
+                         nextButtonDisabled={!canProceed}
+                         onNextButtonClick={this.handleNextClicked}
+                         onCancelClick={this.handleCancelClicked}
             />
         );
     }
@@ -101,24 +122,19 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
                 break;
             }
         }
-        return <div className={statusIntent} style={{marginBottom: 4}}>{statusMessage}</div>;
+        return <div className={statusIntent} style={_RunScreen.ITEM_STYLE}>{statusMessage}</div>;
     }
 
     renderMessageLog() {
         let isLogOpen = this.props.isLogOpen;
         let logLines = this.props.logLines;
-        return (
-            <React.Fragment>
-                <Button style={{marginTop: 4, marginBottom: 2}}
-                        className="pt-small"
-                        onClick={() => this.props.dispatch(actions.toggleLogOpen())}
-                        iconName={isLogOpen ? "caret-up" : "caret-down"}
-                        text={isLogOpen ? "Hide Log" : "Show Log"}/>
-                <Collapse isOpen={isLogOpen}>
-                    <LogField lines={logLines}/>
-                </Collapse>
-            </React.Fragment>
-        );
+        if (isLogOpen) {
+            return <LogField lines={logLines}/>
+        } else if (logLines && logLines.length > 0) {
+            return <Button style={_RunScreen.BUTTON_STYLE}
+                           onClick={this.handleShowLogClicked}
+                           text="Show Log"/>
+        }
     }
 
     renderProgressBar() {
@@ -126,12 +142,13 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
         const setupStatus = this.props.setupStatus;
 
         let value;
+        let className;
         if (progress) {
             let worked = progress.worked;
             let totalWork = progress.totalWork;
             if (progress.done) {
-                // set value to zero
-                value = 0;
+                className = "pt-no-stripes";
+                value = 1;
             } else if (isNumber(worked) && isNumber(totalWork)) {
                 let subWorked = progress.subWorked;
                 if (isNumber(subWorked)) {
@@ -142,14 +159,14 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
         }
 
         if (!isNumber(value)) {
-            if (setupStatus !== SETUP_STATUS_IN_PROGRESS) {
-                // value remains undefined --> indeterminate state
-            } else {
-                value = 0;
-            }
+            value = 0;
         }
 
-        return <ProgressBar value={value}/>;
+        return (
+            <div style={_RunScreen.ITEM_STYLE}>
+                <ProgressBar className={className} value={value}/>
+            </div>
+        );
     }
 
     componentDidMount() {

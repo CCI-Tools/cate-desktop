@@ -14,7 +14,8 @@ export class LogField extends React.PureComponent<ILogFieldProps> {
         fontFamily: ["Source Code Pro", "Consolas", "Lucida Console", "Courier New"],
         fontSize: "0.9em",
         width: "100%",
-        height: 248,
+        minHeight: 48,
+        flex: "1 0 auto",
         padding: 3,
     };
 

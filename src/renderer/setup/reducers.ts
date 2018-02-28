@@ -107,8 +107,8 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
             };
         case "SET_SETUP_STATUS":
             return {...state, setupStatus: action.payload.setupStatus};
-        case "TOGGLE_LOG_OPEN":
-            return {...state, isLogOpen: !state.isLogOpen};
+        case "OPEN_LOG":
+            return {...state, isLogOpen: true};
         case "UPDATE_PROGRESS": {
             const progressDelta = action.payload.progress;
             let logLines = state.logLines;

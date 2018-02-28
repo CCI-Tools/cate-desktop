@@ -209,7 +209,7 @@ export function performSetupTasks() {
     }
 }
 
-export function toggleLogOpen() {
-    return {type: "TOGGLE_LOG_OPEN"};
+export function openLog() {
+    return {type: "OPEN_LOG"};
 }
 
