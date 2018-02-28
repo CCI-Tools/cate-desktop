@@ -135,7 +135,7 @@ export class InstallCondaEnv extends Transaction {
     condaDir: string;
 
     constructor(condaDir: string) {
-        super('InstallOrUpdateCate', [], 'Installing Conda environment');
+        super('InstallCondaEnv', [], 'Installing Conda environment');
         this.condaDir = condaDir;
     }
 
