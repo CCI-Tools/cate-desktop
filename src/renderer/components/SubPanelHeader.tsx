@@ -3,8 +3,8 @@ import {CSSProperties} from 'react';
 
 export interface ISubPanelHeaderProps {
     title: string;
-    divStyle?: { [key: string]: any };
-    titleStyle?: { [key: string]: any };
+    divStyle?: React.CSSProperties;
+    titleStyle?: React.CSSProperties;
 }
 
 /**

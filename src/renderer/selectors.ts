@@ -1,20 +1,45 @@
 import {
-    LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
-    ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
-    WorkflowStepState, LayerVariableState, SavedLayers,
-    FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase,
-    ResourceVectorLayerState, WorldViewDataState, VectorLayerState
+    ColorMapCategoryState,
+    ColorMapState,
+    DataSourceState,
+    DataStoreState,
+    DialogState,
+    FigureViewDataState,
+    GeographicPosition,
+    ImageLayerState,
+    LayerState,
+    LayerVariableState,
+    OperationState,
+    Placemark,
+    PlacemarkCollection,
+    ResourceState,
+    ResourceVectorLayerState,
+    SavedLayers,
+    State,
+    VariableImageLayerState,
+    VariableLayerBase,
+    VariableState,
+    VectorLayerState,
+    WorkflowStepState,
+    WorkspaceState,
+    WorldViewDataState
 } from './state';
 import {createSelector, Selector} from 'reselect';
-import {WebAPIClient, JobStatusEnum} from './webapi';
-import {DatasetAPI, OperationAPI, WorkspaceAPI, ColorMapsAPI, BackendConfigAPI} from './webapi/apis';
+import {JobStatusEnum, WebAPIClient} from './webapi';
+import {BackendConfigAPI, ColorMapsAPI, DatasetAPI, OperationAPI, WorkspaceAPI} from './webapi/apis';
 import {PanelContainerLayout} from './components/PanelContainer';
 import {
-    isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
-    getLockForGetWorkspaceVariableStatistics, EXTERNAL_OBJECT_STORE, getWorldViewSelectedEntity,
-    getWorldViewSelectedGeometryWKTGetter, getWorldViewVectorLayerForEntity,
+    EXTERNAL_OBJECT_STORE,
+    findOperation,
+    getLockForGetWorkspaceVariableStatistics,
+    getWorldViewSelectedEntity,
+    getWorldViewSelectedGeometryWKTGetter,
+    getWorldViewVectorLayerForEntity,
+    isFigureResource,
+    isSpatialImageVariable,
+    isSpatialVectorVariable,
 } from './state-util';
-import {ViewState, ViewLayoutState} from './components/ViewState';
+import {ViewLayoutState, ViewState} from './components/ViewState';
 import {isNumber} from '../common/types';
 import * as Cesium from 'cesium';
 import {GeometryWKTGetter} from './containers/editor/ValueEditor';
@@ -704,7 +729,7 @@ export const entityUpdateCountSelector = (state: State) => state.control.entityU
 
 export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
 
-export const effectiveStyleModeSelector = createSelector(
+export const effectiveStyleModeSelector = createSelector<State, 'entity' | 'layer', 'entity' | 'layer', Cesium.Entity | null, LayerState | null>(
     vectorStyleModeSelector,
     selectedEntitySelector,
     selectedLayerSelector,
