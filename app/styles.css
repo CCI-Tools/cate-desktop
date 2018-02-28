@@ -36,7 +36,6 @@ input, button, textarea, :focus {
     /*border-radius: 0.8em;*/
 }
 
-
 ::-webkit-scrollbar-thumb {
     /* blueprint's @gray5 */
     background: rgba(191, 204, 214, 0.6);
@@ -54,7 +53,7 @@ input, button, textarea, :focus {
     background: rgba(0, 0, 0, 0)
 }
 
-.cate-color-bars-popover  .pt-popover-content {
+.cate-color-bars-popover .pt-popover-content {
     max-height: 20em;
     overflow-y: auto;
 }
@@ -87,6 +86,9 @@ ul.cate-list-box li.cate-selected {
     background-color: rgba(128, 128, 255, 0.6);
 }
 
+/* To create an inline radio group. This CSS class is required because blueprint's RadioGroup component does not
+have style property
+*/
 .cate-radiogroup {
     display: flex;
 }
@@ -171,8 +173,6 @@ span.cate-icon-small:hover {
     /* blueprint's @blue4 used for selection in pt-dark */
     color: rgba(43, 149, 214, 1.0);
 }
-
-
 
 /* <<<< Cesium ============================================================ */
 
