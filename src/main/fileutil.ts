@@ -57,28 +57,28 @@ export function deleteFile(file: string, ignoreFailure?: boolean): Promise<boole
  * @param sourceUrl The URL
  * @param targetFile The local file
  * @param targetMode The access mode of the target file. e.g. 0o777
- * @param progress Called while downloading. Signature: (bytesReceived: number, bytesTotal: number) => void
+ * @param onProgress Called while downloading. Signature: (bytesReceived: number, bytesTotal: number) => void
  */
 export function downloadFile(sourceUrl: string,
                              targetFile: string,
                              targetMode: number,
-                             progress: (bytesReceived: number, bytesTotal: number) => void): Promise<void> {
+                             onProgress?: (bytesReceived: number, bytesTotal: number) => void): Promise<string> {
 
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
         const tempTargetFile = targetFile + ".download";
         const file = fs.createWriteStream(tempTargetFile, {mode: targetMode});
-        let time = process.hrtime();
+        let time1 = process.hrtime();
         const resHandler = (res: http.IncomingMessage) => {
             const bytesTotal = parseInt(res.headers['content-length'] as string);
             let bytesReceived = 0;
             res.pipe(file);
             res.on("data", function (chunk) {
                 bytesReceived += chunk.length;
-                if (progress) {
-                    const time2 = process.hrtime(time);
-                    if (time2[0] >= 1) {
-                        time = time2;
-                        progress(bytesReceived, bytesTotal);
+                if (onProgress) {
+                    const time2 = process.hrtime();
+                    if (time2[0] - time1[0] >= 1) {
+                        time1 = time2;
+                        onProgress(bytesReceived, bytesTotal);
                     }
                 }
             });
@@ -88,7 +88,7 @@ export function downloadFile(sourceUrl: string,
                         if (e) {
                             reject(e);
                         } else {
-                            resolve();
+                            resolve(targetFile);
                         }
                     });
                 });
