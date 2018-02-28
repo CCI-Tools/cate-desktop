@@ -1,12 +1,10 @@
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
-import {FigureViewDataState, ResourceState, State, WorldViewDataState} from "../state";
-import {RadioGroup, Radio, AnchorButton, Checkbox} from "@blueprintjs/core";
-import {FieldValue} from "../components/field/Field";
+import {State} from "../state";
+import {AnchorButton, Checkbox} from "@blueprintjs/core";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {ViewState} from "../components/ViewState";
-import {Card} from "../components/Card";
 import {NO_ACTIVE_VIEW} from "../messages";
 
 interface IViewPanelDispatch {
@@ -16,26 +14,14 @@ interface IViewPanelDispatch {
 interface IViewPanelProps {
     activeView: ViewState<any> | null;
     activeViewId: string | null;
-    figureViews: ViewState<FigureViewDataState>[];
-    figureResources: ResourceState[];
-    selectedFigureResource: ResourceState | null;
-    selectedResourceName: string | null;
     showLayerTextOverlay: boolean;
     isSelectedLayerSplit: boolean;
-}
-
-interface IViewPanelState {
-    isProjectionsDialogOpen: boolean;
 }
 
 function mapStateToProps(state: State): IViewPanelProps {
     return {
         activeView: selectors.activeViewSelector(state),
         activeViewId: selectors.activeViewIdSelector(state),
-        figureViews: selectors.figureViewsSelector(state),
-        figureResources: selectors.figureResourcesSelector(state),
-        selectedFigureResource: selectors.selectedFigureResourceSelector(state),
-        selectedResourceName: selectors.selectedResourceNameSelector(state),
         showLayerTextOverlay: state.session.showLayerTextOverlay,
         isSelectedLayerSplit: selectors.isSelectedLayerSplitSelector(state),
     };
@@ -46,7 +32,7 @@ function mapStateToProps(state: State): IViewPanelProps {
  *
  * @author Norman Fomferra
  */
-class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IViewPanelState> {
+class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, null> {
 
     private static ACTION_ITEM_STYLE = {margin: "0.1em 0em 2em 0em"};
     private static PROPERTY_ITEM_STYLE = {margin: "0.1em 0em 0.6em 0em"};
@@ -63,19 +49,13 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, IV
     constructor(props: IViewPanelProps & IViewPanelDispatch) {
         super(props);
         this.onViewModeChange = this.onViewModeChange.bind(this);
-        this.onProjectionCodeChange = this.onProjectionCodeChange.bind(this);
         this.onAddWorldView = this.onAddWorldView.bind(this);
         this.onShowLayerTextOverlayChange = this.onShowLayerTextOverlayChange.bind(this);
         this.onSplitSelectedVariableLayer = this.onSplitSelectedVariableLayer.bind(this);
-        this.state = {isProjectionsDialogOpen: false};
     }
 
     onViewModeChange(ev: any) {
         this.props.dispatch(actions.setViewMode(this.props.activeViewId, ev.target.value));
-    }
-
-    onProjectionCodeChange(projectionCode: FieldValue<string>) {
-        this.props.dispatch(actions.setProjectionCode(this.props.activeViewId, projectionCode.textValue));
     }
 
     onShowLayerTextOverlayChange(ev) {
