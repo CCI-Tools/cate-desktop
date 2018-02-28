@@ -65,7 +65,7 @@ export class DownloadMiniconda extends Transaction {
         let progressHandler = (bytesReceived: number, bytesTotal: number) => {
             const subWorked = bytesReceived / bytesTotal;
             const percent = Math.round(100 * subWorked);
-            const message = `Downloading ${targetFile}: ${bytesReceived} of ${bytesTotal} bytes received, ${percent}%`;
+            const message = `${targetFile}: ${bytesReceived} of ${bytesTotal} bytes received, ${percent}%`;
             onProgress({message, subWorked});
         };
         return downloadFile(this.getMinicondaInstallerUrl(), targetFile, 0o777, progressHandler);
