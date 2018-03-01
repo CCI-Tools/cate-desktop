@@ -111,7 +111,7 @@ export class Transaction {
 export class TransactionError extends Error {
     readonly transaction: Transaction;
     readonly index: number;
-    readonly reason: any;
+    readonly reason: Error;
 
     constructor(transaction: Transaction, index: number, reason: any) {
         super(`failed to fulfill transaction "${transaction.name}"`);
@@ -205,6 +205,9 @@ export class TransactionSet implements TransactionContext {
                     onProgress({worked: i + 1, totalWork: transactions.length, subWorked: 0, done: i === transactions.length - 1});
                     return value;
                 }).catch(reason => {
+                    while (reason && reason.reason) {
+                        reason = reason.reason;
+                    }
                     throw new TransactionError(t, i, reason);
                 });
             });
