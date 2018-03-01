@@ -8,7 +8,7 @@ import {
     TransactionContext,
     TransactionProgressHandler, TransactionState
 } from '../common/transaction';
-import {getCommandInActivatedCondaEnv} from "./appenv";
+import {defaultExecShellOption, defaultSpawnShellOption, getCommandInActivatedCondaEnv} from "./appenv";
 
 
 function _getOutput(output: ExecOutput) {
@@ -155,7 +155,7 @@ export class InstallOrUpdateCate extends Transaction {
     cateDir: string;
 
     constructor(cateVersion: string, cateDir: string, requires: string[]) {
-        super('InstallOrUpdateCate', requires, 'Install or update to cate-' + cateVersion);
+        super('InstallOrUpdateCate', requires, 'Install cate ' + cateVersion);
         this.cateVersion = cateVersion;
         this.cateDir = cateDir;
     }
@@ -176,7 +176,7 @@ export class InstallOrUpdateCate extends Transaction {
         notifyExecCommand(command, onProgress);
         return execAsync(command, defaultExecShellOption()).then((output: ExecOutput) => {
             const line = _getOutput(output);
-            return line.startsWith(this.cateVersion);
+            return line.startsWith("cate " + this.cateVersion);
         }).catch(() => {
             return false;
         });
@@ -186,10 +186,10 @@ export class InstallOrUpdateCate extends Transaction {
         const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `conda install --yes -c ccitools -c conda-forge gdal=2.2.3 cate-cli=${this.cateVersion}`);
         notifyExecCommand(command, onProgress);
         return spawnAsync(command, undefined, defaultSpawnShellOption(), onProgress)
-            .then(code => this.fulfilled(context, onProgress))
+            .then(() => this.fulfilled(context, onProgress))
             .then(ok => {
                 if (!ok) {
-                    throw new Error("Cate setup failed!");
+                    throw new Error(`Installation of Python package cate ${this.cateVersion} did not succeed.`);
                 }
             });
     }
@@ -212,20 +212,4 @@ function notifyExecCommand(command: string, onProgress: TransactionProgressHandl
 
 function notifyExecFile(file: string, args: string[], onProgress: TransactionProgressHandler) {
     onProgress({message: `${file} ` + args.map(a => a.indexOf(' ') >= 0 ? `"${a}"` : a).join(' ')});
-}
-
-// on Unix '/bin/sh' is the dafault
-// BUT on Ubuntu this links to 'dash' which doesn't work together with 'conda'
-function defaultSpawnShellOption() {
-    if (process.platform === "win32") {
-        return {shell: true};
-    } else {
-        return {shell: '/bin/bash'};
-    }
-}
-
-function defaultExecShellOption() {
-    if (process.platform !== "win32") {
-        return {shell: '/bin/bash'};
-    }
 }

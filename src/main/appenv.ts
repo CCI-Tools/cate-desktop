@@ -198,3 +198,19 @@ export function getCommandInActivatedCondaEnv(condaDir: string, envDir: string, 
     }
 }
 
+
+// on Unix '/bin/sh' is the dafault
+// BUT on Ubuntu this links to 'dash' which doesn't work together with 'conda'
+export function defaultSpawnShellOption() {
+    if (process.platform === "win32") {
+        return {shell: true};
+    } else {
+        return {shell: '/bin/bash'};
+    }
+}
+
+export function defaultExecShellOption() {
+    if (process.platform !== "win32") {
+        return {shell: '/bin/bash'};
+    }
+}
