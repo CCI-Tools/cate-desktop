@@ -26,6 +26,6 @@ export interface State extends SetupOptions {
     progress: TransactionProgress;
     logLines: string[];
     setupStatus: SetupStatus;
-    error?: Error;
+    error?: any;
     isLogOpen: boolean;
 }

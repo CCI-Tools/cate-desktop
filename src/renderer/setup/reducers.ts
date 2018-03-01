@@ -120,14 +120,14 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
                 logLines = parseTerminalOutput(progressDelta.stderr, TEXT_LINE_TYPE, logLines);
             }
             const error = progressDelta.error;
-            let progress;
+            const progress = updateConditionally2(state.progress, progressDelta);
             if (error) {
-                logLines = logLines.slice();
-                logLines.push(`\n${error.stack || error.toString()}\n`);
+                let errDump = error.stack || error.message || error.name;
+                if (errDump) {
+                    logLines = logLines.slice();
+                    logLines.push(`\n${errDump}\n`);
+                }
                 setupStatus = SETUP_STATUS_FAILED;
-                progress = updateConditionally2(state.progress, progressDelta, {message: error.message || error.toString()});
-            } else {
-                progress = updateConditionally2(state.progress, progressDelta);
             }
             return {...state, setupStatus, progress, logLines};
         }

@@ -1,6 +1,6 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {Button, Collapse, Intent, ProgressBar} from "@blueprintjs/core";
+import {Button, Intent, ProgressBar} from "@blueprintjs/core";
 import {
     SETUP_STATUS_CANCELLED, SETUP_STATUS_FAILED, SETUP_STATUS_IN_PROGRESS, SETUP_STATUS_SUCCEEDED, SETUP_TEST_MODE,
     SetupStatus,
@@ -14,7 +14,7 @@ import {isDefined, isNumber} from "../../../common/types";
 
 interface IRunScreenProps {
     setupStatus: SetupStatus;
-    error?: Error;
+    error?: any;
     progress: TransactionProgress;
     logLines: string[];
     isLogOpen: boolean;
@@ -115,8 +115,8 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
             }
             case SETUP_STATUS_FAILED: {
                 let error = this.props.error;
-                if (error) {
-                    statusMessage = "Setup failed: " + (error.message || error.toString());
+                if (error && error.message) {
+                    statusMessage = "Setup failed: " + error.message;
                 } else {
                     statusMessage = "Setup failed.";
                 }
@@ -146,7 +146,6 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
 
     renderProgressBar() {
         const progress = this.props.progress;
-        const setupStatus = this.props.setupStatus;
 
         let value;
         let className;

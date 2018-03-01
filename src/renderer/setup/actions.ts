@@ -99,7 +99,7 @@ export function browseCondaDir() {
     };
 }
 
-export function setSetupStatus(setupStatus: SetupStatus, error?: Error) {
+export function setSetupStatus(setupStatus: SetupStatus, error?: any) {
     return {type: "SET_SETUP_STATUS", payload: {setupStatus, error}};
 }
 
@@ -189,7 +189,7 @@ function validateCondaDir(dispatch: Dispatch<any>, getState: () => State) {
 
 export function performSetupTasks() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
-        const listener = (event, error?: Error, progress?: TransactionProgress) => {
+        const listener = (event, error?: any, progress?: TransactionProgress) => {
             console.log("performSetupTasks-response: ", error, progress);
             if (error) {
                 dispatch(setSetupStatus(SETUP_STATUS_FAILED, error));
