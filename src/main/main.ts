@@ -14,7 +14,7 @@ import {error, isNumber} from "util";
 import {
     getAppDataDir, getAppIconPath,
     getCateCliSetupInfo, setCateDir, getWebAPIStartCommand, getWebAPIRestUrl,
-    getWebAPIStopCommand, getMPLWebSocketsUrl, getAPIWebSocketsUrl
+    getWebAPIStopCommand, getMPLWebSocketsUrl, getAPIWebSocketsUrl, defaultSpawnShellOption
 } from "./appenv";
 import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
@@ -155,6 +155,8 @@ export function init() {
     let webAPIError = null;
     let webAPIProcess = null;
 
+    let webAPIProcessOptions = {...webAPIConfig.processOptions, ...defaultSpawnShellOption()};
+
     function ensureValidCateCliDir(callback: () => void) {
         const setupInfo = getCateCliSetupInfo();
         log.info("setupInfo: ", setupInfo);
@@ -231,7 +233,7 @@ export function init() {
 
             const webAPIStartCommand = getWebAPIStartCommand(webAPIConfig);
             log.info(`Starting Cate service: ${webAPIStartCommand}`);
-            webAPIProcess = child_process.spawn(webAPIStartCommand, [], webAPIConfig.processOptions);
+            webAPIProcess = child_process.spawn(webAPIStartCommand, [], webAPIProcessOptions);
             log.info('Cate service started.');
             webAPIProcess.stdout.on('data', (data: any) => {
                 log.info(CATE_WEBAPI_PREFIX, `${data}`);
@@ -272,7 +274,7 @@ export function init() {
         const webAPIStopCommand = getWebAPIStopCommand(webAPIConfig);
         log.info(`Stopping Cate service: ${webAPIStopCommand}`);
         // this must be sync to make sure the stop is performed before this process ends
-        child_process.spawnSync(webAPIStopCommand, [], webAPIConfig.processOptions);
+        child_process.spawnSync(webAPIStopCommand, [], webAPIProcessOptions);
     }
 
     const msServiceAccessTimeout = 1000; // ms
