@@ -13,14 +13,14 @@ import {menuTemplate} from "./menu";
 import {error, isNumber} from "util";
 import {
     getAppDataDir, getAppIconPath,
-    getCateCliSetupInfo, setCateDir, getCateCliPath
+    getCateCliSetupInfo, setCateDir, getWebAPIStartCommand, getWebAPIRestUrl,
+    getWebAPIStopCommand, getMPLWebSocketsUrl, getAPIWebSocketsUrl
 } from "./appenv";
 import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
 import {isDefined} from "../common/types";
 import {doSetup} from "./setup";
 import {SetupResult} from "../common/setup";
-
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -80,7 +80,6 @@ let _prefsUpdateRequestedOnClose = false;
  * @private
  */
 let _prefsUpdatedOnClose = false;
-
 
 
 // noinspection JSUnusedGlobalSymbols
@@ -156,12 +155,6 @@ export function init() {
     let webAPIError = null;
     let webAPIProcess = null;
 
-    const processOptions = {
-        //detached: false,
-        //stdio: 'inherit',
-        ...webAPIConfig.processOptions
-    };
-
     function ensureValidCateCliDir(callback: () => void) {
         const setupInfo = getCateCliSetupInfo();
         log.info("setupInfo: ", setupInfo);
@@ -223,7 +216,6 @@ export function init() {
     function startWebAPIService(callback: (process: child_process.ChildProcess) => void) {
         //logCateVersion();
 
-        const cateCliPath = getCateCliPath();
         showSplashMessage('Searching unused port...');
         findFreePort(webAPIConfig.servicePort, null, (freePort: number) => {
             if (freePort < webAPIConfig.servicePort) {
@@ -237,10 +229,9 @@ export function init() {
             }
             webAPIConfig.servicePort = freePort;
 
-            const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
-            log.info(`Starting Cate service: ${cateCliPath} [${webAPIStartArgs}]`);
-
-            webAPIProcess = child_process.spawn(cateCliPath, webAPIStartArgs, processOptions);
+            const webAPIStartCommand = getWebAPIStartCommand(webAPIConfig);
+            log.info(`Starting Cate service: ${webAPIStartCommand}`);
+            webAPIProcess = child_process.spawn(webAPIStartCommand, [], webAPIConfig.processOptions);
             log.info('Cate service started.');
             webAPIProcess.stdout.on('data', (data: any) => {
                 log.info(CATE_WEBAPI_PREFIX, `${data}`);
@@ -278,11 +269,10 @@ export function init() {
         if (!webAPIProcess) {
             return;
         }
-        const cateCliPath = getCateCliPath();
-        const webAPIStopArgs = getWebAPIStopArgs(webAPIConfig);
-        log.info(`Stopping Cate service using arguments: ${webAPIStopArgs}`);
+        const webAPIStopCommand = getWebAPIStopCommand(webAPIConfig);
+        log.info(`Stopping Cate service: ${webAPIStopCommand}`);
         // this must be sync to make sure the stop is performed before this process ends
-        child_process.spawnSync(cateCliPath, webAPIStopArgs, webAPIConfig.options);
+        child_process.spawnSync(webAPIStopCommand, [], webAPIConfig.processOptions);
     }
 
     const msServiceAccessTimeout = 1000; // ms
@@ -685,38 +675,3 @@ function loadUserPrefs(): Configuration {
     return loadConfiguration(PREFS_OPTIONS, getDefaultUserPrefsFile(), 'User preferences');
 }
 
-
-function getWebAPICommonArgs(webAPIConfig) {
-    const webApiExe = process.platform === 'win32' ? 'cate-webapi.exe' : 'cate-webapi';
-    let args = [
-        webApiExe,
-        '--caller', 'cate-desktop',
-        '--port', webAPIConfig.servicePort,
-        '--file', webAPIConfig.serviceFile,
-    ];
-    if (webAPIConfig.serviceAddress) {
-        args = args.concat('--address', webAPIConfig.serviceAddress);
-    }
-    return args;
-}
-
-
-function getWebAPIStartArgs(webAPIConfig) {
-    return getWebAPICommonArgs(webAPIConfig).concat('start');
-}
-
-function getWebAPIStopArgs(webAPIConfig) {
-    return getWebAPICommonArgs(webAPIConfig).concat('stop');
-}
-
-function getWebAPIRestUrl(webAPIConfig) {
-    return `http://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/`;
-}
-
-function getAPIWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/api`;
-}
-
-function getMPLWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/mpl/figures/`;
-}

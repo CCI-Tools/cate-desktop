@@ -8,6 +8,7 @@ import {
     TransactionContext,
     TransactionProgressHandler, TransactionState
 } from '../common/transaction';
+import {getCommandInActivatedCondaEnv} from "./appenv";
 
 
 function _getOutput(output: ExecOutput) {
@@ -182,7 +183,7 @@ export class InstallOrUpdateCate extends Transaction {
     }
 
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
-        const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `conda install --yes -c ccitools -c conda-forge cate-cli=${this.cateVersion}`);
+        const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `conda install --yes -c ccitools -c conda-forge gdal=2.2.3 cate-cli=${this.cateVersion}`);
         notifyExecCommand(command, onProgress);
         return spawnAsync(command, undefined, defaultSpawnShellOption(), onProgress)
             .then(code => this.fulfilled(context, onProgress))
@@ -203,17 +204,6 @@ function isCompatiblePython(condaDir: string, condaEnvDir: string, onProgress: T
     }).catch(() => {
         return false;
     });
-}
-
-
-function getCommandInActivatedCondaEnv(condaDir: string, envDir: string, command: string) {
-    if (process.platform === 'win32') {
-        const activatePath = path.join(condaDir, "Scripts", "activate");
-        return `"${activatePath}" "${envDir}" & ${command}`;
-    } else {
-        const activatePath = path.join(condaDir, "bin", "activate");
-        return `source "${activatePath}" "${envDir}"; ${command}`;
-    }
 }
 
 function notifyExecCommand(command: string, onProgress: TransactionProgressHandler) {

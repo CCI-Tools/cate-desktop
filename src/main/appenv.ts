@@ -12,7 +12,7 @@ import * as assert from "../common/assert";
  * The value is a SemVer (https://github.com/npm/semver) compatible version range string.
  * @type {string}
  */
-export const APP_CLI_VERSION_RANGE = ">=1.1.0-dev.6 <1.2.0";
+export const APP_CLI_VERSION_RANGE = ">=1.1.0-dev.5 <1.2.0";
 
 /**
  * Version of cate-cli that is know to run with this version of Cate Desktop.
@@ -20,27 +20,37 @@ export const APP_CLI_VERSION_RANGE = ">=1.1.0-dev.6 <1.2.0";
  * with that version should have been deployed.
  * @type {string}
  */
-export const EXPECTED_APP_CLI_VERSION = "1.1.0.dev6";
+export const EXPECTED_APP_CLI_VERSION = "1.1.0.dev5";
 
+export const CATE_CLI_NAME = "cate";
+export const CATE_WEBAPI_NAME = "cate-webapi";
 
 export const CATE_CLI_EXECUTABLE = (() => {
     if (process.platform === 'win32') {
-        return "Scripts\\cate-cli.bat";
+        return path.join("Scripts", `${CATE_CLI_NAME}.exe`);
     } else {
-        return "bin/cate-cli";
+        return path.join("bin", CATE_CLI_NAME);
+    }
+})();
+
+export const CATE_WEBAPI_EXECUTABLE = (() => {
+    if (process.platform === 'win32') {
+        return path.join("Scripts", `${CATE_WEBAPI_NAME}.exe`);
+    } else {
+        return path.join("bin", CATE_WEBAPI_NAME);
     }
 })();
 
 export const CONDA_EXECUTABLES = (() => {
     if (process.platform === 'win32') {
-        return ["python.exe", "Scripts\\activate.bat", "Scripts\\deactivate.bat"];
+        return ["python.exe", path.join("Scripts", "activate.bat"), path.join("Scripts", "deactivate.bat")];
     } else {
-        return ["bin/python", "bin/activate", "bin/deactivate"];
+        return [path.join("bin", "python"), path.join("bin", "activate"), path.join("bin", "deactivate")];
     }
 })();
 
 export const CATE_EXECUTABLES = (() => {
-    return [CATE_CLI_EXECUTABLE].concat(CONDA_EXECUTABLES);
+    return [CATE_CLI_EXECUTABLE, CATE_WEBAPI_EXECUTABLE].concat(CONDA_EXECUTABLES);
 })();
 
 
@@ -62,8 +72,34 @@ export function getAppDataDir() {
     return path.join(app.getPath('home'), '.cate');
 }
 
-export function getCateCliPath(cateDir?: string): string {
-    return path.join(cateDir || getCateDir(), CATE_CLI_EXECUTABLE);
+export function getWebAPIStartCommand(webAPIConfig): string {
+    const command = getWebAPICommandBase(webAPIConfig);
+    return getCommandInActivatedCate(getCateDir(), command + ' start');
+}
+
+export function getWebAPIStopCommand(webAPIConfig): string {
+    const command = getWebAPICommandBase(webAPIConfig);
+    return getCommandInActivatedCate(getCateDir(), command + ' stop');
+}
+
+function getWebAPICommandBase(webAPIConfig): string {
+    let args = `cate-webapi --caller cate-desktop --port ${webAPIConfig.servicePort} --file "${webAPIConfig.serviceFile}"`;
+    if (webAPIConfig.serviceAddress) {
+        args += ` --address "${webAPIConfig.serviceAddress}"`;
+    }
+    return args;
+}
+
+export function getWebAPIRestUrl(webAPIConfig) {
+    return `http://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/`;
+}
+
+export function getAPIWebSocketsUrl(webAPIConfig) {
+    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/api`;
+}
+
+export function getMPLWebSocketsUrl(webAPIConfig) {
+    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/mpl/figures/`;
 }
 
 export function getCateDir() {
@@ -96,18 +132,8 @@ export function getCateCliSetupInfo(): SetupInfo {
                     continue;
                 }
 
-                // We should actually use getCateCliVersion() here, as the true version number may differ
-                // from the version number indicated by the directory name in which we found the "cate.location" file.
-                // However, executing "cate-cli --version" for multiple installed Cates could drastically slow
-                // down start-up process.
-                //
-                // oldCateVersion = getCateCliVersion(oldCateDir).then(v => {
-                //     const version = pep440ToSemver(oldCateVersion); // SemVer
-                // });
-                // version = pep440ToSemver(oldCateVersion); // SemVer
-                //
-                const cateCliExe = path.join(oldCateDir, CATE_CLI_EXECUTABLE);
-                if (isExec(cateCliExe)) {
+                const cateWebapiExe = path.join(oldCateDir, CATE_WEBAPI_EXECUTABLE);
+                if (isExec(cateWebapiExe)) {
                     const updateInfo = {oldCateDir, newCateDir, oldCateVersion, newCateVersion, setupReason: null};
                     // Return immediately if the versions are equal.
                     if (semver.eq(version, app.getVersion(), true)) {
@@ -156,3 +182,19 @@ function isExec(path: string): boolean {
         return false;
     }
 }
+
+
+export function getCommandInActivatedCate(cateDir: string, command: string) {
+    return getCommandInActivatedCondaEnv(cateDir, cateDir, command);
+}
+
+export function getCommandInActivatedCondaEnv(condaDir: string, envDir: string, command: string) {
+    if (process.platform === 'win32') {
+        const activatePath = path.join(condaDir, "Scripts", "activate");
+        return `"${activatePath}" "${envDir}" & ${command}`;
+    } else {
+        const activatePath = path.join(condaDir, "bin", "activate");
+        return `source "${activatePath}" "${envDir}"; ${command}`;
+    }
+}
+
