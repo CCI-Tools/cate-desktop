@@ -15,7 +15,7 @@ export class LogField extends React.PureComponent<ILogFieldProps> {
         fontSize: "0.9em",
         width: "100%",
         minHeight: 48,
-        flex: "1 0 auto",
+        flex: "1 1 auto",
         padding: 3,
     };
 

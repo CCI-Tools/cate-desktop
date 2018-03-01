@@ -1,8 +1,8 @@
 import {SetupInfo, SetupOptions} from "../../common/setup";
 import {TransactionProgress} from "../../common/transaction";
 
-//export const SETUP_TEST_MODE = true;
-export const SETUP_TEST_MODE = false;
+// Set this to false to simulate a running setup tasks that produces a dummy log
+export const SETUP_TEST_MODE = true;
 
 export const SCREEN_ID_START = "START";
 export const SCREEN_ID_CONFIG = "CONFIG";
