@@ -105,7 +105,7 @@ export class InstallMiniconda extends Transaction {
         const minicondaInstallerExecutable = context.getTransactionState('DownloadMiniconda').minicondaInstallerExecutable;
         this.getState(context).minicondaInstalled = true;
         notifyExecFile(minicondaInstallerExecutable, args, onProgress);
-        return spawnAsync(minicondaInstallerExecutable, args, undefined, onProgress);
+        return spawnAsync(minicondaInstallerExecutable, args, defaultSpawnShellOption(), onProgress);
     }
 
     rollback(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
@@ -146,7 +146,7 @@ export class InstallCondaEnv extends Transaction {
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
         const command = getCommandInActivatedCondaEnv(this.getCondaDir(), this.getCondaDir(), "conda env create --name cate-env python=3");
         notifyExecCommand(command, onProgress);
-        return spawnAsync(command, undefined, {shell: true}, onProgress);
+        return spawnAsync(command, undefined, defaultSpawnShellOption(), onProgress);
     }
 }
 
@@ -180,7 +180,7 @@ export class InstallOrUpdateCate extends Transaction {
         }
         const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `${cateCli} --version`);
         notifyExecCommand(command, onProgress);
-        return execAsync(command).then((output: ExecOutput) => {
+        return execAsync(command, defaultExecShellOption()).then((output: ExecOutput) => {
             const line = _getOutput(output);
             return line.startsWith(this.cateVersion);
         }).catch(() => {
@@ -191,14 +191,14 @@ export class InstallOrUpdateCate extends Transaction {
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
         const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `conda install --yes -c ccitools -c conda-forge cate-cli=${this.cateVersion}`);
         notifyExecCommand(command, onProgress);
-        return spawnAsync(command, undefined, {shell: true}, onProgress);
+        return spawnAsync(command, undefined, defaultSpawnShellOption(), onProgress);
     }
 }
 
 function isCompatiblePython(condaDir: string, condaEnvDir: string, onProgress: TransactionProgressHandler): Promise<boolean> {
     const command = getCommandInActivatedCondaEnv(condaDir, condaEnvDir, "python --version");
     notifyExecCommand(command, onProgress);
-    return execAsync(command).then((output: ExecOutput) => {
+    return execAsync(command, defaultExecShellOption()).then((output: ExecOutput) => {
         const line = _getOutput(output);
         return line.startsWith("Python 3.");
     }).catch(() => {
@@ -213,7 +213,7 @@ function getCommandInActivatedCondaEnv(condaDir: string, envDir: string, command
         return `"${activatePath}" "${envDir}" & ${command}`;
     } else {
         const activatePath = path.join(condaDir, "bin", "activate");
-        return `"${activatePath}" "${envDir}"; ${command}`;
+        return `source "${activatePath}" "${envDir}"; ${command}`;
     }
 }
 
@@ -223,4 +223,20 @@ function notifyExecCommand(command: string, onProgress: TransactionProgressHandl
 
 function notifyExecFile(file: string, args: string[], onProgress: TransactionProgressHandler) {
     onProgress({message: `${file} ` + args.map(a => a.indexOf(' ') >= 0 ? `"${a}"` : a).join(' ')});
+}
+
+// on Unix '/bin/sh' is the dafault
+// BUT on Ubuntu this links to 'dash' which doesn't work together with 'conda'
+function defaultSpawnShellOption() {
+    if (process.platform === "win32") {
+        return {shell: true};
+    } else {
+        return {shell: '/bin/bash'};
+    }
+}
+
+function defaultExecShellOption() {
+    if (process.platform !== "win32") {
+        return {shell: '/bin/bash'};
+    }
 }
