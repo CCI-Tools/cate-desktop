@@ -10,7 +10,6 @@ import {
 } from "./state";
 import {parseTerminalOutput, TEXT_LINE_TYPE, TextLineType} from "../../common/terminal-output";
 import {updateConditionally2} from "../../common/objutil";
-import {isString} from "../../common/types";
 
 const initialState: State = {
     setupInfo: {
@@ -30,6 +29,7 @@ const initialState: State = {
     logLines: [],
     validations: {},
     setupStatus: SETUP_STATUS_NOT_STARTED,
+    error: null,
     autoUpdateCate: true,
     isLogOpen: false,
 };
@@ -106,7 +106,7 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
                 validations: {...state.validations, [action.payload.screenId]: action.payload.validation}
             };
         case "SET_SETUP_STATUS":
-            return {...state, setupStatus: action.payload.setupStatus};
+            return {...state, setupStatus: action.payload.setupStatus, error: action.payload.error};
         case "OPEN_LOG":
             return {...state, isLogOpen: true};
         case "UPDATE_PROGRESS": {
@@ -122,12 +122,10 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
             const error = progressDelta.error;
             let progress;
             if (error) {
-                console.error(error);
-                const reason = error.reason;
                 logLines = logLines.slice();
-                logLines.push(`\n${reason}\n`);
+                logLines.push(`\n${error.stack || error.toString()}\n`);
                 setupStatus = SETUP_STATUS_FAILED;
-                progress = updateConditionally2(state.progress, progressDelta, {message: `${reason}`});
+                progress = updateConditionally2(state.progress, progressDelta, {message: error.message || error.toString()});
             } else {
                 progress = updateConditionally2(state.progress, progressDelta);
             }

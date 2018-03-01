@@ -14,6 +14,7 @@ import {isDefined, isNumber} from "../../../common/types";
 
 interface IRunScreenProps {
     setupStatus: SetupStatus;
+    error?: Error;
     progress: TransactionProgress;
     logLines: string[];
     isLogOpen: boolean;
@@ -22,6 +23,7 @@ interface IRunScreenProps {
 function mapStateToProps(state: State): IRunScreenProps {
     return {
         setupStatus: state.setupStatus,
+        error: state.error,
         progress: state.progress,
         logLines: state.logLines,
         isLogOpen: state.isLogOpen,
@@ -112,7 +114,12 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
                 break;
             }
             case SETUP_STATUS_FAILED: {
-                statusMessage = statusMessage || "Setup failed.";
+                let error = this.props.error;
+                if (error) {
+                    statusMessage = "Setup failed: " + (error.message || error.toString());
+                } else {
+                    statusMessage = "Setup failed.";
+                }
                 statusIntent = Intent.DANGER;
                 break;
             }
@@ -194,8 +201,6 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
         let name;
         let message;
         let stdout;
-        //let stderr;
-        //let error: TransactionError;
 
         if (this.counter % 10 === 0) {
             totalWork = NUM_TASKS;

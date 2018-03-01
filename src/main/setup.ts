@@ -236,19 +236,19 @@ export function performSetupTasks(event, setupInfo: SetupInfo, setupOptions: Set
         const installOrUpdateCate = new InstallOrUpdateCate(newCateVersion, installCondaEnv.getCondaEnvDir(), [installCondaEnv.id]);
         transactions = [installCondaEnv, installOrUpdateCate];
     } else {
-        event.sender.send(channel, {error: "?"});
+        event.sender.send(channel, new Error("Internal error: illegal cate setup mode: " + cateMode));
         return;
     }
 
     const transactionSet = new TransactionSet(transactions);
     transactionSet.fulfillTransaction(transactions[transactions.length - 1].id, (progress: TransactionProgress) => {
         log.silly(progress);
-        event.sender.send(channel, 0, null, progress);
+        event.sender.send(channel, null, progress);
     }).then(() => {
         log.info('Setup successful');
-        event.sender.send(channel, 0);
+        event.sender.send(channel);
     }).catch((error: TransactionError) => {
         log.error('Setup failed:', error);
-        event.sender.send(channel, -1, error.reason);
+        event.sender.send(channel, error.reason);
     });
 }

@@ -8,7 +8,7 @@ export interface TransactionProgress {
     done?: boolean;
     stdout?: string;
     stderr?: string;
-    error?: TransactionError;
+    error?: Error;
 }
 
 export type TransactionProgressHandler = (progress: TransactionProgress) => any;
@@ -213,7 +213,7 @@ export class TransactionSet implements TransactionContext {
     }
 
     private newRollbackSequence(transactions: Transaction[], error: TransactionError, onProgress: TransactionProgressHandler) {
-        onProgress({error});
+        onProgress({error: error.reason});
         const rollbackTransactions = transactions.slice(0, error.index + 1);
         let rollbackReducer = (p: Promise<void>, t: Transaction, i: number) => {
             //console.log(`adding ${r.name}`);
