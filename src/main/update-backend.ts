@@ -171,13 +171,7 @@ export class InstallOrUpdateCate extends Transaction {
     }
 
     fulfilled(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<boolean> {
-        let cateCli;
-        if (process.platform === "win32") {
-            cateCli = 'cate-cli.bat';
-        } else {
-            cateCli = 'cate-cli.sh';
-        }
-        const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `${cateCli} --version`);
+        const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), "cate --version");
         notifyExecCommand(command, onProgress);
         return execAsync(command, defaultExecShellOption()).then((output: ExecOutput) => {
             const line = _getOutput(output);
@@ -190,7 +184,13 @@ export class InstallOrUpdateCate extends Transaction {
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
         const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `conda install --yes -c ccitools -c conda-forge cate-cli=${this.cateVersion}`);
         notifyExecCommand(command, onProgress);
-        return spawnAsync(command, undefined, defaultSpawnShellOption(), onProgress);
+        return spawnAsync(command, undefined, defaultSpawnShellOption(), onProgress)
+            .then(code => this.fulfilled(context, onProgress))
+            .then(ok => {
+                if (!ok) {
+                    throw new Error("Cate setup failed!");
+                }
+            });
     }
 }
 
