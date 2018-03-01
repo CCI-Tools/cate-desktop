@@ -3,9 +3,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as semver from "semver";
 import {pep440ToSemver} from "../common/version";
-import {SETUP_REASON_INSTALL_CATE, SETUP_REASON_UPDATE_CATE, SetupInfo, SetupReason} from "../common/setup";
+import {SETUP_REASON_INSTALL_CATE, SETUP_REASON_UPDATE_CATE, SetupInfo} from "../common/setup";
 import * as assert from "../common/assert";
-import * as child_process from "child_process";
 
 
 /**
@@ -156,28 +155,4 @@ function isExec(path: string): boolean {
     } catch (err) {
         return false;
     }
-}
-
-
-export function getCateCliVersion(): Promise<string> {
-    const cateDir = getCateDir();
-    let command;
-    if (process.platform === 'win32') {
-        command = `"${cateDir}\\Scripts\\activate" "${cateDir}" & "${cateDir}\\python" -c "import cate; print(cate.__version__)"`;
-    } else {
-        command = `"${cateDir}/bin/activate" "${cateDir}"; "${cateDir}/python" -c "import cate; print(cate.__version__)"`;
-    }
-    return new Promise((resolve, reject) => {
-        child_process.exec(command,
-                           (error: Error | null, stdout: string, stderr: string) => {
-                               if (error) {
-                                   reject(error);
-                               }
-                               if (!stdout || stdout === "") {
-                                   reject(new Error("no version available"));
-                               } else {
-                                   resolve(stdout);
-                               }
-                           });
-    });
 }

@@ -8,7 +8,6 @@ import {
     TransactionContext,
     TransactionProgressHandler, TransactionState
 } from '../common/transaction';
-import {getCateDir} from "./appenv";
 
 
 function _getOutput(output: ExecOutput) {

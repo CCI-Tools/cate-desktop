@@ -13,7 +13,7 @@ import {menuTemplate} from "./menu";
 import {error, isNumber} from "util";
 import {
     getAppDataDir, getAppIconPath,
-    getCateCliSetupInfo, setCateDir, getCateCliPath, getCateCliVersion
+    getCateCliSetupInfo, setCateDir, getCateCliPath
 } from "./appenv";
 import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
@@ -720,13 +720,3 @@ function getAPIWebSocketsUrl(webAPIConfig) {
 function getMPLWebSocketsUrl(webAPIConfig) {
     return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/mpl/figures/`;
 }
-
-function logCateVersion() {
-    getCateCliVersion().then(version => {
-        log.info("cate-cli version: ", version);
-    }).catch(err => {
-        log.error("failed to get cate-cli version: ", err);
-    });
-}
-
-
