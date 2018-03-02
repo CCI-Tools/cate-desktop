@@ -12,7 +12,7 @@ import * as assert from "../common/assert";
  * The value is a SemVer (https://github.com/npm/semver) compatible version range string.
  * @type {string}
  */
-export const APP_CLI_VERSION_RANGE = ">=1.1.0-dev.5 <1.2.0";
+export const APP_CLI_VERSION_RANGE = ">=2.0.0-dev.1 <2.1.0";
 
 /**
  * Version of cate-cli that is know to run with this version of Cate Desktop.
@@ -20,7 +20,7 @@ export const APP_CLI_VERSION_RANGE = ">=1.1.0-dev.5 <1.2.0";
  * with that version should have been deployed.
  * @type {string}
  */
-export const EXPECTED_APP_CLI_VERSION = "1.1.0.dev5";
+export const EXPECTED_APP_CLI_VERSION = "2.0.0.dev1";
 
 export const CATE_CLI_NAME = "cate";
 export const CATE_WEBAPI_NAME = "cate-webapi";
