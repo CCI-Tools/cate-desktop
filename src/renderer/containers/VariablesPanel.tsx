@@ -7,7 +7,7 @@ import * as selectors from "../selectors";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
-import {AnchorButton, Tooltip, Position} from "@blueprintjs/core";
+import {AnchorButton, Tooltip, Position, Colors} from "@blueprintjs/core";
 import {Cell, Column, Table, TruncatedFormat} from "@blueprintjs/table";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE} from "../messages";
@@ -53,6 +53,8 @@ function mapStateToProps(state: State): IVariablesPanelProps {
  */
 class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp<State>, null> {
     static readonly DIV_STYLE: CSSProperties = {paddingTop: 4, width: '100%'};
+    static readonly VALUE_STYLE = {float: "right", color: Colors.BLUE5};
+
 
     constructor(props: IVariablesPanelProps & DispatchProp<State>) {
         super(props);
@@ -248,7 +250,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
                 const varNameRender = VariablesPanel.renderItem(variable);
                 const property = selectedEntity.properties[variable.name];
                 if (property) {
-                    return <div>{varNameRender}<span style={{float: "right"}}>{property.getValue()}</span></div>;
+                    return <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property.getValue()}</span></div>;
                 }
                 return varNameRender;
             }

@@ -320,7 +320,7 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
 
     static readonly ICON_STYLE = {marginLeft: "0.5em"};
     static readonly NAME_STYLE = {marginLeft: "0.5em"};
-    static readonly POSITION_STYLE = {marginLeft: "0.5em", color: Colors.VIOLET5};
+    static readonly POSITION_STYLE = {float: "right", color: Colors.BLUE5};
 
     constructor(props: IPlacemarkItemProps) {
         super(props);
