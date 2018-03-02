@@ -331,7 +331,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     <Popover
                         interactionKind={PopoverInteractionKind.CLICK}
                         popoverClassName="pt-minimal"
-                        position={Position.LEFT_TOP}
+                        position={Position.LEFT}
                         className="pt-input-action"
                     >
                         <Button style={{backgroundColor: this.props.vectorStyle.fill}}/>
@@ -392,7 +392,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     <Popover
                         interactionKind={PopoverInteractionKind.CLICK}
                         popoverClassName="pt-minimal"
-                        position={Position.LEFT_TOP}
+                        position={Position.LEFT}
                         className="pt-input-action"
                     >
                         <Button style={{backgroundColor: this.props.vectorStyle.stroke}}/>
@@ -438,7 +438,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     <Popover
                         interactionKind={PopoverInteractionKind.CLICK}
                         popoverClassName="pt-minimal"
-                        position={Position.LEFT_TOP}
+                        position={Position.LEFT}
                         className="pt-input-action"
                     >
                         <Button style={{backgroundColor: this.props.vectorStyle.markerColor}}/>
