@@ -284,7 +284,7 @@ class _CenterPanel extends React.PureComponent<IViewManagerPanelProps & IDispatc
                              viewLayout={this.props.viewLayout}
                              views={this.props.views}
                              activeView={this.props.activeView}
-                             noViewsDescription="You can create new views from the Views menu."
+                             noViewsDescription="You can create new views from the VIEW panel."
                              noViewsVisual="pt-icon-eye-open"
                              onSelectView={this.onSelectView}
                              onCloseView={this.onCloseView}
