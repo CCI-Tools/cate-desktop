@@ -18,6 +18,26 @@ function mapStateToProps(state: State): IEndScreenProps {
 }
 
 class _EndScreen extends React.PureComponent<IEndScreenProps & actions.DispatchProp> {
+
+    constructor(props) {
+        super(props);
+        this.handleBackClicked = this.handleBackClicked.bind(this);
+        this.handleEndClicked = this.handleEndClicked.bind(this);
+        this.handleCancelClicked = this.handleCancelClicked.bind(this);
+    }
+
+    handleBackClicked() {
+        this.props.dispatch(actions.moveBack());
+    }
+
+    handleEndClicked() {
+        this.props.dispatch(actions.endSetup());
+    }
+
+    handleCancelClicked() {
+        this.props.dispatch(actions.cancelSetup());
+    }
+
     render() {
         const panel = (
             <div>
@@ -43,8 +63,9 @@ class _EndScreen extends React.PureComponent<IEndScreenProps & actions.DispatchP
                          nextButtonLabel={"End"}
                          nextButtonIcon={"tick-circle"}
                          nextButtonIntent={Intent.SUCCESS}
-                         onNextButtonClick={() => this.props.dispatch(actions.endSetup())}
-                         onCancelClick={() => this.props.dispatch(actions.cancelSetup())}
+                         onBackButtonClick={this.handleBackClicked}
+                         onNextButtonClick={this.handleEndClicked}
+                         onCancelClick={this.handleCancelClicked}
             />
         );
     }
