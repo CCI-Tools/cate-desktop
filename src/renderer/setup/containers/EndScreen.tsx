@@ -41,10 +41,10 @@ class _EndScreen extends React.PureComponent<IEndScreenProps & actions.DispatchP
     render() {
         const panel = (
             <div>
-                <p>Cate Desktop is now ready to be used. Thanks for your patience!</p>
+                <p style={{marginTop: 32}}>Cate Desktop is now ready to be used. Thanks for your patience!</p>
 
-                <p style={{marginTop: 32}}>Setup can check and update the <code>cate</code> Python package automatically
-                    before every start of Cate Desktop.</p>
+                {/*<p style={{marginTop: 32}}>Cate Desktop can keep its <code>cate</code> Python package*/}
+                    {/*up-to-date automatically.</p>*/}
 
                 {/*<div style={{marginLeft: 32}}>*/}
                     {/*<Checkbox label="Automatically update Cate Python package"*/}
@@ -52,7 +52,7 @@ class _EndScreen extends React.PureComponent<IEndScreenProps & actions.DispatchP
                               {/*onChange={(event: any) => this.props.dispatch(actions.setAutoUpdateCate(event.target.checked))}/>*/}
                 {/*</div>*/}
 
-                <p style={{marginTop: 64}}>Click <strong>End</strong> to end setup and start Cate Desktop.</p>
+                <p style={{marginTop: 64}}>Click <strong>End</strong> to close setup and start Cate Desktop.</p>
             </div>
         );
 
