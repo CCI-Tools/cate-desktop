@@ -1,8 +1,8 @@
 import * as React from 'react';
-import {NonIdealState} from "@blueprintjs/core";
+import {NonIdealState} from '@blueprintjs/core';
 
-export const ICON_CIRCLE = "pt-icon-circle";
-export const ICON_DISABLE = "pt-icon-disable";
+export const ICON_CIRCLE = 'pt-icon-circle';
+export const ICON_DISABLE = 'pt-icon-disable';
 
 export const CONFIG_ERROR_MESSAGE = (
     <span>This is very likely a configuration error, please check <code>.cate/webapi.log</code> file.</span>
@@ -122,10 +122,17 @@ export const NO_LAYER_SELECTED = (
         visual={ICON_CIRCLE}/>
 );
 
-export const NO_LAYER_PROPERTIES = (
+export const STYLE_UNAVAILABLE_NO_LAYER_SELECTED = (
     <NonIdealState
-        title="No layer properties"
-        description="The selected layer doesn't have any editable properties."
+        title="Styles unavailable"
+        description="Select a layer to modify its styles."
+        visual={ICON_CIRCLE}/>
+);
+
+export const NO_STYLE_PROPERTIES = (
+    <NonIdealState
+        title="No style properties"
+        description="The selected layer doesn't have any editable style properties."
         visual={ICON_CIRCLE}/>
 );
 

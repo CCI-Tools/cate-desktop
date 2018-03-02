@@ -216,7 +216,12 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         }
 
         if (!this.props.selectedLayer) {
-            return NO_LAYER_SELECTED;
+            return (
+                <React.Fragment>
+                    <label className="pt-label" style={{height: '20px'}}> </label>
+                    {NO_LAYER_SELECTED}
+                </React.Fragment>
+            )
         }
 
         if (this.props.selectedImageLayer) {
