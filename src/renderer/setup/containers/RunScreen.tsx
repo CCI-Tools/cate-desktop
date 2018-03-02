@@ -1,6 +1,6 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {Button, Intent, ProgressBar} from "@blueprintjs/core";
+import {Button, Colors, ProgressBar} from "@blueprintjs/core";
 import {
     SETUP_STATUS_CANCELLED, SETUP_STATUS_FAILED, SETUP_STATUS_IN_PROGRESS, SETUP_STATUS_SUCCEEDED, SETUP_TEST_MODE,
     SetupStatus,
@@ -36,6 +36,7 @@ const NUM_SUB_PROGRESSES = 10;
 const PROGRESS_TIME = 10000; // ms
 const NUM_PROGRESSES = NUM_TASKS * NUM_SUB_PROGRESSES;
 const PROGRESS_TIMEOUT = PROGRESS_TIME / NUM_PROGRESSES;
+
 
 class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchProp> {
     static readonly SCREEN_STYLE: React.CSSProperties = {display: "flex", flexDirection: "column", height: "100%"};
@@ -89,7 +90,6 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
 
     private renderStatusMessage() {
         const progress = this.props.progress;
-        const setupStatus = this.props.setupStatus;
         let statusMessage;
         if (progress) {
             let name = progress.name;
@@ -102,41 +102,28 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
                 statusMessage = message;
             }
         }
-        let statusIntent;
-        switch (setupStatus) {
-            case SETUP_STATUS_IN_PROGRESS: {
-                statusMessage = statusMessage || "Executing background tasks...";
-                break;
-            }
-            case SETUP_STATUS_SUCCEEDED: {
-                statusMessage = "All tasks successfully completed.";
-                statusIntent = Intent.PRIMARY;
-                break;
-            }
-            case SETUP_STATUS_FAILED: {
-                let error = this.props.error;
-                if (error && error.message) {
-                    statusMessage = "Setup failed: " + error.message;
-                } else {
-                    statusMessage = "Setup failed.";
-                }
-                statusIntent = Intent.DANGER;
-                break;
-            }
-            case SETUP_STATUS_CANCELLED: {
-                statusMessage = "Setup cancelled.";
-                statusIntent = Intent.WARNING;
-                break;
-            }
-        }
-        return <div className={statusIntent} style={_RunScreen.ITEM_STYLE}>{statusMessage}</div>;
+        const {message, color} = this.formatMessage(true, statusMessage);
+        const style = color ? {color, ..._RunScreen.ITEM_STYLE} : _RunScreen.ITEM_STYLE;
+        return <div style={style}>{message}</div>;
     }
 
     renderMessageLog() {
-        let isLogOpen = this.props.isLogOpen;
-        let logLines = this.props.logLines;
+        const setupStatus = this.props.setupStatus;
+        const isLogOpen = this.props.isLogOpen;
+        const logLines = this.props.logLines;
+
+        let footerMessage;
+        let footerColor;
+        if (setupStatus !== SETUP_STATUS_IN_PROGRESS) {
+            const m = this.formatMessage(false);
+            footerMessage = m.message;
+            footerColor = m.color;
+        }
+
         if (isLogOpen) {
-            return <LogField lines={logLines}/>
+            return <LogField lines={logLines}
+                             footerMessage={footerMessage}
+                             footerColor={footerColor}/>
         } else if (logLines && logLines.length > 0) {
             return <Button style={_RunScreen.BUTTON_STYLE}
                            onClick={this.handleShowLogClicked}
@@ -221,6 +208,37 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
         }
 
         this.counter++;
+    }
+
+    formatMessage(dark: boolean, message?: string) {
+        let color;
+        switch (this.props.setupStatus) {
+            case SETUP_STATUS_IN_PROGRESS: {
+                message = message || "Executing background tasks...";
+                break;
+            }
+            case SETUP_STATUS_SUCCEEDED: {
+                message= "Setup complete.";
+                color = dark ? Colors.GREEN1 : Colors.GREEN5;
+                break;
+            }
+            case SETUP_STATUS_FAILED: {
+                let error = this.props.error;
+                if (error && error.message) {
+                    message= "Setup failed: " + error.message;
+                } else {
+                    message= "Setup failed.";
+                }
+                color = dark ? Colors.RED1 : Colors.RED5;
+                break;
+            }
+            case SETUP_STATUS_CANCELLED: {
+                message = "Setup cancelled.";
+                color = dark ? Colors.BLUE1 : Colors.BLUE5;
+                break;
+            }
+        }
+        return {message, color};
     }
 }
 
