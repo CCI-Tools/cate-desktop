@@ -151,11 +151,17 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             imageryProvider: baseLayerImageryProvider,
             navigationInstructionsInitiallyVisible: false,
             automaticallyTrackDataSourceClocks: false,
+            // Create a viewer that will not render frames based on changes in simulation time.
+            // https://cesium.com/blog/2018/01/24/cesium-scene-rendering-performance/
+            requestRenderMode : true,
+            maximumRenderTimeChange : Infinity
         };
 
         // Create the CesiumCesium.Viewer
         //noinspection UnnecessaryLocalVariableJS
         const viewer = new Cesium.Viewer(container, cesiumViewerOptions);
+
+        viewer.scene.debugShowFramesPerSecond = true;
 
         // knockout is used by Cesium to update the style attributes of the selectionIndicator
         // when using multiple views this breaks, for unknown reason
