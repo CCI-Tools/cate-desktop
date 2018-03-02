@@ -163,14 +163,15 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
     }
 
     componentDidMount() {
-        if (SETUP_TEST_MODE) {
+        if (SETUP_TEST_MODE && this.props.setupStatus === SETUP_STATUS_IN_PROGRESS) {
             this.timerId = setTimeout(() => this.incProgress(), PROGRESS_TIMEOUT);
         }
     }
 
     componentWillUnmount() {
-        if (SETUP_TEST_MODE) {
+        if (SETUP_TEST_MODE && this.timerId) {
             clearTimeout(this.timerId);
+            this.timerId = null;
         }
     }
 
