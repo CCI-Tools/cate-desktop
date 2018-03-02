@@ -3,6 +3,7 @@ import {connect} from "react-redux";
 import {SETUP_STATUS_SUCCEEDED, SetupStatus, State} from "../state";
 import * as actions from "../actions";
 import {SetupScreen} from "../components/SetupScreen";
+import {Intent} from "@blueprintjs/core";
 
 interface IEndScreenProps {
     setupStatus: SetupStatus;
@@ -41,6 +42,7 @@ class _EndScreen extends React.PureComponent<IEndScreenProps & actions.DispatchP
                          noNextButton={this.props.setupStatus !== SETUP_STATUS_SUCCEEDED}
                          nextButtonLabel={"End"}
                          nextButtonIcon={"tick-circle"}
+                         nextButtonIntent={Intent.SUCCESS}
                          onNextButtonClick={() => this.props.dispatch(actions.endSetup())}
                          onCancelClick={() => this.props.dispatch(actions.cancelSetup())}
             />
