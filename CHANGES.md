@@ -1,25 +1,64 @@
-## Changes in 1.1.0 (in dev)
+## Changes in 2.0.0 (in dev)
 
+### New Features and UX Improvements 
+
+* Don't force users to install Cate Core
+  [#523](https://github.com/CCI-Tools/cate/issues/523)
+* Sign Cate installers and apps
+  [#522](https://github.com/CCI-Tools/cate/issues/#522)
+* Placemarks should be on a separate layer
+  [#516](https://github.com/CCI-Tools/cate/issues/#516)
 * Changing layer visibility also changes layer selection 
   [#515](https://github.com/CCI-Tools/cate/issues/#515)
 * Outdated links in Cate Desktop's help menu
   [#511](https://github.com/CCI-Tools/cate/issues/#511)
-* Internal error when computing variable statistics for Shapefile variables
-  [#485](https://github.com/CCI-Tools/cate/issues/485)
-* No longer able to select dataset for operations 
-  [#463](https://github.com/CCI-Tools/cate/issues/463)
-* "Save Workspace As" does not work
-  [#419](https://github.com/CCI-Tools/cate/issues/419)
+* Make VARIABLES panel display variable values
+  [#505](https://github.com/CCI-Tools/cate/issues/#505)
+* Allow using selected geometry as operation parameter
+  [#502](https://github.com/CCI-Tools/cate/issues/#502)
+* Allow displaying large vector data sources
+  [#491](https://github.com/CCI-Tools/cate/issues/491)
+* Allow selecting geometries on 3D globe 
+  [#489](https://github.com/CCI-Tools/cate/issues/489)
+* Add style editor for vector data layers
+  [#488](https://github.com/CCI-Tools/cate/issues/#488)
+* Use nearest-neighbor resampling for image layer display
+  [#482](https://github.com/CCI-Tools/cate/issues/482)
 * Remember selection states in UI
   [#481](https://github.com/CCI-Tools/cate/issues/481)
+* Auto Update 
+  [#404](https://github.com/CCI-Tools/cate/issues/404)
+* Allow for Cate software updates without reinstallation
+  [#367](https://github.com/CCI-Tools/cate/issues/367)
+
+### Fixes 
+
+* AppImage lacks needed dependency
+  [#517](https://github.com/CCI-Tools/cate/issues/517)
+* Changing layer visibility also changes layer selection
+  [#515](https://github.com/CCI-Tools/cate/issues/#515)
+* Be tolerant of "invalid" geometries
+  [#506](https://github.com/CCI-Tools/cate/issues/#506)
+* Internal error when computing variable statistics for Shapefile variables
+  [#485](https://github.com/CCI-Tools/cate/issues/485)
 * Fixed problem with 3D globe overlay
   [#480](https://github.com/CCI-Tools/cate/issues/480)
 * Detect a free port number for Cate WebAPI
   [#479](https://github.com/CCI-Tools/cate/issues/479)
-* Use nearest-neighbor resampling for image layer display
-  [#482](https://github.com/CCI-Tools/cate/issues/482)
+* support-help windows cate1.0 gui exiting with error
+  [#469](https://github.com/CCI-Tools/cate/issues/469)
+* Cate wont work if installed on drive other than home drive
+  [#466](https://github.com/CCI-Tools/cate/issues/466)
 * `read_csv` operation has a parameter `more_args` which isn't used
   [#464](https://github.com/CCI-Tools/cate/issues/464)
+* No longer able to select dataset for operations 
+  [#463](https://github.com/CCI-Tools/cate/issues/463)
+* Cate doesn't work when two instances are open at once 
+  [#459](https://github.com/CCI-Tools/cate/issues/459)
+* Issue with updating cate version on Windows
+  [#428](https://github.com/CCI-Tools/cate/issues/428)
+* "Save Workspace As" does not work
+  [#419](https://github.com/CCI-Tools/cate/issues/419)
 
 ## Changes 1.0.0
 
