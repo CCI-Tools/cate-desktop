@@ -161,7 +161,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         //noinspection UnnecessaryLocalVariableJS
         const viewer = new Cesium.Viewer(container, cesiumViewerOptions);
 
-        viewer.scene.debugShowFramesPerSecond = true;
+        // Uncomment to show a little overlay panel with FPS. Usefull for optimisations.
+        //viewer.scene.debugShowFramesPerSecond = true;
 
         // knockout is used by Cesium to update the style attributes of the selectionIndicator
         // when using multiple views this breaks, for unknown reason
@@ -239,10 +240,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const nextSplitLayerIndex = nextState.splitLayerIndex;
         const nextSplitLayerPos = nextState.splitLayerPos;
 
+        let shouldRequestRender = false;
+
         if (prevImageLayerDescriptors !== nextImageLayerDescriptors) {
             this.updateImageLayers(viewer,
                                    prevImageLayerDescriptors,
                                    nextImageLayerDescriptors);
+            shouldRequestRender = true;
         }
         if (prevVectorLayerDescriptors !== nextVectorLayerDescriptors) {
             this.updateVectorLayers(viewer,
@@ -250,18 +254,28 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                                     nextVectorLayerDescriptors,
                                     nextState.dataSourceMap,
                                     nextSelectedPlacemarkId);
+            shouldRequestRender = true;
         }
         if (prevSelectedPlacemarkId !== nextSelectedPlacemarkId) {
             this.updatePlacemarkSelection(viewer, nextSelectedPlacemarkId);
+            shouldRequestRender = true;
         }
         if (prevOverlayHtml !== nextOverlayHtml) {
             CesiumGlobe.updateOverlayHtml(viewer, prevOverlayHtml, nextOverlayHtml);
+            shouldRequestRender = true;
         }
         if (prevSplitLayerIndex !== nextSplitLayerIndex) {
             CesiumGlobe.updateSplitLayers(viewer, prevSplitLayerIndex, nextSplitLayerIndex);
+            shouldRequestRender = true;
         }
         if (prevSplitLayerPos !== nextSplitLayerPos) {
             viewer.scene.imagerySplitPosition = nextSplitLayerPos;
+            shouldRequestRender = true;
+        }
+
+        if (shouldRequestRender) {
+            // Explicitly render a new frame
+            viewer.scene.requestRender();
         }
     }
 
@@ -306,6 +320,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             }
         };
         viewer.selectedEntityChanged.addEventListener(this.selectedEntityChangeHandler);
+
+        viewer.scene.requestRender();
 
         if (props.onViewerMounted) {
             props.onViewerMounted(props.id, viewer);

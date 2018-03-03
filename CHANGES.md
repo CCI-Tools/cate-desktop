@@ -1,4 +1,12 @@
-## Changes in 2.0.0 (in dev)
+## Changes in 2.0.0-dev.2 (in dev)
+
+### Fixes 
+
+* High GPU loads even when inactive
+  [#532](https://github.com/CCI-Tools/cate/issues/532)
+
+
+## Changes in 2.0.0-dev.1
 
 ### New Features and UX Improvements 
 
@@ -10,8 +18,6 @@
   [#516](https://github.com/CCI-Tools/cate/issues/#516)
 * Changing layer visibility also changes layer selection 
   [#515](https://github.com/CCI-Tools/cate/issues/#515)
-* Outdated links in Cate Desktop's help menu
-  [#511](https://github.com/CCI-Tools/cate/issues/#511)
 * Make VARIABLES panel display variable values
   [#505](https://github.com/CCI-Tools/cate/issues/#505)
 * Allow using selected geometry as operation parameter
@@ -33,10 +39,14 @@
 
 ### Fixes 
 
+* High GPU loads even when inactive
+  [#532](https://github.com/CCI-Tools/cate/issues/532)
 * AppImage lacks needed dependency
   [#517](https://github.com/CCI-Tools/cate/issues/517)
 * Changing layer visibility also changes layer selection
   [#515](https://github.com/CCI-Tools/cate/issues/#515)
+* Outdated links in Cate Desktop's help menu
+  [#511](https://github.com/CCI-Tools/cate/issues/#511)
 * Be tolerant of "invalid" geometries
   [#506](https://github.com/CCI-Tools/cate/issues/#506)
 * Internal error when computing variable statistics for Shapefile variables
