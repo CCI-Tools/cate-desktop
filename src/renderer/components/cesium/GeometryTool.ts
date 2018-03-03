@@ -11,9 +11,9 @@ export const polygonColor = Cesium.Color.BLUE.withAlpha(0.5);
 
 
 export interface ToolContext {
-    addEntity(entity);
+    addEntity(entity): Cesium.Entity;
 
-    addToolEntity(entity);
+    addToolEntity(entity): Cesium.Entity;
 
     removeAllToolEntities(): void;
 
@@ -30,14 +30,20 @@ export abstract class ToolContextBase implements ToolContext {
     private _tool: Tool;
 
     constructor() {
+        this._tool = NO_TOOL;
     }
 
     set tool(tool: Tool) {
-        this._tool = tool;
-        tool.context = this;
+        if (tool !== this._tool) {
+            this._tool.deactivate();
+            this._tool.context = null;
+            this._tool = tool;
+            this._tool.context = this;
+            this._tool.activate();
+        }
     }
 
-    get tool() {
+    get tool(): Tool {
         return this._tool;
     }
 
@@ -53,19 +59,19 @@ export abstract class ToolContextBase implements ToolContext {
         this._tool.handleMouseMove(movement);
     }
 
-    abstract addEntity(entity);
+    abstract addEntity(entity): void;
 
-    abstract addToolEntity(entity);
+    abstract addToolEntity(entity): void;
 
     abstract removeAllToolEntities(): void;
 
-    abstract pickEllipsoid(position);
+    abstract pickEllipsoid(position): void;
 
-    abstract cartesianWithHeightDelta(cartesian, delta: number);
+    abstract cartesianWithHeightDelta(cartesian, delta: number): void;
 
-    abstract cartesianToCartographic(cartesian);
+    abstract cartesianToCartographic(cartesian): void;
 
-    abstract cartographicToCartesian(cartographic);
+    abstract cartographicToCartesian(cartographic): void;
 }
 
 
@@ -83,18 +89,33 @@ export class CesiumToolContext extends ToolContextBase {
         this._toolDataSource = new Cesium.CustomDataSource("Tool Data Source");
         viewer.dataSources.add(this._toolDataSource);
         const handler = this._handlerFactory ? this._handlerFactory(viewer) : new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-        handler.setInputAction(leftClick => this.onLeftClick(leftClick), Cesium.ScreenSpaceEventType.LEFT_CLICK);
-        handler.setInputAction(leftClick => this.onLeftDoubleClick(leftClick), Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
-        handler.setInputAction(movement => this.onMouseMove(movement), Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+        handler.setInputAction(leftClick => {
+            if (this.tool.isActive()) {
+                this.onLeftClick(leftClick);
+                this._viewer.scene.requestRender();
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+        handler.setInputAction(leftClick => {
+            if (this.tool.isActive()) {
+                this.onLeftDoubleClick(leftClick);
+                this._viewer.scene.requestRender();
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+        handler.setInputAction(movement => {
+            if (this.tool.isActive()) {
+                this.onMouseMove(movement);
+                this._viewer.scene.requestRender();
+            }
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
         this._handler = handler;
     }
 
-    addEntity(entity) {
+    addEntity(entity): Cesium.Entity {
         return this._viewer.entities.add(entity);
     }
 
-    addToolEntity(entity) {
-        return this._toolDataSource.add(entity);
+    addToolEntity(entity): Cesium.Entity {
+        return this._toolDataSource.entities.add(entity);
     }
 
     removeAllToolEntities(): void {
@@ -119,13 +140,21 @@ export class CesiumToolContext extends ToolContextBase {
         return this._ellipsoid.cartographicToCartesian(cartographic);
     }
 
-    dispose() {
+    destroy() {
         this._handler = this._handler && this._handler.destroy();
     }
 }
 
 export interface Tool {
-    context: ToolContext;
+    readonly type: string;
+
+    context: ToolContext | null;
+
+    isActive(): boolean;
+
+    activate();
+
+    deactivate();
 
     handleLeftClick(leftClick);
 
@@ -136,14 +165,30 @@ export interface Tool {
 
 
 abstract class ToolBase implements Tool {
-    private _context: ToolContext;
+    readonly type: string;
+    private _context: ToolContext | null;
 
-    set context(context: ToolContext) {
+    constructor(type: string) {
+        this.type = type;
+        this._context = null;
+    }
+
+    set context(context: ToolContext | null) {
         this._context = context;
     }
 
-    get context() {
+    get context(): ToolContext | null {
         return this._context;
+    }
+
+    isActive(): boolean {
+        return this._context !== null;
+    }
+
+    activate() {
+    }
+
+    deactivate() {
     }
 
     handleLeftClick(leftClick) {
@@ -156,18 +201,33 @@ abstract class ToolBase implements Tool {
     }
 }
 
+export class NoTool extends ToolBase {
+    constructor() {
+        super("NoTool");
+    }
+}
+
+export const NO_TOOL = new NoTool();
+
 export class PointTool extends ToolBase {
 
     constructor() {
-        super();
+        super("PointTool");
     }
 
     handleLeftClick(leftClick) {
-        this.context.addEntity({
-                                   point: {
-                                       position: leftClick.position
-                                   }
-                               });
+        const cartesian = this.context.pickEllipsoid(leftClick.position);
+        if (cartesian) {
+            this.context.addEntity({
+                                       position: cartesian,
+                                       point: {
+                                           pixelSize: 6,
+                                           //color: Cesium.Color.RED,
+                                           //outlineColor: Cesium.Color.WHITE,
+                                           outlineWidth: 1
+                                       },
+                                   });
+        }
     }
 }
 
@@ -184,9 +244,13 @@ class PolyTool extends ToolBase {
 
     private hasRubberband;
 
-    constructor(genPolygon: boolean) {
-        super();
+    constructor(type: string, genPolygon: boolean) {
+        super(type);
         this.genPolygon = genPolygon;
+    }
+
+    deactivate() {
+        this.reset();
     }
 
     handleLeftClick(leftClick) {
@@ -333,14 +397,14 @@ class PolyTool extends ToolBase {
 export class PolylineTool extends PolyTool {
 
     constructor() {
-        super(false);
+        super("PolylineTool", false);
     }
 }
 
 export class PolygonTool extends PolyTool {
 
     constructor() {
-        super(true);
+        super("PolygonTool", true);
     }
 }
 
@@ -349,6 +413,14 @@ export class BoxTool extends ToolBase {
     private position1;
     private position2;
     private polygonEntity;
+
+    constructor() {
+        super("BoxTool");
+    }
+
+    deactivate() {
+        this.reset();
+    }
 
     handleLeftClick(leftClick) {
         this.setPosition(leftClick.position, true);
@@ -371,7 +443,7 @@ export class BoxTool extends ToolBase {
                 this.position1 = cartesian;
             } else {
                 this.position2 = cartesian;
-                const positions = this.getPositions()
+                const positions = this.getPositions();
                 if (doAdd) {
                     this.context.addEntity({
                                                polygon: {
@@ -412,7 +484,6 @@ export class BoxTool extends ToolBase {
             this.context.cartographicToCartesian({longitude: lon1, latitude: lat2, height}),
         ];
     }
-
 
     reset() {
         this.position1 = this.position2 = null;
