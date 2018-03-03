@@ -1,5 +1,10 @@
 ## Changes in 2.0.0-dev.2 (in dev)
 
+### New Features and UX Improvements 
+
+* Place layer/entity style settings in separate STYLES panel
+  [#533](https://github.com/CCI-Tools/cate/issues/533)
+
 ### Fixes 
 
 * High GPU loads even when inactive
