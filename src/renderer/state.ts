@@ -5,6 +5,7 @@ import {ViewLayoutState, ViewState} from "./components/ViewState";
 import {Feature, FeatureCollection, GeoJsonObject, Point} from "geojson";
 import {IconName} from "@blueprintjs/core";
 import {SimpleStyle} from "../common/geojson-simple-style";
+import {GeometryToolType} from "./components/cesium/GeometryTool";
 
 /**
  * Interface describing Cate's application state structure.
@@ -622,6 +623,7 @@ export interface TaskState {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ControlState
 
+
 /**
  * Control State is state which is specific to a given container component, and which is not stored in the screen’s
  * URL or in the HTML5 History API.
@@ -650,6 +652,8 @@ export interface ControlState {
 
     // Used to force component update after an entity's properties have changed
     entityUpdateCount: number;
+
+    geometryToolType: GeometryToolType;
 }
 
 export interface DialogState {

@@ -14,6 +14,7 @@ import {Field, FieldType, FieldValue, IFieldProps} from "../components/field/Fie
 import {TextField} from "../components/field/TextField";
 import {parseNumericPair} from "../components/field/NumericRangeField";
 import {validateGeoCoordinate} from "../../common/geometry-util";
+import {GeometryToolType} from "../components/cesium/GeometryTool";
 
 interface IPlacemarksPanelDispatch {
     dispatch: Dispatch<State>;
@@ -27,6 +28,7 @@ interface IPlacemarksPanelProps {
     showPlacemarkDetails: boolean,
     worldViewClickAction: string | null;
     globeViewPosition: GeographicPosition | null;
+    geometryToolType: GeometryToolType;
 }
 
 function mapStateToProps(state: State): IPlacemarksPanelProps {
@@ -38,11 +40,13 @@ function mapStateToProps(state: State): IPlacemarksPanelProps {
         activeView: selectors.activeViewSelector(state),
         worldViewClickAction: state.control.worldViewClickAction,
         globeViewPosition: selectors.globeViewPositionSelector(state),
+        geometryToolType: selectors.geometryToolTypeSelector(state),
     };
 }
 
 type GeographicPositionFieldType = FieldType<GeographicPosition>;
 type GeographicPositionFieldValue = FieldValue<GeographicPosition>;
+
 class GeographicPositionField extends Field<IFieldProps> {
 
     parseValue(textValue: string): GeographicPositionFieldType {
@@ -85,6 +89,27 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         this.handleCopySelectedPositionKW = this.handleCopySelectedPositionKW.bind(this);
         this.handleCopySelectedPositionWKT = this.handleCopySelectedPositionWKT.bind(this);
         this.renderPlacemarkItem = this.renderPlacemarkItem.bind(this);
+
+        this.handleNewPointToolButtonClicked = this.handleNewPointToolButtonClicked.bind(this);
+        this.handleNewPolygonToolButtonClicked = this.handleNewPolygonToolButtonClicked.bind(this);
+        this.handleNewPolylineToolButtonClicked = this.handleNewPolylineToolButtonClicked.bind(this);
+        this.handleNewBoxToolButtonClicked = this.handleNewBoxToolButtonClicked.bind(this);
+    }
+
+    private handleNewPointToolButtonClicked() {
+        this.props.dispatch(actions.activateGeometryTool("PointTool"));
+    }
+
+    private handleNewPolygonToolButtonClicked() {
+        this.props.dispatch(actions.activateGeometryTool("PolygonTool"));
+    }
+
+    private handleNewPolylineToolButtonClicked() {
+        this.props.dispatch(actions.activateGeometryTool("PolylineTool"));
+    }
+
+    private handleNewBoxToolButtonClicked() {
+        this.props.dispatch(actions.activateGeometryTool("BoxTool"));
     }
 
     private handleShowDetailsChanged(value: boolean) {
@@ -188,21 +213,61 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         const canClick = is3DViewActive && noWorldViewClickAction;
         const add1ClassName = is3DViewActive ? "pt-intent-primary" : null;
         const add2ClassName = !is3DViewActive ? "pt-intent-primary" : null;
+        const isPointToolActive = this.props.geometryToolType === "PointTool";
+        const isPolylineToolActive = this.props.geometryToolType === "PolylineTool";
+        const isPolygonToolActive = this.props.geometryToolType === "PolygonTool";
+        const isBoxToolActive = this.props.geometryToolType === "BoxTool";
         return (
             <div className="pt-button-group">
-                <Tooltip content="Click a point on the 3D globe to add a new placemark" position={Position.LEFT}>
-                    <AnchorButton className={add1ClassName}
-                                  onClick={this.handleAddPlacemarkFromPositionButtonClicked}
-                                  iconName="pt-icon-selection"
-                                  disabled={!canClick}/>
-                </Tooltip>
-                <Tooltip content="Add a new placemark" position={Position.LEFT}>
+                {/*<Tooltip content="Click a point on the 3D globe to add a new placemark" position={Position.LEFT}>*/}
+                {/*<AnchorButton className={add1ClassName}*/}
+                {/*onClick={this.handleAddPlacemarkFromPositionButtonClicked}*/}
+                {/*iconName="pt-icon-selection"*/}
+                {/*disabled={!canClick}/>*/}
+                {/*</Tooltip>*/}
+                {/*<Tooltip content="Add a new placemark" position={Position.LEFT}>*/}
+                {/*<AnchorButton className={add2ClassName}*/}
+                {/*onClick={this.handleAddPlacemarkButtonClicked}*/}
+                {/*iconName="add"*/}
+                {/*disabled={!this.props.globeViewPosition}*/}
+                {/*/>*/}
+                {/*</Tooltip>*/}
+
+
+                <Tooltip content="New point" position={Position.LEFT}>
                     <AnchorButton className={add2ClassName}
-                                  onClick={this.handleAddPlacemarkButtonClicked}
-                                  iconName="add"
-                                  disabled={!this.props.globeViewPosition}
+                                  onClick={this.handleNewPointToolButtonClicked}
+                                  iconName="dot"
+                                  active={isPointToolActive}
+                                  disabled={false}
                     />
                 </Tooltip>
+                <Tooltip content="New point" position={Position.LEFT}>
+                    <AnchorButton className={add2ClassName}
+                                  onClick={this.handleNewPolylineToolButtonClicked}
+                                  iconName="slash"
+                                  active={isPolylineToolActive}
+                                  disabled={false}
+                    />
+                </Tooltip>
+                <Tooltip content="New point" position={Position.LEFT}>
+                    <AnchorButton className={add2ClassName}
+                                  onClick={this.handleNewPolygonToolButtonClicked}
+                                  iconName="polygon-filter"
+                                  active={isPolygonToolActive}
+                                  disabled={false}
+                    />
+                </Tooltip>
+                <Tooltip content="New point" position={Position.LEFT}>
+                    <AnchorButton className={add2ClassName}
+                                  onClick={this.handleNewBoxToolButtonClicked}
+                                  iconName="widget"
+                                  active={isBoxToolActive}
+                                  disabled={false}
+                    />
+                </Tooltip>
+
+
                 <Tooltip content="Remove selected placemark" position={Position.LEFT}>
                     <AnchorButton disabled={!this.props.selectedPlacemarkId}
                                   onClick={this.handleRemovePlacemarkButtonClicked}

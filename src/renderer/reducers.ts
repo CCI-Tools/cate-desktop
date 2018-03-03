@@ -20,6 +20,7 @@ addViewToPanel, moveView, selectView
 } from "./components/ViewState";
 import {isString} from "../common/types";
 import {featurePropertiesFromSimpleStyle} from "../common/geojson-simple-style";
+import {ACTIVATE_GEOMETRY_TOOL} from "./actions";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -129,6 +130,8 @@ const initialControlState: ControlState = {
     worldViewClickAction: null,
 
     entityUpdateCount: 0,
+
+    geometryToolType: "NoTool",
 };
 
 
@@ -182,6 +185,13 @@ const controlReducer = (state: ControlState = initialControlState, action: Actio
         }
         case actions.UPDATE_CONTROL_STATE:
             return {...state, ...action.payload};
+        case actions.ACTIVATE_GEOMETRY_TOOL: {
+            let geometryToolType = action.payload.geometryToolType;
+            if (geometryToolType === state.geometryToolType) {
+                geometryToolType = "NoTool";
+            }
+            return {...state, geometryToolType};
+        }
         case actions.UPDATE_DIALOG_STATE: {
             const dialogs = updatePropertyObject(state.dialogs, action.payload.dialogId, action.payload.dialogState);
             return {...state, dialogs};

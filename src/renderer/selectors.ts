@@ -45,6 +45,7 @@ import * as Cesium from 'cesium';
 import {GeometryWKTGetter} from './containers/editor/ValueEditor';
 import {entityToSimpleStyle} from './components/cesium/cesium-util';
 import {SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties} from '../common/geojson-simple-style';
+import {GeometryToolType} from "./components/cesium/GeometryTool";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -157,6 +158,7 @@ export const placemarkCollectionSelector = (state: State): PlacemarkCollection =
 export const placemarksSelector = (state: State): Placemark[] => state.session.placemarkCollection.features;
 export const selectedPlacemarkIdSelector = (state: State): string | null => state.session.selectedPlacemarkId;
 export const showPlacemarkDetailsSelector = (state: State): boolean => state.session.showPlacemarkDetails;
+export const geometryToolTypeSelector = (state: State): GeometryToolType => state.control.geometryToolType;
 
 export const selectedPlacemarkSelector = createSelector<State,
     Placemark | null,

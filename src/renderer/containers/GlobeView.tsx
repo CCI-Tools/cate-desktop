@@ -13,6 +13,7 @@ import {findVariableIndexCoordinates} from "../state-util";
 import {ViewState} from "../components/ViewState";
 import {convertLayersToLayerDescriptors} from "./globe-view-layers";
 import * as Cesium from "cesium";
+import {GeometryToolType} from "../components/cesium/GeometryTool";
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -32,6 +33,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     debugWorldView: boolean;
     hasWebGL: boolean;
     externalObjectStore: any;
+    geometryToolType: GeometryToolType;
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -50,61 +52,8 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         debugWorldView: state.session.debugWorldView,
         hasWebGL: state.data.appConfig.hasWebGL,
         externalObjectStore: selectors.externalObjectStoreSelector(state),
+        geometryToolType: selectors.geometryToolTypeSelector(state),
     };
-}
-
-function getOverlayHtml(layers: LayerState[],
-                        showLayerTextOverlay: boolean,
-                        viewId,
-                        resources: ResourceState[]): HTMLDivElement {
-    let overlayHtml: HTMLDivElement = null;
-    if (!showLayerTextOverlay) {
-        return overlayHtml;
-    }
-    let layerInfoCount = 0;
-    for (let layerIndex = 0; layerIndex < layers.length; layerIndex++) {
-        let layer = layers[layerIndex] as any as VariableImageLayerState;
-        if (layer.type === 'VariableImage') {
-            if (layer.visible) {
-                const indexCoords = findVariableIndexCoordinates(resources, layer);
-                if (!overlayHtml) {
-                    overlayHtml = document.createElement('div');
-                    overlayHtml.id = 'CesiumGlobeOverlay-' + viewId;
-                    overlayHtml.style.position = 'relative';
-                    overlayHtml.style['z-index'] = 100;
-                    overlayHtml.style['pointer-events'] = 'none';
-                    overlayHtml.style['padding'] = '1em';
-                    overlayHtml.style['background-color'] = 'rgba(0, 0, 0, 0.25)';
-                }
-                let varText;
-                if (indexCoords && indexCoords.length) {
-                    varText = layer.name + ' at ' + indexCoords.map(e => e.join(' = ')).join(', ');
-                } else {
-                    varText = layer.name;
-                }
-                const textDivElement = document.createElement('div');
-                textDivElement.style['font-size'] = '1.4em';
-                textDivElement.innerText = varText;
-                overlayHtml.appendChild(textDivElement);
-                overlayHtml.style.top = `-${2 + (layerInfoCount + 1) * 1.5}em`;
-                layerInfoCount++;
-            }
-        }
-    }
-    return overlayHtml;
-}
-
-function getSplitLayerIndex(layers: LayerState[], selectedLayerId: string | null, isSelectedLayerSplit: boolean) {
-    let splitLayerIndex: number = -1;
-    if (selectedLayerId && isSelectedLayerSplit) {
-        for (let layerIndex = 0; layerIndex < layers.length; layerIndex++) {
-            let layer = layers[layerIndex];
-            if (layer.id === selectedLayerId && layer.type === 'VariableImage') {
-                return layerIndex;
-            }
-        }
-    }
-    return splitLayerIndex;
 }
 
 /**
@@ -198,9 +147,64 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          onMouseClicked={this.props.isDialogOpen ? null : this.handleMouseClicked}
                          onLeftUp={this.props.isDialogOpen ? null : this.handleLeftUp}
                          onSelectedEntityChanged={this.handleSelectedEntityChanged}
+                         geometryToolType={this.props.geometryToolType}
             />
         );
     }
 }
 
 export default connect(mapStateToProps)(GlobeView);
+
+function getOverlayHtml(layers: LayerState[],
+                        showLayerTextOverlay: boolean,
+                        viewId,
+                        resources: ResourceState[]): HTMLDivElement {
+    let overlayHtml: HTMLDivElement = null;
+    if (!showLayerTextOverlay) {
+        return overlayHtml;
+    }
+    let layerInfoCount = 0;
+    for (let layerIndex = 0; layerIndex < layers.length; layerIndex++) {
+        let layer = layers[layerIndex] as any as VariableImageLayerState;
+        if (layer.type === 'VariableImage') {
+            if (layer.visible) {
+                const indexCoords = findVariableIndexCoordinates(resources, layer);
+                if (!overlayHtml) {
+                    overlayHtml = document.createElement('div');
+                    overlayHtml.id = 'CesiumGlobeOverlay-' + viewId;
+                    overlayHtml.style.position = 'relative';
+                    overlayHtml.style['z-index'] = 100;
+                    overlayHtml.style['pointer-events'] = 'none';
+                    overlayHtml.style['padding'] = '1em';
+                    overlayHtml.style['background-color'] = 'rgba(0, 0, 0, 0.25)';
+                }
+                let varText;
+                if (indexCoords && indexCoords.length) {
+                    varText = layer.name + ' at ' + indexCoords.map(e => e.join(' = ')).join(', ');
+                } else {
+                    varText = layer.name;
+                }
+                const textDivElement = document.createElement('div');
+                textDivElement.style['font-size'] = '1.4em';
+                textDivElement.innerText = varText;
+                overlayHtml.appendChild(textDivElement);
+                overlayHtml.style.top = `-${2 + (layerInfoCount + 1) * 1.5}em`;
+                layerInfoCount++;
+            }
+        }
+    }
+    return overlayHtml;
+}
+
+function getSplitLayerIndex(layers: LayerState[], selectedLayerId: string | null, isSelectedLayerSplit: boolean) {
+    let splitLayerIndex: number = -1;
+    if (selectedLayerId && isSelectedLayerSplit) {
+        for (let layerIndex = 0; layerIndex < layers.length; layerIndex++) {
+            let layer = layers[layerIndex];
+            if (layer.id === selectedLayerId && layer.type === 'VariableImage') {
+                return layerIndex;
+            }
+        }
+    }
+    return splitLayerIndex;
+}

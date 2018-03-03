@@ -24,6 +24,7 @@ import {isDefined, isNumber} from "../common/types";
 import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
 import {DirectGeometryObject} from "geojson";
 import {SimpleStyle} from "../common/geojson-simple-style";
+import {GeometryToolType} from "./components/cesium/GeometryTool";
 
 const CANCELLED_CODE = 999;
 
@@ -65,6 +66,7 @@ export const REMOVE_PLACEMARK = 'REMOVE_PLACEMARK';
 export const UPDATE_PLACEMARK_GEOMETRY = 'UPDATE_PLACEMARK_GEOMETRY';
 export const UPDATE_PLACEMARK_PROPERTIES = 'UPDATE_PLACEMARK_PROPERTIES';
 export const UPDATE_PLACEMARK_STYLE = 'UPDATE_PLACEMARK_STYLE';
+export const ACTIVATE_GEOMETRY_TOOL = 'ACTIVATE_GEOMETRY_TOOL';
 
 export function addPlacemark(position?: GeographicPosition): Action {
     return {type: ADD_PLACEMARK, payload: {position}};
@@ -90,6 +92,9 @@ export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Acti
     return updateSessionState({selectedPlacemarkId});
 }
 
+export function activateGeometryTool(geometryToolType: GeometryToolType) {
+    return {type: ACTIVATE_GEOMETRY_TOOL, payload: {geometryToolType}};
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application-level actions

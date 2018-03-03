@@ -9,6 +9,7 @@ export const pointColor = Cesium.Color.ORANGE.withAlpha(0.9);
 export const polylineColor = Cesium.Color.YELLOW.withAlpha(0.9);
 export const polygonColor = Cesium.Color.BLUE.withAlpha(0.5);
 
+export type GeometryToolType = "PointTool" | "PolylineTool" | "PolygonTool" | "BoxTool" | "NoTool";
 
 export interface ToolContext {
     addEntity(entity): Cesium.Entity;

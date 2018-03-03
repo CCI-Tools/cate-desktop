@@ -12,6 +12,10 @@ import {
     applyStyleToEntity, applyStyleToEntityCollection, getEntityByEntityId,
     simpleStyleToCesium
 } from "./cesium-util";
+import {
+    BoxTool, CesiumToolContext, GeometryToolType, NO_TOOL, PointTool, PolygonTool,
+    PolylineTool
+} from "./GeometryTool";
 
 interface Placemark extends Feature<Point> {
     id: string;
@@ -75,6 +79,7 @@ interface CesiumGlobeStateBase {
     overlayHtml?: HTMLElement | null;
     splitLayerIndex?: number;
     splitLayerPos?: number;
+    geometryToolType?: GeometryToolType;
 }
 
 type DataSourceMap = { [layerId: string]: Cesium.DataSource };
@@ -107,10 +112,16 @@ Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
 export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGlobeState, ICesiumGlobeProps, null> {
     private cesiumEventHandler: any;
     private selectedEntityChangeHandler: any;
+    private toolContext: CesiumToolContext;
 
     constructor(props: ICesiumGlobeProps) {
         super(props);
         this.handleRemoteBaseLayerError = this.handleRemoteBaseLayerError.bind(this);
+    }
+
+    get viewer(): Cesium.Viewer | null {
+        const externalObjectRef = this.getExternalObjectRef();
+        return !!externalObjectRef ? externalObjectRef.object : null;
     }
 
     protected renderChildren() {
@@ -212,6 +223,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const overlayHtml = props.overlayHtml || null;
         const splitLayerIndex = props.splitLayerIndex;
         const splitLayerPos = props.splitLayerPos;
+        const geometryToolType = props.geometryToolType;
         const dataSourceMap = (prevState && prevState.dataSourceMap) || {};
         return {
             selectedPlacemarkId,
@@ -220,6 +232,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             overlayHtml,
             splitLayerIndex,
             splitLayerPos,
+            geometryToolType,
             dataSourceMap,
         };
     }
@@ -232,6 +245,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const prevOverlayHtml = (prevState && prevState.overlayHtml) || null;
         const prevSplitLayerIndex = (prevState && prevState.splitLayerIndex);
         const prevSplitLayerPos = (prevState && prevState.splitLayerPos);
+        const prevGeometryToolType = (prevState && prevState.geometryToolType) || "NoTool";
 
         const nextSelectedPlacemarkId = nextState.selectedPlacemarkId || null;
         const nextImageLayerDescriptors = nextState.imageLayerDescriptors || EMPTY_ARRAY;
@@ -239,6 +253,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const nextOverlayHtml = nextState.overlayHtml;
         const nextSplitLayerIndex = nextState.splitLayerIndex;
         const nextSplitLayerPos = nextState.splitLayerPos;
+        const nextGeometryToolType = nextState.geometryToolType || "NoTool";
 
         let shouldRequestRender = false;
 
@@ -271,6 +286,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         if (prevSplitLayerPos !== nextSplitLayerPos) {
             viewer.scene.imagerySplitPosition = nextSplitLayerPos;
             shouldRequestRender = true;
+        }
+        if (prevGeometryToolType !== nextGeometryToolType) {
+            this.activateGeometryTool(viewer, nextGeometryToolType);
         }
 
         if (shouldRequestRender) {
@@ -321,6 +339,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         };
         viewer.selectedEntityChanged.addEventListener(this.selectedEntityChangeHandler);
 
+        this.toolContext = new CesiumToolContext(viewer);
+        this.activateGeometryTool(viewer, props.geometryToolType);
+
         viewer.scene.requestRender();
 
         if (props.onViewerMounted) {
@@ -329,11 +350,20 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 
     externalObjectUnmounted(viewer: Cesium.Viewer, props: Readonly<ICesiumGlobeProps>): void {
-        this.cesiumEventHandler = this.cesiumEventHandler && this.cesiumEventHandler.destroy();
-        this.cesiumEventHandler = null;
+        if (this.cesiumEventHandler) {
+            this.cesiumEventHandler.destroy();
+            this.cesiumEventHandler = null;
+        }
 
-        viewer.selectedEntityChanged.removeEventListener(this.selectedEntityChangeHandler);
-        this.selectedEntityChangeHandler = null;
+        if (this.selectedEntityChangeHandler) {
+            viewer.selectedEntityChanged.removeEventListener(this.selectedEntityChangeHandler);
+            this.selectedEntityChangeHandler = null;
+        }
+
+        if (this.toolContext) {
+            this.toolContext.destroy();
+            this.toolContext = null;
+        }
 
         if (props.onViewerUnmounted) {
             props.onViewerUnmounted(props.id, viewer);
@@ -702,6 +732,23 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         for (let entity of from.values) {
             entity.show = show;
             to.add(entity);
+        }
+    }
+
+    activateGeometryTool(viewer: Cesium.Viewer, geometryToolType: GeometryToolType) {
+        const tool = this.toolContext.tool;
+        if (geometryToolType !== tool.type) {
+            if (geometryToolType === "NoTool") {
+                this.toolContext.tool = NO_TOOL;
+            } else if (geometryToolType === "PointTool") {
+                this.toolContext.tool = new PointTool();
+            } else if (geometryToolType === "PolylineTool") {
+                this.toolContext.tool = new PolylineTool();
+            } else if (geometryToolType === "PolygonTool") {
+                this.toolContext.tool = new PolygonTool();
+            } else if (geometryToolType === "BoxTool") {
+                this.toolContext.tool = new BoxTool();
+            }
         }
     }
 }
