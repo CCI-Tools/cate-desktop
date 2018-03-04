@@ -13,7 +13,7 @@ import {findVariableIndexCoordinates} from "../state-util";
 import {ViewState} from "../components/ViewState";
 import {convertLayersToLayerDescriptors} from "./globe-view-layers";
 import * as Cesium from "cesium";
-import {GeometryToolType} from "../components/cesium/GeometryTool";
+import {GeometryToolType} from "../components/cesium/geometry-tool";
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;

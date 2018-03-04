@@ -5,7 +5,7 @@ import {ViewLayoutState, ViewState} from "./components/ViewState";
 import {Feature, FeatureCollection, GeoJsonObject, Point} from "geojson";
 import {IconName} from "@blueprintjs/core";
 import {SimpleStyle} from "../common/geojson-simple-style";
-import {GeometryToolType} from "./components/cesium/GeometryTool";
+import {GeometryToolType} from "./components/cesium/geometry-tool";
 
 /**
  * Interface describing Cate's application state structure.

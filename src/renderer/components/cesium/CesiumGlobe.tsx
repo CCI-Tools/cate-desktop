@@ -15,7 +15,7 @@ import {
 import {
     BoxTool, CesiumToolContext, GeometryToolType, NO_TOOL, PointTool, PolygonTool,
     PolylineTool
-} from "./GeometryTool";
+} from "./geometry-tool";
 
 interface Placemark extends Feature<Point> {
     id: string;

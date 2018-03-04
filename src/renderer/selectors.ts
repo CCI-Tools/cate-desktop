@@ -45,7 +45,7 @@ import * as Cesium from 'cesium';
 import {GeometryWKTGetter} from './containers/editor/ValueEditor';
 import {entityToSimpleStyle} from './components/cesium/cesium-util';
 import {SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties} from '../common/geojson-simple-style';
-import {GeometryToolType} from "./components/cesium/GeometryTool";
+import {GeometryToolType} from "./components/cesium/geometry-tool";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];

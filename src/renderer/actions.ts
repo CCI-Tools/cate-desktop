@@ -24,7 +24,7 @@ import {isDefined, isNumber} from "../common/types";
 import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
 import {DirectGeometryObject} from "geojson";
 import {SimpleStyle} from "../common/geojson-simple-style";
-import {GeometryToolType} from "./components/cesium/GeometryTool";
+import {GeometryToolType} from "./components/cesium/geometry-tool";
 
 const CANCELLED_CODE = 999;
 

@@ -2,7 +2,7 @@ import {should, expect} from 'chai';
 import {
     ToolContextBase, PolygonTool, PolylineTool, polylineColor, polygonColor, PointTool,
     BoxTool, NO_TOOL
-} from "./GeometryTool";
+} from "./geometry-tool";
 
 
 class TestToolContext extends ToolContextBase {

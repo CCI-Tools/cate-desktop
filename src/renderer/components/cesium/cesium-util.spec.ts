@@ -1,7 +1,6 @@
 import {expect} from 'chai';
 import * as Cesium from "cesium";
 import {entityToGeoJSON} from "./cesium-util";
-import {polygonColor} from "./GeometryTool";
 
 
 describe('cesium-util', function () {

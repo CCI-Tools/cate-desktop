@@ -14,7 +14,7 @@ import {Field, FieldType, FieldValue, IFieldProps} from "../components/field/Fie
 import {TextField} from "../components/field/TextField";
 import {parseNumericPair} from "../components/field/NumericRangeField";
 import {validateGeoCoordinate} from "../../common/geometry-util";
-import {GeometryToolType} from "../components/cesium/GeometryTool";
+import {GeometryToolType} from "../components/cesium/geometry-tool";
 
 interface IPlacemarksPanelDispatch {
     dispatch: Dispatch<State>;
