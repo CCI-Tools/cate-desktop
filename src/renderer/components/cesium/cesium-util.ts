@@ -1,6 +1,10 @@
 import {isDefined, isNumber, isString} from "../../../common/types";
-import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../../../common/geojson-simple-style";
+import {
+    featurePropertiesFromSimpleStyle, SIMPLE_STYLE_DEFAULTS,
+    SimpleStyle
+} from "../../../common/geojson-simple-style";
 import * as Cesium from "cesium";
+import {DirectGeometryObject, Feature} from "geojson";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SimpleStyle
@@ -190,11 +194,15 @@ function rgbToCssColor(r: number, g: number, b: number): string {
 
 function pointGraphicsToSimpleStyle(point: Cesium.PointGraphics) {
     const now = Cesium.JulianDate.now();
+    const outlineColor = point.outlineColor;
+    const outlineWidth = point.outlineWidth;
     const pixelSize = point.pixelSize;
     const color = point.color;
     let markerSize: "small" | "medium" | "large";
     let markerColor: string;
     let markerSymbol: string;
+    let stroke: string;
+    let strokeWidth: number;
     if (isDefined(pixelSize)) {
         const pixelSizeValue = pixelSize.getValue(now);
         if (pixelSizeValue < 10) {
@@ -209,10 +217,19 @@ function pointGraphicsToSimpleStyle(point: Cesium.PointGraphics) {
         const colorValue = color.getValue(now);
         markerColor = rgbToCssColor(colorValue.red, colorValue.green, colorValue.blue);
     }
+    if (isDefined(outlineColor)) {
+        const colorValue = outlineColor.getValue(now);
+        stroke = rgbToCssColor(colorValue.red, colorValue.green, colorValue.blue);
+    }
+    if (isDefined(outlineWidth)) {
+        strokeWidth = outlineWidth.getValue(now);
+    }
     return {
         markerSize,
         markerColor,
         markerSymbol,
+        stroke,
+        strokeWidth,
     };
 }
 
@@ -353,15 +370,78 @@ function polygonGraphicsToSimpleStyle(polygon: Cesium.PolygonGraphics) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Geometry WKT
 
-export function entityToGeometryWKT(selectedEntity: Cesium.Entity): string | null {
+export function entityToGeoJSON(entity: Cesium.Entity | null, id?: string): Feature<any> | null {
+    if (!entity) {
+        return null;
+    }
 
-    if (selectedEntity.polyline) {
-        const positions = selectedEntity.polyline.positions.getValue(Cesium.JulianDate.now());
+    const properties = featurePropertiesFromSimpleStyle(entityToSimpleStyle(entity));
+
+    if (entity.position) {
+        const p = Cesium.Cartographic.fromCartesian(entity.position.getValue(Cesium.JulianDate.now()));
+        const coordinates = [Cesium.Math.toDegrees(p.longitude), Cesium.Math.toDegrees(p.latitude)];
+        return _entityToGeoJSON(entity, id, {
+            type: "Point",
+            coordinates
+        });
+    }
+
+    if (entity.polyline) {
+        const positions = entity.polyline.positions.getValue(Cesium.JulianDate.now());
+        let coordinates = [];
+        for (let position of positions) {
+            const p = Cesium.Cartographic.fromCartesian(position);
+            coordinates.push([Cesium.Math.toDegrees(p.longitude), Cesium.Math.toDegrees(p.latitude)]);
+        }
+        return _entityToGeoJSON(entity, id, {
+            type: "Polyline",
+            coordinates
+        });
+    }
+
+    if (entity.polygon) {
+        const hierarchy = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now());
+        const positions = hierarchy.positions;
+        const holes = hierarchy.holes;
+        if (holes) {
+            throw new Error("entityToGeoJSON() does not yet support polygons with holes");
+        }
+        let ring = [];
+        for (let position of positions) {
+            const p = Cesium.Cartographic.fromCartesian(position);
+            ring.push([Cesium.Math.toDegrees(p.longitude), Cesium.Math.toDegrees(p.latitude)]);
+        }
+        ring.push([ring[0][0], ring[0][1]]);
+        const coordinates = [ring];
+        return _entityToGeoJSON(entity, id, {
+            type: "Polygon",
+            coordinates
+        });
+    }
+
+    throw new Error(`entityToGeoJSON() called with unsupported entity: ${entity.toString()}`);
+}
+
+export function _entityToGeoJSON(entity: Cesium.Entity, id: string | undefined, geometry: DirectGeometryObject): Feature<any> | null {
+    const properties = featurePropertiesFromSimpleStyle(entityToSimpleStyle(entity));
+    return {
+        type: "Feature",
+        id: id || entity.id.toString(),
+        geometry,
+        properties,
+    };
+}
+
+
+export function entityToGeometryWKT(entity: Cesium.Entity): string {
+
+    if (entity.polyline) {
+        const positions = entity.polyline.positions.getValue(Cesium.JulianDate.now());
         return `LINESTRING (${cartesian3ArrayToWKT(positions)})`;
     }
 
-    if (selectedEntity.polygon) {
-        const hierarchy = selectedEntity.polygon.hierarchy.getValue(Cesium.JulianDate.now());
+    if (entity.polygon) {
+        const hierarchy = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now());
         const positions = hierarchy.positions;
         const holes = hierarchy.holes;
         const exterieur = cartesian3ArrayToWKTArray(positions);
@@ -381,8 +461,8 @@ export function entityToGeometryWKT(selectedEntity: Cesium.Entity): string | nul
         return `POLYGON (${linearRings.join(', ')})`;
     }
 
-    if (selectedEntity.rectangle) {
-        const coordinates = selectedEntity.rectangle.coordinates.getValue(Cesium.JulianDate.now());
+    if (entity.rectangle) {
+        const coordinates = entity.rectangle.coordinates.getValue(Cesium.JulianDate.now());
         const x1 = toDeg(coordinates.west);
         const y1 = toDeg(coordinates.south);
         const x2 = toDeg(coordinates.east);
@@ -390,8 +470,8 @@ export function entityToGeometryWKT(selectedEntity: Cesium.Entity): string | nul
         return `POLYGON ((${x1} ${y1}, ${x2} ${y1}, ${x2} ${y2}, ${x1} ${y2}, ${x1} ${y1}))`;
     }
 
-    if (selectedEntity.position) {
-        const position = selectedEntity.position.getValue(Cesium.JulianDate.now());
+    if (entity.position) {
+        const position = entity.position.getValue(Cesium.JulianDate.now());
         return `POINT (${cartesian3ToWKT(position)})`
     }
 
