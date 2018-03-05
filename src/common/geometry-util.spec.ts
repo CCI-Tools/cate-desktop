@@ -53,7 +53,7 @@ describe('geometry-util', function () {
 
     it('isBox', function () {
         const point = {type: "Point", coordinates: [-4, -4]};
-        const line = {type: "Polyline", coordinates: [[-4, -4], [4, -4]]};
+        const line = {type: "LineString", coordinates: [[-4, -4], [4, -4]]};
         const triangle = {type: "Polygon", coordinates: [[[-4, -4], [4, -4], [4, 4], [-4, -4]]]};
         const caro = {type: "Polygon", coordinates: [[[-4, 0], [0, -4], [4, 0], [0, 4], [-4, 0]]]};
         const box = {type: "Polygon", coordinates: [[[-4, -4], [4, -4], [4, 4], [-4, 4], [-4, -4]]]};

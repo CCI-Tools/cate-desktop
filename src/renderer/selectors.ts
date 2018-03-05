@@ -159,6 +159,7 @@ export const placemarkCollectionSelector = (state: State): PlacemarkCollection =
 export const placemarksSelector = (state: State): Placemark[] => state.session.placemarkCollection.features;
 export const selectedPlacemarkIdSelector = (state: State): string | null => state.session.selectedPlacemarkId;
 export const showPlacemarkDetailsSelector = (state: State): boolean => state.session.showPlacemarkDetails;
+export const defaultPlacemarkStyleSelector = (state: State): SimpleStyle => state.session.defaultPlacemarkStyle;
 
 export const selectedPlacemarkSelector = createSelector<State,
     Placemark | null,
@@ -761,8 +762,7 @@ export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<
         } else if (vectorStyleMode === 'entity') {
             if (selectedPlacemark) {
                 const placemarkStyle = simpleStyleFromFeatureProperties(selectedPlacemark.properties);
-                const placemarkVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
-                style = {...selectedLayerStyle, ...placemarkVectorLayer, ...placemarkStyle};
+                style = {...selectedLayerStyle, ...placemarkStyle};
             } else if (selectedEntity) {
                 const entityStyle = entityToSimpleStyle(selectedEntity);
                 const entityVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);

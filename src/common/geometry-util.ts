@@ -1,4 +1,5 @@
 import {DirectGeometryObject, Feature, Position} from "geojson";
+import * as Cesium from "cesium";
 
 export type GeometryType =
     'Point'
@@ -219,3 +220,32 @@ export function isBox(geometry: DirectGeometryObject) {
     }
     return false;
 }
+
+export function geometryGeoJSONToGeometryWKT(geometry: DirectGeometryObject): string {
+
+    if (geometry.type === "Point") {
+        const position = geometry.coordinates;
+        return `POINT (${position[0]} ${position[1]})`
+    } else if (geometry.type === "LineString") {
+        const coordinates = geometry.coordinates;
+        let a = [];
+        for (let position of coordinates) {
+            a.push(`${position[0]} ${position[1]}`)
+        }
+        return `LINESTRING (${a.join(', ')})`;
+    } else if (geometry.type === "Polygon") {
+        const coordinates = geometry.coordinates;
+        let a1 = [];
+        for (let ring of coordinates) {
+            let a2 = [];
+            for (let position of ring as any) {
+                a2.push(`${position[0]} ${position[1]}`)
+            }
+            a1.push(`(${a2.join(', ')})`)
+        }
+        return `POLYGON (${a1.join(', ')})`;
+    }
+
+    return "";
+}
+

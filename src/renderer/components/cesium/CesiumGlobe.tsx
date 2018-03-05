@@ -4,7 +4,7 @@ import {diff} from "deep-object-diff"
 import {Feature, FeatureCollection, Point} from "geojson";
 import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
 import * as assert from "../../../common/assert";
-import {isString} from "../../../common/types";
+import {isBoolean, isDefined, isString} from "../../../common/types";
 import {arrayDiff} from "../../../common/array-diff";
 import {SimpleStyle} from "../../../common/geojson-simple-style";
 import {SplitSlider} from "./SplitSlider";
@@ -54,7 +54,7 @@ export interface ImageLayerDescriptor extends LayerDescriptor {
  */
 export interface VectorLayerDescriptor extends LayerDescriptor {
     style?: SimpleStyle;
-    entityStyles?: { [layerId: string]: SimpleStyle };
+    entityStyles?: { [entityId: string]: SimpleStyle };
     dataSource?: ((viewer: Cesium.Viewer, options: any) => Cesium.DataSource) | Cesium.DataSource;
     dataSourceOptions?: any;
 }
@@ -165,8 +165,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             automaticallyTrackDataSourceClocks: false,
             // Create a viewer that will not render frames based on changes in simulation time.
             // https://cesium.com/blog/2018/01/24/cesium-scene-rendering-performance/
-            requestRenderMode : true,
-            maximumRenderTimeChange : Infinity
+            requestRenderMode: true,
+            maximumRenderTimeChange: Infinity
         };
 
         // Create the CesiumCesium.Viewer
@@ -302,6 +302,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         this.cesiumEventHandler = new Cesium.ScreenSpaceEventHandler();
         this.cesiumEventHandler.setInputAction(
             (event) => {
+                // if (this.props.geometryToolType !== "NoTool") {
+                //     return;
+                // }
                 const cartographic = screenToCartographic(viewer, event.position, true);
                 if (props.onMouseClicked) {
                     props.onMouseClicked(cartographic);
@@ -312,6 +315,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
 
         this.cesiumEventHandler.setInputAction(
             (event) => {
+                // if (this.props.geometryToolType !== "NoTool") {
+                //     return;
+                // }
                 const point = event.endPosition;
                 const cartographic = screenToCartographic(viewer, point, true);
                 if (props.onMouseMoved) {
@@ -323,6 +329,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
 
         this.cesiumEventHandler.setInputAction(
             () => {
+                // if (this.props.geometryToolType !== "NoTool") {
+                //     return;
+                // }
                 let point; // = undefined, good.
                 //noinspection JSUnusedAssignment
                 const cartographic = screenToCartographic(viewer, point, true);
@@ -386,7 +395,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     private updatePlacemarks(entities: Cesium.EntityCollection,
                              currentPlacemarks: PlacemarkCollection,
                              nextPlacemarks: PlacemarkCollection,
-                             style: SimpleStyle) {
+                             style: SimpleStyle): Promise<any> {
         if (this.props.debug) {
             console.log('CesiumGlobe: updating placemarks');
         }
@@ -400,10 +409,10 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             switch (action.type) {
                 case 'ADD': {
                     const placemark = action.newElement;
-                    const show = placemark.properties['visible'];
+                    const visible = placemark.properties['visible'];
                     const promise = Cesium.GeoJsonDataSource.load(placemark, simpleStyleToCesium(style));
                     promises.push(Promise.resolve(promise).then(ds => {
-                        CesiumGlobe.copyEntities(ds.entities, entities, show);
+                        CesiumGlobe.copyEntities(ds.entities, entities, isBoolean(visible) ? visible : true);
                     }));
                     break;
                 }
@@ -413,13 +422,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                     break;
                 }
                 case 'UPDATE':
-                    let oldPlacemark = action.oldElement;
-                    let newPlacemark = action.newElement;
-                    const show = newPlacemark.properties['visible'];
+                    const oldPlacemark = action.oldElement;
+                    const newPlacemark = action.newElement;
+                    const visible = newPlacemark.properties['visible'];
                     const promise = Cesium.GeoJsonDataSource.load(newPlacemark, simpleStyleToCesium(style));
                     promises.push(Promise.resolve(promise).then(ds => {
                         entities.removeById(oldPlacemark.id);
-                        CesiumGlobe.copyEntities(ds.entities, entities, show);
+                        CesiumGlobe.copyEntities(ds.entities, entities, isBoolean(visible) ? visible : true);
                     }));
                     break;
                 default:
@@ -646,7 +655,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const oldData = oldLayer.dataSourceOptions.data;
         const newData = newLayer.dataSourceOptions.data;
         if (oldData !== newData) {
-            console.log("CesiumGlobe.updateDataSource: updateData");
             if (isString(newData)) {
                 // URL change: must load new dataSource
                 this.removeDataSource(viewer, oldLayer, dataSourceMap);
@@ -667,7 +675,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const newStyle = newLayer.style;
         if (oldStyle !== newStyle) {
             const styleDelta = diff(oldStyle, newStyle);
-            console.log("CesiumGlobe.updateDataSource: styleDelta = ", styleDelta);
             if (Object.getOwnPropertyNames(styleDelta).length > 0) {
                 const cStyle = simpleStyleToCesium(styleDelta, newStyle);
                 applyStyleToEntityCollection(cStyle, dataSource.entities.values);
@@ -677,7 +684,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const newEntityStyles = newLayer.entityStyles;
         if (oldEntityStyles !== newEntityStyles) {
             const entityStylesDelta = diff(oldEntityStyles, newEntityStyles);
-            console.log("CesiumGlobe.updateDataSource: entityStylesDelta = ", entityStylesDelta);
             for (let entityId of Object.getOwnPropertyNames(entityStylesDelta)) {
                 const entity = dataSource.entities.getById(entityId);
                 if (entity) {

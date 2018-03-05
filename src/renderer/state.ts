@@ -745,7 +745,7 @@ export interface SessionState {
     placemarkCollection: PlacemarkCollection;
     selectedPlacemarkId: string | null;
     showPlacemarkDetails: boolean;
-    placemarkCounter: number;
+    defaultPlacemarkStyle: SimpleStyle;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

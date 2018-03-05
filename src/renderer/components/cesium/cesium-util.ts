@@ -56,10 +56,10 @@ export function simpleStyleToCesium(style: SimpleStyle, defaults?: SimpleStyle):
         cStyle.fill = color;
     }
 
-    if (isString(style.markerSymbol) || isString(style.markerColor) || isNumber(style.markerSize)) {
-        const markerSize = getString("markerSize", style, defaults, SIMPLE_STYLE_DEFAULTS);
+    if (isString(style.markerSymbol) || isString(style.markerColor) || isString(style.markerSize)) {
         const markerSymbol = getString("markerSymbol", style, defaults, SIMPLE_STYLE_DEFAULTS);
         const markerColor = getString("markerColor", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const markerSize = getString("markerSize", style, defaults, SIMPLE_STYLE_DEFAULTS);
         const color = Cesium.Color.fromCssColorString(markerColor);
         const size = MARKER_SIZES[markerSize] || MARKER_SIZE_MEDIUM;
         const pinBuilder = new Cesium.PinBuilder();
@@ -205,9 +205,9 @@ function pointGraphicsToSimpleStyle(point: Cesium.PointGraphics) {
     let strokeWidth: number;
     if (isDefined(pixelSize)) {
         const pixelSizeValue = pixelSize.getValue(now);
-        if (pixelSizeValue < 10) {
+        if (pixelSizeValue <= MARKER_SIZE_SMALL) {
             markerSize = "small";
-        } else if (pixelSizeValue < 20) {
+        } else if (pixelSizeValue <= MARKER_SIZE_MEDIUM) {
             markerSize = "medium";
         } else {
             markerSize = "large";
@@ -370,17 +370,15 @@ function polygonGraphicsToSimpleStyle(polygon: Cesium.PolygonGraphics) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Geometry WKT
 
-export function entityToGeoJSON(entity: Cesium.Entity | null, id?: string): Feature<any> | null {
+export function entityToGeoJSON(entity: Cesium.Entity | null, id: string, properties: any): Feature<any> | null {
     if (!entity) {
         return null;
     }
 
-    const properties = featurePropertiesFromSimpleStyle(entityToSimpleStyle(entity));
-
     if (entity.position) {
         const p = Cesium.Cartographic.fromCartesian(entity.position.getValue(Cesium.JulianDate.now()));
         const coordinates = [Cesium.Math.toDegrees(p.longitude), Cesium.Math.toDegrees(p.latitude)];
-        return _entityToGeoJSON(entity, id, {
+        return _entityToGeoJSON(entity, id, properties, {
             type: "Point",
             coordinates
         });
@@ -393,15 +391,15 @@ export function entityToGeoJSON(entity: Cesium.Entity | null, id?: string): Feat
             const p = Cesium.Cartographic.fromCartesian(position);
             coordinates.push([Cesium.Math.toDegrees(p.longitude), Cesium.Math.toDegrees(p.latitude)]);
         }
-        return _entityToGeoJSON(entity, id, {
-            type: "Polyline",
+        return _entityToGeoJSON(entity, id, properties, {
+            type: "LineString",
             coordinates
         });
     }
 
     if (entity.polygon) {
         const hierarchy = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now());
-        const positions = hierarchy.positions;
+        const positions = hierarchy.positions || hierarchy;
         const holes = hierarchy.holes;
         if (holes) {
             throw new Error("entityToGeoJSON() does not yet support polygons with holes");
@@ -413,7 +411,7 @@ export function entityToGeoJSON(entity: Cesium.Entity | null, id?: string): Feat
         }
         ring.push([ring[0][0], ring[0][1]]);
         const coordinates = [ring];
-        return _entityToGeoJSON(entity, id, {
+        return _entityToGeoJSON(entity, id, properties, {
             type: "Polygon",
             coordinates
         });
@@ -422,14 +420,10 @@ export function entityToGeoJSON(entity: Cesium.Entity | null, id?: string): Feat
     throw new Error(`entityToGeoJSON() called with unsupported entity: ${entity.toString()}`);
 }
 
-export function _entityToGeoJSON(entity: Cesium.Entity, id: string | undefined, geometry: DirectGeometryObject): Feature<any> | null {
-    const properties = featurePropertiesFromSimpleStyle(entityToSimpleStyle(entity));
-    return {
-        type: "Feature",
-        id: id || entity.id.toString(),
-        geometry,
-        properties,
-    };
+export function _entityToGeoJSON(entity: Cesium.Entity, id: string | undefined, properties: any, geometry: DirectGeometryObject): Feature<any> | null {
+    id = id || entity.id.toString();
+    //const properties = {...featurePropertiesFromSimpleStyle(entityToSimpleStyle(entity))};
+    return {type: "Feature", id, geometry, properties};
 }
 
 

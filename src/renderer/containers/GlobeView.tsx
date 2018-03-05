@@ -9,12 +9,16 @@ import * as actions from "../actions";
 import {NO_WEB_GL} from "../messages";
 import {EMPTY_ARRAY, EMPTY_OBJECT} from "../selectors";
 import {CesiumGlobe, LayerDescriptors} from "../components/cesium/CesiumGlobe";
-import {findVariableIndexCoordinates} from "../state-util";
+import {findVariableIndexCoordinates, PLACEMARK_ID_PREFIX} from "../state-util";
 import {ViewState} from "../components/ViewState";
 import {convertLayersToLayerDescriptors} from "./globe-view-layers";
 import * as Cesium from "cesium";
 import {GeometryToolType} from "../components/cesium/geometry-tool";
 import {entityToGeoJSON} from "../components/cesium/cesium-util";
+import {
+    featurePropertiesFromSimpleStyle, SimpleStyle,
+    simpleStyleFromFeatureProperties
+} from "../../common/geojson-simple-style";
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -34,6 +38,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     hasWebGL: boolean;
     externalObjectStore: any;
     newPlacemarkToolType: GeometryToolType;
+    defaultPlacemarkStyle: SimpleStyle;
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -52,6 +57,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         hasWebGL: state.data.appConfig.hasWebGL,
         externalObjectStore: selectors.externalObjectStoreSelector(state),
         newPlacemarkToolType: selectors.newPlacemarkToolTypeSelector(state),
+        defaultPlacemarkStyle: selectors.defaultPlacemarkStyleSelector(state),
     };
 }
 
@@ -83,7 +89,9 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     }
 
     handleNewEntityAdded(newEntity: Cesium.Entity) {
-        const feature = entityToGeoJSON(newEntity);
+        const properties = {visible: true, ...featurePropertiesFromSimpleStyle(this.props.defaultPlacemarkStyle)};
+        const feature = entityToGeoJSON(newEntity, `${PLACEMARK_ID_PREFIX}${newEntity.id}`, properties);
+        console.log("handleNewEntityAdded: feature =", feature);
         this.props.dispatch(actions.addPlacemark(feature as Placemark));
     }
 

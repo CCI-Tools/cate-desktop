@@ -650,16 +650,17 @@ describe('Actions', () => {
                     type: "Point",
                     coordinates: [11.8, 8.4]
                 },
-                properties: {
-                    ...MY_PLACES_LAYER.style,
-                    visible: true,
-                    "title": "Placemark A",
-                    "marker-symbol": "A",
-                }
+                properties: {visible: true}
             };
             dispatch(actions.addPlacemark(placemark as Placemark));
             const placemarkId = getState().session.placemarkCollection.features[0].id;
-            const expectedPlacemark = {...placemark};
+            const expectedPlacemark = {
+                ...placemark, properties: {
+                    visible: true,
+                    title: "Point 1",
+                    "marker-symbol": "1",
+                }
+            };
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal(expectedPlacemark);
 
             // Cesium entity mocks for Country layer
@@ -784,13 +785,13 @@ describe('Actions', () => {
             myPlacesLayer = getActiveView().data.layers[myPlacesLayerIndex];
             expect(myPlacesLayer.entityStyles).to.not.exist; // placemark styles go into feature properties
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
-                                                                                       ...expectedPlacemark,
-                                                                                       properties: {
-                                                                                           ...expectedPlacemark.properties,
-                                                                                           "marker-size": "large",
-                                                                                           "marker-symbol": "bus",
-                                                                                       }
-                                                                                   });
+                                                                                         ...expectedPlacemark,
+                                                                                         properties: {
+                                                                                             ...expectedPlacemark.properties,
+                                                                                             "marker-size": "large",
+                                                                                             "marker-symbol": "bus",
+                                                                                         }
+                                                                                     });
 
             // Style change on a user entity --> change in userLayer.entityStyles
             //
@@ -817,50 +818,37 @@ describe('Actions', () => {
                     type: "Point",
                     coordinates: [12.6, 53.1]
                 },
-                properties: {
-                    ...featurePropertiesFromSimpleStyle(MY_PLACES_LAYER.style as SimpleStyle),
-                    visible: true,
-                    "title": "Placemark A",
-                    "marker-symbol": "A",
-                }
+                properties: {visible: true}
             } as Placemark;
             dispatch(actions.addPlacemark(placemark));
             expect(getState().session.placemarkCollection).to.exist;
             expect(getState().session.placemarkCollection.features.length).to.equal(1);
-            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({...placemark});
-            dispatch(actions.updatePlacemarkStyle(placemark.id, {title: "Placemark V"}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
-                                                                                       ...placemark,
-                                                                                       properties: {
-                                                                                           visible: true,
-                                                                                           "title": "Placemark V",
-                                                                                           "marker-symbol": "V",
-                                                                                           "marker-size": "small",
-                                                                                           "marker-color": "#FF0000",
-                                                                                       }
-                                                                                   });
+                                                                                         ...placemark,
+                                                                                         properties: {
+                                                                                             visible: true,
+                                                                                             title: "Point 1",
+                                                                                             "marker-symbol": "1",
+                                                                                         }
+                                                                                     });
             dispatch(actions.updatePlacemarkStyle(placemark.id, {title: "Bibo"}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
-                                                                                       ...placemark,
-                                                                                       properties: {
-                                                                                           visible: true,
-                                                                                           "title": "Bibo",
-                                                                                           "marker-symbol": "B",
-                                                                                           "marker-size": "small",
-                                                                                           "marker-color": "#FF0000",
-                                                                                       }
-                                                                                   });
+                                                                                         ...placemark,
+                                                                                         properties: {
+                                                                                             visible: true,
+                                                                                             title: "Bibo",
+                                                                                             "marker-symbol": "1",
+                                                                                         }
+                                                                                     });
             dispatch(actions.updatePlacemarkStyle(placemark.id, {markerSymbol: "bus"}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
-                                                                                       ...placemark,
-                                                                                       properties: {
-                                                                                           visible: true,
-                                                                                           "title": "Bibo",
-                                                                                           "marker-symbol": "bus",
-                                                                                           "marker-size": "small",
-                                                                                           "marker-color": "#FF0000",
-                                                                                       }
-                                                                                   });
+                                                                                         ...placemark,
+                                                                                         properties: {
+                                                                                             visible: true,
+                                                                                             title: "Bibo",
+                                                                                             "marker-symbol": "bus",
+                                                                                         }
+                                                                                     });
         });
 
         it('updatePlacemarkGeometry', () => {
@@ -871,25 +859,27 @@ describe('Actions', () => {
                     type: "Point",
                     coordinates: [12.6, 53.1]
                 },
-                properties: {
-                    ...MY_PLACES_LAYER.style,
-                    visible: true,
-                    "title": "Placemark A",
-                    "marker-symbol": "A",
-                }
+                properties: {}
             } as Placemark;
             dispatch(actions.addPlacemark(placemark));
             expect(getState().session.placemarkCollection).to.exist;
             expect(getState().session.placemarkCollection.features.length).to.equal(1);
-            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({...placemark});
+            let expectedPlacemark = {
+                ...placemark,
+                properties: {
+                    "marker-symbol": "1",
+                    "title": "Point 1",
+                }
+            };
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal(expectedPlacemark);
             dispatch(actions.updatePlacemarkGeometry(placemark.id, {coordinates: [13.2, 53.1]}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
-                                                                                       ...placemark,
-                                                                                       geometry: {
-                                                                                           type: "Point",
-                                                                                           coordinates: [13.2, 53.1],
-                                                                                       }
-                                                                                   });
+                                                                                         ...expectedPlacemark,
+                                                                                         geometry: {
+                                                                                             type: "Point",
+                                                                                             coordinates: [13.2, 53.1],
+                                                                                         }
+                                                                                     });
         });
     });
 

@@ -1,7 +1,10 @@
 import * as React from 'react';
-import {AnchorButton, Colors, ContextMenuTarget, Menu, MenuItem, Popover, Position, Tooltip} from "@blueprintjs/core";
+import {
+    AnchorButton, Colors, ContextMenuTarget, Menu, MenuItem, Popover, Position,
+    Tooltip
+} from "@blueprintjs/core";
 import {connect, Dispatch} from 'react-redux';
-import {State, PlacemarkCollection, Placemark, GeographicPosition} from "../state";
+import {State, PlacemarkCollection, Placemark} from "../state";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -10,11 +13,12 @@ import LayerSourcesDialog from "./LayerSourcesDialog";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {ViewState} from "../components/ViewState";
 import {NO_PLACE_SELECTED, NO_PLACES} from "../messages";
-import {Field, FieldType, FieldValue, IFieldProps} from "../components/field/Field";
+import {FieldValue} from "../components/field/Field";
 import {TextField} from "../components/field/TextField";
-import {parseNumericPair} from "../components/field/NumericRangeField";
-import {isBox, validateGeoCoordinate} from "../../common/geometry-util";
+import {geometryGeoJSONToGeometryWKT, isBox} from "../../common/geometry-util";
 import {GeometryToolType} from "../components/cesium/geometry-tool";
+import {isBoolean} from "../../common/types";
+import {NumericField, NumericFieldValue} from "../components/field/NumericField";
 
 interface IPlacemarksPanelDispatch {
     dispatch: Dispatch<State>;
@@ -40,28 +44,6 @@ function mapStateToProps(state: State): IPlacemarksPanelProps {
     };
 }
 
-type GeographicPositionFieldType = FieldType<GeographicPosition>;
-type GeographicPositionFieldValue = FieldValue<GeographicPosition>;
-
-class GeographicPositionField extends Field<IFieldProps> {
-
-    parseValue(textValue: string): GeographicPositionFieldType {
-        const pair = parseNumericPair(textValue);
-        if (!pair) {
-            throw Error("Longitude, latitude pair in degrees expected");
-        }
-        return {longitude: pair[0], latitude: pair[1]};
-    }
-
-    formatValue(value: GeographicPositionFieldType): string {
-        return `${value.longitude}, ${value.latitude}`;
-    }
-
-    validateValue(value: GeographicPositionFieldType): void {
-        super.validateValue(value);
-        validateGeoCoordinate(value.longitude, value.latitude);
-    }
-}
 
 /**
  * The PlacemarksPanel is used to display, select, and manage user geometries.
@@ -82,11 +64,11 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         this.handleChangedPlacemarkVisibility = this.handleChangedPlacemarkVisibility.bind(this);
         this.handleChangedPlacemarkSelection = this.handleChangedPlacemarkSelection.bind(this);
         this.handleChangedPlacemarkName = this.handleChangedPlacemarkName.bind(this);
-        this.handleChangedPlacemarkPosition = this.handleChangedPlacemarkPosition.bind(this);
-        this.handleCopySelectedName = this.handleCopySelectedName.bind(this);
-        this.handleCopySelectedPosition = this.handleCopySelectedPosition.bind(this);
-        this.handleCopySelectedPositionKW = this.handleCopySelectedPositionKW.bind(this);
+        this.handleChangedPointLongitude = this.handleChangedPointLongitude.bind(this);
+        this.handleChangedPointLatitude = this.handleChangedPointLatitude.bind(this);
+        this.handleCopySelectedPositionText = this.handleCopySelectedPositionText.bind(this);
         this.handleCopySelectedPositionWKT = this.handleCopySelectedPositionWKT.bind(this);
+        this.handleCopySelectedPositionGeoJSON = this.handleCopySelectedPositionGeoJSON.bind(this);
         this.renderPlacemarkItem = this.renderPlacemarkItem.bind(this);
     }
 
@@ -128,10 +110,17 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         this.props.dispatch(actions.updatePlacemarkStyle(placemark.id, {title: name}));
     }
 
-    private handleChangedPlacemarkPosition(position: GeographicPositionFieldValue) {
+    private handleChangedPointLongitude(longitude: NumericFieldValue) {
         const placemark = this.props.selectedPlacemark;
-        const lonLat = position.value;
-        const geometry = {...placemark.geometry, coordinates: [lonLat.longitude, lonLat.latitude]};
+        let geometry = placemark.geometry;
+        geometry = {...geometry, coordinates: [longitude.value, geometry.coordinates[1]]};
+        this.props.dispatch(actions.updatePlacemarkGeometry(placemark.id, geometry));
+    }
+
+    private handleChangedPointLatitude(latitude: NumericFieldValue) {
+        const placemark = this.props.selectedPlacemark;
+        let geometry = placemark.geometry;
+        geometry = {...geometry, coordinates: [geometry.coordinates[1], latitude.value]};
         this.props.dispatch(actions.updatePlacemarkGeometry(placemark.id, geometry));
     }
 
@@ -140,42 +129,32 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         this.props.dispatch(actions.setSelectedPlacemarkId(selectedPlacemarkId));
     }
 
-    private handleCopySelectedName() {
-        PlacemarksPanel.handleCopyTitle(this.props.selectedPlacemark);
-    }
-
-    private handleCopySelectedPosition() {
-        PlacemarksPanel.handleCopyPosition(this.props.selectedPlacemark);
-    }
-
-    private handleCopySelectedPositionKW() {
-        PlacemarksPanel.handleCopyPositionKW(this.props.selectedPlacemark);
+    private handleCopySelectedPositionText() {
+        PlacemarksPanel.handleCopyPositionText(this.props.selectedPlacemark);
     }
 
     private handleCopySelectedPositionWKT() {
-        PlacemarksPanel.handleCopyPositionWKT(this.props.selectedPlacemark);
+        PlacemarksPanel.handleCopyPositionGeoJSON(this.props.selectedPlacemark);
     }
 
-    private static handleCopyTitle(placemark: Placemark) {
-        const electron = require('electron');
-        const text = placemark.properties['title'];
-        electron.clipboard.writeText(text);
-        // console.log(`copied to clipboard [${text}]`);
+    private handleCopySelectedPositionGeoJSON() {
+        PlacemarksPanel.handleCopyPositionGeoJSON(this.props.selectedPlacemark);
     }
 
-    private static handleCopyPosition(placemark: Placemark) {
-        const position = placemark.geometry.coordinates;
-        actions.copyTextToClipboard(`${position[0]}, ${position[1]}`);
-    }
-
-    private static handleCopyPositionKW(placemark: Placemark) {
-        const position = placemark.geometry.coordinates;
-        actions.copyTextToClipboard(`lon=${position[0]}, lat=${position[1]}`);
+    private static handleCopyPositionText(placemark: Placemark) {
+        // TODO (nf): handle other geometry types
+        if (placemark.geometry.type === "Point") {
+            const position = placemark.geometry.coordinates;
+            actions.copyTextToClipboard(`${position[0]}, ${position[1]}`);
+        }
     }
 
     private static handleCopyPositionWKT(placemark: Placemark) {
-        const position = placemark.geometry.coordinates;
-        actions.copyTextToClipboard(`POINT (${position[0]} ${position[1]})`);
+        actions.copyTextToClipboard(geometryGeoJSONToGeometryWKT(placemark.geometry));
+    }
+
+    private static handleCopyPositionGeoJSON(placemark: Placemark) {
+        actions.copyTextToClipboard(JSON.stringify(placemark));
     }
 
     private static getPlacemarkItemKey(placemark: Placemark) {
@@ -198,8 +177,8 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     }
 
     private renderActionButtonRow() {
-        const is3DViewActive = this.props.activeView && this.props.activeView.type === 'world' && this.props.activeView.data.viewMode === "3D";
-        const add2ClassName = !is3DViewActive ? "pt-intent-primary" : null;
+        const isViewActive = this.props.activeView && this.props.activeView.type === 'world' && this.props.activeView.data.viewMode === "3D";
+        const toolClassName = isViewActive ? "pt-intent-primary" : null;
         const isPointToolActive = this.props.geometryToolType === "PointTool";
         const isPolylineToolActive = this.props.geometryToolType === "PolylineTool";
         const isPolygonToolActive = this.props.geometryToolType === "PolygonTool";
@@ -207,7 +186,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         return (
             <div className="pt-button-group">
                 <Tooltip content="New point" position={Position.LEFT}>
-                    <AnchorButton className={add2ClassName}
+                    <AnchorButton className={toolClassName}
                                   onClick={this.handleNewPointToolButtonClicked}
                                   iconName="dot"
                                   active={isPointToolActive}
@@ -215,7 +194,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                     />
                 </Tooltip>
                 <Tooltip content="New point" position={Position.LEFT}>
-                    <AnchorButton className={add2ClassName}
+                    <AnchorButton className={toolClassName}
                                   onClick={this.handleNewPolylineToolButtonClicked}
                                   iconName="slash"
                                   active={isPolylineToolActive}
@@ -223,7 +202,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                     />
                 </Tooltip>
                 <Tooltip content="New point" position={Position.LEFT}>
-                    <AnchorButton className={add2ClassName}
+                    <AnchorButton className={toolClassName}
                                   onClick={this.handleNewPolygonToolButtonClicked}
                                   iconName="polygon-filter"
                                   active={isPolygonToolActive}
@@ -231,7 +210,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                     />
                 </Tooltip>
                 <Tooltip content="New point" position={Position.LEFT}>
-                    <AnchorButton className={add2ClassName}
+                    <AnchorButton className={toolClassName}
                                   onClick={this.handleNewBoxToolButtonClicked}
                                   iconName="widget"
                                   active={isBoxToolActive}
@@ -246,20 +225,19 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                                   iconName="remove"/>
                 </Tooltip>
 
-                <Tooltip content="Locate selected placemark in view" position={Position.LEFT}>
-                    <AnchorButton disabled={!this.props.selectedPlacemarkId}
-                                  onClick={this.handleLocatePlacemarkButtonClicked}
-                                  iconName="locate"/>
-                </Tooltip>
+                {/*<Tooltip content="Locate selected placemark in view" position={Position.LEFT}>*/}
+                {/*<AnchorButton disabled={!this.props.selectedPlacemarkId}*/}
+                {/*onClick={this.handleLocatePlacemarkButtonClicked}*/}
+                {/*iconName="locate"/>*/}
+                {/*</Tooltip>*/}
 
                 <Popover position={Position.LEFT}>
                     <AnchorButton disabled={!this.props.selectedPlacemarkId}
                                   iconName="clipboard"/>
                     <Menu>
-                        <MenuItem onClick={this.handleCopySelectedName} text="Copy Name"/>
-                        <MenuItem onClick={this.handleCopySelectedPosition} text="Copy Position"/>
-                        <MenuItem onClick={this.handleCopySelectedPositionKW} text="Copy Position with Keywords"/>
-                        <MenuItem onClick={this.handleCopySelectedPositionWKT} text="Copy Position as WKT"/>
+                        <MenuItem onClick={this.handleCopySelectedPositionText} text="Copy as text"/>
+                        <MenuItem onClick={this.handleCopySelectedPositionWKT} text="Copy as WKT"/>
+                        <MenuItem onClick={this.handleCopySelectedPositionGeoJSON} text="Copy as GeoJSON"/>
                     </Menu>
                 </Popover>
                 <LayerSourcesDialog/>
@@ -288,10 +266,9 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     private renderPlacemarkItem(placemark: Placemark) {
         return <PlacemarkItem placemark={placemark}
                               onVisibilityChange={this.handleChangedPlacemarkVisibility}
-                              onCopyName={PlacemarksPanel.handleCopyTitle}
-                              onCopyPosition={PlacemarksPanel.handleCopyPosition}
-                              onCopyPositionKW={PlacemarksPanel.handleCopyPositionKW}
+                              onCopyPositionText={PlacemarksPanel.handleCopyPositionText}
                               onCopyPositionWKT={PlacemarksPanel.handleCopyPositionWKT}
+                              onCopyPositionGeoJSON={PlacemarksPanel.handleCopyPositionGeoJSON}
         />;
     }
 
@@ -336,16 +313,33 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         if (geometry.type === "Point") {
             const position = geometry.coordinates;
             return (
-                <label className="pt-label pt-inline">
-                    Position
-                    <span className="pt-text-muted"> (in degrees)</span>
-                    <GeographicPositionField value={{longitude: position[0], latitude: position[1]}}
-                                             onChange={this.handleChangedPlacemarkPosition}
-                                             size={16}
-                                             uncontrolled={true}
-                                             placeholder="Enter longitude, latitude"/>
-                </label>
+                <div>
+                    <label className="pt-label pt-inline">
+                        Longitude
+                        <span className="pt-text-muted"> (in degrees)</span>
+                        <NumericField value={position[0]}
+                                      onChange={this.handleChangedPointLongitude}
+                                      size={12}
+                                      uncontrolled={true}
+                                      min={-180}
+                                      max={+180}
+                                      placeholder="Longitude in degrees"/>
+                    </label>
+                    <label className="pt-label pt-inline">
+                        Latitude
+                        <span className="pt-text-muted"> (in degrees)</span>
+                        <NumericField value={position[1]}
+                                      onChange={this.handleChangedPointLatitude}
+                                      size={12}
+                                      uncontrolled={true}
+                                      min={-90}
+                                      max={+90}
+                                      placeholder="Latitude in degrees"/>
+                    </label>
+                </div>
             );
+        } else if (isBox(geometry)) {
+            // TODO (nf): allow editing box coordinates
         }
         return null;
     }
@@ -357,10 +351,9 @@ export default connect(mapStateToProps)(PlacemarksPanel);
 interface IPlacemarkItemProps {
     placemark: Placemark;
     onVisibilityChange: (placemark: Placemark, visible?) => void;
-    onCopyName: (placemark: Placemark) => void;
-    onCopyPosition: (placemark: Placemark) => void;
-    onCopyPositionKW: (placemark: Placemark) => void;
+    onCopyPositionText: (placemark: Placemark) => void;
     onCopyPositionWKT: (placemark: Placemark) => void;
+    onCopyPositionGeoJSON: (placemark: Placemark) => void;
 }
 
 @ContextMenuTarget
@@ -373,26 +366,21 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
     constructor(props: IPlacemarkItemProps) {
         super(props);
         this.handleVisibilityChanged = this.handleVisibilityChanged.bind(this);
-        this.handleCopyName = this.handleCopyName.bind(this);
-        this.handleCopyPosition = this.handleCopyPosition.bind(this);
-        this.handleCopyPositionKW = this.handleCopyPositionKW.bind(this);
+        this.handleCopyPositionText = this.handleCopyPositionText.bind(this);
         this.handleCopyPositionWKT = this.handleCopyPositionWKT.bind(this);
+        this.handleCopyPositionGeoJSON = this.handleCopyPositionGeoJSON.bind(this);
     }
 
-    handleCopyName() {
-        this.props.onCopyName(this.props.placemark);
-    }
-
-    handleCopyPosition() {
-        this.props.onCopyPosition(this.props.placemark);
-    }
-
-    handleCopyPositionKW() {
-        this.props.onCopyPositionKW(this.props.placemark);
+    handleCopyPositionText() {
+        this.props.onCopyPositionText(this.props.placemark);
     }
 
     handleCopyPositionWKT() {
         this.props.onCopyPositionWKT(this.props.placemark);
+    }
+
+    handleCopyPositionGeoJSON() {
+        this.props.onCopyPositionGeoJSON(this.props.placemark);
     }
 
     handleVisibilityChanged(event) {
@@ -410,7 +398,7 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
             const position = geometry.coordinates;
             info = ` ${position[0].toFixed(3)}, ${position[1].toFixed(3)}`;
             icon = "pt-icon-dot";
-        } else if (geometry.type === "Polyline") {
+        } else if (geometry.type === "LineString") {
             const coordinates = geometry.coordinates;
             info = ` ${coordinates.length} points`;
             icon = "pt-icon-slash";
@@ -423,7 +411,7 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
         return (
             <div>
                 <input type="checkbox"
-                       checked={visible}
+                       checked={isBoolean(visible) ? visible : true}
                        onChange={this.handleVisibilityChanged}
                 />
                 <span style={PlacemarkItem.ICON_STYLE} className={icon}/>
@@ -438,10 +426,9 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
         // return a single element, or nothing to use default browser behavior
         return (
             <Menu>
-                <MenuItem onClick={this.handleCopyName} text="Copy Name"/>
-                <MenuItem onClick={this.handleCopyPosition} text="Copy Position"/>
-                <MenuItem onClick={this.handleCopyPositionKW} text="Copy Position with Keywords"/>
-                <MenuItem onClick={this.handleCopyPositionWKT} text="Copy Position as WKT"/>
+                <MenuItem onClick={this.handleCopyPositionText} text="Copy as Text"/>
+                <MenuItem onClick={this.handleCopyPositionWKT} text="Copy as WKT"/>
+                <MenuItem onClick={this.handleCopyPositionGeoJSON} text="Copy as GeoJSON"/>
             </Menu>
         );
     }

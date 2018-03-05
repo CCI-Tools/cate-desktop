@@ -5,16 +5,17 @@ export const pointHeight = 10;
 export const polylineHeight = 5;
 export const polygonHeight = 0;
 
-export const pointColor = Cesium.Color.ORANGE.withAlpha(0.9);
+export const pointColor = Cesium.Color.CHARTREUSE.withAlpha(0.9);
 export const polylineColor = Cesium.Color.YELLOW.withAlpha(0.9);
-export const polygonColor = Cesium.Color.BLUE.withAlpha(0.5);
+export const polylineWidth = 2;
+export const polygonColor = Cesium.Color.AQUA.withAlpha(0.5);
 
 export type GeometryToolType = "PointTool" | "PolylineTool" | "PolygonTool" | "BoxTool" | "NoTool";
 
 export interface ToolContext {
-    newEntity(entity): void;
+    newEntity(entityTemplate): void;
 
-    addToolEntity(entity): Cesium.Entity;
+    addToolEntity(entityTemplate): Cesium.Entity;
 
     removeAllToolEntities(): void;
 
@@ -96,9 +97,9 @@ export class CesiumToolContext extends ToolContextBase {
                 this._viewer.scene.requestRender();
             }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-        handler.setInputAction(leftClick => {
+        handler.setInputAction(doubleClick => {
             if (this.tool.isActive()) {
-                this.onLeftDoubleClick(leftClick);
+                this.onLeftDoubleClick(doubleClick);
                 this._viewer.scene.requestRender();
             }
         }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
@@ -112,16 +113,16 @@ export class CesiumToolContext extends ToolContextBase {
         this._onNewEntity = onNewEntity;
     }
 
-    newEntity(entity): void {
+    newEntity(entityTemplate): void {
         if (this._onNewEntity) {
-            this._onNewEntity(entity);
+            this._onNewEntity(new Cesium.Entity(entityTemplate));
         } else {
-            this._viewer.entities.add(entity);
+            this._viewer.entities.add(entityTemplate);
         }
     }
 
-    addToolEntity(entity): Cesium.Entity {
-        return this._toolDataSource.entities.add(entity);
+    addToolEntity(entityTemplate): Cesium.Entity {
+        return this._toolDataSource.entities.add(entityTemplate);
     }
 
     removeAllToolEntities(): void {
@@ -348,7 +349,7 @@ class PolyTool extends ToolBase {
                                                                      allowPicking: false,
                                                                      polyline: {
                                                                          positions: positions,
-                                                                         width: 2,
+                                                                         width: polylineWidth,
                                                                          followSurface: true,
                                                                          material: polylineColor,
                                                                      }
