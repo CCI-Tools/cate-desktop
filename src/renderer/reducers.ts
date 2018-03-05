@@ -10,8 +10,8 @@ import * as assert from "../common/assert";
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
-    newWorldView, newTableView, newFigureView, getFigureViewTitle, genPlacemarkId,
-    hasWebGL, isVectorLayer, PLACEMARKS_LAYER,
+    newWorldView, newTableView, newFigureView, getFigureViewTitle,
+    hasWebGL, isVectorLayer, MY_PLACES_LAYER,
 } from "./state-util";
 import {
 removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
@@ -20,7 +20,6 @@ addViewToPanel, moveView, selectView
 } from "./components/ViewState";
 import {isString} from "../common/types";
 import {featurePropertiesFromSimpleStyle} from "../common/geojson-simple-style";
-import {ACTIVATE_GEOMETRY_TOOL} from "./actions";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -127,11 +126,8 @@ const initialControlState: ControlState = {
     },
     activeViewId: initialView.id,
 
-    worldViewClickAction: null,
-
+    newPlacemarkToolType: "NoTool",
     entityUpdateCount: 0,
-
-    geometryToolType: "NoTool",
 };
 
 
@@ -185,12 +181,12 @@ const controlReducer = (state: ControlState = initialControlState, action: Actio
         }
         case actions.UPDATE_CONTROL_STATE:
             return {...state, ...action.payload};
-        case actions.ACTIVATE_GEOMETRY_TOOL: {
-            let geometryToolType = action.payload.geometryToolType;
-            if (geometryToolType === state.geometryToolType) {
-                geometryToolType = "NoTool";
+        case actions.ACTIVATE_NEW_PLACEMARK_TOOL: {
+            let newPlacemarkToolType = action.payload.newPlacemarkToolType;
+            if (newPlacemarkToolType === state.newPlacemarkToolType) {
+                newPlacemarkToolType = "NoTool";
             }
-            return {...state, geometryToolType};
+            return {...state, newPlacemarkToolType};
         }
         case actions.UPDATE_DIALOG_STATE: {
             const dialogs = updatePropertyObject(state.dialogs, action.payload.dialogId, action.payload.dialogState);
@@ -684,27 +680,10 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
             return {...state, savedLayers};
         }
         case actions.ADD_PLACEMARK: {
-            const position = action.payload.position;
-            const features = state.placemarkCollection.features.slice();
-            const placemarkCounter = state.placemarkCounter;
-            const letter = String.fromCharCode(65 + placemarkCounter % 26);
-            const newPlacemark = {
-                type: 'Feature',
-                id: genPlacemarkId(),
-                properties: {
-                    ...featurePropertiesFromSimpleStyle(PLACEMARKS_LAYER.style as any),
-                    "marker-symbol": letter,
-                    title: PLACEMARK_TITLE_PREFIX + letter,
-                    visible: true,
-                },
-                geometry: {
-                    type: 'Point',
-                    coordinates: position ? [position.longitude, position.latitude] : [0, 0]
-                }
-            } as Placemark;
-            features.push(newPlacemark);
+            const placemark = action.payload.placemark;
+            const features = state.placemarkCollection.features.concat([placemark]);
             const placemarkCollection = {...state.placemarkCollection, features};
-            return {...state, placemarkCollection, placemarkCounter: placemarkCounter + 1, selectedPlacemarkId: newPlacemark.id};
+            return {...state, placemarkCollection, selectedFeatureId: placemark.id};
         }
         case actions.REMOVE_PLACEMARK: {
             const placemarkId = action.payload.placemarkId;

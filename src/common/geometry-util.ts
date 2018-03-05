@@ -1,3 +1,5 @@
+import {DirectGeometryObject, Feature, Position} from "geojson";
+
 export type GeometryType =
     'Point'
         | 'LineString'
@@ -180,7 +182,6 @@ function validateWKTBody(value: string, geometryType: string) {
     }
 }
 
-
 export function validateGeoCoordinate(lon: number, lat: number) {
     if (lon < -180 || lon > 180) {
         throw new Error('Longitude must be in the range -180 to +180 degrees.');
@@ -190,3 +191,31 @@ export function validateGeoCoordinate(lon: number, lat: number) {
     }
 }
 
+export function isBox(geometry: DirectGeometryObject) {
+    if (geometry.type === "Polygon" && geometry.coordinates.length === 1) {
+        const positions = geometry.coordinates[0] as Position[];
+        if (positions.length == 5) {
+            const x0 = positions[0][0];
+            const y0 = positions[0][1];
+            const x1 = positions[1][0];
+            const y1 = positions[1][1];
+            const x2 = positions[2][0];
+            const y2 = positions[2][1];
+            const x3 = positions[3][0];
+            const y3 = positions[3][1];
+            const x4 = positions[4][0];
+            const y4 = positions[4][1];
+            const dx1 = x1 - x0;
+            const dy1 = y1 - y0;
+            const dx2 = x2 - x1;
+            const dy2 = y2 - y1;
+            const dx3 = x3 - x2;
+            const dy3 = y3 - y2;
+            const dx4 = x4 - x3;
+            const dy4 = y4 - y3;
+            return dx1 === 0.0 && dy2 === 0 && dx3 === 0.0  && dy4 === 0
+                   || dy1 === 0 && dx2 === 0.0 && dy3 === 0 && dx4 === 0.0 ;
+        }
+    }
+    return false;
+}

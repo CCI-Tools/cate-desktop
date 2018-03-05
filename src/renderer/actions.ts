@@ -2,7 +2,7 @@ import {
     WorkspaceState, DataStoreState, TaskState, ResourceState,
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
-    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState,
+    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
 } from "./state";
 import {ViewState, ViewPath} from "./components/ViewState";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi";
@@ -12,7 +12,7 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
-    getWorldViewVectorLayerForEntity, PLACEMARKS_LAYER_ID
+    getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID
 } from "./state-util";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
@@ -22,7 +22,7 @@ import * as d3 from "d3-fetch";
 import * as Cesium from "cesium";
 import {isDefined, isNumber} from "../common/types";
 import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
-import {DirectGeometryObject} from "geojson";
+import {DirectGeometryObject, Feature} from "geojson";
 import {SimpleStyle} from "../common/geojson-simple-style";
 import {GeometryToolType} from "./components/cesium/geometry-tool";
 
@@ -59,17 +59,26 @@ export type GetState = () => State;
 export type ThunkAction = (dispatch?: Dispatch, getState?: GetState) => void;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Placemark actions
+// (User) Feature actions
 
+export const ACTIVATE_NEW_PLACEMARK_TOOL = 'ACTIVATE_NEW_PLACEMARK_TOOL';
 export const ADD_PLACEMARK = 'ADD_PLACEMARK';
+export const LOCATE_PLACEMARK = 'LOCATE_PLACEMARK';
 export const REMOVE_PLACEMARK = 'REMOVE_PLACEMARK';
 export const UPDATE_PLACEMARK_GEOMETRY = 'UPDATE_PLACEMARK_GEOMETRY';
 export const UPDATE_PLACEMARK_PROPERTIES = 'UPDATE_PLACEMARK_PROPERTIES';
 export const UPDATE_PLACEMARK_STYLE = 'UPDATE_PLACEMARK_STYLE';
-export const ACTIVATE_GEOMETRY_TOOL = 'ACTIVATE_GEOMETRY_TOOL';
 
-export function addPlacemark(position?: GeographicPosition): Action {
-    return {type: ADD_PLACEMARK, payload: {position}};
+export function activateNewPlacemarkTool(newPlacemarkToolType: GeometryToolType) {
+    return {type: ACTIVATE_NEW_PLACEMARK_TOOL, payload: {newPlacemarkToolType}};
+}
+
+export function addPlacemark(placemark: Placemark): Action {
+    return {type: ADD_PLACEMARK, payload: {placemark}};
+}
+
+export function locatePlacemark(placemarkId: string): Action {
+    return {type: LOCATE_PLACEMARK, payload: {placemarkId}};
 }
 
 export function removePlacemark(placemarkId: string): Action {
@@ -92,9 +101,6 @@ export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Acti
     return updateSessionState({selectedPlacemarkId});
 }
 
-export function activateGeometryTool(geometryToolType: GeometryToolType) {
-    return {type: ACTIVATE_GEOMETRY_TOOL, payload: {geometryToolType}};
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application-level actions
@@ -1288,7 +1294,7 @@ export function updateEntityStyle(view: ViewState<any>, entity: Cesium.Entity, s
         // therefore must pass the layer ID and the entity ID to identify the entity.
         if (layer) {
             // We will only dispatch actions for entities belong to our own layers.
-            if (layer.id === PLACEMARKS_LAYER_ID) {
+            if (layer.id === MY_PLACES_LAYER_ID) {
                 // If this is the placemarks layer, we store the style change in the placemarks (= feature's)
                 // properties: state.session.placemarkCollection.features[entityId].properties = ...style
                 dispatch(updatePlacemarkStyle(entity.id, style));

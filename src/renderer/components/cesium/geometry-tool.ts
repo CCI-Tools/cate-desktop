@@ -12,7 +12,7 @@ export const polygonColor = Cesium.Color.BLUE.withAlpha(0.5);
 export type GeometryToolType = "PointTool" | "PolylineTool" | "PolygonTool" | "BoxTool" | "NoTool";
 
 export interface ToolContext {
-    addEntity(entity): Cesium.Entity;
+    newEntity(entity): void;
 
     addToolEntity(entity): Cesium.Entity;
 
@@ -60,7 +60,7 @@ export abstract class ToolContextBase implements ToolContext {
         this._tool.handleMouseMove(movement);
     }
 
-    abstract addEntity(entity): void;
+    abstract newEntity(entity): void;
 
     abstract addToolEntity(entity): void;
 
@@ -80,16 +80,16 @@ export class CesiumToolContext extends ToolContextBase {
     private _viewer: Cesium.Viewer;
     private _ellipsoid: Cesium.Ellipsoid;
     private _toolDataSource: Cesium.CustomDataSource;
-    private _handlerFactory;
     private _handler;
+    private _onNewEntity?: (entity: Cesium.Entity) => void;
 
-    constructor(viewer: Cesium.Viewer) {
+    constructor(viewer: Cesium.Viewer, onNewEntity?: (entity: Cesium.Entity) => void) {
         super();
         this._viewer = viewer;
         this._ellipsoid = viewer.scene.globe.ellipsoid;
         this._toolDataSource = new Cesium.CustomDataSource("Tool Data Source");
         viewer.dataSources.add(this._toolDataSource);
-        const handler = this._handlerFactory ? this._handlerFactory(viewer) : new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
         handler.setInputAction(leftClick => {
             if (this.tool.isActive()) {
                 this.onLeftClick(leftClick);
@@ -109,10 +109,15 @@ export class CesiumToolContext extends ToolContextBase {
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
         this._handler = handler;
+        this._onNewEntity = onNewEntity;
     }
 
-    addEntity(entity): Cesium.Entity {
-        return this._viewer.entities.add(entity);
+    newEntity(entity): void {
+        if (this._onNewEntity) {
+            this._onNewEntity(entity);
+        } else {
+            this._viewer.entities.add(entity);
+        }
     }
 
     addToolEntity(entity): Cesium.Entity {
@@ -219,7 +224,7 @@ export class PointTool extends ToolBase {
     handleLeftClick(leftClick) {
         const cartesian = this.context.pickEllipsoid(leftClick.position);
         if (cartesian) {
-            this.context.addEntity({
+            this.context.newEntity({
                                        position: cartesian,
                                        point: {
                                            pixelSize: 6,
@@ -288,26 +293,26 @@ class PolyTool extends ToolBase {
         if (endInteraction) {
             if (this.polygonEntity) {
                 // TODO #477 (nf): mark this as a user-polygon so we can edit points later
-                const polygon = this.context.addEntity({
-                                                           polygon: {
-                                                               // TODO (nf): why doesn't this work?
-                                                               // hierarchy: this.polygonEntity.hierarchy,
-                                                               hierarchy: this.polygonPositions,
-                                                               // TODO (nf): take from current style
-                                                               material: polygonColor,
-                                                           }
-                                                       });
+                this.context.newEntity({
+                                           polygon: {
+                                               // TODO (nf): why doesn't this work?
+                                               // hierarchy: this.polygonEntity.hierarchy,
+                                               hierarchy: this.polygonPositions,
+                                               // TODO (nf): take from current style
+                                               material: polygonColor,
+                                           }
+                                       });
             } else if (this.polylineEntity) {
                 // TODO #477 (nf): mark this as a user-polygon so we can edit points later
-                const polyline = this.context.addEntity({
-                                                            polyline: {
-                                                                // TODO (nf): why doesn't this work?
-                                                                // positions: this.polylinePositions.positions,
-                                                                positions: this.polylinePositions,
-                                                                // TODO (nf): take from current style
-                                                                material: polylineColor,
-                                                            }
-                                                        });
+                this.context.newEntity({
+                                           polyline: {
+                                               // TODO (nf): why doesn't this work?
+                                               // positions: this.polylinePositions.positions,
+                                               positions: this.polylinePositions,
+                                               // TODO (nf): take from current style
+                                               material: polylineColor,
+                                           }
+                                       });
             }
             this.reset();
         }
@@ -446,7 +451,7 @@ export class BoxTool extends ToolBase {
                 this.position2 = cartesian;
                 const positions = this.getPositions();
                 if (doAdd) {
-                    this.context.addEntity({
+                    this.context.newEntity({
                                                polygon: {
                                                    hierarchy: positions,
                                                    material: polygonColor,

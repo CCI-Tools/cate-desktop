@@ -15,7 +15,7 @@ class TestToolContext extends ToolContextBase {
         this.toolEntities = [];
     }
 
-    addEntity(entity) {
+    newEntity(entity) {
         this.entities.push(entity);
         return entity;
     }

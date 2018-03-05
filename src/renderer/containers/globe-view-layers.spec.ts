@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import {convertLayersToLayerDescriptors, transferEntityGeometry} from "./globe-view-layers";
 import {FeatureCollection} from "geojson";
 import {Placemark, PlacemarkCollection} from "../state";
-import {COUNTRIES_LAYER, COUNTRIES_LAYER_ID, PLACEMARKS_LAYER, PLACEMARKS_LAYER_ID} from "../state-util";
+import {COUNTRIES_LAYER, COUNTRIES_LAYER_ID, MY_PLACES_LAYER, MY_PLACES_LAYER_ID} from "../state-util";
 import {SIMPLE_STYLE_DEFAULTS} from "../../common/geojson-simple-style";
 
 describe('convertLayersToLayerDescriptors', function () {
@@ -26,7 +26,7 @@ describe('convertLayersToLayerDescriptors', function () {
                     fillOpacity: 0.3
                 }
             },
-            {...PLACEMARKS_LAYER},
+            {...MY_PLACES_LAYER},
             {
                 id: 'L427',
                 name: 'I love ma bucket',
@@ -125,13 +125,13 @@ describe('convertLayersToLayerDescriptors', function () {
                                                          }
                                                      });
 
-        expect(vld3.id).to.equal(PLACEMARKS_LAYER_ID);
-        expect(vld3.name).to.equal("Placemarks");
+        expect(vld3.id).to.equal(MY_PLACES_LAYER_ID);
+        expect(vld3.name).to.equal("My Places");
         expect(vld3.visible).to.be.true;
         expect(vld3.dataSource).to.be.a('function');
         expect(vld3.dataSourceOptions).to.deep.equal({
                                                          data: placemarks,
-                                                         style: PLACEMARKS_LAYER.style
+                                                         style: MY_PLACES_LAYER.style
                                                      });
 
         expect(ild.id).to.equal("L427");

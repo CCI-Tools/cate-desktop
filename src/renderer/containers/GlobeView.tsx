@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect, DispatchProp} from "react-redux";
 import {
     State, WorkspaceState, VariableImageLayerState,
-    WorldViewDataState, ResourceState, LayerState, PlacemarkCollection,
+    WorldViewDataState, ResourceState, LayerState, PlacemarkCollection, Placemark,
 } from "../state";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
@@ -14,6 +14,7 @@ import {ViewState} from "../components/ViewState";
 import {convertLayersToLayerDescriptors} from "./globe-view-layers";
 import * as Cesium from "cesium";
 import {GeometryToolType} from "../components/cesium/geometry-tool";
+import {entityToGeoJSON} from "../components/cesium/cesium-util";
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -23,7 +24,6 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     baseUrl: string;
     workspace: WorkspaceState | null;
     offlineMode: boolean;
-    worldViewClickAction: string | null;
     placemarks: PlacemarkCollection;
     selectedLayer: LayerState | null;
     selectedLayerId: string | null;
@@ -33,7 +33,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     debugWorldView: boolean;
     hasWebGL: boolean;
     externalObjectStore: any;
-    geometryToolType: GeometryToolType;
+    newPlacemarkToolType: GeometryToolType;
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -42,7 +42,6 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         baseUrl: selectors.webAPIRestUrlSelector(state),
         workspace: selectors.workspaceSelector(state),
         offlineMode: selectors.offlineModeSelector(state),
-        worldViewClickAction: state.control.worldViewClickAction,
         placemarks: selectors.placemarkCollectionSelector(state),
         selectedLayer: selectors.selectedLayerSelector(state),
         selectedLayerId: selectors.selectedLayerIdSelector(state),
@@ -52,7 +51,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         debugWorldView: state.session.debugWorldView,
         hasWebGL: state.data.appConfig.hasWebGL,
         externalObjectStore: selectors.externalObjectStoreSelector(state),
-        geometryToolType: selectors.geometryToolTypeSelector(state),
+        newPlacemarkToolType: selectors.newPlacemarkToolTypeSelector(state),
     };
 }
 
@@ -65,22 +64,14 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     constructor(props: IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>) {
         super(props);
         this.handleMouseMoved = this.handleMouseMoved.bind(this);
-        this.handleMouseClicked = this.handleMouseClicked.bind(this);
         this.handleLeftUp = this.handleLeftUp.bind(this);
         this.handleSelectedEntityChanged = this.handleSelectedEntityChanged.bind(this);
+        this.handleNewEntityAdded = this.handleNewEntityAdded.bind(this);
         this.handleSplitLayerPosChange = this.handleSplitLayerPosChange.bind(this);
     }
 
     handleMouseMoved(position: Cesium.GeographicPosition) {
         this.props.dispatch(actions.setGlobeMousePosition(position));
-    }
-
-    handleMouseClicked(position: Cesium.GeographicPosition) {
-        //console.warn("handleMouseClicked", position);
-        if (this.props.worldViewClickAction === actions.ADD_PLACEMARK && position) {
-            this.props.dispatch(actions.addPlacemark(position));
-            this.props.dispatch(actions.updateControlState({worldViewClickAction: null}));
-        }
     }
 
     handleLeftUp(position: Cesium.GeographicPosition) {
@@ -89,6 +80,11 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
 
     handleSelectedEntityChanged(selectedEntity: Cesium.Entity | null) {
         this.props.dispatch(actions.notifySelectedEntityChange(this.props.view.id, this.props.selectedLayer, selectedEntity));
+    }
+
+    handleNewEntityAdded(newEntity: Cesium.Entity) {
+        const feature = entityToGeoJSON(newEntity);
+        this.props.dispatch(actions.addPlacemark(feature as Placemark));
     }
 
     handleSplitLayerPosChange(splitLayerPos: number) {
@@ -144,10 +140,10 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          offlineMode={this.props.offlineMode}
                          style={GlobeView.CESIUM_GLOBE_STYLE}
                          onMouseMoved={this.props.isDialogOpen ? null : this.handleMouseMoved}
-                         onMouseClicked={this.props.isDialogOpen ? null : this.handleMouseClicked}
                          onLeftUp={this.props.isDialogOpen ? null : this.handleLeftUp}
                          onSelectedEntityChanged={this.handleSelectedEntityChanged}
-                         geometryToolType={this.props.geometryToolType}
+                         onNewEntityAdded={this.handleNewEntityAdded}
+                         geometryToolType={this.props.newPlacemarkToolType}
             />
         );
     }

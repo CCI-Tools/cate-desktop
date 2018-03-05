@@ -9,11 +9,11 @@ import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import LayerSourcesDialog from "./LayerSourcesDialog";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {ViewState} from "../components/ViewState";
-import {NO_PLACEMARK_SELECTED, NO_PLACEMARKS} from "../messages";
+import {NO_PLACE_SELECTED, NO_PLACES} from "../messages";
 import {Field, FieldType, FieldValue, IFieldProps} from "../components/field/Field";
 import {TextField} from "../components/field/TextField";
 import {parseNumericPair} from "../components/field/NumericRangeField";
-import {validateGeoCoordinate} from "../../common/geometry-util";
+import {isBox, validateGeoCoordinate} from "../../common/geometry-util";
 import {GeometryToolType} from "../components/cesium/geometry-tool";
 
 interface IPlacemarksPanelDispatch {
@@ -26,8 +26,6 @@ interface IPlacemarksPanelProps {
     selectedPlacemark: Placemark | null,
     activeView: ViewState<any> | null;
     showPlacemarkDetails: boolean,
-    worldViewClickAction: string | null;
-    globeViewPosition: GeographicPosition | null;
     geometryToolType: GeometryToolType;
 }
 
@@ -38,9 +36,7 @@ function mapStateToProps(state: State): IPlacemarksPanelProps {
         selectedPlacemark: selectors.selectedPlacemarkSelector(state),
         showPlacemarkDetails: selectors.showPlacemarkDetailsSelector(state),
         activeView: selectors.activeViewSelector(state),
-        worldViewClickAction: state.control.worldViewClickAction,
-        globeViewPosition: selectors.globeViewPositionSelector(state),
-        geometryToolType: selectors.geometryToolTypeSelector(state),
+        geometryToolType: selectors.newPlacemarkToolTypeSelector(state),
     };
 }
 
@@ -77,9 +73,12 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     constructor(props: IPlacemarksPanelProps & IPlacemarksPanelDispatch) {
         super(props);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
-        this.handleAddPlacemarkFromPositionButtonClicked = this.handleAddPlacemarkFromPositionButtonClicked.bind(this);
-        this.handleAddPlacemarkButtonClicked = this.handleAddPlacemarkButtonClicked.bind(this);
+        this.handleNewPointToolButtonClicked = this.handleNewPointToolButtonClicked.bind(this);
+        this.handleNewPolygonToolButtonClicked = this.handleNewPolygonToolButtonClicked.bind(this);
+        this.handleNewPolylineToolButtonClicked = this.handleNewPolylineToolButtonClicked.bind(this);
+        this.handleNewBoxToolButtonClicked = this.handleNewBoxToolButtonClicked.bind(this);
         this.handleRemovePlacemarkButtonClicked = this.handleRemovePlacemarkButtonClicked.bind(this);
+        this.handleLocatePlacemarkButtonClicked = this.handleLocatePlacemarkButtonClicked.bind(this);
         this.handleChangedPlacemarkVisibility = this.handleChangedPlacemarkVisibility.bind(this);
         this.handleChangedPlacemarkSelection = this.handleChangedPlacemarkSelection.bind(this);
         this.handleChangedPlacemarkName = this.handleChangedPlacemarkName.bind(this);
@@ -89,43 +88,34 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         this.handleCopySelectedPositionKW = this.handleCopySelectedPositionKW.bind(this);
         this.handleCopySelectedPositionWKT = this.handleCopySelectedPositionWKT.bind(this);
         this.renderPlacemarkItem = this.renderPlacemarkItem.bind(this);
-
-        this.handleNewPointToolButtonClicked = this.handleNewPointToolButtonClicked.bind(this);
-        this.handleNewPolygonToolButtonClicked = this.handleNewPolygonToolButtonClicked.bind(this);
-        this.handleNewPolylineToolButtonClicked = this.handleNewPolylineToolButtonClicked.bind(this);
-        this.handleNewBoxToolButtonClicked = this.handleNewBoxToolButtonClicked.bind(this);
     }
 
     private handleNewPointToolButtonClicked() {
-        this.props.dispatch(actions.activateGeometryTool("PointTool"));
+        this.props.dispatch(actions.activateNewPlacemarkTool("PointTool"));
     }
 
     private handleNewPolygonToolButtonClicked() {
-        this.props.dispatch(actions.activateGeometryTool("PolygonTool"));
+        this.props.dispatch(actions.activateNewPlacemarkTool("PolygonTool"));
     }
 
     private handleNewPolylineToolButtonClicked() {
-        this.props.dispatch(actions.activateGeometryTool("PolylineTool"));
+        this.props.dispatch(actions.activateNewPlacemarkTool("PolylineTool"));
     }
 
     private handleNewBoxToolButtonClicked() {
-        this.props.dispatch(actions.activateGeometryTool("BoxTool"));
+        this.props.dispatch(actions.activateNewPlacemarkTool("BoxTool"));
     }
 
     private handleShowDetailsChanged(value: boolean) {
         this.props.dispatch(actions.updateSessionState({showPlacemarkDetails: value}));
     }
 
-    private handleAddPlacemarkFromPositionButtonClicked() {
-        this.props.dispatch(actions.updateControlState({worldViewClickAction: actions.ADD_PLACEMARK}));
-    }
-
-    private handleAddPlacemarkButtonClicked() {
-        this.props.dispatch(actions.addPlacemark(this.props.globeViewPosition));
-    }
-
     private handleRemovePlacemarkButtonClicked() {
         this.props.dispatch(actions.removePlacemark(this.props.selectedPlacemarkId));
+    }
+
+    private handleLocatePlacemarkButtonClicked() {
+        this.props.dispatch(actions.locatePlacemark(this.props.selectedPlacemarkId));
     }
 
     private handleChangedPlacemarkVisibility(placemark: Placemark, visible: boolean) {
@@ -209,9 +199,6 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
 
     private renderActionButtonRow() {
         const is3DViewActive = this.props.activeView && this.props.activeView.type === 'world' && this.props.activeView.data.viewMode === "3D";
-        const noWorldViewClickAction = !this.props.worldViewClickAction;
-        const canClick = is3DViewActive && noWorldViewClickAction;
-        const add1ClassName = is3DViewActive ? "pt-intent-primary" : null;
         const add2ClassName = !is3DViewActive ? "pt-intent-primary" : null;
         const isPointToolActive = this.props.geometryToolType === "PointTool";
         const isPolylineToolActive = this.props.geometryToolType === "PolylineTool";
@@ -219,21 +206,6 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         const isBoxToolActive = this.props.geometryToolType === "BoxTool";
         return (
             <div className="pt-button-group">
-                {/*<Tooltip content="Click a point on the 3D globe to add a new placemark" position={Position.LEFT}>*/}
-                {/*<AnchorButton className={add1ClassName}*/}
-                {/*onClick={this.handleAddPlacemarkFromPositionButtonClicked}*/}
-                {/*iconName="pt-icon-selection"*/}
-                {/*disabled={!canClick}/>*/}
-                {/*</Tooltip>*/}
-                {/*<Tooltip content="Add a new placemark" position={Position.LEFT}>*/}
-                {/*<AnchorButton className={add2ClassName}*/}
-                {/*onClick={this.handleAddPlacemarkButtonClicked}*/}
-                {/*iconName="add"*/}
-                {/*disabled={!this.props.globeViewPosition}*/}
-                {/*/>*/}
-                {/*</Tooltip>*/}
-
-
                 <Tooltip content="New point" position={Position.LEFT}>
                     <AnchorButton className={add2ClassName}
                                   onClick={this.handleNewPointToolButtonClicked}
@@ -273,6 +245,13 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                                   onClick={this.handleRemovePlacemarkButtonClicked}
                                   iconName="remove"/>
                 </Tooltip>
+
+                <Tooltip content="Locate selected placemark in view" position={Position.LEFT}>
+                    <AnchorButton disabled={!this.props.selectedPlacemarkId}
+                                  onClick={this.handleLocatePlacemarkButtonClicked}
+                                  iconName="locate"/>
+                </Tooltip>
+
                 <Popover position={Position.LEFT}>
                     <AnchorButton disabled={!this.props.selectedPlacemarkId}
                                   iconName="clipboard"/>
@@ -291,7 +270,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     private renderPlacemarksList() {
         const placemarks = this.props.placemarkCollection.features;
         if (!placemarks || !placemarks.length) {
-            return NO_PLACEMARKS;
+            return NO_PLACES;
         }
 
         return (
@@ -323,13 +302,13 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         }
         const placemark = this.props.selectedPlacemark;
         if (!placemark) {
-            return NO_PLACEMARK_SELECTED;
+            return NO_PLACE_SELECTED;
         }
         return (
             <div style={{width: '100%'}}>
                 <label key="spacer" className="pt-label"> </label>
                 {this.renderPlacemarkTitle()}
-                {this.renderPlacemarkPosition()}
+                {this.renderPlacemarkGeometry()}
             </div>
         );
     }
@@ -351,20 +330,24 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         );
     }
 
-    private renderPlacemarkPosition() {
+    private renderPlacemarkGeometry() {
         const placemark = this.props.selectedPlacemark;
-        const position = placemark.geometry.coordinates;
-        return (
-            <label className="pt-label pt-inline">
-                Position
-                <span className="pt-text-muted"> (in degrees)</span>
-                <GeographicPositionField value={{longitude: position[0], latitude: position[1]}}
-                                         onChange={this.handleChangedPlacemarkPosition}
-                                         size={16}
-                                         uncontrolled={true}
-                                         placeholder="Enter longitude, latitude"/>
-            </label>
-        );
+        const geometry = placemark.geometry;
+        if (geometry.type === "Point") {
+            const position = geometry.coordinates;
+            return (
+                <label className="pt-label pt-inline">
+                    Position
+                    <span className="pt-text-muted"> (in degrees)</span>
+                    <GeographicPositionField value={{longitude: position[0], latitude: position[1]}}
+                                             onChange={this.handleChangedPlacemarkPosition}
+                                             size={16}
+                                             uncontrolled={true}
+                                             placeholder="Enter longitude, latitude"/>
+                </label>
+            );
+        }
+        return null;
     }
 }
 
@@ -385,7 +368,7 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
 
     static readonly ICON_STYLE = {marginLeft: "0.5em"};
     static readonly NAME_STYLE = {marginLeft: "0.5em"};
-    static readonly POSITION_STYLE = {float: "right", color: Colors.BLUE5};
+    static readonly INFO_STYLE = {float: "right", color: Colors.BLUE5};
 
     constructor(props: IPlacemarkItemProps) {
         super(props);
@@ -420,17 +403,32 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
         const placemark = this.props.placemark;
         const visible = placemark.properties['visible'];
         const title = placemark.properties['title'];
-        const position = placemark.geometry.coordinates;
+        const geometry = placemark.geometry;
+        let icon;
+        let info;
+        if (geometry.type === "Point") {
+            const position = geometry.coordinates;
+            info = ` ${position[0].toFixed(3)}, ${position[1].toFixed(3)}`;
+            icon = "pt-icon-dot";
+        } else if (geometry.type === "Polyline") {
+            const coordinates = geometry.coordinates;
+            info = ` ${coordinates.length} points`;
+            icon = "pt-icon-slash";
+        } else if (geometry.type === "Polygon") {
+            const ring = geometry.coordinates[0] as any;
+            info = ` ${ring.length - 1} points`;
+            icon = isBox(geometry) ? "pt-icon-widget" : "pt-icon-polygon-filter";
+        }
+
         return (
             <div>
                 <input type="checkbox"
                        checked={visible}
                        onChange={this.handleVisibilityChanged}
                 />
-                <span style={PlacemarkItem.ICON_STYLE} className="pt-icon-dot"/>
+                <span style={PlacemarkItem.ICON_STYLE} className={icon}/>
                 <span style={PlacemarkItem.NAME_STYLE}>{title}</span>
-                <span
-                    style={PlacemarkItem.POSITION_STYLE}>{` ${position[0].toFixed(3)}, ${position[1].toFixed(3)}`}</span>
+                <span style={PlacemarkItem.INFO_STYLE}>{info}</span>
             </div>
         );
     }

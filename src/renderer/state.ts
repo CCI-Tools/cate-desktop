@@ -647,13 +647,10 @@ export interface ControlState {
     views: ViewState<any>[];
     activeViewId: string | null;
 
-    // Will later be replaced by geometry creation/editing tools.
-    worldViewClickAction: string | null;
+    newPlacemarkToolType: GeometryToolType;
 
     // Used to force component update after an entity's properties have changed
     entityUpdateCount: number;
-
-    geometryToolType: GeometryToolType;
 }
 
 export interface DialogState {
@@ -745,7 +742,7 @@ export interface SessionState {
     vectorStyleMode: "entity" | "layer";
 
     // PlacemarksPanel
-    placemarkCollection: PlacemarkCollection | null;
+    placemarkCollection: PlacemarkCollection;
     selectedPlacemarkId: string | null;
     showPlacemarkDetails: boolean;
     placemarkCounter: number;

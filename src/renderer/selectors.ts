@@ -154,11 +154,11 @@ export const selectedRightBottomPanelIdSelector = (state: State): string
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Placemark selectors
 
+export const newPlacemarkToolTypeSelector = (state: State): GeometryToolType => state.control.newPlacemarkToolType;
 export const placemarkCollectionSelector = (state: State): PlacemarkCollection => state.session.placemarkCollection;
 export const placemarksSelector = (state: State): Placemark[] => state.session.placemarkCollection.features;
 export const selectedPlacemarkIdSelector = (state: State): string | null => state.session.selectedPlacemarkId;
 export const showPlacemarkDetailsSelector = (state: State): boolean => state.session.showPlacemarkDetails;
-export const geometryToolTypeSelector = (state: State): GeometryToolType => state.control.geometryToolType;
 
 export const selectedPlacemarkSelector = createSelector<State,
     Placemark | null,

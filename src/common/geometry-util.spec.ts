@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import {validateGeometryValue} from "./geometry-util";
+import {isBox, validateGeometryValue} from "./geometry-util";
 
 describe('geometry-util', function () {
 
@@ -49,5 +49,18 @@ describe('geometry-util', function () {
             expect(validateGeometryValue('POINT (1.2 -3.4)', 'Geometry')).to.be.undefined;
             expect(validateGeometryValue('POLYGON ((1.2 -3.4, 5.6 -7.8, 9.1 -2.3, 1.2 -3.4))', 'Geometry')).to.be.undefined;
         });
+    });
+
+    it('isBox', function () {
+        const point = {type: "Point", coordinates: [-4, -4]};
+        const line = {type: "Polyline", coordinates: [[-4, -4], [4, -4]]};
+        const triangle = {type: "Polygon", coordinates: [[[-4, -4], [4, -4], [4, 4], [-4, -4]]]};
+        const caro = {type: "Polygon", coordinates: [[[-4, 0], [0, -4], [4, 0], [0, 4], [-4, 0]]]};
+        const box = {type: "Polygon", coordinates: [[[-4, -4], [4, -4], [4, 4], [-4, 4], [-4, -4]]]};
+        expect(isBox(point)).to.be.false;
+        expect(isBox(line)).to.be.false;
+        expect(isBox(triangle)).to.be.false;
+        expect(isBox(caro)).to.be.false;
+        expect(isBox(box)).to.be.true;
     });
 });

@@ -15,7 +15,7 @@ import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../common/geojson-simple-style
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 export const COUNTRIES_LAYER_ID = 'countries';
-export const PLACEMARKS_LAYER_ID = 'myPlaces';
+export const MY_PLACES_LAYER_ID = 'myPlaces';
 
 export const SELECTED_VARIABLE_LAYER = {
     id: SELECTED_VARIABLE_LAYER_ID,
@@ -34,9 +34,9 @@ export const COUNTRIES_LAYER = {
     },
 };
 
-export const PLACEMARKS_LAYER = {
-    id: PLACEMARKS_LAYER_ID,
-    name: 'Placemarks',
+export const MY_PLACES_LAYER = {
+    id: MY_PLACES_LAYER_ID,
+    name: 'My Places',
     type: 'Vector',
     visible: true,
     style: {
@@ -215,7 +215,7 @@ function newInitialWorldViewData(): WorldViewDataState {
         layers: [
             {...SELECTED_VARIABLE_LAYER},
             {...COUNTRIES_LAYER},
-            {...PLACEMARKS_LAYER},
+            {...MY_PLACES_LAYER},
         ],
         selectedLayerId: SELECTED_VARIABLE_LAYER_ID,
         isSelectedLayerSplit: null,

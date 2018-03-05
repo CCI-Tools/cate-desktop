@@ -9,7 +9,7 @@ import {arrayDiff} from "../../../common/array-diff";
 import {SimpleStyle} from "../../../common/geojson-simple-style";
 import {SplitSlider} from "./SplitSlider";
 import {
-    applyStyleToEntity, applyStyleToEntityCollection, getEntityByEntityId,
+    applyStyleToEntity, applyStyleToEntityCollection, entityToGeoJSON, getEntityByEntityId,
     simpleStyleToCesium
 } from "./cesium-util";
 import {
@@ -94,6 +94,7 @@ export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Cesium.
     onMouseMoved?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onLeftUp?: (point: { latitude: number, longitude: number, height?: number }) => void;
     onSelectedEntityChanged?: (selectedEntity: Cesium.Entity | null) => void;
+    onNewEntityAdded?: (newEntity: Cesium.Entity) => void;
     onViewerMounted?: (id: string, viewer: Cesium.Viewer) => void;
     onViewerUnmounted?: (id: string, viewer: Cesium.Viewer) => void;
     onSplitLayerPosChange?: (splitLayerPos: number) => void;
@@ -339,7 +340,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         };
         viewer.selectedEntityChanged.addEventListener(this.selectedEntityChangeHandler);
 
-        this.toolContext = new CesiumToolContext(viewer);
+        this.toolContext = new CesiumToolContext(viewer, props.onNewEntityAdded);
         this.activateGeometryTool(viewer, props.geometryToolType);
 
         viewer.scene.requestRender();
