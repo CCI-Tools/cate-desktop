@@ -251,6 +251,7 @@ export const dataStoresSelector = (state: State) => state.data.dataStores;
 export const selectedDataStoreIdSelector = (state: State) => state.session.selectedDataStoreId;
 export const selectedDataSourceIdSelector = (state: State) => state.session.selectedDataSourceId;
 export const dataSourceFilterExprSelector = (state: State) => state.session.dataSourceFilterExpr;
+export const dataSourceListHeightSelector = (state: State) => state.session.dataSourceListHeight;
 export const showDataSourceDetailsSelector = (state: State) => state.session.showDataSourceDetails;
 export const showDataSourceTitlesSelector = (state: State): boolean => state.session.showDataSourceTitles;
 
@@ -357,11 +358,17 @@ export const workflowStepsSelector = (state: State): WorkflowStepState[] => {
 export const lastWorkspacePathSelector = (state: State): string | null => {
     return state.session.lastWorkspacePath;
 };
+export const resourceListHeightSelector = (state: State): number => {
+    return state.session.resourceListHeight;
+};
 export const showResourceDetailsSelector = (state: State): boolean => {
     return state.session.showResourceDetails;
 };
 export const selectedResourceNameSelector = (state: State): string | null => {
     return state.control.selectedWorkspaceResourceName;
+};
+export const workflowStepListHeightSelector = (state: State): number => {
+    return state.session.workflowStepListHeight;
 };
 export const showWorkflowStepDetailsSelector = (state: State): boolean => {
     return state.session.showWorkflowStepDetails;

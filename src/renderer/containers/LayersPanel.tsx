@@ -29,6 +29,7 @@ interface ILayersPanelProps {
     selectedLayer: LayerState | null;
     selectedImageLayer: ImageLayerState | null;
     selectedVariableImageLayer: VariableImageLayerState | null;
+    layerListHeight: number;
     showLayerDetails: boolean;
     colorMapCategories: Array<ColorMapCategoryState>;
 }
@@ -43,6 +44,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedLayer: selectors.selectedLayerSelector(state),
         selectedImageLayer: selectors.selectedImageLayerSelector(state),
         selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
+        layerListHeight: state.session.layerListHeight,
         showLayerDetails: state.session.showLayerDetails,
         colorMapCategories: selectors.colorMapCategoriesSelector(state)
     };
@@ -61,6 +63,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     constructor(props: ILayersPanelProps & DispatchProp<State>) {
         super(props);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
+        this.handleListHeightChanged = this.handleListHeightChanged.bind(this);
         this.handleAddLayerButtonClicked = this.handleAddLayerButtonClicked.bind(this);
         this.handleRemoveLayerButtonClicked = this.handleRemoveLayerButtonClicked.bind(this);
         this.handleMoveLayerUpButtonClicked = this.handleMoveLayerUpButtonClicked.bind(this);
@@ -78,6 +81,10 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private handleShowDetailsChanged(value: boolean) {
         this.props.dispatch(actions.setSessionProperty('showLayerDetails', value));
+    }
+
+    private handleListHeightChanged(value: number) {
+        this.props.dispatch(actions.setSessionProperty('layerListHeight', value));
     }
 
     private handleAddLayerButtonClicked() {
@@ -144,7 +151,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                 <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
                                          onShowDetailsChange={this.handleShowDetailsChanged}
                                          isSplitPanel={true}
-                                         initialContentHeight={160}
+                                         contentHeight={this.props.layerListHeight}
+                                         onContentHeightChange={this.handleListHeightChanged}
                                          actionComponent={this.renderActionButtonRow()}>
                     {this.renderLayersList()}
                     {this.renderLayerDetailsCard()}

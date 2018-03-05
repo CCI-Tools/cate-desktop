@@ -24,6 +24,7 @@ interface IPlacemarksPanelProps {
     selectedPlacemarkId: string | null,
     selectedPlacemark: Placemark | null,
     activeView: ViewState<any> | null;
+    placemarkListHeight: number,
     showPlacemarkDetails: boolean,
     worldViewClickAction: string | null;
     globeViewPosition: GeographicPosition | null;
@@ -34,6 +35,7 @@ function mapStateToProps(state: State): IPlacemarksPanelProps {
         placemarkCollection: selectors.placemarkCollectionSelector(state),
         selectedPlacemarkId: selectors.selectedPlacemarkIdSelector(state),
         selectedPlacemark: selectors.selectedPlacemarkSelector(state),
+        placemarkListHeight: state.session.placemarkListHeight,
         showPlacemarkDetails: selectors.showPlacemarkDetailsSelector(state),
         activeView: selectors.activeViewSelector(state),
         worldViewClickAction: state.control.worldViewClickAction,
@@ -72,6 +74,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
 
     constructor(props: IPlacemarksPanelProps & IPlacemarksPanelDispatch) {
         super(props);
+        this.handleListHeightChanged = this.handleListHeightChanged.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleAddPlacemarkFromPositionButtonClicked = this.handleAddPlacemarkFromPositionButtonClicked.bind(this);
         this.handleAddPlacemarkButtonClicked = this.handleAddPlacemarkButtonClicked.bind(this);
@@ -85,6 +88,10 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         this.handleCopySelectedPositionKW = this.handleCopySelectedPositionKW.bind(this);
         this.handleCopySelectedPositionWKT = this.handleCopySelectedPositionWKT.bind(this);
         this.renderPlacemarkItem = this.renderPlacemarkItem.bind(this);
+    }
+
+    private handleListHeightChanged(value: number) {
+        this.props.dispatch(actions.updateSessionState({placemarkListHeight: value}));
     }
 
     private handleShowDetailsChanged(value: boolean) {
@@ -173,7 +180,8 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                 <ContentWithDetailsPanel showDetails={this.props.showPlacemarkDetails}
                                          onShowDetailsChange={this.handleShowDetailsChanged}
                                          isSplitPanel={true}
-                                         initialContentHeight={160}
+                                         contentHeight={this.props.placemarkListHeight}
+                                         onContentHeightChange={this.handleListHeightChanged}
                                          actionComponent={this.renderActionButtonRow()}>
                     {this.renderPlacemarksList()}
                     {this.renderPlacemarkDetails()}

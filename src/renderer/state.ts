@@ -717,6 +717,7 @@ export interface SessionState {
     selectedDataStoreId: string | null;
     selectedDataSourceId: string | null;
     dataSourceFilterExpr: string;
+    dataSourceListHeight: number;
     showDataSourceDetails: boolean;
     showDataSourceTitles: boolean;
 
@@ -724,18 +725,23 @@ export interface SessionState {
     selectedOperationName: string | null;
     operationFilterTags: string[];
     operationFilterExpr: string;
+    operationListHeight: number;
     showOperationDetails: boolean;
 
     // WorkspacePanel
     workspacePanelMode: 'resources' | 'steps';
+    resourceListHeight: number;
     showResourceDetails: boolean;
+    workflowStepListHeight: number;
     showWorkflowStepDetails: boolean;
 
     // VariablePanel
+    variableListHeight: number;
     showVariableDetails: boolean;
 
     // LayersPanel
     showSelectedVariableLayer: boolean;
+    layerListHeight: number;
     showLayerDetails: boolean;
     savedLayers: SavedLayers;
     vectorStyleMode: "entity" | "layer";
@@ -743,6 +749,7 @@ export interface SessionState {
     // PlacemarksPanel
     placemarkCollection: PlacemarkCollection | null;
     selectedPlacemarkId: string | null;
+    placemarkListHeight: number;
     showPlacemarkDetails: boolean;
     placemarkCounter: number;
 }

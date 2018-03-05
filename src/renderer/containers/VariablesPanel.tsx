@@ -20,6 +20,7 @@ interface IVariablesPanelProps {
     selectedVariableName: string | null;
     selectedVariable: VariableState | null;
     selectedVariableAttributesTableData: [string, any][];
+    variableListHeight: number;
     showVariableDetails: boolean;
     showSelectedVariableLayer: boolean;
     activeViewId: string;
@@ -36,6 +37,7 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         selectedVariableName: selectors.selectedVariableNameSelector(state),
         selectedVariable: selectors.selectedVariableSelector(state),
         selectedVariableAttributesTableData: selectors.selectedVariableAttributesTableDataSelector(state),
+        variableListHeight: state.session.variableListHeight,
         showVariableDetails: state.session.showVariableDetails,
         showSelectedVariableLayer: state.session.showSelectedVariableLayer,
         activeViewId: selectors.activeViewIdSelector(state),
@@ -59,6 +61,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
     constructor(props: IVariablesPanelProps & DispatchProp<State>) {
         super(props);
         this.handleSelectedVariableName = this.handleSelectedVariableName.bind(this);
+        this.handleListHeightChanged = this.handleListHeightChanged.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleShowSelectedVariableLayer = this.handleShowSelectedVariableLayer.bind(this);
         this.handleAddVariableLayer = this.handleAddVariableLayer.bind(this);
@@ -80,6 +83,10 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         } else {
             this.props.dispatch(actions.setSelectedVariable(resource, null));
         }
+    }
+
+    private handleListHeightChanged(value: number) {
+        this.props.dispatch(actions.setSessionProperty('variableListHeight', value));
     }
 
     private handleShowDetailsChanged(value: boolean) {
@@ -151,7 +158,8 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
                 <ContentWithDetailsPanel showDetails={this.props.showVariableDetails}
                                          onShowDetailsChange={this.handleShowDetailsChanged}
                                          isSplitPanel={true}
-                                         initialContentHeight={200}
+                                         contentHeight={this.props.variableListHeight}
+                                         onContentHeightChange={this.handleListHeightChanged}
                                          actionComponent={this.renderVariableActionRow()}>
                     {this.renderVariablesList()}
                     {this.renderVariableDetails()}
