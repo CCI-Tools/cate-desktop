@@ -444,18 +444,18 @@ export function entityToGeometryWKT(entity: Cesium.Entity): string {
         const hierarchy = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now());
         const positions = hierarchy.positions;
         const holes = hierarchy.holes;
-        const exterieur = cartesian3ArrayToWKTArray(positions);
-        if (exterieur.length > 2) {
-            exterieur.push(exterieur[0]);
+        const exterior = cartesian3ArrayToWKTArray(positions);
+        if (exterior.length > 2) {
+            exterior.push(exterior[0]);
         }
-        const linearRings = [`(${exterieur.join(', ')})`];
+        const linearRings = [`(${exterior.join(', ')})`];
         if (holes && holes.length) {
             for (let hole of holes) {
-                const interieur = cartesian3ArrayToWKTArray(hole.positions);
-                if (interieur.length > 2) {
-                    interieur.push(interieur[0]);
+                const interior = cartesian3ArrayToWKTArray(hole.positions);
+                if (interior.length > 2) {
+                    interior.push(interior[0]);
                 }
-                linearRings.push(`(${interieur.join(', ')})`);
+                linearRings.push(`(${interior.join(', ')})`);
             }
         }
         return `POLYGON (${linearRings.join(', ')})`;
