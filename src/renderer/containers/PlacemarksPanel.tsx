@@ -1,8 +1,5 @@
 import * as React from 'react';
-import {
-    AnchorButton, Colors, ContextMenuTarget, Menu, MenuItem, Popover, Position,
-    Tooltip
-} from "@blueprintjs/core";
+import {Colors, ContextMenuTarget, Menu, MenuItem, Popover, Position} from "@blueprintjs/core";
 import {connect, Dispatch} from 'react-redux';
 import {State, PlacemarkCollection, Placemark} from "../state";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
@@ -19,6 +16,7 @@ import {geoJsonToText, geometryGeoJsonToCsv, geometryGeoJsonToGeometryWkt, isBox
 import {GeometryToolType} from "../components/cesium/geometry-tool";
 import {isBoolean} from "../../common/types";
 import {NumericField, NumericFieldValue} from "../components/field/NumericField";
+import {ToolButton} from "../components/ToolButton";
 
 interface IPlacemarksPanelDispatch {
     dispatch: Dispatch<State>;
@@ -186,66 +184,49 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     }
 
     private renderActionButtonRow() {
-        const isViewActive = this.props.activeView && this.props.activeView.type === 'world' && this.props.activeView.data.viewMode === "3D";
-        const className = "pt-small";
         const isPointToolActive = this.props.geometryToolType === "PointTool";
         const isPolylineToolActive = this.props.geometryToolType === "PolylineTool";
         const isPolygonToolActive = this.props.geometryToolType === "PolygonTool";
         const isBoxToolActive = this.props.geometryToolType === "BoxTool";
         return (
             <div className="pt-button-group">
-                <Tooltip content="New point" position={Position.LEFT}>
-                    <AnchorButton className={className}
-                                  onClick={this.handleNewPointToolButtonClicked}
-                                  iconName="dot"
-                                  active={isPointToolActive}
-                                  disabled={false}
-                    />
-                </Tooltip>
-                <Tooltip content="New point" position={Position.LEFT}>
-                    <AnchorButton className={className}
-                                  onClick={this.handleNewPolylineToolButtonClicked}
-                                  iconName="slash"
-                                  active={isPolylineToolActive}
-                                  disabled={false}
-                    />
-                </Tooltip>
-                <Tooltip content="New point" position={Position.LEFT}>
-                    <AnchorButton className={className}
-                                  onClick={this.handleNewPolygonToolButtonClicked}
-                                  iconName="polygon-filter"
-                                  active={isPolygonToolActive}
-                                  disabled={false}
-                    />
-                </Tooltip>
-                <Tooltip content="New point" position={Position.LEFT}>
-                    <AnchorButton className={className}
-                                  onClick={this.handleNewBoxToolButtonClicked}
-                                  iconName="widget"
-                                  active={isBoxToolActive}
-                                  disabled={false}
-                    />
-                </Tooltip>
-
-
-                <Tooltip content="Remove selected placemark" position={Position.LEFT}>
-                    <AnchorButton className={className}
-                                  disabled={!this.props.selectedPlacemarkId}
-                                  onClick={this.handleRemovePlacemarkButtonClicked}
-                                  iconName="remove"/>
-                </Tooltip>
-
-                <Tooltip content="Locate selected placemark in view" position={Position.LEFT}>
-                    <AnchorButton className={className}
-                                  disabled={!this.props.selectedPlacemarkId}
-                                  onClick={this.handleLocatePlacemarkButtonClicked}
-                                  iconName="locate"/>
-                </Tooltip>
-
+                <ToolButton tooltipContent="New point"
+                            tooltipPosition={Position.LEFT}
+                            onClick={this.handleNewPointToolButtonClicked}
+                            iconName="dot"
+                            active={isPointToolActive}
+                            disabled={false}/>
+                <ToolButton tooltipContent="New point"
+                            tooltipPosition={Position.LEFT}
+                            onClick={this.handleNewPolylineToolButtonClicked}
+                            iconName="slash"
+                            active={isPolylineToolActive}
+                            disabled={false}/>
+                <ToolButton tooltipContent="New point"
+                            tooltipPosition={Position.LEFT}
+                            onClick={this.handleNewPolygonToolButtonClicked}
+                            iconName="polygon-filter"
+                            active={isPolygonToolActive}
+                            disabled={false}/>
+                <ToolButton tooltipContent="New point"
+                            tooltipPosition={Position.LEFT}
+                            onClick={this.handleNewBoxToolButtonClicked}
+                            iconName="widget"
+                            active={isBoxToolActive}
+                            disabled={false}/>
+                <ToolButton tooltipContent="Remove selected placemark"
+                            tooltipPosition={Position.LEFT}
+                            disabled={!this.props.selectedPlacemarkId}
+                            onClick={this.handleRemovePlacemarkButtonClicked}
+                            iconName="remove"/>
+                <ToolButton tooltipContent="Locate selected placemark in view"
+                            tooltipPosition={Position.LEFT}
+                            disabled={!this.props.selectedPlacemarkId}
+                            onClick={this.handleLocatePlacemarkButtonClicked}
+                            iconName="locate"/>
                 <Popover position={Position.LEFT}>
-                    <AnchorButton className={className}
-                                  disabled={!this.props.selectedPlacemarkId}
-                                  iconName="clipboard"/>
+                    <ToolButton disabled={!this.props.selectedPlacemarkId}
+                                iconName="clipboard"/>
                     <Menu>
                         <MenuItem onClick={this.handleCopySelectedPlacemarkAsCsv} text="Copy as CSV"/>
                         <MenuItem onClick={this.handleCopySelectedPlacemarkAsWkt} text="Copy as WKT"/>

@@ -7,12 +7,13 @@ import * as selectors from "../selectors";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
-import {AnchorButton, Tooltip, Position, Colors} from "@blueprintjs/core";
+import {Position, Colors} from "@blueprintjs/core";
 import {Cell, Column, Table, TruncatedFormat} from "@blueprintjs/table";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE} from "../messages";
 import {CSSProperties} from "react";
 import * as Cesium from "cesium";
+import {ToolButton} from "../components/ToolButton";
 
 interface IVariablesPanelProps {
     variables: VariableState[];
@@ -185,36 +186,34 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         const canShowTableView = selectedVariable && size < maxSize;
         return (
             <div className="pt-button-group">
-                <Tooltip content="Toggle image layer visibility" position={Position.LEFT}>
-                    <AnchorButton disabled={false}
-                                  iconName={this.props.showSelectedVariableLayer ? "eye-open" : "eye-off"}
-                                  onClick={this.handleShowSelectedVariableLayer}
-                    />
-                </Tooltip>
-                <Tooltip content="Add a new image layer" position={Position.LEFT}>
-                    <AnchorButton disabled={!canAddLayer}
-                                  iconName="layer"
-                                  onClick={this.handleAddVariableLayer}
-                    />
-                </Tooltip>
-                <Tooltip content="Create a time series plot from selected placemark" position={Position.LEFT}>
-                    <AnchorButton disabled={!canAddTimeSeriesPlot}
-                                  iconName="timeline-line-chart"
-                                  onClick={this.handleAddVariableTimeSeriesPlot}
-                    />
-                </Tooltip>
-                <Tooltip content="Create a histogram plot" position={Position.LEFT}>
-                    <AnchorButton disabled={!canAddHistogramPlot}
-                                  iconName="timeline-bar-chart"
-                                  onClick={this.handleAddVariableHistogramPlot}
-                    />
-                </Tooltip>
-                <Tooltip content={`Show data in table (for sizes < ${maxSize})`} position={Position.LEFT}>
-                    <AnchorButton disabled={!canShowTableView}
-                                  iconName="pt-icon-th"
-                                  onClick={this.handleShowVariableTableView}
-                    />
-                </Tooltip>
+                <ToolButton tooltipContent="Toggle image layer visibility"
+                            tooltipPosition={Position.LEFT}
+                            iconName={this.props.showSelectedVariableLayer ? "eye-open" : "eye-off"}
+                            onClick={this.handleShowSelectedVariableLayer}/>
+                <ToolButton tooltipContent="Add a new image layer"
+                            tooltipPosition={Position.LEFT}
+                            disabled={!canAddLayer}
+                            iconName="layer"
+                            onClick={this.handleAddVariableLayer}
+                />
+                <ToolButton tooltipContent="Create a time series plot from selected placemark"
+                            tooltipPosition={Position.LEFT}
+                            disabled={!canAddTimeSeriesPlot}
+                            iconName="timeline-line-chart"
+                            onClick={this.handleAddVariableTimeSeriesPlot}
+                />
+                <ToolButton tooltipContent="Create a histogram plot"
+                            tooltipPosition={Position.LEFT}
+                            disabled={!canAddHistogramPlot}
+                            iconName="timeline-bar-chart"
+                            onClick={this.handleAddVariableHistogramPlot}
+                />
+                <ToolButton tooltipContent={`Show data in table (for sizes < ${maxSize})`}
+                            tooltipPosition={Position.LEFT}
+                            disabled={!canShowTableView}
+                            iconName="pt-icon-th"
+                            onClick={this.handleShowVariableTableView}
+                />
             </div>
         );
     }
@@ -258,7 +257,8 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
                 const varNameRender = VariablesPanel.renderItem(variable);
                 const property = selectedEntity.properties[variable.name];
                 if (property) {
-                    return <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property.getValue()}</span></div>;
+                    return <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property.getValue()}</span>
+                    </div>;
                 }
                 return varNameRender;
             }

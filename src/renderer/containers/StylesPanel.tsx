@@ -41,6 +41,7 @@ import {NumericField} from '../components/field/NumericField';
 import {ViewState} from '../components/ViewState';
 import * as Cesium from 'cesium';
 import {getLayerDisplayName} from "../state-util";
+import {ToolButton} from "../components/ToolButton";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -221,12 +222,11 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                                            onChange={this.handleChangedDisplayMinMax}
                                            uncontrolled={true}
                         />
-                        <Tooltip content="Compute valid min/max" position={Position.LEFT}>
-                            <AnchorButton className="pt-intent-primary" iconName="arrows-horizontal"
-                                          style={{flex: 'none', marginTop: '5px'}}
-                                          disabled={this.props.isComputingVariableStatistics}
-                                          onClick={this.handleUpdateDisplayStatistics}/>
-                        </Tooltip>
+                        <ToolButton tooltipContent="Compute valid min/max" tooltipPosition={Position.LEFT}
+                                    className="pt-intent-primary" iconName="arrows-horizontal"
+                                    style={{flex: 'none', marginTop: '5px'}}
+                                    disabled={this.props.isComputingVariableStatistics}
+                                    onClick={this.handleUpdateDisplayStatistics}/>
                     </div>
                 </label>
                 <div style={StylesPanel.SLIDER_DIV_STYLE_15}>
