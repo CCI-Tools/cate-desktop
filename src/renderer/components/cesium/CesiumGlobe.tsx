@@ -328,12 +328,11 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         );
 
         this.cesiumEventHandler.setInputAction(
-            () => {
+            (event) => {
                 // if (this.props.geometryToolType !== "NoTool") {
                 //     return;
                 // }
-                let point; // = undefined, good.
-                //noinspection JSUnusedAssignment
+                const point = event.position;
                 const cartographic = screenToCartographic(viewer, point, true);
                 if (props.onLeftUp) {
                     props.onLeftUp(cartographic);
