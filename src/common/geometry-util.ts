@@ -1,26 +1,26 @@
-import {DirectGeometryObject, Feature, Position} from "geojson";
+import {DirectGeometryObject, Feature, GeoJsonObject, Position} from "geojson";
 import * as Cesium from "cesium";
 
 export type GeometryType =
     'Point'
-        | 'LineString'
-        | 'Polygon'
-        | 'Geometry'
-        | 'MultiPoint'
-        | 'MultiLineString'
-        | 'MultiPolygon'
-        | 'Geometry'
-        | 'GeometryCollection';
+    | 'LineString'
+    | 'Polygon'
+    | 'Geometry'
+    | 'MultiPoint'
+    | 'MultiLineString'
+    | 'MultiPolygon'
+    | 'Geometry'
+    | 'GeometryCollection';
 
 const WKT_GEOMETRY_TYPES = new Set([
-    'POINT',
-    'LINESTRING',
-    'POLYGON',
-    'MULTIPOINT',
-    'MULTILINESTRING',
-    'MULTIPOLYGON',
-    'GEOMETRYCOLLECTION',
-]);
+                                       'POINT',
+                                       'LINESTRING',
+                                       'POLYGON',
+                                       'MULTIPOINT',
+                                       'MULTILINESTRING',
+                                       'MULTIPOLYGON',
+                                       'GEOMETRYCOLLECTION',
+                                   ]);
 
 const WKT_GEOMETRIES_TEXT = new Array(WKT_GEOMETRY_TYPES.values()).map(s => `"${s}"`).join(', ');
 
@@ -214,14 +214,43 @@ export function isBox(geometry: DirectGeometryObject) {
             const dy3 = y3 - y2;
             const dx4 = x4 - x3;
             const dy4 = y4 - y3;
-            return dx1 === 0.0 && dy2 === 0 && dx3 === 0.0  && dy4 === 0
-                   || dy1 === 0 && dx2 === 0.0 && dy3 === 0 && dx4 === 0.0 ;
+            return dx1 === 0.0 && dy2 === 0 && dx3 === 0.0 && dy4 === 0
+                   || dy1 === 0 && dx2 === 0.0 && dy3 === 0 && dx4 === 0.0;
         }
     }
     return false;
 }
 
-export function geometryGeoJSONToGeometryWKT(geometry: DirectGeometryObject): string {
+export function geometryGeoJsonToCsv(geometry: DirectGeometryObject, sep?: string) {
+    sep = sep || ",";
+    const header = `longitude${sep}latitude\n`;
+    if (geometry.type === "Point") {
+        const position = geometry.coordinates;
+        return `${header}${position[0]}${sep}${position[1]}\n`;
+    } else if (geometry.type === "LineString") {
+        const coordinates = geometry.coordinates;
+        let a = [];
+        for (let position of coordinates) {
+            a.push(`${position[0]}${sep}${position[1]}\n`)
+        }
+        return `${header}${a.join('')}`;
+    } else if (geometry.type === "Polygon") {
+        const coordinates = geometry.coordinates;
+        let a = [];
+        for (let ring of coordinates) {
+            if (a.length > 0) {
+                a.push(`# hole:\n`)
+            }
+            for (let position of ring as any) {
+                a.push(`${position[0]}${sep}${position[1]}\n`)
+            }
+        }
+        return `${header}${a.join('')}`;
+    }
+    return "";
+}
+
+export function geometryGeoJsonToGeometryWkt(geometry: DirectGeometryObject): string {
 
     if (geometry.type === "Point") {
         const position = geometry.coordinates;
@@ -245,7 +274,10 @@ export function geometryGeoJSONToGeometryWKT(geometry: DirectGeometryObject): st
         }
         return `POLYGON (${a1.join(', ')})`;
     }
-
     return "";
 }
 
+
+export function geoJsonToText(geoJson: GeoJsonObject) {
+    return JSON.stringify(geoJson, null, 2);
+}
