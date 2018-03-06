@@ -122,17 +122,17 @@ export const NO_LAYER_SELECTED = (
         visual={ICON_CIRCLE}/>
 );
 
-export const STYLE_UNAVAILABLE_NO_LAYER_SELECTED = (
+export const NO_LAYER_FOR_STYLE = (
     <NonIdealState
         title="Styles unavailable"
-        description="Select a layer to modify its styles."
+        description="Select a layer in the LAYERS panel to modify its style."
         visual={ICON_CIRCLE}/>
 );
 
-export const NO_STYLE_PROPERTIES = (
+export const NO_ENTITY_FOR_STYLE = (
     <NonIdealState
-        title="No style properties"
-        description="The selected layer doesn't have any editable style properties."
+        title="Styles unavailable"
+        description="Select an entity in the World View to modify its style."
         visual={ICON_CIRCLE}/>
 );
 

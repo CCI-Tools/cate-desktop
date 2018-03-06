@@ -1418,8 +1418,8 @@ export function saveLayer(key: string, layer: LayerState): Action {
     return {type: SAVE_LAYER, payload: {key, layer}};
 }
 
-export function setVectorStyleMode(vectorStyleMode: string) {
-    return updateSessionState({vectorStyleMode});
+export function setStyleContext(styleContext: string) {
+    return updateSessionState({styleContext});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

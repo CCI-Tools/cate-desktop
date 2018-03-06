@@ -739,7 +739,7 @@ export interface SessionState {
     showSelectedVariableLayer: boolean;
     showLayerDetails: boolean;
     savedLayers: SavedLayers;
-    vectorStyleMode: "entity" | "layer";
+    styleContext: "entity" | "layer";
 
     // PlacemarksPanel
     placemarkCollection: PlacemarkCollection;

@@ -643,7 +643,7 @@ const initialSessionState: SessionState = {
     showDataSourceTitles: true,
     showLayerTextOverlay: true,
     debugWorldView: false,
-    vectorStyleMode: "layer",
+    styleContext: "entity",
 
     backendConfig: {
         dataStoresPath: null,

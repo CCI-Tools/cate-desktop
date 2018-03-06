@@ -3,7 +3,7 @@ import {
     ColorMapCategoryState,
     ColorMapState,
     ImageLayerState,
-    LayerState,
+    LayerState, Placemark,
     ResourceState,
     ResourceVectorLayerState,
     State,
@@ -12,7 +12,7 @@ import {
     VectorLayerState
 } from '../state';
 import * as React from 'react';
-import {NO_STYLE_PROPERTIES, STYLE_UNAVAILABLE_NO_LAYER_SELECTED} from '../messages';
+import {NO_ENTITY_FOR_STYLE, NO_LAYER_FOR_STYLE} from '../messages';
 import {SubPanelHeader} from '../components/SubPanelHeader';
 import {
     AnchorButton,
@@ -40,6 +40,7 @@ import {SimpleStyle} from '../../common/geojson-simple-style';
 import {NumericField} from '../components/field/NumericField';
 import {ViewState} from '../components/ViewState';
 import * as Cesium from 'cesium';
+import {getLayerDisplayName} from "../state-util";
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -69,7 +70,8 @@ interface IStylesPanelProps {
     selectedVectorLayer: VectorLayerState | null;
     selectedResourceVectorLayer: ResourceVectorLayerState | null;
     selectedEntity: Cesium.Entity | null;
-    vectorStyleMode: 'entity' | 'layer';
+    selectedPlacemark: Placemark | null;
+    styleContext: 'entity' | 'layer';
     showLayerDetails: boolean;
     colorMapCategories: Array<ColorMapCategoryState>;
     selectedColorMap: ColorMapState | null;
@@ -90,7 +92,8 @@ function mapStateToProps(state: State) {
         selectedVectorLayer: selectors.selectedVectorLayerSelector(state),
         selectedResourceVectorLayer: selectors.selectedResourceVectorLayerSelector(state),
         selectedEntity: selectors.selectedEntitySelector(state),
-        vectorStyleMode: selectors.effectiveStyleModeSelector(state),
+        selectedPlacemark: selectors.selectedPlacemarkSelector(state),
+        styleContext: selectors.styleContextSelector(state),
         showLayerDetails: state.session.showLayerDetails,
         colorMapCategories: selectors.colorMapCategoriesSelector(state),
         selectedColorMap: selectors.selectedColorMapSelector(state),
@@ -106,7 +109,6 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
     static readonly SLIDER_DIV_STYLE_15 = {width: '100%', paddingLeft: '1.5em', paddingRight: '1.5em'};
 
     static readonly LABEL_SPAN_STYLE_100 = {flexBasis: '100px', paddingLeft: '5px'};
-    static readonly LABEL_SPAN_STYLE_150 = {flexBasis: '150px', paddingLeft: '5px'};
 
     static readonly LABEL_BOTTOM_MARGIN = {display: 'flex', margin: '0 0 5px'};
 
@@ -117,7 +119,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         this.handleChangedDisplayRange = this.handleChangedDisplayRange.bind(this);
         this.handleChangedDisplayAlphaBlend = this.handleChangedDisplayAlphaBlend.bind(this);
         this.handleChangedColorMapName = this.handleChangedColorMapName.bind(this);
-        this.handleChangedVectorStyleMode = this.handleChangedVectorStyleMode.bind(this);
+        this.handleChangedStyleContext = this.handleChangedStyleContext.bind(this);
         this.handleChangedFillColor = this.handleChangedFillColor.bind(this);
         this.handleChangedFillColorFromPicker = this.handleChangedFillColorFromPicker.bind(this);
         this.handleChangedFillOpacity = this.handleChangedFillOpacity.bind(this);
@@ -146,23 +148,36 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
     }
 
     private renderLayerDetailsCard() {
-        const layers = this.props.layers;
-        if (!layers || !layers.length || !this.props.selectedLayer) {
-            return STYLE_UNAVAILABLE_NO_LAYER_SELECTED;
+
+        let detailsPanel;
+        if (this.props.styleContext === "entity") {
+            if (this.props.selectedEntity) {
+                detailsPanel = this.renderVectorLayerDetails();
+            } else {
+                detailsPanel = NO_ENTITY_FOR_STYLE;
+            }
+        } else /*if (this.props.styleContext === "layer")*/ {
+            if (this.props.selectedVectorLayer) {
+                detailsPanel = this.renderVectorLayerDetails();
+            } else if (this.props.selectedImageLayer) {
+                detailsPanel = this.renderImageLayerDetails();
+            } else {
+                detailsPanel = NO_LAYER_FOR_STYLE;
+            }
         }
 
-        if (this.props.selectedImageLayer) {
-            return this.renderImageLayerDetails();
-        } else if (this.props.selectedVectorLayer) {
-            return this.renderVectorLayerDetails();
-        } else {
-            return NO_STYLE_PROPERTIES;
-        }
+        return (
+            <div style={{width: '100%'}}>
+                <label key="spacer" className="pt-label"> </label>
+                {this.renderStyleContext()}
+                {detailsPanel}
+            </div>
+        );
     }
 
     private renderImageLayerDetails() {
         return (
-            <div style={{width: '100%'}}>
+            <React.Fragment>
                 <SubPanelHeader title="COLOUR MAPPING" divStyle={{margin: '5px 0 10px 0'}}/>
                 {this.renderFormAlphaBlending()}
                 {this.renderFormDisplayMinMax()}
@@ -174,7 +189,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                 {this.renderFormImageEnhancement('hue', 'Hue', 0., 1.)}
                 {this.renderFormImageEnhancement('saturation', 'Saturation', 0., 2.)}
                 {this.renderFormImageEnhancement('gamma', 'Gamma', 1., 2.)}
-            </div>
+            </React.Fragment>
         );
     }
 
@@ -279,8 +294,6 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
     private renderVectorLayerDetails() {
         return (
             <React.Fragment>
-                <label key="spacer" className="pt-label"> </label>
-                {this.renderStyleContext()}
                 <SubPanelHeader title="FILL"/>
                 {this.renderFillColor()}
                 {this.renderFillOpacity()}
@@ -297,22 +310,28 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
     }
 
     private renderStyleContext() {
-        const selectedVectorLayer = this.props.selectedVectorLayer;
         const selectedEntity = this.props.selectedEntity;
-        let disabled = !(selectedEntity && selectedVectorLayer);
-        let vectorStyleMode = this.props.vectorStyleMode;
+        const selectedPlacemark = this.props.selectedPlacemark;
+        const selectedVectorLayer = this.props.selectedVectorLayer;
+
+        let placemarkTitle = selectedPlacemark && selectedPlacemark.properties && selectedPlacemark.properties.title;
+        if (placemarkTitle === "") {
+            placemarkTitle = null;
+        }
+
+        const entityDisplayName = placemarkTitle || (selectedEntity ? "Entity" : "Entity (no selection)");
+        const layerDisplayName = selectedVectorLayer ? getLayerDisplayName(selectedVectorLayer) : "Layer (no selection)";
         return (
             <RadioGroup
-                key="vectorStyleMode"
-                label="Selection type"
-                disabled={disabled}
+                key="styleContext"
+                label="Style context"
                 inline={true}
-                onChange={this.handleChangedVectorStyleMode}
-                selectedValue={vectorStyleMode}
+                onChange={this.handleChangedStyleContext}
+                selectedValue={this.props.styleContext}
                 className="cate-radiogroup"
             >
-                <Radio label="entity" value="entity" style={{marginLeft: 'auto'}}/>
-                <Radio label="layer" value="layer" style={{marginLeft: '15px', marginRight: '10px'}}/>
+                <Radio label={entityDisplayName} value="entity" style={{marginLeft: 'auto'}}/>
+                <Radio label={layerDisplayName} value="vector" style={{marginLeft: '15px', marginRight: '10px'}}/>
             </RadioGroup>
         );
     }
@@ -609,9 +628,8 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         }
     }
 
-    private handleChangedVectorStyleMode(event: any) {
-        const vectorStyleMode = event.target.value;
-        this.props.dispatch(actions.setVectorStyleMode(vectorStyleMode));
+    private handleChangedStyleContext(event: any) {
+        this.props.dispatch(actions.setStyleContext(event.target.value));
     }
 
     private handleChangedFillColor(value: FieldValue<string>) {
@@ -659,7 +677,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
     }
 
     private handleChangedVectorStyle(style: SimpleStyle) {
-        if (this.props.vectorStyleMode === 'layer') {
+        if (this.props.styleContext === 'layer') {
             this.props.dispatch(actions.updateLayerStyle(this.props.activeView.id,
                                                          this.props.selectedVectorLayer.id,
                                                          style));

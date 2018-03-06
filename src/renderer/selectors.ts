@@ -730,36 +730,22 @@ export const selectedVectorLayerSelector = createSelector<State, VectorLayerStat
 
 export const entityUpdateCountSelector = (state: State) => state.control.entityUpdateCount;
 
-export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
-
-export const effectiveStyleModeSelector = createSelector<State, 'entity' | 'layer', 'entity' | 'layer', Cesium.Entity | null, LayerState | null>(
-    vectorStyleModeSelector,
-    selectedEntitySelector,
-    selectedLayerSelector,
-    (vectorStyleModeSelector, selectedEntitySelector, selectedLayerSelector): 'entity' | 'layer' => {
-        if (selectedEntitySelector && selectedLayerSelector) {
-            return vectorStyleModeSelector;
-        } else if (selectedEntitySelector) {
-            return 'entity';
-        } else {
-            return 'layer';
-        }
-    });
+export const styleContextSelector = (state: State) => state.session.styleContext;
 
 // noinspection JSUnusedLocalSymbols
 export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<any>, string, VectorLayerState | null, Placemark | null, Cesium.Entity | null, number>(
     activeViewSelector,
-    effectiveStyleModeSelector,
+    styleContextSelector,
     selectedVectorLayerSelector,
     selectedPlacemarkSelector,
     selectedEntitySelector,
     entityUpdateCountSelector,
-    (view: ViewState<any>, vectorStyleMode, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
+    (view: ViewState<any>, styleContext, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
         const selectedLayerStyle = selectedVectorLayer && selectedVectorLayer.style;
         let style;
-        if (vectorStyleMode === 'layer') {
+        if (styleContext === 'layer') {
             style = selectedLayerStyle;
-        } else if (vectorStyleMode === 'entity') {
+        } else if (styleContext === 'entity') {
             if (selectedPlacemark) {
                 const placemarkStyle = simpleStyleFromFeatureProperties(selectedPlacemark.properties);
                 style = {...selectedLayerStyle, ...placemarkStyle};
