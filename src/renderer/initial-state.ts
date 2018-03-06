@@ -56,11 +56,17 @@ export const INITIAL_SESSION_STATE: SessionState = {
     operationFilterTags: [],
     operationFilterExpr: '',
 
+    dataSourceListHeight: 200,
     showDataSourceDetails: true,
+    resourceListHeight: 100,
     showResourceDetails: true,
+    workflowStepListHeight: 100,
     showWorkflowStepDetails: true,
+    operationListHeight: 200,
     showOperationDetails: true,
+    variableListHeight: 200,
     showVariableDetails: true,
+    layerListHeight: 160,
     showLayerDetails: true,
 
     panelContainerUndockedMode: false,
@@ -75,6 +81,7 @@ export const INITIAL_SESSION_STATE: SessionState = {
         features: []
     },
     selectedPlacemarkId: null,
+    placemarkListHeight: 160,
     showPlacemarkDetails: true,
     defaultPlacemarkStyle: {...MY_PLACES_LAYER.style} as SimpleStyle,
 

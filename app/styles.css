@@ -86,13 +86,6 @@ ul.cate-list-box li.cate-selected {
     background-color: rgba(128, 128, 255, 0.6);
 }
 
-/* To create an inline radio group. This CSS class is required because blueprint's RadioGroup component does not
-have style property
-*/
-.cate-radiogroup {
-    display: flex;
-}
-
 .cate-split-pane-hor {
     width: 100%;
     display: flex;

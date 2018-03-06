@@ -359,7 +359,7 @@ describe('Actions', () => {
                 [
                     {
                         id: SELECTED_VARIABLE_LAYER_ID,
-                        name: "Variable: res_1.analysed_sst",
+                        name: "Variable res_1.analysed_sst",
                         type: "VariableImage",
                         visible: true,
                         resId: 0,
@@ -391,7 +391,7 @@ describe('Actions', () => {
                     {
                         id: SELECTED_VARIABLE_LAYER_ID,
                         type: "Unknown",
-                        name: "Variable: profile (not geo-spatial)",
+                        name: "Variable profile (not geo-spatial)",
                         visible: true,
                     },
                     defaultCountriesLayer,
@@ -403,7 +403,7 @@ describe('Actions', () => {
             const selectedVariableLayerOld = {
                 id: SELECTED_VARIABLE_LAYER_ID,
                 type: "VariableImage",
-                name: "Variable: res_1.analysed_sst",
+                name: "Variable res_1.analysed_sst",
                 visible: true,
                 resId: 0,
                 resName: "res_1",
@@ -423,7 +423,7 @@ describe('Actions', () => {
             const selectedVariableLayerNew = {
                 id: SELECTED_VARIABLE_LAYER_ID,
                 type: "VariableImage",
-                name: "Variable: res_1.sst_error",
+                name: "Variable res_1.sst_error",
                 visible: true,
                 resId: 0,
                 resName: "res_1",

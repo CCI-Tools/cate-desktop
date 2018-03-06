@@ -408,11 +408,11 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
             icon = "pt-icon-dot";
         } else if (geometry.type === "LineString") {
             const coordinates = geometry.coordinates;
-            info = ` ${coordinates.length} points`;
+            info = ` ${coordinates.length} positions`;
             icon = "pt-icon-slash";
         } else if (geometry.type === "Polygon") {
             const ring = geometry.coordinates[0] as any;
-            info = ` ${ring.length - 1} points`;
+            info = ` ${ring.length - 1} positions`;
             icon = isBox(geometry) ? "pt-icon-widget" : "pt-icon-polygon-filter";
         }
 

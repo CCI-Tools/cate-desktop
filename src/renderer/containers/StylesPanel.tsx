@@ -320,18 +320,16 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         }
 
         const entityDisplayName = placemarkTitle || (selectedEntity ? "Entity" : "Entity (no selection)");
-        const layerDisplayName = selectedLayer ? getLayerDisplayName(selectedLayer) : "Layer (no selection)";
+        const layerDisplayName = selectedLayer ? `${getLayerDisplayName(selectedLayer)} Layer` : "Layer (no selection)";
         return (
             <RadioGroup
                 key="styleContext"
                 label="Style context"
-                inline={true}
                 onChange={this.handleChangedStyleContext}
                 selectedValue={this.props.styleContext}
-                className="cate-radiogroup"
             >
-                <Radio label={entityDisplayName} value="entity" style={{marginLeft: 'auto'}}/>
-                <Radio label={layerDisplayName} value="vector" style={{marginLeft: '15px', marginRight: '10px'}}/>
+                <Radio label={entityDisplayName} value="entity"/>
+                <Radio label={layerDisplayName} value="vector"/>
             </RadioGroup>
         );
     }

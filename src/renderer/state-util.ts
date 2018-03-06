@@ -420,7 +420,7 @@ export function updateSelectedVariableLayer(layer: LayerState,
             ...layer,
             ...restoredLayer,
             type: 'VariableImage',
-            name: `Variable: ${resource.name}.${variable.name}`,
+            name: `Variable ${resource.name}.${variable.name}`,
             resId: resource.id,
             resName: resource.name,
             varName: variable.name,
@@ -444,7 +444,7 @@ export function updateSelectedVariableLayer(layer: LayerState,
         return {
             id: SELECTED_VARIABLE_LAYER_ID,
             type: 'Unknown' as any,
-            name: variable ? `Variable: ${variable.name} (not geo-spatial)` : '(no selection)',
+            name: variable ? `Variable ${variable.name} (not geo-spatial)` : '(no selection)',
             visible: layer.visible,
         } as any;
     }
