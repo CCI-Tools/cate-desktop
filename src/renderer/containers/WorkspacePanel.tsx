@@ -23,11 +23,13 @@ import {CSSProperties} from "react";
 interface IWorkspacePanelProps {
     workspace: WorkspaceState;
     resourcesMap: { [name: string]: ResourceState };
+    resourceListHeight: number;
     showResourceDetails: boolean;
     selectedResource: ResourceState | null;
     selectedResourceAttributes: string[][];
     selectedResourceName: string | null;
     selectedResourceWorkflowStep: WorkflowStepState | null;
+    workflowStepListHeight: number;
     showWorkflowStepDetails: boolean;
     selectedWorkflowStep: WorkflowStepState | null;
     selectedWorkflowStepId: string | null;
@@ -42,11 +44,13 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
     return {
         workspace: selectors.workspaceSelector(state),
         resourcesMap: selectors.resourceMapSelector(state),
+        resourceListHeight: selectors.resourceListHeightSelector(state),
         showResourceDetails: selectors.showResourceDetailsSelector(state),
         selectedResource: selectors.selectedResourceSelector(state),
         selectedResourceAttributes: selectors.selectedResourceAttributesSelector(state),
         selectedResourceName: selectors.selectedResourceNameSelector(state),
         selectedResourceWorkflowStep: selectors.selectedResourceWorkflowStepSelector(state),
+        workflowStepListHeight: selectors.workflowStepListHeightSelector(state),
         showWorkflowStepDetails: selectors.showWorkflowStepDetailsSelector(state),
         selectedWorkflowStep: selectors.selectedWorkflowStepSelector(state),
         selectedWorkflowStepId: selectors.selectedWorkflowStepIdSelector(state),
@@ -73,8 +77,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
 
     constructor(props: IWorkspacePanelProps & DispatchProp<State>) {
         super(props);
+        this.handleResourceListHeightChanged = this.handleResourceListHeightChanged.bind(this);
         this.handleShowResourceDetailsChanged = this.handleShowResourceDetailsChanged.bind(this);
         this.handleResourceNameSelected = this.handleResourceNameSelected.bind(this);
+        this.handleStepListHeightChanged = this.handleStepListHeightChanged.bind(this);
         this.handleShowWorkflowStepDetailsChanged = this.handleShowWorkflowStepDetailsChanged.bind(this);
         this.handleWorkflowStepIdSelected = this.handleWorkflowStepIdSelected.bind(this);
         this.handleShowFigureButtonClicked = this.handleShowFigureButtonClicked.bind(this);
@@ -113,8 +119,16 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         }
     }
 
+    private handleResourceListHeightChanged(value: number) {
+        this.props.dispatch(actions.setSessionProperty('resourceListHeight', value));
+    }
+
     private handleShowResourceDetailsChanged(value: boolean) {
         this.props.dispatch(actions.setSessionProperty('showResourceDetails', value));
+    }
+
+    private handleStepListHeightChanged(value: number) {
+        this.props.dispatch(actions.setSessionProperty('workflowStepListHeight', value));
     }
 
     private handleShowWorkflowStepDetailsChanged(value: boolean) {
@@ -334,7 +348,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
             <ContentWithDetailsPanel showDetails={this.props.showResourceDetails}
                                      onShowDetailsChange={this.handleShowResourceDetailsChanged}
                                      isSplitPanel={true}
-                                     initialContentHeight={100}
+                                     contentHeight={this.props.resourceListHeight}
+                                     onContentHeightChange={this.handleResourceListHeightChanged}
                                      actionComponent={this.renderWorkspaceActions()}>
                 {this.renderResourcesList()}
                 {this.renderResourceDetails()}
@@ -382,7 +397,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
             <ContentWithDetailsPanel showDetails={this.props.showWorkflowStepDetails}
                                      onShowDetailsChange={this.handleShowWorkflowStepDetailsChanged}
                                      isSplitPanel={true}
-                                     initialContentHeight={100}
+                                     contentHeight={this.props.workflowStepListHeight}
+                                     onContentHeightChange={this.handleStepListHeightChanged}
                                      actionComponent={this.renderWorkspaceActions()}>
                 {this.renderWorkflowStepsList()}
                 {this.renderWorkflowStepDetails()}

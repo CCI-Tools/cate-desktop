@@ -13,14 +13,14 @@ import {menuTemplate} from "./menu";
 import {error, isNumber} from "util";
 import {
     getAppDataDir, getAppIconPath,
-    getCateCliSetupInfo, setCateDir, getCateCliPath, getCateCliVersion
+    getCateCliSetupInfo, setCateDir, getWebAPIStartCommand, getWebAPIRestUrl,
+    getWebAPIStopCommand, getMPLWebSocketsUrl, getAPIWebSocketsUrl, defaultSpawnShellOption
 } from "./appenv";
 import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
 import {isDefined} from "../common/types";
 import {doSetup} from "./setup";
 import {SetupResult} from "../common/setup";
-
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -81,117 +81,6 @@ let _prefsUpdateRequestedOnClose = false;
  */
 let _prefsUpdatedOnClose = false;
 
-
-function getOptionArg(options: string[]): string | null {
-    let args: Array<string> = process.argv.slice(1);
-    for (let i = 0; i < args.length; i++) {
-        if (options.indexOf(args[i]) >= 0 && i < args.length - 1) {
-            return args[i + 1];
-        }
-    }
-    return null;
-}
-
-function loadConfiguration(options: string[], defaultConfigFile: string, configType: string): Configuration {
-    let config = new Configuration();
-    let configFile = getOptionArg(options);
-    if (!configFile) {
-        configFile = defaultConfigFile;
-        if (!fs.existsSync(configFile)) {
-            return config;
-        }
-    }
-    config.load(configFile, (err) => {
-        if (err) {
-            log.error(`${configType} could not be loaded from "${configFile}"`, err);
-        } else {
-            log.info(`${configType} successfully loaded from "${configFile}"`);
-        }
-    });
-    return config;
-}
-
-function storeConfiguration(config: Configuration, options: string[], defaultConfigFile: string, configType: string) {
-    let configFile = getOptionArg(options);
-    if (!configFile) {
-        configFile = defaultConfigFile;
-        let dir = path.dirname(configFile);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir);
-        }
-    }
-    config.store(configFile, (err) => {
-        if (err) {
-            log.error(`${configType} could not be stored in "${configFile}"`, err);
-        } else {
-            log.info(`${configType} successfully stored in "${configFile}"`);
-        }
-    });
-}
-
-
-function loadAppConfig(): Configuration {
-    return loadConfiguration(CONFIG_OPTIONS, path.resolve('cate-config.js'), 'App configuration');
-}
-
-function getDefaultUserPrefsFile() {
-    if (_config.data.prefsFile) {
-        return _config.data.prefsFile;
-    }
-    return path.join(getAppDataDir(), 'preferences.json');
-}
-
-function storeUserPrefs(prefs: Configuration) {
-    storeConfiguration(prefs, PREFS_OPTIONS, getDefaultUserPrefsFile(), 'User preferences')
-}
-
-function loadUserPrefs(): Configuration {
-    return loadConfiguration(PREFS_OPTIONS, getDefaultUserPrefsFile(), 'User preferences');
-}
-
-
-function getWebAPICommonArgs(webAPIConfig) {
-    const webApiExe = process.platform === 'win32' ? 'cate-webapi.exe' : 'cate-webapi';
-    let args = [
-        webApiExe,
-        '--caller', 'cate-desktop',
-        '--port', webAPIConfig.servicePort,
-        '--file', webAPIConfig.serviceFile,
-    ];
-    if (webAPIConfig.serviceAddress) {
-        args = args.concat('--address', webAPIConfig.serviceAddress);
-    }
-    return args;
-}
-
-
-function getWebAPIStartArgs(webAPIConfig) {
-    return getWebAPICommonArgs(webAPIConfig).concat('start');
-}
-
-function getWebAPIStopArgs(webAPIConfig) {
-    return getWebAPICommonArgs(webAPIConfig).concat('stop');
-}
-
-function getWebAPIRestUrl(webAPIConfig) {
-    return `http://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/`;
-}
-
-function getAPIWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/api`;
-}
-
-function getMPLWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/mpl/figures/`;
-}
-
-function logCateVersion() {
-    getCateCliVersion().then(version => {
-        log.info("cate-cli version: ", version);
-    }).catch(err => {
-        log.error("failed to get cate-cli version: ", err);
-    });
-}
 
 // noinspection JSUnusedGlobalSymbols
 export function init() {
@@ -266,11 +155,7 @@ export function init() {
     let webAPIError = null;
     let webAPIProcess = null;
 
-    const processOptions = {
-        //detached: false,
-        //stdio: 'inherit',
-        ...webAPIConfig.processOptions
-    };
+    let webAPIProcessOptions = {...webAPIConfig.processOptions, ...defaultSpawnShellOption()};
 
     function ensureValidCateCliDir(callback: () => void) {
         const setupInfo = getCateCliSetupInfo();
@@ -333,7 +218,6 @@ export function init() {
     function startWebAPIService(callback: (process: child_process.ChildProcess) => void) {
         //logCateVersion();
 
-        const cateCliPath = getCateCliPath();
         showSplashMessage('Searching unused port...');
         findFreePort(webAPIConfig.servicePort, null, (freePort: number) => {
             if (freePort < webAPIConfig.servicePort) {
@@ -347,10 +231,9 @@ export function init() {
             }
             webAPIConfig.servicePort = freePort;
 
-            const webAPIStartArgs = getWebAPIStartArgs(webAPIConfig);
-            log.info(`Starting Cate service: ${cateCliPath} [${webAPIStartArgs}]`);
-
-            webAPIProcess = child_process.spawn(cateCliPath, webAPIStartArgs, processOptions);
+            const webAPIStartCommand = getWebAPIStartCommand(webAPIConfig);
+            log.info(`Starting Cate service: ${webAPIStartCommand}`);
+            webAPIProcess = child_process.spawn(webAPIStartCommand, [], webAPIProcessOptions);
             log.info('Cate service started.');
             webAPIProcess.stdout.on('data', (data: any) => {
                 log.info(CATE_WEBAPI_PREFIX, `${data}`);
@@ -388,11 +271,10 @@ export function init() {
         if (!webAPIProcess) {
             return;
         }
-        const cateCliPath = getCateCliPath();
-        const webAPIStopArgs = getWebAPIStopArgs(webAPIConfig);
-        log.info(`Stopping Cate service using arguments: ${webAPIStopArgs}`);
+        const webAPIStopCommand = getWebAPIStopCommand(webAPIConfig);
+        log.info(`Stopping Cate service: ${webAPIStopCommand}`);
         // this must be sync to make sure the stop is performed before this process ends
-        child_process.spawnSync(cateCliPath, webAPIStopArgs, webAPIConfig.options);
+        child_process.spawnSync(webAPIStopCommand, [], webAPIProcessOptions);
     }
 
     const msServiceAccessTimeout = 1000; // ms
@@ -728,4 +610,70 @@ function findFreePort(fromPort?: number, toPort?: number, callback?: (port: numb
     findPort(fromPort);
 }
 
+function getOptionArg(options: string[]): string | null {
+    let args: Array<string> = process.argv.slice(1);
+    for (let i = 0; i < args.length; i++) {
+        if (options.indexOf(args[i]) >= 0 && i < args.length - 1) {
+            return args[i + 1];
+        }
+    }
+    return null;
+}
+
+function loadConfiguration(options: string[], defaultConfigFile: string, configType: string): Configuration {
+    let config = new Configuration();
+    let configFile = getOptionArg(options);
+    if (!configFile) {
+        configFile = defaultConfigFile;
+        if (!fs.existsSync(configFile)) {
+            return config;
+        }
+    }
+    config.load(configFile, (err) => {
+        if (err) {
+            log.error(`${configType} could not be loaded from "${configFile}"`, err);
+        } else {
+            log.info(`${configType} successfully loaded from "${configFile}"`);
+        }
+    });
+    return config;
+}
+
+function storeConfiguration(config: Configuration, options: string[], defaultConfigFile: string, configType: string) {
+    let configFile = getOptionArg(options);
+    if (!configFile) {
+        configFile = defaultConfigFile;
+        let dir = path.dirname(configFile);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir);
+        }
+    }
+    config.store(configFile, (err) => {
+        if (err) {
+            log.error(`${configType} could not be stored in "${configFile}"`, err);
+        } else {
+            log.info(`${configType} successfully stored in "${configFile}"`);
+        }
+    });
+}
+
+
+function loadAppConfig(): Configuration {
+    return loadConfiguration(CONFIG_OPTIONS, path.resolve('cate-config.js'), 'App configuration');
+}
+
+function getDefaultUserPrefsFile() {
+    if (_config.data.prefsFile) {
+        return _config.data.prefsFile;
+    }
+    return path.join(getAppDataDir(), 'preferences.json');
+}
+
+function storeUserPrefs(prefs: Configuration) {
+    storeConfiguration(prefs, PREFS_OPTIONS, getDefaultUserPrefsFile(), 'User preferences')
+}
+
+function loadUserPrefs(): Configuration {
+    return loadConfiguration(PREFS_OPTIONS, getDefaultUserPrefsFile(), 'User preferences');
+}
 

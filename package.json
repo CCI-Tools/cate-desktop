@@ -1,7 +1,7 @@
 {
   "name": "cate-desktop",
   "productName": "Cate Desktop",
-  "version": "1.1.0-dev.6",
+  "version": "2.0.0-dev.2",
   "description": "A graphical user interface for the ESA CCI Toolbox (Cate)",
   "private": true,
   "scripts": {
@@ -56,6 +56,7 @@
     "@types/openlayers": "^3.20.6",
     "@types/proj4": "^2.3.4",
     "@types/react": "^16.0.28",
+    "@types/react-color": "^2.13.4",
     "@types/react-dom": "^16.0.3",
     "@types/react-redux": "^5.0.14",
     "@types/react-test-renderer": "^16.0.0",

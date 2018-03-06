@@ -3,6 +3,8 @@ import {TextLine} from "../../../common/terminal-output";
 
 export interface ILogFieldProps {
     lines: TextLine[];
+    footerMessage?: string;
+    footerColor?: string;
 }
 
 export class LogField extends React.PureComponent<ILogFieldProps> {
@@ -14,7 +16,8 @@ export class LogField extends React.PureComponent<ILogFieldProps> {
         fontFamily: ["Source Code Pro", "Consolas", "Lucida Console", "Courier New"],
         fontSize: "0.9em",
         width: "100%",
-        height: 248,
+        minHeight: 48,
+        flex: "1 1 auto",
         padding: 3,
     };
 
@@ -39,11 +42,18 @@ export class LogField extends React.PureComponent<ILogFieldProps> {
     }
 
     render() {
+
+        let footerMessage;
+        if (this.props.footerMessage) {
+            footerMessage = <div style={{color: this.props.footerColor}}>{`\n${this.props.footerMessage}\n`}</div>;
+        }
+
         return (
-            <div style={LogField.STYLE}>
+            <pre style={LogField.STYLE}>
                 {this.props.lines.map((text, index) => <Line key={index} text={text}/>)}
+                {footerMessage}
                 <div ref={ref => this.terminal = ref}/>
-            </div>
+            </pre>
         );
     }
 }

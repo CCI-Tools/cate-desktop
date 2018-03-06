@@ -2,7 +2,7 @@ import {combineReducers, Reducer} from 'redux';
 import deepEqual = require("deep-equal");
 import {
 State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
-LayerState, Placemark, VectorLayerBase
+LayerState, VectorLayerBase
 } from './state';
 import * as actions from './actions';
 import {Action} from "./actions";
@@ -10,8 +10,8 @@ import * as assert from "../common/assert";
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
-    newWorldView, newTableView, newFigureView, getFigureViewTitle, genPlacemarkId,
-    hasWebGL, isVectorLayer, PLACEMARKS_LAYER,
+    newWorldView, newTableView, newFigureView, getFigureViewTitle,
+    isVectorLayer, PLACEMARK_ID_PREFIX, getPlacemarkTitleAndIndex,
 } from "./state-util";
 import {
 removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
@@ -20,29 +20,15 @@ addViewToPanel, moveView, selectView
 } from "./components/ViewState";
 import {isString} from "../common/types";
 import {featurePropertiesFromSimpleStyle} from "../common/geojson-simple-style";
+import {
+    INITIAL_COMMUNICATION_STATE, INITIAL_CONTROL_STATE, INITIAL_DATA_STATE,
+    INITIAL_SESSION_STATE, INITIAL_LOCATION_STATE
+} from "./initial-state";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// state.data initial state and reducers
-
-const initialDataState: DataState = {
-    appConfig: {
-        webAPIConfig: {
-            servicePort: -1,
-            serviceAddress: '',
-            restUrl: '',
-            apiWebSocketUrl: '',
-            mplWebSocketUrl: '',
-        },
-        webAPIClient: null,
-        hasWebGL: hasWebGL(),
-    },
-    dataStores: null,
-    operations: null,
-    workspace: null,
-    colorMaps: null
-};
+// state.data reducers
 
 const updateDataStores = (state: DataState, action: Action, createDataSources: (dataStore: DataStoreState) => void): DataStoreState[] => {
     const dataStoreId = action.payload.dataStoreId;
@@ -58,7 +44,7 @@ const updateDataStores = (state: DataState, action: Action, createDataSources: (
     return updateObject(state, {dataStores: newDataStores});
 };
 
-const dataReducer = (state: DataState = initialDataState, action: Action) => {
+const dataReducer = (state: DataState = INITIAL_DATA_STATE, action: Action) => {
     switch (action.type) {
         case actions.UPDATE_INITIAL_STATE:
             const appConfig = updateObject(state.appConfig, action.payload.appConfig);
@@ -107,32 +93,10 @@ const dataReducer = (state: DataState = initialDataState, action: Action) => {
     return state;
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// state.control initial state and reducers
+// state.control reducers
 
-const initialView = newWorldView();
-
-const initialControlState: ControlState = {
-    selectedWorkflowStepId: null,
-    selectedWorkspaceResourceName: null,
-    selectedVariableName: null,
-    dialogs: {},
-
-    views: [initialView],
-    viewLayout: {
-        viewIds: [initialView.id],
-        selectedViewId: initialView.id,
-    },
-    activeViewId: initialView.id,
-
-    worldViewClickAction: null,
-
-    entityUpdateCount: 0,
-};
-
-
-const controlReducer = (state: ControlState = initialControlState, action: Action) => {
+const controlReducer = (state: ControlState = INITIAL_CONTROL_STATE, action: Action) => {
     switch (action.type) {
         case actions.RENAME_RESOURCE: {
             const resName = action.payload.resName;
@@ -182,6 +146,13 @@ const controlReducer = (state: ControlState = initialControlState, action: Actio
         }
         case actions.UPDATE_CONTROL_STATE:
             return {...state, ...action.payload};
+        case actions.ACTIVATE_NEW_PLACEMARK_TOOL: {
+            let newPlacemarkToolType = action.payload.newPlacemarkToolType;
+            if (newPlacemarkToolType === state.newPlacemarkToolType) {
+                newPlacemarkToolType = "NoTool";
+            }
+            return {...state, newPlacemarkToolType};
+        }
         case actions.UPDATE_DIALOG_STATE: {
             const dialogs = updatePropertyObject(state.dialogs, action.payload.dialogId, action.payload.dialogState);
             return {...state, dialogs};
@@ -590,71 +561,49 @@ const layerReducer = (state: LayerState, action: Action, isActiveView: boolean) 
     return state;
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// state.session initial state and reducers
+// state.session reducers
 
-const initialSessionState: SessionState = {
-    reopenLastWorkspace: false,
-    lastWorkspacePath: null,
-    autoUpdateSoftware: true,
-    autoShowNewFigures: true,
-    offlineMode: false,
-    showSelectedVariableLayer: true,
-    savedLayers: {},
-
-    selectedDataStoreId: null,
-    selectedDataSourceId: null,
-    dataSourceFilterExpr: '',
-    selectedOperationName: null,
-    operationFilterTags: [],
-    operationFilterExpr: '',
-
-    showDataSourceDetails: true,
-    showResourceDetails: true,
-    showWorkflowStepDetails: true,
-    showOperationDetails: true,
-    showVariableDetails: true,
-    showLayerDetails: true,
-
-    panelContainerUndockedMode: false,
-    leftPanelContainerLayout: {horPos: 300, verPos: 400},
-    rightPanelContainerLayout: {horPos: 300, verPos: 400},
-    selectedLeftTopPanelId: 'dataSources',
-    selectedLeftBottomPanelId: 'operations',
-    selectedRightTopPanelId: 'workspace',
-    selectedRightBottomPanelId: 'variables',
-    placemarkCollection: {
-        type: 'FeatureCollection',
-        features: []
-    },
-    selectedPlacemarkId: null,
-    showPlacemarkDetails: true,
-    placemarkCounter: 0,
-
-    workspacePanelMode: 'steps',
-
-    showDataSourceTitles: true,
-    showLayerTextOverlay: true,
-    debugWorldView: false,
-    vectorStyleMode: "layer",
-
-    backendConfig: {
-        dataStoresPath: null,
-        useWorkspaceImageryCache: false,
-        resourceNamePattern: 'res_{index}',
-    },
+let updatePlacemarkProperties = function (state: SessionState, placemarkId: any, properties: any) {
+    const features = state.placemarkCollection.features.slice();
+    const featureIndex = features.findIndex(f => f.id === placemarkId);
+    const oldFeature = featureIndex >= 0 && features[featureIndex];
+    assert.ok(oldFeature);
+    const oldProperties = oldFeature && oldFeature.properties;
+    const newProperties = {...oldProperties, ...properties};
+    const newFeature = {...oldFeature, properties: newProperties};
+    if (featureIndex >= 0) {
+        features[featureIndex] = newFeature;
+    } else {
+        features.push(newFeature);
+    }
+    const placemarkCollection = {...state.placemarkCollection, features};
+    return {...state, placemarkCollection};
 };
 
+let updatePlacemarkGeometry = function (state: SessionState, placemarkId: any, geometry: any) {
+    const features = state.placemarkCollection.features.slice();
+    const featureIndex = features.findIndex(f => f.id === placemarkId);
+    const oldFeature = featureIndex >= 0 && features[featureIndex];
+    assert.ok(oldFeature);
+    const oldGeometry = oldFeature && oldFeature.geometry;
+    const newGeometry = {...oldGeometry, ...geometry};
+    const newFeature = {...oldFeature, geometry: newGeometry};
+    if (featureIndex >= 0) {
+        features[featureIndex] = newFeature;
+    } else {
+        features.push(newFeature);
+    }
+    const placemarkCollection = {...state.placemarkCollection, features};
+    return {...state, placemarkCollection};
+};
 
-const PLACEMARK_TITLE_PREFIX = "Placemark ";
-
-const sessionReducer = (state: SessionState = initialSessionState, action: Action) => {
+const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Action) => {
     switch (action.type) {
         case actions.SET_SELECTED_ENTITY_ID: {
             const selectedEntityId = action.payload.selectedEntityId || null;
             let selectedPlacemarkId = null;
-            if (isString(selectedEntityId) && selectedEntityId.startsWith('placemark-')) {
+            if (isString(selectedEntityId) && selectedEntityId.startsWith(PLACEMARK_ID_PREFIX)) {
                 selectedPlacemarkId = selectedEntityId;
             }
             if (selectedPlacemarkId !== state.selectedPlacemarkId) {
@@ -674,27 +623,21 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
             return {...state, savedLayers};
         }
         case actions.ADD_PLACEMARK: {
-            const position = action.payload.position;
-            const features = state.placemarkCollection.features.slice();
-            const placemarkCounter = state.placemarkCounter;
-            const letter = String.fromCharCode(65 + placemarkCounter % 26);
-            const newPlacemark = {
-                type: 'Feature',
-                id: genPlacemarkId(),
-                properties: {
-                    ...featurePropertiesFromSimpleStyle(PLACEMARKS_LAYER.style as any),
-                    "marker-symbol": letter,
-                    title: PLACEMARK_TITLE_PREFIX + letter,
-                    visible: true,
-                },
-                geometry: {
-                    type: 'Point',
-                    coordinates: position ? [position.longitude, position.latitude] : [0, 0]
+            let placemark = action.payload.placemark;
+            let features = state.placemarkCollection.features;
+            let properties = {...placemark.properties};
+            // Set initial title
+            const {title, index} = getPlacemarkTitleAndIndex(placemark, state.placemarkCollection);
+            if (title) {
+                properties = {...properties, title};
+                if (placemark.geometry.type === "Point") {
+                    properties["marker-symbol"] = `${index}`;
                 }
-            } as Placemark;
-            features.push(newPlacemark);
+                placemark = {...placemark, properties}
+            }
+            features = features.concat([placemark]);
             const placemarkCollection = {...state.placemarkCollection, features};
-            return {...state, placemarkCollection, placemarkCounter: placemarkCounter + 1, selectedPlacemarkId: newPlacemark.id};
+            return {...state, placemarkCollection, selectedPlacemarkId: placemark.id};
         }
         case actions.REMOVE_PLACEMARK: {
             const placemarkId = action.payload.placemarkId;
@@ -716,72 +659,17 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
         }
         case actions.UPDATE_PLACEMARK_GEOMETRY: {
             const {placemarkId, geometry} = action.payload;
-            const features = state.placemarkCollection.features.slice();
-            const featureIndex = features.findIndex(f => f.id === placemarkId);
-            const oldFeature = featureIndex >= 0 && features[featureIndex];
-            assert.ok(oldFeature);
-            const oldGeometry = oldFeature && oldFeature.geometry;
-            const newGeometry = {...oldGeometry, ...geometry};
-            const newFeature = {...oldFeature, geometry: newGeometry};
-            if (featureIndex >= 0) {
-                features[featureIndex] = newFeature;
-            } else {
-                features.push(newFeature);
-            }
-            const placemarkCollection = {...state.placemarkCollection, features};
-            return {...state, placemarkCollection};
+            return updatePlacemarkGeometry(state, placemarkId, geometry);
         }
         case actions.UPDATE_PLACEMARK_PROPERTIES: {
             const {placemarkId, properties} = action.payload;
-            const features = state.placemarkCollection.features.slice();
-            const featureIndex = features.findIndex(f => f.id === placemarkId);
-            const oldFeature = featureIndex >= 0 && features[featureIndex];
-            assert.ok(oldFeature);
-            const oldProperties = oldFeature && oldFeature.geometry;
-            const newProperties = {...oldProperties, ...properties};
-            const newFeature = {...oldFeature, properties: newProperties};
-            if (featureIndex >= 0) {
-                features[featureIndex] = newFeature;
-            } else {
-                features.push(newFeature);
-            }
-            const placemarkCollection = {...state.placemarkCollection, features};
-            return {...state, placemarkCollection};
+            return updatePlacemarkProperties(state, placemarkId, properties);
         }
         case actions.UPDATE_PLACEMARK_STYLE: {
             const {placemarkId, style} = action.payload;
-            const features = state.placemarkCollection.features.slice();
-            const featureIndex = features.findIndex(f => f.id === placemarkId);
-            const oldFeature = featureIndex >= 0 && features[featureIndex];
-            assert.ok(oldFeature);
-            const oldProperties = oldFeature && oldFeature.properties;
-            const newProperties = {...oldProperties, ...featurePropertiesFromSimpleStyle(style)};
-            const oldTitle = oldProperties && oldProperties["title"];
-            const newTitle = newProperties && newProperties["title"];
-            if (newTitle && newTitle !== oldTitle) {
-                // Update marker symbol as long as we don't have an editor for symbols
-                let text;
-                if (newTitle.startsWith(PLACEMARK_TITLE_PREFIX)) {
-                    text = newTitle.substr(PLACEMARK_TITLE_PREFIX.length);
-                } else {
-                    text = newTitle;
-                }
-                let markerSymbol = newProperties["marker-symbol"];
-                if (text.length > 0) {
-                    markerSymbol = text[0];
-                } else if (!markerSymbol) {
-                    markerSymbol = "?";
-                }
-                newProperties["marker-symbol"] = markerSymbol;
-            }
-            const newFeature = {...oldFeature, properties: newProperties};
-            if (featureIndex >= 0) {
-                features[featureIndex] = newFeature;
-            } else {
-                features.push(newFeature);
-            }
-            const placemarkCollection = {...state.placemarkCollection, features};
-            return {...state, placemarkCollection};
+            const properties = featurePropertiesFromSimpleStyle(style);
+            const defaultPlacemarkStyle = {...state.defaultPlacemarkStyle, ...style};
+            return {...updatePlacemarkProperties(state, placemarkId, properties), defaultPlacemarkStyle};
         }
 
     }
@@ -789,14 +677,9 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// state.communication initial state and reducers
+// state.communication reducers
 
-const initialCommunicationState: CommunicationState = {
-    webAPIStatus: null,
-    tasks: {}
-};
-
-const communicationReducer = (state: CommunicationState = initialCommunicationState, action: Action) => {
+const communicationReducer = (state: CommunicationState = INITIAL_COMMUNICATION_STATE, action: Action) => {
     switch (action.type) {
         case actions.SET_WEBAPI_STATUS:
             return updateObject(state, {webAPIStatus: action.payload.webAPIStatus});
@@ -814,16 +697,10 @@ const communicationReducer = (state: CommunicationState = initialCommunicationSt
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// state.location initial state and reducers
-
-
-const initialLocationState: LocationState = {
-    globeMousePosition: null,
-    globeViewPosition: null,
-};
+// state.location reducers
 
 //noinspection JSUnusedLocalSymbols
-const locationReducer = (state: LocationState = initialLocationState, action: Action) => {
+const locationReducer = (state: LocationState = INITIAL_LOCATION_STATE, action: Action) => {
     if (action.type === actions.SET_GLOBE_MOUSE_POSITION) {
         const globeMousePosition = action.payload.position;
         return {...state, globeMousePosition};
@@ -845,3 +722,8 @@ export const stateReducer = combineReducers<State>({
                                                        communication: communicationReducer as Reducer<CommunicationState>,
                                                        location: locationReducer as Reducer<LocationState>,
                                                    });
+
+
+
+
+

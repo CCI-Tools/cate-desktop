@@ -55,7 +55,7 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & actions.Dispa
 
                 <p className="pt-text-muted" style={{marginTop: 32}}>Background: The Python package <code><a
                     href="https://github.com/CCI-Tools/cate" target="_blank">cate</a></code> provides
-                    provides the data processing and visualisation service to Cate Desktop.
+                    the data processing and visualisation service to Cate Desktop.
                     In addition, it offers a command-line interface <code>cate-cli</code> to
                     access and process data in batch mode. It also has an API to add new functions to Cate easily.
                     For more information, please refer to

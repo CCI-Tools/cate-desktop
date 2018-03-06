@@ -2,18 +2,17 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import {URL} from "url";
-import {existsFile, execFile, deleteFile, downloadFile, FileExecOutput} from './fileutil';
-
-
+import {existsFile, deleteFile, downloadFile, ExecOutput, spawnAsync, execAsync} from './fileutil';
 import {
     Transaction,
     TransactionContext,
     TransactionProgressHandler, TransactionState
 } from '../common/transaction';
+import {defaultExecShellOption, defaultSpawnShellOption, getCommandInActivatedCondaEnv} from "./appenv";
 
 
-function _getOutput(output: FileExecOutput) {
-    // Note "python --version" outputs to stderr!
+function _getOutput(output: ExecOutput) {
+    // Note "python --version" outputs to stderr! (Conda bug?)
     return ((output.stdout && output.stdout !== '') ? output.stdout : output.stderr) || '';
 }
 
@@ -66,7 +65,7 @@ export class DownloadMiniconda extends Transaction {
         let progressHandler = (bytesReceived: number, bytesTotal: number) => {
             const subWorked = bytesReceived / bytesTotal;
             const percent = Math.round(100 * subWorked);
-            const message = `Downloading ${targetFile}: ${bytesReceived} of ${bytesTotal} bytes received, ${percent}%`;
+            const message = `${targetFile}: ${bytesReceived} of ${bytesTotal} bytes received, ${percent}%`;
             onProgress({message, subWorked});
         };
         return downloadFile(this.getMinicondaInstallerUrl(), targetFile, 0o777, progressHandler);
@@ -86,40 +85,27 @@ export class InstallMiniconda extends Transaction {
         this.minicondaInstallDir = minicondaInstallDir;
     }
 
-    getMinicondaInstallerArgs() {
-        if (process.platform === "win32") {
-            return ['/S', '/InstallationType=JustMe', '/AddToPath=0', '/RegisterPython=0', `/D=${this.minicondaInstallDir}`];
-        } else {
-            return ['-b', '-f', '-p', this.minicondaInstallDir];
-        }
-    }
-
-    getPythonExecutable() {
-        return getCondaPythonExecutable(this.minicondaInstallDir);
-    }
-
     newInitialState(context: TransactionContext): TransactionState {
         return {
             minicondaInstallDir: this.minicondaInstallDir,
-            minicondaInstallerArgs: this.getMinicondaInstallerArgs(),
-            pythonExecutable: this.getPythonExecutable(),
         };
     }
 
     fulfilled(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<boolean> {
-        const pythonExecutable = this.getPythonExecutable();
-        return execFile(pythonExecutable, ['--version']).then((output: FileExecOutput) => {
-            const line = _getOutput(output);
-            return line.startsWith("Python 3.");
-        }).catch(() => {
-            return false;
-        });
+        return isCompatiblePython(this.minicondaInstallDir, this.minicondaInstallDir, onProgress);
     }
 
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
+        let args;
+        if (process.platform === "win32") {
+            args = ['/S', '/InstallationType=JustMe', '/AddToPath=0', '/RegisterPython=0', `/D=${this.minicondaInstallDir}`];
+        } else {
+            args = ['-b', '-f', '-p', this.minicondaInstallDir];
+        }
         const minicondaInstallerExecutable = context.getTransactionState('DownloadMiniconda').minicondaInstallerExecutable;
         this.getState(context).minicondaInstalled = true;
-        return execFile(minicondaInstallerExecutable, this.getMinicondaInstallerArgs(), onProgress);
+        notifyExecFile(minicondaInstallerExecutable, args, onProgress);
+        return spawnAsync(minicondaInstallerExecutable, args, defaultSpawnShellOption(), onProgress);
     }
 
     rollback(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
@@ -143,16 +129,8 @@ export class InstallCondaEnv extends Transaction {
         return this.condaDir;
     }
 
-    getCondaExecutable() {
-        return getCondaExecutable(this.getCondaDir());
-    }
-
     getCondaEnvDir() {
         return path.join(this.getCondaDir(), "envs", "cate-env");
-    }
-
-    getEnvPythonExecutable() {
-        return getCondaPythonExecutable(this.getCondaEnvDir());
     }
 
     newInitialState(context: TransactionContext): TransactionState {
@@ -162,18 +140,13 @@ export class InstallCondaEnv extends Transaction {
     }
 
     fulfilled(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<boolean> {
-        const pythonExecutable = this.getEnvPythonExecutable();
-        return execFile(pythonExecutable, ['--version']).then((output: FileExecOutput) => {
-            const line = _getOutput(output);
-            return line.startsWith("Python 3.");
-        }).catch(() => {
-            return false;
-        });
+        return isCompatiblePython(this.getCondaDir(), this.getCondaEnvDir(), onProgress);
     }
 
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
-        const condaExecutable = this.getCondaExecutable();
-        return execFile(condaExecutable, ['conda', 'env', 'create', '-n', 'cate-env', 'python=3'], onProgress);
+        const command = getCommandInActivatedCondaEnv(this.getCondaDir(), this.getCondaDir(), "conda env create --name cate-env python=3");
+        notifyExecCommand(command, onProgress);
+        return spawnAsync(command, undefined, defaultSpawnShellOption(), onProgress);
     }
 }
 
@@ -182,22 +155,13 @@ export class InstallOrUpdateCate extends Transaction {
     cateDir: string;
 
     constructor(cateVersion: string, cateDir: string, requires: string[]) {
-        super('InstallOrUpdateCate', requires, 'Install or update to cate-' + cateVersion);
+        super('InstallOrUpdateCate', requires, 'Install cate ' + cateVersion);
         this.cateVersion = cateVersion;
         this.cateDir = cateDir;
     }
 
-    // noinspection JSMethodCanBeStatic
     getCateDir() {
         return this.cateDir;
-    }
-
-    getCateCliExecutable() {
-        return getCateCliExecutable(this.getCateDir());
-    }
-
-    getCondaExecutable() {
-        return getCondaExecutable(this.getCateDir());
     }
 
     newInitialState(context: TransactionContext): TransactionState {
@@ -208,41 +172,44 @@ export class InstallOrUpdateCate extends Transaction {
     }
 
     fulfilled(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<boolean> {
-        const cateCliExecutable = this.getCateCliExecutable();
-        return execFile(cateCliExecutable, ['cate', '--version']).then((output: FileExecOutput) => {
+        const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), "cate --version");
+        notifyExecCommand(command, onProgress);
+        return execAsync(command, defaultExecShellOption()).then((output: ExecOutput) => {
             const line = _getOutput(output);
-            return line.startsWith(this.cateVersion);
+            return line.startsWith("cate " + this.cateVersion);
         }).catch(() => {
             return false;
         });
     }
 
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
-        const condaExecutable = this.getCondaExecutable();
-        return execFile(condaExecutable, ['install', '--yes', '-c', 'ccitools', '-c', 'conda-forge', 'cate-cli=' + this.cateVersion], onProgress);
+        const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `conda install --yes -c ccitools -c conda-forge cate-cli=${this.cateVersion}`);
+        notifyExecCommand(command, onProgress);
+        return spawnAsync(command, undefined, defaultSpawnShellOption(), onProgress)
+            .then(() => this.fulfilled(context, onProgress))
+            .then(ok => {
+                if (!ok) {
+                    throw new Error(`Installation of Python package cate ${this.cateVersion} did not succeed.`);
+                }
+            });
     }
 }
 
-function getCondaPythonExecutable(condaDir: string) {
-    if (process.platform === "win32") {
-        return path.join(condaDir, 'python.exe');
-    } else {
-        return path.join(condaDir, 'bin', 'python');
-    }
+function isCompatiblePython(condaDir: string, condaEnvDir: string, onProgress: TransactionProgressHandler): Promise<boolean> {
+    const command = getCommandInActivatedCondaEnv(condaDir, condaEnvDir, "python --version");
+    notifyExecCommand(command, onProgress);
+    return execAsync(command, defaultExecShellOption()).then((output: ExecOutput) => {
+        const line = _getOutput(output);
+        return line.startsWith("Python 3.");
+    }).catch(() => {
+        return false;
+    });
 }
 
-function getCondaExecutable(condaDir: string) {
-    if (process.platform === "win32") {
-        return path.join(condaDir, 'Scripts', 'conda.exe');
-    } else {
-        return path.join(condaDir, 'bin', 'conda');
-    }
+function notifyExecCommand(command: string, onProgress: TransactionProgressHandler) {
+    onProgress({message: command});
 }
 
-function getCateCliExecutable(condaDir: string) {
-    if (process.platform === "win32") {
-        return path.join(condaDir, 'Scripts', 'cate-cli.bat');
-    } else {
-        return path.join(condaDir, 'bin', 'cate-cli.sh');
-    }
+function notifyExecFile(file: string, args: string[], onProgress: TransactionProgressHandler) {
+    onProgress({message: `${file} ` + args.map(a => a.indexOf(' ') >= 0 ? `"${a}"` : a).join(' ')});
 }

@@ -1,12 +1,14 @@
-import {FileExecOutput} from "../main/fileutil";
 
-export interface TransactionProgress extends FileExecOutput {
+export interface TransactionProgress {
     name?: string;
+    message?: string;
     worked?: number;
     totalWork?: number;
     subWorked?: number;
     done?: boolean;
-    error?: TransactionError;
+    stdout?: string;
+    stderr?: string;
+    error?: Error;
 }
 
 export type TransactionProgressHandler = (progress: TransactionProgress) => any;
@@ -109,7 +111,7 @@ export class Transaction {
 export class TransactionError extends Error {
     readonly transaction: Transaction;
     readonly index: number;
-    readonly reason: any;
+    readonly reason: Error;
 
     constructor(transaction: Transaction, index: number, reason: any) {
         super(`failed to fulfill transaction "${transaction.name}"`);
@@ -203,6 +205,9 @@ export class TransactionSet implements TransactionContext {
                     onProgress({worked: i + 1, totalWork: transactions.length, subWorked: 0, done: i === transactions.length - 1});
                     return value;
                 }).catch(reason => {
+                    while (reason && reason.reason) {
+                        reason = reason.reason;
+                    }
                     throw new TransactionError(t, i, reason);
                 });
             });
@@ -211,7 +216,7 @@ export class TransactionSet implements TransactionContext {
     }
 
     private newRollbackSequence(transactions: Transaction[], error: TransactionError, onProgress: TransactionProgressHandler) {
-        onProgress({error});
+        onProgress({error: error.reason});
         const rollbackTransactions = transactions.slice(0, error.index + 1);
         let rollbackReducer = (p: Promise<void>, t: Transaction, i: number) => {
             //console.log(`adding ${r.name}`);

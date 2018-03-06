@@ -1,25 +1,51 @@
 import {
-    LayerState, State, VariableState, ResourceState, VariableImageLayerState, ImageLayerState,
-    ColorMapCategoryState, ColorMapState, OperationState, WorkspaceState, DataSourceState, DataStoreState, DialogState,
-    WorkflowStepState, LayerVariableState, SavedLayers,
-    FigureViewDataState, GeographicPosition, PlacemarkCollection, Placemark, VariableLayerBase,
-    ResourceVectorLayerState, WorldViewDataState, VectorLayerState
-} from "./state";
+    ColorMapCategoryState,
+    ColorMapState,
+    DataSourceState,
+    DataStoreState,
+    DialogState,
+    FigureViewDataState,
+    GeographicPosition,
+    ImageLayerState,
+    LayerState,
+    LayerVariableState,
+    OperationState,
+    Placemark,
+    PlacemarkCollection,
+    ResourceState,
+    ResourceVectorLayerState,
+    SavedLayers,
+    State,
+    VariableImageLayerState,
+    VariableLayerBase,
+    VariableState,
+    VectorLayerState,
+    WorkflowStepState,
+    WorkspaceState,
+    WorldViewDataState
+} from './state';
 import {createSelector, Selector} from 'reselect';
-import {WebAPIClient, JobStatusEnum} from "./webapi";
-import {DatasetAPI, OperationAPI, WorkspaceAPI, ColorMapsAPI, BackendConfigAPI} from "./webapi/apis";
-import {PanelContainerLayout} from "./components/PanelContainer";
+import {JobStatusEnum, WebAPIClient} from './webapi';
+import {BackendConfigAPI, ColorMapsAPI, DatasetAPI, OperationAPI, WorkspaceAPI} from './webapi/apis';
+import {PanelContainerLayout} from './components/PanelContainer';
 import {
-    isSpatialVectorVariable, isSpatialImageVariable, findOperation, isFigureResource,
-    getLockForGetWorkspaceVariableStatistics, EXTERNAL_OBJECT_STORE, getWorldViewSelectedEntity,
-    getWorldViewSelectedGeometryWKTGetter, getWorldViewVectorLayerForEntity,
-} from "./state-util";
-import {ViewState, ViewLayoutState} from "./components/ViewState";
-import {isNumber} from "../common/types";
-import * as Cesium from "cesium";
-import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
-import {entityToSimpleStyle} from "./components/cesium/cesium-util";
-import {SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties} from "../common/geojson-simple-style";
+    EXTERNAL_OBJECT_STORE,
+    findOperation,
+    getLockForGetWorkspaceVariableStatistics,
+    getWorldViewSelectedEntity,
+    getWorldViewSelectedGeometryWKTGetter,
+    getWorldViewVectorLayerForEntity,
+    isFigureResource,
+    isSpatialImageVariable,
+    isSpatialVectorVariable,
+} from './state-util';
+import {ViewLayoutState, ViewState} from './components/ViewState';
+import {isNumber} from '../common/types';
+import * as Cesium from 'cesium';
+import {GeometryWKTGetter} from './containers/editor/ValueEditor';
+import {entityToSimpleStyle} from './components/cesium/cesium-util';
+import {SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties} from '../common/geojson-simple-style';
+import {GeometryToolType} from "./components/cesium/geometry-tool";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -128,10 +154,12 @@ export const selectedRightBottomPanelIdSelector = (state: State): string
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Placemark selectors
 
+export const newPlacemarkToolTypeSelector = (state: State): GeometryToolType => state.control.newPlacemarkToolType;
 export const placemarkCollectionSelector = (state: State): PlacemarkCollection => state.session.placemarkCollection;
 export const placemarksSelector = (state: State): Placemark[] => state.session.placemarkCollection.features;
 export const selectedPlacemarkIdSelector = (state: State): string | null => state.session.selectedPlacemarkId;
 export const showPlacemarkDetailsSelector = (state: State): boolean => state.session.showPlacemarkDetails;
+export const defaultPlacemarkStyleSelector = (state: State): SimpleStyle => state.session.defaultPlacemarkStyle;
 
 export const selectedPlacemarkSelector = createSelector<State,
     Placemark | null,
@@ -187,7 +215,7 @@ export const filteredOperationsSelector = createSelector<State, OperationState[]
             let nameMatches;
             if (hasFilterExpr) {
                 const filterExprLC = operationFilterExpr.toLowerCase();
-                const parts = filterExprLC.split(" ");
+                const parts = filterExprLC.split(' ');
                 nameMatches = op => {
                     return parts.every(part => op.name.toLowerCase().includes(part));
                 };
@@ -226,6 +254,7 @@ export const dataStoresSelector = (state: State) => state.data.dataStores;
 export const selectedDataStoreIdSelector = (state: State) => state.session.selectedDataStoreId;
 export const selectedDataSourceIdSelector = (state: State) => state.session.selectedDataSourceId;
 export const dataSourceFilterExprSelector = (state: State) => state.session.dataSourceFilterExpr;
+export const dataSourceListHeightSelector = (state: State) => state.session.dataSourceListHeight;
 export const showDataSourceDetailsSelector = (state: State) => state.session.showDataSourceDetails;
 export const showDataSourceTitlesSelector = (state: State): boolean => state.session.showDataSourceTitles;
 
@@ -262,7 +291,7 @@ export const filteredDataSourcesSelector = createSelector<State, DataSourceState
         const hasFilterExpr = dataSourceFilterExpr && dataSourceFilterExpr !== '';
         if (hasDataSources && hasFilterExpr) {
             const dataSourceFilterExprLC = dataSourceFilterExpr.toLowerCase();
-            const parts = dataSourceFilterExprLC.split(" ");
+            const parts = dataSourceFilterExprLC.split(' ');
             const dsMatcher = showDataSourceTitles ? matchesIdOrTitle : matchesId;
             return selectedDataSources.filter(ds => dsMatcher(ds, parts));
         }
@@ -332,11 +361,17 @@ export const workflowStepsSelector = (state: State): WorkflowStepState[] => {
 export const lastWorkspacePathSelector = (state: State): string | null => {
     return state.session.lastWorkspacePath;
 };
+export const resourceListHeightSelector = (state: State): number => {
+    return state.session.resourceListHeight;
+};
 export const showResourceDetailsSelector = (state: State): boolean => {
     return state.session.showResourceDetails;
 };
 export const selectedResourceNameSelector = (state: State): string | null => {
     return state.control.selectedWorkspaceResourceName;
+};
+export const workflowStepListHeightSelector = (state: State): number => {
+    return state.session.workflowStepListHeight;
 };
 export const showWorkflowStepDetailsSelector = (state: State): boolean => {
     return state.session.showWorkflowStepDetails;
@@ -382,7 +417,7 @@ function getParentDir(path: string | null): string | null {
         return null;
     }
     let index = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
-    return index >= 0 ? path.substring(0, index) : "";
+    return index >= 0 ? path.substring(0, index) : '';
 }
 
 export const resourceNamesSelector = createSelector<State, string[], ResourceState[]>(
@@ -611,8 +646,6 @@ export const selectedGeometryWKTGetterSelector = createSelector<State, GeometryW
     getWorldViewSelectedGeometryWKTGetter
 );
 
-export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
-
 // noinspection JSUnusedLocalSymbols
 export const externalObjectStoreSelector = (state: State) => EXTERNAL_OBJECT_STORE;
 
@@ -704,31 +737,32 @@ export const selectedVectorLayerSelector = createSelector<State, VectorLayerStat
 
 export const entityUpdateCountSelector = (state: State) => state.control.entityUpdateCount;
 
+export const styleContextSelector = (state: State) => state.session.styleContext;
+
 // noinspection JSUnusedLocalSymbols
 export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<any>, string, VectorLayerState | null, Placemark | null, Cesium.Entity | null, number>(
     activeViewSelector,
-    vectorStyleModeSelector,
+    styleContextSelector,
     selectedVectorLayerSelector,
     selectedPlacemarkSelector,
     selectedEntitySelector,
     entityUpdateCountSelector,
-    (view: ViewState<any>, vectorStyleMode, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
+    (view: ViewState<any>, styleContext, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
         const selectedLayerStyle = selectedVectorLayer && selectedVectorLayer.style;
         let style;
-        if (vectorStyleMode === "layer") {
+        if (styleContext === 'layer') {
             style = selectedLayerStyle;
-        } else if (vectorStyleMode === "entity") {
+        } else if (styleContext === 'entity') {
             if (selectedPlacemark) {
                 const placemarkStyle = simpleStyleFromFeatureProperties(selectedPlacemark.properties);
-                const placemarkVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
-                style = {...selectedLayerStyle, ...placemarkVectorLayer, ...placemarkStyle};
+                style = {...selectedLayerStyle, ...placemarkStyle};
             } else if (selectedEntity) {
                 const entityStyle = entityToSimpleStyle(selectedEntity);
                 const entityVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
                 const entityVectorLayerStyle = entityVectorLayer && entityVectorLayer.style;
                 const savedEntityStyle = entityVectorLayer
-                                         && entityVectorLayer.entityStyles
-                                         && entityVectorLayer.entityStyles[selectedEntity.id];
+                    && entityVectorLayer.entityStyles
+                    && entityVectorLayer.entityStyles[selectedEntity.id];
                 style = {...selectedLayerStyle, ...entityVectorLayerStyle, ...entityStyle, ...savedEntityStyle};
             }
         }

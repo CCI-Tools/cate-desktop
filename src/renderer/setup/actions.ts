@@ -11,7 +11,7 @@ import {
 } from "./state";
 import * as path from "path";
 import * as assert from "../../common/assert";
-import {TransactionError, TransactionProgress} from "../../common/transaction";
+import {TransactionProgress} from "../../common/transaction";
 
 // Strange, we must use this, imports from "react-redux" produce TS syntax errors
 export interface DispatchProp {
@@ -40,10 +40,6 @@ export function moveBack() {
 
 export function setSetupInfo(setupInfo: SetupInfo) {
     return {type: "SET_SETUP_INFO", payload: {setupInfo}};
-}
-
-export function setAutoUpdateCate(autoUpdateCate: boolean) {
-    return {type: "SET_AUTO_UPDATE_CATE", payload: {autoUpdateCate}};
 }
 
 export function setSetupMode(setupMode: SetupMode) {
@@ -103,8 +99,8 @@ export function browseCondaDir() {
     };
 }
 
-export function setSetupStatus(setupStatus: SetupStatus) {
-    return {type: "SET_SETUP_STATUS", payload: {setupStatus}};
+export function setSetupStatus(setupStatus: SetupStatus, error?: any) {
+    return {type: "SET_SETUP_STATUS", payload: {setupStatus, error}};
 }
 
 export function updateProgress(progress: TransactionProgress) {
@@ -193,11 +189,10 @@ function validateCondaDir(dispatch: Dispatch<any>, getState: () => State) {
 
 export function performSetupTasks() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
-        const listener = (event, errorCode: number, error?: TransactionError, progress?: TransactionProgress) => {
-            console.log("performSetupTasks-response: ", errorCode, error, progress);
-            if (errorCode !== 0) {
-                dispatch(setSetupStatus(SETUP_STATUS_FAILED, ));
-                dispatch({type: "FAIL", payload: {errorCode, error}});
+        const listener = (event, error?: any, progress?: TransactionProgress) => {
+            console.log("performSetupTasks-response: ", error, progress);
+            if (error) {
+                dispatch(setSetupStatus(SETUP_STATUS_FAILED, error));
             } else if (progress) {
                 dispatch(updateProgress(progress));
             } else {
@@ -209,7 +204,7 @@ export function performSetupTasks() {
     }
 }
 
-export function toggleLogOpen() {
-    return {type: "TOGGLE_LOG_OPEN"};
+export function openLog() {
+    return {type: "OPEN_LOG"};
 }
 

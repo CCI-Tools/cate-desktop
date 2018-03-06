@@ -25,6 +25,7 @@ interface IDataSourcesPanelProps {
     selectedDataSource: DataSourceState | null;
     selectedDataSources: DataSourceState[] | null;
     filteredDataSources: DataSourceState[] | null;
+    dataSourceListHeight: number;
     showDataSourceDetails: boolean;
     showDataSourceTitles: boolean;
     offlineMode: boolean;
@@ -39,6 +40,7 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         selectedDataSource: selectors.selectedDataSourceSelector(state),
         selectedDataSources: selectors.selectedDataSourcesSelector(state),
         filteredDataSources: selectors.filteredDataSourcesSelector(state),
+        dataSourceListHeight: selectors.dataSourceListHeightSelector(state),
         showDataSourceDetails: selectors.showDataSourceDetailsSelector(state),
         showDataSourceTitles: selectors.showDataSourceTitlesSelector(state),
         offlineMode: selectors.offlineModeSelector(state),
@@ -93,6 +95,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         this.handleRemoveDatasetDialog = this.handleRemoveDatasetDialog.bind(this);
         this.handleShowDownloadDataSourceDialog = this.handleShowDownloadDataSourceDialog.bind(this);
         this.handleShowOpenDatasetDialog = this.handleShowOpenDatasetDialog.bind(this);
+        this.handleListHeightChanged = this.handleListHeightChanged.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleDataStoreSelected = this.handleDataStoreSelected.bind(this);
         this.handleShowDataSourceTitlesChanged = this.handleShowDataSourceTitlesChanged.bind(this);
@@ -125,6 +128,10 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
     private handleDataStoreSelected(event) {
         const dataStoreId = event.target.value;
         this.props.setSelectedDataStoreId(dataStoreId);
+    }
+
+    private handleListHeightChanged(value: number) {
+        this.props.setSessionState('dataSourceListHeight', value);
     }
 
     private handleShowDetailsChanged(value: boolean) {
@@ -202,7 +209,8 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                     <ContentWithDetailsPanel showDetails={this.props.showDataSourceDetails}
                                              onShowDetailsChange={this.handleShowDetailsChanged}
                                              isSplitPanel={true}
-                                             initialContentHeight={200}
+                                             contentHeight={this.props.dataSourceListHeight}
+                                             onContentHeightChange={this.handleListHeightChanged}
                                              actionComponent={actionComponent}>
                         <DataSourcesList dataSources={this.props.filteredDataSources}
                                          selectedDataSourceId={this.props.selectedDataSource ? this.props.selectedDataSource.id : null}

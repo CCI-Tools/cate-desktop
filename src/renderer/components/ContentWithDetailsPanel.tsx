@@ -5,10 +5,11 @@ import {Switch} from "@blueprintjs/core";
 
 export interface IContentWithDetailsPanelProps {
     showDetails: boolean;
-    actionComponent?: JSX.Element|null;
     onShowDetailsChange: (value: boolean) => void;
+    contentHeight?: number;
+    onContentHeightChange?: (value: number) => void;
+    actionComponent?: JSX.Element|null;
     isSplitPanel?: boolean;
-    initialContentHeight?: number;
 }
 
 
@@ -16,10 +17,18 @@ export class ContentWithDetailsPanel extends React.PureComponent<IContentWithDet
 
     constructor(props: IContentWithDetailsPanelProps) {
         super(props);
+        this.handleSwitchChange = this.handleSwitchChange.bind(this);
+        this.handleContentHeightChange = this.handleContentHeightChange.bind(this);
     }
 
     private handleSwitchChange(event) {
         this.props.onShowDetailsChange(event.target.checked);
+    }
+
+    private handleContentHeightChange(newSize: number, oldSize: number) {
+        if (this.props.onContentHeightChange) {
+            this.props.onContentHeightChange(newSize);
+        }
     }
 
     render(): JSX.Element {
@@ -30,7 +39,7 @@ export class ContentWithDetailsPanel extends React.PureComponent<IContentWithDet
                                        style={{alignSelf: 'flex-end', marginBottom: 0}}
                                        label="Details"
                                        disabled={!detailsChild}
-                                       onChange={this.handleSwitchChange.bind(this)}/>);
+                                       onChange={this.handleSwitchChange}/>);
 
         const detailsContentPanel = this.props.showDetails ? detailsChild : null;
 
@@ -57,7 +66,9 @@ export class ContentWithDetailsPanel extends React.PureComponent<IContentWithDet
         let contentWithDetailsPanel;
         if (this.props.isSplitPanel) {
             contentWithDetailsPanel = (
-                <SplitPane dir="ver" initialSize={this.props.initialContentHeight || 300}>
+                <SplitPane dir="ver"
+                           initialSize={this.props.contentHeight || 300}
+                           onChange={this.handleContentHeightChange}>
                     {contentChild}
                     {detailsPanel}
                 </SplitPane>);

@@ -1,7 +1,7 @@
 import {SetupInfo, SetupOptions} from "../../common/setup";
 import {TransactionProgress} from "../../common/transaction";
 
-//export const SETUP_TEST_MODE = true;
+// Set this to false to simulate a running setup tasks that produces a dummy log
 export const SETUP_TEST_MODE = false;
 
 export const SCREEN_ID_START = "START";
@@ -26,5 +26,6 @@ export interface State extends SetupOptions {
     progress: TransactionProgress;
     logLines: string[];
     setupStatus: SetupStatus;
+    error?: any;
     isLogOpen: boolean;
 }

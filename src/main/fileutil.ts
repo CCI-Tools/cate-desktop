@@ -1,52 +1,11 @@
 import * as http from 'http';
 import * as https from 'https';
 import * as fs from 'fs';
-import * as child_process from "child_process";
+import {exec, ExecOptions, spawn, SpawnOptions} from "child_process";
 
-export interface FileExecOutput {
-    message?: string;
+export interface ExecOutput {
     stdout?: string;
     stderr?: string;
-}
-
-/**
- * Execute a file.
- *
- * @param {string} file
- * @param {string[]} args
- * @param onProgress Called while executing the process. Signature: (progress: any) => any
- * @returns {Promise<number | FileExecOutput>}
- */
-export function execFile(file: string, args: string[], onProgress?: (progress: any) => any): Promise<number | FileExecOutput> {
-    const message = `running ${file} ` + args.map(a => a.indexOf(' ') >= 0 ? `"${a}"` : a).join(' ');
-    if (onProgress) {
-        return new Promise<number>((resolve: (code: number) => any, reject: (error: Error) => any) => {
-            onProgress({message});
-            const child = child_process.spawn(file, args);
-            child.stdout.on('data', (data) => {
-                onProgress({stdout: data.toString()});
-            });
-            child.stderr.on('data', (data) => {
-                onProgress({stderr: data.toString()});
-            });
-            child.on('close', (code) => {
-                resolve(code);
-            });
-            child.on('error', (error: Error) => {
-                reject(error);
-            });
-        });
-    } else {
-        return new Promise<FileExecOutput>((resolve: (output: FileExecOutput) => any, reject: (error: Error) => any) => {
-            child_process.execFile(file, args, (error, stdout, stderr) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    resolve({message, stdout, stderr});
-                }
-            });
-        });
-    }
 }
 
 
@@ -61,7 +20,6 @@ export function existsFile(file: string): Promise<boolean> {
         fs.exists(file, resolve);
     });
 }
-
 
 
 /**
@@ -99,24 +57,29 @@ export function deleteFile(file: string, ignoreFailure?: boolean): Promise<boole
  * @param sourceUrl The URL
  * @param targetFile The local file
  * @param targetMode The access mode of the target file. e.g. 0o777
- * @param progress Called while downloading. Signature: (bytesReceived: number, bytesTotal: number) => void
+ * @param onProgress Called while downloading. Signature: (bytesReceived: number, bytesTotal: number) => void
  */
 export function downloadFile(sourceUrl: string,
                              targetFile: string,
                              targetMode: number,
-                             progress: (bytesReceived: number, bytesTotal: number) => void): Promise<void> {
+                             onProgress?: (bytesReceived: number, bytesTotal: number) => void): Promise<string> {
 
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
         const tempTargetFile = targetFile + ".download";
         const file = fs.createWriteStream(tempTargetFile, {mode: targetMode});
+        let time1 = process.hrtime();
         const resHandler = (res: http.IncomingMessage) => {
             const bytesTotal = parseInt(res.headers['content-length'] as string);
             let bytesReceived = 0;
             res.pipe(file);
             res.on("data", function (chunk) {
                 bytesReceived += chunk.length;
-                if (progress) {
-                    progress(bytesReceived, bytesTotal);
+                if (onProgress) {
+                    const time2 = process.hrtime();
+                    if (time2[0] - time1[0] >= 1) {
+                        time1 = time2;
+                        onProgress(bytesReceived, bytesTotal);
+                    }
                 }
             });
             res.on("end", function () {
@@ -125,7 +88,7 @@ export function downloadFile(sourceUrl: string,
                         if (e) {
                             reject(e);
                         } else {
-                            resolve();
+                            resolve(targetFile);
                         }
                     });
                 });
@@ -145,6 +108,50 @@ export function downloadFile(sourceUrl: string,
 
         request.on("error", function (e: Error) {
             fs.unlink(targetFile, () => reject(e));
+        });
+    });
+}
+
+export function execAsync(command: string, options?: ExecOptions): Promise<ExecOutput> {
+    return new Promise<{ stdout: string, stderr: string }>((resolve, reject) => {
+        let callback = (error, stdout, stderr) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve({stdout, stderr});
+            }
+        };
+        if (options) {
+            exec(command, options, callback);
+        } else {
+            exec(command, callback);
+        }
+    });
+}
+
+export function spawnAsync(command: string, args: undefined | string[], options: undefined | SpawnOptions, onProgress: (progress: ExecOutput) => any): Promise<number> {
+    return new Promise<number>((resolve: (code: number) => any, reject: (error: Error) => any) => {
+        let child;
+        if (args && options) {
+            child = spawn(command, args, options);
+        } else if (options) {
+            child = spawn(command, [], options);
+        } else if (args) {
+            child = spawn(command, args);
+        } else {
+            child = spawn(command);
+        }
+        child.stdout.on('data', (data) => {
+            onProgress({stdout: data.toString()});
+        });
+        child.stderr.on('data', (data) => {
+            onProgress({stderr: data.toString()});
+        });
+        child.on('close', (code) => {
+            resolve(code);
+        });
+        child.on('error', (error: Error) => {
+            reject(error);
         });
     });
 }

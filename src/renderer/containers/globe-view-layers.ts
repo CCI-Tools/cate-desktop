@@ -8,7 +8,7 @@ import {
 } from "../components/cesium/CesiumGlobe";
 import {
     findVariable, findResource, getTileUrl, getFeatureCollectionUrl, getGeoJSONCountriesUrl,
-    SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, PLACEMARKS_LAYER_ID,
+    SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID,
 } from "../state-util";
 import {memoize} from '../../common/memoize';
 import {EMPTY_OBJECT} from "../selectors";
@@ -135,7 +135,7 @@ function convertVectorLayerToDescriptor(layer: VectorLayerState,
     let style = layer.style;
     if (layer.id === COUNTRIES_LAYER_ID) {
         data = getGeoJSONCountriesUrl(baseUrl);
-    } else if (layer.id === PLACEMARKS_LAYER_ID) {
+    } else if (layer.id === MY_PLACES_LAYER_ID) {
         data = placemarkCollection;
     }
     return {

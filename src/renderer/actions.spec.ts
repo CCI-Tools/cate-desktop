@@ -2,13 +2,16 @@ import {createStore, applyMiddleware} from 'redux';
 import * as actions from './actions';
 import {stateReducer} from './reducers';
 import thunk from 'redux-thunk'
-import {LayerState, ResourceState, State, VariableState} from "./state";
+import {LayerState, Placemark, ResourceState, State, VariableState} from "./state";
 import {should, expect} from 'chai';
 import {
-    SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, PLACEMARKS_LAYER_ID, EXTERNAL_OBJECT_STORE,
-    PLACEMARKS_LAYER, COUNTRIES_LAYER, SELECTED_VARIABLE_LAYER
+    SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID, EXTERNAL_OBJECT_STORE,
+    MY_PLACES_LAYER, COUNTRIES_LAYER, SELECTED_VARIABLE_LAYER
 } from "./state-util";
-import {ExternalObjectComponent} from "./components/ExternalObjectComponent";
+import {
+    featurePropertiesFromSimpleStyle, SimpleStyle,
+    simpleStyleFromFeatureProperties
+} from "../common/geojson-simple-style";
 
 should();
 
@@ -33,7 +36,7 @@ describe('Actions', () => {
 
     const defaultSelectedVariableLayer = {...SELECTED_VARIABLE_LAYER};
     const defaultCountriesLayer = {...COUNTRIES_LAYER};
-    const defaultPlacemarkLayer = {...PLACEMARKS_LAYER};
+    const defaultMyPlacesLayer = {...MY_PLACES_LAYER};
 
     beforeEach(function () {
         const middleware = applyMiddleware(thunk);
@@ -356,7 +359,7 @@ describe('Actions', () => {
                 [
                     {
                         id: SELECTED_VARIABLE_LAYER_ID,
-                        name: "Variable: res_1.analysed_sst",
+                        name: "Variable res_1.analysed_sst",
                         type: "VariableImage",
                         visible: true,
                         resId: 0,
@@ -375,7 +378,7 @@ describe('Actions', () => {
                         saturation: 1,
                     },
                     defaultCountriesLayer,
-                    defaultPlacemarkLayer
+                    defaultMyPlacesLayer
                 ]);
         });
 
@@ -388,11 +391,11 @@ describe('Actions', () => {
                     {
                         id: SELECTED_VARIABLE_LAYER_ID,
                         type: "Unknown",
-                        name: "Variable: profile (not geo-spatial)",
+                        name: "Variable profile (not geo-spatial)",
                         visible: true,
                     },
                     defaultCountriesLayer,
-                    defaultPlacemarkLayer
+                    defaultMyPlacesLayer
                 ]);
         });
 
@@ -400,7 +403,7 @@ describe('Actions', () => {
             const selectedVariableLayerOld = {
                 id: SELECTED_VARIABLE_LAYER_ID,
                 type: "VariableImage",
-                name: "Variable: res_1.analysed_sst",
+                name: "Variable res_1.analysed_sst",
                 visible: true,
                 resId: 0,
                 resName: "res_1",
@@ -420,7 +423,7 @@ describe('Actions', () => {
             const selectedVariableLayerNew = {
                 id: SELECTED_VARIABLE_LAYER_ID,
                 type: "VariableImage",
-                name: "Variable: res_1.sst_error",
+                name: "Variable res_1.sst_error",
                 visible: true,
                 resId: 0,
                 resName: "res_1",
@@ -446,11 +449,11 @@ describe('Actions', () => {
                 varIndex: [139],
                 displayMax: 300
             } as any));
-            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayer, defaultPlacemarkLayer]);
+            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayer, defaultMyPlacesLayer]);
             dispatch(actions.setSelectedVariable(getRes(), getVar('sst_error'), getState().session.savedLayers));
-            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayer, defaultPlacemarkLayer]);
+            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayer, defaultMyPlacesLayer]);
             dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst'), getState().session.savedLayers));
-            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayer, defaultPlacemarkLayer]);
+            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayer, defaultMyPlacesLayer]);
         });
 
         it('addVariableLayer', () => {
@@ -459,7 +462,7 @@ describe('Actions', () => {
             expect(getActiveView().data.layers.length).to.equal(4);
             expect(getActiveView().data.layers[0].id).to.equal(SELECTED_VARIABLE_LAYER_ID);
             expect(getActiveView().data.layers[1]).to.deep.equal(defaultCountriesLayer);
-            expect(getActiveView().data.layers[2]).to.deep.equal(defaultPlacemarkLayer);
+            expect(getActiveView().data.layers[2]).to.deep.equal(defaultMyPlacesLayer);
             expect(getActiveView().data.layers[3].id.startsWith('layer-')).to.be.true;
         });
 
@@ -468,7 +471,7 @@ describe('Actions', () => {
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
                                                                   defaultCountriesLayer,
-                                                                  defaultPlacemarkLayer,
+                                                                  defaultMyPlacesLayer,
                                                                   {id: 'layer-2', visible: true},
                                                               ]);
         });
@@ -480,7 +483,7 @@ describe('Actions', () => {
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
                                                                   defaultCountriesLayer,
-                                                                  defaultPlacemarkLayer,
+                                                                  defaultMyPlacesLayer,
                                                                   {id: 'layer-1', visible: true},
                                                               ]);
         });
@@ -493,7 +496,7 @@ describe('Actions', () => {
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
                                                                   defaultCountriesLayer,
-                                                                  defaultPlacemarkLayer,
+                                                                  defaultMyPlacesLayer,
                                                                   {id: 'layer-1', visible: true},
                                                                   {id: 'layer-2', visible: false},
                                                                   {id: 'layer-3', visible: true},
@@ -502,7 +505,7 @@ describe('Actions', () => {
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
                                                                   defaultCountriesLayer,
-                                                                  defaultPlacemarkLayer,
+                                                                  defaultMyPlacesLayer,
                                                                   {id: 'layer-1', name: 'LX', visible: true},
                                                                   {id: 'layer-2', visible: false},
                                                                   {id: 'layer-3', visible: true},
@@ -518,14 +521,14 @@ describe('Actions', () => {
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
                                                                   defaultCountriesLayer,
-                                                                  defaultPlacemarkLayer,
+                                                                  defaultMyPlacesLayer,
                                                                   {id: 'layer-1', visible: true, type: "Vector"},
                                                               ]);
             dispatch(actions.updateLayerStyle(getActiveViewId(), 'layer-1', {fill: "#123456", fillOpacity: 0.4}));
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
                                                                   defaultCountriesLayer,
-                                                                  defaultPlacemarkLayer,
+                                                                  defaultMyPlacesLayer,
                                                                   {
                                                                       id: 'layer-1', visible: true, type: "Vector",
                                                                       style: {
@@ -537,7 +540,7 @@ describe('Actions', () => {
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
                                                                   defaultCountriesLayer,
-                                                                  defaultPlacemarkLayer,
+                                                                  defaultMyPlacesLayer,
                                                                   {
                                                                       id: 'layer-1',
                                                                       visible: true,
@@ -556,7 +559,7 @@ describe('Actions', () => {
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultSelectedVariableLayer,
                                                                   defaultCountriesLayer,
-                                                                  defaultPlacemarkLayer
+                                                                  defaultMyPlacesLayer
                                                               ]);
 
             dispatch(actions.setShowSelectedVariableLayer(false));
@@ -568,7 +571,7 @@ describe('Actions', () => {
                                                                       type: 'Unknown'
                                                                   },
                                                                   defaultCountriesLayer,
-                                                                  defaultPlacemarkLayer
+                                                                  defaultMyPlacesLayer
                                                               ]);
         });
 
@@ -640,21 +643,22 @@ describe('Actions', () => {
             // Prepare test scenario with one user layer and one placemark
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.addLayer(getActiveViewId(), layer1 as LayerState, false));
-            dispatch(actions.addPlacemark({longitude: 11.8, latitude: 8.4}));
-            const placemarkId = getState().session.placemarkCollection.features[0].id;
-            const expectedPlacemark = {
-                id: placemarkId,
+            const placemark = {
                 type: "Feature",
+                id: "pippo",
                 geometry: {
                     type: "Point",
-                    coordinates: [11.8, 8.4],
+                    coordinates: [11.8, 8.4]
                 },
-                properties: {
+                properties: {visible: true}
+            };
+            dispatch(actions.addPlacemark(placemark as Placemark));
+            const placemarkId = getState().session.placemarkCollection.features[0].id;
+            const expectedPlacemark = {
+                ...placemark, properties: {
                     visible: true,
-                    "title": "Placemark A",
-                    "marker-symbol": "A",
-                    "marker-size": "small",
-                    "marker-color": "#FF0000",
+                    title: "Point 1",
+                    "marker-symbol": "1",
                 }
             };
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal(expectedPlacemark);
@@ -682,12 +686,12 @@ describe('Actions', () => {
 
             // Cesium.DataSource mock instances
             const countriesDataSource = new DataSource([entity1, entity2]);
-            const placemarksDataSource = new DataSource([entity3]);
+            const myPlacesDataSource = new DataSource([entity3]);
             const userDataSource = new DataSource([entity4, entity5]);
 
             // Cesium.Viewer mock instance
             const cesiumViewer = {
-                dataSources: new DataSourceCollection([countriesDataSource, placemarksDataSource, userDataSource]),
+                dataSources: new DataSourceCollection([countriesDataSource, myPlacesDataSource, userDataSource]),
             };
 
             // ExternalObjectComponent state mock instance
@@ -697,7 +701,7 @@ describe('Actions', () => {
                 state: {
                     dataSourceMap: {
                         [COUNTRIES_LAYER_ID]: countriesDataSource,
-                        [PLACEMARKS_LAYER_ID]: placemarksDataSource,
+                        [MY_PLACES_LAYER_ID]: myPlacesDataSource,
                         "user-layer-1": userDataSource,
                     }
                 },
@@ -707,19 +711,19 @@ describe('Actions', () => {
             EXTERNAL_OBJECT_STORE["CesiumGlobe-" + getActiveViewId()] = externalObject;
 
             const countriesLayerIndex = 1;
-            const placemarksLayerIndex = 2;
+            const myPlacesLayerIndex = 2;
             const userLayerIndex = 3;
 
             let countryLayer = getActiveView().data.layers[countriesLayerIndex];
-            let placemarksLayer = getActiveView().data.layers[placemarksLayerIndex];
+            let myPlacesLayer = getActiveView().data.layers[myPlacesLayerIndex];
             let userLayer = getActiveView().data.layers[userLayerIndex];
 
             expect(countryLayer.id).to.equal(COUNTRIES_LAYER_ID);
-            expect(placemarksLayer.id).to.equal(PLACEMARKS_LAYER_ID);
+            expect(myPlacesLayer.id).to.equal(MY_PLACES_LAYER_ID);
             expect(userLayer.id).to.equal("user-layer-1");
 
             expect(countryLayer.entityStyles).to.not.exist;
-            expect(placemarksLayer.entityStyles).to.not.exist;
+            expect(myPlacesLayer.entityStyles).to.not.exist;
             expect(userLayer.entityStyles).to.not.exist;
 
             // Style change on entity of Countries layer --> change in countryLayer.entityStyles
@@ -733,9 +737,9 @@ describe('Actions', () => {
             expect(countryLayer.entityStyles).to.exist;
             expect(countryLayer.entityStyles[entity1.id]).to.exist;
             expect(countryLayer.entityStyles[entity1.id]).to.deep.equal({
-                                                                       fill: "#123456",
-                                                                       fillOpacity: 0.3,
-                                                                   });
+                                                                            fill: "#123456",
+                                                                            fillOpacity: 0.3,
+                                                                        });
 
             // Another style change on entity of Countries layer--> change in countryLayer.entityStyles
             //
@@ -746,11 +750,11 @@ describe('Actions', () => {
 
             countryLayer = getActiveView().data.layers[countriesLayerIndex];
             expect(countryLayer.entityStyles[entity1.id]).to.deep.equal({
-                                                                       fill: "#123456",
-                                                                       fillOpacity: 0.3,
-                                                                       stroke: "#615243",
-                                                                       strokeOpacity: 0.9,
-                                                                   });
+                                                                            fill: "#123456",
+                                                                            fillOpacity: 0.3,
+                                                                            stroke: "#615243",
+                                                                            strokeOpacity: 0.9,
+                                                                        });
 
             // Yet another style change on another entity of Countries layer --> change in countryLayer.entityStyles
             //
@@ -761,15 +765,15 @@ describe('Actions', () => {
 
             countryLayer = getActiveView().data.layers[countriesLayerIndex];
             expect(countryLayer.entityStyles[entity1.id]).to.deep.equal({
-                                                                       fill: "#123456",
-                                                                       fillOpacity: 0.3,
-                                                                       stroke: "#615243",
-                                                                       strokeOpacity: 0.9,
-                                                                   });
+                                                                            fill: "#123456",
+                                                                            fillOpacity: 0.3,
+                                                                            stroke: "#615243",
+                                                                            strokeOpacity: 0.9,
+                                                                        });
             expect(countryLayer.entityStyles[entity2.id]).to.deep.equal({
-                                                                       fill: "#112233",
-                                                                       fillOpacity: 0.4,
-                                                                   });
+                                                                            fill: "#112233",
+                                                                            fillOpacity: 0.4,
+                                                                        });
 
             // Style change on a placemark entity --> change in state.session.placemarkCollection
             //
@@ -778,14 +782,16 @@ describe('Actions', () => {
                 markerSymbol: "bus",
             }));
 
-            placemarksLayer = getActiveView().data.layers[placemarksLayerIndex];
-            expect(placemarksLayer.entityStyles).to.not.exist; // placemark styles go into feature properties
-            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({...expectedPlacemark,
-                                                                                     properties: {
-                                                                                         ...expectedPlacemark.properties,
-                                                                                         "marker-size": "large",
-                                                                                         "marker-symbol": "bus",
-                                                                                     }});
+            myPlacesLayer = getActiveView().data.layers[myPlacesLayerIndex];
+            expect(myPlacesLayer.entityStyles).to.not.exist; // placemark styles go into feature properties
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
+                                                                                         ...expectedPlacemark,
+                                                                                         properties: {
+                                                                                             ...expectedPlacemark.properties,
+                                                                                             "marker-size": "large",
+                                                                                             "marker-symbol": "bus",
+                                                                                         }
+                                                                                     });
 
             // Style change on a user entity --> change in userLayer.entityStyles
             //
@@ -802,32 +808,27 @@ describe('Actions', () => {
         });
     });
 
-    describe('Placemark actions', () => {
+    describe('Feature actions', () => {
 
         it('updatePlacemarkStyle', () => {
-            dispatch(actions.addPlacemark({longitude: 12.6, latitude: 53.1}));
+            const placemark = {
+                type: "Feature",
+                id: "pippo",
+                geometry: {
+                    type: "Point",
+                    coordinates: [12.6, 53.1]
+                },
+                properties: {visible: true}
+            } as Placemark;
+            dispatch(actions.addPlacemark(placemark));
             expect(getState().session.placemarkCollection).to.exist;
             expect(getState().session.placemarkCollection.features.length).to.equal(1);
-            const placemark = getState().session.placemarkCollection.features[0];
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
                                                                                          ...placemark,
                                                                                          properties: {
                                                                                              visible: true,
-                                                                                             "title": "Placemark A",
-                                                                                             "marker-symbol": "A",
-                                                                                             "marker-size": "small",
-                                                                                             "marker-color": "#FF0000",
-                                                                                         }
-                                                                                     });
-            dispatch(actions.updatePlacemarkStyle(placemark.id, {title: "Placemark V"}));
-            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
-                                                                                         ...placemark,
-                                                                                         properties: {
-                                                                                             visible: true,
-                                                                                             "title": "Placemark V",
-                                                                                             "marker-symbol": "V",
-                                                                                             "marker-size": "small",
-                                                                                             "marker-color": "#FF0000",
+                                                                                             title: "Point 1",
+                                                                                             "marker-symbol": "1",
                                                                                          }
                                                                                      });
             dispatch(actions.updatePlacemarkStyle(placemark.id, {title: "Bibo"}));
@@ -835,10 +836,8 @@ describe('Actions', () => {
                                                                                          ...placemark,
                                                                                          properties: {
                                                                                              visible: true,
-                                                                                             "title": "Bibo",
-                                                                                             "marker-symbol": "B",
-                                                                                             "marker-size": "small",
-                                                                                             "marker-color": "#FF0000",
+                                                                                             title: "Bibo",
+                                                                                             "marker-symbol": "1",
                                                                                          }
                                                                                      });
             dispatch(actions.updatePlacemarkStyle(placemark.id, {markerSymbol: "bus"}));
@@ -846,29 +845,36 @@ describe('Actions', () => {
                                                                                          ...placemark,
                                                                                          properties: {
                                                                                              visible: true,
-                                                                                             "title": "Bibo",
+                                                                                             title: "Bibo",
                                                                                              "marker-symbol": "bus",
-                                                                                             "marker-size": "small",
-                                                                                             "marker-color": "#FF0000",
                                                                                          }
                                                                                      });
         });
 
         it('updatePlacemarkGeometry', () => {
-            dispatch(actions.addPlacemark({longitude: 12.6, latitude: 53.1}));
+            const placemark = {
+                type: "Feature",
+                id: "pippo",
+                geometry: {
+                    type: "Point",
+                    coordinates: [12.6, 53.1]
+                },
+                properties: {}
+            } as Placemark;
+            dispatch(actions.addPlacemark(placemark));
             expect(getState().session.placemarkCollection).to.exist;
             expect(getState().session.placemarkCollection.features.length).to.equal(1);
-            const placemark = getState().session.placemarkCollection.features[0];
-            expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
-                                                                                         ...placemark,
-                                                                                         geometry: {
-                                                                                             type: "Point",
-                                                                                             coordinates: [12.6, 53.1],
-                                                                                         }
-                                                                                     });
+            let expectedPlacemark = {
+                ...placemark,
+                properties: {
+                    "marker-symbol": "1",
+                    "title": "Point 1",
+                }
+            };
+            expect(getState().session.placemarkCollection.features[0]).to.deep.equal(expectedPlacemark);
             dispatch(actions.updatePlacemarkGeometry(placemark.id, {coordinates: [13.2, 53.1]}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
-                                                                                         ...placemark,
+                                                                                         ...expectedPlacemark,
                                                                                          geometry: {
                                                                                              type: "Point",
                                                                                              coordinates: [13.2, 53.1],
@@ -912,7 +918,7 @@ describe('Actions', () => {
                 [
                     {...SELECTED_VARIABLE_LAYER},
                     {...COUNTRIES_LAYER},
-                    {...PLACEMARKS_LAYER},
+                    {...MY_PLACES_LAYER},
                     {id: 'L1', resId: 1, resName: 'res_1', varName: 'X'},
                     {id: 'L2', resId: 2, resName: 'bert', varName: 'X'},
                 ]);

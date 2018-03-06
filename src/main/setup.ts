@@ -24,7 +24,7 @@ export function doSetup(setupInfo: SetupInfo, callback: (result?: SetupResult) =
         const setupWindow = new electron.BrowserWindow({
                                                            title: dialogTitle,
                                                            width: 600,
-                                                           height: 440,
+                                                           height: 380,
                                                            center: true,
                                                            show: true,
                                                            minimizable: false,
@@ -43,7 +43,9 @@ export function doSetup(setupInfo: SetupInfo, callback: (result?: SetupResult) =
         setupWindow.webContents.on('did-finish-load', () => {
             setupWindow.webContents.send("setSetupInfo", setupInfo);
         });
-        setupWindow.webContents.openDevTools();
+        if (process.env.NODE_ENV === 'development') {
+            setupWindow.webContents.openDevTools();
+        }
         setupWindow.on('close', () => callback());
         electron.ipcMain.on("cancelSetup", cancelSetup(setupWindow, callback));
         electron.ipcMain.on("endSetup", endSetup(setupWindow, callback));
@@ -234,19 +236,23 @@ export function performSetupTasks(event, setupInfo: SetupInfo, setupOptions: Set
         const installOrUpdateCate = new InstallOrUpdateCate(newCateVersion, installCondaEnv.getCondaEnvDir(), [installCondaEnv.id]);
         transactions = [installCondaEnv, installOrUpdateCate];
     } else {
-        event.sender.send(channel, {error: "?"});
+        event.sender.send(channel, {message: "Internal error: illegal cate setup mode: " + cateMode});
         return;
     }
 
     const transactionSet = new TransactionSet(transactions);
     transactionSet.fulfillTransaction(transactions[transactions.length - 1].id, (progress: TransactionProgress) => {
         log.silly(progress);
-        event.sender.send(channel, 0, null, progress);
+        event.sender.send(channel, null, progress);
     }).then(() => {
         log.info('Setup successful');
-        event.sender.send(channel, 0);
+        event.sender.send(channel);
     }).catch((error: TransactionError) => {
         log.error('Setup failed:', error);
-        event.sender.send(channel, -1, error.reason);
+        const reason = error.reason;
+        const name = reason.name;
+        const message = reason.message || reason.toString();
+        const stack = reason.stack;
+        event.sender.send(channel, {name, message, stack});
     });
 }

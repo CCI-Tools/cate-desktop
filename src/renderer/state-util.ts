@@ -2,7 +2,7 @@ import {
     VariableState, VariableRefState, ResourceState, LayerState,
     VariableImageLayerState, OperationState, WorldViewDataState,
     TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState, ResourceRefState,
-    ResourceVectorLayerState, VectorLayerBase
+    ResourceVectorLayerState, VectorLayerBase, Placemark, PlacemarkCollection
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
@@ -15,7 +15,7 @@ import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../common/geojson-simple-style
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
 export const COUNTRIES_LAYER_ID = 'countries';
-export const PLACEMARKS_LAYER_ID = 'myPlaces';
+export const MY_PLACES_LAYER_ID = 'myPlaces';
 
 export const SELECTED_VARIABLE_LAYER = {
     id: SELECTED_VARIABLE_LAYER_ID,
@@ -34,18 +34,24 @@ export const COUNTRIES_LAYER = {
     },
 };
 
-export const PLACEMARKS_LAYER = {
-    id: PLACEMARKS_LAYER_ID,
-    name: 'Placemarks',
+export const MY_PLACES_LAYER = {
+    id: MY_PLACES_LAYER_ID,
+    name: 'My Places',
     type: 'Vector',
     visible: true,
     style: {
-        title: "",
         markerSize: "small",
-        markerColor: "#FF0000",
+        markerColor: "#ff0000",
         markerSymbol: "",
+        fill: "#0000ff",
+        fillOpacity: 0.5,
+        stroke: "#ffff00",
+        strokeOpacity: 0.5,
+        strokeWidth: 1,
     },
 };
+
+export const PLACEMARK_ID_PREFIX = "placemark-";
 
 export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImageLayerState): string {
     return baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${layer.resId}/{z}/{y}/{x}.png?`
@@ -98,10 +104,6 @@ export function genSimpleId(prefix: string): string {
 
 export function genLayerId() {
     return genSimpleId('layer-');
-}
-
-export function genPlacemarkId() {
-    return genSimpleId('placemark-');
 }
 
 export function isFigureResource(resource: ResourceState | null): boolean {
@@ -215,7 +217,7 @@ function newInitialWorldViewData(): WorldViewDataState {
         layers: [
             {...SELECTED_VARIABLE_LAYER},
             {...COUNTRIES_LAYER},
-            {...PLACEMARKS_LAYER},
+            {...MY_PLACES_LAYER},
         ],
         selectedLayerId: SELECTED_VARIABLE_LAYER_ID,
         isSelectedLayerSplit: null,
@@ -418,7 +420,7 @@ export function updateSelectedVariableLayer(layer: LayerState,
             ...layer,
             ...restoredLayer,
             type: 'VariableImage',
-            name: `Variable: ${resource.name}.${variable.name}`,
+            name: `Variable ${resource.name}.${variable.name}`,
             resId: resource.id,
             resName: resource.name,
             varName: variable.name,
@@ -442,7 +444,7 @@ export function updateSelectedVariableLayer(layer: LayerState,
         return {
             id: SELECTED_VARIABLE_LAYER_ID,
             type: 'Unknown' as any,
-            name: variable ? `Variable: ${variable.name} (not geo-spatial)` : '(no selection)',
+            name: variable ? `Variable ${variable.name} (not geo-spatial)` : '(no selection)',
             visible: layer.visible,
         } as any;
     }
@@ -544,4 +546,26 @@ export function hasWebGL(): boolean {
     canvas = null;
     context = null;
     return true;
+}
+
+
+export function getPlacemarkTitleAndIndex(placemark: Placemark, placemarks: PlacemarkCollection): {title:string|undefined, index:number|undefined} {
+    const type = placemark.geometry.type;
+    const features = placemarks.features;
+    const titles = new Set<string>();
+    for (let f of features) {
+        const props = f.properties;
+        if (props && props.title && props.title.startsWith(type)) {
+            titles.add(props.title);
+        }
+    }
+    let title, index, t;
+    for (index = 1; index <= features.length + 1; index++) {
+        t = `${type} ${index}`;
+        if (!titles.has(t)) {
+            title = t;
+            break;
+        }
+    }
+    return {title, index};
 }

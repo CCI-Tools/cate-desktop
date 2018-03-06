@@ -25,6 +25,7 @@ interface IOperationsPanelProps {
     operationFilterTags: string[];
     operationFilterExpr: string | null;
     operationsTagCounts: Map<string, number>,
+    operationListHeight: number;
     showOperationDetails: boolean;
 }
 
@@ -39,6 +40,7 @@ function mapStateToProps(state: State): IOperationsPanelProps {
         operationFilterTags: selectors.operationFilterTagsSelector(state) || selectors.EMPTY_ARRAY,
         operationFilterExpr: selectors.operationFilterExprSelector(state),
         operationsTagCounts: selectors.operationsTagCountsSelector(state),
+        operationListHeight: state.session.operationListHeight,
         showOperationDetails: state.session.showOperationDetails,
     };
 }
@@ -55,8 +57,13 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
         this.handleOperationSelection = this.handleOperationSelection.bind(this);
         this.handleOperationFilterExprCleared = this.handleOperationFilterExprCleared.bind(this);
         this.handleOperationFilterExprChange = this.handleOperationFilterExprChange.bind(this);
+        this.handleListHeightChanged = this.handleListHeightChanged.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleAddOperationStepButtonClicked = this.handleAddOperationStepButtonClicked.bind(this);
+    }
+
+    private handleListHeightChanged(value: number) {
+        this.props.dispatch(actions.setSessionProperty('operationListHeight', value));
     }
 
     private handleShowDetailsChanged(value: boolean) {
@@ -145,7 +152,8 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
                 <ContentWithDetailsPanel showDetails={this.props.showOperationDetails}
                                          onShowDetailsChange={this.handleShowDetailsChanged}
                                          isSplitPanel={true}
-                                         initialContentHeight={200}
+                                         contentHeight={this.props.operationListHeight}
+                                         onContentHeightChange={this.handleListHeightChanged}
                                          actionComponent={actionComponent}>
                     {operationsList}
                     {operationDetailsCard}

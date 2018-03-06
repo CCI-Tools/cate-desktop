@@ -11,6 +11,7 @@ interface ISetupScreenProps {
     nextButtonDisabled?: boolean;
     nextButtonLabel?: string;
     nextButtonIcon?: string;
+    nextButtonIntent?: Intent;
     onBackButtonClick?: () => void;
     onNextButtonClick?: () => void;
     onCancelClick: () => void;
@@ -65,9 +66,9 @@ export class SetupScreen extends React.PureComponent<ISetupScreenProps> {
         let nextButton;
         if (!this.props.noNextButton) {
             nextButton = <Button style={{marginRight: 24}}
-                                 iconName={this.props.nextButtonIcon as any || "arrow-right"}
+                                 rightIconName={this.props.nextButtonIcon as any || "arrow-right"}
                                  text={this.props.nextButtonLabel || "Next"}
-                                 intent={Intent.PRIMARY}
+                                 intent={this.props.nextButtonIntent || Intent.PRIMARY}
                                  disabled={this.props.nextButtonDisabled}
                                  onClick={this.props.onNextButtonClick}/>;
         }

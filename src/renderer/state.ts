@@ -5,6 +5,7 @@ import {ViewLayoutState, ViewState} from "./components/ViewState";
 import {Feature, FeatureCollection, GeoJsonObject, Point} from "geojson";
 import {IconName} from "@blueprintjs/core";
 import {SimpleStyle} from "../common/geojson-simple-style";
+import {GeometryToolType} from "./components/cesium/geometry-tool";
 
 /**
  * Interface describing Cate's application state structure.
@@ -622,6 +623,7 @@ export interface TaskState {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ControlState
 
+
 /**
  * Control State is state which is specific to a given container component, and which is not stored in the screen’s
  * URL or in the HTML5 History API.
@@ -645,8 +647,7 @@ export interface ControlState {
     views: ViewState<any>[];
     activeViewId: string | null;
 
-    // Will later be replaced by geometry creation/editing tools.
-    worldViewClickAction: string | null;
+    newPlacemarkToolType: GeometryToolType;
 
     // Used to force component update after an entity's properties have changed
     entityUpdateCount: number;
@@ -717,6 +718,7 @@ export interface SessionState {
     selectedDataStoreId: string | null;
     selectedDataSourceId: string | null;
     dataSourceFilterExpr: string;
+    dataSourceListHeight: number;
     showDataSourceDetails: boolean;
     showDataSourceTitles: boolean;
 
@@ -724,27 +726,33 @@ export interface SessionState {
     selectedOperationName: string | null;
     operationFilterTags: string[];
     operationFilterExpr: string;
+    operationListHeight: number;
     showOperationDetails: boolean;
 
     // WorkspacePanel
     workspacePanelMode: 'resources' | 'steps';
+    resourceListHeight: number;
     showResourceDetails: boolean;
+    workflowStepListHeight: number;
     showWorkflowStepDetails: boolean;
 
     // VariablePanel
+    variableListHeight: number;
     showVariableDetails: boolean;
 
     // LayersPanel
     showSelectedVariableLayer: boolean;
+    layerListHeight: number;
     showLayerDetails: boolean;
     savedLayers: SavedLayers;
-    vectorStyleMode: "entity" | "layer";
+    styleContext: "entity" | "layer";
 
     // PlacemarksPanel
-    placemarkCollection: PlacemarkCollection | null;
+    placemarkCollection: PlacemarkCollection;
     selectedPlacemarkId: string | null;
+    placemarkListHeight: number;
     showPlacemarkDetails: boolean;
-    placemarkCounter: number;
+    defaultPlacemarkStyle: SimpleStyle;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
