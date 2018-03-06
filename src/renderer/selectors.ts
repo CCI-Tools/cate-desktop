@@ -45,6 +45,7 @@ import * as Cesium from 'cesium';
 import {GeometryWKTGetter} from './containers/editor/ValueEditor';
 import {entityToSimpleStyle} from './components/cesium/cesium-util';
 import {SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties} from '../common/geojson-simple-style';
+import {GeometryToolType} from "./components/cesium/geometry-tool";
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -153,10 +154,12 @@ export const selectedRightBottomPanelIdSelector = (state: State): string
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Placemark selectors
 
+export const newPlacemarkToolTypeSelector = (state: State): GeometryToolType => state.control.newPlacemarkToolType;
 export const placemarkCollectionSelector = (state: State): PlacemarkCollection => state.session.placemarkCollection;
 export const placemarksSelector = (state: State): Placemark[] => state.session.placemarkCollection.features;
 export const selectedPlacemarkIdSelector = (state: State): string | null => state.session.selectedPlacemarkId;
 export const showPlacemarkDetailsSelector = (state: State): boolean => state.session.showPlacemarkDetails;
+export const defaultPlacemarkStyleSelector = (state: State): SimpleStyle => state.session.defaultPlacemarkStyle;
 
 export const selectedPlacemarkSelector = createSelector<State,
     Placemark | null,
@@ -734,40 +737,25 @@ export const selectedVectorLayerSelector = createSelector<State, VectorLayerStat
 
 export const entityUpdateCountSelector = (state: State) => state.control.entityUpdateCount;
 
-export const vectorStyleModeSelector = (state: State) => state.session.vectorStyleMode;
-
-export const effectiveStyleModeSelector = createSelector<State, 'entity' | 'layer', 'entity' | 'layer', Cesium.Entity | null, LayerState | null>(
-    vectorStyleModeSelector,
-    selectedEntitySelector,
-    selectedLayerSelector,
-    (vectorStyleModeSelector, selectedEntitySelector, selectedLayerSelector): 'entity' | 'layer' => {
-        if (selectedEntitySelector && selectedLayerSelector) {
-            return vectorStyleModeSelector;
-        } else if (selectedEntitySelector) {
-            return 'entity';
-        } else {
-            return 'layer';
-        }
-    });
+export const styleContextSelector = (state: State) => state.session.styleContext;
 
 // noinspection JSUnusedLocalSymbols
 export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<any>, string, VectorLayerState | null, Placemark | null, Cesium.Entity | null, number>(
     activeViewSelector,
-    effectiveStyleModeSelector,
+    styleContextSelector,
     selectedVectorLayerSelector,
     selectedPlacemarkSelector,
     selectedEntitySelector,
     entityUpdateCountSelector,
-    (view: ViewState<any>, vectorStyleMode, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
+    (view: ViewState<any>, styleContext, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
         const selectedLayerStyle = selectedVectorLayer && selectedVectorLayer.style;
         let style;
-        if (vectorStyleMode === 'layer') {
+        if (styleContext === 'layer') {
             style = selectedLayerStyle;
-        } else if (vectorStyleMode === 'entity') {
+        } else if (styleContext === 'entity') {
             if (selectedPlacemark) {
                 const placemarkStyle = simpleStyleFromFeatureProperties(selectedPlacemark.properties);
-                const placemarkVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
-                style = {...selectedLayerStyle, ...placemarkVectorLayer, ...placemarkStyle};
+                style = {...selectedLayerStyle, ...placemarkStyle};
             } else if (selectedEntity) {
                 const entityStyle = entityToSimpleStyle(selectedEntity);
                 const entityVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);

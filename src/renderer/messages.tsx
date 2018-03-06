@@ -87,17 +87,17 @@ export const NO_WEB_GL = (
         visual={ICON_DISABLE}/>
 );
 
-export const NO_PLACEMARKS = (
+export const NO_PLACES = (
     <NonIdealState
-        title="No placemarks"
-        description={<span>Press the <span className="pt-icon-selection"/> or <span className="pt-icon-add"/> button to add a placemark.</span>}
+        title="No places"
+        description={<span>Press the <span className="pt-icon-selection"/> or <span className="pt-icon-add"/> button to add a place.</span>}
         visual={ICON_CIRCLE}/>
 );
 
-export const NO_PLACEMARK_SELECTED = (
+export const NO_PLACE_SELECTED = (
     <NonIdealState
-        title="No placemark selected"
-        description="Select a placemark to browse and edit its details."
+        title="No place selected"
+        description="Select a place to show and edit its details."
         visual={ICON_CIRCLE}/>
 );
 
@@ -122,17 +122,17 @@ export const NO_LAYER_SELECTED = (
         visual={ICON_CIRCLE}/>
 );
 
-export const STYLE_UNAVAILABLE_NO_LAYER_SELECTED = (
+export const NO_LAYER_FOR_STYLE = (
     <NonIdealState
         title="Styles unavailable"
-        description="Select a layer to modify its styles."
+        description="Select a layer in the LAYERS panel to modify its style."
         visual={ICON_CIRCLE}/>
 );
 
-export const NO_STYLE_PROPERTIES = (
+export const NO_ENTITY_FOR_STYLE = (
     <NonIdealState
-        title="No style properties"
-        description="The selected layer doesn't have any editable style properties."
+        title="Styles unavailable"
+        description="Select an entity in the World View to modify its style."
         visual={ICON_CIRCLE}/>
 );
 

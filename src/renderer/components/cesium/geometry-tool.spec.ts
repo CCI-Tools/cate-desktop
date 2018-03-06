@@ -1,8 +1,8 @@
 import {should, expect} from 'chai';
 import {
     ToolContextBase, PolygonTool, PolylineTool, polylineColor, polygonColor, PointTool,
-    BoxTool
-} from "./GeometryTool";
+    BoxTool, NO_TOOL
+} from "./geometry-tool";
 
 
 class TestToolContext extends ToolContextBase {
@@ -15,7 +15,7 @@ class TestToolContext extends ToolContextBase {
         this.toolEntities = [];
     }
 
-    addEntity(entity) {
+    newEntity(entity) {
         this.entities.push(entity);
         return entity;
     }
@@ -49,6 +49,22 @@ class TestToolContext extends ToolContextBase {
 
 
 describe('GeometryTool', function () {
+    it('NoTool', function () {
+        const toolContext = new TestToolContext();
+        expect(toolContext.tool).to.equal(NO_TOOL);
+
+        toolContext.onMouseMove({endPosition: {longitude: 10, latitude: 11}});
+        toolContext.onMouseMove({endPosition: {longitude: 12, latitude: 9}});
+        toolContext.onLeftClick({position: {longitude: 10, latitude: 12}});
+        toolContext.onMouseMove({endPosition: {longitude: 13, latitude: 11}});
+        toolContext.onMouseMove({endPosition: {longitude: 18, latitude: 0}});
+        toolContext.onLeftClick({position: {longitude: 20, latitude: 15}});
+        toolContext.onMouseMove({endPosition: {longitude: 13, latitude: 11}});
+
+        expect(toolContext.entities).to.exist;
+        expect(toolContext.entities).to.deep.equal([]);
+    });
+
     it('PointTool', function () {
         const toolContext = new TestToolContext();
         toolContext.tool = new PointTool();
@@ -64,13 +80,17 @@ describe('GeometryTool', function () {
         expect(toolContext.entities).to.exist;
         expect(toolContext.entities).to.deep.equal([
                                                        {
+                                                           position: {height: 0, longitude: 10, latitude: 12},
                                                            point: {
-                                                               position: {longitude: 10, latitude: 12},
+                                                               outlineWidth: 1,
+                                                               pixelSize: 6,
                                                            }
                                                        },
                                                        {
+                                                           position: {height: 0, longitude: 20, latitude: 15},
                                                            point: {
-                                                               position: {longitude: 20, latitude: 15},
+                                                               outlineWidth: 1,
+                                                               pixelSize: 6,
                                                            }
                                                        }]);
 

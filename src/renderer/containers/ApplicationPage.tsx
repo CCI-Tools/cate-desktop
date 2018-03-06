@@ -212,7 +212,7 @@ class _RightPanel extends React.PureComponent<IRightPanelProps & IDispatch, null
                        body={<VariablePanel/>}/>
                 <Panel id="layers" position="top" iconName="pt-icon-layers" title="Layers"
                        body={<LayersPanel/>}/>
-                <Panel id="placemarks" position="top" iconName="pt-icon-map-marker" title="Placemarks"
+                <Panel id="placemarks" position="top" iconName="pt-icon-map-marker" title="My Places"
                        body={<PlacemarksPanel/>}/>
                 <Panel id="style" position="bottom" iconName="pt-icon-style" title="Styles"
                        body={<StylesPanel/>}/>
