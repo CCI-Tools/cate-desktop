@@ -2,7 +2,7 @@ import {combineReducers, Reducer} from 'redux';
 import deepEqual = require("deep-equal");
 import {
 State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
-LayerState, Placemark, VectorLayerBase
+LayerState, VectorLayerBase
 } from './state';
 import * as actions from './actions';
 import {Action} from "./actions";
@@ -11,38 +11,24 @@ import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
     newWorldView, newTableView, newFigureView, getFigureViewTitle,
-    hasWebGL, isVectorLayer, MY_PLACES_LAYER, PLACEMARK_ID_PREFIX, getPlacemarkTitleAndIndex,
+    isVectorLayer, PLACEMARK_ID_PREFIX, getPlacemarkTitleAndIndex,
 } from "./state-util";
 import {
 removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
 addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos,
 addViewToPanel, moveView, selectView
 } from "./components/ViewState";
-import {isDefined, isString} from "../common/types";
-import {featurePropertiesFromSimpleStyle, SimpleStyle} from "../common/geojson-simple-style";
+import {isString} from "../common/types";
+import {featurePropertiesFromSimpleStyle} from "../common/geojson-simple-style";
+import {
+    INITIAL_COMMUNICATION_STATE, INITIAL_CONTROL_STATE, INITIAL_DATA_STATE,
+    INITIAL_SESSION_STATE, INITIAL_LOCATION_STATE
+} from "./initial-state";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// state.data initial state and reducers
-
-const initialDataState: DataState = {
-    appConfig: {
-        webAPIConfig: {
-            servicePort: -1,
-            serviceAddress: '',
-            restUrl: '',
-            apiWebSocketUrl: '',
-            mplWebSocketUrl: '',
-        },
-        webAPIClient: null,
-        hasWebGL: hasWebGL(),
-    },
-    dataStores: null,
-    operations: null,
-    workspace: null,
-    colorMaps: null
-};
+// state.data reducers
 
 const updateDataStores = (state: DataState, action: Action, createDataSources: (dataStore: DataStoreState) => void): DataStoreState[] => {
     const dataStoreId = action.payload.dataStoreId;
@@ -58,7 +44,7 @@ const updateDataStores = (state: DataState, action: Action, createDataSources: (
     return updateObject(state, {dataStores: newDataStores});
 };
 
-const dataReducer = (state: DataState = initialDataState, action: Action) => {
+const dataReducer = (state: DataState = INITIAL_DATA_STATE, action: Action) => {
     switch (action.type) {
         case actions.UPDATE_INITIAL_STATE:
             const appConfig = updateObject(state.appConfig, action.payload.appConfig);
@@ -107,31 +93,10 @@ const dataReducer = (state: DataState = initialDataState, action: Action) => {
     return state;
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// state.control initial state and reducers
+// state.control reducers
 
-const initialView = newWorldView();
-
-const initialControlState: ControlState = {
-    selectedWorkflowStepId: null,
-    selectedWorkspaceResourceName: null,
-    selectedVariableName: null,
-    dialogs: {},
-
-    views: [initialView],
-    viewLayout: {
-        viewIds: [initialView.id],
-        selectedViewId: initialView.id,
-    },
-    activeViewId: initialView.id,
-
-    newPlacemarkToolType: "NoTool",
-    entityUpdateCount: 0,
-};
-
-
-const controlReducer = (state: ControlState = initialControlState, action: Action) => {
+const controlReducer = (state: ControlState = INITIAL_CONTROL_STATE, action: Action) => {
     switch (action.type) {
         case actions.RENAME_RESOURCE: {
             const resName = action.payload.resName;
@@ -596,64 +561,8 @@ const layerReducer = (state: LayerState, action: Action, isActiveView: boolean) 
     return state;
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// state.session initial state and reducers
-
-const initialSessionState: SessionState = {
-    reopenLastWorkspace: false,
-    lastWorkspacePath: null,
-    autoUpdateSoftware: true,
-    autoShowNewFigures: true,
-    offlineMode: false,
-    showSelectedVariableLayer: true,
-    savedLayers: {},
-
-    selectedDataStoreId: null,
-    selectedDataSourceId: null,
-    dataSourceFilterExpr: '',
-    selectedOperationName: null,
-    operationFilterTags: [],
-    operationFilterExpr: '',
-
-    showDataSourceDetails: true,
-    showResourceDetails: true,
-    showWorkflowStepDetails: true,
-    showOperationDetails: true,
-    showVariableDetails: true,
-    showLayerDetails: true,
-
-    panelContainerUndockedMode: false,
-    leftPanelContainerLayout: {horPos: 300, verPos: 400},
-    rightPanelContainerLayout: {horPos: 300, verPos: 400},
-    selectedLeftTopPanelId: 'dataSources',
-    selectedLeftBottomPanelId: 'operations',
-    selectedRightTopPanelId: 'workspace',
-    selectedRightBottomPanelId: 'variables',
-    placemarkCollection: {
-        type: 'FeatureCollection',
-        features: []
-    },
-    selectedPlacemarkId: null,
-    showPlacemarkDetails: true,
-    defaultPlacemarkStyle: {...MY_PLACES_LAYER.style} as SimpleStyle,
-
-    workspacePanelMode: 'steps',
-
-    showDataSourceTitles: true,
-    showLayerTextOverlay: true,
-    debugWorldView: false,
-    styleContext: "entity",
-
-    backendConfig: {
-        dataStoresPath: null,
-        useWorkspaceImageryCache: false,
-        resourceNamePattern: 'res_{index}',
-    },
-};
-
-
-const PLACEMARK_TITLE_PREFIX = "Placemark ";
+// state.session reducers
 
 let updatePlacemarkProperties = function (state: SessionState, placemarkId: any, properties: any) {
     const features = state.placemarkCollection.features.slice();
@@ -689,7 +598,7 @@ let updatePlacemarkGeometry = function (state: SessionState, placemarkId: any, g
     return {...state, placemarkCollection};
 };
 
-const sessionReducer = (state: SessionState = initialSessionState, action: Action) => {
+const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Action) => {
     switch (action.type) {
         case actions.SET_SELECTED_ENTITY_ID: {
             const selectedEntityId = action.payload.selectedEntityId || null;
@@ -768,14 +677,9 @@ const sessionReducer = (state: SessionState = initialSessionState, action: Actio
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// state.communication initial state and reducers
+// state.communication reducers
 
-const initialCommunicationState: CommunicationState = {
-    webAPIStatus: null,
-    tasks: {}
-};
-
-const communicationReducer = (state: CommunicationState = initialCommunicationState, action: Action) => {
+const communicationReducer = (state: CommunicationState = INITIAL_COMMUNICATION_STATE, action: Action) => {
     switch (action.type) {
         case actions.SET_WEBAPI_STATUS:
             return updateObject(state, {webAPIStatus: action.payload.webAPIStatus});
@@ -793,16 +697,10 @@ const communicationReducer = (state: CommunicationState = initialCommunicationSt
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// state.location initial state and reducers
-
-
-const initialLocationState: LocationState = {
-    globeMousePosition: null,
-    globeViewPosition: null,
-};
+// state.location reducers
 
 //noinspection JSUnusedLocalSymbols
-const locationReducer = (state: LocationState = initialLocationState, action: Action) => {
+const locationReducer = (state: LocationState = INITIAL_LOCATION_STATE, action: Action) => {
     if (action.type === actions.SET_GLOBE_MOUSE_POSITION) {
         const globeMousePosition = action.payload.position;
         return {...state, globeMousePosition};
