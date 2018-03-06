@@ -72,6 +72,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         this.handleCopySelectedPlacemarkAsCsv = this.handleCopySelectedPlacemarkAsCsv.bind(this);
         this.handleCopySelectedPlacemarkAsWkt = this.handleCopySelectedPlacemarkAsWkt.bind(this);
         this.handleCopySelectedPlacemarkAsGeoJSON = this.handleCopySelectedPlacemarkAsGeoJSON.bind(this);
+        this.handlePlacemarkDoubleClick = this.handlePlacemarkDoubleClick.bind(this);
         this.renderPlacemarkItem = this.renderPlacemarkItem.bind(this);
     }
 
@@ -105,6 +106,10 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
 
     private handleLocatePlacemarkButtonClicked() {
         this.props.dispatch(actions.locatePlacemark(this.props.selectedPlacemarkId));
+    }
+
+    private handlePlacemarkDoubleClick(placemark: Placemark) {
+        this.props.dispatch(actions.locatePlacemark(placemark.id));
     }
 
     private handleChangedPlacemarkVisibility(placemark: Placemark, visible: boolean) {
@@ -230,11 +235,12 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                                   iconName="remove"/>
                 </Tooltip>
 
-                {/*<Tooltip content="Locate selected placemark in view" position={Position.LEFT}>*/}
-                {/*<AnchorButton disabled={!this.props.selectedPlacemarkId}*/}
-                {/*onClick={this.handleLocatePlacemarkButtonClicked}*/}
-                {/*iconName="locate"/>*/}
-                {/*</Tooltip>*/}
+                <Tooltip content="Locate selected placemark in view" position={Position.LEFT}>
+                    <AnchorButton className={className}
+                                  disabled={!this.props.selectedPlacemarkId}
+                                  onClick={this.handleLocatePlacemarkButtonClicked}
+                                  iconName="locate"/>
+                </Tooltip>
 
                 <Popover position={Position.LEFT}>
                     <AnchorButton className={className}
@@ -271,6 +277,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
 
     private renderPlacemarkItem(placemark: Placemark) {
         return <PlacemarkItem placemark={placemark}
+                              onDoubleClick={this.handlePlacemarkDoubleClick}
                               onVisibilityChange={this.handleChangedPlacemarkVisibility}
                               onCopyPlacemarkCsv={PlacemarksPanel.handleCopyGeometryAsCsv}
                               onCopyPlacemarkWkt={PlacemarksPanel.handleCopyGeometryAsWkt}
@@ -360,6 +367,7 @@ interface IPlacemarkItemProps {
     onCopyPlacemarkCsv: (placemark: Placemark) => void;
     onCopyPlacemarkWkt: (placemark: Placemark) => void;
     onCopyPlacemarkGeoJSON: (placemark: Placemark) => void;
+    onDoubleClick: (placemark: Placemark) => void;
 }
 
 @ContextMenuTarget
@@ -375,6 +383,11 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
         this.handleCopyPlacemarkCsv = this.handleCopyPlacemarkCsv.bind(this);
         this.handleCopyPlacemarkWkt = this.handleCopyPlacemarkWkt.bind(this);
         this.handleCopyPlacemarksGeoJSON = this.handleCopyPlacemarksGeoJSON.bind(this);
+        this.handleDoubleClick = this.handleDoubleClick.bind(this);
+    }
+
+    handleDoubleClick() {
+        this.props.onDoubleClick(this.props.placemark);
     }
 
     handleCopyPlacemarkCsv() {
@@ -415,7 +428,7 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
         }
 
         return (
-            <div>
+            <div onDoubleClick={this.handleDoubleClick}>
                 <input type="checkbox"
                        checked={isBoolean(visible) ? visible : true}
                        onChange={this.handleVisibilityChanged}

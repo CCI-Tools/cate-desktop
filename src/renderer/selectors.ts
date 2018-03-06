@@ -34,7 +34,7 @@ import {
     getLockForGetWorkspaceVariableStatistics,
     getWorldViewSelectedEntity,
     getWorldViewSelectedGeometryWKTGetter,
-    getWorldViewVectorLayerForEntity,
+    getWorldViewVectorLayerForEntity, getWorldViewViewer,
     isFigureResource,
     isSpatialImageVariable,
     isSpatialVectorVariable,
@@ -638,6 +638,13 @@ export const selectedEntitySelector = createSelector<State, Cesium.Entity | null
     selectedEntityIdSelector, // we need this to invalidate selector on selection changes in Cesium
     (view: ViewState<any>, unusedEntityId: any) => {
         return getWorldViewSelectedEntity(view);
+    }
+);
+
+export const selectedWorldViewViewerSelector = createSelector<State, Cesium.Viewer | null, ViewState<any> | null>(
+    activeViewSelector,
+    (view: ViewState<any>) => {
+        return view ? getWorldViewViewer(view) : null;
     }
 );
 
