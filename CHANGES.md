@@ -4,6 +4,8 @@
 
 * Place layer/entity style settings in separate STYLES panel
   [#533](https://github.com/CCI-Tools/cate/issues/533)
+* User defined geometries
+  [#401](https://github.com/CCI-Tools/cate/issues/401)
 
 ### Fixes 
 
