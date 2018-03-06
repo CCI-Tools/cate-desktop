@@ -142,12 +142,12 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
     public render() {
         return (
             <React.Fragment>
-                {this.renderLayerDetailsCard()}
+                {this.renderLayerDetails()}
             </React.Fragment>
         )
     }
 
-    private renderLayerDetailsCard() {
+    private renderLayerDetails() {
 
         let detailsPanel;
         if (this.props.styleContext === "entity") {
@@ -168,7 +168,6 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
 
         return (
             <div style={{width: '100%'}}>
-                <label key="spacer" className="pt-label"> </label>
                 {this.renderStyleContext()}
                 {detailsPanel}
             </div>
@@ -178,7 +177,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
     private renderImageLayerDetails() {
         return (
             <React.Fragment>
-                <SubPanelHeader title="COLOUR MAPPING" divStyle={{margin: '5px 0 10px 0'}}/>
+                <SubPanelHeader title="COLOUR MAPPING"/>
                 {this.renderFormAlphaBlending()}
                 {this.renderFormDisplayMinMax()}
                 {this.renderFormDisplayColorBar()}
