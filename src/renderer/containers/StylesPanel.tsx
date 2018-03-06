@@ -312,7 +312,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
     private renderStyleContext() {
         const selectedEntity = this.props.selectedEntity;
         const selectedPlacemark = this.props.selectedPlacemark;
-        const selectedVectorLayer = this.props.selectedVectorLayer;
+        const selectedLayer = this.props.selectedLayer;
 
         let placemarkTitle = selectedPlacemark && selectedPlacemark.properties && selectedPlacemark.properties.title;
         if (placemarkTitle === "") {
@@ -320,7 +320,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         }
 
         const entityDisplayName = placemarkTitle || (selectedEntity ? "Entity" : "Entity (no selection)");
-        const layerDisplayName = selectedVectorLayer ? getLayerDisplayName(selectedVectorLayer) : "Layer (no selection)";
+        const layerDisplayName = selectedLayer ? getLayerDisplayName(selectedLayer) : "Layer (no selection)";
         return (
             <RadioGroup
                 key="styleContext"
