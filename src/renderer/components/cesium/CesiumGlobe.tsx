@@ -88,11 +88,14 @@ interface CesiumGlobeState extends CesiumGlobeStateBase {
     dataSourceMap: DataSourceMap;
 }
 
+type GeographicPosition = { latitude: number, longitude: number, height?: number };
+
 export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Cesium.Viewer, CesiumGlobeState>, CesiumGlobeStateBase {
     offlineMode?: boolean;
-    onMouseClicked?: (point: { latitude: number, longitude: number, height?: number }) => void;
-    onMouseMoved?: (point: { latitude: number, longitude: number, height?: number }) => void;
-    onLeftUp?: (point: { latitude: number, longitude: number, height?: number }) => void;
+    onLeftUp?: (point: GeographicPosition, entity?: Cesium.Entity) => void;
+    onLeftClick?: (point: GeographicPosition, entity?: Cesium.Entity) => void;
+    onRightClick?: (point: GeographicPosition, entity?: Cesium.Entity) => void;
+    onMouseMove?: (point: GeographicPosition) => void;
     onSelectedEntityChanged?: (selectedEntity: Cesium.Entity | null) => void;
     onNewEntityAdded?: (newEntity: Cesium.Entity) => void;
     onViewerMounted?: (id: string, viewer: Cesium.Viewer) => void;
@@ -299,47 +302,40 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 
     externalObjectMounted(viewer: Cesium.Viewer, props: Readonly<ICesiumGlobeProps>): void {
-        this.cesiumEventHandler = new Cesium.ScreenSpaceEventHandler();
-        this.cesiumEventHandler.setInputAction(
-            (event) => {
+
+        function handleInputAction(canvasPosition, pickEntity: boolean, callback) {
+            if (callback) {
+                // Check: Maybe we should disable events while a tool is active
                 // if (this.props.geometryToolType !== "NoTool") {
                 //     return;
                 // }
-                const cartographic = screenToCartographic(viewer, event.position, true);
-                if (props.onMouseClicked) {
-                    props.onMouseClicked(cartographic);
+                const cartographic = screenToCartographic(viewer, canvasPosition, true);
+                if (pickEntity) {
+                    const pickedObject = viewer.scene.pick(canvasPosition);
+                    const entity = pickedObject && pickedObject.id;
+                    callback(cartographic, entity);
+                } else {
+                    callback(cartographic);
                 }
-            },
+            }
+        }
+
+        this.cesiumEventHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        this.cesiumEventHandler.setInputAction(
+            (event) => handleInputAction(event.position, true, props.onLeftUp),
+            Cesium.ScreenSpaceEventType.LEFT_UP
+        );
+        this.cesiumEventHandler.setInputAction(
+            (event) => handleInputAction(event.position, true, props.onLeftClick),
             Cesium.ScreenSpaceEventType.LEFT_CLICK
         );
-
         this.cesiumEventHandler.setInputAction(
-            (event) => {
-                // if (this.props.geometryToolType !== "NoTool") {
-                //     return;
-                // }
-                const point = event.endPosition;
-                const cartographic = screenToCartographic(viewer, point, true);
-                if (props.onMouseMoved) {
-                    props.onMouseMoved(cartographic);
-                }
-            },
-            Cesium.ScreenSpaceEventType.MOUSE_MOVE
+            (event) => handleInputAction(event.position, true, props.onRightClick),
+            Cesium.ScreenSpaceEventType.RIGHT_CLICK
         );
-
         this.cesiumEventHandler.setInputAction(
-            () => {
-                // if (this.props.geometryToolType !== "NoTool") {
-                //     return;
-                // }
-                let point; // = undefined, good.
-                //noinspection JSUnusedAssignment
-                const cartographic = screenToCartographic(viewer, point, true);
-                if (props.onLeftUp) {
-                    props.onLeftUp(cartographic);
-                }
-            },
-            Cesium.ScreenSpaceEventType.LEFT_UP
+            (event) => handleInputAction(event.endPosition, false, props.onMouseMove),
+            Cesium.ScreenSpaceEventType.MOUSE_MOVE
         );
 
         this.selectedEntityChangeHandler = (selectedEntity: Cesium.Entity | null) => {

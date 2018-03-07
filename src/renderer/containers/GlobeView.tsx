@@ -69,14 +69,20 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
 
     constructor(props: IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>) {
         super(props);
-        this.handleMouseMoved = this.handleMouseMoved.bind(this);
+        this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleLeftUp = this.handleLeftUp.bind(this);
+        this.handleRightClick = this.handleRightClick.bind(this);
         this.handleSelectedEntityChanged = this.handleSelectedEntityChanged.bind(this);
         this.handleNewEntityAdded = this.handleNewEntityAdded.bind(this);
         this.handleSplitLayerPosChange = this.handleSplitLayerPosChange.bind(this);
     }
 
-    handleMouseMoved(position: Cesium.GeographicPosition) {
+    handleMouseMove(position: Cesium.GeographicPosition) {
+        this.props.dispatch(actions.setGlobeMousePosition(position));
+    }
+
+    handleRightClick(position: Cesium.GeographicPosition, entity?: Cesium.Entity) {
+        console.log("GlobeView.handleRightClick: position=", position, " entity=", entity);
         this.props.dispatch(actions.setGlobeMousePosition(position));
     }
 
@@ -147,7 +153,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          onSplitLayerPosChange={this.handleSplitLayerPosChange}
                          offlineMode={this.props.offlineMode}
                          style={GlobeView.CESIUM_GLOBE_STYLE}
-                         onMouseMoved={this.props.isDialogOpen ? null : this.handleMouseMoved}
+                         onMouseMove={this.props.isDialogOpen ? null : this.handleMouseMove}
+                         onRightClick={this.props.isDialogOpen ? null : this.handleRightClick}
                          onLeftUp={this.props.isDialogOpen ? null : this.handleLeftUp}
                          onSelectedEntityChanged={this.handleSelectedEntityChanged}
                          onNewEntityAdded={this.handleNewEntityAdded}
