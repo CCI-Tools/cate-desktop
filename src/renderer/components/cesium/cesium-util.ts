@@ -472,6 +472,24 @@ export function entityToGeometryWKT(entity: Cesium.Entity): string {
     throw new TypeError("can't understand geometry of selected entity");
 }
 
+export function screenToCartographic(viewer: Cesium.Viewer, screenPoint: Cesium.Cartesian2, degrees: boolean): Cesium.Cartographic {
+    let cartographic;
+    if (screenPoint) {
+        const ellipsoid = viewer.scene.globe.ellipsoid;
+        const cartesian = viewer.camera.pickEllipsoid(screenPoint, ellipsoid);
+        if (cartesian) {
+            cartographic = ellipsoid.cartesianToCartographic(cartesian);
+            if (cartographic && degrees) {
+                const factor = 10000.;
+                const longitude = Math.round(factor * Cesium.Math.toDegrees(cartographic.longitude)) / factor;
+                const latitude = Math.round(factor * Cesium.Math.toDegrees(cartographic.latitude)) / factor;
+                cartographic = {longitude, latitude, height: cartographic.height};
+            }
+        }
+    }
+    return cartographic;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Helpers
 
@@ -521,4 +539,5 @@ function getNumber(key, ...objects) {
 function getString(key, ...objects) {
     return _getValue(key, isString, objects);
 }
+
 
