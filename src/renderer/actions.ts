@@ -12,7 +12,7 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
-    getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID
+    getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID, genSimpleId, PLACEMARK_ID_PREFIX
 } from "./state-util";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
@@ -26,6 +26,7 @@ import {DirectGeometryObject, Feature} from "geojson";
 import {SimpleStyle} from "../common/geojson-simple-style";
 import {GeometryToolType} from "./components/cesium/geometry-tool";
 import {getEntityByEntityId} from "./components/cesium/cesium-util";
+import {InputAssignment, InputAssignments} from "./containers/editor/ValueEditor";
 
 const CANCELLED_CODE = 999;
 
@@ -78,6 +79,21 @@ export function addPlacemark(placemark: Placemark): Action {
     return {type: ADD_PLACEMARK, payload: {placemark}};
 }
 
+export function addPointPlacemark(longitude: number, latitude: number): Action {
+    const placemark = {
+        id: genSimpleId(PLACEMARK_ID_PREFIX),
+        type: "Feature",
+        geometry: {
+            type: "Point",
+            coordinates: [longitude, latitude]
+        },
+        properties: {
+            visible: true,
+        }
+    };
+    return addPlacemark(placemark as any);
+}
+
 export function removePlacemark(placemarkId: string): Action {
     return {type: REMOVE_PLACEMARK, payload: {placemarkId}};
 }
@@ -102,7 +118,7 @@ export function locatePlacemark(placemarkId: string): ThunkAction {
             if (selectedEntity) {
                 let headingPitchRange;
                 if (selectedEntity.position) {
-                    let heading = 0, pitch = -3.14159/2, range = 2500000;
+                    let heading = 0, pitch = -3.14159 / 2, range = 2500000;
                     headingPitchRange = new Cesium.HeadingPitchRange(heading, pitch, range);
                 }
                 viewer.zoomTo(selectedEntity, headingPitchRange);
@@ -1085,7 +1101,16 @@ export function renameWorkspaceResource(resName: string, newResName: string): Th
         }
 
         callAPI(dispatch, 'Renaming resource', call, action);
-    }
+    };
+}
+
+export function invokeOperationFromContext(operation: OperationState, inputAssignments: InputAssignments): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        const resource = selectors.selectedResourceSelector(getState());
+        const variable = selectors.selectedVariableSelector(getState());
+        // TODO (nf): implement action INVOKE_OPERATION_FROM_CONTEXT
+        dispatch({type: "INVOKE_OPERATION_FROM_CONTEXT", payload: {operation, inputAssignments, resource, variable}});
+    };
 }
 
 export function renameWorkspaceResourceImpl(resName: string, newResName: string): Action {

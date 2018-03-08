@@ -370,7 +370,7 @@ function polygonGraphicsToSimpleStyle(polygon: Cesium.PolygonGraphics) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Geometry WKT
 
-export function entityToGeoJSON(entity: Cesium.Entity | null, id: string, properties: any): Feature<any> | null {
+export function entityToGeoJson(entity: Cesium.Entity | null, id: string, properties: any): Feature<any> | null {
     if (!entity) {
         return null;
     }
@@ -378,7 +378,7 @@ export function entityToGeoJSON(entity: Cesium.Entity | null, id: string, proper
     if (entity.position) {
         const p = Cesium.Cartographic.fromCartesian(entity.position.getValue(Cesium.JulianDate.now()));
         const coordinates = [Cesium.Math.toDegrees(p.longitude), Cesium.Math.toDegrees(p.latitude)];
-        return _entityToGeoJSON(entity, id, properties, {
+        return _entityToGeoJson(entity, id, properties, {
             type: "Point",
             coordinates
         });
@@ -391,7 +391,7 @@ export function entityToGeoJSON(entity: Cesium.Entity | null, id: string, proper
             const p = Cesium.Cartographic.fromCartesian(position);
             coordinates.push([Cesium.Math.toDegrees(p.longitude), Cesium.Math.toDegrees(p.latitude)]);
         }
-        return _entityToGeoJSON(entity, id, properties, {
+        return _entityToGeoJson(entity, id, properties, {
             type: "LineString",
             coordinates
         });
@@ -402,7 +402,7 @@ export function entityToGeoJSON(entity: Cesium.Entity | null, id: string, proper
         const positions = hierarchy.positions || hierarchy;
         const holes = hierarchy.holes;
         if (holes) {
-            throw new Error("entityToGeoJSON() does not yet support polygons with holes");
+            throw new Error("entityToGeoJson() does not yet support polygons with holes");
         }
         let ring = [];
         for (let position of positions) {
@@ -411,41 +411,41 @@ export function entityToGeoJSON(entity: Cesium.Entity | null, id: string, proper
         }
         ring.push([ring[0][0], ring[0][1]]);
         const coordinates = [ring];
-        return _entityToGeoJSON(entity, id, properties, {
+        return _entityToGeoJson(entity, id, properties, {
             type: "Polygon",
             coordinates
         });
     }
 
-    throw new Error(`entityToGeoJSON() called with unsupported entity: ${entity.toString()}`);
+    throw new Error(`entityToGeoJson() called with unsupported entity: ${entity.toString()}`);
 }
 
-export function _entityToGeoJSON(entity: Cesium.Entity, id: string | undefined, properties: any, geometry: DirectGeometryObject): Feature<any> | null {
+export function _entityToGeoJson(entity: Cesium.Entity, id: string | undefined, properties: any, geometry: DirectGeometryObject): Feature<any> | null {
     id = id || entity.id.toString();
     //const properties = {...featurePropertiesFromSimpleStyle(entityToSimpleStyle(entity))};
     return {type: "Feature", id, geometry, properties};
 }
 
 
-export function entityToGeometryWKT(entity: Cesium.Entity): string {
+export function entityToGeometryWkt(entity: Cesium.Entity): string {
 
     if (entity.polyline) {
         const positions = entity.polyline.positions.getValue(Cesium.JulianDate.now());
-        return `LINESTRING (${cartesian3ArrayToWKT(positions)})`;
+        return `LINESTRING (${cartesian3ArrayToWkt(positions)})`;
     }
 
     if (entity.polygon) {
         const hierarchy = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now());
         const positions = hierarchy.positions;
         const holes = hierarchy.holes;
-        const exterior = cartesian3ArrayToWKTArray(positions);
+        const exterior = cartesian3ArrayToWktArray(positions);
         if (exterior.length > 2) {
             exterior.push(exterior[0]);
         }
         const linearRings = [`(${exterior.join(', ')})`];
         if (holes && holes.length) {
             for (let hole of holes) {
-                const interior = cartesian3ArrayToWKTArray(hole.positions);
+                const interior = cartesian3ArrayToWktArray(hole.positions);
                 if (interior.length > 2) {
                     interior.push(interior[0]);
                 }
@@ -466,7 +466,7 @@ export function entityToGeometryWKT(entity: Cesium.Entity): string {
 
     if (entity.position) {
         const position = entity.position.getValue(Cesium.JulianDate.now());
-        return `POINT (${cartesian3ToWKT(position)})`
+        return `POINT (${cartesian3ToWkt(position)})`
     }
 
     throw new TypeError("can't understand geometry of selected entity");
@@ -529,15 +529,15 @@ export function getEntityByEntityId(viewer: Cesium.Viewer, entityId: string | nu
     return null;
 }
 
-function cartesian3ArrayToWKTArray(positions: Cesium.Cartesian3[]): string[] {
-    return positions.map(p => cartesian3ToWKT(p));
+function cartesian3ArrayToWktArray(positions: Cesium.Cartesian3[]): string[] {
+    return positions.map(p => cartesian3ToWkt(p));
 }
 
-function cartesian3ArrayToWKT(positions: Cesium.Cartesian3[]): string {
-    return cartesian3ArrayToWKTArray(positions).join(', ');
+function cartesian3ArrayToWkt(positions: Cesium.Cartesian3[]): string {
+    return cartesian3ArrayToWktArray(positions).join(', ');
 }
 
-function cartesian3ToWKT(position: Cesium.Cartesian3): string {
+function cartesian3ToWkt(position: Cesium.Cartesian3): string {
     const cartographic = Cesium.Cartographic.fromCartesian(position);
     return `${toDeg(cartographic.longitude)} ${toDeg(cartographic.latitude)}`;
 }
@@ -564,5 +564,3 @@ function getNumber(key, ...objects) {
 function getString(key, ...objects) {
     return _getValue(key, isString, objects);
 }
-
-

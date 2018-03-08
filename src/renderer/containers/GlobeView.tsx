@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect, DispatchProp} from "react-redux";
 import {
     State, WorkspaceState, VariableImageLayerState,
-    WorldViewDataState, ResourceState, LayerState, PlacemarkCollection, Placemark,
+    WorldViewDataState, ResourceState, LayerState, PlacemarkCollection, Placemark, OperationState,
 } from "../state";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
@@ -14,9 +14,11 @@ import {ViewState} from "../components/ViewState";
 import {convertLayersToLayerDescriptors} from "./globe-view-layers";
 import * as Cesium from "cesium";
 import {GeometryToolType} from "../components/cesium/geometry-tool";
-import {entityToGeoJSON} from "../components/cesium/cesium-util";
+import {entityToGeoJson, entityToGeometryWkt} from "../components/cesium/cesium-util";
 import {featurePropertiesFromSimpleStyle, SimpleStyle} from "../../common/geojson-simple-style";
 import {Menu, MenuDivider, MenuItem} from "@blueprintjs/core";
+import {GEOMETRY_LIKE_TYPE, POINT_LIKE_TYPE, POLYGON_LIKE_TYPE} from "../../common/cate-types";
+import {geometryGeoJsonToGeometryWkt} from "../../common/geometry-util";
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -24,6 +26,7 @@ interface IGlobeViewOwnProps {
 
 interface IGlobeViewProps extends IGlobeViewOwnProps {
     baseUrl: string;
+    operations: OperationState[] | null;
     workspace: WorkspaceState | null;
     offlineMode: boolean;
     placemarks: PlacemarkCollection;
@@ -43,6 +46,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
     return {
         view: ownProps.view,
         baseUrl: selectors.webAPIRestUrlSelector(state),
+        operations: selectors.operationsSelector(state),
         workspace: selectors.workspaceSelector(state),
         offlineMode: selectors.offlineModeSelector(state),
         placemarks: selectors.placemarkCollectionSelector(state),
@@ -89,8 +93,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
 
     handleNewEntityAdded(newEntity: Cesium.Entity) {
         const properties = {visible: true, ...featurePropertiesFromSimpleStyle(this.props.defaultPlacemarkStyle)};
-        const feature = entityToGeoJSON(newEntity, `${PLACEMARK_ID_PREFIX}${newEntity.id}`, properties);
-        console.log("handleNewEntityAdded: feature =", feature);
+        const feature = entityToGeoJson(newEntity, `${PLACEMARK_ID_PREFIX}${newEntity.id}`, properties);
         this.props.dispatch(actions.addPlacemark(feature as Placemark));
     }
 
@@ -98,19 +101,85 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         this.props.dispatch(actions.setSelectedLayerSplitPos(this.props.view.id, splitLayerPos));
     }
 
-    // noinspection JSMethodCanBeStatic
     renderContextMenu(geoPos: GeographicPosition, canvasPos: CanvasPosition, entity?: Cesium.Entity) {
-        console.log("renderContextMenu: ", geoPos, canvasPos, entity);
-        return (
-            <Menu>
-                <MenuItem iconName="search-around" text="Search around..."/>
-                <MenuItem iconName="search" text="Object viewer"/>
-                <MenuItem iconName="graph-remove" text="Remove"/>
-                <MenuItem iconName="group-objects" text="Group"/>
-                <MenuDivider/>
-                <MenuItem disabled={true} text="Clicked on node"/>
-            </Menu>
-        );
+
+        if (!geoPos && !entity) {
+            return null;
+        }
+
+        const entityId = entity && entity.id;
+        let placemark;
+        if (entityId && entityId.startsWith(PLACEMARK_ID_PREFIX) && this.props.placemarks) {
+            placemark = this.props.placemarks.features.find(p => p.id === entityId);
+        }
+
+        let wkt;
+        if (placemark) {
+            wkt = geometryGeoJsonToGeometryWkt(placemark.geometry);
+        } else if (entity) {
+            wkt = entityToGeometryWkt(entity);
+        } else if (geoPos) {
+            wkt = `POINT (${geoPos.longitude} ${geoPos.latitude})`;
+        }
+
+        let key = 0;
+
+        const menuItems = [];
+        if (geoPos) {
+            const action = actions.addPointPlacemark(geoPos.longitude, geoPos.latitude);
+            menuItems.push(<MenuItem key={key}
+                                     iconName="map-marker"
+                                     text="Place point marker here"
+                                     onClick={() => this.props.dispatch(action)}/>);
+            key++;
+        }
+
+        if (wkt) {
+            menuItems.push(<MenuItem key={key} iconName="clipboard" text="Copy geometry WKT"
+                                     onClick={() => actions.copyTextToClipboard(wkt)}/>);
+            key++;
+        }
+
+        const operations = this.props.operations;
+        if (entity && operations) {
+
+            let expectedInputType;
+            if (wkt.startsWith("POINT ")) {
+                expectedInputType = POINT_LIKE_TYPE;
+            } else if (wkt.startsWith("POLYGON ")) {
+                expectedInputType = POLYGON_LIKE_TYPE;
+            }
+
+            if (expectedInputType) {
+                let dividerAdded = false;
+                for (let operation of  operations) {
+                    let geometryInput;
+                    for (let input of operation.inputs) {
+                        const dataType = input.dataType;
+                        if (dataType === expectedInputType || dataType === GEOMETRY_LIKE_TYPE) {
+                            geometryInput = input;
+                            break;
+                        }
+                    }
+                    if (geometryInput) {
+                        if (!dividerAdded) {
+                            menuItems.push(<MenuDivider key={key}/>);
+                            dividerAdded = true;
+                            key++;
+                        }
+                        const inputAssignments = {[geometryInput.name]: wkt};
+                        const action = actions.invokeOperationFromContext(operation, inputAssignments);
+                        const text = `${operation.name}()`;
+                        menuItems.push(<MenuItem key={key}
+                                                 iconName="function" text={text}
+                                                 onClick={() => this.props.dispatch(action)}/>);
+                        key++;
+                    }
+                }
+            }
+        }
+
+        return (<Menu>{menuItems}</Menu>);
     }
 
     render() {

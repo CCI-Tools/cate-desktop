@@ -10,7 +10,7 @@ import {isNumber, isString} from "../common/types";
 import {EMPTY_ARRAY} from "./selectors";
 import * as Cesium from "cesium";
 import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
-import {entityToGeometryWKT} from "./components/cesium/cesium-util";
+import {entityToGeometryWkt} from "./components/cesium/cesium-util";
 import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../common/geojson-simple-style";
 
 export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
@@ -342,7 +342,7 @@ export function getWorldViewVectorLayerForEntity(view: ViewState<any>, entity: C
 export function getWorldViewSelectedGeometryWKTGetter(view: ViewState<any>): GeometryWKTGetter {
     const selectedEntity = getWorldViewSelectedEntity(view);
     if (selectedEntity) {
-        return () => entityToGeometryWKT(selectedEntity);
+        return () => entityToGeometryWkt(selectedEntity);
     }
     return null;
 }

@@ -1,13 +1,13 @@
 import {expect} from 'chai';
 import * as Cesium from "cesium";
-import {entityToGeoJSON} from "./cesium-util";
+import {entityToGeoJson} from "./cesium-util";
 
 
 describe('cesium-util', function () {
-    describe('entityToGeoJSON', function () {
+    describe('entityToGeoJson', function () {
 
         it('works for null entities', function () {
-            let obj = entityToGeoJSON(null, "x", {});
+            let obj = entityToGeoJson(null, "x", {});
             expect(obj).to.equal(null);
         });
 
@@ -19,7 +19,7 @@ describe('cesium-util', function () {
                                                                height: 0.0
                                                            });
 
-            let obj = entityToGeoJSON(new Cesium.Entity({
+            let obj = entityToGeoJson(new Cesium.Entity({
                                                             position,
                                                             point: {
                                                                 show: true,
@@ -62,7 +62,7 @@ describe('cesium-util', function () {
                                                 }),
             ];
 
-            let obj = entityToGeoJSON(new Cesium.Entity({
+            let obj = entityToGeoJson(new Cesium.Entity({
                                                             polyline: {
                                                                 positions: positions,
                                                                 material: Cesium.Color.BLUE,
@@ -106,7 +106,7 @@ describe('cesium-util', function () {
                                                 }),
             ];
 
-            let obj = entityToGeoJSON(new Cesium.Entity({
+            let obj = entityToGeoJson(new Cesium.Entity({
                                                             polygon: {
                                                                 hierarchy: {positions},
                                                                 material: Cesium.Color.YELLOW.withAlpha(0.7),
