@@ -8,17 +8,15 @@ import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {NO_WEB_GL} from "../messages";
 import {EMPTY_ARRAY, EMPTY_OBJECT} from "../selectors";
-import {CesiumGlobe, LayerDescriptors} from "../components/cesium/CesiumGlobe";
+import {CanvasPosition, CesiumGlobe, GeographicPosition, LayerDescriptors} from "../components/cesium/CesiumGlobe";
 import {findVariableIndexCoordinates, PLACEMARK_ID_PREFIX} from "../state-util";
 import {ViewState} from "../components/ViewState";
 import {convertLayersToLayerDescriptors} from "./globe-view-layers";
 import * as Cesium from "cesium";
 import {GeometryToolType} from "../components/cesium/geometry-tool";
 import {entityToGeoJSON} from "../components/cesium/cesium-util";
-import {
-    featurePropertiesFromSimpleStyle, SimpleStyle,
-    simpleStyleFromFeatureProperties
-} from "../../common/geojson-simple-style";
+import {featurePropertiesFromSimpleStyle, SimpleStyle} from "../../common/geojson-simple-style";
+import {Menu, MenuDivider, MenuItem} from "@blueprintjs/core";
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -71,22 +69,17 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         super(props);
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleLeftUp = this.handleLeftUp.bind(this);
-        this.handleRightClick = this.handleRightClick.bind(this);
         this.handleSelectedEntityChanged = this.handleSelectedEntityChanged.bind(this);
         this.handleNewEntityAdded = this.handleNewEntityAdded.bind(this);
         this.handleSplitLayerPosChange = this.handleSplitLayerPosChange.bind(this);
+        this.renderContextMenu = this.renderContextMenu.bind(this);
     }
 
-    handleMouseMove(position: Cesium.GeographicPosition) {
-        this.props.dispatch(actions.setGlobeMousePosition(position));
+    handleMouseMove(geoPos: GeographicPosition) {
+        this.props.dispatch(actions.setGlobeMousePosition(geoPos));
     }
 
-    handleRightClick(position: Cesium.GeographicPosition, entity?: Cesium.Entity) {
-        console.log("GlobeView.handleRightClick: position=", position, " entity=", entity);
-        this.props.dispatch(actions.setGlobeMousePosition(position));
-    }
-
-    handleLeftUp(position: Cesium.GeographicPosition) {
+    handleLeftUp(position: GeographicPosition) {
         this.props.dispatch(actions.setGlobeViewPosition(position));
     }
 
@@ -103,6 +96,21 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
 
     handleSplitLayerPosChange(splitLayerPos: number) {
         this.props.dispatch(actions.setSelectedLayerSplitPos(this.props.view.id, splitLayerPos));
+    }
+
+    // noinspection JSMethodCanBeStatic
+    renderContextMenu(geoPos: GeographicPosition, canvasPos: CanvasPosition, entity?: Cesium.Entity) {
+        console.log("renderContextMenu: ", geoPos, canvasPos, entity);
+        return (
+            <Menu>
+                <MenuItem iconName="search-around" text="Search around..."/>
+                <MenuItem iconName="search" text="Object viewer"/>
+                <MenuItem iconName="graph-remove" text="Remove"/>
+                <MenuItem iconName="group-objects" text="Group"/>
+                <MenuDivider/>
+                <MenuItem disabled={true} text="Clicked on node"/>
+            </Menu>
+        );
     }
 
     render() {
@@ -154,11 +162,11 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          offlineMode={this.props.offlineMode}
                          style={GlobeView.CESIUM_GLOBE_STYLE}
                          onMouseMove={this.props.isDialogOpen ? null : this.handleMouseMove}
-                         onRightClick={this.props.isDialogOpen ? null : this.handleRightClick}
                          onLeftUp={this.props.isDialogOpen ? null : this.handleLeftUp}
                          onSelectedEntityChanged={this.handleSelectedEntityChanged}
                          onNewEntityAdded={this.handleNewEntityAdded}
                          geometryToolType={this.props.newPlacemarkToolType}
+                         renderContextMenu={this.renderContextMenu}
             />
         );
     }

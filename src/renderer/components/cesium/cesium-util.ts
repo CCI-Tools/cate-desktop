@@ -472,11 +472,13 @@ export function entityToGeometryWKT(entity: Cesium.Entity): string {
     throw new TypeError("can't understand geometry of selected entity");
 }
 
-export function screenToCartographic(viewer: Cesium.Viewer, screenPoint: Cesium.Cartesian2, degrees: boolean): Cesium.Cartographic {
+export function canvasToCartographic(viewer: Cesium.Viewer,
+                                     canvasPos: Cesium.Cartesian2 | undefined,
+                                     degrees: boolean): Cesium.Cartographic | undefined {
     let cartographic;
-    if (screenPoint) {
+    if (canvasPos) {
         const ellipsoid = viewer.scene.globe.ellipsoid;
-        const cartesian = viewer.camera.pickEllipsoid(screenPoint, ellipsoid);
+        const cartesian = viewer.camera.pickEllipsoid(canvasPos, ellipsoid);
         if (cartesian) {
             cartographic = ellipsoid.cartesianToCartographic(cartesian);
             if (cartographic && degrees) {
@@ -489,6 +491,29 @@ export function screenToCartographic(viewer: Cesium.Viewer, screenPoint: Cesium.
     }
     return cartographic;
 }
+
+export function clientToCanvas(viewer: Cesium.Viewer,
+                               clientPos: Cesium.Cartesian2 | undefined): Cesium.Cartesian2 | undefined {
+    let canvasPos;
+    if (clientPos) {
+        const rect = viewer.canvas.getBoundingClientRect();
+        const x = clientPos.x;
+        const y = clientPos.y;
+        if ((x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom)) {
+            canvasPos = new Cesium.Cartesian2(x - rect.left, y - rect.top);
+        }
+    }
+    return canvasPos;
+}
+
+export function pickEntity(viewer: Cesium.Viewer,
+                           canvasPos: Cesium.Cartesian2 | undefined): Cesium.Entity | undefined {
+    if (canvasPos) {
+        const pickedObject = viewer.scene.pick(canvasPos);
+        return pickedObject && pickedObject.id;
+    }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Helpers

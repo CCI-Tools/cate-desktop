@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as Cesium from "cesium";
 import {diff} from "deep-object-diff"
 import {Feature, FeatureCollection, Point} from "geojson";
+import {ContextMenu} from "@blueprintjs/core";
 import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
 import * as assert from "../../../common/assert";
 import {isBoolean, isString} from "../../../common/types";
@@ -9,14 +10,14 @@ import {arrayDiff} from "../../../common/array-diff";
 import {SimpleStyle} from "../../../common/geojson-simple-style";
 import {SplitSlider} from "./SplitSlider";
 import {
-    applyStyleToEntity, applyStyleToEntityCollection, getEntityByEntityId, screenToCartographic,
-    simpleStyleToCesium
+    applyStyleToEntity, applyStyleToEntityCollection, getEntityByEntityId, canvasToCartographic,
+    simpleStyleToCesium, pickEntity, clientToCanvas
 } from "./cesium-util";
 import {
     BoxTool, CesiumToolContext, GeometryToolType, NO_TOOL, PointTool, PolygonTool,
     PolylineTool
 } from "./geometry-tool";
-import {ContextMenu, ContextMenuTarget, Menu, MenuDivider, MenuItem} from "@blueprintjs/core";
+
 
 interface Placemark extends Feature<Point> {
     id: string;
@@ -90,14 +91,15 @@ interface CesiumGlobeState extends CesiumGlobeStateBase {
 }
 
 export type GeographicPosition = { latitude: number, longitude: number, height?: number };
-export type ScreenPosition = { x: number, y: number };
+export type CanvasPosition = { x: number, y: number };
 
 export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Cesium.Viewer, CesiumGlobeState>, CesiumGlobeStateBase {
     offlineMode?: boolean;
-    onLeftUp?: (geoPos: GeographicPosition, screenPos: ScreenPosition, entity?: Cesium.Entity) => void;
-    onLeftClick?: (geoPos: GeographicPosition, screenPos: ScreenPosition, entity?: Cesium.Entity) => void;
-    onRightClick?: (geoPos: GeographicPosition, screenPos: ScreenPosition, entity?: Cesium.Entity) => void;
-    onMouseMove?: (geoPos: GeographicPosition, screenPos: ScreenPosition) => void;
+    onLeftUp?: (geoPos: GeographicPosition, canvasPos: CanvasPosition, entity?: Cesium.Entity) => void;
+    onLeftClick?: (geoPos: GeographicPosition, canvasPos: CanvasPosition, entity?: Cesium.Entity) => void;
+    onRightClick?: (geoPos: GeographicPosition, canvasPos: CanvasPosition, entity?: Cesium.Entity) => void;
+    onMouseMove?: (geoPos: GeographicPosition, canvasPos: CanvasPosition) => void;
+    renderContextMenu?: (geoPos: GeographicPosition, canvasPos: CanvasPosition, entity?: Cesium.Entity) => JSX.Element | null;
     onSelectedEntityChanged?: (selectedEntity: Cesium.Entity | null) => void;
     onNewEntityAdded?: (newEntity: Cesium.Entity) => void;
     onViewerMounted?: (id: string, viewer: Cesium.Viewer) => void;
@@ -135,7 +137,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         return !!externalObjectRef ? externalObjectRef.object : null;
     }
 
-
     protected renderChildren() {
         return (<SplitSlider splitPos={this.props.splitLayerPos}
                              onChange={this.props.onSplitLayerPosChange}
@@ -150,24 +151,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 
     newExternalObject(parentContainer: HTMLElement, container: HTMLElement): Cesium.Viewer {
-
-        container.oncontextmenu = ((event: PointerEvent) => {
-            event.preventDefault();
-            // invoke static API, getting coordinates from mouse event
-            ContextMenu.show(
-                <Menu>
-                    <MenuItem iconName="search-around" text="Search around..." />
-                    <MenuItem iconName="search" text="Object viewer" />
-                    <MenuItem iconName="graph-remove" text="Remove" />
-                    <MenuItem iconName="group-objects" text="Group" />
-                    <MenuDivider />
-                    <MenuItem disabled={true} text="Clicked on node" />
-                </Menu>,
-                { left: event.clientX, top: event.clientY },
-                () => this.setState({ isContextMenuOpen: false }),
-            );
-            this.setState({ isContextMenuOpen: true });
-        });
 
         let baseLayerImageryProvider;
         if (this.props.offlineMode) {
@@ -202,8 +185,14 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         //noinspection UnnecessaryLocalVariableJS
         const viewer = new Cesium.Viewer(container, cesiumViewerOptions);
 
-        // Uncomment to show a little overlay panel with FPS. Usefull for optimisations.
-        //viewer.scene.debugShowFramesPerSecond = true;
+        // Register context mnenu
+        // Note, for some reason we cannot use BlueprintJS' @ContextMenuTarget interface here
+        container.oncontextmenu = (event: PointerEvent) => this.handleContextMenu(viewer, event);
+
+        if (this.props.debug) {
+            // Show a little overlay panel with FPS. Useful for optimisations.
+            viewer.scene.debugShowFramesPerSecond = true;
+        }
 
         // knockout is used by Cesium to update the style attributes of the selectionIndicator
         // when using multiple views this breaks, for unknown reason
@@ -230,6 +219,27 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             viewer.imageryLayers.remove(imageryLayer, true);
             let staticNaturalEarthImageryProvider = CesiumGlobe.getStaticNaturalEarthImageryProvider();
             viewer.imageryLayers.addImageryProvider(staticNaturalEarthImageryProvider, 0);
+        }
+    }
+
+    private handleContextMenu(viewer: Cesium.Viewer, event: PointerEvent) {
+        const renderContextMenu = this.props.renderContextMenu;
+        if (renderContextMenu) {
+            const screenPos = new Cesium.Cartesian2(event.clientX, event.clientY);
+            const canvasPos = clientToCanvas(viewer, screenPos);
+            const cartographic = canvasToCartographic(viewer, canvasPos, true);
+            const entity = pickEntity(viewer, canvasPos);
+            const contextMenu = renderContextMenu(cartographic, canvasPos, entity);
+            if (contextMenu) {
+                event.preventDefault();
+                // invoke static API, getting coordinates from mouse event
+                ContextMenu.show(
+                    contextMenu,
+                    {left: event.clientX, top: event.clientY},
+                    () => this.setState({isContextMenuOpen: false}),
+                );
+                this.setState({isContextMenuOpen: true});
+            }
         }
     }
 
@@ -329,19 +339,17 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
 
     externalObjectMounted(viewer: Cesium.Viewer, props: Readonly<ICesiumGlobeProps>): void {
 
-        function handleInputAction(screenPosition, pickEntity: boolean, callback) {
+        function handleInputAction(canvasPosition, shouldPickEntity: boolean, callback) {
             if (callback) {
                 // Check: Maybe we should disable events while a tool is active
                 // if (this.props.geometryToolType !== "NoTool") {
                 //     return;
                 // }
-                const cartographic = screenToCartographic(viewer, screenPosition, true);
-                if (pickEntity) {
-                    const pickedObject = viewer.scene.pick(screenPosition);
-                    const entity = pickedObject && pickedObject.id;
-                    callback(cartographic, screenPosition, entity);
+                const cartographic = canvasToCartographic(viewer, canvasPosition, true);
+                if (shouldPickEntity) {
+                    callback(cartographic, canvasPosition, pickEntity(viewer, canvasPosition));
                 } else {
-                    callback(cartographic, screenPosition);
+                    callback(cartographic, canvasPosition);
                 }
             }
         }
