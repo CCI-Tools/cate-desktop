@@ -188,11 +188,24 @@ export const operationsSelector = (state: State): OperationState[] | null => sta
 export const operationFilterTagsSelector = (state: State): string[] | null => state.session.operationFilterTags;
 export const operationFilterExprSelector = (state: State): string | null => state.session.operationFilterExpr;
 export const selectedOperationNameSelector = (state: State): string | null => state.session.selectedOperationName;
+export const selectedCtxOperationNameSelector = (state: State): string | null => state.control.selectedCtxOperationName;
 
 export const selectedOperationSelector = createSelector<State, OperationState | null, OperationState[] | null,
     string | null>(
     operationsSelector,
     selectedOperationNameSelector,
+    (operations, selectedOperationName) => {
+        if (operations && operations.length && selectedOperationName) {
+            return operations.find(op => op.name === selectedOperationName);
+        }
+        return null;
+    }
+);
+
+export const selectedCtxOperationSelector = createSelector<State, OperationState | null, OperationState[] | null,
+    string | null>(
+    operationsSelector,
+    selectedCtxOperationNameSelector,
     (operations, selectedOperationName) => {
         if (operations && operations.length && selectedOperationName) {
             return operations.find(op => op.name === selectedOperationName);

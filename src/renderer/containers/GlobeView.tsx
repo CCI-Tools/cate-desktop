@@ -92,7 +92,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     }
 
     handleNewEntityAdded(newEntity: Cesium.Entity) {
-        const properties = {visible: true, ...featurePropertiesFromSimpleStyle(this.props.defaultPlacemarkStyle)};
+        // Logic should actually go to actions.ts or reducers.ts, but newEntity:Cesium.Entity is not serializable.
+        const properties = this.newPlacemarkProperties();
         const feature = entityToGeoJson(newEntity, `${PLACEMARK_ID_PREFIX}${newEntity.id}`, properties);
         this.props.dispatch(actions.addPlacemark(feature as Placemark));
     }
@@ -126,7 +127,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
 
         const menuItems = [];
         if (geoPos) {
-            const action = actions.addPointPlacemark(geoPos.longitude, geoPos.latitude);
+            const properties = this.newPlacemarkProperties();
+            const action = actions.addPointPlacemark(geoPos.longitude, geoPos.latitude, properties);
             menuItems.push(<MenuItem key={key}
                                      iconName="map-marker"
                                      text="Place point marker here"
@@ -167,8 +169,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                             dividerAdded = true;
                             key++;
                         }
-                        const inputAssignments = {[geometryInput.name]: wkt};
-                        const action = actions.invokeOperationFromContext(operation, inputAssignments);
+                        const inputAssignments = {[geometryInput.name]: {isValueUsed: true, constantValue: wkt, resourceName: null}};
+                        const action = actions.invokeCtxOperation(operation, inputAssignments);
                         const text = `${operation.name}()`;
                         menuItems.push(<MenuItem key={key}
                                                  iconName="function" text={text}
@@ -180,6 +182,10 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         }
 
         return (<Menu>{menuItems}</Menu>);
+    }
+
+    private newPlacemarkProperties() {
+        return {visible: true, ...featurePropertiesFromSimpleStyle(this.props.defaultPlacemarkStyle)};
     }
 
     render() {

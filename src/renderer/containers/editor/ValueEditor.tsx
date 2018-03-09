@@ -23,6 +23,18 @@ export interface InputAssignment {
 
 export type InputAssignments = { [inputName: string]: InputAssignment };
 
+export function isInputAssigned(inputAssignments: InputAssignments, inputName: string): boolean {
+    return !!inputAssignments[inputName];
+}
+
+export function assignConstantValueInput(inputAssignments: InputAssignments, inputName: string, constantValue: any): InputAssignments {
+    return {...inputAssignments, [inputName]: {isValueUsed: true, constantValue, resourceName: null}};
+}
+
+export function assignResourceNameInput(inputAssignments: InputAssignments, inputName: string, resourceName: string): InputAssignments {
+    return {...inputAssignments, [inputName]: {isValueUsed: false, constantValue: null, resourceName}};
+}
+
 export type ValueEditorValue<T> = FieldValue<T> | T | null;
 export type ValueEditorCallback<T> = (input: OperationInputState, value: ValueEditorValue<T>) => void;
 

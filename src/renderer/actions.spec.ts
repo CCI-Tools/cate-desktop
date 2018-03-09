@@ -2,7 +2,7 @@ import {createStore, applyMiddleware} from 'redux';
 import * as actions from './actions';
 import {stateReducer} from './reducers';
 import thunk from 'redux-thunk'
-import {LayerState, Placemark, ResourceState, State, VariableState} from "./state";
+import {LayerState, OperationState, Placemark, ResourceState, State, VariableState} from "./state";
 import {should, expect} from 'chai';
 import {
     SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID, EXTERNAL_OBJECT_STORE,
@@ -12,6 +12,9 @@ import {
     featurePropertiesFromSimpleStyle, SimpleStyle,
     simpleStyleFromFeatureProperties
 } from "../common/geojson-simple-style";
+import {InputAssignments} from "./containers/editor/ValueEditor";
+import {DATA_ARRAY_TYPE, DATASET_LIKE_TYPE, POINT_LIKE_TYPE, VAR_NAME_LIKE_TYPE} from "../common/cate-types";
+import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./containers/OperationStepDialog";
 
 should();
 
@@ -975,6 +978,115 @@ describe('Actions', () => {
 
             dispatch(actions.hideDialog('myDialog', {a: 4, b: 5}));
             expect(getState().control.dialogs['myDialog']).to.deep.equal({isOpen: false, a: 4, b: 5});
+        });
+    });
+
+
+    describe('Context actions', () => {
+
+        it('invokeCtxOperation', () => {
+            // Dummy workspace
+            dispatch(actions.setCurrentWorkspace(
+                {
+                    baseDir: '/1/2/3',
+                    isScratch: true,
+                    resources: [{
+                        id: 0,
+                        name: "SST_CCI",
+                        dataType: DATASET_LIKE_TYPE,
+                        variables: [{
+                            name: "analysed_sst",
+                            dataType: DATA_ARRAY_TYPE,
+                        }]
+                    }],
+                } as any));
+
+            // Dummy operation
+            const operation: OperationState = {
+                name: "tseries_point",
+                qualifiedName: "cate.ops.tseries_point",
+                hasMonitor: false,
+                inputs: [{
+                    name: "ds",
+                    dataType: DATASET_LIKE_TYPE,
+                    description: null,
+                }, {
+                    name: "point",
+                    dataType: POINT_LIKE_TYPE,
+                    description: null,
+                }, {
+                    name: "var_name",
+                    dataType: VAR_NAME_LIKE_TYPE,
+                    description: null,
+                }],
+                outputs: [{
+                    name: "return",
+                    dataType: DATASET_LIKE_TYPE,
+                    description: null,
+                }],
+                description: "",
+                tags: [],
+            };
+
+            const inputAssignments: InputAssignments = {
+                point: {
+                    isValueUsed: true,
+                    constantValue: "POINT (12, 53)",
+                    resourceName: null,
+                }
+            };
+
+            let dialogState;
+
+            expect(getState().control.selectedCtxOperationName).to.be.null;
+            dialogState = getState().control.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
+            expect(dialogState).to.be.undefined;
+
+            // Dispatch context operation action
+            dispatch(actions.invokeCtxOperation(operation, inputAssignments));
+
+            expect(getState().control.selectedCtxOperationName).to.equal("cate.ops.tseries_point");
+            dialogState = getState().control.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
+            expect(dialogState).to.deep.equal({
+                                                  isOpen: true,
+                                                  inputAssignments,
+                                              });
+
+            // Close dialog
+            dispatch(actions.updateDialogState(NEW_CTX_OPERATION_STEP_DIALOG_ID, {isOpen: false}));
+            dialogState = getState().control.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
+            expect(dialogState).to.deep.equal({
+                                                  isOpen: false,
+                                                  inputAssignments,
+                                              });
+
+            // Add some selections
+            dispatch(actions.updateControlState({
+                                                    selectedWorkspaceResourceName: "SST_CCI",
+                                                    selectedVariableName: "analysed_sst"
+                                                }));
+            // Dispatch context operation action again
+            dispatch(actions.invokeCtxOperation(operation, inputAssignments));
+
+            // Expect to see new context in actions
+            expect(getState().control.selectedCtxOperationName).to.equal("cate.ops.tseries_point");
+            dialogState = getState().control.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
+            expect(dialogState).to.deep.equal({
+                                                  isOpen: true,
+                                                  inputAssignments: {
+                                                      ...inputAssignments,
+                                                      ds: {
+                                                          isValueUsed: false,
+                                                          constantValue: null,
+                                                          resourceName: "SST_CCI",
+                                                      },
+                                                      var_name: {
+                                                          isValueUsed: true,
+                                                          constantValue: "analysed_sst",
+                                                          resourceName: null,
+                                                      }
+                                                  },
+                                              });
         });
     });
 });

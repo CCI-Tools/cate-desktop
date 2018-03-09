@@ -23,10 +23,16 @@ import * as Cesium from "cesium";
 import {isDefined, isNumber} from "../common/types";
 import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
 import {DirectGeometryObject, Feature} from "geojson";
-import {SimpleStyle} from "../common/geojson-simple-style";
+import {featurePropertiesFromSimpleStyle, SimpleStyle} from "../common/geojson-simple-style";
 import {GeometryToolType} from "./components/cesium/geometry-tool";
 import {getEntityByEntityId} from "./components/cesium/cesium-util";
-import {InputAssignment, InputAssignments} from "./containers/editor/ValueEditor";
+import {
+    assignConstantValueInput,
+    assignResourceNameInput,
+    InputAssignments,
+    isInputAssigned
+} from "./containers/editor/ValueEditor";
+import {isAssignableFrom, VAR_NAME_LIKE_TYPE, VAR_NAMES_LIKE_TYPE} from "../common/cate-types";
 
 const CANCELLED_CODE = 999;
 
@@ -79,7 +85,7 @@ export function addPlacemark(placemark: Placemark): Action {
     return {type: ADD_PLACEMARK, payload: {placemark}};
 }
 
-export function addPointPlacemark(longitude: number, latitude: number): Action {
+export function addPointPlacemark(longitude: number, latitude: number, properties: any): Action {
     const placemark = {
         id: genSimpleId(PLACEMARK_ID_PREFIX),
         type: "Feature",
@@ -87,9 +93,7 @@ export function addPointPlacemark(longitude: number, latitude: number): Action {
             type: "Point",
             coordinates: [longitude, latitude]
         },
-        properties: {
-            visible: true,
-        }
+        properties,
     };
     return addPlacemark(placemark as any);
 }
@@ -144,6 +148,7 @@ export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 export const SET_GLOBE_MOUSE_POSITION = 'SET_GLOBE_MOUSE_POSITION';
 export const SET_GLOBE_VIEW_POSITION = 'SET_GLOBE_VIEW_POSITION';
+export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
 
 export function setGlobeMousePosition(position: GeographicPosition): Action {
     return {type: SET_GLOBE_MOUSE_POSITION, payload: {position}};
@@ -183,6 +188,39 @@ export function removeTaskState(jobId: number): Action {
 
 export function setControlProperty(propertyName: string, value: any): Action {
     return updateControlState({[propertyName]: value});
+}
+
+export function invokeCtxOperation(operation: OperationState, inputAssignments: InputAssignments): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+
+        const resource = selectors.selectedResourceSelector(getState());
+        if (resource) {
+            for (let input of operation.inputs) {
+                if (!isInputAssigned(inputAssignments, input.name)
+                    && isAssignableFrom(input.dataType, resource.dataType)) {
+                    inputAssignments = assignResourceNameInput(inputAssignments, input.name, resource.name);
+                    break;
+                }
+            }
+        }
+
+        const variable = selectors.selectedVariableSelector(getState());
+        if (variable) {
+            for (let input of operation.inputs) {
+                if (!isInputAssigned(inputAssignments, input.name)
+                    && (input.dataType === VAR_NAME_LIKE_TYPE || input.dataType === VAR_NAMES_LIKE_TYPE)) {
+                    inputAssignments = assignConstantValueInput(inputAssignments, input.name, variable.name);
+                    break;
+                }
+            }
+        }
+
+        dispatch(invokeCtxOperationImpl(operation.name, inputAssignments));
+    };
+}
+
+export function invokeCtxOperationImpl(selectedCtxOperationName: string, inputAssignments: InputAssignments): Action {
+    return {type: INVOKE_CTX_OPERATION, payload: {selectedCtxOperationName, inputAssignments}};
 }
 
 export function updateControlState(controlState: any): Action {
@@ -569,7 +607,7 @@ export function hideOperationStepDialog(dialogId: string, inputAssignments?): Th
     return (dispatch: Dispatch, getState: GetState) => {
         if (inputAssignments) {
             const dialogState = getState().control.dialogs[dialogId] as any;
-            inputAssignments = Object.assign({}, dialogState.inputAssignments, inputAssignments)
+            inputAssignments = {...dialogState.inputAssignments, ...inputAssignments};
         }
         dispatch(hideDialog(dialogId, {inputAssignments}));
     };
@@ -1104,15 +1142,6 @@ export function renameWorkspaceResource(resName: string, newResName: string): Th
     };
 }
 
-export function invokeOperationFromContext(operation: OperationState, inputAssignments: InputAssignments): ThunkAction {
-    return (dispatch: Dispatch, getState: GetState) => {
-        const resource = selectors.selectedResourceSelector(getState());
-        const variable = selectors.selectedVariableSelector(getState());
-        // TODO (nf): implement action INVOKE_OPERATION_FROM_CONTEXT
-        dispatch({type: "INVOKE_OPERATION_FROM_CONTEXT", payload: {operation, inputAssignments, resource, variable}});
-    };
-}
-
 export function renameWorkspaceResourceImpl(resName: string, newResName: string): Action {
     return {type: RENAME_RESOURCE, payload: {resName, newResName}};
 }
@@ -1277,10 +1306,6 @@ export const UPDATE_ENTITY_STYLE = "UPDATE_ENTITY_STYLE";
 
 export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
-}
-
-export function setProjectionCode(viewId: string, projectionCode: string): Action {
-    return {type: SET_PROJECTION_CODE, payload: {viewId, projectionCode}};
 }
 
 export function setSelectedLayerSplit(viewId: string, isSelectedLayerSplit: boolean | null): Action {

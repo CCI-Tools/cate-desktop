@@ -637,6 +637,8 @@ export interface ControlState {
     // VariablesPanel
     selectedVariableName: string | null;
 
+    selectedCtxOperationName: string | null;
+
     // LayersPanel
 
     // A map that stores the last state of any dialog given a dialogId

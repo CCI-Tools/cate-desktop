@@ -24,6 +24,7 @@ import {
     INITIAL_COMMUNICATION_STATE, INITIAL_CONTROL_STATE, INITIAL_DATA_STATE,
     INITIAL_SESSION_STATE, INITIAL_LOCATION_STATE
 } from "./initial-state";
+import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./containers/OperationStepDialog";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -243,6 +244,12 @@ const controlReducer = (state: ControlState = INITIAL_CONTROL_STATE, action: Act
         case actions.INC_ENTITY_UPDATE_COUNT: {
             const entityUpdateCount = state.entityUpdateCount + 1;
             return {...state, entityUpdateCount};
+        }
+        case actions.INVOKE_CTX_OPERATION: {
+            const {selectedCtxOperationName, inputAssignments} = action.payload;
+            let dialogState: any = state.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
+            dialogState = {...dialogState, isOpen: true, inputAssignments};
+            return {...state, selectedCtxOperationName, dialogs: {...state.dialogs, [NEW_CTX_OPERATION_STEP_DIALOG_ID]: dialogState}};
         }
         default: {
             const newViews = viewsReducer(state.views, action, state.activeViewId);
@@ -631,7 +638,7 @@ const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Act
             if (title) {
                 properties = {...properties, title};
                 if (placemark.geometry.type === "Point") {
-                    properties["marker-symbol"] = `${index}`;
+                    properties["marker-symbol"] = index.toString(16).slice(-1);
                 }
                 placemark = {...placemark, properties}
             }
@@ -671,7 +678,6 @@ const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Act
             const defaultPlacemarkStyle = {...state.defaultPlacemarkStyle, ...style};
             return {...updatePlacemarkProperties(state, placemarkId, properties), defaultPlacemarkStyle};
         }
-
     }
     return state;
 };

@@ -29,6 +29,8 @@ export const INITIAL_CONTROL_STATE: ControlState = {
     selectedVariableName: null,
     dialogs: {},
 
+    selectedCtxOperationName: null,
+
     views: [INITIAL_WORLD_VIEW],
     viewLayout: {
         viewIds: [INITIAL_WORLD_VIEW.id],
