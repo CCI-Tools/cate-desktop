@@ -1,9 +1,6 @@
 import * as React from 'react';
 import {connect, DispatchProp} from 'react-redux';
-import {
-    Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent,
-    PopoverInteractionKind, AnchorButton, Tooltip
-} from "@blueprintjs/core";
+import {Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent, PopoverInteractionKind} from "@blueprintjs/core";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
@@ -14,6 +11,7 @@ import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_OPERATIONS_FOUND} from "../messages";
+import {ToolButton} from "../components/ToolButton";
 
 
 interface IOperationsPanelProps {
@@ -136,12 +134,12 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
             const canAddStepOperation = this.props.selectedOperation && this.props.workspace;
             const actionComponent = (
                 <div className="pt-button-group">
-                    <Tooltip content="Add a new operation step to the workspace's workflow.">
-                        <AnchorButton className="pt-intent-primary"
-                                      onClick={this.handleAddOperationStepButtonClicked}
-                                      disabled={!canAddStepOperation}
-                                      iconName="play">Add Step...</AnchorButton>
-                    </Tooltip>
+                    <ToolButton tooltipContent="Add a new operation step to the workspace's workflow."
+                                className="pt-intent-primary"
+                                onClick={this.handleAddOperationStepButtonClicked}
+                                disabled={!canAddStepOperation}
+                                text="Add Step..."
+                                iconName="play"/>
                     {canAddStepOperation ? <OperationStepDialog id="newOperationStepDialog"/> : null}
                 </div>
             );

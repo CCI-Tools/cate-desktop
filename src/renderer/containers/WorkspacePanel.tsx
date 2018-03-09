@@ -4,7 +4,7 @@ import {
     State, WorkspaceState, WorkflowStepState, ResourceState, WorkflowPortState, OperationState,
     OperationIOBaseState, OperationInputState
 } from "../state";
-import {AnchorButton, Tabs2, Tab2, Tooltip, Position, Popover, Menu, MenuItem} from "@blueprintjs/core";
+import {Tabs2, Tab2, Tooltip, Position, Popover, Menu, MenuItem} from "@blueprintjs/core";
 import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
 import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
@@ -19,6 +19,7 @@ import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messag
 import {findOperation, isDataFrameResource, isFigureResource} from "../state-util";
 import {isBoolean, isDefined, isString, isUndefined, isUndefinedOrNull} from "../../common/types";
 import {CSSProperties} from "react";
+import {ToolButton} from "../components/ToolButton";
 
 interface IWorkspacePanelProps {
     workspace: WorkspaceState;
@@ -239,21 +240,27 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         );
         let workspaceState = null;
         if (workspace.isModified) {
-            workspaceState =
-                <span key={0} style={WorkspacePanel.STATE_TAG_STYLE} className="pt-tag pt-intent-warning pt-minimal">Modified</span>;
+            workspaceState = (
+                <span key={0} style={WorkspacePanel.STATE_TAG_STYLE}
+                      className="pt-tag pt-intent-warning pt-minimal">Modified</span>
+            );
         } else if (!workspace.isSaved) {
-            workspaceState =
-                <span key={1} style={WorkspacePanel.STATE_TAG_STYLE} className="pt-tag pt-intent-success pt-minimal">Not saved</span>;
+            workspaceState = (
+                <span key={1} style={WorkspacePanel.STATE_TAG_STYLE}
+                      className="pt-tag pt-intent-success pt-minimal">Not saved</span>
+            );
         }
         const openItemButton = (
-            <Tooltip content="Show workspace directory in file system" position={Position.LEFT}>
-                <AnchorButton onClick={this.handleOpenWorkspaceDirectoryClicked} iconName="folder-open"/>
-            </Tooltip>
+            <ToolButton tooltipContent="Show workspace directory in file system"
+                        tooltipPosition={Position.LEFT}
+                        onClick={this.handleOpenWorkspaceDirectoryClicked}
+                        iconName="folder-open"
+            />
         );
         const copyItemButton = (
             <Popover position={Position.LEFT}>
-                <AnchorButton disabled={!steps.length}
-                              iconName="clipboard"/>
+                <ToolButton disabled={!steps.length}
+                            iconName="clipboard"/>
                 <Menu>
                     <MenuItem onClick={this.handleCopyWorkflowAsPythonScript} text="Copy workflow as Python Script"/>
                     <MenuItem onClick={this.handleCopyWorkflowAsShellScript} text="Copy workflow as Shell Script"/>
@@ -295,46 +302,41 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         const canShowTableView = isDataFrameResource(resource);
         return (
             <div className="pt-button-group">
-                <Tooltip content="Show figure" position={Position.LEFT}>
-                    <AnchorButton
-                        disabled={!canShowFigure}
-                        iconName="eye-open"
-                        onClick={this.handleShowFigureButtonClicked}/>
-                </Tooltip>
-                <Tooltip content="Show data in table" position={Position.LEFT}>
-                    <AnchorButton disabled={!canShowTableView}
-                                  iconName="pt-icon-th"
-                                  onClick={this.handleShowResourceTableView}
-                    />
-                </Tooltip>
-                <Tooltip content="Resource/step properties" position={Position.LEFT}>
-                    <AnchorButton
-                        disabled={!resource}
-                        iconName="label"
-                        onClick={this.handleWorkflowStepPropertiesButtonClicked}/>
-                </Tooltip>
-                <Tooltip content="Edit workflow step" position={Position.LEFT}>
-                    <AnchorButton
-                        className="pt-intent-primary"
-                        disabled={!workflowStep}
-                        iconName="edit"
-                        onClick={this.handleEditOperationStepButtonClicked}/>
-                </Tooltip>
-                <Tooltip content="Remove workflow step and its resource" position={Position.LEFT}>
-                    <AnchorButton
-                        disabled={!workflowStep}
-                        iconName="remove"
-                        onClick={this.handleRemoveOperationStepButtonClicked}/>
-                </Tooltip>
-                <Tooltip content="Clean workspace, remove all steps and resources" position={Position.LEFT}>
-                    <AnchorButton
-                        disabled={!hasSteps}
-                        iconName="delete"
-                        onClick={this.handleCleanWorkflowButtonClicked}/>
-                </Tooltip>
+                <ToolButton tooltipContent="Show figure"
+                            tooltipPosition={Position.LEFT}
+                            disabled={!canShowFigure}
+                            iconName="eye-open"
+                            onClick={this.handleShowFigureButtonClicked}/>
+                <ToolButton tooltipContent="Show data in table"
+                            tooltipPosition={Position.LEFT}
+                            disabled={!canShowTableView}
+                            iconName="pt-icon-th"
+                            onClick={this.handleShowResourceTableView}
+                />
+                <ToolButton tooltipContent="Resource/step properties"
+                            tooltipPosition={Position.LEFT}
+                            disabled={!resource}
+                            iconName="label"
+                            onClick={this.handleWorkflowStepPropertiesButtonClicked}/>
+                <ToolButton tooltipContent="Edit workflow step"
+                            tooltipPosition={Position.LEFT}
+                            className="pt-intent-primary"
+                            disabled={!workflowStep}
+                            iconName="edit"
+                            onClick={this.handleEditOperationStepButtonClicked}/>
+                <ToolButton tooltipContent="Remove workflow step and its resource"
+                            tooltipPosition={Position.LEFT}
+                            disabled={!workflowStep}
+                            iconName="remove"
+                            onClick={this.handleRemoveOperationStepButtonClicked}/>
+                <ToolButton tooltipContent="Clean workspace, remove all steps and resources"
+                            tooltipPosition={Position.LEFT}
+                            disabled={!hasSteps}
+                            iconName="delete"
+                            onClick={this.handleCleanWorkflowButtonClicked}/>
                 {workflowStep ? <WorkflowStepPropertiesDialog selectedWorkflowStep={workflowStep}/> : null}
                 {isOperationStepSelected ?
-                    <OperationStepDialog id="editOperationStepDialog" operationStep={workflowStep}/> : null}
+                 <OperationStepDialog id="editOperationStepDialog" operationStep={workflowStep}/> : null}
             </div>
         );
     }
@@ -553,7 +555,6 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
                                       dataType={resource.dataType}/>);
         }
 
-        let persistenceLabel;
         if (step && step.persistent) {
             items.push(<span key={3}> </span>);
             items.push(<span key={4} className="pt-icon-database"/>);

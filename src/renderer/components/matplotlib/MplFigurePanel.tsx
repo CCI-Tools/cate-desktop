@@ -3,6 +3,7 @@ import {MplFigureCommandListener, MplFigureCommandSourceImpl} from './MplFigure'
 import {MplFigureContainer} from './MplFigureContainer';
 import {AnchorButton, Tag, Tooltip} from "@blueprintjs/core";
 import {CSSProperties} from "react";
+import {ToolButton} from "../ToolButton";
 
 
 interface IFigurePanelProps {
@@ -29,7 +30,11 @@ const FIGURE_COMMAND_SOURCE = new MplFigureCommandSourceImpl();
  */
 export class MplFigurePanel extends React.Component<IFigurePanelProps, IFigurePanelState> {
     static readonly DIV_STYLE: CSSProperties = {width: '100%', overflow: 'auto'};
-    static readonly CONTAINER_DIV_STYLE: CSSProperties = {width: '100%', overflow: 'hidden', padding: '0.2em 0.2em 0 0.2em'};
+    static readonly CONTAINER_DIV_STYLE: CSSProperties = {
+        width: '100%',
+        overflow: 'hidden',
+        padding: '0.2em 0.2em 0 0.2em'
+    };
 
     constructor(props: IFigurePanelProps) {
         super(props);
@@ -150,9 +155,10 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
                 const iconName = command['icon'];
                 const onClick = command['callback'];
                 buttons.push(
-                    <Tooltip key={i} content={tooltipText}>
-                        <AnchorButton iconName={iconName} onClick={onClick}/>
-                    </Tooltip>
+                    <ToolButton key={i}
+                                tooltipContent={tooltipText}
+                                iconName={iconName}
+                                onClick={onClick}/>
                 );
             }
         }

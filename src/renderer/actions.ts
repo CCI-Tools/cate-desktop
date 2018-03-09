@@ -25,6 +25,7 @@ import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
 import {DirectGeometryObject, Feature} from "geojson";
 import {SimpleStyle} from "../common/geojson-simple-style";
 import {GeometryToolType} from "./components/cesium/geometry-tool";
+import {getEntityByEntityId} from "./components/cesium/cesium-util";
 
 const CANCELLED_CODE = 999;
 
@@ -77,10 +78,6 @@ export function addPlacemark(placemark: Placemark): Action {
     return {type: ADD_PLACEMARK, payload: {placemark}};
 }
 
-export function locatePlacemark(placemarkId: string): Action {
-    return {type: LOCATE_PLACEMARK, payload: {placemarkId}};
-}
-
 export function removePlacemark(placemarkId: string): Action {
     return {type: REMOVE_PLACEMARK, payload: {placemarkId}};
 }
@@ -95,6 +92,23 @@ export function updatePlacemarkProperties(placemarkId: string, properties: any):
 
 export function updatePlacemarkStyle(placemarkId: string, style: SimpleStyle): Action {
     return {type: UPDATE_PLACEMARK_STYLE, payload: {placemarkId, style}};
+}
+
+export function locatePlacemark(placemarkId: string): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        let viewer = selectors.selectedWorldViewViewerSelector(getState());
+        if (viewer) {
+            let selectedEntity = getEntityByEntityId(viewer, placemarkId);
+            if (selectedEntity) {
+                let headingPitchRange;
+                if (selectedEntity.position) {
+                    let heading = 0, pitch = -3.14159/2, range = 2500000;
+                    headingPitchRange = new Cesium.HeadingPitchRange(heading, pitch, range);
+                }
+                viewer.zoomTo(selectedEntity, headingPitchRange);
+            }
+        }
+    };
 }
 
 export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Action {

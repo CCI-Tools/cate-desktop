@@ -15,6 +15,7 @@ import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES} from "../messages";
 import {CSSProperties} from "react";
+import {ToolButton} from "../components/ToolButton";
 
 
 interface IDataSourcesPanelProps {
@@ -158,37 +159,32 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             let primaryAction;
             if (isLocalStore) {
                 primaryAction = (
-                    <Tooltip content="Open local dataset">
-                        <AnchorButton className={"pt-intent-primary"}
-                                      onClick={this.handleShowOpenDatasetDialog}
-                                      disabled={!canOpen}
-                                      iconName="folder-shared-open"/>
-                    </Tooltip>
+                    <ToolButton tooltipContent="Open local dataset"
+                                className="pt-intent-primary"
+                                onClick={this.handleShowOpenDatasetDialog}
+                                disabled={!canOpen}
+                                iconName="folder-shared-open"/>
                 );
             } else {
                 primaryAction = (
-                    <Tooltip content="Download and/or open remote dataset">
-                        <AnchorButton className={"pt-intent-primary"}
-                                      onClick={this.handleShowDownloadDataSourceDialog}
-                                      disabled={!canDownload}
-                                      iconName="cloud-download"/>
-                    </Tooltip>
+                    <ToolButton tooltipContent="Download and/or open remote dataset"
+                                className="pt-intent-primary"
+                                onClick={this.handleShowDownloadDataSourceDialog}
+                                disabled={!canDownload}
+                                iconName="cloud-download"/>
                 );
             }
             const actionComponent = (
                 <div className="pt-button-group">
-                    <Tooltip content="Add local data source">
-                        <AnchorButton className={(isDynamicLocalStore && !hasDataSources) ? "pt-intent-primary" : ""}
-                                      onClick={this.handleAddDatasetDialog}
-                                      disabled={!canAdd}
-                                      iconName="add"/>
-                    </Tooltip>
-                    <Tooltip content="Remove local data source">
-                        <AnchorButton
-                            onClick={this.handleRemoveDatasetDialog}
-                            disabled={!canRemove}
-                            iconName="trash"/>
-                    </Tooltip>
+                    <ToolButton tooltipContent="Add local data source"
+                                className={(isDynamicLocalStore && !hasDataSources) ? "pt-intent-primary" : ""}
+                                onClick={this.handleAddDatasetDialog}
+                                disabled={!canAdd}
+                                iconName="add"/>
+                    <ToolButton tooltipContent="Remove local data source"
+                                onClick={this.handleRemoveDatasetDialog}
+                                disabled={!canRemove}
+                                iconName="trash"/>
                     {primaryAction}
                     <AddDatasetDialog/>
                     <RemoveDatasetDialog/>

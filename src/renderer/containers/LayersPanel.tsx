@@ -8,7 +8,7 @@ import {
     VariableImageLayerState,
     VariableState
 } from '../state';
-import {AnchorButton, Position, Slider, Tooltip} from '@blueprintjs/core';
+import {Position, Slider} from '@blueprintjs/core';
 import {ListBox, ListBoxSelectionMode} from '../components/ListBox';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
@@ -19,6 +19,7 @@ import {ScrollablePanelContent} from '../components/ScrollableContent';
 import {ViewState} from '../components/ViewState';
 import {NO_LAYER_SELECTED, NO_LAYERS_EMPTY_VIEW, NO_LAYERS_NO_VIEW} from '../messages';
 import {SubPanelHeader} from '../components/SubPanelHeader';
+import {ToolButton} from "../components/ToolButton";
 
 interface ILayersPanelProps {
     selectedVariable: VariableState | null,
@@ -170,30 +171,22 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         const canMoveLayerDown = selectedLayerIndex >= 0 && selectedLayerIndex < layerCount - 1;
         return (
             <div className="pt-button-group">
-                <Tooltip content="Add a new layer" position={Position.LEFT}>
-                    <AnchorButton
-                        className="pt-intent-primary"
-                        onClick={this.handleAddLayerButtonClicked}
-                        iconName="add"/>
-                </Tooltip>
-                <Tooltip content="Remove selected layer" position={Position.LEFT}>
-                    <AnchorButton
-                        disabled={!canRemoveLayer}
-                        onClick={this.handleRemoveLayerButtonClicked}
-                        iconName="remove"/>
-                </Tooltip>
-                <Tooltip content="Move layer up" position={Position.LEFT}>
-                    <AnchorButton
-                        disabled={!canMoveLayerUp}
-                        onClick={this.handleMoveLayerUpButtonClicked}
-                        iconName="arrow-up"/>
-                </Tooltip>
-                <Tooltip content="Move layer down" position={Position.LEFT}>
-                    <AnchorButton
-                        disabled={!canMoveLayerDown}
-                        onClick={this.handleMoveLayerDownButtonClicked}
-                        iconName="arrow-down"/>
-                </Tooltip>
+                <ToolButton tooltipContent="Add a new layer" tooltipPosition={Position.LEFT}
+                            className="pt-intent-primary"
+                            onClick={this.handleAddLayerButtonClicked}
+                            iconName="add"/>
+                <ToolButton tooltipContent="Remove selected layer" tooltipPosition={Position.LEFT}
+                            disabled={!canRemoveLayer}
+                            onClick={this.handleRemoveLayerButtonClicked}
+                            iconName="remove"/>
+                <ToolButton tooltipContent="Move layer up" tooltipPosition={Position.LEFT}
+                            disabled={!canMoveLayerUp}
+                            onClick={this.handleMoveLayerUpButtonClicked}
+                            iconName="arrow-up"/>
+                <ToolButton tooltipContent="Move layer down" tooltipPosition={Position.LEFT}
+                            disabled={!canMoveLayerDown}
+                            onClick={this.handleMoveLayerDownButtonClicked}
+                            iconName="arrow-down"/>
                 <LayerSourcesDialog/>
             </div>
         );
