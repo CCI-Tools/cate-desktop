@@ -13,12 +13,12 @@ import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
 import {entityToGeometryWkt} from "./components/cesium/cesium-util";
 import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../common/geojson-simple-style";
 
-export const SELECTED_VARIABLE_LAYER_ID = 'selectedVariable';
+export const AUTO_LAYER_ID = 'auto';
 export const COUNTRIES_LAYER_ID = 'countries';
 export const MY_PLACES_LAYER_ID = 'myPlaces';
 
-export const SELECTED_VARIABLE_LAYER = {
-    id: SELECTED_VARIABLE_LAYER_ID,
+export const AUTO_LAYER = {
+    id: AUTO_LAYER_ID,
     type: 'Unknown',
     visible: true,
 };
@@ -120,7 +120,7 @@ export function getLayerDisplayName(layer: LayerState): string {
     }
     const varName = (layer as any).varName;
     const resName = (layer as any).resName;
-    if (layer.id === SELECTED_VARIABLE_LAYER_ID) {
+    if (layer.id === AUTO_LAYER_ID) {
         if (resName && varName) {
             return `Selected Variable (${resName} / ${varName})`;
         }
@@ -215,11 +215,11 @@ function newInitialWorldViewData(): WorldViewDataState {
         viewMode: "3D",
         projectionCode: 'EPSG:4326',
         layers: [
-            {...SELECTED_VARIABLE_LAYER},
+            {...AUTO_LAYER},
             {...COUNTRIES_LAYER},
             {...MY_PLACES_LAYER},
         ],
-        selectedLayerId: SELECTED_VARIABLE_LAYER_ID,
+        selectedLayerId: AUTO_LAYER_ID,
         isSelectedLayerSplit: null,
         selectedLayerSplitPos: 0.5,
     } as WorldViewDataState;
@@ -405,12 +405,12 @@ export function newVariableLayer(resource: ResourceState,
     }
 }
 
-export function updateSelectedVariableLayer(layer: LayerState,
-                                            resource: ResourceState,
-                                            variable: VariableState,
-                                            savedLayers?: SavedLayers): LayerState {
+export function updateAutoLayer(layer: LayerState,
+                                resource: ResourceState,
+                                variable: VariableState,
+                                savedLayers?: SavedLayers): LayerState {
     assert.ok(layer);
-    assert.ok(layer.id === SELECTED_VARIABLE_LAYER_ID);
+    assert.ok(layer.id === AUTO_LAYER_ID);
     const spatialImageVariable = variable && isSpatialImageVariable(variable);
     const spatialVectorVariable = variable && isSpatialVectorVariable(variable);
     if (spatialImageVariable) {
@@ -420,12 +420,12 @@ export function updateSelectedVariableLayer(layer: LayerState,
             ...layer,
             ...restoredLayer,
             type: 'VariableImage',
-            name: `Variable ${resource.name}.${variable.name}`,
+            name: `Auto ${resource.name}.${variable.name}`,
             resId: resource.id,
             resName: resource.name,
             varName: variable.name,
             ...layerDisplayProperties,
-            id: layer.id,
+            id: AUTO_LAYER_ID,
         };
     } else if (spatialVectorVariable) {
         const restoredLayer = (savedLayers && savedLayers[resource.name]) as ResourceVectorLayerState;
@@ -434,18 +434,18 @@ export function updateSelectedVariableLayer(layer: LayerState,
             ...layer,
             ...restoredLayer,
             type: 'ResourceVector',
-            name: `Resource: ${resource.name}`,
+            name: `Auto ${resource.name}`,
             resId: resource.id,
             resName: resource.name,
             style: getResourceVectorStyle(resource.id, restoredStyle),
-            id: layer.id,
+            id: AUTO_LAYER_ID,
         } as ResourceVectorLayerState;
     } else {
         return {
-            id: SELECTED_VARIABLE_LAYER_ID,
             type: 'Unknown' as any,
-            name: variable ? `Variable ${variable.name} (not geo-spatial)` : '(no selection)',
+            name: variable ? `Auto ${variable.name} (not geo-spatial)` : 'Auto (no selection)',
             visible: layer.visible,
+            id: AUTO_LAYER_ID,
         } as any;
     }
 }

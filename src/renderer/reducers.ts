@@ -9,7 +9,7 @@ import {Action} from "./actions";
 import * as assert from "../common/assert";
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
-    SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
+    AUTO_LAYER_ID, updateAutoLayer,
     newWorldView, newTableView, newFigureView, getFigureViewTitle,
     isVectorLayer, PLACEMARK_ID_PREFIX, getPlacemarkTitleAndIndex,
 } from "./state-util";
@@ -549,18 +549,18 @@ const layerReducer = (state: LayerState, action: Action, isActiveView: boolean) 
             break;
         }
         case actions.SET_SHOW_SELECTED_VARIABLE_LAYER: {
-            if (state.id === SELECTED_VARIABLE_LAYER_ID) {
+            if (state.id === AUTO_LAYER_ID) {
                 const showSelectedVariableLayer = action.payload.showSelectedVariableLayer;
                 return {...state, visible: showSelectedVariableLayer};
             }
             break;
         }
         case actions.SET_SELECTED_VARIABLE: {
-            if (state.id === SELECTED_VARIABLE_LAYER_ID && isActiveView) {
+            if (state.id === AUTO_LAYER_ID && isActiveView) {
                 const resource = action.payload.resource;
                 const selectedVariable = action.payload.selectedVariable;
                 const savedLayers = action.payload.savedLayers;
-                return updateSelectedVariableLayer(state, resource, selectedVariable, savedLayers);
+                return updateAutoLayer(state, resource, selectedVariable, savedLayers);
             }
             break;
         }

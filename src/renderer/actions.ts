@@ -10,7 +10,7 @@ import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
-    newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName,
+    newVariableLayer, getCsvUrl, AUTO_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
     getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID, genSimpleId, PLACEMARK_ID_PREFIX
 } from "./state-util";
@@ -1454,7 +1454,7 @@ export function updateLayer(viewId: string, layer: LayerState, ...layerPropertie
             layer = updateObject({}, layer, ...layerProperties);
         }
         dispatch(updateLayerImpl(viewId, layer));
-        if (layer.id === SELECTED_VARIABLE_LAYER_ID) {
+        if (layer.id === AUTO_LAYER_ID) {
             const varName = (layer as VariableLayerBase).varName;
             if (varName) {
                 dispatch(saveLayer(varName, layer));

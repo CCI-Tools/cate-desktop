@@ -8,7 +8,7 @@ import {
 } from "../components/cesium/CesiumGlobe";
 import {
     findVariable, findResource, getTileUrl, getFeatureCollectionUrl, getGeoJSONCountriesUrl,
-    SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID,
+    AUTO_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID,
 } from "../state-util";
 import {memoize} from '../../common/memoize';
 import {EMPTY_OBJECT} from "../selectors";
@@ -61,7 +61,7 @@ export function convertLayersToLayerDescriptors(layers: LayerState[],
                 // noinspection JSUnusedAssignment
                 vectorLayerDescriptors.push(vectorLayerDescriptor);
             }
-        } else if (layer.id !== SELECTED_VARIABLE_LAYER_ID) {
+        } else if (layer.id !== AUTO_LAYER_ID) {
             console.warn(`GlobeView: layer with ID "${layer.id}" will not be rendered`);
         }
     }
