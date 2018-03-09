@@ -2,6 +2,8 @@
 
 ### New Features and UX Improvements 
 
+* Context menu on 3D globe
+  [#542](https://github.com/CCI-Tools/cate/issues/542)
 * Place layer/entity style settings in separate STYLES panel
   [#533](https://github.com/CCI-Tools/cate/issues/533)
 * User defined geometries
@@ -9,6 +11,8 @@
 
 ### Fixes 
 
+* World view info overlay overlays dialogues
+  [#552](https://github.com/CCI-Tools/cate/issues/552)
 * High GPU loads even when inactive
   [#532](https://github.com/CCI-Tools/cate/issues/532)
 
