@@ -267,7 +267,7 @@ function getOverlayHtml(layers: LayerState[],
                     overlayHtml = document.createElement('div');
                     overlayHtml.id = 'CesiumGlobeOverlay-' + viewId;
                     overlayHtml.style.position = 'relative';
-                    overlayHtml.style['z-index'] = 100;
+                    overlayHtml.style['z-index'] = 10;
                     overlayHtml.style['pointer-events'] = 'none';
                     overlayHtml.style['padding'] = '1em';
                     overlayHtml.style['background-color'] = 'rgba(0, 0, 0, 0.25)';
