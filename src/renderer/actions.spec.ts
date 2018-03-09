@@ -8,10 +8,6 @@ import {
     SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID, EXTERNAL_OBJECT_STORE,
     MY_PLACES_LAYER, COUNTRIES_LAYER, SELECTED_VARIABLE_LAYER
 } from "./state-util";
-import {
-    featurePropertiesFromSimpleStyle, SimpleStyle,
-    simpleStyleFromFeatureProperties
-} from "../common/geojson-simple-style";
 import {InputAssignments} from "./containers/editor/ValueEditor";
 import {DATA_ARRAY_TYPE, DATASET_LIKE_TYPE, POINT_LIKE_TYPE, VAR_NAME_LIKE_TYPE} from "../common/cate-types";
 import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./containers/OperationStepDialog";
@@ -1045,7 +1041,7 @@ describe('Actions', () => {
             // Dispatch context operation action
             dispatch(actions.invokeCtxOperation(operation, inputAssignments));
 
-            expect(getState().control.selectedCtxOperationName).to.equal("cate.ops.tseries_point");
+            expect(getState().control.selectedCtxOperationName).to.equal("tseries_point");
             dialogState = getState().control.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
             expect(dialogState).to.deep.equal({
                                                   isOpen: true,
@@ -1069,7 +1065,7 @@ describe('Actions', () => {
             dispatch(actions.invokeCtxOperation(operation, inputAssignments));
 
             // Expect to see new context in actions
-            expect(getState().control.selectedCtxOperationName).to.equal("cate.ops.tseries_point");
+            expect(getState().control.selectedCtxOperationName).to.equal("tseries_point");
             dialogState = getState().control.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
             expect(dialogState).to.deep.equal({
                                                   isOpen: true,
