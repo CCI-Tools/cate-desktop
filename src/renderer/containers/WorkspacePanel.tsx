@@ -9,7 +9,7 @@ import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
 import {ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
 import WorkflowStepPropertiesDialog from "./WorkflowStepPropertiesDialog";
-import OperationStepDialog from "./OperationStepDialog";
+import OperationStepDialog, {EDIT_OPERATION_STEP_DIALOG_ID} from "./OperationStepDialog";
 import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import * as assert from "../../common/assert";
 import * as actions from '../actions'
@@ -335,8 +335,9 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
                             iconName="delete"
                             onClick={this.handleCleanWorkflowButtonClicked}/>
                 {workflowStep ? <WorkflowStepPropertiesDialog selectedWorkflowStep={workflowStep}/> : null}
-                {isOperationStepSelected ?
-                 <OperationStepDialog id="editOperationStepDialog" operationStep={workflowStep}/> : null}
+                {isOperationStepSelected
+                    ? <OperationStepDialog id={EDIT_OPERATION_STEP_DIALOG_ID} operationStep={workflowStep}/>
+                    : null}
             </div>
         );
     }

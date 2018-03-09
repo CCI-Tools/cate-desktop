@@ -18,6 +18,9 @@ import * as selectors from "../selectors";
 import {isDefined, isString, isUndefinedOrNull} from "../../common/types";
 import {isUndefined} from "../../common/types";
 
+export const NEW_OPERATION_STEP_DIALOG_ID = "newOperationStepDialog";
+export const EDIT_OPERATION_STEP_DIALOG_ID = "editOperationStepDialog";
+
 type InputErrors = { [inputName: string]: Error };
 
 interface IOperationStepDialogOwnProps {
@@ -41,60 +44,69 @@ interface IOperationStepDialogState {
 }
 
 function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): IOperationStepDialogProps {
+    const id = ownProps.id;
+    const dialogState = selectors.dialogStateSelector(id)(state);
+
+    let isOpen = dialogState.isOpen;
+
+    let workspace: WorkspaceState | null;
     let isEditMode: boolean;
     let resName: string | null;
     let operation: OperationState | null;
-    let operationName;
-    let inputAssignments;
-    let operationStep = ownProps.operationStep;
-    if (operationStep) {
-        isEditMode = true;
-        resName = operationStep.id;
-        operationName = operationStep.op;
-        operation = (selectors.operationsSelector(state) || []).find(op => op.qualifiedName === operationName);
-        if (operation) {
-            inputAssignments = getInputAssignmentsFromOperationStep(operation, operationStep);
-        }
-    } else {
-        isEditMode = false;
-        resName = null;
-        operation = ownProps.operation || selectors.selectedOperationSelector(state);
-        operationName = operation && operation.qualifiedName;
-    }
+    let inputAssignments: InputAssignments;
+    let operationStep: WorkflowStepState | null;
+    let geometryWKTGetter;
 
-    const dialogState = selectors.dialogStateSelector(ownProps.id)(state);
+    if (isOpen) {
+        workspace = selectors.workspaceSelector(state);
 
-    if (!isEditMode && operation) {
-
-        // Assign inputs from restored values
-        const inputAssignmentsMap = (dialogState as any).inputAssignments;
-        inputAssignments = inputAssignmentsMap && inputAssignmentsMap[operationName];
-
-        const givenInputAssignments = ownProps.inputAssignments;
-        if (givenInputAssignments) {
-            // Overwrite any assignments by given assignments
-            if (inputAssignments) {
-                inputAssignments = {...inputAssignments, ...givenInputAssignments};
+        operationStep = ownProps.operationStep;
+        if (operationStep) {
+            // If there is an operation step in own props, we are in edit mode.
+            isEditMode = true;
+            resName = operationStep.id;
+            operation = (selectors.operationsSelector(state) || []).find(op => op.qualifiedName === operationStep.op);
+            if (operation) {
+                inputAssignments = getInputAssignmentsFromOperationStep(operation, operationStep);
             } else {
-                inputAssignments = givenInputAssignments;
+                console.error("OperationStepDialog: operation not found for operationStep =", operationStep);
+            }
+        } else {
+            // Otherwise we open a new operation step dialog
+            isEditMode = false;
+            resName = null;
+            operation = ownProps.operation || selectors.selectedOperationSelector(state);
+        }
+
+        if (!isEditMode && operation) {
+
+            // Assign inputs from restored values
+            const inputAssignmentsMap = (dialogState as any).inputAssignments;
+            inputAssignments = inputAssignmentsMap && inputAssignmentsMap[operation.qualifiedName];
+
+            const givenInputAssignments = ownProps.inputAssignments;
+            if (givenInputAssignments) {
+                // Overwrite any assignments by given assignments
+                if (inputAssignments) {
+                    inputAssignments = {...inputAssignments, ...givenInputAssignments};
+                } else {
+                    inputAssignments = givenInputAssignments;
+                }
             }
         }
-    }
 
-    let isOpen = dialogState.isOpen;
-    if (isOpen) {
-        // console.log('OperationStepDialog: operation:', operation);
+        geometryWKTGetter = selectors.selectedGeometryWKTGetterSelector(state)
     }
 
     return {
-        id: ownProps.id,
-        isEditMode: !!operationStep,
-        workspace: selectors.workspaceSelector(state),
+        id,
+        isEditMode,
+        workspace,
         isOpen,
         inputAssignments,
         operation,
         resName,
-        geometryWKTGetter: selectors.selectedGeometryWKTGetterSelector(state),
+        geometryWKTGetter,
     };
 }
 
@@ -126,20 +138,19 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
     }
 
     private onConfirm() {
+        const isNewMode = !this.props.isEditMode;
         const operation = this.props.operation;
-        const resName = this.props.resName;
-        const isEditMode = this.props.isEditMode;
-        const opName = operation.name;
-        const opArgs = this.getInputArguments();
-        if (!isEditMode) {
-            this.props.dispatch(actions.hideOperationStepDialog(this.props.id,
-                                                                {[opName]: this.state.inputAssignments}));
-        } else {
-            this.props.dispatch(actions.hideOperationStepDialog(this.props.id));
+        let inputAssignmentsMap;
+        if (isNewMode) {
+            // Only store input assignments when creating new operation steps
+            inputAssignmentsMap = {[operation.qualifiedName]: this.state.inputAssignments};
         }
-        this.props.dispatch(actions.setWorkspaceResource(opName, opArgs,
-                                                         resName, isEditMode,
-                                                         `Executing operation "${opName}"`));
+        this.props.dispatch(actions.hideOperationStepDialog(this.props.id, inputAssignmentsMap));
+        this.props.dispatch(actions.setWorkspaceResource(operation.qualifiedName,
+                                                         this.getInputArguments(),
+                                                         this.props.resName,
+                                                         this.props.isEditMode,
+                                                         `Executing operation "${operation.name}"`));
     }
 
     private canConfirm() {
@@ -192,6 +203,11 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
     }
 
     render() {
+        const isOpen = this.props.isOpen;
+        if (!isOpen) {
+            return null;
+        }
+
         const operation = this.props.operation;
         let confirmTitle, dialogTitle, tooltipText;
         if (this.props.isEditMode) {
@@ -206,7 +222,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
 
         return (
             <ModalDialog
-                isOpen={this.props.isOpen}
+                isOpen={true}
                 iconName="function"
                 title={dialogTitle}
                 confirmTooltip={tooltipText}
