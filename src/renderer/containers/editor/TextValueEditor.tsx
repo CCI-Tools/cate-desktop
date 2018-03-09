@@ -12,7 +12,7 @@ export function TextValueEditor(props: IValueEditorProps<string>) {
                                  onChange={props.onChange}/>);
     } else {
         return (
-            <TextField size={16}
+            <TextField size={24}
                        value={props.value}
                        nullable={props.input.nullable}
                        onChange={value => props.onChange(props.input, value)}
