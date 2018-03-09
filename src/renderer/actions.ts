@@ -12,7 +12,7 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
-    getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID, findVariableIndexCoordinates
+    getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID, getNonSpatialIndexers
 } from "./state-util";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
@@ -128,6 +128,7 @@ export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 export const SET_GLOBE_MOUSE_POSITION = 'SET_GLOBE_MOUSE_POSITION';
 export const SET_GLOBE_VIEW_POSITION = 'SET_GLOBE_VIEW_POSITION';
+export const SET_GLOBE_VIEW_POSITION_DATA = 'SET_GLOBE_VIEW_POSITION_DATA';
 
 export function setGlobeMousePosition(position: GeographicPosition): Action {
     return {type: SET_GLOBE_MOUSE_POSITION, payload: {position}};
@@ -141,45 +142,40 @@ export function setGlobeViewPosition(position: GeographicPosition): ThunkAction 
             assert.ok(baseDir);
             const resource = selectors.selectedResourceSelector(getState());
             const layer = selectors.selectedVariableImageLayerSelector(getState());
-            if (!layer || ! resource) {
+            if (layer && resource) {
+                const indexers = getNonSpatialIndexers(resource, layer);
+
+                function call(onProgress) {
+                    const opName = 'subset_point';
+                    const opArgs = {
+                        ds: {source: resource.name},
+                        point: {value: `${position.longitude}, ${position.latitude}`},
+                        indexers: {value: indexers},
+                        should_return: {value: true},
+                    };
+                    return selectors.workspaceAPISelector(getState()).runOpInWorkspace(baseDir,
+                        opName,
+                        opArgs,
+                        onProgress);
+                }
+
+                function action(positionData: { [varName: string]: number }) {
+                    dispatch(setGlobeViewPositionData(positionData));
+                }
+
+                callAPI(dispatch, 'Loading pixel values', call, action);
                 return;
             }
-
-            const indexCoords = findVariableIndexCoordinates([resource], layer);
-            const dimIndex = {};
-            for (let coord of indexCoords) {
-                if (coord[1] != '-' && coord[1] != '?') {
-                    dimIndex[coord[0]] = coord[1];
-                }
-            }
-
-            function call(onProgress) {
-                const opName = 'subset_point';
-                const opArgs = {
-                    ds: {source: resource.name},
-                    point: {value: `${position.longitude}, ${position.latitude}`},
-                    dim_index: {value: dimIndex},
-                };
-                console.log("subset_point args:", opArgs);
-                return selectors.workspaceAPISelector(getState()).runOpInWorkspace(baseDir,
-                    opName,
-                    opArgs,
-                    onProgress);
-            }
-
-            function action(result: any) {
-                console.log("subset_point result:", result);
-                // dispatch(setVariableValues(result));
-            }
-
-            callAPI(dispatch, 'Loading pixel values', call, action);
-        } else {
-            // dispatch(setVariableValues(null));
         }
+        dispatch(setGlobeViewPositionData(null));
     }
 }
 function setGlobeViewPositionImpl(position: GeographicPosition): Action  {
     return {type: SET_GLOBE_VIEW_POSITION, payload: {position}};
+}
+
+function setGlobeViewPositionData(positionData: { [varName: string]: number } | null): Action  {
+    return {type: SET_GLOBE_VIEW_POSITION_DATA, payload: {positionData}};
 }
 
 export function updateInitialState(initialState: Object): Action {

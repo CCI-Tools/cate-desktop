@@ -765,12 +765,13 @@ export class GeographicPosition {
 }
 
 /**
- * Location state stores information about the current locationin space and time.
+ * Location state stores information about the current location in space and time.
  * Information in this object may change frequently, e.g. due to mouse moves on a Globe.
  */
 export interface LocationState {
     globeMousePosition: GeographicPosition | null;
     globeViewPosition: GeographicPosition | null;
+    positionData: { [varName: string]: number } | null
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

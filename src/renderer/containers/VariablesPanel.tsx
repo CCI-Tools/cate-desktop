@@ -29,6 +29,7 @@ interface IVariablesPanelProps {
     savedLayers: SavedLayers;
     selectedPlacemark: Placemark | null;
     selectedEntity: Cesium.Entity | null;
+    positionData: { [varName: string]: number } | null;
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
@@ -46,6 +47,7 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         savedLayers: selectors.savedLayersSelector(state),
         selectedPlacemark: selectors.selectedPlacemarkSelector(state),
         selectedEntity: selectors.selectedEntitySelector(state),
+        positionData: state.location.positionData,
     }
 }
 
@@ -250,6 +252,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
     }
 
     private renderVariablesList() {
+        const positionData = this.props.positionData;
         const selectedEntity = this.props.selectedEntity;
         let renderItemFunc = VariablesPanel.renderItem;
         if (selectedEntity) {
@@ -258,6 +261,16 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
                 const property = selectedEntity.properties[variable.name];
                 if (property) {
                     return <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property.getValue()}</span>
+                    </div>;
+                }
+                return varNameRender;
+            }
+        } else if (positionData) {
+            renderItemFunc = (variable: VariableState) => {
+                const varNameRender = VariablesPanel.renderItem(variable);
+                const property = positionData[variable.name];
+                if (property) {
+                    return <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property}</span>
                     </div>;
                 }
                 return varNameRender;
