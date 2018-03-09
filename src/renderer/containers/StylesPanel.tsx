@@ -6,7 +6,7 @@ import {
     LayerState, Placemark,
     ResourceState,
     ResourceVectorLayerState,
-    State,
+    State, STYLE_CONTEXT_ENTITY, STYLE_CONTEXT_LAYER,
     VariableImageLayerState,
     VariableState,
     VectorLayerState
@@ -151,13 +151,13 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
     private renderLayerDetails() {
 
         let detailsPanel;
-        if (this.props.styleContext === "entity") {
+        if (this.props.styleContext === STYLE_CONTEXT_ENTITY) {
             if (this.props.selectedEntity) {
                 detailsPanel = this.renderVectorLayerDetails();
             } else {
                 detailsPanel = NO_ENTITY_FOR_STYLE;
             }
-        } else /*if (this.props.styleContext === "layer")*/ {
+        } else /*if (this.props.styleContext === STYLE_CONTEXT_LAYER)*/ {
             if (this.props.selectedVectorLayer) {
                 detailsPanel = this.renderVectorLayerDetails();
             } else if (this.props.selectedImageLayer) {
@@ -313,13 +313,28 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         const selectedPlacemark = this.props.selectedPlacemark;
         const selectedLayer = this.props.selectedLayer;
 
-        let placemarkTitle = selectedPlacemark && selectedPlacemark.properties && selectedPlacemark.properties.title;
-        if (placemarkTitle === "") {
-            placemarkTitle = null;
+        let entityDisplayName;
+        let layerDisplayName;
+
+        if (selectedPlacemark) {
+            const title = selectedPlacemark.properties && selectedPlacemark.properties.title;
+            if (title && title !== "") {
+                entityDisplayName = `My place ${title}`;
+            } else {
+                entityDisplayName = "Selected place";
+            }
+        } else if (selectedEntity) {
+            entityDisplayName = "Selected entity";
+        } else {
+            entityDisplayName = "Selected entity (none)";
         }
 
-        const entityDisplayName = placemarkTitle || (selectedEntity ? "Entity" : "Entity (no selection)");
-        const layerDisplayName = selectedLayer ? `${getLayerDisplayName(selectedLayer)} Layer` : "Layer (no selection)";
+        if (selectedLayer) {
+            layerDisplayName = `Layer ${getLayerDisplayName(selectedLayer)}`;
+        } else {
+            layerDisplayName = "Selected layer";
+        }
+
         return (
             <RadioGroup
                 key="styleContext"
@@ -327,8 +342,8 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                 onChange={this.handleChangedStyleContext}
                 selectedValue={this.props.styleContext}
             >
-                <Radio label={entityDisplayName} value="entity"/>
-                <Radio label={layerDisplayName} value="vector"/>
+                <Radio label={entityDisplayName} value={STYLE_CONTEXT_ENTITY}/>
+                <Radio label={layerDisplayName} value={STYLE_CONTEXT_LAYER}/>
             </RadioGroup>
         );
     }
@@ -630,58 +645,59 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
     }
 
     private handleChangedFillColor(value: FieldValue<string>) {
-        this.handleChangedVectorStyle({...this.props.vectorStyle, fill: value.value});
+        this.handleChangedVectorStyle({fill: value.value});
     }
 
     private handleChangedFillColorFromPicker(color: ColorResult) {
-        this.handleChangedVectorStyle({...this.props.vectorStyle, fill: color.hex});
+        this.handleChangedVectorStyle({fill: color.hex});
     }
 
     private handleChangedFillOpacity(fillOpacity: number) {
-        this.handleChangedVectorStyle({...this.props.vectorStyle, fillOpacity});
+        this.handleChangedVectorStyle({fillOpacity});
     }
 
     private handleChangedStrokeWidth(value: FieldValue<number>) {
-        this.handleChangedVectorStyle({...this.props.vectorStyle, strokeWidth: value.value});
+        this.handleChangedVectorStyle({strokeWidth: value.value});
     }
 
     private handleChangedStrokeColor(value: FieldValue<string>) {
-        this.handleChangedVectorStyle({...this.props.vectorStyle, stroke: value.value});
+        this.handleChangedVectorStyle({stroke: value.value});
     }
 
     private handleChangedStrokeColorFromPicker(color: ColorResult) {
-        this.handleChangedVectorStyle({...this.props.vectorStyle, stroke: color.hex});
+        this.handleChangedVectorStyle({stroke: color.hex});
     }
 
     private handleChangedStrokeOpacity(strokeOpacity: number) {
-        this.handleChangedVectorStyle({...this.props.vectorStyle, strokeOpacity});
+        this.handleChangedVectorStyle({strokeOpacity});
     }
 
     private handleChangedMarkerSize(event) {
-        this.handleChangedVectorStyle({...this.props.vectorStyle, markerSize: event.target.value});
+        this.handleChangedVectorStyle({markerSize: event.target.value});
     }
 
     private handleChangedMarkerColor(value: FieldValue<string>) {
-        this.handleChangedVectorStyle({...this.props.vectorStyle, markerColor: value.value});
+        this.handleChangedVectorStyle({markerColor: value.value});
     }
 
     private handleChangedMarkerColorFromPicker(color: ColorResult) {
-        this.handleChangedVectorStyle({...this.props.vectorStyle, markerColor: color.hex});
+        this.handleChangedVectorStyle({markerColor: color.hex});
     }
 
     private handleChangedMarkerSymbol(value: FieldValue<string>) {
-        this.handleChangedVectorStyle({...this.props.vectorStyle, markerSymbol: value.value});
+        this.handleChangedVectorStyle({markerSymbol: value.value});
     }
 
     private handleChangedVectorStyle(style: SimpleStyle) {
-        if (this.props.styleContext === 'layer') {
-            this.props.dispatch(actions.updateLayerStyle(this.props.activeView.id,
-                                                         this.props.selectedVectorLayer.id,
-                                                         style));
-        } else {
+        //style = {...this.props.vectorStyle, ...style};
+        if (this.props.styleContext === STYLE_CONTEXT_ENTITY) {
             this.props.dispatch(actions.updateEntityStyle(this.props.activeView,
                                                           this.props.selectedEntity,
                                                           style));
+        } else {
+            this.props.dispatch(actions.updateLayerStyle(this.props.activeView.id,
+                                                         this.props.selectedVectorLayer.id,
+                                                         style));
         }
     }
 }

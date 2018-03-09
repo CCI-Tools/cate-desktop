@@ -681,6 +681,11 @@ export interface PlacemarkCollection extends FeatureCollection<Point> {
     features: Placemark[];
 }
 
+export const STYLE_CONTEXT_ENTITY = 'entity';
+export const STYLE_CONTEXT_LAYER = 'layer';
+
+export type StyleContext = 'entity' | 'layer';
+
 /**
  * Session state contains information about the human being which is currently using Cate.
  * Session state is only ever read when a component is mounted.
@@ -747,7 +752,7 @@ export interface SessionState {
     layerListHeight: number;
     showLayerDetails: boolean;
     savedLayers: SavedLayers;
-    styleContext: "entity" | "layer";
+    styleContext: StyleContext;
 
     // PlacemarksPanel
     placemarkCollection: PlacemarkCollection;

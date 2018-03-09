@@ -15,7 +15,7 @@ import {
     ResourceState,
     ResourceVectorLayerState,
     SavedLayers,
-    State,
+    State, STYLE_CONTEXT_ENTITY, STYLE_CONTEXT_LAYER,
     VariableImageLayerState,
     VariableLayerBase,
     VariableState,
@@ -770,9 +770,9 @@ export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<
     (view: ViewState<any>, styleContext, selectedVectorLayer, selectedPlacemark, selectedEntity, entityUpdateCount) => {
         const selectedLayerStyle = selectedVectorLayer && selectedVectorLayer.style;
         let style;
-        if (styleContext === 'layer') {
+        if (styleContext === STYLE_CONTEXT_LAYER) {
             style = selectedLayerStyle;
-        } else if (styleContext === 'entity') {
+        } else if (styleContext === STYLE_CONTEXT_ENTITY) {
             if (selectedPlacemark) {
                 const placemarkStyle = simpleStyleFromFeatureProperties(selectedPlacemark.properties);
                 style = {...selectedLayerStyle, ...placemarkStyle};
