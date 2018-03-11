@@ -1,6 +1,10 @@
 import * as React from 'react';
-import {Label} from "@blueprintjs/core";
+import * as brace from 'brace';
+import AceEditor from 'react-ace';
 import {ModalDialog} from "./ModalDialog";
+
+import 'brace/mode/python';
+import 'brace/theme/monokai';
 
 interface IScriptDialogProps {
     isOpen: boolean;
@@ -37,8 +41,9 @@ export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDia
         this.props.onConfirm(this.state.value);
     }
 
-    onChange(ev: any) {
-        this.setState(this.toState(ev.target.value));
+    onChange(value: string) {
+        console.log("onChange: value =", value);
+        this.setState(this.toState(value));
     }
 
     canConfirm(): boolean {
@@ -75,17 +80,15 @@ export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDia
         const value = this.state.value;
         const hasError = !!this.state.error;
         return (
-            <div className="pt-form-group">
-                <Label text={`Enter ${this.props.scriptLang} source code`}>
-                    <div className="pt-form-content" style={{width: "100%"}}>
-                    <textarea id="wkt"
-                              className={hasError ? ScriptDialog.ERROR_CLASS : ScriptDialog.NOMINAL_CLASS}
-                              rows={16}
-                              value={value}
-                              onChange={this.onChange}/>
-                    </div>
-                </Label>
-            </div>
+            <AceEditor mode={this.props.scriptLang}
+                       theme="monokai"
+                       width={"100%"}
+                       fontSize={14}
+                       showGutter={true}
+                       highlightActiveLine={true}
+                       value={value}
+                       onChange={this.onChange}
+            />
         );
     }
 

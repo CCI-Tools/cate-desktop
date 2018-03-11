@@ -21,6 +21,7 @@
     "electron-updater": "2.20.1",
     "oboe": "^2.1.4",
     "react": "^16.2.0",
+    "react-ace": "^5.9.0",
     "react-addons-css-transition-group": "^15.6.2",
     "react-color": "^2.13.8",
     "react-dom": "^16.2.0",
