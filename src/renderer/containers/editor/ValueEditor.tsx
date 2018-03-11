@@ -13,7 +13,7 @@ import {VarNameValueEditor} from "./VarNameValueEditor";
 import {DictValueEditor} from "./DictValueEditor";
 import {LiteralValueEditor} from "./LiteralValueEditor";
 import {TimeValueEditor} from "./TimeValueEditor";
-import * as Cesium from "cesium";
+import {ScriptValueEditor} from "./ScriptValueEditor";
 
 export interface InputAssignment {
     constantValue: FieldValue<any> | any;
@@ -96,6 +96,8 @@ function renderFloatValueEditor(props: IValueEditorProps<number>) {
 function renderStrValueEditor(props: IValueEditorProps<string>) {
     if (props.input.fileOpenMode) {
         return renderFileValueEditor(props);
+    } else if (props.input.scriptLang) {
+        return renderScriptValueEditor(props);
     } else {
         return renderTextValueEditor(props);
     }
@@ -103,6 +105,10 @@ function renderStrValueEditor(props: IValueEditorProps<string>) {
 
 function renderFileValueEditor(props: IValueEditorProps<string>) {
     return <FileValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
+}
+
+function renderScriptValueEditor(props: IValueEditorProps<string>) {
+    return <ScriptValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
 }
 
 function renderTextValueEditor(props: IValueEditorProps<string>) {

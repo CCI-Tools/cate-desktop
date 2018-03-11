@@ -104,6 +104,7 @@ export interface OperationInputState extends OperationIOBaseState {
     valueSet?: any[];
     valueSetSource?: string;
     valueRange?: [number, number] | [string, string];
+    scriptLang?: string;
     fileOpenMode?: 'w' | 'r' | 'rw';
     fileFilters?: FileFilterState[];
     fileProps?: string;
