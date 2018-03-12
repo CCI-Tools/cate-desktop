@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as brace from 'brace';
 import AceEditor from 'react-ace';
 import {ModalDialog} from "./ModalDialog";
 

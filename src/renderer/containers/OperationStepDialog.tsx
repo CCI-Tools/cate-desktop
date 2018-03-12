@@ -9,18 +9,16 @@ import {InputEditor} from "./editor/InputEditor";
 import {updatePropertyObject} from "../../common/objutil";
 import {ModalDialog} from "../components/ModalDialog";
 import {isFieldValue} from "../components/field/Field";
-import {
-    GeometryWKTGetter, hasValueEditorFactory, InputAssignment, InputAssignments,
-    renderValueEditor
-} from "./editor/ValueEditor";
+import {GeometryWKTGetter, hasValueEditorFactory, renderValueEditor} from "./editor/ValueEditor";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {isDefined, isString, isUndefinedOrNull} from "../../common/types";
 import {isUndefined} from "../../common/types";
-
-export const NEW_OPERATION_STEP_DIALOG_ID = "newOperationStepDialog";
-export const NEW_CTX_OPERATION_STEP_DIALOG_ID = "newCtxOperationStepDialog";
-export const EDIT_OPERATION_STEP_DIALOG_ID = "editOperationStepDialog";
+import {InputAssignment, InputAssignments} from "./editor/value-editor-assign";
+import {
+    EDIT_OPERATION_STEP_DIALOG_ID, NEW_CTX_OPERATION_STEP_DIALOG_ID,
+    NEW_OPERATION_STEP_DIALOG_ID
+} from "./operation-step-dialog-ids";
 
 type InputErrors = { [inputName: string]: Error };
 

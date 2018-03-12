@@ -8,9 +8,9 @@ import {
     AUTO_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID, EXTERNAL_OBJECT_STORE,
     MY_PLACES_LAYER, COUNTRIES_LAYER, AUTO_LAYER
 } from "./state-util";
-import {InputAssignments} from "./containers/editor/ValueEditor";
 import {DATA_ARRAY_TYPE, DATASET_LIKE_TYPE, POINT_LIKE_TYPE, VAR_NAME_LIKE_TYPE} from "../common/cate-types";
-import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./containers/OperationStepDialog";
+import {InputAssignments} from "./containers/editor/value-editor-assign";
+import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./containers/operation-step-dialog-ids";
 
 should();
 

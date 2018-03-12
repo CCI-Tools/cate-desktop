@@ -24,10 +24,8 @@ import * as selectors from "../selectors";
 import {ViewManager, ViewRenderMap} from "../components/ViewManager";
 import {ViewLayoutState, ViewState, ViewPath, SplitDir} from "../components/ViewState";
 import {CSSProperties} from "react";
-import {
-    EDIT_OPERATION_STEP_DIALOG_ID, NEW_CTX_OPERATION_STEP_DIALOG_ID,
-    default as OperationStepDialog
-} from "./OperationStepDialog";
+import OperationStepDialog from "./OperationStepDialog";
+import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./operation-step-dialog-ids";
 
 
 function renderWorldView(view: ViewState<WorldViewDataState>) {
