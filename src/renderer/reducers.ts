@@ -147,6 +147,8 @@ const controlReducer = (state: ControlState = INITIAL_CONTROL_STATE, action: Act
         }
         case actions.UPDATE_CONTROL_STATE:
             return {...state, ...action.payload};
+        case actions.ADD_PLACEMARK:
+            return {...state, newPlacemarkToolType: "NoTool"};
         case actions.ACTIVATE_NEW_PLACEMARK_TOOL: {
             let newPlacemarkToolType = action.payload.newPlacemarkToolType;
             if (newPlacemarkToolType === state.newPlacemarkToolType) {
