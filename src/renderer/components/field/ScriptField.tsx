@@ -15,7 +15,7 @@ interface IScriptFieldState {
 }
 
 export class ScriptField extends React.Component<IScriptFieldProps, IScriptFieldState> {
-    private static DIV_STYLE = {width: '20em', display: 'flex'};
+    private static DIV_STYLE = {width: '28em', display: 'flex'};
     private static TEXT_FIELD_STYLE = {flexGrow: 1};
     private static BUTTON_STYLE = {flex: 'none'};
 
