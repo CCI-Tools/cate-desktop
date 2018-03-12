@@ -9,7 +9,7 @@ import {Action} from "./actions";
 import * as assert from "../common/assert";
 import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
-    SELECTED_VARIABLE_LAYER_ID, updateSelectedVariableLayer,
+    AUTO_LAYER_ID, updateAutoLayer,
     newWorldView, newTableView, newFigureView, getFigureViewTitle,
     isVectorLayer, PLACEMARK_ID_PREFIX, getPlacemarkTitleAndIndex,
 } from "./state-util";
@@ -24,6 +24,7 @@ import {
     INITIAL_COMMUNICATION_STATE, INITIAL_CONTROL_STATE, INITIAL_DATA_STATE,
     INITIAL_SESSION_STATE, INITIAL_LOCATION_STATE
 } from "./initial-state";
+import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./containers/OperationStepDialog";
 import {SET_GLOBE_VIEW_POSITION_DATA} from "./actions";
 
 // Note: reducers are unit-tested through actions.spec.ts
@@ -244,6 +245,12 @@ const controlReducer = (state: ControlState = INITIAL_CONTROL_STATE, action: Act
         case actions.INC_ENTITY_UPDATE_COUNT: {
             const entityUpdateCount = state.entityUpdateCount + 1;
             return {...state, entityUpdateCount};
+        }
+        case actions.INVOKE_CTX_OPERATION: {
+            const {selectedCtxOperationName, inputAssignments} = action.payload;
+            let dialogState: any = state.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
+            dialogState = {...dialogState, isOpen: true, inputAssignments};
+            return {...state, selectedCtxOperationName, dialogs: {...state.dialogs, [NEW_CTX_OPERATION_STEP_DIALOG_ID]: dialogState}};
         }
         default: {
             const newViews = viewsReducer(state.views, action, state.activeViewId);
@@ -543,18 +550,18 @@ const layerReducer = (state: LayerState, action: Action, isActiveView: boolean) 
             break;
         }
         case actions.SET_SHOW_SELECTED_VARIABLE_LAYER: {
-            if (state.id === SELECTED_VARIABLE_LAYER_ID) {
+            if (state.id === AUTO_LAYER_ID) {
                 const showSelectedVariableLayer = action.payload.showSelectedVariableLayer;
                 return {...state, visible: showSelectedVariableLayer};
             }
             break;
         }
         case actions.SET_SELECTED_VARIABLE: {
-            if (state.id === SELECTED_VARIABLE_LAYER_ID && isActiveView) {
+            if (state.id === AUTO_LAYER_ID && isActiveView) {
                 const resource = action.payload.resource;
                 const selectedVariable = action.payload.selectedVariable;
                 const savedLayers = action.payload.savedLayers;
-                return updateSelectedVariableLayer(state, resource, selectedVariable, savedLayers);
+                return updateAutoLayer(state, resource, selectedVariable, savedLayers);
             }
             break;
         }
@@ -632,7 +639,7 @@ const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Act
             if (title) {
                 properties = {...properties, title};
                 if (placemark.geometry.type === "Point") {
-                    properties["marker-symbol"] = `${index}`;
+                    properties["marker-symbol"] = index.toString(16).slice(-1);
                 }
                 placemark = {...placemark, properties}
             }
@@ -672,7 +679,6 @@ const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Act
             const defaultPlacemarkStyle = {...state.defaultPlacemarkStyle, ...style};
             return {...updatePlacemarkProperties(state, placemarkId, properties), defaultPlacemarkStyle};
         }
-
     }
     return state;
 };

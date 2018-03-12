@@ -2,16 +2,15 @@ import {createStore, applyMiddleware} from 'redux';
 import * as actions from './actions';
 import {stateReducer} from './reducers';
 import thunk from 'redux-thunk'
-import {LayerState, Placemark, ResourceState, State, VariableState} from "./state";
+import {LayerState, OperationState, Placemark, ResourceState, State, VariableState} from "./state";
 import {should, expect} from 'chai';
 import {
-    SELECTED_VARIABLE_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID, EXTERNAL_OBJECT_STORE,
-    MY_PLACES_LAYER, COUNTRIES_LAYER, SELECTED_VARIABLE_LAYER
+    AUTO_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID, EXTERNAL_OBJECT_STORE,
+    MY_PLACES_LAYER, COUNTRIES_LAYER, AUTO_LAYER
 } from "./state-util";
-import {
-    featurePropertiesFromSimpleStyle, SimpleStyle,
-    simpleStyleFromFeatureProperties
-} from "../common/geojson-simple-style";
+import {InputAssignments} from "./containers/editor/ValueEditor";
+import {DATA_ARRAY_TYPE, DATASET_LIKE_TYPE, POINT_LIKE_TYPE, VAR_NAME_LIKE_TYPE} from "../common/cate-types";
+import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./containers/OperationStepDialog";
 
 should();
 
@@ -34,7 +33,7 @@ describe('Actions', () => {
         store.dispatch(action);
     };
 
-    const defaultSelectedVariableLayer = {...SELECTED_VARIABLE_LAYER};
+    const defaultAutoLayer = {...AUTO_LAYER};
     const defaultCountriesLayer = {...COUNTRIES_LAYER};
     const defaultMyPlacesLayer = {...MY_PLACES_LAYER};
 
@@ -358,8 +357,8 @@ describe('Actions', () => {
             expect(getActiveView().data.layers).to.deep.equal(
                 [
                     {
-                        id: SELECTED_VARIABLE_LAYER_ID,
-                        name: "Variable res_1.analysed_sst",
+                        id: AUTO_LAYER_ID,
+                        name: "Auto res_1.analysed_sst",
                         type: "VariableImage",
                         visible: true,
                         resId: 0,
@@ -389,9 +388,9 @@ describe('Actions', () => {
             expect(getActiveView().data.layers).to.deep.equal(
                 [
                     {
-                        id: SELECTED_VARIABLE_LAYER_ID,
+                        id: AUTO_LAYER_ID,
                         type: "Unknown",
-                        name: "Variable profile (not geo-spatial)",
+                        name: "Auto profile (not geo-spatial)",
                         visible: true,
                     },
                     defaultCountriesLayer,
@@ -400,10 +399,10 @@ describe('Actions', () => {
         });
 
         it('setSelectedVariable - can restore previous layer state', () => {
-            const selectedVariableLayerOld = {
-                id: SELECTED_VARIABLE_LAYER_ID,
+            const autoLayerOld = {
+                id: AUTO_LAYER_ID,
                 type: "VariableImage",
-                name: "Variable res_1.analysed_sst",
+                name: "Auto res_1.analysed_sst",
                 visible: true,
                 resId: 0,
                 resName: "res_1",
@@ -420,10 +419,10 @@ describe('Actions', () => {
                 hue: 0,
                 saturation: 1,
             };
-            const selectedVariableLayerNew = {
-                id: SELECTED_VARIABLE_LAYER_ID,
+            const autoLayerNew = {
+                id: AUTO_LAYER_ID,
                 type: "VariableImage",
-                name: "Variable res_1.sst_error",
+                name: "Auto res_1.sst_error",
                 visible: true,
                 resId: 0,
                 resName: "res_1",
@@ -449,18 +448,18 @@ describe('Actions', () => {
                 varIndex: [139],
                 displayMax: 300
             } as any));
-            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayer, defaultMyPlacesLayer]);
+            expect(getActiveView().data.layers).to.deep.equal([autoLayerOld, defaultCountriesLayer, defaultMyPlacesLayer]);
             dispatch(actions.setSelectedVariable(getRes(), getVar('sst_error'), getState().session.savedLayers));
-            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerNew, defaultCountriesLayer, defaultMyPlacesLayer]);
+            expect(getActiveView().data.layers).to.deep.equal([autoLayerNew, defaultCountriesLayer, defaultMyPlacesLayer]);
             dispatch(actions.setSelectedVariable(getRes(), getVar('analysed_sst'), getState().session.savedLayers));
-            expect(getActiveView().data.layers).to.deep.equal([selectedVariableLayerOld, defaultCountriesLayer, defaultMyPlacesLayer]);
+            expect(getActiveView().data.layers).to.deep.equal([autoLayerOld, defaultCountriesLayer, defaultMyPlacesLayer]);
         });
 
         it('addVariableLayer', () => {
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.addVariableLayer(getActiveViewId(), getRes(), getVar('analysed_sst'), true));
             expect(getActiveView().data.layers.length).to.equal(4);
-            expect(getActiveView().data.layers[0].id).to.equal(SELECTED_VARIABLE_LAYER_ID);
+            expect(getActiveView().data.layers[0].id).to.equal(AUTO_LAYER_ID);
             expect(getActiveView().data.layers[1]).to.deep.equal(defaultCountriesLayer);
             expect(getActiveView().data.layers[2]).to.deep.equal(defaultMyPlacesLayer);
             expect(getActiveView().data.layers[3].id.startsWith('layer-')).to.be.true;
@@ -469,7 +468,7 @@ describe('Actions', () => {
         it('addLayer', () => {
             dispatch(actions.addLayer(getActiveViewId(), {id: 'layer-2', visible: true} as LayerState, true));
             expect(getActiveView().data.layers).to.deep.equal([
-                                                                  defaultSelectedVariableLayer,
+                                                                  defaultAutoLayer,
                                                                   defaultCountriesLayer,
                                                                   defaultMyPlacesLayer,
                                                                   {id: 'layer-2', visible: true},
@@ -481,7 +480,7 @@ describe('Actions', () => {
             dispatch(actions.addLayer(getActiveViewId(), {id: 'layer-2', visible: true} as LayerState, false));
             dispatch(actions.removeLayer(getActiveViewId(), 'layer-2'));
             expect(getActiveView().data.layers).to.deep.equal([
-                                                                  defaultSelectedVariableLayer,
+                                                                  defaultAutoLayer,
                                                                   defaultCountriesLayer,
                                                                   defaultMyPlacesLayer,
                                                                   {id: 'layer-1', visible: true},
@@ -494,7 +493,7 @@ describe('Actions', () => {
             dispatch(actions.addLayer(getActiveViewId(), {id: 'layer-3', visible: true} as LayerState, false));
             dispatch(actions.updateLayer(getActiveViewId(), {id: 'layer-2', visible: false} as LayerState));
             expect(getActiveView().data.layers).to.deep.equal([
-                                                                  defaultSelectedVariableLayer,
+                                                                  defaultAutoLayer,
                                                                   defaultCountriesLayer,
                                                                   defaultMyPlacesLayer,
                                                                   {id: 'layer-1', visible: true},
@@ -503,7 +502,7 @@ describe('Actions', () => {
                                                               ]);
             dispatch(actions.updateLayer(getActiveViewId(), {id: 'layer-1', name: 'LX'} as LayerState));
             expect(getActiveView().data.layers).to.deep.equal([
-                                                                  defaultSelectedVariableLayer,
+                                                                  defaultAutoLayer,
                                                                   defaultCountriesLayer,
                                                                   defaultMyPlacesLayer,
                                                                   {id: 'layer-1', name: 'LX', visible: true},
@@ -519,14 +518,14 @@ describe('Actions', () => {
                 type: "Vector"
             } as LayerState, false));
             expect(getActiveView().data.layers).to.deep.equal([
-                                                                  defaultSelectedVariableLayer,
+                                                                  defaultAutoLayer,
                                                                   defaultCountriesLayer,
                                                                   defaultMyPlacesLayer,
                                                                   {id: 'layer-1', visible: true, type: "Vector"},
                                                               ]);
             dispatch(actions.updateLayerStyle(getActiveViewId(), 'layer-1', {fill: "#123456", fillOpacity: 0.4}));
             expect(getActiveView().data.layers).to.deep.equal([
-                                                                  defaultSelectedVariableLayer,
+                                                                  defaultAutoLayer,
                                                                   defaultCountriesLayer,
                                                                   defaultMyPlacesLayer,
                                                                   {
@@ -538,7 +537,7 @@ describe('Actions', () => {
                                                               ]);
             dispatch(actions.updateLayerStyle(getActiveViewId(), 'layer-1', {stroke: "#3053FF", strokeOpacity: 0.6}));
             expect(getActiveView().data.layers).to.deep.equal([
-                                                                  defaultSelectedVariableLayer,
+                                                                  defaultAutoLayer,
                                                                   defaultCountriesLayer,
                                                                   defaultMyPlacesLayer,
                                                                   {
@@ -557,7 +556,7 @@ describe('Actions', () => {
             dispatch(actions.setShowSelectedVariableLayer(true));
             expect(getState().session.showSelectedVariableLayer).to.equal(true);
             expect(getActiveView().data.layers).to.deep.equal([
-                                                                  defaultSelectedVariableLayer,
+                                                                  defaultAutoLayer,
                                                                   defaultCountriesLayer,
                                                                   defaultMyPlacesLayer
                                                               ]);
@@ -566,7 +565,7 @@ describe('Actions', () => {
             expect(getState().session.showSelectedVariableLayer).to.equal(false);
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   {
-                                                                      id: SELECTED_VARIABLE_LAYER_ID,
+                                                                      id: AUTO_LAYER_ID,
                                                                       visible: false,
                                                                       type: 'Unknown'
                                                                   },
@@ -916,7 +915,7 @@ describe('Actions', () => {
             dispatch(actions.renameWorkspaceResourceImpl('res_2', 'bert'));
             expect(getActiveView().data.layers).to.deep.equal(
                 [
-                    {...SELECTED_VARIABLE_LAYER},
+                    {...AUTO_LAYER},
                     {...COUNTRIES_LAYER},
                     {...MY_PLACES_LAYER},
                     {id: 'L1', resId: 1, resName: 'res_1', varName: 'X'},
@@ -975,6 +974,115 @@ describe('Actions', () => {
 
             dispatch(actions.hideDialog('myDialog', {a: 4, b: 5}));
             expect(getState().control.dialogs['myDialog']).to.deep.equal({isOpen: false, a: 4, b: 5});
+        });
+    });
+
+
+    describe('Context actions', () => {
+
+        it('invokeCtxOperation', () => {
+            // Dummy workspace
+            dispatch(actions.setCurrentWorkspace(
+                {
+                    baseDir: '/1/2/3',
+                    isScratch: true,
+                    resources: [{
+                        id: 0,
+                        name: "SST_CCI",
+                        dataType: DATASET_LIKE_TYPE,
+                        variables: [{
+                            name: "analysed_sst",
+                            dataType: DATA_ARRAY_TYPE,
+                        }]
+                    }],
+                } as any));
+
+            // Dummy operation
+            const operation: OperationState = {
+                name: "tseries_point",
+                qualifiedName: "cate.ops.tseries_point",
+                hasMonitor: false,
+                inputs: [{
+                    name: "ds",
+                    dataType: DATASET_LIKE_TYPE,
+                    description: null,
+                }, {
+                    name: "point",
+                    dataType: POINT_LIKE_TYPE,
+                    description: null,
+                }, {
+                    name: "var_name",
+                    dataType: VAR_NAME_LIKE_TYPE,
+                    description: null,
+                }],
+                outputs: [{
+                    name: "return",
+                    dataType: DATASET_LIKE_TYPE,
+                    description: null,
+                }],
+                description: "",
+                tags: [],
+            };
+
+            const inputAssignments: InputAssignments = {
+                point: {
+                    isValueUsed: true,
+                    constantValue: "POINT (12, 53)",
+                    resourceName: null,
+                }
+            };
+
+            let dialogState;
+
+            expect(getState().control.selectedCtxOperationName).to.be.null;
+            dialogState = getState().control.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
+            expect(dialogState).to.be.undefined;
+
+            // Dispatch context operation action
+            dispatch(actions.invokeCtxOperation(operation, inputAssignments));
+
+            expect(getState().control.selectedCtxOperationName).to.equal("tseries_point");
+            dialogState = getState().control.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
+            expect(dialogState).to.deep.equal({
+                                                  isOpen: true,
+                                                  inputAssignments,
+                                              });
+
+            // Close dialog
+            dispatch(actions.updateDialogState(NEW_CTX_OPERATION_STEP_DIALOG_ID, {isOpen: false}));
+            dialogState = getState().control.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
+            expect(dialogState).to.deep.equal({
+                                                  isOpen: false,
+                                                  inputAssignments,
+                                              });
+
+            // Add some selections
+            dispatch(actions.updateControlState({
+                                                    selectedWorkspaceResourceName: "SST_CCI",
+                                                    selectedVariableName: "analysed_sst"
+                                                }));
+            // Dispatch context operation action again
+            dispatch(actions.invokeCtxOperation(operation, inputAssignments));
+
+            // Expect to see new context in actions
+            expect(getState().control.selectedCtxOperationName).to.equal("tseries_point");
+            dialogState = getState().control.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
+            expect(dialogState).to.deep.equal({
+                                                  isOpen: true,
+                                                  inputAssignments: {
+                                                      ...inputAssignments,
+                                                      ds: {
+                                                          isValueUsed: false,
+                                                          constantValue: null,
+                                                          resourceName: "SST_CCI",
+                                                      },
+                                                      var_name: {
+                                                          isValueUsed: true,
+                                                          constantValue: "analysed_sst",
+                                                          resourceName: null,
+                                                      }
+                                                  },
+                                              });
         });
     });
 });

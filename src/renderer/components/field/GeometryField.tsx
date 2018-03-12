@@ -23,6 +23,9 @@ interface IGeometryFieldState {
 }
 
 export class GeometryField extends React.Component<IGeometryFieldProps, IGeometryFieldState> {
+    private static DIV_STYLE = {width: '20em', display: 'flex'};
+    private static TEXT_FIELD_STYLE = {flexGrow: 1};
+    private static BUTTON_STYLE = {flex: 'none'};
 
     constructor(props: IGeometryFieldProps) {
         super(props);
@@ -58,7 +61,7 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
             }
         }
         return (
-            <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}}>
+            <div className="pt-control-group" style={GeometryField.DIV_STYLE}>
                 <TextField
                     value={this.props.value}
                     onChange={this.props.onChange}
@@ -66,13 +69,14 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
                     placeholder={placeholder}
                     validator={this.validateGeometryText}
                     nullable={this.props.nullable}
+                    style={GeometryField.TEXT_FIELD_STYLE}
                 />
 
-                <AnchorButton className="pt-intent-primary pt-icon-selection" style={{flex: 'none'}}
+                <AnchorButton className="pt-intent-primary pt-icon-selection" style={GeometryField.BUTTON_STYLE}
                               disabled={!this.props.geometryWKTGetter}
                               onClick={this.setGeometryWKT}/>
 
-                <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
+                <AnchorButton className="pt-intent-primary" style={GeometryField.BUTTON_STYLE}
                               onClick={() => this.setState({isEditorOpen: true})}>...</AnchorButton>
 
                 <GeometryDialog isOpen={this.state.isEditorOpen}

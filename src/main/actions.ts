@@ -290,7 +290,7 @@ export const actions = {
             const detail = '' +
                            `Program: ${electron.app.getAppPath()}\n` +
                            `Data: ${getAppDataDir()}\n` +
-                           `CLI env: ${getCateDir()}\n` +
+                           `CLI env: ${getCateDir() ? getCateDir() : "<unknown>"}\n` +
                            `Requires Cate Core ${APP_CLI_VERSION_RANGE}\n` +
                            '\n' +
                            'Cate is open source software distributed under the MIT license.\n\n' +

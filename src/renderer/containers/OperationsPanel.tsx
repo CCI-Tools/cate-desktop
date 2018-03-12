@@ -5,7 +5,7 @@ import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
-import OperationStepDialog from "./OperationStepDialog";
+import OperationStepDialog, {NEW_OPERATION_STEP_DIALOG_ID} from "./OperationStepDialog";
 import {State, OperationState, WorkspaceState, OperationOutputState, OperationInputState} from "../state";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -140,7 +140,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
                                 disabled={!canAddStepOperation}
                                 text="Add Step..."
                                 iconName="play"/>
-                    {canAddStepOperation ? <OperationStepDialog id="newOperationStepDialog"/> : null}
+                    {canAddStepOperation ? <OperationStepDialog id={NEW_OPERATION_STEP_DIALOG_ID}/> : null}
                 </div>
             );
 

@@ -2,20 +2,22 @@ import * as React from 'react';
 import * as Cesium from "cesium";
 import {diff} from "deep-object-diff"
 import {Feature, FeatureCollection, Point} from "geojson";
+import {ContextMenu} from "@blueprintjs/core";
 import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
 import * as assert from "../../../common/assert";
-import {isBoolean, isDefined, isString} from "../../../common/types";
+import {isBoolean, isString} from "../../../common/types";
 import {arrayDiff} from "../../../common/array-diff";
 import {SimpleStyle} from "../../../common/geojson-simple-style";
 import {SplitSlider} from "./SplitSlider";
 import {
-    applyStyleToEntity, applyStyleToEntityCollection, entityToGeoJSON, getEntityByEntityId,
-    simpleStyleToCesium
+    applyStyleToEntity, applyStyleToEntityCollection, getEntityByEntityId, canvasToCartographic,
+    simpleStyleToCesium, pickEntity, clientToCanvas
 } from "./cesium-util";
 import {
     BoxTool, CesiumToolContext, GeometryToolType, NO_TOOL, PointTool, PolygonTool,
     PolylineTool
 } from "./geometry-tool";
+
 
 interface Placemark extends Feature<Point> {
     id: string;
@@ -88,11 +90,16 @@ interface CesiumGlobeState extends CesiumGlobeStateBase {
     dataSourceMap: DataSourceMap;
 }
 
+export type GeographicPosition = { latitude: number, longitude: number, height?: number };
+export type CanvasPosition = { x: number, y: number };
+
 export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Cesium.Viewer, CesiumGlobeState>, CesiumGlobeStateBase {
     offlineMode?: boolean;
-    onMouseClicked?: (point: { latitude: number, longitude: number, height?: number }) => void;
-    onMouseMoved?: (point: { latitude: number, longitude: number, height?: number }) => void;
-    onLeftUp?: (point: { latitude: number, longitude: number, height?: number }) => void;
+    onLeftUp?: (geoPos: GeographicPosition, canvasPos: CanvasPosition, entity?: Cesium.Entity) => void;
+    onLeftClick?: (geoPos: GeographicPosition, canvasPos: CanvasPosition, entity?: Cesium.Entity) => void;
+    onRightClick?: (geoPos: GeographicPosition, canvasPos: CanvasPosition, entity?: Cesium.Entity) => void;
+    onMouseMove?: (geoPos: GeographicPosition, canvasPos: CanvasPosition) => void;
+    renderContextMenu?: (geoPos: GeographicPosition, canvasPos: CanvasPosition, entity?: Cesium.Entity) => JSX.Element | null;
     onSelectedEntityChanged?: (selectedEntity: Cesium.Entity | null) => void;
     onNewEntityAdded?: (newEntity: Cesium.Entity) => void;
     onViewerMounted?: (id: string, viewer: Cesium.Viewer) => void;
@@ -105,12 +112,16 @@ const EMPTY_ARRAY = [];
 Cesium.Camera.DEFAULT_VIEW_RECTANGLE = CENTRAL_EUROPE_BOX;
 Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
 
+interface ICesiumGlobeState {
+    isContextMenuOpen: boolean;
+}
+
 /**
  * A component that wraps a Cesium 3D Globe.
  *
  * @author Norman Fomferra
  */
-export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGlobeState, ICesiumGlobeProps, null> {
+export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGlobeState, ICesiumGlobeProps, ICesiumGlobeState> {
     private cesiumEventHandler: any;
     private selectedEntityChangeHandler: any;
     private toolContext: CesiumToolContext;
@@ -118,6 +129,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     constructor(props: ICesiumGlobeProps) {
         super(props);
         this.handleRemoteBaseLayerError = this.handleRemoteBaseLayerError.bind(this);
+        this.state = {isContextMenuOpen: false};
     }
 
     get viewer(): Cesium.Viewer | null {
@@ -173,8 +185,14 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         //noinspection UnnecessaryLocalVariableJS
         const viewer = new Cesium.Viewer(container, cesiumViewerOptions);
 
-        // Uncomment to show a little overlay panel with FPS. Usefull for optimisations.
-        //viewer.scene.debugShowFramesPerSecond = true;
+        // Register context mnenu
+        // Note, for some reason we cannot use BlueprintJS' @ContextMenuTarget interface here
+        container.oncontextmenu = (event: PointerEvent) => this.handleContextMenu(viewer, event);
+
+        if (this.props.debug) {
+            // Show a little overlay panel with FPS. Useful for optimisations.
+            viewer.scene.debugShowFramesPerSecond = true;
+        }
 
         // knockout is used by Cesium to update the style attributes of the selectionIndicator
         // when using multiple views this breaks, for unknown reason
@@ -201,6 +219,27 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             viewer.imageryLayers.remove(imageryLayer, true);
             let staticNaturalEarthImageryProvider = CesiumGlobe.getStaticNaturalEarthImageryProvider();
             viewer.imageryLayers.addImageryProvider(staticNaturalEarthImageryProvider, 0);
+        }
+    }
+
+    private handleContextMenu(viewer: Cesium.Viewer, event: PointerEvent) {
+        const renderContextMenu = this.props.renderContextMenu;
+        if (renderContextMenu) {
+            const screenPos = new Cesium.Cartesian2(event.clientX, event.clientY);
+            const canvasPos = clientToCanvas(viewer, screenPos);
+            const cartographic = canvasToCartographic(viewer, canvasPos, true);
+            const entity = pickEntity(viewer, canvasPos);
+            const contextMenu = renderContextMenu(cartographic, canvasPos, entity);
+            if (contextMenu) {
+                event.preventDefault();
+                // invoke static API, getting coordinates from mouse event
+                ContextMenu.show(
+                    contextMenu,
+                    {left: event.clientX, top: event.clientY},
+                    () => this.setState({isContextMenuOpen: false}),
+                );
+                this.setState({isContextMenuOpen: true});
+            }
         }
     }
 
@@ -299,46 +338,38 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 
     externalObjectMounted(viewer: Cesium.Viewer, props: Readonly<ICesiumGlobeProps>): void {
-        this.cesiumEventHandler = new Cesium.ScreenSpaceEventHandler();
-        this.cesiumEventHandler.setInputAction(
-            (event) => {
+
+        function handleInputAction(canvasPosition, shouldPickEntity: boolean, callback) {
+            if (callback) {
+                // Check: Maybe we should disable events while a tool is active
                 // if (this.props.geometryToolType !== "NoTool") {
                 //     return;
                 // }
-                const cartographic = screenToCartographic(viewer, event.position, true);
-                if (props.onMouseClicked) {
-                    props.onMouseClicked(cartographic);
+                const cartographic = canvasToCartographic(viewer, canvasPosition, true);
+                if (shouldPickEntity) {
+                    callback(cartographic, canvasPosition, pickEntity(viewer, canvasPosition));
+                } else {
+                    callback(cartographic, canvasPosition);
                 }
-            },
+            }
+        }
+
+        this.cesiumEventHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        this.cesiumEventHandler.setInputAction(
+            (event) => handleInputAction(event.position, true, props.onLeftUp),
+            Cesium.ScreenSpaceEventType.LEFT_UP
+        );
+        this.cesiumEventHandler.setInputAction(
+            (event) => handleInputAction(event.position, true, props.onLeftClick),
             Cesium.ScreenSpaceEventType.LEFT_CLICK
         );
-
         this.cesiumEventHandler.setInputAction(
-            (event) => {
-                // if (this.props.geometryToolType !== "NoTool") {
-                //     return;
-                // }
-                const point = event.endPosition;
-                const cartographic = screenToCartographic(viewer, point, true);
-                if (props.onMouseMoved) {
-                    props.onMouseMoved(cartographic);
-                }
-            },
-            Cesium.ScreenSpaceEventType.MOUSE_MOVE
+            (event) => handleInputAction(event.position, true, props.onRightClick),
+            Cesium.ScreenSpaceEventType.RIGHT_CLICK
         );
-
         this.cesiumEventHandler.setInputAction(
-            (event) => {
-                // if (this.props.geometryToolType !== "NoTool") {
-                //     return;
-                // }
-                const point = event.position;
-                const cartographic = screenToCartographic(viewer, point, true);
-                if (props.onLeftUp) {
-                    props.onLeftUp(cartographic);
-                }
-            },
-            Cesium.ScreenSpaceEventType.LEFT_UP
+            (event) => handleInputAction(event.endPosition, false, props.onMouseMove),
+            Cesium.ScreenSpaceEventType.MOUSE_MOVE
         );
 
         this.selectedEntityChangeHandler = (selectedEntity: Cesium.Entity | null) => {
@@ -759,29 +790,3 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 }
 
-function screenToCartographic(viewer: Cesium.Viewer, screenPoint?: Cesium.Cartesian2, degrees?: boolean): Cesium.Cartographic {
-    let canvasPoint;
-    if (screenPoint) {
-        const rect = viewer.canvas.getBoundingClientRect();
-        const x = screenPoint.x;
-        const y = screenPoint.y;
-        if ((x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom)) {
-            canvasPoint = new Cesium.Cartesian2(x - rect.left, y - rect.top);
-        }
-    }
-    if (canvasPoint) {
-        const ellipsoid = viewer.scene.globe.ellipsoid;
-        const cartesian = viewer.camera.pickEllipsoid(canvasPoint, ellipsoid);
-        if (cartesian) {
-            const cartographic = ellipsoid.cartesianToCartographic(cartesian);
-            if (cartographic && degrees) {
-                const factor = 10000.;
-                const longitude = Math.round(factor * Cesium.Math.toDegrees(cartographic.longitude)) / factor;
-                const latitude = Math.round(factor * Cesium.Math.toDegrees(cartographic.latitude)) / factor;
-                return {longitude, latitude, height: cartographic.height};
-            }
-            return cartographic;
-        }
-    }
-    return null;
-}

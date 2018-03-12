@@ -14,7 +14,7 @@ import * as actions from '../actions';
 import * as selectors from '../selectors';
 import {ContentWithDetailsPanel} from '../components/ContentWithDetailsPanel';
 import LayerSourcesDialog from './LayerSourcesDialog';
-import {getLayerDisplayName, getLayerTypeIconName, SELECTED_VARIABLE_LAYER_ID} from '../state-util';
+import {getLayerDisplayName, getLayerTypeIconName, AUTO_LAYER_ID} from '../state-util';
 import {ScrollablePanelContent} from '../components/ScrollableContent';
 import {ViewState} from '../components/ViewState';
 import {NO_LAYER_SELECTED, NO_LAYERS_EMPTY_VIEW, NO_LAYERS_NO_VIEW} from '../messages';
@@ -166,7 +166,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         const layerCount = this.props.layers ? this.props.layers.length : 0;
         const selectedLayerIndex = this.props.selectedLayerIndex;
         const selectedLayer = this.props.selectedLayer;
-        const canRemoveLayer = selectedLayer && selectedLayer.id !== SELECTED_VARIABLE_LAYER_ID;
+        const canRemoveLayer = selectedLayer && selectedLayer.id !== AUTO_LAYER_ID;
         const canMoveLayerUp = selectedLayerIndex > 0;
         const canMoveLayerDown = selectedLayerIndex >= 0 && selectedLayerIndex < layerCount - 1;
         return (

@@ -24,6 +24,10 @@ import * as selectors from "../selectors";
 import {ViewManager, ViewRenderMap} from "../components/ViewManager";
 import {ViewLayoutState, ViewState, ViewPath, SplitDir} from "../components/ViewState";
 import {CSSProperties} from "react";
+import {
+    EDIT_OPERATION_STEP_DIALOG_ID, NEW_CTX_OPERATION_STEP_DIALOG_ID,
+    default as OperationStepDialog
+} from "./OperationStepDialog";
 
 
 function renderWorldView(view: ViewState<WorldViewDataState>) {
@@ -87,9 +91,8 @@ export default class ApplicationPage extends React.PureComponent<null, null> {
                 <PreferencesDialog/>
                 <NewWorkspaceDialog/>
                 <SaveWorkspaceAsDialog/>
-                <div id="creditContainer"
-                     style={ApplicationPage.CREDITS_DIV_STYLE}/>
-
+                <OperationStepDialog id={NEW_CTX_OPERATION_STEP_DIALOG_ID}/>
+                <div id="creditContainer" style={ApplicationPage.CREDITS_DIV_STYLE}/>
             </div>
         );
     }

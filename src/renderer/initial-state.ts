@@ -1,4 +1,7 @@
-import {DataState, LocationState, SessionState, CommunicationState, ControlState, WorldViewDataState} from './state';
+import {
+    DataState, LocationState, SessionState, CommunicationState, ControlState, WorldViewDataState,
+    STYLE_CONTEXT_ENTITY
+} from './state';
 import {newWorldView, hasWebGL, MY_PLACES_LAYER} from "./state-util";
 import {SimpleStyle} from "../common/geojson-simple-style";
 import {ViewState} from "./components/ViewState";
@@ -29,6 +32,8 @@ export const INITIAL_CONTROL_STATE: ControlState = {
     selectedWorkspaceResourceName: null,
     selectedVariableName: null,
     dialogs: {},
+
+    selectedCtxOperationName: null,
 
     views: [INITIAL_WORLD_VIEW],
     viewLayout: {
@@ -91,7 +96,7 @@ export const INITIAL_SESSION_STATE: SessionState = {
     showDataSourceTitles: true,
     showLayerTextOverlay: true,
     debugWorldView: false,
-    styleContext: "entity",
+    styleContext: STYLE_CONTEXT_ENTITY,
 
     backendConfig: {
         dataStoresPath: null,

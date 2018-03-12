@@ -190,7 +190,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         const isBoxToolActive = this.props.geometryToolType === "BoxTool";
         return (
             <div className="pt-button-group">
-                <ToolButton tooltipContent="New point"
+                <ToolButton tooltipContent="New marker"
                             tooltipPosition={Position.LEFT}
                             onClick={this.handleNewPointToolButtonClicked}
                             iconName="dot"

@@ -41,8 +41,8 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
                 <TextField
                     value={this.props.value}
                     validator={this.validate}
-                    size={36}
-                    placeholder='Enter variable names, separated by comma'
+                    size={this.props.multi ? 36 : 24}
+                    placeholder={this.props.multi ? 'Enter variable names, separated by comma' : 'Enter variable name'}
                     onChange={this.onChange}
                     nullable={this.props.input.nullable}
                 />

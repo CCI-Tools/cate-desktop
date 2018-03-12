@@ -74,12 +74,12 @@ export function getAppDataDir() {
 
 export function getWebAPIStartCommand(webAPIConfig): string {
     const command = getWebAPICommandBase(webAPIConfig);
-    return getCommandInActivatedCate(getCateDir(), command + ' start');
+    return getCommandInActivatedCate(getCateDirSafe(), command + ' start');
 }
 
 export function getWebAPIStopCommand(webAPIConfig): string {
     const command = getWebAPICommandBase(webAPIConfig);
-    return getCommandInActivatedCate(getCateDir(), command + ' stop');
+    return getCommandInActivatedCate(getCateDirSafe(), command + ' stop');
 }
 
 function getWebAPICommandBase(webAPIConfig): string {
@@ -102,8 +102,12 @@ export function getMPLWebSocketsUrl(webAPIConfig) {
     return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/mpl/figures/`;
 }
 
-export function getCateDir() {
+export function getCateDirSafe() {
     assert.ok(_cateDir && _cateDir !== "", "internal error: _cateDir=" + _cateDir);
+    return _cateDir;
+}
+
+export function getCateDir() {
     return _cateDir;
 }
 

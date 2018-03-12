@@ -10,9 +10,9 @@ import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
 import {
-    newVariableLayer, getCsvUrl, SELECTED_VARIABLE_LAYER_ID, isFigureResource, findResourceByName,
+    newVariableLayer, getCsvUrl, AUTO_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
-    getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID, getNonSpatialIndexers
+    getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID, getNonSpatialIndexers, genSimpleId, PLACEMARK_ID_PREFIX
 } from "./state-util";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
@@ -23,9 +23,16 @@ import * as Cesium from "cesium";
 import {isDefined, isNumber} from "../common/types";
 import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
 import {DirectGeometryObject, Feature} from "geojson";
-import {SimpleStyle} from "../common/geojson-simple-style";
+import {featurePropertiesFromSimpleStyle, SimpleStyle} from "../common/geojson-simple-style";
 import {GeometryToolType} from "./components/cesium/geometry-tool";
 import {getEntityByEntityId} from "./components/cesium/cesium-util";
+import {
+    assignConstantValueInput,
+    assignResourceNameInput,
+    InputAssignments,
+    isInputAssigned
+} from "./containers/editor/ValueEditor";
+import {isAssignableFrom, VAR_NAME_LIKE_TYPE, VAR_NAMES_LIKE_TYPE} from "../common/cate-types";
 
 const CANCELLED_CODE = 999;
 
@@ -78,6 +85,19 @@ export function addPlacemark(placemark: Placemark): Action {
     return {type: ADD_PLACEMARK, payload: {placemark}};
 }
 
+export function addPointPlacemark(longitude: number, latitude: number, properties: any): Action {
+    const placemark = {
+        id: genSimpleId(PLACEMARK_ID_PREFIX),
+        type: "Feature",
+        geometry: {
+            type: "Point",
+            coordinates: [longitude, latitude]
+        },
+        properties,
+    };
+    return addPlacemark(placemark as any);
+}
+
 export function removePlacemark(placemarkId: string): Action {
     return {type: REMOVE_PLACEMARK, payload: {placemarkId}};
 }
@@ -102,7 +122,7 @@ export function locatePlacemark(placemarkId: string): ThunkAction {
             if (selectedEntity) {
                 let headingPitchRange;
                 if (selectedEntity.position) {
-                    let heading = 0, pitch = -3.14159/2, range = 2500000;
+                    let heading = 0, pitch = -3.14159 / 2, range = 2500000;
                     headingPitchRange = new Cesium.HeadingPitchRange(heading, pitch, range);
                 }
                 viewer.zoomTo(selectedEntity, headingPitchRange);
@@ -128,6 +148,7 @@ export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 export const SET_GLOBE_MOUSE_POSITION = 'SET_GLOBE_MOUSE_POSITION';
 export const SET_GLOBE_VIEW_POSITION = 'SET_GLOBE_VIEW_POSITION';
+export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
 export const SET_GLOBE_VIEW_POSITION_DATA = 'SET_GLOBE_VIEW_POSITION_DATA';
 
 export function setGlobeMousePosition(position: GeographicPosition): Action {
@@ -208,6 +229,39 @@ export function removeTaskState(jobId: number): Action {
 
 export function setControlProperty(propertyName: string, value: any): Action {
     return updateControlState({[propertyName]: value});
+}
+
+export function invokeCtxOperation(operation: OperationState, inputAssignments: InputAssignments): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+
+        const resource = selectors.selectedResourceSelector(getState());
+        if (resource) {
+            for (let input of operation.inputs) {
+                if (!isInputAssigned(inputAssignments, input.name)
+                    && isAssignableFrom(input.dataType, resource.dataType)) {
+                    inputAssignments = assignResourceNameInput(inputAssignments, input.name, resource.name);
+                    break;
+                }
+            }
+        }
+
+        const variable = selectors.selectedVariableSelector(getState());
+        if (variable) {
+            for (let input of operation.inputs) {
+                if (!isInputAssigned(inputAssignments, input.name)
+                    && (input.dataType === VAR_NAME_LIKE_TYPE || input.dataType === VAR_NAMES_LIKE_TYPE)) {
+                    inputAssignments = assignConstantValueInput(inputAssignments, input.name, variable.name);
+                    break;
+                }
+            }
+        }
+
+        dispatch(invokeCtxOperationImpl(operation.name, inputAssignments));
+    };
+}
+
+export function invokeCtxOperationImpl(selectedCtxOperationName: string, inputAssignments: InputAssignments): Action {
+    return {type: INVOKE_CTX_OPERATION, payload: {selectedCtxOperationName, inputAssignments}};
 }
 
 export function updateControlState(controlState: any): Action {
@@ -594,7 +648,7 @@ export function hideOperationStepDialog(dialogId: string, inputAssignments?): Th
     return (dispatch: Dispatch, getState: GetState) => {
         if (inputAssignments) {
             const dialogState = getState().control.dialogs[dialogId] as any;
-            inputAssignments = Object.assign({}, dialogState.inputAssignments, inputAssignments)
+            inputAssignments = {...dialogState.inputAssignments, ...inputAssignments};
         }
         dispatch(hideDialog(dialogId, {inputAssignments}));
     };
@@ -1126,7 +1180,7 @@ export function renameWorkspaceResource(resName: string, newResName: string): Th
         }
 
         callAPI(dispatch, 'Renaming resource', call, action);
-    }
+    };
 }
 
 export function renameWorkspaceResourceImpl(resName: string, newResName: string): Action {
@@ -1295,10 +1349,6 @@ export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
 }
 
-export function setProjectionCode(viewId: string, projectionCode: string): Action {
-    return {type: SET_PROJECTION_CODE, payload: {viewId, projectionCode}};
-}
-
 export function setSelectedLayerSplit(viewId: string, isSelectedLayerSplit: boolean | null): Action {
     return {type: SET_SELECTED_LAYER_SPLIT, payload: {viewId, isSelectedLayerSplit}};
 }
@@ -1445,7 +1495,7 @@ export function updateLayer(viewId: string, layer: LayerState, ...layerPropertie
             layer = updateObject({}, layer, ...layerProperties);
         }
         dispatch(updateLayerImpl(viewId, layer));
-        if (layer.id === SELECTED_VARIABLE_LAYER_ID) {
+        if (layer.id === AUTO_LAYER_ID) {
             const varName = (layer as VariableLayerBase).varName;
             if (varName) {
                 dispatch(saveLayer(varName, layer));

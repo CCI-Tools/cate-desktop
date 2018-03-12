@@ -104,6 +104,7 @@ export interface OperationInputState extends OperationIOBaseState {
     valueSet?: any[];
     valueSetSource?: string;
     valueRange?: [number, number] | [string, string];
+    scriptLang?: string;
     fileOpenMode?: 'w' | 'r' | 'rw';
     fileFilters?: FileFilterState[];
     fileProps?: string;
@@ -637,6 +638,8 @@ export interface ControlState {
     // VariablesPanel
     selectedVariableName: string | null;
 
+    selectedCtxOperationName: string | null;
+
     // LayersPanel
 
     // A map that stores the last state of any dialog given a dialogId
@@ -678,6 +681,11 @@ export interface Placemark extends Feature<Point> {
 export interface PlacemarkCollection extends FeatureCollection<Point> {
     features: Placemark[];
 }
+
+export const STYLE_CONTEXT_ENTITY = 'entity';
+export const STYLE_CONTEXT_LAYER = 'layer';
+
+export type StyleContext = 'entity' | 'layer';
 
 /**
  * Session state contains information about the human being which is currently using Cate.
@@ -745,7 +753,7 @@ export interface SessionState {
     layerListHeight: number;
     showLayerDetails: boolean;
     savedLayers: SavedLayers;
-    styleContext: "entity" | "layer";
+    styleContext: StyleContext;
 
     // PlacemarksPanel
     placemarkCollection: PlacemarkCollection;
