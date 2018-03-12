@@ -1,3 +1,6 @@
+// jsdom-global is used to define the global "windows" which is unfortunately references when
+// importing "rect-ace" from ScriptDialog.tsx
+import 'jsdom-global/register'
 import {should, expect} from 'chai';
 import {hasValueEditorFactory} from "./ValueEditor";
 

@@ -15,6 +15,7 @@ interface IModalDialogProps {
     onCancel: () => void;
     canConfirm?: () => boolean;
     noCancelButton?: boolean;
+    style?: React.CSSProperties;
 }
 
 type IModalDialogState = any;
@@ -35,6 +36,7 @@ export class ModalDialog extends React.Component<IModalDialogProps, IModalDialog
                 canEscapeKeyClose={true}
                 canOutsideClickClose={false}
                 enforceFocus={true}
+                style={this.props.style}
             >
                 {this.renderDialogContent()}
                 {this.renderDialogFooter()}

@@ -108,6 +108,7 @@ The following frameworks and libraries are currently used in Cate's production c
   * [redux-logger](https://github.com/evgenyrodionov/redux-logger), a logger middleware for Redux
 * [Blueprint](http://blueprintjs.com/), a React UI toolkit.
 * [Cesium](https://cesiumjs.org/), an open-source JavaScript library for world-class 3D globes and maps.
+* [react-ace](https://github.com/securingsincity/react-ace) Code editor component
 
 Utilities:
 
@@ -135,6 +136,8 @@ For testing:
   See script `test:e2e` in `package.json`.
 * [react-addons-test-utils](https://facebook.github.io/react/docs/test-utils.html) makes it easy to test React 
   components in any testing framework.  
+* [jsdom-global](https://github.com/rstacruz/jsdom-global) is used to inject `document`, `window` and 
+  other DOM API into our Node.js environment so we can run tests ("react-ace").
 
 Other tools:
 

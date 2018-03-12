@@ -20,8 +20,7 @@ interface IScriptDialogState {
 
 
 export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDialogState> {
-    static readonly NOMINAL_CLASS = "pt-input pt-fill";
-    static readonly ERROR_CLASS = "pt-input pt-fill pt-intent-danger";
+    private static readonly DIALOG_STYLE: React.CSSProperties = {width: "54em"};
 
     constructor(props: IScriptDialogProps) {
         super(props);
@@ -67,7 +66,9 @@ export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDia
                          onCancel={this.props.onCancel}
                          onConfirm={this.onConfirm}
                          canConfirm={this.canConfirm}
-                         renderBody={this.renderBody}/>
+                         renderBody={this.renderBody}
+                         style={ScriptDialog.DIALOG_STYLE}
+            />
         );
     }
 

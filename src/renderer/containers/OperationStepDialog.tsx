@@ -91,6 +91,7 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
 
 class OperationStepDialog extends React.Component<IOperationStepDialogProps & DispatchProp<State>, IOperationStepDialogState> {
 
+    private static readonly DIALOG_STYLE: React.CSSProperties = {width: "42em"};
     private static readonly NO_STATE = {inputAssignments: {}};
 
     constructor(props: IOperationStepDialogProps & DispatchProp<State>) {
@@ -218,6 +219,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
                 canConfirm={this.canConfirm}
                 renderBody={this.renderBody}
                 renderExtraActions={this.renderExtraActions}
+                style={OperationStepDialog.DIALOG_STYLE}
             />
         );
     }
