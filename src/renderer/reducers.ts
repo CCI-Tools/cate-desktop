@@ -25,7 +25,6 @@ import {
     INITIAL_SESSION_STATE, INITIAL_LOCATION_STATE
 } from "./initial-state";
 import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./containers/OperationStepDialog";
-import {SET_GLOBE_VIEW_POSITION_DATA} from "./actions";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
