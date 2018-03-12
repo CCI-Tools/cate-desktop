@@ -14,6 +14,7 @@ import {NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE} from "../messages";
 import {CSSProperties} from "react";
 import * as Cesium from "cesium";
 import {ToolButton} from "../components/ToolButton";
+import {isSpatialImageVariable, isSpatialVectorVariable} from "../state-util";
 
 interface IVariablesPanelProps {
     variables: VariableState[];
@@ -252,10 +253,13 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
     }
 
     private renderVariablesList() {
+        const selectedVariable = this.props.selectedVariable;
+        const isImageVariable = selectedVariable && isSpatialImageVariable(selectedVariable);
+        const isVectorVariable = selectedVariable && isSpatialVectorVariable(selectedVariable);
         const positionData = this.props.positionData;
         const selectedEntity = this.props.selectedEntity;
         let renderItemFunc = VariablesPanel.renderItem;
-        if (selectedEntity) {
+        if (isVectorVariable && selectedEntity) {
             renderItemFunc = (variable: VariableState) => {
                 const varNameRender = VariablesPanel.renderItem(variable);
                 const property = selectedEntity.properties[variable.name];
@@ -265,7 +269,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
                 }
                 return varNameRender;
             }
-        } else if (positionData) {
+        } else if (isImageVariable && positionData) {
             renderItemFunc = (variable: VariableState) => {
                 const varNameRender = VariablesPanel.renderItem(variable);
                 const property = positionData[variable.name];
