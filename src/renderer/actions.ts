@@ -320,10 +320,6 @@ export function cancelJob(jobId: number): ThunkAction {
 }
 
 function jobSubmitted(jobId: number, jobTitle: string, requestLock: string): Action {
-    showToast({
-                  type: 'notification',
-                  text: 'Started: ' + jobTitle,
-              });
     return updateTaskState(jobId, {status: JobStatusEnum.SUBMITTED, title: jobTitle, requestLock: requestLock});
 }
 
@@ -332,10 +328,6 @@ function jobProgress(progress: JobProgress): Action {
 }
 
 function jobDone(jobId: number, jobTitle: string): Action {
-    showToast({
-                  type: 'success',
-                  text: 'Done: ' + jobTitle,
-              });
     return updateTaskState(jobId, {status: JobStatusEnum.DONE});
 }
 
@@ -394,15 +386,35 @@ export function callAPI<T>(dispatch: (action: Action) => void,
     };
 
     const jobPromise = call(onProgress);
+    const startToastDelayMs = 500;
+    let startToastShown = false;
+    const startToastTimeoutHandler = setTimeout(() => {
+        showToast({
+            type: 'notification',
+            text: 'Started: ' + title,
+        });
+        startToastShown = true;
+    }, startToastDelayMs);
     dispatch(jobSubmitted(jobPromise.getJobId(), title, requestLock));
 
     const onDone = (jobResult: T) => {
+        if (startToastShown) {
+            showToast({
+                type: 'success',
+                text: 'Done: ' + title,
+            });
+        } else {
+            clearTimeout(startToastTimeoutHandler);
+        }
         dispatch(jobDone(jobPromise.getJobId(), title));
         if (action) {
             action(jobResult);
         }
     };
     const onFailure = jobFailure => {
+        if (!startToastShown) {
+            clearTimeout(startToastTimeoutHandler);
+        }
         dispatch(jobFailed(jobPromise.getJobId(), title, jobFailure));
         if (planB) {
             planB(jobFailure);
