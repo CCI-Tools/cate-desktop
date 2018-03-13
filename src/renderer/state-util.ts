@@ -2,8 +2,8 @@ import {
     VariableState, VariableRefState, ResourceState, LayerState,
     VariableImageLayerState, OperationState, WorldViewDataState,
     TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState, ResourceRefState,
-    ResourceVectorLayerState, VectorLayerBase, Placemark, PlacemarkCollection, AnimationViewDataState
-    ResourceVectorLayerState, VectorLayerBase, Placemark, PlacemarkCollection, DimSizes
+    ResourceVectorLayerState, VectorLayerBase, Placemark, PlacemarkCollection, AnimationViewDataState,
+    DimSizes
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
@@ -615,7 +615,7 @@ export function hasWebGL(): boolean {
 }
 
 
-export function getPlacemarkTitleAndIndex(placemark: Placemark, placemarks: PlacemarkCollection): {title:string|undefined, index:number|undefined} {
+export function getPlacemarkTitleAndIndex(placemark: Placemark, placemarks: PlacemarkCollection): { title: string | undefined, index: number | undefined } {
     const type = placemark.geometry.type;
     const features = placemarks.features;
     const titles = new Set<string>();

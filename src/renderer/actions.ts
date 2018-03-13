@@ -12,9 +12,8 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, AUTO_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
-    getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID, genSimpleId, PLACEMARK_ID_PREFIX, isAnimationResource,
-    getHtmlUrl
-    getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID, getNonSpatialIndexers, genSimpleId, PLACEMARK_ID_PREFIX
+    isAnimationResource, getHtmlUrl, MY_PLACES_LAYER_ID, getNonSpatialIndexers, genSimpleId, PLACEMARK_ID_PREFIX,
+    getWorldViewVectorLayerForEntity
 } from "./state-util";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
