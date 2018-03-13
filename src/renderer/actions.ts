@@ -165,7 +165,7 @@ export function setGlobeViewPosition(position: GeographicPosition): ThunkAction 
                 const indexers = getNonSpatialIndexers(resource, layer);
 
                 function call(onProgress) {
-                    const opName = 'subset_point';
+                    const opName = '_extract_point';
                     const opArgs = {
                         ds: {source: resource.name},
                         point: {value: `${position.longitude}, ${position.latitude}`},
