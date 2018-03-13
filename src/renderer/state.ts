@@ -366,6 +366,18 @@ export interface FigureViewDataState {
     fixedSize: boolean;
 }
 
+export interface AnimationViewDataState extends FigureViewDataState {
+    /**
+     * The HTML representing the animation.
+     */
+    innerHTML?: string;
+    /**
+     * The response status.
+     */
+    status?: number;
+}
+
+
 export interface TableViewDataState {
     resName: string;
     varName: string | null;

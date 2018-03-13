@@ -2,6 +2,7 @@ import {
     VariableState, VariableRefState, ResourceState, LayerState,
     VariableImageLayerState, OperationState, WorldViewDataState,
     TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState, ResourceRefState,
+    ResourceVectorLayerState, VectorLayerBase, Placemark, PlacemarkCollection, AnimationViewDataState
     ResourceVectorLayerState, VectorLayerBase, Placemark, PlacemarkCollection, DimSizes
 } from "./state";
 import {ViewState} from "./components/ViewState";
@@ -78,6 +79,10 @@ export function getCsvUrl(baseUrl: string, baseDir: string, ref: ResourceRefStat
     return baseUrl + `ws/res/csv/${encodeURIComponent(baseDir)}/${ref.resId}${varPart}`;
 }
 
+export function getHtmlUrl(baseUrl: string, baseDir: string, resId: number): string {
+    return baseUrl + `ws/res/html/${encodeURIComponent(baseDir)}/${resId}`;
+}
+
 export function getGeoJSONCountriesUrl(baseUrl: string): string {
     return baseUrl + 'ws/countries';
 }
@@ -108,6 +113,10 @@ export function genLayerId() {
 
 export function isFigureResource(resource: ResourceState | null): boolean {
     return resource && isNumber(resource.id) && resource.dataType.endsWith('.Figure');
+}
+
+export function isAnimationResource(resource: ResourceState | null): boolean {
+    return resource && isNumber(resource.id) && resource.dataType.endsWith('.HTML');
 }
 
 export function isDataFrameResource(resource: ResourceState | null): boolean {
@@ -269,6 +278,13 @@ function newInitialFigureViewData(resourceId: number): FigureViewDataState {
     };
 }
 
+function newInitialAnimationViewData(resourceId: number): AnimationViewDataState {
+    return {
+        resourceId: resourceId,
+        fixedSize: false,
+    };
+}
+
 function newInitialTableViewData(resName: string, varName: string): TableViewDataState {
     return {resName, varName, dataRows: null};
 }
@@ -301,6 +317,19 @@ export function getFigureViewTitle(resourceName: string): string {
     return `Figure - ${resourceName}`;
 }
 
+export function newAnimationView(resource: ResourceState): ViewState<AnimationViewDataState> {
+    return {
+        title: getAnimationViewTitle(resource.name),
+        id: `anim-${resource.id}`,
+        type: 'animation',
+        iconName: "pt-icon-play",
+        data: newInitialAnimationViewData(resource.id),
+    };
+}
+
+export function getAnimationViewTitle(resourceName: string): string {
+    return `Animation - ${resourceName}`;
+}
 
 export function newTableView(resName: string, varName: string): ViewState<TableViewDataState> {
     return {

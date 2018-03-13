@@ -12,6 +12,8 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, AUTO_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
+    getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID, genSimpleId, PLACEMARK_ID_PREFIX, isAnimationResource,
+    getHtmlUrl
     getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID, getNonSpatialIndexers, genSimpleId, PLACEMARK_ID_PREFIX
 } from "./state-util";
 import {SplitDir} from "./components/Splitter";
@@ -670,6 +672,7 @@ export function hideOperationStepDialog(dialogId: string, inputAssignments?): Th
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
 export const RENAME_RESOURCE = 'RENAME_RESOURCE';
 export const SHOW_FIGURE_VIEW = 'SHOW_FIGURE_VIEW';
+export const SHOW_ANIMATION_VIEW = 'SHOW_ANIMATION_VIEW';
 export const SHOW_TABLE_VIEW = 'SHOW_TABLE_VIEW';
 
 /**
@@ -1143,11 +1146,16 @@ export function setWorkspaceResource(opName: string,
 
             const resource = findResourceByName(selectors.resourcesSelector(getState()), resName);
             const isFigure = isFigureResource(resource);
-            if (!isFigure) {
+            const isAnimation = isAnimationResource(resource);
+            if (!isFigure && !isAnimation) {
                 dispatch(setSelectedWorkspaceResourceName(resName));
             }
-            if (isFigure && getState().session.autoShowNewFigures) {
-                dispatch(showFigureView(resource, selectors.activeViewIdSelector(getState())))
+            if ((isFigure || isAnimation) && getState().session.autoShowNewFigures) {
+                if (isFigure) {
+                    dispatch(showFigureView(resource, selectors.activeViewIdSelector(getState())))
+                } else if (isAnimation) {
+                    dispatch(showAnimationView(resource, selectors.activeViewIdSelector(getState())))
+                }
             }
             if (postSetAction) {
                 dispatch(postSetAction);
@@ -1229,6 +1237,10 @@ export function showTableView(resName: string, varName: string | null, placeAfte
 
 export function showFigureView(resource: ResourceState, placeAfterViewId: string | null): Action {
     return {type: SHOW_FIGURE_VIEW, payload: {resource, placeAfterViewId}};
+}
+
+export function showAnimationView(resource: ResourceState, placeAfterViewId: string | null): Action {
+    return {type: SHOW_ANIMATION_VIEW, payload: {resource, placeAfterViewId}};
 }
 
 // noinspection JSUnusedLocalSymbols
@@ -1466,6 +1478,33 @@ export function loadTableViewData(viewId: string, resName: string, varName: stri
         }
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Animation view actions
+
+export const UPDATE_ANIMATION_VIEW_DATA = "UPDATE_ANIMATION_VIEW_DATA";
+
+export function loadAnimationViewData(viewId: string, resId: number): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        const restUrl = selectors.webAPIRestUrlSelector(getState());
+        const baseDir = selectors.workspaceBaseDirSelector(getState());
+        const htmlUrl = getHtmlUrl(restUrl, baseDir, resId);
+
+        const xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = () => {
+            if (xmlHttp.readyState == 4) {
+                dispatch(setAnimationResult(viewId, xmlHttp.responseText, xmlHttp.status));
+            }
+        };
+        xmlHttp.open("GET", htmlUrl, true); // true for asynchronous
+        xmlHttp.send(null);
+    }
+}
+
+function setAnimationResult(viewId: string, innerHTML: string, status: number) {
+    return {type: UPDATE_ANIMATION_VIEW_DATA, payload: {viewId, innerHTML, status}}
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Layer actions

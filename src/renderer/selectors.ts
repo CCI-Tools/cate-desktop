@@ -34,7 +34,7 @@ import {
     getLockForGetWorkspaceVariableStatistics,
     getWorldViewSelectedEntity,
     getWorldViewSelectedGeometryWKTGetter,
-    getWorldViewVectorLayerForEntity, getWorldViewViewer,
+    getWorldViewVectorLayerForEntity, getWorldViewViewer, isAnimationResource,
     isFigureResource,
     isSpatialImageVariable,
     isSpatialVectorVariable,
@@ -532,7 +532,7 @@ export const selectedWorkflowStepOpSelector = createSelector<State, OperationSta
 export const figureResourcesSelector = createSelector<State, ResourceState[], ResourceState[]>(
     resourcesSelector,
     (resources: ResourceState[]) => {
-        return resources.filter(r => isNumber(r.id) && r.dataType.endsWith('.Figure'))
+        return resources.filter(r => isFigureResource(r))
     }
 );
 
@@ -540,6 +540,13 @@ export const selectedFigureResourceSelector = createSelector<State, ResourceStat
     selectedResourceSelector,
     (resource: ResourceState | null) => {
         return resource && isFigureResource(resource) ? resource : null;
+    }
+);
+
+export const animationResourcesSelector = createSelector<State, ResourceState[], ResourceState[]>(
+    resourcesSelector,
+    (resources: ResourceState[]) => {
+        return resources.filter(r => isAnimationResource(r))
     }
 );
 

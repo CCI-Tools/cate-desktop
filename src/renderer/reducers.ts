@@ -11,7 +11,7 @@ import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     AUTO_LAYER_ID, updateAutoLayer,
     newWorldView, newTableView, newFigureView, getFigureViewTitle,
-    isVectorLayer, PLACEMARK_ID_PREFIX, getPlacemarkTitleAndIndex,
+    isVectorLayer, PLACEMARK_ID_PREFIX, getPlacemarkTitleAndIndex, newAnimationView,
 } from "./state-util";
 import {
 removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
@@ -172,6 +172,17 @@ const controlReducer = (state: ControlState = INITIAL_CONTROL_STATE, action: Act
                 return {...state, viewLayout};
             } else {
                 const view = newFigureView(resource);
+                return addView(state, view, placeAfterViewId);
+            }
+        }
+        case actions.SHOW_ANIMATION_VIEW: {
+            const {resource, placeAfterViewId} = action.payload;
+            const animationView = state.views.find(v => v.type === 'animation' && resource.id === v.data.resourceId);
+            if (animationView) {
+                const viewLayout = selectView(state.viewLayout, animationView.id);
+                return {...state, viewLayout};
+            } else {
+                const view = newAnimationView(resource);
                 return addView(state, view, placeAfterViewId);
             }
         }
@@ -492,6 +503,15 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             const viewId = action.payload.viewId;
             if (viewId === state.id) {
                 assert.ok(state.type === 'table');
+                const data = {...state.data, ...action.payload};
+                return {...state, data};
+            }
+            break;
+        }
+        case actions.UPDATE_ANIMATION_VIEW_DATA: {
+            const viewId = action.payload.viewId;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'animation');
                 const data = {...state.data, ...action.payload};
                 return {...state, data};
             }

@@ -18,7 +18,7 @@ import PreferencesDialog from "./PreferencesDialog";
 import {PanelContainer, PanelContainerLayout} from "../components/PanelContainer";
 import {Panel} from "../components/Panel";
 import {connect, Dispatch} from "react-redux";
-import {State, WorldViewDataState, FigureViewDataState, TableViewDataState} from "../state";
+import {State, WorldViewDataState, FigureViewDataState, TableViewDataState, AnimationViewDataState} from "../state";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ViewManager, ViewRenderMap} from "../components/ViewManager";
@@ -26,6 +26,7 @@ import {ViewLayoutState, ViewState, ViewPath, SplitDir} from "../components/View
 import {CSSProperties} from "react";
 import OperationStepDialog from "./OperationStepDialog";
 import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./operation-step-dialog-ids";
+import AnimationView from "./AnimationView";
 
 
 function renderWorldView(view: ViewState<WorldViewDataState>) {
@@ -39,6 +40,10 @@ function renderFigureView(view: ViewState<FigureViewDataState>) {
     return <FigureView view={view}/>;
 }
 
+function renderAnimationView(view: ViewState<AnimationViewDataState>) {
+    return <AnimationView view={view}/>;
+}
+
 function renderTableView(view: ViewState<TableViewDataState>) {
     return <TableView view={view}/>;
 }
@@ -46,6 +51,7 @@ function renderTableView(view: ViewState<TableViewDataState>) {
 const VIEW_TYPE_RENDERERS: ViewRenderMap = {
     world: renderWorldView,
     figure: renderFigureView,
+    animation: renderAnimationView,
     table: renderTableView,
 };
 
