@@ -1,9 +1,30 @@
-import {should, expect} from 'chai';
+import {expect} from 'chai';
 import {
     ToolContextBase, PolygonTool, PolylineTool, polylineColor, polygonColor, PointTool,
     BoxTool, NO_TOOL
 } from "./geometry-tool";
 
+
+class Point {
+    readonly longitude: number;
+    readonly latitude: number;
+    readonly height?: number;
+
+    constructor(longitude: number, latitude: number, height?: number) {
+        this.longitude = longitude;
+        this.latitude = latitude;
+        this.height = height;
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    equals(point: Point) {
+        return this.longitude === point.longitude && this.latitude === point.latitude && this.height === point.height;
+    }
+}
+
+function newPoint(p) {
+    return new Point(p.longitude, p.latitude, p.height);
+}
 
 class TestToolContext extends ToolContextBase {
     entities: any[];
@@ -30,20 +51,20 @@ class TestToolContext extends ToolContextBase {
     }
 
     pickEllipsoid(position) {
-        return {...position, height: 0};
+        return newPoint({...position, height: 0});
     }
 
     cartesianWithHeightDelta(cartesian, delta: number) {
-        return {...cartesian, height: delta};
+        return newPoint({...cartesian, height: delta});
     }
 
 
     cartesianToCartographic(cartesian) {
-        return {...cartesian};
+        return newPoint({...cartesian});
     }
 
     cartographicToCartesian(cartographic) {
-        return {...cartographic};
+        return newPoint({...cartographic});
     }
 }
 
@@ -53,13 +74,13 @@ describe('GeometryTool', function () {
         const toolContext = new TestToolContext();
         expect(toolContext.tool).to.equal(NO_TOOL);
 
-        toolContext.onMouseMove({endPosition: {longitude: 10, latitude: 11}});
-        toolContext.onMouseMove({endPosition: {longitude: 12, latitude: 9}});
-        toolContext.onLeftClick({position: {longitude: 10, latitude: 12}});
-        toolContext.onMouseMove({endPosition: {longitude: 13, latitude: 11}});
-        toolContext.onMouseMove({endPosition: {longitude: 18, latitude: 0}});
-        toolContext.onLeftClick({position: {longitude: 20, latitude: 15}});
-        toolContext.onMouseMove({endPosition: {longitude: 13, latitude: 11}});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 10, latitude: 11})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 12, latitude: 9})});
+        toolContext.onLeftClick({position: newPoint({longitude: 10, latitude: 12})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 13, latitude: 11})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 18, latitude: 0})});
+        toolContext.onLeftClick({position: newPoint({longitude: 20, latitude: 15})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 13, latitude: 11})});
 
         expect(toolContext.entities).to.exist;
         expect(toolContext.entities).to.deep.equal([]);
@@ -69,25 +90,25 @@ describe('GeometryTool', function () {
         const toolContext = new TestToolContext();
         toolContext.tool = new PointTool();
 
-        toolContext.onMouseMove({endPosition: {longitude: 10, latitude: 11}});
-        toolContext.onMouseMove({endPosition: {longitude: 12, latitude: 9}});
-        toolContext.onLeftClick({position: {longitude: 10, latitude: 12}});
-        toolContext.onMouseMove({endPosition: {longitude: 13, latitude: 11}});
-        toolContext.onMouseMove({endPosition: {longitude: 18, latitude: 0}});
-        toolContext.onLeftClick({position: {longitude: 20, latitude: 15}});
-        toolContext.onMouseMove({endPosition: {longitude: 13, latitude: 11}});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 10, latitude: 11})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 12, latitude: 9})});
+        toolContext.onLeftClick({position: newPoint({longitude: 10, latitude: 12})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 13, latitude: 11})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 18, latitude: 0})});
+        toolContext.onLeftClick({position: newPoint({longitude: 20, latitude: 15})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 13, latitude: 11})});
 
         expect(toolContext.entities).to.exist;
         expect(toolContext.entities).to.deep.equal([
                                                        {
-                                                           position: {height: 0, longitude: 10, latitude: 12},
+                                                           position: newPoint({height: 0, longitude: 10, latitude: 12}),
                                                            point: {
                                                                outlineWidth: 1,
                                                                pixelSize: 6,
                                                            }
                                                        },
                                                        {
-                                                           position: {height: 0, longitude: 20, latitude: 15},
+                                                           position: newPoint({height: 0, longitude: 20, latitude: 15}),
                                                            point: {
                                                                outlineWidth: 1,
                                                                pixelSize: 6,
@@ -102,17 +123,22 @@ describe('GeometryTool', function () {
         const toolContext = new TestToolContext();
         toolContext.tool = new PolylineTool();
 
-        toolContext.onMouseMove({endPosition: {longitude: 10, latitude: 11}});
-        toolContext.onMouseMove({endPosition: {longitude: 12, latitude: 9}});
-        toolContext.onLeftClick({position: {longitude: 10, latitude: 10}});
-        toolContext.onMouseMove({endPosition: {longitude: 13, latitude: 11}});
-        toolContext.onMouseMove({endPosition: {longitude: 18, latitude: 0}});
-        toolContext.onLeftClick({position: {longitude: 20, latitude: 10}});
-        toolContext.onMouseMove({endPosition: {longitude: 21, latitude: 11}});
-        toolContext.onMouseMove({endPosition: {longitude: 19, latitude: 15}});
-        toolContext.onLeftDoubleClick({position: {longitude: 20, latitude: 20}});
-        toolContext.onMouseMove({endPosition: {longitude: 46, latitude: 26}});
-        toolContext.onMouseMove({endPosition: {longitude: 49, latitude: 32}});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 10, latitude: 11})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 12, latitude: 9})});
+        toolContext.onLeftClick({position: newPoint({longitude: 10, latitude: 10})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 13, latitude: 11})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 18, latitude: 0})});
+        toolContext.onLeftClick({position: newPoint({longitude: 20, latitude: 10})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 21, latitude: 11})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 19, latitude: 15})});
+        // Note, we simulate here a browser sensing two(!) left click events before a double-click event.
+        // See also https://github.com/AnalyticalGraphicsInc/cesium/issues/1171
+        let endPoint = {position: newPoint({longitude: 20, latitude: 20})};
+        toolContext.onLeftClick(endPoint);
+        toolContext.onLeftClick(endPoint);
+        toolContext.onLeftDoubleClick(endPoint);
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 46, latitude: 26})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 49, latitude: 32})});
 
         expect(toolContext.entities).to.exist;
         expect(toolContext.entities.length).to.equal(1);
@@ -124,9 +150,9 @@ describe('GeometryTool', function () {
             {
                 polyline: {
                     positions: [
-                        {longitude: 10, latitude: 10, height: 5},
-                        {longitude: 20, latitude: 10, height: 5},
-                        {longitude: 20, latitude: 20, height: 5}
+                        newPoint({longitude: 10, latitude: 10, height: 5}),
+                        newPoint({longitude: 20, latitude: 10, height: 5}),
+                        newPoint({longitude: 20, latitude: 20, height: 5})
                     ],
                     material: polylineColor
                 }
@@ -141,17 +167,22 @@ describe('GeometryTool', function () {
         const toolContext = new TestToolContext();
         toolContext.tool = new PolygonTool();
 
-        toolContext.onMouseMove({endPosition: {longitude: 10, latitude: 11}});
-        toolContext.onMouseMove({endPosition: {longitude: 12, latitude: 9}});
-        toolContext.onLeftClick({position: {longitude: 10, latitude: 10}});
-        toolContext.onMouseMove({endPosition: {longitude: 13, latitude: 11}});
-        toolContext.onMouseMove({endPosition: {longitude: 18, latitude: 0}});
-        toolContext.onLeftClick({position: {longitude: 20, latitude: 10}});
-        toolContext.onMouseMove({endPosition: {longitude: 21, latitude: 11}});
-        toolContext.onMouseMove({endPosition: {longitude: 19, latitude: 15}});
-        toolContext.onLeftDoubleClick({position: {longitude: 20, latitude: 20}});
-        toolContext.onMouseMove({endPosition: {longitude: 46, latitude: 26}});
-        toolContext.onMouseMove({endPosition: {longitude: 49, latitude: 32}});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 10, latitude: 11})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 12, latitude: 9})});
+        toolContext.onLeftClick({position: newPoint({longitude: 10, latitude: 10})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 13, latitude: 11})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 18, latitude: 0})});
+        toolContext.onLeftClick({position: newPoint({longitude: 20, latitude: 10})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 21, latitude: 11})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 19, latitude: 15})});
+        // Note, we simulate here a browser sensing two(!) left click events before a double-click event.
+        // See also https://github.com/AnalyticalGraphicsInc/cesium/issues/1171
+        let endPoint = {position: newPoint({longitude: 20, latitude: 20})};
+        toolContext.onLeftClick(endPoint);
+        toolContext.onLeftClick(endPoint);
+        toolContext.onLeftDoubleClick(endPoint);
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 46, latitude: 26})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 49, latitude: 32})});
 
         expect(toolContext.entities).to.exist;
         expect(toolContext.entities.length).to.equal(1);
@@ -163,9 +194,9 @@ describe('GeometryTool', function () {
             {
                 polygon: {
                     hierarchy: [
-                        {longitude: 10, latitude: 10, height: 0},
-                        {longitude: 20, latitude: 10, height: 0},
-                        {longitude: 20, latitude: 20, height: 0}
+                        newPoint({longitude: 10, latitude: 10, height: 0}),
+                        newPoint({longitude: 20, latitude: 10, height: 0}),
+                        newPoint({longitude: 20, latitude: 20, height: 0})
                     ],
                     material: polygonColor
                 }
@@ -180,14 +211,14 @@ describe('GeometryTool', function () {
         const toolContext = new TestToolContext();
         toolContext.tool = new BoxTool();
 
-        toolContext.onMouseMove({endPosition: {longitude: 10, latitude: 11}});
-        toolContext.onMouseMove({endPosition: {longitude: 12, latitude: 16}});
-        toolContext.onLeftClick({position: {longitude: 10, latitude: 20}});
-        toolContext.onMouseMove({endPosition: {longitude: 13, latitude: 28}});
-        toolContext.onMouseMove({endPosition: {longitude: 28, latitude: 32}});
-        toolContext.onLeftClick({position: {longitude: 30, latitude: 40}});
-        toolContext.onMouseMove({endPosition: {longitude: 31, latitude: 41}});
-        toolContext.onMouseMove({endPosition: {longitude: 39, latitude: 35}});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 10, latitude: 11})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 12, latitude: 16})});
+        toolContext.onLeftClick({position: newPoint({longitude: 10, latitude: 20})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 13, latitude: 28})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 28, latitude: 32})});
+        toolContext.onLeftClick({position: newPoint({longitude: 30, latitude: 40})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 31, latitude: 41})});
+        toolContext.onMouseMove({endPosition: newPoint({longitude: 39, latitude: 35})});
 
         expect(toolContext.entities).to.exist;
         expect(toolContext.entities.length).to.equal(1);
@@ -199,10 +230,10 @@ describe('GeometryTool', function () {
             {
                 polygon: {
                     hierarchy: [
-                        {longitude: 10, latitude: 20, height: 0},
-                        {longitude: 30, latitude: 20, height: 0},
-                        {longitude: 30, latitude: 40, height: 0},
-                        {longitude: 10, latitude: 40, height: 0},
+                        newPoint({longitude: 10, latitude: 20, height: 0}),
+                        newPoint({longitude: 30, latitude: 20, height: 0}),
+                        newPoint({longitude: 30, latitude: 40, height: 0}),
+                        newPoint({longitude: 10, latitude: 40, height: 0}),
                     ],
                     material: polygonColor
                 }

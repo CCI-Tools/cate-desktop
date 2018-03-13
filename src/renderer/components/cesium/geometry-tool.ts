@@ -261,62 +261,60 @@ class PolyTool extends ToolBase {
     }
 
     handleLeftClick(leftClick) {
-        this.addPoint(leftClick.position, false);
-    }
-
-    handleLeftDoubleClick(leftClick) {
-        this.addPoint(leftClick.position, true);
+        this.addPoint(leftClick.position);
     }
 
     handleMouseMove(movement) {
         this.moveLastPoint(movement.endPosition);
     }
 
-    private addPoint(position, endInteraction: boolean) {
+    handleLeftDoubleClick(leftClick) {
+        this.endInteraction();
+    }
+
+    private addPoint(position) {
         const cartesian = this.context.pickEllipsoid(position);
         if (cartesian) {
             const position = this.context.cartesianWithHeightDelta(cartesian, pointHeight);
             // Add point graphics
-            this.context.addToolEntity({
-                                           position: position,
-                                           allowPicking: false,
-                                           point: {
-                                               show: true,
-                                               outlineColor: Cesium.Color.BLACK,
-                                               outlineWidth: 1,
-                                               color: pointColor,
-                                               pixelSize: 10,
-                                           }
-                                       });
-            this.updatePositions(cartesian);
+            if (this.updatePositions(cartesian)) {
+                this.context.addToolEntity({
+                                               position: position,
+                                               allowPicking: false,
+                                               point: {
+                                                   show: true,
+                                                   outlineColor: Cesium.Color.BLACK,
+                                                   outlineWidth: 1,
+                                                   color: pointColor,
+                                                   pixelSize: 10,
+                                               }
+                                           });
+            }
             this.hasRubberband = false;
         }
-        if (endInteraction) {
-            if (this.polygonEntity) {
-                // TODO #477 (nf): mark this as a user-polygon so we can edit points later
-                this.context.newEntity({
-                                           polygon: {
-                                               // TODO (nf): why doesn't this work?
-                                               // hierarchy: this.polygonEntity.hierarchy,
-                                               hierarchy: this.polygonPositions,
-                                               // TODO (nf): take from current style
-                                               material: polygonColor,
-                                           }
-                                       });
-            } else if (this.polylineEntity) {
-                // TODO #477 (nf): mark this as a user-polygon so we can edit points later
-                this.context.newEntity({
-                                           polyline: {
-                                               // TODO (nf): why doesn't this work?
-                                               // positions: this.polylinePositions.positions,
-                                               positions: this.polylinePositions,
-                                               // TODO (nf): take from current style
-                                               material: polylineColor,
-                                           }
-                                       });
-            }
-            this.reset();
+    }
+
+    private endInteraction() {
+        if (this.polygonEntity) {
+            this.context.newEntity({
+                                       polygon: {
+                                           // check: why doesn't this work?
+                                           // hierarchy: this.polygonEntity.hierarchy,
+                                           hierarchy: this.polygonPositions,
+                                           material: polygonColor,
+                                       }
+                                   });
+        } else if (this.polylineEntity) {
+            this.context.newEntity({
+                                       polyline: {
+                                           // check: why doesn't this work?
+                                           // positions: this.polylinePositions.positions,
+                                           positions: this.polylinePositions,
+                                           material: polylineColor,
+                                       }
+                                   });
         }
+        this.reset();
     }
 
     private moveLastPoint(position) {
@@ -330,16 +328,21 @@ class PolyTool extends ToolBase {
         }
     }
 
-    private updatePositions(cartesian) {
+    private updatePositions(cartesian): boolean {
         const polylinePoint = this.context.cartesianWithHeightDelta(cartesian, polylineHeight);
+        let newPointAdded = true;
         if (!this.polylinePositions) {
             this.polylinePositions = [polylinePoint];
         } else {
+            const numPoints = this.polylinePositions.length;
             if (this.hasRubberband) {
-                const numPoints = this.polylinePositions.length;
                 this.polylinePositions[numPoints - 1] = polylinePoint;
             } else {
-                this.polylinePositions.push(polylinePoint);
+                if (polylinePoint.equals(this.polylinePositions[numPoints - 1])) {
+                    newPointAdded = false;
+                } else {
+                    this.polylinePositions.push(polylinePoint);
+                }
             }
         }
         if (this.polylinePositions.length > 1) {
@@ -354,20 +357,19 @@ class PolyTool extends ToolBase {
                                                                          material: polylineColor,
                                                                      }
                                                                  });
-            } else {
-                // TODO (nf): optimize me, this seems slow!
+            } else if (newPointAdded) {
                 this.polylineEntity.polyline.positions = positions;
             }
         }
 
 
-        if (this.genPolygon) {
+        if (newPointAdded && this.genPolygon) {
             const polygonPoint = this.context.cartesianWithHeightDelta(cartesian, polygonHeight);
             if (!this.polygonPositions) {
                 this.polygonPositions = [polygonPoint];
             } else {
+                const numPoints = this.polygonPositions.length;
                 if (this.hasRubberband) {
-                    const numPoints = this.polygonPositions.length;
                     this.polygonPositions[numPoints - 1] = polygonPoint;
                 } else {
                     this.polygonPositions.push(polygonPoint);
@@ -388,6 +390,8 @@ class PolyTool extends ToolBase {
                 }
             }
         }
+
+        return newPointAdded;
     }
 
     private reset() {
