@@ -5,13 +5,14 @@ import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
 import {LabelWithType} from "../components/LabelWithType";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
-import OperationStepDialog, {NEW_OPERATION_STEP_DIALOG_ID} from "./OperationStepDialog";
+import OperationStepDialog from "./OperationStepDialog";
 import {State, OperationState, WorkspaceState, OperationOutputState, OperationInputState} from "../state";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_OPERATIONS_FOUND} from "../messages";
 import {ToolButton} from "../components/ToolButton";
+import {NEW_OPERATION_STEP_DIALOG_ID} from "./operation-step-dialog-ids";
 
 
 interface IOperationsPanelProps {

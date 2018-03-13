@@ -9,18 +9,16 @@ import {InputEditor} from "./editor/InputEditor";
 import {updatePropertyObject} from "../../common/objutil";
 import {ModalDialog} from "../components/ModalDialog";
 import {isFieldValue} from "../components/field/Field";
-import {
-    GeometryWKTGetter, hasValueEditorFactory, InputAssignment, InputAssignments,
-    renderValueEditor
-} from "./editor/ValueEditor";
+import {GeometryWKTGetter, hasValueEditorFactory, renderValueEditor} from "./editor/ValueEditor";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import {isDefined, isString, isUndefinedOrNull} from "../../common/types";
 import {isUndefined} from "../../common/types";
-
-export const NEW_OPERATION_STEP_DIALOG_ID = "newOperationStepDialog";
-export const NEW_CTX_OPERATION_STEP_DIALOG_ID = "newCtxOperationStepDialog";
-export const EDIT_OPERATION_STEP_DIALOG_ID = "editOperationStepDialog";
+import {InputAssignment, InputAssignments} from "./editor/value-editor-assign";
+import {
+    EDIT_OPERATION_STEP_DIALOG_ID, NEW_CTX_OPERATION_STEP_DIALOG_ID,
+    NEW_OPERATION_STEP_DIALOG_ID
+} from "./operation-step-dialog-ids";
 
 type InputErrors = { [inputName: string]: Error };
 
@@ -93,6 +91,7 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
 
 class OperationStepDialog extends React.Component<IOperationStepDialogProps & DispatchProp<State>, IOperationStepDialogState> {
 
+    private static readonly DIALOG_STYLE: React.CSSProperties = {width: "42em"};
     private static readonly NO_STATE = {inputAssignments: {}};
 
     constructor(props: IOperationStepDialogProps & DispatchProp<State>) {
@@ -220,6 +219,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
                 canConfirm={this.canConfirm}
                 renderBody={this.renderBody}
                 renderExtraActions={this.renderExtraActions}
+                style={OperationStepDialog.DIALOG_STYLE}
             />
         );
     }

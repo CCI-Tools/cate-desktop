@@ -23,16 +23,14 @@ import * as Cesium from "cesium";
 import {isDefined, isNumber} from "../common/types";
 import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
 import {DirectGeometryObject, Feature} from "geojson";
-import {featurePropertiesFromSimpleStyle, SimpleStyle} from "../common/geojson-simple-style";
+import {SimpleStyle} from "../common/geojson-simple-style";
 import {GeometryToolType} from "./components/cesium/geometry-tool";
 import {getEntityByEntityId} from "./components/cesium/cesium-util";
-import {
-    assignConstantValueInput,
-    assignResourceNameInput,
-    InputAssignments,
-    isInputAssigned
-} from "./containers/editor/ValueEditor";
 import {isAssignableFrom, VAR_NAME_LIKE_TYPE, VAR_NAMES_LIKE_TYPE} from "../common/cate-types";
+import {
+    assignConstantValueInput, assignResourceNameInput, InputAssignments,
+    isInputAssigned
+} from "./containers/editor/value-editor-assign";
 
 const CANCELLED_CODE = 999;
 

@@ -24,7 +24,7 @@ import {
     INITIAL_COMMUNICATION_STATE, INITIAL_CONTROL_STATE, INITIAL_DATA_STATE,
     INITIAL_SESSION_STATE, INITIAL_LOCATION_STATE
 } from "./initial-state";
-import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./containers/OperationStepDialog";
+import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./containers/operation-step-dialog-ids";
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -147,6 +147,8 @@ const controlReducer = (state: ControlState = INITIAL_CONTROL_STATE, action: Act
         }
         case actions.UPDATE_CONTROL_STATE:
             return {...state, ...action.payload};
+        case actions.ADD_PLACEMARK:
+            return {...state, newPlacemarkToolType: "NoTool"};
         case actions.ACTIVATE_NEW_PLACEMARK_TOOL: {
             let newPlacemarkToolType = action.payload.newPlacemarkToolType;
             if (newPlacemarkToolType === state.newPlacemarkToolType) {

@@ -23,7 +23,7 @@ interface IGeometryFieldState {
 }
 
 export class GeometryField extends React.Component<IGeometryFieldProps, IGeometryFieldState> {
-    private static DIV_STYLE = {width: '20em', display: 'flex'};
+    private static DIV_STYLE = {width: '24em', display: 'flex', flexGrow: 1};
     private static TEXT_FIELD_STYLE = {flexGrow: 1};
     private static BUTTON_STYLE = {flex: 'none'};
 
