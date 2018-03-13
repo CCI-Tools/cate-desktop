@@ -8,6 +8,8 @@
   [#533](https://github.com/CCI-Tools/cate/issues/533)
 * User defined geometries
   [#401](https://github.com/CCI-Tools/cate/issues/401)
+* animated map  
+  [#86](https://github.com/CCI-Tools/cate/issues/86)
 
 ### Fixes 
 
