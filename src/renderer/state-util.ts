@@ -2,12 +2,12 @@ import {
     VariableState, VariableRefState, ResourceState, LayerState,
     VariableImageLayerState, OperationState, WorldViewDataState,
     TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState, ResourceRefState,
-    ResourceVectorLayerState, VectorLayerBase, Placemark, PlacemarkCollection
+    ResourceVectorLayerState, VectorLayerBase, Placemark, PlacemarkCollection, DimSizes
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
 import {isNumber, isString} from "../common/types";
-import {EMPTY_ARRAY} from "./selectors";
+import {EMPTY_ARRAY, EMPTY_OBJECT} from "./selectors";
 import * as Cesium from "cesium";
 import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
 import {entityToGeometryWkt} from "./components/cesium/cesium-util";
@@ -208,6 +208,43 @@ export function findVariableIndexCoordinates(resources: ResourceState[], ref: Va
         coords.push([dimName, coord]);
     }
     return coords;
+}
+
+export function getNonSpatialIndexers(resource: ResourceState, ref: VariableDataRefState): DimSizes {
+    const coordVariables = resource.coordVariables;
+    if (!coordVariables) {
+        return EMPTY_OBJECT;
+    }
+    const variable = resource && resource.variables.find(v => v.name === ref.varName);
+    if (!variable) {
+        return EMPTY_OBJECT;
+    }
+    const varIndex = ref.varIndex;
+    if (!varIndex || !varIndex.length) {
+        return EMPTY_OBJECT;
+    }
+    const dimNames = variable.dimNames;
+    if (!dimNames || !dimNames.length) {
+        return EMPTY_OBJECT;
+    }
+
+    const coordDataMap = {};
+    coordVariables.forEach(cv => {
+        coordDataMap[cv.name] = cv.data;
+    });
+
+    let dimIndexers = {};
+    for (let i = 0; i < varIndex.length; i++) {
+        const coordIndex = varIndex[i];
+        const dimName = i < dimNames.length ? dimNames[i] : null;
+        if (dimName) {
+            const coordData = coordDataMap[dimName];
+            if (coordData && coordData.length && coordIndex < coordData.length) {
+                dimIndexers[dimName] = coordData[coordIndex];
+            }
+        }
+    }
+    return dimIndexers;
 }
 
 function newInitialWorldViewData(): WorldViewDataState {

@@ -12,7 +12,7 @@ import {PanelContainerLayout} from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, AUTO_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
-    getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID, genSimpleId, PLACEMARK_ID_PREFIX
+    getWorldViewVectorLayerForEntity, MY_PLACES_LAYER_ID, getNonSpatialIndexers, genSimpleId, PLACEMARK_ID_PREFIX
 } from "./state-util";
 import {SplitDir} from "./components/Splitter";
 import {updateObject} from "../common/objutil";
@@ -147,13 +147,54 @@ export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 export const SET_GLOBE_MOUSE_POSITION = 'SET_GLOBE_MOUSE_POSITION';
 export const SET_GLOBE_VIEW_POSITION = 'SET_GLOBE_VIEW_POSITION';
 export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
+export const SET_GLOBE_VIEW_POSITION_DATA = 'SET_GLOBE_VIEW_POSITION_DATA';
 
 export function setGlobeMousePosition(position: GeographicPosition): Action {
     return {type: SET_GLOBE_MOUSE_POSITION, payload: {position}};
 }
 
-export function setGlobeViewPosition(position: GeographicPosition): Action {
+export function setGlobeViewPosition(position: GeographicPosition): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        dispatch(setGlobeViewPositionImpl(position));
+        if (position) {
+            const baseDir = selectors.workspaceBaseDirSelector(getState());
+            assert.ok(baseDir);
+            const resource = selectors.selectedResourceSelector(getState());
+            const layer = selectors.selectedVariableImageLayerSelector(getState());
+            if (layer && resource) {
+                const indexers = getNonSpatialIndexers(resource, layer);
+
+                function call(onProgress) {
+                    const opName = '_extract_point';
+                    const opArgs = {
+                        ds: {source: resource.name},
+                        point: {value: `${position.longitude}, ${position.latitude}`},
+                        indexers: {value: indexers},
+                        should_return: {value: true},
+                    };
+                    return selectors.workspaceAPISelector(getState()).runOpInWorkspace(baseDir,
+                        opName,
+                        opArgs,
+                        onProgress);
+                }
+
+                function action(positionData: { [varName: string]: number }) {
+                    dispatch(setGlobeViewPositionData(positionData));
+                }
+
+                callAPI(dispatch, 'Loading pixel values', call, action);
+                return;
+            }
+        }
+        dispatch(setGlobeViewPositionData(null));
+    }
+}
+function setGlobeViewPositionImpl(position: GeographicPosition): Action  {
     return {type: SET_GLOBE_VIEW_POSITION, payload: {position}};
+}
+
+function setGlobeViewPositionData(positionData: { [varName: string]: number } | null): Action  {
+    return {type: SET_GLOBE_VIEW_POSITION_DATA, payload: {positionData}};
 }
 
 export function updateInitialState(initialState: Object): Action {
@@ -279,10 +320,6 @@ export function cancelJob(jobId: number): ThunkAction {
 }
 
 function jobSubmitted(jobId: number, jobTitle: string, requestLock: string): Action {
-    showToast({
-                  type: 'notification',
-                  text: 'Started: ' + jobTitle,
-              });
     return updateTaskState(jobId, {status: JobStatusEnum.SUBMITTED, title: jobTitle, requestLock: requestLock});
 }
 
@@ -291,10 +328,6 @@ function jobProgress(progress: JobProgress): Action {
 }
 
 function jobDone(jobId: number, jobTitle: string): Action {
-    showToast({
-                  type: 'success',
-                  text: 'Done: ' + jobTitle,
-              });
     return updateTaskState(jobId, {status: JobStatusEnum.DONE});
 }
 
@@ -353,15 +386,35 @@ export function callAPI<T>(dispatch: (action: Action) => void,
     };
 
     const jobPromise = call(onProgress);
+    const startToastDelayMs = 500;
+    let startToastShown = false;
+    const startToastTimeoutHandler = setTimeout(() => {
+        showToast({
+            type: 'notification',
+            text: 'Started: ' + title,
+        });
+        startToastShown = true;
+    }, startToastDelayMs);
     dispatch(jobSubmitted(jobPromise.getJobId(), title, requestLock));
 
     const onDone = (jobResult: T) => {
+        if (startToastShown) {
+            showToast({
+                type: 'success',
+                text: 'Done: ' + title,
+            });
+        } else {
+            clearTimeout(startToastTimeoutHandler);
+        }
         dispatch(jobDone(jobPromise.getJobId(), title));
         if (action) {
             action(jobResult);
         }
     };
     const onFailure = jobFailure => {
+        if (!startToastShown) {
+            clearTimeout(startToastTimeoutHandler);
+        }
         dispatch(jobFailed(jobPromise.getJobId(), title, jobFailure));
         if (planB) {
             planB(jobFailure);

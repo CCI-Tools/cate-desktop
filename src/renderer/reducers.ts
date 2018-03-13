@@ -715,6 +715,9 @@ const locationReducer = (state: LocationState = INITIAL_LOCATION_STATE, action: 
     } else if (action.type === actions.SET_GLOBE_VIEW_POSITION) {
         const globeViewPosition = action.payload.position;
         return {...state, globeViewPosition};
+    } else if (action.type === actions.SET_GLOBE_VIEW_POSITION_DATA) {
+        const positionData = action.payload.positionData;
+        return {...state, positionData};
     }
     return state;
 };

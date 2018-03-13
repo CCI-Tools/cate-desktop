@@ -5,6 +5,7 @@ import {
 import {newWorldView, hasWebGL, MY_PLACES_LAYER} from "./state-util";
 import {SimpleStyle} from "../common/geojson-simple-style";
 import {ViewState} from "./components/ViewState";
+import {EMPTY_OBJECT} from "./selectors";
 
 export const INITIAL_DATA_STATE: DataState = {
     appConfig: {
@@ -112,5 +113,6 @@ export const INITIAL_COMMUNICATION_STATE: CommunicationState = {
 export const INITIAL_LOCATION_STATE: LocationState = {
     globeMousePosition: null,
     globeViewPosition: null,
+    positionData: null,
 };
 

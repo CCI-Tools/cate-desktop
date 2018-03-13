@@ -14,6 +14,7 @@ import {NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE} from "../messages";
 import {CSSProperties} from "react";
 import * as Cesium from "cesium";
 import {ToolButton} from "../components/ToolButton";
+import {isSpatialImageVariable, isSpatialVectorVariable} from "../state-util";
 
 interface IVariablesPanelProps {
     variables: VariableState[];
@@ -29,6 +30,7 @@ interface IVariablesPanelProps {
     savedLayers: SavedLayers;
     selectedPlacemark: Placemark | null;
     selectedEntity: Cesium.Entity | null;
+    positionData: { [varName: string]: number } | null;
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
@@ -46,6 +48,7 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         savedLayers: selectors.savedLayersSelector(state),
         selectedPlacemark: selectors.selectedPlacemarkSelector(state),
         selectedEntity: selectors.selectedEntitySelector(state),
+        positionData: state.location.positionData,
     }
 }
 
@@ -250,14 +253,28 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
     }
 
     private renderVariablesList() {
+        const selectedVariable = this.props.selectedVariable;
+        const isImageVariable = selectedVariable && isSpatialImageVariable(selectedVariable);
+        const isVectorVariable = selectedVariable && isSpatialVectorVariable(selectedVariable);
+        const positionData = this.props.positionData;
         const selectedEntity = this.props.selectedEntity;
         let renderItemFunc = VariablesPanel.renderItem;
-        if (selectedEntity) {
+        if (isVectorVariable && selectedEntity) {
             renderItemFunc = (variable: VariableState) => {
                 const varNameRender = VariablesPanel.renderItem(variable);
                 const property = selectedEntity.properties[variable.name];
                 if (property) {
                     return <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property.getValue()}</span>
+                    </div>;
+                }
+                return varNameRender;
+            }
+        } else if (isImageVariable && positionData) {
+            renderItemFunc = (variable: VariableState) => {
+                const varNameRender = VariablesPanel.renderItem(variable);
+                const property = positionData[variable.name];
+                if (property) {
+                    return <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property}</span>
                     </div>;
                 }
                 return varNameRender;
