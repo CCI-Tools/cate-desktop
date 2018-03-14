@@ -1,4 +1,12 @@
-## Changes in 2.0.0-dev.2 (in dev)
+## Changes in 2.0.0-dev.3 (in dev)
+
+### New Features and UX Improvements 
+
+* Animated map  
+  [#86](https://github.com/CCI-Tools/cate/issues/86)
+
+
+## Changes in 2.0.0-dev.2
 
 ### New Features and UX Improvements 
 
