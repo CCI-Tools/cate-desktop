@@ -1,11 +1,15 @@
 ## Changes in 2.0.0-dev.4 (in dev)
 
-...
+* Temporary fix for dealing with NaN values in JSON responses from Cate WebAPI.
+  (JSON has no representation of the numerical `NaN` value, but Cate WebAPI returns 
+  `NaN` it in many cases.) 
 
 ## Changes in 2.0.0-dev.3
 
 ### New Features and UX Improvements 
 
+* Operation to perform arbitrary dataset math
+  [#556](https://github.com/CCI-Tools/cate/issues/556)
 * Animated map  
   [#86](https://github.com/CCI-Tools/cate/issues/86)
 

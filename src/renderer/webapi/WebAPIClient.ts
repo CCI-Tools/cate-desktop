@@ -195,7 +195,16 @@ class WebAPIClientImpl implements WebAPIClient {
     private processMessage(messageText: string): void {
         let message;
         try {
-            message = JSON.parse(messageText);
+            // JSON does not recognise NaN
+            // See https://stackoverflow.com/questions/15228651/how-to-parse-json-string-containing-nan-in-node-js
+            // message = JSON.parse(messageText);
+            // So we use evil eval() because JSON is valid JavaScript:
+            message = eval(`(${messageText})`);
+            // We cannot use the following naive approach, because "NaN" appears as word in operation doc strings
+            // const TEMP_NAN_STR = '[[<<~~***NaN***~~>>]]';
+            // const TEMP_NAN_JSON_STR = `"${TEMP_NAN_STR}"`;
+            // message = JSON.parse(messageText.replace(/\bNaN\b/g, TEMP_NAN_JSON_STR),
+            //                      (key, value) => value === TEMP_NAN_STR ? NaN : value);
         } catch (err) {
             this.warnInvalidJsonRcpMessage('Message is no valid JSON', messageText);
             return;
