@@ -86,6 +86,7 @@ class CateDesktopApp {
     private mainWindow: electron.BrowserWindow = null;
     private splashWindow: electron.BrowserWindow = null;
 
+    private quitRequested = false;
     private quitConfirmed = false;
 
     get webAPIConfig(): any {
@@ -176,6 +177,7 @@ class CateDesktopApp {
 
         electron.app.on('before-quit', (event) => {
             log.info('Before quit.');
+            this.quitRequested = true;
         });
 
         const shouldQuit = electron.app.makeSingleInstance(() => {
@@ -431,6 +433,9 @@ class CateDesktopApp {
                 this.confirmQuit(() => {
                     if (this.quitConfirmed) {
                         this.mainWindow.close();
+                        if (this.quitRequested) {
+                            electron.app.quit();
+                        }
                     }
                 });
             }
