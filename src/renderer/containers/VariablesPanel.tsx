@@ -15,6 +15,7 @@ import {CSSProperties} from "react";
 import * as Cesium from "cesium";
 import {ToolButton} from "../components/ToolButton";
 import {isSpatialImageVariable, isSpatialVectorVariable} from "../state-util";
+import {isDefinedAndNotNull} from "../../common/types";
 
 interface IVariablesPanelProps {
     variables: VariableState[];
@@ -273,7 +274,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
             renderItemFunc = (variable: VariableState) => {
                 const varNameRender = VariablesPanel.renderItem(variable);
                 const property = positionData[variable.name];
-                if (property) {
+                if (isDefinedAndNotNull(property)) {
                     return <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property}</span>
                     </div>;
                 }
