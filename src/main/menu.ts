@@ -82,8 +82,8 @@ const helpSubMenu: Array<any> = [
     actions.openDownloads,
     actions.openIssueTracker,
     actions.openEsaCCI,
-    ________________,
-    actions.checkForUpdates,
+    // ________________,
+    // actions.checkForUpdates,
 ];
 if (OS_IS_NOT_DARWIN) {
     helpSubMenu.push(
