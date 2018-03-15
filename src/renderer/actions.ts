@@ -158,33 +158,36 @@ export function setGlobeViewPosition(position: GeographicPosition): ThunkAction 
     return (dispatch: Dispatch, getState: GetState) => {
         dispatch(setGlobeViewPositionImpl(position));
         if (position) {
-            const baseDir = selectors.workspaceBaseDirSelector(getState());
-            assert.ok(baseDir);
-            const resource = selectors.selectedResourceSelector(getState());
-            const layer = selectors.selectedVariableImageLayerSelector(getState());
-            if (layer && resource) {
-                const indexers = getNonSpatialIndexers(resource, layer);
+            const selectedRightBottomPanelID = selectors.selectedRightBottomPanelIdSelector(getState());
+            if (selectedRightBottomPanelID === 'variables') {
+                const baseDir = selectors.workspaceBaseDirSelector(getState());
+                assert.ok(baseDir);
+                const resource = selectors.selectedResourceSelector(getState());
+                const layer = selectors.selectedVariableImageLayerSelector(getState());
+                if (layer && resource) {
+                    const indexers = getNonSpatialIndexers(resource, layer);
 
-                function call(onProgress) {
-                    const opName = '_extract_point';
-                    const opArgs = {
-                        ds: {source: resource.name},
-                        point: {value: `${position.longitude}, ${position.latitude}`},
-                        indexers: {value: indexers},
-                        should_return: {value: true},
-                    };
-                    return selectors.workspaceAPISelector(getState()).runOpInWorkspace(baseDir,
-                        opName,
-                        opArgs,
-                        onProgress);
+                    function call(onProgress) {
+                        const opName = '_extract_point';
+                        const opArgs = {
+                            ds: {source: resource.name},
+                            point: {value: `${position.longitude}, ${position.latitude}`},
+                            indexers: {value: indexers},
+                            should_return: {value: true},
+                        };
+                        return selectors.workspaceAPISelector(getState()).runOpInWorkspace(baseDir,
+                            opName,
+                            opArgs,
+                            onProgress);
+                    }
+
+                    function action(positionData: { [varName: string]: number }) {
+                        dispatch(setGlobeViewPositionData(positionData));
+                    }
+
+                    callAPI(dispatch, 'Loading pixel values', call, action);
+                    return;
                 }
-
-                function action(positionData: { [varName: string]: number }) {
-                    dispatch(setGlobeViewPositionData(positionData));
-                }
-
-                callAPI(dispatch, 'Loading pixel values', call, action);
-                return;
             }
         }
         dispatch(setGlobeViewPositionData(null));
