@@ -42,8 +42,8 @@ const WEBAPI_TIMEOUT = 2;
 const WEBAPI_NO_FREE_PORT = 4;
 const WEBAPI_BAD_EXIT = 1000;
 
-const WEBAPI_TIMEOUT_MAX = 10000;
-
+// 30 seconds timeout, see https://github.com/CCI-Tools/cate/issues/550
+const WEBAPI_TIMEOUT_MAX = 30000;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -278,7 +278,7 @@ export function init() {
     }
 
     const msServiceAccessTimeout = 1000; // ms
-    const msServiceStartTimeout = WEBAPI_TIMEOUT_MAX; // ms
+    const msServiceStartTimeout = _prefs.get("webAPITimeout", WEBAPI_TIMEOUT_MAX); // ms
     const msDelay = 500; // ms
     let msSpend = 0; // ms
     let webAPIRestUrl = getWebAPIRestUrl(webAPIConfig);

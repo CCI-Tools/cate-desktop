@@ -1,5 +1,9 @@
 ## Changes in 2.0.0-dev.4 (in dev)
 
+### Fixes
+
+* Opening Cate on Mac - set Cate service timeout to 30 seconds
+  [#550](https://github.com/CCI-Tools/cate/issues/550)
 * Temporary fix for dealing with NaN values in JSON responses from Cate WebAPI.
   (JSON has no representation of the numerical `NaN` value, but Cate WebAPI returns 
   `NaN` it in many cases.)
