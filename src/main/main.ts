@@ -156,21 +156,10 @@ class CateDesktopApp {
             });
         });
 
-        // Emitted when all windows have been closed.
-        electron.app.on('window-all-closed', () => {
-            log.info('All windows closed.');
-            electron.app.quit();
-        });
-
         // Emitted when all windows have been closed and the application will quit.
         electron.app.on('quit', () => {
             log.info('Quit.');
             this.stopWebAPIService();
-        });
-
-        electron.app.on('before-quit', () => {
-            log.info('Before quit.');
-            this.quitRequested = true;
         });
 
         const shouldQuit = electron.app.makeSingleInstance(() => {
@@ -254,31 +243,23 @@ class CateDesktopApp {
         }
     }
 
-    private confirmQuit(callback: () => void) {
-        const suppressExitConfirm = this.preferences.get('suppressQuitConfirm', false);
-        if (!suppressExitConfirm) {
-            const quitName = process.platform === 'darwin' ? 'Quit' : 'Exit';
-            const options = {
-                type: 'question',
-                title: `${electron.app.getName()} - Confirm ${quitName}`,
-                buttons: ['Cancel', quitName],
-                //buttons: ['Cancel', "Yes"],
-                cancelId: 0,
-                message: `Are you sure you want to exit ${electron.app.getName()}?`,
-                checkboxLabel: 'Do not ask me again',
-                checkboxChecked: false,
-            };
-            electron.dialog.showMessageBox(this.mainWindow, options, (response: number, checkboxChecked: boolean) => {
-                this.preferences.set('suppressQuitConfirm', checkboxChecked);
-                this.quitConfirmed = response === 1;
-                if (this.quitConfirmed) {
-                    callback();
-                }
-            });
-        } else {
-            this.quitConfirmed = true;
-            callback();
-        }
+    private confirmQuit(callback: (suppressQuitConfirm: boolean) => void) {
+        const quitName = process.platform === 'darwin' ? 'Quit' : 'Exit';
+        const options = {
+            type: 'question',
+            title: `${electron.app.getName()} - Confirm ${quitName}`,
+            buttons: ['Cancel', quitName],
+            //buttons: ['Cancel', "Yes"],
+            cancelId: 0,
+            message: `Are you sure you want to exit ${electron.app.getName()}?`,
+            checkboxLabel: 'Do not ask me again',
+            checkboxChecked: false,
+        };
+        electron.dialog.showMessageBox(this.mainWindow, options, (response: number, checkboxChecked: boolean) => {
+            if (response === 1) {
+                callback(checkboxChecked);
+            }
+        });
     }
 
     private initWebAPIConfig() {
@@ -418,19 +399,21 @@ class CateDesktopApp {
         // Emitted when the window is going to be closed.
         this.mainWindow.on('close', event => {
             log.info('Main window will be closed.');
+            this.requestPreferencesUpdate();
+            this.preferences.set('mainWindowBounds', this.mainWindow.getBounds());
+            this.preferences.set('devToolsOpened', this.mainWindow.webContents.isDevToolsOpened());
             if (!this.quitConfirmed) {
-                event.preventDefault();
-                this.preferences.set('mainWindowBounds', this.mainWindow.getBounds());
-                this.preferences.set('devToolsOpened', this.mainWindow.webContents.isDevToolsOpened());
-                this.requestPreferencesUpdate();
-                this.confirmQuit(() => {
-                    if (this.quitConfirmed) {
-                        this.mainWindow.close();
-                        if (this.quitRequested) {
-                            electron.app.quit();
-                        }
-                    }
-                });
+                const suppressQuitConfirm = this.preferences.get('suppressQuitConfirm', false);
+                if (suppressQuitConfirm) {
+                    this.quitConfirmed = true;
+                } else {
+                    event.preventDefault();
+                    this.confirmQuit((suppressQuitConfirm) => {
+                        this.preferences.set('suppressQuitConfirm', suppressQuitConfirm);
+                        this.quitConfirmed = true;
+                        electron.app.quit();
+                    });
+                }
             }
         });
 
