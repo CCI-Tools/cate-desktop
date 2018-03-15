@@ -190,7 +190,6 @@ function validateCondaDir(dispatch: Dispatch<any>, getState: () => State) {
 export function performSetupTasks() {
     return (dispatch: Dispatch<any>, getState: () => State) => {
         const listener = (event, error?: any, progress?: TransactionProgress) => {
-            console.log("performSetupTasks-response: ", error, progress);
             if (error) {
                 dispatch(setSetupStatus(SETUP_STATUS_FAILED, error));
             } else if (progress) {
