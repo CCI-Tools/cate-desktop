@@ -10,7 +10,6 @@ import {request} from './request';
 import {updateConditionally} from '../common/objutil';
 import {Configuration} from "./configuration";
 import {menuTemplate} from "./menu";
-import {error, isNumber} from "util";
 import {
     getAppDataDir, getAppIconPath,
     getCateCliSetupInfo, setCateDir, getWebAPIStartCommand, getWebAPIRestUrl,
@@ -18,7 +17,7 @@ import {
 } from "./appenv";
 import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
-import {isDefined} from "../common/types";
+import {isDefined, isNumber} from "../common/types";
 import {doSetup} from "./setup";
 import {SetupResult} from "../common/setup";
 
@@ -74,12 +73,6 @@ class CateDesktopApp {
     private webAPIError = null;
 
     private webAPIStartTime = null;
-
-    /**
-     * Used to indicate that we are waiting for a preferences update from the
-     * renderer process.
-     */
-    private preferencesUpdateRequested = false;
 
     // Keep a global reference of window objects, if you don't, the windows will
     // be closed automatically when the JavaScript object is garbage collected.
@@ -175,7 +168,7 @@ class CateDesktopApp {
             this.stopWebAPIService();
         });
 
-        electron.app.on('before-quit', (event) => {
+        electron.app.on('before-quit', () => {
             log.info('Before quit.');
             this.quitRequested = true;
         });
