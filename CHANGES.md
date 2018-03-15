@@ -2,7 +2,9 @@
 
 * Temporary fix for dealing with NaN values in JSON responses from Cate WebAPI.
   (JSON has no representation of the numerical `NaN` value, but Cate WebAPI returns 
-  `NaN` it in many cases.) 
+  `NaN` it in many cases.)
+* Prevent operations from getting stuck due to threading problems
+
 
 ## Changes in 2.0.0-dev.3
 
