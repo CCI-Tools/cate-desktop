@@ -1933,7 +1933,7 @@ export function sendPreferencesToMain(callback?: (error: any) => void): ThunkAct
             'backendConfig',           // treated differently, see storeBackendConfig
             'mainWindowBounds',        // use current value from main process
             'devToolsOpened',          // use current value from main process
-            'suppressExitConfirm',     // use current value from main process
+            'suppressQuitConfirm',     // use current value from main process
         ];
         excludedPreferenceNames.forEach(propertyName => {
             if (preferences.hasOwnProperty(propertyName)) {
