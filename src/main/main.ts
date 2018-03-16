@@ -276,7 +276,8 @@ class CateDesktopApp {
 
     private startUpWithWebAPIService() {
         if (this.webAPIStartTime === null) {
-            this.webAPIStartTime = process.hrtime();
+            // Set start time, unless it has already been done
+            this.resetWebAPIStartTime();
         }
 
         log.info(`Waiting for response from Cate service ${this.webAPIRestUrl}`);
@@ -303,7 +304,13 @@ class CateDesktopApp {
                     }
                 };
                 if (!this.webAPIProcess) {
-                    this.ensureValidCateCliDir(() => this.startWebAPIService(callback));
+                    this.ensureCateDir((setupPerformed: boolean) => {
+                        if (setupPerformed) {
+                            // We may have spend considerable time in the setup dialog, so reset the start time.
+                            this.resetWebAPIStartTime();
+                        }
+                        this.startWebAPIService(callback)
+                    });
                 } else {
                     callback();
                 }
@@ -369,6 +376,10 @@ class CateDesktopApp {
         log.info(`Stopping Cate service: ${webAPIStopCommand}`);
         // this must be sync to make sure the stop is performed before this process ends
         child_process.spawnSync(webAPIStopCommand, [], this.webAPIProcessOptions);
+    }
+
+    private resetWebAPIStartTime() {
+        this.webAPIStartTime = process.hrtime();
     }
 
     private maybeInstallAutoUpdate() {
@@ -510,7 +521,7 @@ class CateDesktopApp {
         }
     }
 
-    private ensureValidCateCliDir(callback: () => void) {
+    private ensureCateDir(callback: (setupPerformed: boolean) => void) {
         const setupInfo = getCateCliSetupInfo();
         log.info("setupInfo: ", setupInfo);
 
@@ -520,7 +531,7 @@ class CateDesktopApp {
 
         // When there is no reason to setup anything, we're done.
         if (!setupInfo.setupReason) {
-            callback();
+            callback(false);
             return;
         }
 
@@ -556,7 +567,7 @@ class CateDesktopApp {
                 }
                 fs.writeFile(locationFile, cateDir, {encoding: 'utf8'}, err => {
                     if (!err) {
-                        callback();
+                        callback(true);
                     } else {
                         errorHandler(err);
                     }
