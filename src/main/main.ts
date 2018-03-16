@@ -35,7 +35,10 @@ const ERRCODE_SETUP_FAILED = 5;
 
 // Timeout for starting WebAPI in seconds.
 // See https://github.com/CCI-Tools/cate/issues/550
-const WEBAPI_START_TIMEOUT_MAX = 30;
+const WEBAPI_START_TIMEOUT_MAX = 60;
+
+// Timeout for stopping WebAPI in seconds.
+const WEBAPI_STOP_TIMEOUT_MAX = 5;
 
 // WebAPI access timeout in seconds:
 const WEBAPI_ACCESS_TIMEOUT_MAX = 0.5;
@@ -96,6 +99,10 @@ class CateDesktopApp {
 
     get webAPIStartTimeout(): number {
         return this.preferences.get("webAPIStartTimeout", WEBAPI_START_TIMEOUT_MAX);
+    }
+
+    get webAPIStopTimeout(): number {
+        return this.preferences.get("webAPIStopTimeout", WEBAPI_STOP_TIMEOUT_MAX);
     }
 
     get webAPIAccessTimeout(): number {
@@ -243,25 +250,6 @@ class CateDesktopApp {
         }
     }
 
-    private confirmQuit(callback: (suppressQuitConfirm: boolean) => void) {
-        const quitName = process.platform === 'darwin' ? 'Quit' : 'Exit';
-        const options = {
-            type: 'question',
-            title: `${electron.app.getName()} - Confirm ${quitName}`,
-            buttons: ['Cancel', quitName],
-            //buttons: ['Cancel', "Yes"],
-            cancelId: 0,
-            message: `Are you sure you want to exit ${electron.app.getName()}?`,
-            checkboxLabel: 'Do not ask me again',
-            checkboxChecked: false,
-        };
-        electron.dialog.showMessageBox(this.mainWindow, options, (response: number, checkboxChecked: boolean) => {
-            if (response === 1) {
-                callback(checkboxChecked);
-            }
-        });
-    }
-
     private initWebAPIConfig() {
         let webAPIConfig = this.configuration.get('webAPIConfig', {});
         webAPIConfig = updateConditionally(webAPIConfig, {
@@ -284,7 +272,7 @@ class CateDesktopApp {
         this.showSplashMessage('Waiting for Cate service response...');
         request(this.webAPIRestUrl, this.webAPIAccessTimeout)
             .then((response: string) => {
-                log.info(WEBAPI_LOG_PREFIX, response);
+                log.info('Connected to Cate service. Response: ', response);
                 this.loadMainWindow();
             })
             .catch((err) => {
@@ -370,12 +358,17 @@ class CateDesktopApp {
     private stopWebAPIService() {
         // If there is no webAPIProcess instance, we haven't started the WebAPI service on our own.
         if (!this.webAPIProcess) {
+            log.info(`Not stopping Cate service because we haven't started it.`);
             return;
         }
         const webAPIStopCommand = getWebAPIStopCommand(this.webAPIConfig);
         log.info(`Stopping Cate service: ${webAPIStopCommand}`);
         // this must be sync to make sure the stop is performed before this process ends
-        child_process.spawnSync(webAPIStopCommand, [], {...this.webAPIProcessOptions, timeout: 50});
+        const processData = child_process.spawnSync(webAPIStopCommand,[],
+                                                    {...this.webAPIProcessOptions, timeout: 1000 * this.webAPIStopTimeout});
+        if (processData.status !== 0 || processData.error) {
+            log.error(`Failed to stop Cate service. Status: ${processData.status}, ${processData.error}`);
+        }
     }
 
     private resetWebAPIStartTime() {
@@ -418,12 +411,15 @@ class CateDesktopApp {
                 if (suppressQuitConfirm) {
                     this.quitConfirmed = true;
                 } else {
+                    // Prevent default behavior, which is closing the main window.
                     event.preventDefault();
+                    // Bring up exit prompt.
                     this.confirmQuit((suppressQuitConfirm) => {
                         this.preferences.set('suppressQuitConfirm', suppressQuitConfirm);
                         this.storeUserPreferences();
                         this.quitConfirmed = true;
-                        // We must destroy(), calling close() does not work on Mac.
+                        // Force window close, so app can quit after all windows closed.
+                        // We must call destroy() here, calling close() seems to have no effect on Mac (Electron 1.8.2).
                         this.mainWindow.destroy();
                     });
                 }
@@ -434,6 +430,25 @@ class CateDesktopApp {
         this.mainWindow.on('closed', () => {
             log.info('Main window closed.');
             this.mainWindow = null;
+        });
+    }
+
+    private confirmQuit(callback: (suppressQuitConfirm: boolean) => void) {
+        const quitName = process.platform === 'darwin' ? 'Quit' : 'Exit';
+        const options = {
+            type: 'question',
+            title: `${electron.app.getName()} - Confirm ${quitName}`,
+            buttons: ['Cancel', quitName],
+            //buttons: ['Cancel', "Yes"],
+            cancelId: 0,
+            message: `Are you sure you want to exit ${electron.app.getName()}?`,
+            checkboxLabel: 'Do not ask me again',
+            checkboxChecked: false,
+        };
+        electron.dialog.showMessageBox(this.mainWindow, options, (response: number, checkboxChecked: boolean) => {
+            if (response === 1) {
+                callback(checkboxChecked);
+            }
         });
     }
 
