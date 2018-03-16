@@ -27,10 +27,11 @@ const RUN_OPTIONS = ['--run', '-r'];
 
 const WEBAPI_LOG_PREFIX = 'cate-webapi:';
 
-const WEBAPI_INTERNAL_ERROR = 1;
-const WEBAPI_TIMEOUT = 2;
-const WEBAPI_NO_FREE_PORT = 4;
-const WEBAPI_BAD_EXIT = 1000;
+const ERRCODE_WEBAPI_INTERNAL_ERROR = 1;
+const ERRCODE_WEBAPI_TIMEOUT = 2;
+const ERRCODE_WEBAPI_NO_FREE_PORT = 3;
+const ERRCODE_OFFSET_WEBAPI_BAD_EXIT = 4000;
+const ERRCODE_SETUP_FAILED = 5;
 
 // Timeout for starting WebAPI in seconds.
 // See https://github.com/CCI-Tools/cate/issues/550
@@ -79,7 +80,6 @@ class CateDesktopApp {
     private mainWindow: electron.BrowserWindow = null;
     private splashWindow: electron.BrowserWindow = null;
 
-    private quitRequested = false;
     private quitConfirmed = false;
 
     get webAPIConfig(): any {
@@ -298,7 +298,7 @@ class CateDesktopApp {
                             electron.dialog.showErrorBox(`${electron.app.getName()} - Internal Error`,
                                                          `Failed to start Cate service within ${deltaStr} seconds:\n${err}`);
                         }
-                        electron.app.exit(WEBAPI_TIMEOUT);
+                        electron.app.exit(ERRCODE_WEBAPI_TIMEOUT);
                     } else {
                         setTimeout(this.startUpWithWebAPIService.bind(this), this.webAPIAccessDelay);
                     }
@@ -324,7 +324,7 @@ class CateDesktopApp {
             if (freePort < this.webAPIConfig.servicePort) {
                 log.error("Can't find any free port");
                 electron.dialog.showErrorBox(`${electron.app.getName()} - Error`, "Can't find any free port");
-                electron.app.exit(WEBAPI_NO_FREE_PORT);
+                electron.app.exit(ERRCODE_WEBAPI_NO_FREE_PORT);
                 return;
             }
             if (freePort !== this.webAPIConfig.servicePort) {
@@ -349,7 +349,7 @@ class CateDesktopApp {
                                                  'Failed to start Cate service.');
                 }
                 this.webAPIError = err;
-                electron.app.exit(WEBAPI_INTERNAL_ERROR); // exit immediately
+                electron.app.exit(ERRCODE_WEBAPI_INTERNAL_ERROR); // exit immediately
             });
             this.webAPIProcess.on('close', (code: number) => {
                 let message = `Cate service process exited with code ${code}.`;
@@ -359,7 +359,7 @@ class CateDesktopApp {
                         electron.dialog.showErrorBox(`${electron.app.getName()} - Internal Error`, message);
                     }
                     this.webAPIError = new Error(message);
-                    electron.app.exit(WEBAPI_BAD_EXIT + code); // exit immediately
+                    electron.app.exit(ERRCODE_OFFSET_WEBAPI_BAD_EXIT + code); // exit immediately
                 }
             });
 
@@ -375,7 +375,7 @@ class CateDesktopApp {
         const webAPIStopCommand = getWebAPIStopCommand(this.webAPIConfig);
         log.info(`Stopping Cate service: ${webAPIStopCommand}`);
         // this must be sync to make sure the stop is performed before this process ends
-        child_process.spawnSync(webAPIStopCommand, [], this.webAPIProcessOptions);
+        child_process.spawnSync(webAPIStopCommand, [], {...this.webAPIProcessOptions, timeout: 50});
     }
 
     private resetWebAPIStartTime() {
@@ -557,7 +557,7 @@ class CateDesktopApp {
                     log.error("Writing failed: ", err);
                     electron.dialog.showErrorBox(`${electron.app.getName()} - Error`,
                                                  `Writing to ${locationFile} failed:\n${err}`);
-                    electron.app.exit(0);
+                    electron.app.exit(ERRCODE_SETUP_FAILED);
                 };
                 log.warn("Writing ", locationFile);
                 if (!fs.existsSync(versionDir)) {
