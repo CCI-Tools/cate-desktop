@@ -421,8 +421,10 @@ class CateDesktopApp {
                     event.preventDefault();
                     this.confirmQuit((suppressQuitConfirm) => {
                         this.preferences.set('suppressQuitConfirm', suppressQuitConfirm);
+                        this.storeUserPreferences();
                         this.quitConfirmed = true;
-                        electron.app.quit();
+                        // We must destroy(), calling close() does not work on Mac.
+                        this.mainWindow.destroy();
                     });
                 }
             }
