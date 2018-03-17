@@ -145,6 +145,8 @@ class CateDesktopApp {
         this.initUserConfiguration();
         this.initUserPreferences();
 
+        log.info(this.preferences.data);
+
         // By default NODE_ENV will be 'production' so react is much faster
         process.env.NODE_ENV = this.configuration.get('NODE_ENV', 'production');
         log.info('process.env.NODE_ENV = ' + process.env.NODE_ENV);
@@ -624,6 +626,8 @@ class CateDesktopApp {
         this.preferences = this.loadConfiguration(PREFS_OPTIONS,
                                                   this.getDefaultUserPreferencesFile(),
                                                   'User preferences');
+        log.warn("debugWorldView =", this.preferences.data.debugWorldView);
+        this.preferences.data.debugWorldView = false;
     }
 
     private storeUserPreferences() {

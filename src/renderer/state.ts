@@ -343,6 +343,11 @@ export interface WorldViewDataState {
      * The ID of the selected entity in Cesium 3D globe.
      */
     selectedEntityId: string | null;
+
+    /**
+     * The position of a layer split. Must be in the range 0 to 1.
+     */
+    layerSplitPosition;
 }
 
 export interface FigureViewDataState {
@@ -419,6 +424,12 @@ export interface ImageStatisticsState {
     max: number;
 }
 
+export const SPLIT_MODE_OFF = "off";
+export const SPLIT_MODE_LEFT = "left";
+export const SPLIT_MODE_RIGHT = "right";
+export type SplitMode = "off" | "left" | "right";
+
+
 /**
  * Base of image layers.
  */
@@ -454,12 +465,7 @@ export interface ImageLayerBase extends LayerState {
     /**
      * Split mode.
      */
-    splitMode: "left" | "right" | null;
-
-    /**
-     * Split position, a ratio 0 to 1.
-     */
-    splitPos: number;
+    splitMode: SplitMode;
 }
 
 /**

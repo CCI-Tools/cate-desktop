@@ -3,7 +3,7 @@ import {
     VariableImageLayerState, OperationState, WorldViewDataState,
     TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState, ResourceRefState,
     ResourceVectorLayerState, VectorLayerBase, Placemark, PlacemarkCollection, AnimationViewDataState,
-    DimSizes
+    DimSizes, SPLIT_MODE_OFF
 } from "./state";
 import {ViewState} from "./components/ViewState";
 import * as assert from "../common/assert";
@@ -266,6 +266,7 @@ function newInitialWorldViewData(): WorldViewDataState {
             {...MY_PLACES_LAYER},
         ],
         selectedLayerId: AUTO_LAYER_ID,
+        layerSplitPosition: 0.5,
     } as WorldViewDataState;
 }
 
@@ -593,8 +594,7 @@ function newVariableLayerDisplayProperties(variable: VariableState) {
         hue: 0.0,
         saturation: 1.0,
         gamma: 1.0,
-        splitMode: null,
-        splitPos: 0.5,
+        splitMode: SPLIT_MODE_OFF,
     };
 }
 

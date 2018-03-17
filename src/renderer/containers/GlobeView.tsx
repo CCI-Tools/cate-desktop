@@ -2,13 +2,16 @@ import * as React from 'react';
 import {connect, DispatchProp} from "react-redux";
 import {
     State, WorkspaceState, VariableImageLayerState,
-    WorldViewDataState, ResourceState, LayerState, PlacemarkCollection, Placemark, OperationState, ImageLayerBase,
+    WorldViewDataState, ResourceState, LayerState, PlacemarkCollection, Placemark, OperationState, SPLIT_MODE_OFF,
 } from "../state";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {NO_WEB_GL} from "../messages";
 import {EMPTY_ARRAY, EMPTY_OBJECT} from "../selectors";
-import {CanvasPosition, CesiumGlobe, GeographicPosition, LayerDescriptors} from "../components/cesium/CesiumGlobe";
+import {
+    CanvasPosition, CesiumGlobe, GeographicPosition, ImageLayerDescriptor,
+    LayerDescriptors
+} from "../components/cesium/CesiumGlobe";
 import {findVariableIndexCoordinates, isImageLayer, PLACEMARK_ID_PREFIX} from "../state-util";
 import {ViewState} from "../components/ViewState";
 import {convertLayersToLayerDescriptors} from "./globe-view-layers";
@@ -98,8 +101,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         this.props.dispatch(actions.addPlacemark(feature as Placemark));
     }
 
-    handleSplitLayerPosChange(splitLayerPos: number) {
-        this.props.dispatch(actions.setLayerSplitPos(this.props.view.id, this.props.selectedLayerId, splitLayerPos));
+    handleSplitLayerPosChange(layerSplitPosition: number) {
+        this.props.dispatch(actions.setLayerSplitPosition(this.props.view.id, layerSplitPosition));
     }
 
     renderContextMenu(geoPos: GeographicPosition, canvasPos: CanvasPosition, entity?: Cesium.Entity) {
@@ -219,10 +222,11 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         } else {
             descriptors = EMPTY_OBJECT as LayerDescriptors;
         }
-        let splitLayerPos;
-        if (selectedLayer && isImageLayer(selectedLayer)) {
-            const imageLayer = selectedLayer as ImageLayerBase;
-            splitLayerPos = imageLayer.splitMode && imageLayer.splitPos;
+        const imageLayerDescriptors = descriptors.imageLayerDescriptors || EMPTY_ARRAY;
+        const vectorLayerDescriptors = descriptors.vectorLayerDescriptors || EMPTY_ARRAY;
+        let splitLayerPosition;
+        if (hasSplitLayer(imageLayerDescriptors)) {
+            splitLayerPosition = view.data.layerSplitPosition;
         }
         const overlayHtml = getOverlayHtml(layers, showLayerTextOverlay, viewId, resources);
 
@@ -231,11 +235,11 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          debug={this.props.debugWorldView}
                          externalObjectStore={this.props.externalObjectStore}
                          selectedPlacemarkId={selectedPlacemarkId}
-                         imageLayerDescriptors={descriptors.imageLayerDescriptors || EMPTY_ARRAY}
-                         vectorLayerDescriptors={descriptors.vectorLayerDescriptors || EMPTY_ARRAY}
+                         imageLayerDescriptors={imageLayerDescriptors}
+                         vectorLayerDescriptors={vectorLayerDescriptors}
+                         splitLayerPosition={splitLayerPosition}
                          overlayHtml={overlayHtml}
-                         splitLayerPos={splitLayerPos}
-                         onSplitLayerPosChange={this.handleSplitLayerPosChange}
+                         onLayerSplitPosChange={this.handleSplitLayerPosChange}
                          offlineMode={this.props.offlineMode}
                          style={GlobeView.CESIUM_GLOBE_STYLE}
                          onMouseMove={this.props.isDialogOpen ? null : this.handleMouseMove}
@@ -291,4 +295,15 @@ function getOverlayHtml(layers: LayerState[],
     }
     return overlayHtml;
 }
+
+function hasSplitLayer(layerDescriptors: ImageLayerDescriptor[]) {
+    for (let ld of layerDescriptors) {
+        const splitMode = ld.splitMode || SPLIT_MODE_OFF;
+        if (splitMode !== SPLIT_MODE_OFF) {
+            return true;
+        }
+    }
+    return false;
+}
+
 

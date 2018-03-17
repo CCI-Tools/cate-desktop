@@ -46,8 +46,7 @@ export interface ImageLayerDescriptor extends LayerDescriptor {
     hue?: number;
     saturation?: number;
     gamma?: number;
-    splitMode: "right" | "left" | null;
-    splitPos: number;
+    splitMode: "right" | "left" | "off";
 
     imageryProvider: ((viewer: Cesium.Viewer, options: any) => Cesium.ImageryProvider) | Cesium.ImageryProvider;
     imageryProviderOptions: any;
@@ -81,7 +80,7 @@ interface CesiumGlobeStateBase {
     imageLayerDescriptors?: ImageLayerDescriptor[];
     vectorLayerDescriptors?: VectorLayerDescriptor[];
     overlayHtml?: HTMLElement | null;
-    splitLayerPos?: number;
+    splitLayerPosition?: number;
     geometryToolType?: GeometryToolType;
 }
 
@@ -105,7 +104,7 @@ export interface ICesiumGlobeProps extends IExternalObjectComponentProps<Cesium.
     onNewEntityAdded?: (newEntity: Cesium.Entity) => void;
     onViewerMounted?: (id: string, viewer: Cesium.Viewer) => void;
     onViewerUnmounted?: (id: string, viewer: Cesium.Viewer) => void;
-    onSplitLayerPosChange?: (splitLayerPos: number) => void;
+    onLayerSplitPosChange?: (splitLayerPos: number) => void;
 }
 
 const CENTRAL_EUROPE_BOX = Cesium.Rectangle.fromDegrees(-30, 20, 40, 80);
@@ -139,9 +138,11 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 
     protected renderChildren() {
-        return (<SplitSlider splitPos={this.props.splitLayerPos}
-                             onChange={this.props.onSplitLayerPosChange}
-                             visible={isNumber(this.props.splitLayerPos)}/>);
+        if (isNumber(this.props.splitLayerPosition)) {
+            return (<SplitSlider splitPos={this.props.splitLayerPosition}
+                                 onChange={this.props.onLayerSplitPosChange}/>);
+        }
+        return null;
     }
 
     newContainer(id: string): HTMLElement {
@@ -263,6 +264,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const vectorLayerDescriptors = props.vectorLayerDescriptors || EMPTY_ARRAY;
         const overlayHtml = props.overlayHtml || null;
         const geometryToolType = props.geometryToolType;
+        const splitLayerPosition = props.splitLayerPosition;
         const dataSourceMap = (prevState && prevState.dataSourceMap) || {};
         return {
             selectedPlacemarkId,
@@ -270,6 +272,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             vectorLayerDescriptors,
             overlayHtml,
             geometryToolType,
+            splitLayerPosition,
             dataSourceMap,
         };
     }
@@ -280,14 +283,14 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const prevImageLayerDescriptors = (prevState && prevState.imageLayerDescriptors) || EMPTY_ARRAY;
         const prevVectorLayerDescriptors = (prevState && prevState.vectorLayerDescriptors) || EMPTY_ARRAY;
         const prevOverlayHtml = (prevState && prevState.overlayHtml) || null;
-        const prevSplitLayerPos = (prevState && prevState.splitLayerPos);
+        const prevSplitLayerPosition = (prevState && prevState.splitLayerPosition);
         const prevGeometryToolType = (prevState && prevState.geometryToolType) || "NoTool";
 
         const nextSelectedPlacemarkId = nextState.selectedPlacemarkId || null;
         const nextImageLayerDescriptors = nextState.imageLayerDescriptors || EMPTY_ARRAY;
         const nextVectorLayerDescriptors = nextState.vectorLayerDescriptors || EMPTY_ARRAY;
         const nextOverlayHtml = nextState.overlayHtml;
-        const nextSplitLayerPos = nextState.splitLayerPos;
+        const nextSplitLayerPosition = nextState.splitLayerPosition;
         const nextGeometryToolType = nextState.geometryToolType || "NoTool";
 
         let shouldRequestRender = false;
@@ -314,14 +317,15 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             CesiumGlobe.updateOverlayHtml(viewer, prevOverlayHtml, nextOverlayHtml);
             shouldRequestRender = true;
         }
-        if (prevSplitLayerPos !== nextSplitLayerPos) {
-            viewer.scene.imagerySplitPosition = nextSplitLayerPos;
+        if (prevSplitLayerPosition !== nextSplitLayerPosition) {
+            if (isNumber(nextSplitLayerPosition)) {
+                viewer.scene.imagerySplitPosition = nextSplitLayerPosition;
+            }
             shouldRequestRender = true;
         }
         if (prevGeometryToolType !== nextGeometryToolType) {
             this.activateGeometryTool(viewer, nextGeometryToolType);
         }
-
         if (shouldRequestRender) {
             // Explicitly render a new frame
             viewer.scene.requestRender();
@@ -722,7 +726,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         }
     }
 
-    private static setLayerProps(imageryLayer: Cesium.ImageryLayer, layerDescriptor: ImageLayerDescriptor) {
+    private static setLayerProps(imageryLayer: Cesium.ImageryLayer,
+                                 layerDescriptor: ImageLayerDescriptor) {
         //imageryLayer.name = layerDescriptor.name;
         imageryLayer.show = layerDescriptor.visible;
         imageryLayer.alpha = layerDescriptor.opacity;
@@ -734,12 +739,12 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         imageryLayer.minificationFilter = Cesium.TextureMinificationFilter.NEAREST;
         imageryLayer.magnificationFilter = Cesium.TextureMagnificationFilter.NEAREST;
 
-        if (layerDescriptor.splitMode === null) {
-            imageryLayer.splitDirection = Cesium.ImagerySplitDirection.NONE;
+        if (layerDescriptor.splitMode === "left") {
+            imageryLayer.splitDirection = Cesium.ImagerySplitDirection.LEFT;
         } else if (layerDescriptor.splitMode === "right") {
             imageryLayer.splitDirection = Cesium.ImagerySplitDirection.RIGHT;
-        } else if (layerDescriptor.splitMode === "left") {
-            imageryLayer.splitDirection = Cesium.ImagerySplitDirection.LEFT;
+        } else {
+            imageryLayer.splitDirection = Cesium.ImagerySplitDirection.NONE;
         }
     }
 
@@ -775,4 +780,3 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         }
     }
 }
-

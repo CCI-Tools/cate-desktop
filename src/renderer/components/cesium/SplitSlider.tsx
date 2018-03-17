@@ -3,7 +3,6 @@ import * as React from "react";
 export interface ISliderProps {
     splitPos: number;
     onChange: (splitPosition: number) => void;
-    visible?: boolean;
 }
 
 export class SplitSlider extends React.PureComponent<ISliderProps, null> {
@@ -14,7 +13,7 @@ export class SplitSlider extends React.PureComponent<ISliderProps, null> {
         backgroundColor: 'rgba(255, 255, 0, 0.5)',
         width: '2px',
         height: '100%',
-        zIndex: 50,
+        zIndex: 5,
         cursor: 'col-resize',
     };
 
@@ -55,9 +54,6 @@ export class SplitSlider extends React.PureComponent<ISliderProps, null> {
     }
 
     render() {
-        if (!this.props.visible) {
-            return null;
-        }
         const left = (100 * this.props.splitPos) + '%';
         return (<div style={{...SplitSlider.DIV_STYLE, left}}
                      ref={this.handleRef}/>);

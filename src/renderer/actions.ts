@@ -3,6 +3,7 @@ import {
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
     OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
+    SplitMode,
 } from "./state";
 import {ViewState, ViewPath} from "./components/ViewState";
 import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi";
@@ -1364,7 +1365,7 @@ export function moveView(sourceViewId: string, placement: "before" | "after", ta
 export const SET_VIEW_MODE = 'SET_VIEW_MODE';
 export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
 export const SET_LAYER_SPLIT_MODE = 'SET_LAYER_SPLIT_MODE';
-export const SET_LAYER_SPLIT_POS = 'SET_LAYER_SPLIT_POS';
+export const SET_LAYER_SPLIT_POSITION = 'SET_LAYER_SPLIT_POSITION';
 export const SET_SELECTED_ENTITY_ID = 'SET_SELECTED_ENTITY_ID';
 export const INC_ENTITY_UPDATE_COUNT = 'INC_ENTITY_UPDATE_COUNT';
 export const UPDATE_ENTITY_STYLE = "UPDATE_ENTITY_STYLE";
@@ -1373,12 +1374,12 @@ export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
 }
 
-export function setLayerSplitMode(viewId: string, layerId: string, splitMode: "left" | "right" | null): Action {
+export function setLayerSplitMode(viewId: string, layerId: string, splitMode: SplitMode): Action {
     return {type: SET_LAYER_SPLIT_MODE, payload: {viewId, layerId, splitMode}};
 }
 
-export function setLayerSplitPos(viewId: string, layerId: string, splitPos: number): Action {
-    return {type: SET_LAYER_SPLIT_POS, payload: {viewId, layerId, splitPos}};
+export function setLayerSplitPosition(viewId: string, layerSplitPosition: number): Action {
+    return {type: SET_LAYER_SPLIT_POSITION, payload: {viewId, layerSplitPosition}};
 }
 
 export function notifySelectedEntityChange(viewId: string, layer: LayerState | null, selectedEntity: Cesium.Entity | null): ThunkAction {

@@ -1,4 +1,11 @@
-## Changes in 2.0.0-dev.4 (in dev)
+## Changes in 2.0.0-dev.5 
+
+### New Features and UX Improvements 
+
+* Improve split layer UI 
+  [#567](https://github.com/CCI-Tools/cate/issues/567)
+
+## Changes in 2.0.0-dev.4
 
 ### Fixes
 

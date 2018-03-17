@@ -381,6 +381,14 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             }
             break;
         }
+        case actions.SET_LAYER_SPLIT_POSITION: {
+            const {viewId, layerSplitPosition} = action.payload;
+            if (viewId === state.id) {
+                assert.ok(state.type === 'world');
+                return {...state, data: {...state.data, layerSplitPosition}};
+            }
+            break;
+        }
         case actions.SET_PROJECTION_CODE: {
             const viewId = action.payload.viewId;
             if (viewId === state.id) {
@@ -572,13 +580,6 @@ const layerReducer = (state: LayerState, action: Action, isActiveView: boolean) 
             const {layerId, splitMode} = action.payload;
             if (state.id === layerId && isImageLayer(state)) {
                 return {...state, splitMode};
-            }
-            break;
-        }
-        case actions.SET_LAYER_SPLIT_POS: {
-            const {layerId, splitPos} = action.payload;
-            if (state.id === layerId && isImageLayer(state)) {
-                return {...state, splitPos};
             }
             break;
         }

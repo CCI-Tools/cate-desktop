@@ -3,7 +3,7 @@ import {connect, DispatchProp} from 'react-redux';
 import {
     ColorMapCategoryState,
     ImageLayerState,
-    LayerState,
+    LayerState, SPLIT_MODE_LEFT, SPLIT_MODE_OFF, SPLIT_MODE_RIGHT,
     State,
     VariableImageLayerState,
     VariableState
@@ -235,16 +235,14 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         if (this.props.selectedImageLayer) {
             return (
                 <div>
-                    <SubPanelHeader title="DATA SELECTION"/>
-                    {this.renderVariableIndexers()}
-                    <SubPanelHeader title="LAYER SPLIT"/>
-                    {this.renderSplitMode()}
+                    {this.renderDataSelectionSection()}
+                    {this.renderSplitModeSection()}
                 </div>
             )
         }
     }
 
-    private renderVariableIndexers() {
+    private renderDataSelectionSection() {
         const layer = this.props.selectedVariableImageLayer;
         const variable = this.props.selectedVariable;
         if (!layer || !variable || variable.numDims <= 2) {
@@ -286,22 +284,35 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                 );
             }
         }
-        return dimensionRows;
+
+        if (dimensionRows.length === 0) {
+            return null;
+        }
+
+        return (
+            <React.Fragment>
+                <SubPanelHeader title="DATA SELECTION"/>
+                {dimensionRows}
+            </React.Fragment>
+        );
     }
 
-    private renderSplitMode() {
-        const splitMode = this.props.selectedImageLayer.splitMode || null;
+    private renderSplitModeSection() {
+        const splitMode = this.props.selectedImageLayer.splitMode || SPLIT_MODE_OFF;
         return (
-            <RadioGroup
-                key="layerSplit"
-                label="Split mode"
-                onChange={this.handleChangedLayerSplitMode}
-                selectedValue={splitMode}
-            >
-                <Radio label="No split" value={null}/>
-                <Radio label="Left" value="left"/>
-                <Radio label="Right" value="right"/>
-            </RadioGroup>
+            <React.Fragment>
+                <SubPanelHeader title="LAYER SPLIT"/>
+                <RadioGroup
+                    key="layerSplit"
+                    inline={true}
+                    onChange={this.handleChangedLayerSplitMode}
+                    selectedValue={splitMode}
+                >
+                    <Radio label="Show left" value={SPLIT_MODE_LEFT}/>
+                    <Radio label="Show right" value={SPLIT_MODE_RIGHT}/>
+                    <Radio label="Off" value={SPLIT_MODE_OFF}/>
+                </RadioGroup>
+            </React.Fragment>
         );
     }
 }

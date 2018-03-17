@@ -2,7 +2,7 @@ import {createStore, applyMiddleware} from 'redux';
 import * as actions from './actions';
 import {stateReducer} from './reducers';
 import thunk from 'redux-thunk'
-import {LayerState, OperationState, Placemark, ResourceState, State, VariableState} from "./state";
+import {LayerState, OperationState, Placemark, ResourceState, SPLIT_MODE_OFF, State, VariableState} from "./state";
 import {should, expect} from 'chai';
 import {
     AUTO_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID, EXTERNAL_OBJECT_STORE,
@@ -375,6 +375,7 @@ describe('Actions', () => {
                         gamma: 1,
                         hue: 0,
                         saturation: 1,
+                        splitMode: SPLIT_MODE_OFF,
                     },
                     defaultCountriesLayer,
                     defaultMyPlacesLayer
@@ -418,6 +419,7 @@ describe('Actions', () => {
                 gamma: 1,
                 hue: 0,
                 saturation: 1,
+                splitMode: SPLIT_MODE_OFF,
             };
             const autoLayerNew = {
                 id: AUTO_LAYER_ID,
@@ -438,6 +440,7 @@ describe('Actions', () => {
                 gamma: 1,
                 hue: 0,
                 saturation: 1,
+                splitMode: SPLIT_MODE_OFF,
             };
 
             dispatch(actions.setCurrentWorkspace(workspace as any));
