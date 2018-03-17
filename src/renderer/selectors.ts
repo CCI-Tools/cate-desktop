@@ -630,17 +630,6 @@ export const activeViewTypeSelector = createSelector<State, string | null, ViewS
     }
 );
 
-export const isSelectedLayerSplitSelector = createSelector<State, boolean | null, ViewState<any> | null>(
-    activeViewSelector,
-    (view: ViewState<any>) => {
-        if (view && view.type === 'world') {
-            const data = view.data as WorldViewDataState;
-            return data.isSelectedLayerSplit;
-        }
-        return null;
-    }
-);
-
 export const selectedEntityIdSelector = createSelector<State, string | null, ViewState<any> | null>(
     activeViewSelector,
     (view: ViewState<any>) => {

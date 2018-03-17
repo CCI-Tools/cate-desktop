@@ -340,16 +340,6 @@ export interface WorldViewDataState {
     selectedLayerId: string | null;
 
     /**
-     * Whether to split the selected layer.
-     */
-    isSelectedLayerSplit: boolean;
-
-    /**
-     * The split position of the selected layer, a ratio 0 to 1.
-     */
-    selectedLayerSplitPos: number;
-
-    /**
      * The ID of the selected entity in Cesium 3D globe.
      */
     selectedEntityId: string | null;
@@ -460,6 +450,16 @@ export interface ImageLayerBase extends LayerState {
      * The gamma correction to apply to this layer. 1.0 uses the unmodified imagery color.
      */
     gamma: number;
+
+    /**
+     * Split mode.
+     */
+    splitMode: "left" | "right" | null;
+
+    /**
+     * Split position, a ratio 0 to 1.
+     */
+    splitPos: number;
 }
 
 /**

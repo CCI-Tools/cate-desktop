@@ -8,7 +8,7 @@ import {
     VariableImageLayerState,
     VariableState
 } from '../state';
-import {Position, Slider} from '@blueprintjs/core';
+import {Position, Radio, RadioGroup, Slider} from '@blueprintjs/core';
 import {ListBox, ListBoxSelectionMode} from '../components/ListBox';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
@@ -71,6 +71,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.handleMoveLayerDownButtonClicked = this.handleMoveLayerDownButtonClicked.bind(this);
         this.handleChangedLayerSelection = this.handleChangedLayerSelection.bind(this);
         this.handleChangedLayerVisibility = this.handleChangedLayerVisibility.bind(this);
+        this.handleChangedLayerSplitMode = this.handleChangedLayerSplitMode.bind(this);
         this.renderLayerItem = this.renderLayerItem.bind(this);
     }
 
@@ -106,6 +107,12 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private handleChangedLayerVisibility(layer: LayerState, visible: boolean) {
         this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {visible}));
+    }
+
+    private handleChangedLayerSplitMode(event) {
+        this.props.dispatch(actions.setLayerSplitMode(this.props.activeView.id,
+                                                      this.props.selectedLayerId,
+                                                      event.target.value));
     }
 
     private handleChangedLayerSelection(newSelection: string[]) {
@@ -156,7 +163,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                                          onContentHeightChange={this.handleListHeightChanged}
                                          actionComponent={this.renderActionButtonRow()}>
                     {this.renderLayersList()}
-                    {this.renderLayerDetailsCard()}
+                    {this.renderLayerDetails()}
                 </ContentWithDetailsPanel>
             </div>
         );
@@ -210,7 +217,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         );
     }
 
-    private renderLayerDetailsCard() {
+    private renderLayerDetails() {
         const layers = this.props.layers;
         if (!layers || !layers.length) {
             return NO_LAYERS_EMPTY_VIEW;
@@ -229,13 +236,15 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             return (
                 <div>
                     <SubPanelHeader title="DATA SELECTION"/>
-                    {this.renderFormVarIndex()}
+                    {this.renderVariableIndexers()}
+                    <SubPanelHeader title="LAYER SPLIT"/>
+                    {this.renderSplitMode()}
                 </div>
             )
         }
     }
 
-    private renderFormVarIndex() {
+    private renderVariableIndexers() {
         const layer = this.props.selectedVariableImageLayer;
         const variable = this.props.selectedVariable;
         if (!layer || !variable || variable.numDims <= 2) {
@@ -278,6 +287,22 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             }
         }
         return dimensionRows;
+    }
+
+    private renderSplitMode() {
+        const splitMode = this.props.selectedImageLayer.splitMode || null;
+        return (
+            <RadioGroup
+                key="layerSplit"
+                label="Split mode"
+                onChange={this.handleChangedLayerSplitMode}
+                selectedValue={splitMode}
+            >
+                <Radio label="No split" value={null}/>
+                <Radio label="Left" value="left"/>
+                <Radio label="Right" value="right"/>
+            </RadioGroup>
+        );
     }
 }
 

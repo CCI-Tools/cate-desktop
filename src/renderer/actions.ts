@@ -1363,8 +1363,8 @@ export function moveView(sourceViewId: string, placement: "before" | "after", ta
 
 export const SET_VIEW_MODE = 'SET_VIEW_MODE';
 export const SET_PROJECTION_CODE = 'SET_PROJECTION_CODE';
-export const SET_SELECTED_LAYER_SPLIT = 'SET_SPLIT_LAYER_ID';
-export const SET_SELECTED_LAYER_SPLIT_POS = 'SET_SPLIT_LAYER_POS';
+export const SET_LAYER_SPLIT_MODE = 'SET_LAYER_SPLIT_MODE';
+export const SET_LAYER_SPLIT_POS = 'SET_LAYER_SPLIT_POS';
 export const SET_SELECTED_ENTITY_ID = 'SET_SELECTED_ENTITY_ID';
 export const INC_ENTITY_UPDATE_COUNT = 'INC_ENTITY_UPDATE_COUNT';
 export const UPDATE_ENTITY_STYLE = "UPDATE_ENTITY_STYLE";
@@ -1373,12 +1373,12 @@ export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
 }
 
-export function setSelectedLayerSplit(viewId: string, isSelectedLayerSplit: boolean | null): Action {
-    return {type: SET_SELECTED_LAYER_SPLIT, payload: {viewId, isSelectedLayerSplit}};
+export function setLayerSplitMode(viewId: string, layerId: string, splitMode: "left" | "right" | null): Action {
+    return {type: SET_LAYER_SPLIT_MODE, payload: {viewId, layerId, splitMode}};
 }
 
-export function setSelectedLayerSplitPos(viewId: string, selectedLayerSplitPos: number): Action {
-    return {type: SET_SELECTED_LAYER_SPLIT_POS, payload: {viewId, selectedLayerSplitPos}};
+export function setLayerSplitPos(viewId: string, layerId: string, splitPos: number): Action {
+    return {type: SET_LAYER_SPLIT_POS, payload: {viewId, layerId, splitPos}};
 }
 
 export function notifySelectedEntityChange(viewId: string, layer: LayerState | null, selectedEntity: Cesium.Entity | null): ThunkAction {

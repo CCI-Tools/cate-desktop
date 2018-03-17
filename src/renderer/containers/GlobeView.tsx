@@ -2,14 +2,14 @@ import * as React from 'react';
 import {connect, DispatchProp} from "react-redux";
 import {
     State, WorkspaceState, VariableImageLayerState,
-    WorldViewDataState, ResourceState, LayerState, PlacemarkCollection, Placemark, OperationState,
+    WorldViewDataState, ResourceState, LayerState, PlacemarkCollection, Placemark, OperationState, ImageLayerBase,
 } from "../state";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {NO_WEB_GL} from "../messages";
 import {EMPTY_ARRAY, EMPTY_OBJECT} from "../selectors";
 import {CanvasPosition, CesiumGlobe, GeographicPosition, LayerDescriptors} from "../components/cesium/CesiumGlobe";
-import {findVariableIndexCoordinates, PLACEMARK_ID_PREFIX} from "../state-util";
+import {findVariableIndexCoordinates, isImageLayer, PLACEMARK_ID_PREFIX} from "../state-util";
 import {ViewState} from "../components/ViewState";
 import {convertLayersToLayerDescriptors} from "./globe-view-layers";
 import * as Cesium from "cesium";
@@ -99,7 +99,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     }
 
     handleSplitLayerPosChange(splitLayerPos: number) {
-        this.props.dispatch(actions.setSelectedLayerSplitPos(this.props.view.id, splitLayerPos));
+        this.props.dispatch(actions.setLayerSplitPos(this.props.view.id, this.props.selectedLayerId, splitLayerPos));
     }
 
     renderContextMenu(geoPos: GeographicPosition, canvasPos: CanvasPosition, entity?: Cesium.Entity) {
@@ -196,8 +196,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         const view = this.props.view;
         const viewId = this.props.view.id;
         const layers = view.data.layers;
-        const selectedLayerId = view.data.selectedLayerId;
-        const isSelectedLayerSplit = view.data.isSelectedLayerSplit;
+        const selectedLayer = this.props.selectedLayer;
         const placemarks = this.props.placemarks;
         const showLayerTextOverlay = this.props.showLayerTextOverlay;
         const workspace = this.props.workspace;
@@ -220,8 +219,12 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         } else {
             descriptors = EMPTY_OBJECT as LayerDescriptors;
         }
-        let splitLayerIndex = getSplitLayerIndex(layers, selectedLayerId, isSelectedLayerSplit);
-        let overlayHtml = getOverlayHtml(layers, showLayerTextOverlay, viewId, resources);
+        let splitLayerPos;
+        if (selectedLayer && isImageLayer(selectedLayer)) {
+            const imageLayer = selectedLayer as ImageLayerBase;
+            splitLayerPos = imageLayer.splitMode && imageLayer.splitPos;
+        }
+        const overlayHtml = getOverlayHtml(layers, showLayerTextOverlay, viewId, resources);
 
         return (
             <CesiumGlobe id={'CesiumGlobe-' + view.id}
@@ -231,8 +234,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          imageLayerDescriptors={descriptors.imageLayerDescriptors || EMPTY_ARRAY}
                          vectorLayerDescriptors={descriptors.vectorLayerDescriptors || EMPTY_ARRAY}
                          overlayHtml={overlayHtml}
-                         splitLayerIndex={splitLayerIndex}
-                         splitLayerPos={view.data.selectedLayerSplitPos}
+                         splitLayerPos={splitLayerPos}
                          onSplitLayerPosChange={this.handleSplitLayerPosChange}
                          offlineMode={this.props.offlineMode}
                          style={GlobeView.CESIUM_GLOBE_STYLE}
@@ -290,15 +292,3 @@ function getOverlayHtml(layers: LayerState[],
     return overlayHtml;
 }
 
-function getSplitLayerIndex(layers: LayerState[], selectedLayerId: string | null, isSelectedLayerSplit: boolean) {
-    let splitLayerIndex: number = -1;
-    if (selectedLayerId && isSelectedLayerSplit) {
-        for (let layerIndex = 0; layerIndex < layers.length; layerIndex++) {
-            let layer = layers[layerIndex];
-            if (layer.id === selectedLayerId && layer.type === 'VariableImage') {
-                return layerIndex;
-            }
-        }
-    }
-    return splitLayerIndex;
-}

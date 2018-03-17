@@ -5,7 +5,7 @@ import {Feature, FeatureCollection, Point} from "geojson";
 import {ContextMenu} from "@blueprintjs/core";
 import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
 import * as assert from "../../../common/assert";
-import {isBoolean, isString} from "../../../common/types";
+import {isBoolean, isNumber, isString} from "../../../common/types";
 import {arrayDiff} from "../../../common/array-diff";
 import {SimpleStyle} from "../../../common/geojson-simple-style";
 import {SplitSlider} from "./SplitSlider";
@@ -46,6 +46,8 @@ export interface ImageLayerDescriptor extends LayerDescriptor {
     hue?: number;
     saturation?: number;
     gamma?: number;
+    splitMode: "right" | "left" | null;
+    splitPos: number;
 
     imageryProvider: ((viewer: Cesium.Viewer, options: any) => Cesium.ImageryProvider) | Cesium.ImageryProvider;
     imageryProviderOptions: any;
@@ -79,7 +81,6 @@ interface CesiumGlobeStateBase {
     imageLayerDescriptors?: ImageLayerDescriptor[];
     vectorLayerDescriptors?: VectorLayerDescriptor[];
     overlayHtml?: HTMLElement | null;
-    splitLayerIndex?: number;
     splitLayerPos?: number;
     geometryToolType?: GeometryToolType;
 }
@@ -140,7 +141,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     protected renderChildren() {
         return (<SplitSlider splitPos={this.props.splitLayerPos}
                              onChange={this.props.onSplitLayerPosChange}
-                             visible={this.props.splitLayerIndex >= 0}/>);
+                             visible={isNumber(this.props.splitLayerPos)}/>);
     }
 
     newContainer(id: string): HTMLElement {
@@ -261,8 +262,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const imageLayerDescriptors = props.imageLayerDescriptors || EMPTY_ARRAY;
         const vectorLayerDescriptors = props.vectorLayerDescriptors || EMPTY_ARRAY;
         const overlayHtml = props.overlayHtml || null;
-        const splitLayerIndex = props.splitLayerIndex;
-        const splitLayerPos = props.splitLayerPos;
         const geometryToolType = props.geometryToolType;
         const dataSourceMap = (prevState && prevState.dataSourceMap) || {};
         return {
@@ -270,8 +269,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             imageLayerDescriptors,
             vectorLayerDescriptors,
             overlayHtml,
-            splitLayerIndex,
-            splitLayerPos,
             geometryToolType,
             dataSourceMap,
         };
@@ -283,7 +280,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const prevImageLayerDescriptors = (prevState && prevState.imageLayerDescriptors) || EMPTY_ARRAY;
         const prevVectorLayerDescriptors = (prevState && prevState.vectorLayerDescriptors) || EMPTY_ARRAY;
         const prevOverlayHtml = (prevState && prevState.overlayHtml) || null;
-        const prevSplitLayerIndex = (prevState && prevState.splitLayerIndex);
         const prevSplitLayerPos = (prevState && prevState.splitLayerPos);
         const prevGeometryToolType = (prevState && prevState.geometryToolType) || "NoTool";
 
@@ -291,7 +287,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const nextImageLayerDescriptors = nextState.imageLayerDescriptors || EMPTY_ARRAY;
         const nextVectorLayerDescriptors = nextState.vectorLayerDescriptors || EMPTY_ARRAY;
         const nextOverlayHtml = nextState.overlayHtml;
-        const nextSplitLayerIndex = nextState.splitLayerIndex;
         const nextSplitLayerPos = nextState.splitLayerPos;
         const nextGeometryToolType = nextState.geometryToolType || "NoTool";
 
@@ -317,10 +312,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         }
         if (prevOverlayHtml !== nextOverlayHtml) {
             CesiumGlobe.updateOverlayHtml(viewer, prevOverlayHtml, nextOverlayHtml);
-            shouldRequestRender = true;
-        }
-        if (prevSplitLayerIndex !== nextSplitLayerIndex) {
-            CesiumGlobe.updateSplitLayers(viewer, prevSplitLayerIndex, nextSplitLayerIndex);
             shouldRequestRender = true;
         }
         if (prevSplitLayerPos !== nextSplitLayerPos) {
@@ -608,19 +599,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         }
     }
 
-    private static updateSplitLayers(viewer: Cesium.Viewer, prevSplitLayerIndex: number, nextSplitLayerIndex: number) {
-        for (let cesiumIndex = 1; cesiumIndex < viewer.imageryLayers.length; cesiumIndex++) {
-            const i = cesiumIndex - 1;
-            const layer = viewer.imageryLayers.get(cesiumIndex);
-            if (i === prevSplitLayerIndex) {
-                layer.splitDirection = Cesium.ImagerySplitDirection.NONE;
-            }
-            if (i === nextSplitLayerIndex) {
-                layer.splitDirection = Cesium.ImagerySplitDirection.LEFT;
-            }
-        }
-    }
-
     private static getImageryProvider(viewer: Cesium.Viewer, layerDescriptor: ImageLayerDescriptor): Cesium.ImageryProvider {
         if (layerDescriptor.imageryProvider) {
             if (typeof layerDescriptor.imageryProvider === 'function') {
@@ -755,6 +733,14 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         imageryLayer.gamma = layerDescriptor.gamma;
         imageryLayer.minificationFilter = Cesium.TextureMinificationFilter.NEAREST;
         imageryLayer.magnificationFilter = Cesium.TextureMagnificationFilter.NEAREST;
+
+        if (layerDescriptor.splitMode === null) {
+            imageryLayer.splitDirection = Cesium.ImagerySplitDirection.NONE;
+        } else if (layerDescriptor.splitMode === "right") {
+            imageryLayer.splitDirection = Cesium.ImagerySplitDirection.RIGHT;
+        } else if (layerDescriptor.splitMode === "left") {
+            imageryLayer.splitDirection = Cesium.ImagerySplitDirection.LEFT;
+        }
     }
 
     private static setDataSourceProps(dataSource: Cesium.DataSource

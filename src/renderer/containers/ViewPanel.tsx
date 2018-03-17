@@ -15,7 +15,6 @@ interface IViewPanelProps {
     activeView: ViewState<any> | null;
     activeViewId: string | null;
     showLayerTextOverlay: boolean;
-    isSelectedLayerSplit: boolean;
 }
 
 function mapStateToProps(state: State): IViewPanelProps {
@@ -23,7 +22,6 @@ function mapStateToProps(state: State): IViewPanelProps {
         activeView: selectors.activeViewSelector(state),
         activeViewId: selectors.activeViewIdSelector(state),
         showLayerTextOverlay: state.session.showLayerTextOverlay,
-        isSelectedLayerSplit: selectors.isSelectedLayerSplitSelector(state),
     };
 }
 
@@ -51,7 +49,6 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, nu
         this.onViewModeChange = this.onViewModeChange.bind(this);
         this.onAddWorldView = this.onAddWorldView.bind(this);
         this.onShowLayerTextOverlayChange = this.onShowLayerTextOverlayChange.bind(this);
-        this.onSplitSelectedVariableLayer = this.onSplitSelectedVariableLayer.bind(this);
     }
 
     onViewModeChange(ev: any) {
@@ -61,11 +58,6 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, nu
     onShowLayerTextOverlayChange(ev) {
         const showLayerTextOverlay = ev.target.checked;
         this.props.dispatch(actions.updateSessionState({showLayerTextOverlay}));
-    }
-
-    onSplitSelectedVariableLayer(ev) {
-        const isSelectedLayerSplit = ev.target.checked;
-        this.props.dispatch(actions.setSelectedLayerSplit(this.props.activeViewId, isSelectedLayerSplit));
     }
 
     onAddWorldView() {
@@ -111,11 +103,6 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, nu
                               style={ViewPanel.PROPERTY_ITEM_STYLE}
                               checked={this.props.showLayerTextOverlay}
                               onChange={this.onShowLayerTextOverlayChange}/>
-
-                    <Checkbox label="Split selected image layer"
-                              style={ViewPanel.PROPERTY_ITEM_STYLE}
-                              checked={this.props.isSelectedLayerSplit}
-                              onChange={this.onSplitSelectedVariableLayer}/>
 
                     <label className="pt-label" style={ViewPanel.CREDITS_LABEL_STYLE}>
                         Imagery layer credits:

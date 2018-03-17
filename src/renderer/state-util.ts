@@ -266,8 +266,6 @@ function newInitialWorldViewData(): WorldViewDataState {
             {...MY_PLACES_LAYER},
         ],
         selectedLayerId: AUTO_LAYER_ID,
-        isSelectedLayerSplit: null,
-        selectedLayerSplitPos: 0.5,
     } as WorldViewDataState;
 }
 
@@ -416,6 +414,11 @@ export function getWorldViewSelectedGeometryWKTGetter(view: ViewState<any>): Geo
 export function isVectorLayer(layer: LayerState) {
     return layer.type === "Vector" || layer.type === "ResourceVector";
 }
+
+export function isImageLayer(layer: LayerState) {
+    return layer.type === "Image" || layer.type === "VariableImage";
+}
+
 
 const STROKE_COLORS = [
     "#550000",
@@ -590,6 +593,8 @@ function newVariableLayerDisplayProperties(variable: VariableState) {
         hue: 0.0,
         saturation: 1.0,
         gamma: 1.0,
+        splitMode: null,
+        splitPos: 0.5,
     };
 }
 

@@ -11,7 +11,7 @@ import {updateObject, updatePropertyObject} from "../common/objutil";
 import {
     AUTO_LAYER_ID, updateAutoLayer,
     newWorldView, newTableView, newFigureView, getFigureViewTitle,
-    isVectorLayer, PLACEMARK_ID_PREFIX, getPlacemarkTitleAndIndex, newAnimationView,
+    isVectorLayer, PLACEMARK_ID_PREFIX, getPlacemarkTitleAndIndex, newAnimationView, isImageLayer,
 } from "./state-util";
 import {
 removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
@@ -390,24 +390,6 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
             }
             break;
         }
-        case actions.SET_SELECTED_LAYER_SPLIT: {
-            const viewId = action.payload.viewId;
-            if (viewId === state.id) {
-                assert.ok(state.type === 'world');
-                const isSelectedLayerSplit = action.payload.isSelectedLayerSplit;
-                return {...state, data: {...state.data, isSelectedLayerSplit}};
-            }
-            break;
-        }
-        case actions.SET_SELECTED_LAYER_SPLIT_POS: {
-            const viewId = action.payload.viewId;
-            if (viewId === state.id) {
-                assert.ok(state.type === 'world');
-                const selectedLayerSplitPos = action.payload.selectedLayerSplitPos;
-                return {...state, data: {...state.data, selectedLayerSplitPos}};
-            }
-            break;
-        }
         case actions.ADD_LAYER: {
             const viewId = action.payload.viewId;
             if (viewId === state.id) {
@@ -583,6 +565,20 @@ const layerReducer = (state: LayerState, action: Action, isActiveView: boolean) 
                 const selectedVariable = action.payload.selectedVariable;
                 const savedLayers = action.payload.savedLayers;
                 return updateAutoLayer(state, resource, selectedVariable, savedLayers);
+            }
+            break;
+        }
+        case actions.SET_LAYER_SPLIT_MODE: {
+            const {layerId, splitMode} = action.payload;
+            if (state.id === layerId && isImageLayer(state)) {
+                return {...state, splitMode};
+            }
+            break;
+        }
+        case actions.SET_LAYER_SPLIT_POS: {
+            const {layerId, splitPos} = action.payload;
+            if (state.id === layerId && isImageLayer(state)) {
+                return {...state, splitPos};
             }
             break;
         }
