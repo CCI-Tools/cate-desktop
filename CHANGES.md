@@ -1,4 +1,8 @@
-## Changes in 2.0.0-dev.5 
+## Changes in 2.0.0-dev.6
+
+No actual changes in Cate Desktop, but requiring Cate 2.0.0.dev6 now, because Cate 2.0.0.dev5 is broken.
+
+## Changes in 2.0.0-dev.5
 
 ### New Features and UX Improvements 
 
@@ -86,8 +90,6 @@
 
 ### Fixes 
 
-* High GPU loads even when inactive
-  [#532](https://github.com/CCI-Tools/cate/issues/532)
 * AppImage lacks needed dependency
   [#517](https://github.com/CCI-Tools/cate/issues/517)
 * Changing layer visibility also changes layer selection
