@@ -17,6 +17,10 @@ interface IVariableNamesValueEditorState {
 
 export class VarNameValueEditor extends React.Component<IVariableNamesValueEditorProps, IVariableNamesValueEditorState> {
 
+    private static DIV_STYLE = {width: '24em', display: 'flex', flexGrow: 1};
+    private static TEXT_FIELD_STYLE = {flexGrow: 1};
+    private static BUTTON_STYLE = {flex: 'none'};
+
     constructor(props: IVariableNamesValueEditorProps) {
         super(props);
         this.onChange = this.onChange.bind(this);
@@ -37,7 +41,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
         const varNames = textValue !== '' ? textValue.split(',').map(name => name.trim()) : [];
         const hasSelectableVariables = this.props.resource && this.props.resource.variables && this.props.resource.variables.length;
         return (
-            <div className="pt-control-group" style={{flexGrow: 1, display: 'flex'}}>
+            <div className="pt-control-group" style={VarNameValueEditor.DIV_STYLE}>
                 <TextField
                     value={this.props.value}
                     validator={this.validate}
@@ -45,11 +49,13 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
                     placeholder={this.props.multi ? 'Enter variable names, separated by comma' : 'Enter variable name'}
                     onChange={this.onChange}
                     nullable={this.props.input.nullable}
+                    style={VarNameValueEditor.TEXT_FIELD_STYLE}
                 />
 
-                <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
+                <AnchorButton className="pt-intent-primary"
                               onClick={() => this.setState({isDetailsEditorOpen: true})}
-                              disabled={!hasSelectableVariables}>...</AnchorButton>
+                              disabled={!hasSelectableVariables}
+                              style={VarNameValueEditor.BUTTON_STYLE}>...</AnchorButton>
 
                 <VariablesDialog isOpen={this.state.isDetailsEditorOpen}
                                  resource={this.props.resource}
@@ -68,7 +74,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
     }
 }
 
-export function validateVarNamesText(value: string|null, nullable: boolean, multi: boolean, resource: ResourceState) {
+export function validateVarNamesText(value: string | null, nullable: boolean, multi: boolean, resource: ResourceState) {
     if (!value || value.trim() === '') {
         if (!nullable) {
             throw new Error(multi ? 'One or more variable names expected.' : 'Variable name expected.');
