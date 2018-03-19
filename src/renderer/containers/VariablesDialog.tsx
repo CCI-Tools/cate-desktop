@@ -85,6 +85,7 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
                 <LabelWithType label={variable.name}
                                dataType={dataType}
                                units={variable.units}
+                               tooltipText={variable.attributes && variable.attributes.long_name}
                 />
             </div>
         );

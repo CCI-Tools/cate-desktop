@@ -250,7 +250,9 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
     }
 
     private static renderItem(variable: VariableState) {
-        return <LabelWithType label={variable.name} dataType={variable.dataType}/>;
+        return <LabelWithType label={variable.name}
+                              dataType={variable.dataType}
+                              tooltipText={variable.attributes && variable.attributes.long_name}/>;
     }
 
     private renderVariablesList() {

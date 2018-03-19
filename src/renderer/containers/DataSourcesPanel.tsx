@@ -1,7 +1,18 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {State, DataStoreState, DataSourceState} from "../state";
-import {AnchorButton, InputGroup, Classes, Tag, Tabs2, Tab2, Tooltip, Checkbox, Colors} from "@blueprintjs/core";
+import {
+    AnchorButton,
+    InputGroup,
+    Classes,
+    Tag,
+    Tabs2,
+    Tab2,
+    Tooltip,
+    Checkbox,
+    Colors,
+    Position
+} from "@blueprintjs/core";
 import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
 import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {Card} from "../components/Card";
@@ -491,12 +502,16 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
     private static renderVariablesTable(variables: any[]): DetailPart {
         function renderName(rowIndex: number) {
             const variable = variables[rowIndex];
-            return <Cell><TruncatedFormat>{variable.name}</TruncatedFormat></Cell>;
+            return (
+                <Cell tooltip={variable.long_name}>
+                    <TruncatedFormat>{variable.name}</TruncatedFormat>
+                </Cell>
+            );
         }
 
         function renderUnit(rowIndex: number) {
             const variable = variables[rowIndex];
-            return <Cell><TruncatedFormat>{variable.units || '-'}</TruncatedFormat></Cell>;
+            return (<Cell><TruncatedFormat>{variable.units || '-'}</TruncatedFormat></Cell>);
         }
 
         function getCellClipboardData(row: number, col: number) {
