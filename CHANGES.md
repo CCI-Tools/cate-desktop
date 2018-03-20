@@ -1,6 +1,18 @@
+## Changes in 2.0.0-dev.7
+
+### New Features and UX Improvements 
+
+* Display long names of variables
+  [#574](https://github.com/CCI-Tools/cate/issues/574)
+
+### Fixes
+
+* Cate Desktop hangs after upgrading WebAPI to 2.0.0.dev6
+  [#569](https://github.com/CCI-Tools/cate/issues/569)
+
 ## Changes in 2.0.0-dev.6
 
-No actual changes in Cate Desktop, but requiring Cate 2.0.0.dev6 now, because Cate 2.0.0.dev5 is broken.
+* No actual changes in Cate Desktop, but requiring Cate 2.0.0.dev6 now, because Cate 2.0.0.dev5 WebAPI is broken.
 
 ## Changes in 2.0.0-dev.5
 
