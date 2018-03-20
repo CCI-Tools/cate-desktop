@@ -5,13 +5,15 @@
         #content {
             width: 256px;
             height: 256px;
+            margin: 0;
+            padding: 0;
         }
         #message-container {
             font-weight: lighter;
             font-size: 0.8em;
             font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
-            color: white;
-            text-shadow: 0 0 8px black;
+            color: ghostwhite;
+            text-shadow: 0 0 8px darkslategray;
             text-align: center;
             margin: 2px;
         }
@@ -26,7 +28,7 @@
         }
     </script>
 </head>
-<body onload="init()" style="overflow: hidden;">
+<body onload="init()" style="overflow: hidden; margin: 0; padding: 0;">
 <div id="content">
     <img src="resources/cate-icon@16x.png"/>
     <div id="message-container"></div>

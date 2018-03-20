@@ -457,8 +457,8 @@ class CateDesktopApp {
 
     private showSplashWindow(callback: () => void) {
         this.splashWindow = new electron.BrowserWindow({
-                                                           width: 300,
-                                                           height: 300,
+                                                           width: 256,
+                                                           height: 280,
                                                            center: true,
                                                            show: true,
                                                            useContentSize: true,
