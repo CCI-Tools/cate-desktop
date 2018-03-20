@@ -268,10 +268,10 @@ class CateDesktopApp {
         if (this.webAPIStartTime === null) {
             // Set start time, unless it has already been done
             this.resetWebAPIStartTime();
+            this.showSplashMessage('Waiting for Cate service...');
         }
 
         log.info(`Waiting for response from Cate service ${this.webAPIRestUrl}`);
-        this.showSplashMessage('Waiting for Cate service response...');
         request(this.webAPIRestUrl, this.webAPIAccessTimeout)
             .then((response: string) => {
                 log.info('Connected to Cate service. Response: ', response);
@@ -281,6 +281,7 @@ class CateDesktopApp {
                 const delta = this.webAPIStartTimeDelta;
                 const deltaStr = delta.toFixed(2);
                 log.info(`No response from Cate service after ${deltaStr} seconds: ${err}`);
+                this.showSplashMessage(`Waiting for Cate service (${deltaStr}s)`);
                 let callback = () => {
                     if (delta > this.webAPIStartTimeout) {
                         log.error(`Failed to start Cate service within ${deltaStr} seconds.`, err);
@@ -456,8 +457,8 @@ class CateDesktopApp {
 
     private showSplashWindow(callback: () => void) {
         this.splashWindow = new electron.BrowserWindow({
-                                                           width: 830,
-                                                           height: 320,
+                                                           width: 300,
+                                                           height: 300,
                                                            center: true,
                                                            show: true,
                                                            useContentSize: true,
@@ -467,6 +468,7 @@ class CateDesktopApp {
                                                            parent: this.mainWindow
                                                        });
 
+        this.splashWindow.setIgnoreMouseEvents(true);
         this.splashWindow.on('closed', () => {
             this.splashWindow = null;
         });
