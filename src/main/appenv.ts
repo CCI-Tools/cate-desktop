@@ -198,7 +198,7 @@ export function getCommandInActivatedCondaEnv(condaDir: string, envDir: string, 
         return `"${activatePath}" "${envDir}" & ${command}`;
     } else {
         const activatePath = path.join(condaDir, "bin", "activate");
-        return `source "${activatePath}" "${envDir}"; ${command}`;
+        return `source "${activatePath}" "${envDir}"; exec ${command}`;
     }
 }
 
