@@ -38,13 +38,17 @@ const ERRCODE_SETUP_FAILED = 5;
 const WEBAPI_START_TIMEOUT_MAX = 60;
 
 // Timeout for stopping WebAPI in seconds.
-const WEBAPI_STOP_TIMEOUT_MAX = 5;
+const WEBAPI_STOP_TIMEOUT_MAX = 1;
 
 // WebAPI access timeout in seconds:
 const WEBAPI_ACCESS_TIMEOUT_MAX = 0.5;
 
 // Delay between two WebAPI accesses in seconds:
 const WEBAPI_ACCESS_DELAY_MAX = 0.5;
+
+// Signal used to kill a running WebAPI service if a stop requiest times out:
+const WEBAPI_KILL_SIGNAL = "SIGTERM";
+
 
 const NANOS_PER_SEC = 1.0e9;
 
@@ -72,7 +76,7 @@ class CateDesktopApp {
      */
     private configuration: Configuration = null;
 
-    private webAPIProcess = null;
+    private webAPIProcess: child_process.ChildProcess = null;
 
     private webAPIError = null;
 
@@ -116,6 +120,10 @@ class CateDesktopApp {
     get webAPIStartTimeDelta(): number {
         const delta = process.hrtime(this.webAPIStartTime);
         return delta[0] + delta[1] / NANOS_PER_SEC;
+    }
+
+    get webAPIKillSignal(): string {
+        return this.preferences.get("webAPIKillSignal", WEBAPI_KILL_SIGNAL);
     }
 
     start() {
@@ -291,7 +299,7 @@ class CateDesktopApp {
                         }
                         electron.app.exit(ERRCODE_WEBAPI_TIMEOUT);
                     } else {
-                        setTimeout(this.startUpWithWebAPIService.bind(this), this.webAPIAccessDelay);
+                        setTimeout(this.startUpWithWebAPIService.bind(this), 1000 * this.webAPIAccessDelay);
                     }
                 };
                 if (!this.webAPIProcess) {
@@ -326,7 +334,7 @@ class CateDesktopApp {
             const webAPIStartCommand = getWebAPIStartCommand(this.webAPIConfig);
             log.info(`Starting Cate service: ${webAPIStartCommand}`);
             this.webAPIProcess = child_process.spawn(webAPIStartCommand, [], this.webAPIProcessOptions);
-            log.info('Cate service started.');
+            log.info(`Cate service started (pid=${this.webAPIProcess.pid}).`);
             this.webAPIProcess.stdout.on('data', (data: any) => {
                 log.info(WEBAPI_LOG_PREFIX, `${data}`);
             });
@@ -342,15 +350,20 @@ class CateDesktopApp {
                 this.webAPIError = err;
                 electron.app.exit(ERRCODE_WEBAPI_INTERNAL_ERROR); // exit immediately
             });
-            this.webAPIProcess.on('close', (code: number) => {
-                let message = `Cate service process exited with code ${code}.`;
-                log.log(WEBAPI_LOG_PREFIX, message);
-                if (code !== 0) {
-                    if (!this.webAPIError) {
-                        electron.dialog.showErrorBox(`${electron.app.getName()} - Internal Error`, message);
-                    }
-                    this.webAPIError = new Error(message);
-                    electron.app.exit(ERRCODE_OFFSET_WEBAPI_BAD_EXIT + code); // exit immediately
+            this.webAPIProcess.on('close', (code: number, signal: string) => {
+                let message = `Cate service closed I/O with code ${code} due to ${signal}.`;
+                if (!!code) {
+                    log.error(WEBAPI_LOG_PREFIX, message);
+                } else {
+                    log.info(WEBAPI_LOG_PREFIX, message);
+                }
+            });
+            this.webAPIProcess.on('exit', (code: number, signal: string) => {
+                let message = `Cate service process exited with code ${code} due to ${signal}.`;
+                if (!!code) {
+                    log.error(WEBAPI_LOG_PREFIX, message);
+                } else {
+                    log.info(WEBAPI_LOG_PREFIX, message);
                 }
             });
 
@@ -371,6 +384,11 @@ class CateDesktopApp {
                                                     {...this.webAPIProcessOptions, timeout: 1000 * this.webAPIStopTimeout});
         if (processData.status !== 0 || processData.error) {
             log.error(`Failed to stop Cate service. Status: ${processData.status}, ${processData.error}`);
+            log.error(`Killing it (pid=${this.webAPIProcess.pid})...`);
+            this.webAPIProcess.kill(this.webAPIKillSignal);
+            this.webAPIProcess = null;
+            //sleep(10000);
+            //log.error("Still alive!");
         }
     }
 
@@ -739,4 +757,11 @@ function findFreePort(fromPort?: number, toPort?: number, callback?: (port: numb
     };
 
     findPort(fromPort);
+}
+
+function sleep(time: number) {
+    const stop = new Date().getTime();
+    while(new Date().getTime() < stop + time) {
+        ;
+    }
 }
