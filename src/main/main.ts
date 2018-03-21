@@ -83,6 +83,7 @@ class CateDesktopApp {
     private mainWindow: electron.BrowserWindow = null;
     private splashWindow: electron.BrowserWindow = null;
 
+    private quitRequested = false;
     private quitConfirmed = false;
 
     get webAPIConfig(): any {
@@ -163,6 +164,11 @@ class CateDesktopApp {
             this.showSplashWindow(() => {
                 this.startUpWithWebAPIService();
             });
+        });
+
+        // Emitted before the application starts closing its windows.
+        electron.app.on('before-quit', () => {
+            this.quitRequested = true;
         });
 
         // Emitted when all windows have been closed and the application will quit.
@@ -342,8 +348,12 @@ class CateDesktopApp {
                 this.webAPIError = err;
                 electron.app.exit(ERRCODE_WEBAPI_INTERNAL_ERROR); // exit immediately
             });
-            this.webAPIProcess.on('close', (code: number) => {
-                let message = `Cate service process exited with code ${code}.`;
+            this.webAPIProcess.on('close', (code: number, signal: string) => {
+                let message = `Cate service closed I/O with code ${code} due to signal ${signal}.`;
+                log.log(WEBAPI_LOG_PREFIX, message);
+            });
+            this.webAPIProcess.on('exit', (code: number, signal: string) => {
+                let message = `Cate service process exited with code ${code} and due to signal ${signal}.`;
                 log.log(WEBAPI_LOG_PREFIX, message);
                 if (code !== 0) {
                     if (!this.webAPIError) {
@@ -367,10 +377,15 @@ class CateDesktopApp {
         const webAPIStopCommand = getWebAPIStopCommand(this.webAPIConfig);
         log.info(`Stopping Cate service: ${webAPIStopCommand}`);
         // this must be sync to make sure the stop is performed before this process ends
-        const processData = child_process.spawnSync(webAPIStopCommand,[],
-                                                    {...this.webAPIProcessOptions, timeout: 1000 * this.webAPIStopTimeout});
-        if (processData.status !== 0 || processData.error) {
+        const processData = child_process.spawnSync(webAPIStopCommand, [],
+                                                    {
+                                                        ...this.webAPIProcessOptions,
+                                                        timeout: 1000 * this.webAPIStopTimeout
+                                                    });
+        if (processData.status || processData.error) {
             log.error(`Failed to stop Cate service. Status: ${processData.status}, ${processData.error}`);
+            log.warn("Killing it...");
+            this.webAPIProcess.kill();
         }
     }
 
@@ -413,6 +428,10 @@ class CateDesktopApp {
                 const suppressQuitConfirm = this.preferences.get('suppressQuitConfirm', false);
                 if (suppressQuitConfirm) {
                     this.quitConfirmed = true;
+                    if (!this.quitRequested) {
+                        // Force quit on Mac
+                        electron.app.quit();
+                    }
                 } else {
                     // Prevent default behavior, which is closing the main window.
                     event.preventDefault();
@@ -424,8 +443,15 @@ class CateDesktopApp {
                         // Force window close, so app can quit after all windows closed.
                         // We must call destroy() here, calling close() seems to have no effect on Mac (Electron 1.8.2).
                         this.mainWindow.destroy();
+                        if (!this.quitRequested) {
+                            // Force quit on Mac
+                            electron.app.quit();
+                        }
                     });
                 }
+            } else if (!this.quitRequested) {
+                // Force quit on Mac
+                electron.app.quit();
             }
         });
 
