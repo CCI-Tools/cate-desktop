@@ -5,6 +5,7 @@ import * as semver from "semver";
 import {pep440ToSemver} from "../common/version";
 import {SETUP_REASON_INSTALL_CATE, SETUP_REASON_UPDATE_CATE, SetupInfo} from "../common/setup";
 import * as assert from "../common/assert";
+import * as log from "electron-log";
 
 
 /**
@@ -12,7 +13,7 @@ import * as assert from "../common/assert";
  * The value is a SemVer (https://github.com/npm/semver) compatible version range string.
  * @type {string}
  */
-export const APP_CLI_VERSION_RANGE = ">=2.0.0-dev.7 <2.1.0";
+export const APP_CLI_VERSION_RANGE = ">=2.0.0-dev.8 <2.1.0";
 
 /**
  * Version of cate-cli that is know to run with this version of Cate Desktop.
@@ -20,7 +21,7 @@ export const APP_CLI_VERSION_RANGE = ">=2.0.0-dev.7 <2.1.0";
  * with that version should have been deployed.
  * @type {string}
  */
-export const EXPECTED_APP_CLI_VERSION = "2.0.0.dev7";
+export const EXPECTED_APP_CLI_VERSION = "2.0.0.dev8";
 
 export const CATE_CLI_NAME = "cate";
 export const CATE_WEBAPI_NAME = "cate-webapi";
@@ -53,8 +54,9 @@ export const CATE_EXECUTABLES = (() => {
     return [CATE_CLI_EXECUTABLE, CATE_WEBAPI_EXECUTABLE].concat(CONDA_EXECUTABLES);
 })();
 
-
-const app = electron.app;
+const URL_ENCODED_HOME_NAME = (() => {
+    return encodeURIComponent(path.basename(electron.app.getPath('home')));
+})();
 
 let _cateDir = null;
 
@@ -65,11 +67,15 @@ export function getAppIconPath() {
     } else if (process.platform === "win32") {
         iconFile = "win32/cate-icon.ico";
     }
-    return path.join(app.getAppPath(), 'resources', iconFile);
+    return path.join(electron.app.getAppPath(), 'resources', iconFile);
+}
+
+export function getHomeName() {
+    return path.dirname(electron.app.getPath('home'));
 }
 
 export function getAppDataDir() {
-    return path.join(app.getPath('home'), '.cate');
+    return path.join(electron.app.getPath('home'), '.cate');
 }
 
 export function getWebAPIStartCommand(webAPIConfig): string {
@@ -91,15 +97,15 @@ function getWebAPICommandBase(webAPIConfig): string {
 }
 
 export function getWebAPIRestUrl(webAPIConfig) {
-    return `http://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/`;
+    return `http://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/${URL_ENCODED_HOME_NAME}/`;
 }
 
 export function getAPIWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/api`;
+    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/${URL_ENCODED_HOME_NAME}/api`;
 }
 
 export function getMPLWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/mpl/figures/`;
+    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/${URL_ENCODED_HOME_NAME}/mpl/figures/`;
 }
 
 export function getCateDirSafe() {
@@ -118,7 +124,7 @@ export function setCateDir(cateDir: string) {
 
 export function getCateCliSetupInfo(): SetupInfo {
     const newCateVersion = EXPECTED_APP_CLI_VERSION; // PEP440
-    const newCateDir = path.join(app.getPath("home"), "cate-" + newCateVersion);
+    const newCateDir = path.join(electron.app.getPath("home"), "cate-" + newCateVersion);
     const dataDir = getAppDataDir();
     if (fs.existsSync(dataDir)) {
         const expectedVersion = pep440ToSemver(newCateVersion); // SemVer
@@ -140,7 +146,7 @@ export function getCateCliSetupInfo(): SetupInfo {
                 if (isExec(cateWebapiExe)) {
                     const updateInfo = {oldCateDir, newCateDir, oldCateVersion, newCateVersion, setupReason: null};
                     // Return immediately if the versions are equal.
-                    if (semver.eq(version, app.getVersion(), true)) {
+                    if (semver.eq(version, electron.app.getVersion(), true)) {
                         return updateInfo;
                     }
                     updateInfos[version] = updateInfo;
