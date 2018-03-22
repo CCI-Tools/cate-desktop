@@ -87,6 +87,7 @@ class CateDesktopApp {
     private mainWindow: electron.BrowserWindow = null;
     private splashWindow: electron.BrowserWindow = null;
 
+    private quitRequested = false;
     private quitConfirmed = false;
 
     get webAPIConfig(): any {
@@ -171,6 +172,11 @@ class CateDesktopApp {
             this.showSplashWindow(() => {
                 this.startUpWithWebAPIService();
             });
+        });
+
+        // Emitted before the application starts closing its windows.
+        electron.app.on('before-quit', () => {
+            this.quitRequested = true;
         });
 
         // Emitted when all windows have been closed and the application will quit.
@@ -384,7 +390,7 @@ class CateDesktopApp {
                                                     {...this.webAPIProcessOptions, timeout: 1000 * this.webAPIStopTimeout});
         if (processData.status !== 0 || processData.error) {
             log.error(`Failed to stop Cate service. Status: ${processData.status}, ${processData.error}`);
-            log.error(`Killing it (pid=${this.webAPIProcess.pid})...`);
+            log.warn(`Killing it (pid=${this.webAPIProcess.pid})...`);
             this.webAPIProcess.kill(this.webAPIKillSignal);
             this.webAPIProcess = null;
             //sleep(10000);
@@ -431,6 +437,7 @@ class CateDesktopApp {
                 const suppressQuitConfirm = this.preferences.get('suppressQuitConfirm', false);
                 if (suppressQuitConfirm) {
                     this.quitConfirmed = true;
+                    this.forceQuit();
                 } else {
                     // Prevent default behavior, which is closing the main window.
                     event.preventDefault();
@@ -442,8 +449,11 @@ class CateDesktopApp {
                         // Force window close, so app can quit after all windows closed.
                         // We must call destroy() here, calling close() seems to have no effect on Mac (Electron 1.8.2).
                         this.mainWindow.destroy();
+                        this.forceQuit();
                     });
                 }
+            } else {
+                this.forceQuit();
             }
         });
 
@@ -452,6 +462,14 @@ class CateDesktopApp {
             log.info('Main window closed.');
             this.mainWindow = null;
         });
+    }
+
+    private forceQuit() {
+        if (!this.quitRequested) {
+            // Force quit on Mac
+            log.warn("Forcing quit.");
+            electron.app.quit();
+        }
     }
 
     private confirmQuit(callback: (suppressQuitConfirm: boolean) => void) {
