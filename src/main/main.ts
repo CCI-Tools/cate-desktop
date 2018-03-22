@@ -6,6 +6,7 @@ import * as path from 'path';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as child_process from 'child_process'
+import * as os from 'os';
 import {request} from './request';
 import {updateConditionally} from '../common/objutil';
 import {Configuration} from "./configuration";
@@ -141,6 +142,8 @@ class CateDesktopApp {
         log.transports.file.level = 'info';
         log.transports.file.file = path.join(getAppDataDir(), 'cate-desktop.log');
         log.info("process.versions =", process.versions);
+
+        log.info("os.userInfo =", os.userInfo());
 
         if (process.platform === 'darwin') {
             // Try getting around https://github.com/CCI-Tools/cate-desktop/issues/32
