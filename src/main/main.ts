@@ -156,7 +156,7 @@ class CateDesktopApp {
         this.initUserConfiguration();
         this.initUserPreferences();
 
-        log.info(this.preferences.data);
+        // log.info(this.preferences.data);
 
         // By default NODE_ENV will be 'production' so react is much faster
         process.env.NODE_ENV = this.configuration.get('NODE_ENV', 'production');
