@@ -30,7 +30,6 @@ const WEBAPI_LOG_PREFIX = 'cate-webapi:';
 const ERRCODE_WEBAPI_INTERNAL_ERROR = 1;
 const ERRCODE_WEBAPI_TIMEOUT = 2;
 const ERRCODE_WEBAPI_NO_FREE_PORT = 3;
-const ERRCODE_OFFSET_WEBAPI_BAD_EXIT = 4000;
 const ERRCODE_SETUP_FAILED = 5;
 
 // Timeout for starting WebAPI in seconds.
@@ -38,7 +37,7 @@ const ERRCODE_SETUP_FAILED = 5;
 const WEBAPI_START_TIMEOUT_MAX = 60;
 
 // Timeout for stopping WebAPI in seconds.
-const WEBAPI_STOP_TIMEOUT_MAX = 1;
+const WEBAPI_STOP_TIMEOUT_MAX = 2.5;
 
 // WebAPI access timeout in seconds:
 const WEBAPI_ACCESS_TIMEOUT_MAX = 0.5;
@@ -47,7 +46,7 @@ const WEBAPI_ACCESS_TIMEOUT_MAX = 0.5;
 const WEBAPI_ACCESS_DELAY_MAX = 0.5;
 
 // Signal used to kill a running WebAPI service if a stop requiest times out:
-const WEBAPI_KILL_SIGNAL = "SIGTERM";
+const WEBAPI_KILL_SIGNAL = "SIGKILL";
 
 
 const NANOS_PER_SEC = 1.0e9;
@@ -387,12 +386,15 @@ class CateDesktopApp {
         log.info(`Stopping Cate service: ${webAPIStopCommand}`);
         // this must be sync to make sure the stop is performed before this process ends
         const processData = child_process.spawnSync(webAPIStopCommand,[],
-                                                    {...this.webAPIProcessOptions, timeout: 1000 * this.webAPIStopTimeout});
+                                                    {
+                                                        ...this.webAPIProcessOptions,
+                                                        timeout: 1000 * this.webAPIStopTimeout
+                                                    });
         if (processData.status !== 0 || processData.error) {
             log.error(`Failed to stop Cate service. Status: ${processData.status}, ${processData.error}`);
-            log.warn(`Killing it (pid=${this.webAPIProcess.pid})...`);
+            log.warn(`Killing it (pid=${this.webAPIProcess.pid}), sending ${this.webAPIKillSignal}...`);
             this.webAPIProcess.kill(this.webAPIKillSignal);
-            this.webAPIProcess = null;
+            //this.webAPIProcess = null;
             //sleep(10000);
             //log.error("Still alive!");
         }
@@ -777,9 +779,11 @@ function findFreePort(fromPort?: number, toPort?: number, callback?: (port: numb
     findPort(fromPort);
 }
 
+/*
 function sleep(time: number) {
     const stop = new Date().getTime();
     while(new Date().getTime() < stop + time) {
         ;
     }
 }
+*/
