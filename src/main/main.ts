@@ -13,7 +13,8 @@ import {menuTemplate} from "./menu";
 import {
     getAppDataDir, getAppIconPath,
     getCateCliSetupInfo, setCateDir, getWebAPIStartCommand, getWebAPIRestUrl,
-    getWebAPIStopCommand, getMPLWebSocketsUrl, getAPIWebSocketsUrl, defaultSpawnShellOption, getHomeName
+    getWebAPIStopCommand, getMPLWebSocketsUrl, getAPIWebSocketsUrl, defaultSpawnShellOption,
+    isWebAPIVersionCompatible, EXPECTED_APP_CLI_VERSION
 } from "./appenv";
 import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
@@ -284,16 +285,36 @@ class CateDesktopApp {
             this.showSplashMessage('Waiting for Cate service...');
         }
 
+        let serviceFound = false;
+
         log.info(`Waiting for response from Cate service ${this.webAPIRestUrl}`);
         request(this.webAPIRestUrl, this.webAPIAccessTimeout)
             .then((response: string) => {
+                serviceFound = true;
                 log.info('Connected to Cate service. Response: ', response);
-                this.loadMainWindow();
+                // Get the actual WebAPI service version:
+                const message = JSON.parse(response);
+                const version = message.status === "ok" && message.content && message.content.version;
+                if (version) {
+                    if (isWebAPIVersionCompatible(version, true)) {
+                        this.loadMainWindow();
+                    } else {
+                        // Incompatible WebAPI service version
+                        throw new Error(`Cate service version ${EXPECTED_APP_CLI_VERSION} expected, but found ${version}`);
+                    }
+                } else {
+                    // Can't get version info
+                    throw new Error("Can't retrieve version information from Cate service");
+                }
             })
             .catch((err) => {
                 const delta = this.webAPIStartTimeDelta;
                 const deltaStr = delta.toFixed(2);
-                log.info(`No response from Cate service after ${deltaStr} seconds: ${err}`);
+                if (serviceFound) {
+                    log.info(`Problem with existing Cate service persists after ${deltaStr} seconds: ${err}`);
+                } else {
+                    log.info(`No response from Cate service after ${deltaStr} seconds: ${err}`);
+                }
                 this.showSplashMessage(`Waiting for Cate service (${deltaStr}s)`);
                 let callback = () => {
                     if (delta > this.webAPIStartTimeout) {

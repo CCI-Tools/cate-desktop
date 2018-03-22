@@ -5,7 +5,6 @@ import * as semver from "semver";
 import {pep440ToSemver} from "../common/version";
 import {SETUP_REASON_INSTALL_CATE, SETUP_REASON_UPDATE_CATE, SetupInfo} from "../common/setup";
 import * as assert from "../common/assert";
-import * as log from "electron-log";
 
 
 /**
@@ -70,12 +69,15 @@ export function getAppIconPath() {
     return path.join(electron.app.getAppPath(), 'resources', iconFile);
 }
 
-export function getHomeName() {
-    return path.dirname(electron.app.getPath('home'));
-}
-
 export function getAppDataDir() {
     return path.join(electron.app.getPath('home'), '.cate');
+}
+
+export function isWebAPIVersionCompatible(version: string, pep440?: boolean) {
+    if (pep440) {
+        version = pep440ToSemver(version);
+    }
+    return semver.satisfies(version, APP_CLI_VERSION_RANGE, true);
 }
 
 export function getWebAPIStartCommand(webAPIConfig): string {
@@ -159,7 +161,7 @@ export function getCateCliSetupInfo(): SetupInfo {
         descendingVersions.sort((v1: string, v2: string) => semver.compare(v2, v1, true));
 
         for (let version of descendingVersions) { // SemVer
-            if (semver.satisfies(version, APP_CLI_VERSION_RANGE, true)) {
+            if (isWebAPIVersionCompatible(version)) {
                 return {
                     ...updateInfos[version],
                     setupReason: semver.lt(version, expectedVersion, true) ? SETUP_REASON_UPDATE_CATE : null,
