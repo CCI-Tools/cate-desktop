@@ -1,5 +1,9 @@
 ## Changes in 2.0.0-dev.8 (in dev)
 
+### Fixes
+
+* Cate Desktop hangs when restarted after quit while running a task
+  [#578](https://github.com/CCI-Tools/cate/issues/578)
 
 ## Changes in 2.0.0-dev.7
 
