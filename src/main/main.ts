@@ -428,10 +428,7 @@ class CateDesktopApp {
                 const suppressQuitConfirm = this.preferences.get('suppressQuitConfirm', false);
                 if (suppressQuitConfirm) {
                     this.quitConfirmed = true;
-                    if (!this.quitRequested) {
-                        // Force quit on Mac
-                        electron.app.quit();
-                    }
+                    this.forceQuit();
                 } else {
                     // Prevent default behavior, which is closing the main window.
                     event.preventDefault();
@@ -443,15 +440,11 @@ class CateDesktopApp {
                         // Force window close, so app can quit after all windows closed.
                         // We must call destroy() here, calling close() seems to have no effect on Mac (Electron 1.8.2).
                         this.mainWindow.destroy();
-                        if (!this.quitRequested) {
-                            // Force quit on Mac
-                            electron.app.quit();
-                        }
+                        this.forceQuit();
                     });
                 }
-            } else if (!this.quitRequested) {
-                // Force quit on Mac
-                electron.app.quit();
+            } else {
+                this.forceQuit();
             }
         });
 
@@ -460,6 +453,14 @@ class CateDesktopApp {
             log.info('Main window closed.');
             this.mainWindow = null;
         });
+    }
+
+    private forceQuit() {
+        if (!this.quitRequested) {
+            // Force quit on Mac
+            log.warn("Forcing quit.");
+            electron.app.quit();
+        }
     }
 
     private confirmQuit(callback: (suppressQuitConfirm: boolean) => void) {
