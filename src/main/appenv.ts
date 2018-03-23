@@ -53,9 +53,6 @@ export const CATE_EXECUTABLES = (() => {
     return [CATE_CLI_EXECUTABLE, CATE_WEBAPI_EXECUTABLE].concat(CONDA_EXECUTABLES);
 })();
 
-function getUserUriComponent()  {
-    return encodeURIComponent(path.basename(electron.app.getPath('home')));
-}
 
 let _cateDir = null;
 
@@ -99,15 +96,15 @@ function getWebAPICommandBase(webAPIConfig): string {
 }
 
 export function getWebAPIRestUrl(webAPIConfig) {
-    return `http://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/${getUserUriComponent()}/`;
+    return `http://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/`;
 }
 
 export function getAPIWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/${getUserUriComponent()}/api`;
+    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/api`;
 }
 
 export function getMPLWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/${getUserUriComponent()}/mpl/figures/`;
+    return `ws://${webAPIConfig.serviceAddress || '127.0.0.1'}:${webAPIConfig.servicePort}/mpl/figures/`;
 }
 
 export function getCateDirSafe() {
