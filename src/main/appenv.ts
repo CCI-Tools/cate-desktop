@@ -78,21 +78,11 @@ export function isWebAPIVersionCompatible(version: string, pep440?: boolean) {
 }
 
 export function getWebAPIStartCommand(webAPIConfig): string {
-    const command = getWebAPICommandBase(webAPIConfig);
-    return getCommandInActivatedCate(getCateDirSafe(), command + ' start');
-}
-
-export function getWebAPIStopCommand(webAPIConfig): string {
-    const command = getWebAPICommandBase(webAPIConfig);
-    return getCommandInActivatedCate(getCateDirSafe(), command + ' stop');
-}
-
-function getWebAPICommandBase(webAPIConfig): string {
-    let args = `cate-webapi --caller cate-desktop --port ${webAPIConfig.servicePort} --file "${webAPIConfig.serviceFile}"`;
+    let command = `cate-webapi-start --caller cate-desktop --port ${webAPIConfig.servicePort} --file "${webAPIConfig.serviceFile}"`;
     if (webAPIConfig.serviceAddress) {
-        args += ` --address "${webAPIConfig.serviceAddress}"`;
+        command += ` --address "${webAPIConfig.serviceAddress}"`;
     }
-    return args;
+    return getCommandInActivatedCate(getCateDirSafe(), command);
 }
 
 export function getWebAPIRestUrl(webAPIConfig) {

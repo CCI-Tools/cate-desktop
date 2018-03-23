@@ -13,7 +13,7 @@ import {menuTemplate} from "./menu";
 import {
     getAppDataDir, getAppIconPath,
     getCateCliSetupInfo, setCateDir, getWebAPIStartCommand, getWebAPIRestUrl,
-    getWebAPIStopCommand, getMPLWebSocketsUrl, getAPIWebSocketsUrl, defaultSpawnShellOption,
+    getMPLWebSocketsUrl, getAPIWebSocketsUrl, defaultSpawnShellOption,
     isWebAPIVersionCompatible, EXPECTED_APP_CLI_VERSION
 } from "./appenv";
 import * as net from "net";
@@ -318,7 +318,7 @@ class CateDesktopApp {
                 this.showSplashMessage(`Waiting for Cate service (${deltaStr}s)`);
                 let callback = () => {
                     if (delta > this.webAPIStartTimeout) {
-                        log.error(`Failed to start Cate service within ${deltaStr} seconds.`, err);
+                        log.error(`Failed to start Cate service within ${deltaStr} seconds: ${err}`);
                         if (!this.webAPIError) {
                             electron.dialog.showErrorBox(`${electron.app.getName()} - Internal Error`,
                                                          `Failed to start Cate service within ${deltaStr} seconds:\n${err}`);
@@ -403,22 +403,25 @@ class CateDesktopApp {
             log.info(`Not stopping Cate service because we haven't started it.`);
             return;
         }
-        const webAPIStopCommand = getWebAPIStopCommand(this.webAPIConfig);
-        log.info(`Stopping Cate service: ${webAPIStopCommand}`);
-        // this must be sync to make sure the stop is performed before this process ends
-        const processData = child_process.spawnSync(webAPIStopCommand,[],
-                                                    {
-                                                        ...this.webAPIProcessOptions,
-                                                        timeout: 1000 * this.webAPIStopTimeout
-                                                    });
-        if (processData.status !== 0 || processData.error) {
-            log.error(`Failed to stop Cate service. Status: ${processData.status}, ${processData.error}`);
-            log.warn(`Killing it (pid=${this.webAPIProcess.pid}), sending ${this.webAPIKillSignal}...`);
-            this.webAPIProcess.kill(this.webAPIKillSignal);
-            //this.webAPIProcess = null;
-            //sleep(10000);
-            //log.error("Still alive!");
-        }
+
+        const url = this.webAPIRestUrl + 'exit';
+        log.info(`Requesting Cate service to stop: ${url}...`);
+        request(url, 1000 * this.webAPIStopTimeout)
+            .then(() => {
+                if (this.webAPIProcess.connected) {
+                    log.info(`Cate service stopped, but we are still connected.`);
+                } else {
+                    log.info(`Cate service stopped.`);
+                }
+            })
+            .catch((err) => {
+                log.error(`Failed stopping Cate service: ${err}`);
+                log.warn(`Killing it (pid=${this.webAPIProcess.pid}), sending ${this.webAPIKillSignal}...`);
+                this.webAPIProcess.kill(this.webAPIKillSignal);
+                //this.webAPIProcess = null;
+                //sleep(10000);
+                //log.error("Still alive!");
+            });
     }
 
     private resetWebAPIStartTime() {
