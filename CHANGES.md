@@ -1,9 +1,11 @@
-## Changes in 2.0.0-dev.8 (in dev)
+## Changes in 2.0.0-dev.8 
 
 ### Fixes
 
 * Cate Desktop hangs when restarted after quit while running a task
   [#578](https://github.com/CCI-Tools/cate/issues/578)
+* Closing Cate on Mac
+  [#551](https://github.com/CCI-Tools/cate/issues/551), revisited.
 
 ## Changes in 2.0.0-dev.7
 
