@@ -6,7 +6,14 @@ import {
     SplitMode,
 } from "./state";
 import {ViewState, ViewPath} from "./components/ViewState";
-import {JobProgress, JobFailure, JobStatusEnum, JobPromise, JobProgressHandler} from "./webapi";
+import {
+    JobProgress,
+    JobFailure,
+    JobStatusEnum,
+    JobPromise,
+    JobProgressHandler,
+    ERROR_CODE_INVALID_PARAMS
+} from "./webapi";
 import * as selectors from "./selectors";
 import * as assert from "../common/assert";
 import {PanelContainerLayout} from "./components/PanelContainer";
@@ -177,9 +184,9 @@ export function setGlobeViewPosition(position: GeographicPosition): ThunkAction 
                             should_return: {value: true},
                         };
                         return selectors.workspaceAPISelector(getState()).runOpInWorkspace(baseDir,
-                            opName,
-                            opArgs,
-                            onProgress);
+                                                                                           opName,
+                                                                                           opArgs,
+                                                                                           onProgress);
                     }
 
                     function action(positionData: { [varName: string]: number }) {
@@ -194,11 +201,12 @@ export function setGlobeViewPosition(position: GeographicPosition): ThunkAction 
         dispatch(setGlobeViewPositionData(null));
     }
 }
-function setGlobeViewPositionImpl(position: GeographicPosition): Action  {
+
+function setGlobeViewPositionImpl(position: GeographicPosition): Action {
     return {type: SET_GLOBE_VIEW_POSITION, payload: {position}};
 }
 
-function setGlobeViewPositionData(positionData: { [varName: string]: number } | null): Action  {
+function setGlobeViewPositionData(positionData: { [varName: string]: number } | null): Action {
     return {type: SET_GLOBE_VIEW_POSITION_DATA, payload: {positionData}};
 }
 
@@ -332,7 +340,7 @@ function jobProgress(progress: JobProgress): Action {
     return updateTaskState(progress.id, {status: JobStatusEnum.IN_PROGRESS, progress});
 }
 
-function jobDone(jobId: number, jobTitle: string): Action {
+function jobDone(jobId: number): Action {
     return updateTaskState(jobId, {status: JobStatusEnum.DONE});
 }
 
@@ -347,22 +355,18 @@ function jobFailed(jobId: number, jobTitle: string, failure: JobFailure): Action
         action = {
             text: 'Details',
             onClick: () => {
-                showMessageBox({
-                                   type: "error",
-                                   title: "Cate - Error",
-                                   message: failure.message,
-                                   detail: `An error (code ${failure.code}) occurred in Cate Core:\n\n${failure.data}`,
-                                   buttons: [],
-                               }, MESSAGE_BOX_NO_REPLY);
+                showJobFailureBox(failure);
             }
         };
         console.error(failure);
     }
-    showToast({
-                  type: type,
-                  text: text,
-                  action: action,
-              } as MessageState);
+    if (failure.code !== ERROR_CODE_INVALID_PARAMS) {
+        showToast({
+                      type: type,
+                      text: text,
+                      action: action,
+                  } as MessageState);
+    }
     return updateTaskState(jobId, {status, failure});
 }
 
@@ -395,9 +399,9 @@ export function callAPI<T>(dispatch: (action: Action) => void,
     let startToastShown = false;
     const startToastTimeoutHandler = setTimeout(() => {
         showToast({
-            type: 'notification',
-            text: 'Started: ' + title,
-        });
+                      type: 'notification',
+                      text: 'Started: ' + title,
+                  });
         startToastShown = true;
     }, startToastDelayMs);
     dispatch(jobSubmitted(jobPromise.getJobId(), title, requestLock));
@@ -405,13 +409,13 @@ export function callAPI<T>(dispatch: (action: Action) => void,
     const onDone = (jobResult: T) => {
         if (startToastShown) {
             showToast({
-                type: 'success',
-                text: 'Done: ' + title,
-            });
+                          type: 'success',
+                          text: 'Done: ' + title,
+                      });
         } else {
             clearTimeout(startToastTimeoutHandler);
         }
-        dispatch(jobDone(jobPromise.getJobId(), title));
+        dispatch(jobDone(jobPromise.getJobId()));
         if (action) {
             action(jobResult);
         }
@@ -1828,6 +1832,35 @@ export function showFileSaveDialog(saveDialogOptions: SaveDialogOptions, callbac
     }
 }
 
+export function showJobFailureBox(failure: JobFailure) {
+
+    let type = 'error';
+    if (failure.code === ERROR_CODE_INVALID_PARAMS) {
+        type = 'info';
+    }
+
+    let report = '___REPORT___:\n';
+    report += `Message: ${failure.message}\n`;
+    report += `Code: ${failure.code}\n`;
+    if (failure.data) {
+        if (failure.data.method) {
+            report += `Method: ${failure.data.method}\n`;
+        }
+        if (failure.data.exception) {
+            report += `Exception: ${failure.data.exception}\n`;
+        }
+        if (failure.data.traceback) {
+            report += `Traceback:\n${failure.data.traceback}\n`;
+        }
+    }
+    showMessageBox({
+                       title: 'Cate Desktop',
+                       type,
+                       buttons: [],
+                       message: failure.message.replace(': ', '\n'),
+                       detail: report,
+                   }, MESSAGE_BOX_NO_REPLY);
+}
 
 export const MESSAGE_BOX_NO_REPLY = () => {
 };
@@ -1848,7 +1881,7 @@ export function showMessageBox(messageBoxOptions: MessageBoxOptions, callback?: 
     }
     const actionName = 'show-message-box';
     if (!messageBoxOptions.buttons) {
-        messageBoxOptions = Object.assign({}, messageBoxOptions, {buttons: ['OK']});
+        messageBoxOptions = {...messageBoxOptions, buttons: ['OK']};
     }
     if (callback) {
         electron.ipcRenderer.send(actionName, messageBoxOptions, false);

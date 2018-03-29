@@ -21,6 +21,8 @@ import {installAutoUpdate} from "./update-frontend";
 import {isDefined, isNumber} from "../common/types";
 import {doSetup} from "./setup";
 import {SetupResult} from "../common/setup";
+import {showToast} from "../renderer/toast";
+import {MessageState} from "../renderer/state";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -221,10 +223,17 @@ class CateDesktopApp {
 
         electron.ipcMain.on('show-message-box', (event, messageBoxOptions, synchronous?: boolean) => {
             let reportingEnabled = false;
-            if (!messageBoxOptions.checkboxLabel && messageBoxOptions.detail && messageBoxOptions.type === 'error') {
+            let report: string;
+            let detail: string = messageBoxOptions.detail;
+            let reportTag = '___REPORT___:\n';
+            if (detail && detail.startsWith(reportTag)) {
+                report = detail.substr(reportTag.length);
+                messageBoxOptions = {...messageBoxOptions, detail: undefined};
+            }
+            if (report) {
                 messageBoxOptions = {
                     ...messageBoxOptions,
-                    checkboxLabel: 'Copy report to clipboard',
+                    checkboxLabel: messageBoxOptions.checkboxLabel || 'Copy report to clipboard',
                     checkboxChecked: false,
                 };
                 reportingEnabled = true;
@@ -233,8 +242,7 @@ class CateDesktopApp {
                 if (reportingEnabled && checkboxChecked) {
                     const reportEntries = [
                         electron.app.getName() + ', version ' + electron.app.getVersion(),
-                        messageBoxOptions.message,
-                        messageBoxOptions.detail,
+                        report,
                     ];
                     electron.clipboard.writeText(reportEntries.join('\n\n'));
                 }

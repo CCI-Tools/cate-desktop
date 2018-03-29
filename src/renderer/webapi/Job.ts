@@ -9,8 +9,11 @@
  */
 export interface Job {
     getRequest(): JobRequest;
+
     getStatus(): JobStatus;
+
     isCancelled(): boolean;
+
     cancel(): void;
 }
 
@@ -19,13 +22,14 @@ export interface Job {
  */
 export interface JobPromise<JobResponse> extends Promise<JobResponse> {
     getJob(): Job;
+
     getJobId(): number;
 }
 
 /**
  * All the possible job statuses.
  */
-export type JobStatus = 'NEW'|'SUBMITTED'|'IN_PROGRESS'|'FAILED'|'CANCELLED'|'DONE';
+export type JobStatus = 'NEW' | 'SUBMITTED' | 'IN_PROGRESS' | 'FAILED' | 'CANCELLED' | 'DONE';
 
 export class JobStatusEnum {
     static readonly NEW = 'NEW';
@@ -43,7 +47,7 @@ export interface JobRequest {
     /** The JSON-RCP message identifier. */
     readonly id: number;
     readonly method: string;
-    readonly params: Array<any>|Object;
+    readonly params: Array<any> | Object;
 }
 
 /**
@@ -66,7 +70,7 @@ export interface JobFailure {
     /** A Number that indicates the error type that occurred. */
     readonly code: number;
 
-    /** A string providing a short description of the error. */
+    /** A the error message. */
     readonly message: string;
 
     /**
@@ -74,7 +78,21 @@ export interface JobFailure {
      * This may be omitted.
      * The value of this member is defined by the Server (e.g. detailed error information, nested errors etc.).
      */
-    readonly data?: any;
+    readonly data?: JobFailureInfo;
+}
+
+/**
+ * Detailed error information.
+ */
+export interface JobFailureInfo {
+    /** The name of the method which was called while the error occurred. */
+    readonly method: string;
+
+    /** The name of the exception type, e.g. "OSError", "ValidationError". */
+    readonly exception: string;
+
+    /** Stack trace */
+    readonly traceback: string;
 }
 
 /**

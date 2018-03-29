@@ -37,8 +37,23 @@ import {
     JobFailureHandler, JobStatusEnum
 } from './Job'
 
+// IMPORTANT NOTE: The following error codes MUST BE COPIED from cate/util/web/jsonrpchandler.py
+//
+// See http://www.jsonrpc.org/specification#error_object
+// The error codes from and including -32768 to -32000 are reserved for pre-defined errors.
+export const ERROR_CODE_INVALID_REQUEST = -32600;
+export const ERROR_CODE_METHOD_NOT_FOUND = -32601;
+export const ERROR_CODE_INVALID_PARAMS = -32602;
+// The error codes from and including -32000 to -32099 are reserved for implementation-defined server-errors.
+export const ERROR_CODE_OS_ERROR = -32001;
+export const ERROR_CODE_OUT_OF_MEMORY = -32002;
+export const ERROR_CODE_METHOD_ERROR = -32003;
+export const ERROR_CODE_INVALID_RESPONSE = -32004;
+// The remainder of the space is available for application defined errors.
+export const ERROR_CODE_CANCELLED = 999;
+
 const CANCEL_METHOD = '__cancel__';
-const CANCELLED_CODE = 999;
+
 
 export type JobResponseTransformer<JobResponse> = (any) => JobResponse;
 
@@ -85,9 +100,9 @@ export interface WebAPIClient {
      * @param transformer Optional transformer for the returned responses
      */
     call<JobResponse>(method: string,
-         params: Array<any>|Object,
-         onProgress?: (progress: JobProgress) => void,
-         transformer?: JobResponseTransformer<JobResponse>): JobPromise<JobResponse>;
+                      params: Array<any> | Object,
+                      onProgress?: (progress: JobProgress) => void,
+                      transformer?: JobResponseTransformer<JobResponse>): JobPromise<JobResponse>;
 
     /**
      * Cancels the job with the given ID.
@@ -158,9 +173,9 @@ class WebAPIClientImpl implements WebAPIClient {
     }
 
     call<JobResponse>(method: string,
-         params: Array<any>|Object,
-         onProgress?: (progress: JobProgress) => void,
-         transformer?: JobResponseTransformer<JobResponse>): JobPromise<JobResponse>  {
+                      params: Array<any> | Object,
+                      onProgress?: (progress: JobProgress) => void,
+                      transformer?: JobResponseTransformer<JobResponse>): JobPromise<JobResponse> {
         const request = {
             "id": this.newId(),
             "method": method,
@@ -289,8 +304,8 @@ class JobImpl<JobResponse> implements Job {
            onReject?: JobFailureHandler): void {
         this.webAPIClient.call<void>(CANCEL_METHOD, {id: this.request.id})
             .then(onResolve || (() => {
-                }), onReject || (() => {
-                }));
+            }), onReject || (() => {
+            }));
     }
 
     ////////////////////////////////////////////////////////////
@@ -348,7 +363,7 @@ class JobImpl<JobResponse> implements Job {
     }
 
     notifyFailed(failure: JobFailure) {
-        this.setStatus(failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED);
+        this.setStatus(failure.code === ERROR_CODE_CANCELLED ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED);
         if (this.onReject) {
             this.onReject(failure);
         }
