@@ -23,7 +23,7 @@ export const APP_CLI_VERSION_RANGE = ">=2.0.0-dev.9 <2.1.0";
 export const EXPECTED_APP_CLI_VERSION = "2.0.0.dev9";
 
 export const CATE_CLI_NAME = "cate";
-export const CATE_WEBAPI_NAME = "cate-webapi";
+export const CATE_WEBAPI_NAME = "cate-webapi-start";
 
 export const CATE_CLI_EXECUTABLE = (() => {
     if (process.platform === 'win32') {
