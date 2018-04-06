@@ -1,5 +1,10 @@
 ## Changes in 2.0.0-dev.9 (in dev)
- 
+
+### New Features and UX Improvements 
+
+* Improve error messages and handling
+  [#393](https://github.com/CCI-Tools/cate/issues/393)
+
 
 ## Changes in 2.0.0-dev.8 
 
