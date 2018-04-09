@@ -262,13 +262,14 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         const positionData = this.props.positionData;
         const selectedEntity = this.props.selectedEntity;
         let renderItemFunc = VariablesPanel.renderItem;
-        if (isVectorVariable && selectedEntity) {
+        if (isVectorVariable && selectedEntity && selectedEntity.properties) {
             renderItemFunc = (variable: VariableState) => {
                 const varNameRender = VariablesPanel.renderItem(variable);
                 const property = selectedEntity.properties[variable.name];
                 if (property) {
-                    return <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property.getValue()}</span>
-                    </div>;
+                    return (
+                        <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property.getValue()}</span></div>
+                    );
                 }
                 return varNameRender;
             }
@@ -277,8 +278,9 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
                 const varNameRender = VariablesPanel.renderItem(variable);
                 const property = positionData[variable.name];
                 if (isDefinedAndNotNull(property)) {
-                    return <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property}</span>
-                    </div>;
+                    return (
+                        <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property}</span></div>
+                    );
                 }
                 return varNameRender;
             }
