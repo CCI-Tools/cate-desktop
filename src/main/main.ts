@@ -21,8 +21,6 @@ import {installAutoUpdate} from "./update-frontend";
 import {isDefined, isNumber} from "../common/types";
 import {doSetup} from "./setup";
 import {SetupResult} from "../common/setup";
-import {showToast} from "../renderer/toast";
-import {MessageState} from "../renderer/state";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -412,6 +410,28 @@ class CateDesktopApp {
             return;
         }
 
+        let pid;
+        try {
+            const serviceConfig = JSON.parse(fs.readFileSync(this.webAPIConfig.serviceFile, 'utf8'));
+            pid = serviceConfig.pid;
+        } catch (e) {
+            log.error(e);
+        }
+
+        if (isNumber(pid)) {
+            log.info('Terminating WebAPI child process');
+            process.kill(pid, 'SIGTERM');
+        }
+
+        if (this.webAPIProcess.connected) {
+            log.info('Terminating WebAPI parent process');
+            this.webAPIProcess.kill('SIGKILL');
+            //while (this.webAPIProcess.connected) {
+            //}
+        }
+
+
+/*
         const url = this.webAPIRestUrl + 'exit';
         log.info(`Requesting Cate service to stop: ${url}...`);
         request(url, 1000 * this.webAPIStopTimeout)
@@ -430,6 +450,7 @@ class CateDesktopApp {
                 //sleep(10000);
                 //log.error("Still alive!");
             });
+*/
     }
 
     private resetWebAPIStartTime() {
@@ -480,7 +501,7 @@ class CateDesktopApp {
                         this.preferences.set('suppressQuitConfirm', suppressQuitConfirm);
                         this.storeUserPreferences();
                         this.quitConfirmed = true;
-                        // Force window close, so app can quit after all windows closed.
+                        // Force window close, so app can quit after all windows are closed.
                         // We must call destroy() here, calling close() seems to have no effect on Mac (Electron 1.8.2).
                         this.mainWindow.destroy();
                         this.forceQuit();
