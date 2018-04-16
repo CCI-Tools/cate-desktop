@@ -37,9 +37,6 @@ const ERRCODE_SETUP_FAILED = 5;
 // See https://github.com/CCI-Tools/cate/issues/550
 const WEBAPI_START_TIMEOUT_MAX = 60;
 
-// Timeout for stopping WebAPI in seconds.
-const WEBAPI_STOP_TIMEOUT_MAX = 2.5;
-
 // WebAPI access timeout in seconds:
 const WEBAPI_ACCESS_TIMEOUT_MAX = 0.5;
 
@@ -47,7 +44,7 @@ const WEBAPI_ACCESS_TIMEOUT_MAX = 0.5;
 const WEBAPI_ACCESS_DELAY_MAX = 0.5;
 
 // Signal used to kill a running WebAPI service if a stop requiest times out:
-const WEBAPI_KILL_SIGNAL = "SIGKILL";
+const WEBAPI_KILL_SIGNAL = "SIGTERM";
 
 
 const NANOS_PER_SEC = 1.0e9;
@@ -104,10 +101,6 @@ class CateDesktopApp {
 
     get webAPIStartTimeout(): number {
         return this.preferences.get("webAPIStartTimeout", WEBAPI_START_TIMEOUT_MAX);
-    }
-
-    get webAPIStopTimeout(): number {
-        return this.preferences.get("webAPIStopTimeout", WEBAPI_STOP_TIMEOUT_MAX);
     }
 
     get webAPIAccessTimeout(): number {
@@ -383,20 +376,12 @@ class CateDesktopApp {
                 electron.app.exit(ERRCODE_WEBAPI_INTERNAL_ERROR); // exit immediately
             });
             this.webAPIProcess.on('close', (code: number, signal: string) => {
-                let message = `Cate service closed I/O with code ${code} due to ${signal}.`;
-                if (!!code) {
-                    log.error(WEBAPI_LOG_PREFIX, message);
-                } else {
-                    log.info(WEBAPI_LOG_PREFIX, message);
-                }
+                let message = `Cate service disconnected with code ${code} due to ${signal}.`;
+                log.info(WEBAPI_LOG_PREFIX, message);
             });
             this.webAPIProcess.on('exit', (code: number, signal: string) => {
                 let message = `Cate service process exited with code ${code} due to ${signal}.`;
-                if (!!code) {
-                    log.error(WEBAPI_LOG_PREFIX, message);
-                } else {
-                    log.info(WEBAPI_LOG_PREFIX, message);
-                }
+                log.info(WEBAPI_LOG_PREFIX, message);
             });
 
             callback();
@@ -418,39 +403,21 @@ class CateDesktopApp {
             log.error(e);
         }
 
+        const signal = this.webAPIKillSignal;
+
         if (isNumber(pid)) {
-            log.info('Terminating WebAPI child process');
-            process.kill(pid, 'SIGTERM');
+            log.info(`Sending ${signal} to Cate service process...`);
+            process.kill(pid, signal);
+        } else {
+            log.error(`Invalid PID: ${pid}`);
         }
 
         if (this.webAPIProcess.connected) {
-            log.info('Terminating WebAPI parent process');
-            this.webAPIProcess.kill('SIGKILL');
-            //while (this.webAPIProcess.connected) {
-            //}
+            log.info(`Sending ${signal} to Cate service parent process...`);
+            this.webAPIProcess.kill(signal);
+        } else {
+            log.info('Cate service parent process is no longer connected.');
         }
-
-
-/*
-        const url = this.webAPIRestUrl + 'exit';
-        log.info(`Requesting Cate service to stop: ${url}...`);
-        request(url, 1000 * this.webAPIStopTimeout)
-            .then(() => {
-                if (this.webAPIProcess.connected) {
-                    log.info(`Cate service stopped, but we are still connected.`);
-                } else {
-                    log.info(`Cate service stopped.`);
-                }
-            })
-            .catch((err) => {
-                log.error(`Failed stopping Cate service: ${err}`);
-                log.warn(`Killing it (pid=${this.webAPIProcess.pid}), sending ${this.webAPIKillSignal}...`);
-                this.webAPIProcess.kill(this.webAPIKillSignal);
-                //this.webAPIProcess = null;
-                //sleep(10000);
-                //log.error("Still alive!");
-            });
-*/
     }
 
     private resetWebAPIStartTime() {
