@@ -1,7 +1,12 @@
 import * as React from 'react';
 import { ModalDialog } from "../components/ModalDialog";
-import { ERROR_CODE_INVALID_PARAMS, ERROR_CODE_OS_ERROR, ERROR_CODE_OUT_OF_MEMORY, JobFailure } from "../webapi";
-import { Button, Checkbox, Collapse, Label } from "@blueprintjs/core";
+import {
+    ERROR_CODE_INVALID_PARAMS,
+    ERROR_CODE_OS_ERROR,
+    ERROR_CODE_OUT_OF_MEMORY, getJobFailureIconName, getJobFailureTitle,
+    JobFailure
+} from "../webapi";
+import { Button, Checkbox, Collapse, IconName, Label } from "@blueprintjs/core";
 import * as selectors from "../selectors";
 import { State } from "../state";
 import { connect, DispatchProp } from "react-redux";
@@ -80,18 +85,11 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
         if (!this.props.isOpen || !this.props.jobFailure) {
             return null;
         }
-        let title;
-        if (this.props.jobFailure.code === ERROR_CODE_INVALID_PARAMS) {
-            title = 'Input Validation Failed';
-        } else if (this.props.jobFailure.code === ERROR_CODE_OS_ERROR) {
-            title = 'Operation System Error';
-        } else if (this.props.jobFailure.code === ERROR_CODE_OUT_OF_MEMORY) {
-            title = 'Out-Of-Memory Error';
-        } else {
-            title = 'Error';
-        }
+        const iconName = getJobFailureIconName(this.props.jobFailure) as IconName;
+        const title = getJobFailureTitle(this.props.jobFailure);
         return (
             <ModalDialog isOpen={this.props.isOpen}
+                         iconName={iconName}
                          title={title}
                          onConfirm={this.handleConfirm}
                          onCancel={this.handleCancel}

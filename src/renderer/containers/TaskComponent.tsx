@@ -1,11 +1,17 @@
 import * as React from "react";
-import {CSSProperties} from "react";
+import { CSSProperties } from "react";
 import { connect, DispatchProp } from "react-redux";
-import {AnchorButton, Intent, ProgressBar} from "@blueprintjs/core";
-import {Card} from "../components/Card";
+import { AnchorButton, Intent, ProgressBar } from "@blueprintjs/core";
+import { Card } from "../components/Card";
 import { State, TaskState } from "../state";
 import * as actions from "../actions";
-import {JobStatusEnum} from "../webapi";
+import {
+    getJobFailureIconName,
+    getJobFailureIntentName,
+    getJobFailureTitle,
+    JobFailure,
+    JobStatusEnum
+} from "../webapi";
 
 interface ITaskComponentProps {
     task: TaskState;
@@ -49,11 +55,12 @@ class TaskComponent extends React.Component<DispatchProp<State> & ITaskComponent
         return taskState.status === JobStatusEnum.IN_PROGRESS && !!taskState.progress;
     }
 
-    private static renderIcon(icon: string, intent: string) {
+    private static renderIcon(jobFailure: JobFailure) {
+        const icon = getJobFailureIconName(jobFailure);
+        const intent = getJobFailureIntentName(jobFailure);
         return (
-            <span
-                className={"pt-icon-standard pt-icon-" + icon + " pt-intent-" + intent}
-                style={{paddingRight: '0.4em'}}/>
+            <span className={`pt-icon-standard pt-icon-${icon} pt-intent-${intent}`}
+                  style={{paddingRight: '0.4em'}}/>
         );
     }
 
@@ -61,7 +68,7 @@ class TaskComponent extends React.Component<DispatchProp<State> & ITaskComponent
         const taskState = this.props.task;
         const jobId = this.props.jobId;
 
-        let title = (<p>{taskState.title || `Task #${jobId}`}</p>);
+        let title = (<p>{taskState.title || `Task #${jobId}`}:</p>);
         let body = null;
 
         if (TaskComponent.isRunning(taskState)) {
@@ -95,11 +102,11 @@ class TaskComponent extends React.Component<DispatchProp<State> & ITaskComponent
             let detailsButton;
             let message;
             if (taskState.status === JobStatusEnum.CANCELLED) {
-                message = <div>{TaskComponent.renderIcon("hand", "warning")}Task has been cancelled.</div>
+                message = <div>{TaskComponent.renderIcon(taskState.failure)}Task has been cancelled.</div>
             } else {
                 detailsButton = (<AnchorButton onClick={this.handleShowDetails}>Details</AnchorButton>);
                 message = (
-                    <div>{TaskComponent.renderIcon("warning-sign", "danger")}Task has failed:<br/>
+                    <div>{TaskComponent.renderIcon(taskState.failure)}{getJobFailureTitle(taskState.failure)}<br/>
                         <div className="pt-text-muted" style={{paddingTop: '0.4em'}}>{taskState.failure.message}</div>
                     </div>
                 );
