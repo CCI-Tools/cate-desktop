@@ -1,11 +1,11 @@
 import * as React from "react";
 import {connect, DispatchProp} from "react-redux";
 import {State, TaskState} from "../state";
-import {JobStatusEnum} from "../webapi/Job";
+import {JobStatusEnum} from "../webapi";
 import * as actions from "../actions";
 import {Card} from "../components/Card";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
-import {TaskComponent} from "./TaskComponent";
+import TaskComponent from "./TaskComponent";
 
 interface ITaskPanelProps {
     tasks: { [jobId: number]: TaskState };

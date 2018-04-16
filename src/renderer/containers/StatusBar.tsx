@@ -5,8 +5,8 @@ import {GeographicPosition, State, TaskState} from "../state";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {Intent, Popover, PopoverInteractionKind, Position, ProgressBar, Tooltip} from "@blueprintjs/core";
-import {JobStatusEnum} from "../webapi/Job";
-import {TaskComponent} from "./TaskComponent";
+import {JobStatusEnum} from "../webapi";
+import TaskComponent from "./TaskComponent";
 
 interface IStatusBarProps {
     webAPIStatus: 'connecting' | 'open' | 'error' | 'closed' | null;
@@ -118,7 +118,8 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
                             {msg}
                         </div>
                     </div>
-                </Popover>);
+                </Popover>
+            );
         } else {
             return null;
         }
@@ -146,7 +147,8 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
         return (
             <Tooltip content={tooltipText} hoverOpenDelay={1500} position={Position.LEFT_TOP}>
                 <span className={`pt-icon-small ${iconName}`}/>
-            </Tooltip>);
+            </Tooltip>
+        );
     };
 
     render() {

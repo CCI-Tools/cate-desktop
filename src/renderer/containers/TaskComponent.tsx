@@ -1,11 +1,11 @@
 import * as React from "react";
 import {CSSProperties} from "react";
-import {TaskState} from "../state";
+import { connect, DispatchProp } from "react-redux";
 import {AnchorButton, Intent, ProgressBar} from "@blueprintjs/core";
-import {JobStatusEnum} from "../webapi/Job";
 import {Card} from "../components/Card";
+import { State, TaskState } from "../state";
 import * as actions from "../actions";
-import {ERROR_CODE_INVALID_PARAMS, ERROR_CODE_OUT_OF_MEMORY, JobFailure} from "../webapi";
+import {JobStatusEnum} from "../webapi";
 
 interface ITaskComponentProps {
     task: TaskState;
@@ -16,8 +16,11 @@ interface ITaskComponentProps {
     onRemoveJob(number): void;
 }
 
+function mapStateToProps(state: State, ownProps: ITaskComponentProps): ITaskComponentProps {
+    return ownProps;
+}
 
-export class TaskComponent extends React.Component<ITaskComponentProps, null> {
+class TaskComponent extends React.Component<DispatchProp<State> & ITaskComponentProps, null> {
     static readonly FLEX_ROW_STYLE: CSSProperties = {display: 'flex', flexFlow: 'row nowrap', width: '100%'};
     static readonly PROGRESS_STYLE: CSSProperties = {
         flex: "3 1 auto",
@@ -29,6 +32,11 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
 
     constructor(props: ITaskComponentProps) {
         super(props);
+        this.handleShowDetails = this.handleShowDetails.bind(this);
+    }
+
+    handleShowDetails() {
+        this.props.dispatch(actions.showJobFailureDetails(this.props.task.title, this.props.task.failure));
     }
 
     private static isRunning(taskState: TaskState): boolean {
@@ -89,10 +97,7 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
             if (taskState.status === JobStatusEnum.CANCELLED) {
                 message = <div>{TaskComponent.renderIcon("hand", "warning")}Task has been cancelled.</div>
             } else {
-                const showFailureDetails = () => {
-                    actions.showJobFailureBox(taskState.failure);
-                };
-                detailsButton = (<AnchorButton onClick={showFailureDetails}>Details</AnchorButton>);
+                detailsButton = (<AnchorButton onClick={this.handleShowDetails}>Details</AnchorButton>);
                 message = (
                     <div>{TaskComponent.renderIcon("warning-sign", "danger")}Task has failed:<br/>
                         <div className="pt-text-muted" style={{paddingTop: '0.4em'}}>{taskState.failure.message}</div>
@@ -112,3 +117,5 @@ export class TaskComponent extends React.Component<ITaskComponentProps, null> {
         return (<Card>{title}{body}</Card>);
     };
 }
+
+export default connect(mapStateToProps)(TaskComponent);

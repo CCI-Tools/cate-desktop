@@ -27,6 +27,7 @@ import {CSSProperties} from "react";
 import OperationStepDialog from "./OperationStepDialog";
 import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./operation-step-dialog-ids";
 import AnimationView from "./AnimationView";
+import JobFailureDialog from "./JobFailureDialog";
 
 
 function renderWorldView(view: ViewState<WorldViewDataState>) {
@@ -96,6 +97,7 @@ export default class ApplicationPage extends React.PureComponent<null, null> {
                 <NewWorkspaceDialog/>
                 <SaveWorkspaceAsDialog/>
                 <OperationStepDialog id={NEW_CTX_OPERATION_STEP_DIALOG_ID}/>
+                <JobFailureDialog/>
                 <div id="creditContainer" style={ApplicationPage.CREDITS_DIV_STYLE}/>
             </div>
         );

@@ -5,7 +5,7 @@ import {
     OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
     SplitMode,
 } from "./state";
-import {ViewState, ViewPath} from "./components/ViewState";
+import { ViewState, ViewPath } from "./components/ViewState";
 import {
     JobProgress,
     JobFailure,
@@ -16,26 +16,26 @@ import {
 } from "./webapi";
 import * as selectors from "./selectors";
 import * as assert from "../common/assert";
-import {PanelContainerLayout} from "./components/PanelContainer";
+import { PanelContainerLayout } from "./components/PanelContainer";
 import {
     newVariableLayer, getCsvUrl, AUTO_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
     isAnimationResource, getHtmlUrl, MY_PLACES_LAYER_ID, getNonSpatialIndexers, genSimpleId, PLACEMARK_ID_PREFIX,
     getWorldViewVectorLayerForEntity
 } from "./state-util";
-import {SplitDir} from "./components/Splitter";
-import {updateObject} from "../common/objutil";
-import {showToast} from "./toast";
+import { SplitDir } from "./components/Splitter";
+import { updateObject } from "../common/objutil";
+import { showToast } from "./toast";
 import * as redux from "redux";
 import * as d3 from "d3-fetch";
 import * as Cesium from "cesium";
-import {isDefined, isNumber} from "../common/types";
-import {reloadEntityWithOriginalGeometry} from "./containers/globe-view-layers";
-import {DirectGeometryObject, Feature} from "geojson";
-import {SimpleStyle} from "../common/geojson-simple-style";
-import {GeometryToolType} from "./components/cesium/geometry-tool";
-import {getEntityByEntityId} from "./components/cesium/cesium-util";
-import {isAssignableFrom, VAR_NAME_LIKE_TYPE, VAR_NAMES_LIKE_TYPE} from "../common/cate-types";
+import { isDefined, isNumber } from "../common/types";
+import { reloadEntityWithOriginalGeometry } from "./containers/globe-view-layers";
+import { DirectGeometryObject, Feature } from "geojson";
+import { SimpleStyle } from "../common/geojson-simple-style";
+import { GeometryToolType } from "./components/cesium/geometry-tool";
+import { getEntityByEntityId } from "./components/cesium/cesium-util";
+import { isAssignableFrom, VAR_NAME_LIKE_TYPE, VAR_NAMES_LIKE_TYPE } from "../common/cate-types";
 import {
     assignConstantValueInput, assignResourceNameInput, InputAssignments,
     isInputAssigned
@@ -78,7 +78,6 @@ export type ThunkAction = (dispatch?: Dispatch, getState?: GetState) => void;
 
 export const ACTIVATE_NEW_PLACEMARK_TOOL = 'ACTIVATE_NEW_PLACEMARK_TOOL';
 export const ADD_PLACEMARK = 'ADD_PLACEMARK';
-export const LOCATE_PLACEMARK = 'LOCATE_PLACEMARK';
 export const REMOVE_PLACEMARK = 'REMOVE_PLACEMARK';
 export const UPDATE_PLACEMARK_GEOMETRY = 'UPDATE_PLACEMARK_GEOMETRY';
 export const UPDATE_PLACEMARK_PROPERTIES = 'UPDATE_PLACEMARK_PROPERTIES';
@@ -222,8 +221,8 @@ export function updateDialogState(dialogId: string, ...dialogState): Action {
     return {type: UPDATE_DIALOG_STATE, payload: {dialogId, dialogState: Object.assign({}, ...dialogState)}};
 }
 
-export function showDialog(dialogId: string): Action {
-    return updateDialogState(dialogId, {isOpen: true});
+export function showDialog(dialogId: string, dialogState?: any): Action {
+    return updateDialogState(dialogId, dialogState, {isOpen: true});
 }
 
 export function hideDialog(dialogId: string, dialogState?: any): Action {
@@ -344,30 +343,33 @@ function jobDone(jobId: number): Action {
     return updateTaskState(jobId, {status: JobStatusEnum.DONE});
 }
 
-function jobFailed(jobId: number, jobTitle: string, failure: JobFailure): Action {
+function jobFailed(jobId: number, jobTitle: string, failure: JobFailure, dispatch: (action: Action) => void): void {
     const status = failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED;
-    let type = 'warning';
-    let text = `Cancelled: ${jobTitle}`;
-    let action;
-    if (status === JobStatusEnum.FAILED) {
+    let type, text, action;
+    if (status === JobStatusEnum.CANCELLED) {
+        type = 'notification';
+        text = `Cancelled: ${jobTitle}`;
+    } else {
         type = 'error';
-        text = `Failed: ${jobTitle} (error #${failure.code})\n${failure.message}`;
+        text = failure.message || `Failed: ${jobTitle}`;
         action = {
             text: 'Details',
             onClick: () => {
-                showJobFailureBox(failure);
+                dispatch(showJobFailureDetails(jobTitle, failure));
             }
         };
         console.error(failure);
     }
-    if (failure.code !== ERROR_CODE_INVALID_PARAMS) {
-        showToast({
-                      type: type,
-                      text: text,
-                      action: action,
-                  } as MessageState);
+    dispatch(updateTaskState(jobId, {status, failure}));
+    if (failure.code === ERROR_CODE_INVALID_PARAMS) {
+        dispatch(showJobFailureDetails(jobTitle, failure));
+    } else {
+        showToast({type, text, action} as MessageState);
     }
-    return updateTaskState(jobId, {status, failure});
+}
+
+export function showJobFailureDetails(jobTitle: string, jobFailure: JobFailure): Action {
+    return showDialog('jobFailureDialog', {jobTitle, jobFailure});
 }
 
 export type JobPromiseFactory<T> = (jobProgressHandler: JobProgressHandler) => JobPromise<T>;
@@ -424,7 +426,7 @@ export function callAPI<T>(dispatch: (action: Action) => void,
         if (!startToastShown) {
             clearTimeout(startToastTimeoutHandler);
         }
-        dispatch(jobFailed(jobPromise.getJobId(), title, jobFailure));
+        jobFailed(jobPromise.getJobId(), title, jobFailure, dispatch);
         if (planB) {
             planB(jobFailure);
         }
@@ -432,7 +434,6 @@ export function callAPI<T>(dispatch: (action: Action) => void,
 
     jobPromise.then(onDone, onFailure);
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data stores / data sources actions
@@ -1002,8 +1003,8 @@ export function deleteResourceInteractive(resName: string): ThunkAction {
     return (dispatch: Dispatch) => {
         const answer = showMessageBox({
                                           type: 'question',
-                                          title: 'Remove Resource / Workflow Step',
-                                          message: `Do you really want to delete resource/step "${resName}"?`,
+                                          title: 'Remove Resource and Workflow Step',
+                                          message: `Do you really want to delete resource and step "${resName}"?`,
                                           detail: 'This will also delete the workflow step that created it.\n' +
                                                   'You will not be able to undo this operation.',
                                           buttons: ["Yes", "No"],
@@ -1831,39 +1832,6 @@ export function showFileSaveDialog(saveDialogOptions: SaveDialogOptions, callbac
         return electron.ipcRenderer.sendSync(actionName, saveDialogOptions, true) as any;
     }
 }
-
-export function showJobFailureBox(failure: JobFailure) {
-
-    let type = 'error';
-    if (failure.code === ERROR_CODE_INVALID_PARAMS) {
-        type = 'info';
-    }
-
-    let report = '___REPORT___:\n';
-    report += `Message: ${failure.message}\n`;
-    report += `Code: ${failure.code}\n`;
-    if (failure.data) {
-        if (failure.data.method) {
-            report += `Method: ${failure.data.method}\n`;
-        }
-        if (failure.data.exception) {
-            report += `Exception: ${failure.data.exception}\n`;
-        }
-        if (failure.data.traceback) {
-            report += `Traceback:\n${failure.data.traceback}\n`;
-        }
-    }
-    showMessageBox({
-                       title: 'Cate Desktop',
-                       type,
-                       buttons: [],
-                       message: failure.message.replace(': ', '\n'),
-                       detail: report,
-                   }, MESSAGE_BOX_NO_REPLY);
-}
-
-export const MESSAGE_BOX_NO_REPLY = () => {
-};
 
 /**
  * Shows a native message box.
