@@ -11,7 +11,6 @@ import {
     // Popover
 } from "@blueprintjs/core";
 import {Splitter} from "./Splitter";
-import ReactElement = React.ReactElement;
 import {CSSProperties} from "react";
 
 export interface PanelContainerLayout {
@@ -371,7 +370,7 @@ const CONTAINER_STYLE: CSSProperties = {
     paddingTop: PanelContainer.PANEL_BAR_PADDING,
     paddingBottom: PanelContainer.PANEL_BAR_PADDING,
 };
-const PANEL_BUTTON_STYLE = {textAlign: "center", verticalAlign: "middle"};
+const PANEL_BUTTON_STYLE: CSSProperties = {textAlign: "center", verticalAlign: "middle"};
 
 const PANEL_BODY_CONTAINER_STYLE: CSSProperties = {
     flex: 1,

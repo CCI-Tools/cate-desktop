@@ -17,6 +17,7 @@ import {GeometryToolType} from "../components/cesium/geometry-tool";
 import {isBoolean} from "../../common/types";
 import {NumericField, NumericFieldValue} from "../components/field/NumericField";
 import {ToolButton} from "../components/ToolButton";
+import {CSSProperties} from 'react';
 
 interface IPlacemarksPanelDispatch {
     dispatch: Dispatch<State>;
@@ -356,7 +357,7 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
 
     static readonly ICON_STYLE = {marginLeft: "0.5em"};
     static readonly NAME_STYLE = {marginLeft: "0.5em"};
-    static readonly INFO_STYLE = {float: "right", color: Colors.BLUE5};
+    static readonly INFO_STYLE: CSSProperties = {float: "right", color: Colors.BLUE5};
 
     constructor(props: IPlacemarkItemProps) {
         super(props);

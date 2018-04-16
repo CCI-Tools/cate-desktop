@@ -13,7 +13,7 @@ export class LogField extends React.PureComponent<ILogFieldProps> {
         overflow: "auto",
         background: "#464646",
         color: "#FFFFEE",
-        fontFamily: ["Source Code Pro", "Consolas", "Lucida Console", "Courier New"],
+        fontFamily: '"Source Code Pro", Consolas, "Lucida Console", "Courier New"',
         fontSize: "0.9em",
         width: "100%",
         minHeight: 48,
