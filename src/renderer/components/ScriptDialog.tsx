@@ -1,6 +1,6 @@
 import * as React from 'react';
 import AceEditor from 'react-ace';
-import {ModalDialog} from "./ModalDialog";
+import { ModalDialog } from "./ModalDialog";
 
 import 'brace/mode/python';
 import 'brace/theme/monokai';
@@ -18,6 +18,13 @@ interface IScriptDialogState {
     error?: Error;
 }
 
+
+const LIBS = [
+    {href: 'http://xarray.pydata.org/en/stable/api.html#top-level-functions', module: 'xr', name: 'xarray'},
+    {href: 'http://xarray.pydata.org/en/stable/api.html#universal-functions', module: 'xu', name: 'xarray u-funcs'},
+    {href: 'http://pandas.pydata.org/pandas-docs/stable/basics.html', module: 'pd', name: 'Pandas'},
+    {href: 'http://pandas.pydata.org/pandas-docs/stable/basics.html', module: 'np', name: 'numpy'},
+];
 
 export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDialogState> {
     private static readonly DIALOG_STYLE: React.CSSProperties = {width: "54em"};
@@ -48,6 +55,7 @@ export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDia
         return !this.state.error;
     }
 
+    // noinspection JSMethodCanBeStatic
     private toState(value: any) {
         let error;
         try {
@@ -78,19 +86,37 @@ export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDia
         }
 
         const value = this.state.value;
-        const hasError = !!this.state.error;
+        // const hasError = !!this.state.error;
         return (
-            <AceEditor mode={this.props.scriptLang}
-                       theme="monokai"
-                       width={"100%"}
-                       fontSize={14}
-                       showGutter={true}
-                       highlightActiveLine={true}
-                       value={value}
-                       onChange={this.onChange}
-            />
+            <React.Fragment>
+                <AceEditor mode={this.props.scriptLang}
+                           theme="monokai"
+                           width={"100%"}
+                           fontSize={14}
+                           showGutter={true}
+                           highlightActiveLine={true}
+                           value={value}
+                           onChange={this.onChange}
+                />
+                {this.getHelpText()}
+            </React.Fragment>
         );
     }
 
+    getHelpText() {
+
+        const libText = LIBS.map((item, index) => (
+            <span><code>{item.module}</code>&nbsp;(<a href={item.href}
+                                                      target="_blank">{item.name}</a>){index < LIBS.length - 1 ? ', ' : ''}</span>
+        ));
+
+        return (
+            <div className="pt-form-helper-text" style={{marginTop: '0.5em'}}>
+                Please use Python 3.6+ syntax. The following modules are imported by default: {libText}. Other
+                modules can be imported: <code>dask</code>, <code>gdal</code>, <code>geos</code> <code>pyshp</code>,
+                <code>scipy</code>, <code>shapely</code>.
+            </div>
+        );
+    }
 }
 
