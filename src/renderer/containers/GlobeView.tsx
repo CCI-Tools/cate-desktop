@@ -12,7 +12,7 @@ import {
     CanvasPosition, CesiumGlobe, GeographicPosition, ImageLayerDescriptor,
     LayerDescriptors
 } from "../components/cesium/CesiumGlobe";
-import {findVariableIndexCoordinates, PLACEMARK_ID_PREFIX} from "../state-util";
+import {findVariableIndexCoordinates, isImageLayer, PLACEMARK_ID_PREFIX} from "../state-util";
 import {ViewState} from "../components/ViewState";
 import {convertLayersToLayerDescriptors} from "./globe-view-layers";
 import * as Cesium from "cesium";
@@ -22,7 +22,7 @@ import {featurePropertiesFromSimpleStyle, SimpleStyle} from "../../common/geojso
 import {Menu, MenuDivider, MenuItem} from "@blueprintjs/core";
 import {GEOMETRY_LIKE_TYPE, POINT_LIKE_TYPE, POLYGON_LIKE_TYPE} from "../../common/cate-types";
 import {geometryGeoJsonToGeometryWkt} from "../../common/geometry-util";
-import {CSSProperties} from 'react';
+import { CSSProperties } from "react";
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -200,6 +200,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         const view = this.props.view;
         const viewId = this.props.view.id;
         const layers = view.data.layers;
+        const selectedLayer = this.props.selectedLayer;
         const placemarks = this.props.placemarks;
         const showLayerTextOverlay = this.props.showLayerTextOverlay;
         const workspace = this.props.workspace;

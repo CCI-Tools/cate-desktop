@@ -40,8 +40,7 @@ import {
     assignConstantValueInput, assignResourceNameInput, InputAssignments,
     isInputAssigned
 } from "./containers/editor/value-editor-assign";
-
-const CANCELLED_CODE = 999;
+import { ERROR_CODE_CANCELLED } from "./webapi/WebAPIClient";
 
 
 /**
@@ -344,7 +343,7 @@ function jobDone(jobId: number): Action {
 }
 
 function jobFailed(jobId: number, jobTitle: string, failure: JobFailure, dispatch: (action: Action) => void): void {
-    const status = failure.code === CANCELLED_CODE ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED;
+    const status = failure.code === ERROR_CODE_CANCELLED ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED;
     let type, text, action;
     if (status === JobStatusEnum.CANCELLED) {
         type = 'notification';
@@ -358,7 +357,6 @@ function jobFailed(jobId: number, jobTitle: string, failure: JobFailure, dispatc
                 dispatch(showJobFailureDetails(jobTitle, failure));
             }
         };
-        console.error(failure);
     }
     dispatch(updateTaskState(jobId, {status, failure}));
     if (failure.code === ERROR_CODE_INVALID_PARAMS) {

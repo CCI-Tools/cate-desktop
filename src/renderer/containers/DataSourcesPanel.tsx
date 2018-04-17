@@ -363,8 +363,8 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
             <div style={DataSourcesList.ITEM_DIV_STYLE}>
                 {this.renderIcon(dataSource)}
                 <div>
-                    <div>{title}</div>
-                    <div style={DataSourcesList.ID_DIV_STYLE}>{id}</div>
+                    <div className="user-selectable">{title}</div>
+                    <div className="user-selectable" style={DataSourcesList.ID_DIV_STYLE}>{id}</div>
                 </div>
             </div>
         );
@@ -375,7 +375,7 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
         return (
             <div style={DataSourcesList.ITEM_DIV_STYLE}>
                 {this.renderIcon(dataSource)}
-                <span>{id}</span>
+                <span className="user-selectable">{id}</span>
             </div>
         );
     }
@@ -440,17 +440,17 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
                     <tbody>
                     <tr>
                         <td/>
-                        <td>{meta_info.bbox_maxy}&#176;</td>
+                        <td className="user-selectable">{meta_info.bbox_maxy}&#176;</td>
                         <td/>
                     </tr>
                     <tr>
-                        <td>{meta_info.bbox_minx}&#176;</td>
+                        <td className="user-selectable">{meta_info.bbox_minx}&#176;</td>
                         <td/>
-                        <td>{meta_info.bbox_maxx}&#176;</td>
+                        <td className="user-selectable">{meta_info.bbox_maxx}&#176;</td>
                     </tr>
                     <tr>
                         <td/>
-                        <td>{meta_info.bbox_miny}&#176;</td>
+                        <td className="user-selectable">{meta_info.bbox_miny}&#176;</td>
                         <td/>
                     </tr>
                     </tbody>
@@ -465,11 +465,11 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
                     <tbody>
                     <tr>
                         <td>Start</td>
-                        <td>{dataSource.temporalCoverage[0]}</td>
+                        <td className="user-selectable">{dataSource.temporalCoverage[0]}</td>
                     </tr>
                     <tr>
                         <td>End</td>
-                        <td>{dataSource.temporalCoverage[1]}</td>
+                        <td className="user-selectable">{dataSource.temporalCoverage[1]}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -479,7 +479,7 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         let summary;
         if (meta_info.abstract) {
             summary = (<div><h5>Summary</h5>
-                <p>{meta_info.abstract}</p>
+                <p className="user-selectable">{meta_info.abstract}</p>
             </div>)
         }
 
@@ -504,14 +504,14 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
             const variable = variables[rowIndex];
             return (
                 <Cell tooltip={variable.long_name}>
-                    <TruncatedFormat>{variable.name}</TruncatedFormat>
+                    <TruncatedFormat className="user-selectable">{variable.name}</TruncatedFormat>
                 </Cell>
             );
         }
 
         function renderUnit(rowIndex: number) {
             const variable = variables[rowIndex];
-            return (<Cell><TruncatedFormat>{variable.units || '-'}</TruncatedFormat></Cell>);
+            return (<Cell><TruncatedFormat className="user-selectable">{variable.units || '-'}</TruncatedFormat></Cell>);
         }
 
         function getCellClipboardData(row: number, col: number) {

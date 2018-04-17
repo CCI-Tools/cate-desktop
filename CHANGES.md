@@ -2,6 +2,10 @@
 
 ### New Features and UX Improvements 
 
+* Some (text) areas in the UI should be user-selectable
+  [#608](https://github.com/CCI-Tools/cate/issues/608)
+* Cate Desktop reuses service started by another user
+  [#577](https://github.com/CCI-Tools/cate/issues/577)
 * Improve error messages and handling
   [#393](https://github.com/CCI-Tools/cate/issues/393)
 

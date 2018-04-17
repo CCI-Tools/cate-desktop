@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as assert from "../../common/assert";
 import {shallowEqual} from "../../common/shallow-equal";
-import {CSSProperties} from 'react';
+import { CSSProperties } from "react";
 
 export interface IExternalObjectComponentProps<E, ES> {
     id: string;

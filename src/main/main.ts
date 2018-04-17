@@ -18,11 +18,9 @@ import {
 } from "./appenv";
 import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
-import {isDefined, isNumber} from "../common/types";
+import { isDefined, isNumber, isString } from "../common/types";
 import {doSetup} from "./setup";
 import {SetupResult} from "../common/setup";
-import {showToast} from "../renderer/toast";
-import {MessageState} from "../renderer/state";
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -39,9 +37,6 @@ const ERRCODE_SETUP_FAILED = 5;
 // See https://github.com/CCI-Tools/cate/issues/550
 const WEBAPI_START_TIMEOUT_MAX = 60;
 
-// Timeout for stopping WebAPI in seconds.
-const WEBAPI_STOP_TIMEOUT_MAX = 2.5;
-
 // WebAPI access timeout in seconds:
 const WEBAPI_ACCESS_TIMEOUT_MAX = 0.5;
 
@@ -49,7 +44,7 @@ const WEBAPI_ACCESS_TIMEOUT_MAX = 0.5;
 const WEBAPI_ACCESS_DELAY_MAX = 0.5;
 
 // Signal used to kill a running WebAPI service if a stop requiest times out:
-const WEBAPI_KILL_SIGNAL = "SIGKILL";
+const WEBAPI_KILL_SIGNAL = "SIGTERM";
 
 
 const NANOS_PER_SEC = 1.0e9;
@@ -106,10 +101,6 @@ class CateDesktopApp {
 
     get webAPIStartTimeout(): number {
         return this.preferences.get("webAPIStartTimeout", WEBAPI_START_TIMEOUT_MAX);
-    }
-
-    get webAPIStopTimeout(): number {
-        return this.preferences.get("webAPIStopTimeout", WEBAPI_STOP_TIMEOUT_MAX);
     }
 
     get webAPIAccessTimeout(): number {
@@ -384,21 +375,15 @@ class CateDesktopApp {
                 this.webAPIError = err;
                 electron.app.exit(ERRCODE_WEBAPI_INTERNAL_ERROR); // exit immediately
             });
-            this.webAPIProcess.on('close', (code: number, signal: string) => {
-                let message = `Cate service closed I/O with code ${code} due to ${signal}.`;
-                if (!!code) {
-                    log.error(WEBAPI_LOG_PREFIX, message);
-                } else {
-                    log.info(WEBAPI_LOG_PREFIX, message);
-                }
-            });
             this.webAPIProcess.on('exit', (code: number, signal: string) => {
-                let message = `Cate service process exited with code ${code} due to ${signal}.`;
-                if (!!code) {
-                    log.error(WEBAPI_LOG_PREFIX, message);
-                } else {
-                    log.info(WEBAPI_LOG_PREFIX, message);
+                let message = 'Cate service exited';
+                if (isNumber(code)){
+                    message += ` with code ${code}`;
                 }
+                if (isString(signal)){
+                    message += ` due to ${signal}`;
+                }
+                log.info(WEBAPI_LOG_PREFIX, message);
             });
 
             callback();
@@ -412,24 +397,29 @@ class CateDesktopApp {
             return;
         }
 
-        const url = this.webAPIRestUrl + 'exit';
-        log.info(`Requesting Cate service to stop: ${url}...`);
-        request(url, 1000 * this.webAPIStopTimeout)
-            .then(() => {
-                if (this.webAPIProcess.connected) {
-                    log.info(`Cate service stopped, but we are still connected.`);
-                } else {
-                    log.info(`Cate service stopped.`);
-                }
-            })
-            .catch((err) => {
-                log.error(`Failed stopping Cate service: ${err}`);
-                log.warn(`Killing it (pid=${this.webAPIProcess.pid}), sending ${this.webAPIKillSignal}...`);
-                this.webAPIProcess.kill(this.webAPIKillSignal);
-                //this.webAPIProcess = null;
-                //sleep(10000);
-                //log.error("Still alive!");
-            });
+        let pid;
+        try {
+            const serviceConfig = JSON.parse(fs.readFileSync(this.webAPIConfig.serviceFile, 'utf8'));
+            pid = serviceConfig.pid;
+        } catch (e) {
+            log.error(e);
+        }
+
+        const signal = this.webAPIKillSignal;
+
+        if (isNumber(pid)) {
+            log.info(`Sending ${signal} to Cate service process...`);
+            process.kill(pid, signal);
+        } else {
+            log.error(`Invalid PID: ${pid}`);
+        }
+
+        if (this.webAPIProcess.connected) {
+            log.info(`Sending ${signal} to Cate service parent process...`);
+            this.webAPIProcess.kill(signal);
+        } else {
+            log.info('Cate service parent process is no longer connected.');
+        }
     }
 
     private resetWebAPIStartTime() {
@@ -480,7 +470,7 @@ class CateDesktopApp {
                         this.preferences.set('suppressQuitConfirm', suppressQuitConfirm);
                         this.storeUserPreferences();
                         this.quitConfirmed = true;
-                        // Force window close, so app can quit after all windows closed.
+                        // Force window close, so app can quit after all windows are closed.
                         // We must call destroy() here, calling close() seems to have no effect on Mac (Electron 1.8.2).
                         this.mainWindow.destroy();
                         this.forceQuit();
