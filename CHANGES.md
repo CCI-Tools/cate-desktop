@@ -13,6 +13,13 @@
 * Provided help text with links for the Python code editor opened
   from the `compute` operation dialog.
 
+### Fixes
+
+* User Informed of "Raised Exception"s Rather Than Gracefully Informing User.
+  [#593](https://github.com/CCI-Tools/cate/issues/593)
+* Error - Removal of Resource Causes Failure Instead of Gracefully Informing User.
+  [#589](https://github.com/CCI-Tools/cate/issues/589)
+
 
 ## Changes in 2.0.0-dev.8 
 
