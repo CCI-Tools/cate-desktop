@@ -18,7 +18,7 @@ import {
 } from "./appenv";
 import * as net from "net";
 import {installAutoUpdate} from "./update-frontend";
-import {isDefined, isNumber} from "../common/types";
+import { isDefined, isNumber, isString } from "../common/types";
 import {doSetup} from "./setup";
 import {SetupResult} from "../common/setup";
 
@@ -375,12 +375,14 @@ class CateDesktopApp {
                 this.webAPIError = err;
                 electron.app.exit(ERRCODE_WEBAPI_INTERNAL_ERROR); // exit immediately
             });
-            this.webAPIProcess.on('close', (code: number, signal: string) => {
-                let message = `Cate service disconnected with code ${code} due to ${signal}.`;
-                log.info(WEBAPI_LOG_PREFIX, message);
-            });
             this.webAPIProcess.on('exit', (code: number, signal: string) => {
-                let message = `Cate service process exited with code ${code} due to ${signal}.`;
+                let message = 'Cate service exited';
+                if (isNumber(code)){
+                    message += ` with code ${code}`;
+                }
+                if (isString(signal)){
+                    message += ` due to ${signal}`;
+                }
                 log.info(WEBAPI_LOG_PREFIX, message);
             });
 
