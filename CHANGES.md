@@ -1,29 +1,24 @@
-## Changes in 2.0.0-dev.9 (in dev)
+## Changes in 2.0.0-dev.10 (in dev)
 
-### New Features and UX Improvements 
 
-* Representative default variables
-  [#590](https://github.com/CCI-Tools/cate/issues/590)
-* Drag and drop files on Cate's main window
-  [#597](https://github.com/CCI-Tools/cate/issues/597)
-* Some (text) areas in the UI should be user-selectable
-  [#608](https://github.com/CCI-Tools/cate/issues/608)
-* Cate Desktop reuses service started by another user
-  [#577](https://github.com/CCI-Tools/cate/issues/577)
-* Improve error messages and handling
-  [#393](https://github.com/CCI-Tools/cate/issues/393)
-* Provided help text with links for the Python code editor opened
-  from the `compute` operation dialog.
+## Changes in 2.0.0-dev.9
+
+### New Features and UX Improvements
+
+* Representative default variables [#590](https://github.com/CCI-Tools/cate/issues/590)
+* Drag and drop files on Cate's main window [#597](https://github.com/CCI-Tools/cate/issues/597)
+* Some (text) areas in the UI should be user-selectable [#608](https://github.com/CCI-Tools/cate/issues/608)
+* Allow proxy configuration in Cate Desktop [#544](https://github.com/CCI-Tools/cate/issues/544)
+* Improve error messages and handling [#393](https://github.com/CCI-Tools/cate/issues/393)
+* Provided help text with links for the Python code editor opened from the `compute` operation dialog.
 
 ### Fixes
 
-* User Informed of "Raised Exception"s Rather Than Gracefully Informing User.
-  [#593](https://github.com/CCI-Tools/cate/issues/593)
-* Error - Removal of Resource Causes Failure Instead of Gracefully Informing User.
-  [#589](https://github.com/CCI-Tools/cate/issues/589)
-
-* Allow proxy configuration in Cate Desktop
-  [#544](https://github.com/CCI-Tools/cate/issues/544)
+* Cate Desktop reuses service started by another user [#577](https://github.com/CCI-Tools/cate/issues/577)
+* User Informed of "Raised Exception"s Rather Than Gracefully Informing User [#593](https://github.com/CCI-Tools/cate/issues/593)
+* Error - Removal of Resource Causes Failure Instead of Gracefully Informing User [#589](https://github.com/CCI-Tools/cate/issues/589)
+* Re-starting Cate Hangs [#582](https://github.com/CCI-Tools/cate/issues/582)
+* Closing Cate on Mac [#551](https://github.com/CCI-Tools/cate/issues/551)
 
 
 ## Changes in 2.0.0-dev.8 
