@@ -598,25 +598,31 @@ function newVariableLayerDisplayProperties(variable: VariableState) {
     };
 }
 
+let _hasWebGL = null;
+
 // from https://stackoverflow.com/questions/11871077/proper-way-to-detect-webgl-support
 export function hasWebGL(): boolean {
     let canvas;
     let context;
     let extensions;
 
-    try {
-        canvas = document.createElement('canvas');
-        context = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-        extensions = context.getSupportedExtensions();
-        console.log("WebGL supported extensions:", extensions);
-    } catch (e) {
-        console.warn("WebGL not supported but required by world view");
-        return false;
+    if (_hasWebGL === null) {
+        try {
+            canvas = document.createElement('canvas');
+            _hasWebGL = true;
+            context = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            extensions = context.getSupportedExtensions();
+            console.log("WebGL supported extensions:", extensions);
+        } catch (e) {
+            _hasWebGL = false;
+            console.warn("WebGL not supported but required by world view");
+            return false;
+        }
     }
 
     canvas = null;
     context = null;
-    return true;
+    return _hasWebGL;
 }
 
 
