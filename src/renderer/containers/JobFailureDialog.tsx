@@ -106,7 +106,12 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
         if (!messageText) {
             messageText = `An unknown error occurred (code ${this.props.jobFailure.code}).`;
         }
-        let message = (<p>{this.props.jobTitle}:<br/><strong>{messageText}</strong></p>);
+        let message = (
+            <div>
+                <p>Oops, Cate couldn't carry out the request <em>{this.props.jobTitle}</em> because:</p>
+                <h6 className="user-selectable">{messageText}</h6>
+            </div>
+        );
 
         let traceback;
         if (this.props.jobFailure.data && this.props.jobFailure.data.traceback) {
@@ -114,7 +119,8 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
                 <div style={{marginTop: '0.5em'}}>
                     <Button onClick={this.handleShowDetails}>{this.state.showDetails ? "Hide" : "Show"} Details</Button>
                     <Collapse isOpen={this.state.showDetails}>
-                        <pre className="user-selectable" style={{overflow: 'auto', height: '20em'}}>{this.props.jobFailure.data.traceback}</pre>
+                        <pre className="user-selectable"
+                             style={{overflow: 'auto', height: '20em'}}>{this.props.jobFailure.data.traceback}</pre>
                     </Collapse>
                 </div>
             );
@@ -125,7 +131,7 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
             reporting = (
                 <Label
                     style={{marginTop: '0.5em'}}
-                    text={<span>Please consider reporting this issue in Cate's <a
+                    text={<span className="pt-text-muted">Please consider reporting this issue in Cate's <a
                         href="https://github.com/CCI-Tools/cate/issues" target="_blank">issue tracker</a>.</span>}
                 >
                     <Checkbox label='Copy error report to clipboard'
