@@ -2,6 +2,8 @@
 
 ### New Features and UX Improvements 
 
+* Drag and drop files on Cate's main window
+  [#597](https://github.com/CCI-Tools/cate/issues/597)
 * Some (text) areas in the UI should be user-selectable
   [#608](https://github.com/CCI-Tools/cate/issues/608)
 * Cate Desktop reuses service started by another user
