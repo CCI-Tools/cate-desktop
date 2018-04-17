@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {isString, isUndefinedOrNull, isDefined, isDefinedAndNotNull} from "../../../common/types";
+import {isString, isUndefinedOrNull, isDefined, isDefinedAndNotNull} from '../../../common/types';
 
 export type FieldType<T> = T | null;
 
@@ -34,7 +34,7 @@ export function toTextValue(value: AnyFieldValue | any) {
     } else if (isString(value)) {
         return value;
     }
-    return isDefinedAndNotNull(value)? `${value}` : '';
+    return isDefinedAndNotNull(value) ? `${value}` : '';
 }
 
 export function toValue(value: any) {
@@ -53,8 +53,8 @@ export function toValue(value: any) {
  */
 export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldState> {
 
-    static readonly NOMINAL_CLASS = "pt-input";
-    static readonly ERROR_CLASS = "pt-input pt-intent-danger";
+    static readonly NOMINAL_CLASS = 'pt-input';
+    static readonly ERROR_CLASS = 'pt-input pt-intent-danger';
 
     protected _fieldValue: AnyFieldValue;
 
@@ -208,13 +208,15 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
     render() {
         const error = this.getError();
         // console.log("Field.render: fieldValue = ", this._fieldValue);
+        const errorClassName = Field.ERROR_CLASS + ' ' + this.props.className;
+        const nominalClassName = Field.NOMINAL_CLASS + ' ' + this.props.className;
         return (
             <input value={this.getTextValue()}
                    onChange={this.handleInputChange}
                    onBlur={this.handleBlur}
                    onKeyPress={this.handleKeyPress}
                    type="text"
-                   className={error ? Field.ERROR_CLASS : Field.NOMINAL_CLASS}
+                   className={error ? errorClassName : nominalClassName}
                    style={this.props.style}
                    size={this.props.size}
                    placeholder={this.props.placeholder}

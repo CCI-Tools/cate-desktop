@@ -5,6 +5,9 @@
 * Improve error messages and handling
   [#393](https://github.com/CCI-Tools/cate/issues/393)
 
+* Allow proxy configuration in Cate Desktop
+  [#544](https://github.com/CCI-Tools/cate/issues/544)
+
 
 ## Changes in 2.0.0-dev.8 
 
