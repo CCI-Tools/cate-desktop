@@ -31,11 +31,11 @@ Then, with am Anaconda/Miniconda 3.x installed create a new Python environment f
 With a successfully installed Cate sources make sure you can start Cate's WebAPI service, 
 which will be later used by Cate Desktop:
 
-    $ cate-webapi --port 9090 start
+    $ cate-webapi-start --port 9090
 
 You can stop it by hitting `CTRL+C` or from another shell:
 
-    $ cate-webapi --port 9090 stop
+    $ cate-webapi-stop --port 9090
 
 
 ### Setting up Cate Desktop
