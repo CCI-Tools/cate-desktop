@@ -11,6 +11,7 @@ function fromPythonConfig(configResponse: any): BackendConfigState|null {
         dataStoresPath: configResponse.data_stores_path,
         useWorkspaceImageryCache: configResponse.use_workspace_imagery_cache,
         resourceNamePattern: configResponse.default_res_pattern,
+        proxyUrl: configResponse.http_proxy
     };
 }
 
@@ -22,6 +23,7 @@ function toPythonConfig(backendConfig: BackendConfigState): any {
         data_stores_path: backendConfig.dataStoresPath,
         use_workspace_imagery_cache: backendConfig.useWorkspaceImageryCache,
         default_res_pattern: backendConfig.resourceNamePattern,
+        http_proxy: backendConfig.proxyUrl
     };
 }
 

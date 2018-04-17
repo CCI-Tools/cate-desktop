@@ -102,6 +102,7 @@ export const INITIAL_SESSION_STATE: SessionState = {
         dataStoresPath: null,
         useWorkspaceImageryCache: false,
         resourceNamePattern: 'res_{index}',
+        proxyUrl: null,
     },
 };
 

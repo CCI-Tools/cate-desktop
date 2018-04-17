@@ -97,6 +97,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
             <Tabs2 id="preferences">
                 <Tab2 id="g" title="General" panel={this.renderGeneralPanel()}/>
                 <Tab2 id="dm" title="Data Management" panel={this.renderDataManagementPanel()}/>
+                <Tab2 id="pc" title="Proxy Configuration" panel={this.renderProxyConfigurationPanel()}/>
             </Tabs2>
         );
     }
@@ -119,6 +120,14 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
                 {this.renderDataStoresPath()}
                 {this.renderCacheWorkspaceImagery()}
                 {this.renderResourceNamePrefix()}
+            </div>
+        );
+    }
+
+    private renderProxyConfigurationPanel() {
+        return (
+            <div style={{width: '100%', marginTop: '1em'}}>
+                {this.renderProxyUrlInput()}
             </div>
         );
     }
@@ -184,6 +193,24 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
             'resourceNamePattern',
             true,
             'Default resource name pattern'
+        );
+    }
+
+    private renderProxyUrlInput() {
+        const initialValue = this.getStateValue("proxyUrl", true);
+        const onChange = this.getChangeHandler("proxyUrl", true);
+        return (
+            <div className="pt-control-group"
+                 style={{width: '100%', marginBottom: '1em', display: 'flex', alignItems: 'center'}}>
+                <span style={{flexBasis: '100px'}}>Proxy URL:</span>
+                <TextField className="pt-input pt-fill"
+                           style={{flexGrow: 0.2, marginLeft: '20px'}}
+                           value={initialValue}
+                           onChange={onChange}
+                           placeholder={'http://user:password@host:port'}
+                           nullable={true}
+                />
+            </div>
         );
     }
 

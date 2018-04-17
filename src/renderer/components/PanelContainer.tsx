@@ -11,7 +11,6 @@ import {
     // Popover
 } from "@blueprintjs/core";
 import {Splitter} from "./Splitter";
-import ReactElement = React.ReactElement;
 import {CSSProperties} from "react";
 
 export interface PanelContainerLayout {

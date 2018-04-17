@@ -11,7 +11,7 @@ import {Position, Colors} from "@blueprintjs/core";
 import {Cell, Column, Table, TruncatedFormat} from "@blueprintjs/table";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import {NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE} from "../messages";
-import {CSSProperties} from "react";
+import {CSSProperties} from 'react';
 import * as Cesium from "cesium";
 import {ToolButton} from "../components/ToolButton";
 import {isSpatialImageVariable, isSpatialVectorVariable} from "../state-util";

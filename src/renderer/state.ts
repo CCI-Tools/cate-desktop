@@ -691,6 +691,7 @@ export interface BackendConfigState {
     dataStoresPath: string;
     useWorkspaceImageryCache: boolean;
     resourceNamePattern: string;
+    proxyUrl: string;
 }
 
 export interface Placemark extends Feature<Point> {

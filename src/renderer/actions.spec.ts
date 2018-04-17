@@ -66,13 +66,15 @@ describe('Actions', () => {
                 {
                     dataStoresPath: '/a/b/c',
                     useWorkspaceImageryCache: false,
-                    resourceNamePattern: 'var_{index}'
+                    resourceNamePattern: 'var_{index}',
+                    proxyUrl: 'http://user:password@host:port'
                 }));
             expect(getState().session.backendConfig).to.deep.equal(
                 {
                     dataStoresPath: '/a/b/c',
                     useWorkspaceImageryCache: false,
-                    resourceNamePattern: 'var_{index}'
+                    resourceNamePattern: 'var_{index}',
+                    proxyUrl: 'http://user:password@host:port'
                 });
         });
     });
