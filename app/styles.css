@@ -1,6 +1,13 @@
 @import url(node_modules/cesium/Build/Cesium/Widgets/widgets.css);
 
 /*
+ * A class used to mark elements that are user-selectable
+ */
+.user-selectable {
+    user-select: auto;
+}
+
+/*
  * Disable highlighting/selecting across the application
  * Solution taken from https://github.com/electron/electron/issues/2538
  */

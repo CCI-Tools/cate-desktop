@@ -276,7 +276,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
             title = operation.name;
 
             if (operation.description) {
-                description = (<p><em>{operation.description}</em></p>);
+                description = (<p className="user-selectable">{operation.description}</p>);
             }
 
             if (operation.tags) {
@@ -287,7 +287,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
                 const outputElems = operation.outputs.map(output => (
                     <li key={output.name}>
                         <LabelWithType label={output.name} dataType={output.dataType} units={output.units}/>
-                        {OperationsPanel.getOutputDescriptionText(output)}
+                        <span className="user-selectable">{OperationsPanel.getOutputDescriptionText(output)}</span>
                     </li>
                 ));
                 outputs = (
@@ -305,7 +305,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
                 const inputElems = operation.inputs.map(input => (
                     <li key={input.name}>
                         <LabelWithType label={input.name} dataType={input.dataType} units={input.units}/>
-                        {OperationsPanel.getInputDescriptionText(input)}
+                        <span className="user-selectable">{OperationsPanel.getInputDescriptionText(input)}</span>
                     </li>
                 ));
                 inputs = (
@@ -322,7 +322,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
         return (
             <ScrollablePanelContent>
                 <Card>
-                    <h5>{title}</h5>
+                    <h5 className="user-selectable">{title}</h5>
                     {description}
                     {tags}
                     {outputs}

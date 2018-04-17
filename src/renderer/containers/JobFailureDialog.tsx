@@ -2,8 +2,7 @@ import * as React from 'react';
 import { ModalDialog } from "../components/ModalDialog";
 import {
     ERROR_CODE_INVALID_PARAMS,
-    ERROR_CODE_OS_ERROR,
-    ERROR_CODE_OUT_OF_MEMORY, getJobFailureIconName, getJobFailureTitle,
+    getJobFailureIconName, getJobFailureTitle,
     JobFailure
 } from "../webapi";
 import { Button, Checkbox, Collapse, IconName, Label } from "@blueprintjs/core";
@@ -115,7 +114,7 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
                 <div style={{marginTop: '0.5em'}}>
                     <Button onClick={this.handleShowDetails}>{this.state.showDetails ? "Hide" : "Show"} Details</Button>
                     <Collapse isOpen={this.state.showDetails}>
-                        <pre style={{overflow: 'auto', height: '20em'}}>{this.props.jobFailure.data.traceback}</pre>
+                        <pre className="user-selectable" style={{overflow: 'auto', height: '20em'}}>{this.props.jobFailure.data.traceback}</pre>
                     </Collapse>
                 </div>
             );
