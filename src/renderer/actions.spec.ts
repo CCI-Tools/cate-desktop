@@ -257,13 +257,16 @@ describe('Actions', () => {
                     baseDir: '/uh/oh/ah',
                     isScratch: false,
                     resources: [
-                        {name: 'res_1', variables: []},
-                        {name: 'res_2', variables: [{name: 'var_1'}, {name: 'var_2'}]}
+                        {name: 'res_1', variables: [{name: 'var_a'}, {name: 'var_b'}]},
+                        {name: 'res_2', variables: [{name: 'var_1'}, {name: 'var_2', isDefault: true}, {name: 'var_3'}]}
                     ]
                 } as any));
             dispatch(actions.setSelectedWorkspaceResourceName('res_2'));
             expect(getState().control.selectedWorkspaceResourceName).to.equal('res_2');
-            expect(getState().control.selectedVariableName).to.equal('var_1');
+            expect(getState().control.selectedVariableName).to.equal('var_2');
+            dispatch(actions.setSelectedWorkspaceResourceName('res_1'));
+            expect(getState().control.selectedWorkspaceResourceName).to.equal('res_1');
+            expect(getState().control.selectedVariableName).to.equal('var_a');
         });
 
         it('setSelectedWorkflowStepId', () => {

@@ -276,6 +276,7 @@ export interface VariableState {
     data?: any[];
     attributes?: Attributes;
     isCoord?: boolean;
+    isDefault?: boolean;
     imageLayout?: ImageLayout;
     isFeatureAttribute?: boolean;
     isYFlipped?: boolean;

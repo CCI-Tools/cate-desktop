@@ -1098,7 +1098,10 @@ export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: 
             if (resources) {
                 const resource = resources.find(res => res.name === selectedWorkspaceResourceName);
                 if (resource && resource.variables && resource.variables.length) {
-                    dispatch(setSelectedVariable(resource, resource.variables[0], selectors.savedLayersSelector(getState())));
+                    const variable = resource.variables.find(variable => !!variable.isDefault);
+                    dispatch(setSelectedVariable(resource,
+                        variable || resource.variables[0],
+                                                 selectors.savedLayersSelector(getState())));
                 }
             }
         }
