@@ -371,7 +371,7 @@ const CONTAINER_STYLE: CSSProperties = {
     paddingTop: PanelContainer.PANEL_BAR_PADDING,
     paddingBottom: PanelContainer.PANEL_BAR_PADDING,
 };
-const PANEL_BUTTON_STYLE = {textAlign: "center", verticalAlign: "middle"};
+const PANEL_BUTTON_STYLE: CSSProperties = {textAlign: "center", verticalAlign: "middle"};
 
 const PANEL_BODY_CONTAINER_STYLE: CSSProperties = {
     flex: 1,

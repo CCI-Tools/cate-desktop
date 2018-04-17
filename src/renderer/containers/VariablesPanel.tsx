@@ -60,7 +60,7 @@ function mapStateToProps(state: State): IVariablesPanelProps {
  */
 class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp<State>, null> {
     static readonly DIV_STYLE: CSSProperties = {paddingTop: 4, width: '100%'};
-    static readonly VALUE_STYLE = {float: "right", color: Colors.BLUE5};
+    static readonly VALUE_STYLE: CSSProperties = {float: "right", color: Colors.BLUE5};
 
 
     constructor(props: IVariablesPanelProps & DispatchProp<State>) {
