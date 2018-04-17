@@ -73,7 +73,7 @@
     "deep-object-diff": "^1.1.0",
     "electron": "1.8.4",
     "electron-builder": "19.56.0",
-    "electron-devtools-installer": "2.2.1",
+    "electron-devtools-installer": "2.2.3",
     "electron-log": "2.2.14",
     "electron-updater": "2.20.1",
     "jsdom": "11.6.2",
