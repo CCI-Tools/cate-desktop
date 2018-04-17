@@ -78,7 +78,7 @@ export function isWebAPIVersionCompatible(version: string, pep440?: boolean) {
 }
 
 export function getWebAPIStartCommand(webAPIConfig): string {
-    let command = `cate-webapi-start --caller cate-desktop --port ${webAPIConfig.servicePort} --file "${webAPIConfig.serviceFile}"`;
+    let command = `cate-webapi-start --caller cate-desktop --port ${webAPIConfig.servicePort} --file "${webAPIConfig.serviceFile}" --verbose`;
     if (webAPIConfig.serviceAddress) {
         command += ` --address "${webAPIConfig.serviceAddress}"`;
     }
