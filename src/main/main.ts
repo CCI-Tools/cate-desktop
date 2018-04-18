@@ -1,26 +1,26 @@
 import * as electron from 'electron';
 import installDevToolsExtension from 'electron-devtools-installer';
 import * as devTools from 'electron-devtools-installer';
-import * as log from "electron-log";
+import * as log from 'electron-log';
 import * as path from 'path';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as child_process from 'child_process'
-import {request} from './request';
-import {updateConditionally} from '../common/objutil';
-import {Configuration} from "./configuration";
-import {menuTemplate} from "./menu";
+import { request } from './request';
+import { updateConditionally } from '../common/objutil';
+import { Configuration } from './configuration';
+import { menuTemplate } from './menu';
 import {
     getAppDataDir, getAppIconPath,
     getCateCliSetupInfo, setCateDir, getWebAPIStartCommand, getWebAPIRestUrl,
     getMPLWebSocketsUrl, getAPIWebSocketsUrl, defaultSpawnShellOption,
     isWebAPIVersionCompatible, EXPECTED_APP_CLI_VERSION
-} from "./appenv";
-import * as net from "net";
-import {installAutoUpdate} from "./update-frontend";
-import { isDefined, isNumber, isString } from "../common/types";
-import {doSetup} from "./setup";
-import {SetupResult} from "../common/setup";
+} from './appenv';
+import * as net from 'net';
+import { installAutoUpdate } from './update-frontend';
+import { isDefined, isNumber, isString } from '../common/types';
+import { doSetup } from './setup';
+import { SetupResult } from '../common/setup';
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -44,7 +44,7 @@ const WEBAPI_ACCESS_TIMEOUT_MAX = 0.5;
 const WEBAPI_ACCESS_DELAY_MAX = 0.5;
 
 // Signal used to kill a running WebAPI service if a stop requiest times out:
-const WEBAPI_KILL_SIGNAL = "SIGTERM";
+const WEBAPI_KILL_SIGNAL = 'SIGTERM';
 
 
 const NANOS_PER_SEC = 1.0e9;
@@ -100,15 +100,15 @@ class CateDesktopApp {
     }
 
     get webAPIStartTimeout(): number {
-        return this.preferences.get("webAPIStartTimeout", WEBAPI_START_TIMEOUT_MAX);
+        return this.preferences.get('webAPIStartTimeout', WEBAPI_START_TIMEOUT_MAX);
     }
 
     get webAPIAccessTimeout(): number {
-        return this.preferences.get("webAPIAccessTimeout", WEBAPI_ACCESS_TIMEOUT_MAX);
+        return this.preferences.get('webAPIAccessTimeout', WEBAPI_ACCESS_TIMEOUT_MAX);
     }
 
     get webAPIAccessDelay(): number {
-        return this.preferences.get("webAPIAccessDelay", WEBAPI_ACCESS_DELAY_MAX);
+        return this.preferences.get('webAPIAccessDelay', WEBAPI_ACCESS_DELAY_MAX);
     }
 
     get webAPIStartTimeDelta(): number {
@@ -117,7 +117,7 @@ class CateDesktopApp {
     }
 
     get webAPIKillSignal(): string {
-        return this.preferences.get("webAPIKillSignal", WEBAPI_KILL_SIGNAL);
+        return this.preferences.get('webAPIKillSignal', WEBAPI_KILL_SIGNAL);
     }
 
     start() {
@@ -131,10 +131,16 @@ class CateDesktopApp {
             return;
         }
 
+
         // Configure logging
         log.transports.file.level = 'info';
         log.transports.file.file = path.join(getAppDataDir(), 'cate-desktop.log');
-        log.info("process.versions =", process.versions);
+
+        log.info(getLineString('='));
+        log.info(getAppInfoString());
+        log.info(getLineString('='));
+
+        log.info('process.versions =', process.versions);
 
         if (process.platform === 'darwin') {
             // Try getting around https://github.com/CCI-Tools/cate-desktop/issues/32
@@ -293,7 +299,7 @@ class CateDesktopApp {
                 log.info('Connected to Cate service. Response: ', response);
                 // Get the actual WebAPI service version:
                 const message = JSON.parse(response);
-                const version = message.status === "ok" && message.content && message.content.version;
+                const version = message.status === 'ok' && message.content && message.content.version;
                 if (version) {
                     if (isWebAPIVersionCompatible(version, true)) {
                         this.loadMainWindow();
@@ -303,7 +309,7 @@ class CateDesktopApp {
                     }
                 } else {
                     // Can't get version info
-                    throw new Error("Can't retrieve version information from Cate service");
+                    throw new Error('Can\'t retrieve version information from Cate service');
                 }
             })
             .catch((err) => {
@@ -346,8 +352,8 @@ class CateDesktopApp {
         this.showSplashMessage('Searching unused port...');
         findFreePort(this.webAPIConfig.servicePort, null, (freePort: number) => {
             if (freePort < this.webAPIConfig.servicePort) {
-                log.error("Can't find any free port");
-                electron.dialog.showErrorBox(`${electron.app.getName()} - Error`, "Can't find any free port");
+                log.error('Can\'t find any free port');
+                electron.dialog.showErrorBox(`${electron.app.getName()} - Error`, 'Can\'t find any free port');
                 electron.app.exit(ERRCODE_WEBAPI_NO_FREE_PORT);
                 return;
             }
@@ -377,10 +383,10 @@ class CateDesktopApp {
             });
             this.webAPIProcess.on('exit', (code: number, signal: string) => {
                 let message = 'Cate service exited';
-                if (isNumber(code)){
+                if (isNumber(code)) {
                     message += ` with code ${code}`;
                 }
-                if (isString(signal)){
+                if (isString(signal)) {
                     message += ` due to ${signal}`;
                 }
                 log.info(WEBAPI_LOG_PREFIX, message);
@@ -491,7 +497,7 @@ class CateDesktopApp {
     private forceQuit() {
         if (!this.quitRequested) {
             // Force quit on Mac
-            log.warn("Forcing quit.");
+            log.warn('Forcing quit.');
             electron.app.quit();
         }
     }
@@ -604,7 +610,7 @@ class CateDesktopApp {
 
     private ensureCateDir(callback: (setupPerformed: boolean) => void) {
         const setupInfo = getCateCliSetupInfo();
-        log.info("setupInfo: ", setupInfo);
+        log.info('setupInfo: ', setupInfo);
 
         if (setupInfo.oldCateDir) {
             setCateDir(setupInfo.oldCateDir);
@@ -623,7 +629,7 @@ class CateDesktopApp {
 
         // Bring up the setup dialog
         doSetup(setupInfo, (setupResult: SetupResult) => {
-            log.info("After setup: setupResult =", setupResult);
+            log.info('After setup: setupResult =', setupResult);
             if (setupResult) {
                 const {cateDir, cateVersion} = setupResult;
                 setCateDir(cateDir);
@@ -631,14 +637,14 @@ class CateDesktopApp {
                     this.splashWindow.show();
                 }
                 const versionDir = path.join(getAppDataDir(), cateVersion);
-                const locationFile = path.join(versionDir, "cate.location");
+                const locationFile = path.join(versionDir, 'cate.location');
                 const errorHandler = (err) => {
-                    log.error("Writing failed: ", err);
+                    log.error('Writing failed: ', err);
                     electron.dialog.showErrorBox(`${electron.app.getName()} - Error`,
                                                  `Writing to ${locationFile} failed:\n${err}`);
                     electron.app.exit(ERRCODE_SETUP_FAILED);
                 };
-                log.warn("Writing ", locationFile);
+                log.warn('Writing ', locationFile);
                 if (!fs.existsSync(versionDir)) {
                     try {
                         fs.mkdirSync(versionDir);
@@ -688,7 +694,7 @@ class CateDesktopApp {
         this.preferences = this.loadConfiguration(PREFS_OPTIONS,
                                                   this.getDefaultUserPreferencesFile(),
                                                   'User preferences');
-        log.warn("debugWorldView =", this.preferences.data.debugWorldView);
+        log.warn('debugWorldView =', this.preferences.data.debugWorldView);
         this.preferences.data.debugWorldView = false;
     }
 
@@ -809,3 +815,11 @@ function sleep(time: number) {
     }
 }
 */
+
+function getLineString(s: string) {
+    return new Array(80).join(s);
+}
+
+function getAppInfoString() {
+    return electron.app.getName() + ', version ' + electron.app.getVersion();
+}
