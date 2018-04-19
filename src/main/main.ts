@@ -154,8 +154,8 @@ class CateDesktopApp {
             // Try getting around https://github.com/CCI-Tools/cate/issues/615
             // See electron-builder issue "checkForUpdatesAndNotify updates but does not notify on Windows 10"
             // https://github.com/electron-userland/electron-builder/issues/2700
-            app.setAppUserModelId('org.esa.ccitools.Cate');
-            app.setAsDefaultProtocolClient('cate-desktop');
+            electron.app.setAppUserModelId('org.esa.ccitools.Cate');
+            electron.app.setAsDefaultProtocolClient('cate-desktop');
         }
 
         this.initUserConfiguration();
