@@ -25,6 +25,7 @@
     "react-addons-css-transition-group": "^15.6.2",
     "react-color": "^2.14.0",
     "react-dom": "^16.2.0",
+    "react-linkify": "^0.2.2",
     "react-redux": "^5.0.7",
     "react-transition-group": "^1.2.1",
     "redux": "^3.7.2",

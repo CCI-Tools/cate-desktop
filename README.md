@@ -117,6 +117,8 @@ Utilities:
 * [electron-devtools-installer](https://github.com/MarshallOfSound/electron-devtools-installer) is and 
   easy way to install Chrome's DevTool extensions into Electron. 
 * [Oboe.js](http://oboejs.com/) for loading JSON using streaming.
+* [react-linkify](http://tasti.github.io/react-linkify/) to parse links (urls, emails, etc.) in text into
+  clickable links.
 
 ## Development Tools and Libraries in use
 

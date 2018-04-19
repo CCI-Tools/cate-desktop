@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
+import Linkify from 'react-linkify';
 import {State, DataStoreState, DataSourceState} from '../state';
 import {
     AnchorButton,
@@ -486,7 +487,7 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         if (meta_info.abstract) {
             summary = (
                 <div><h5>Summary</h5>
-                    <p className="user-selectable">{meta_info.abstract}</p>
+                    <p className="user-selectable"><Linkify>{meta_info.abstract}</Linkify></p>
                 </div>
             );
         }
@@ -579,7 +580,7 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
             id: 'licences',
             element: (
                 <div>
-                    <p className="user-selectable">{meta_info.licences}</p>
+                    <p className="user-selectable"><Linkify>{meta_info.licences}</Linkify></p>
                 </div>
             )
         };
