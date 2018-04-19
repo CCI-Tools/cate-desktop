@@ -129,6 +129,14 @@ function renderVarNamesLikeValueEditor(props: IValueEditorProps<string>) {
                                resource={findResource(props)} multi={true}/>;
 }
 
+function renderDimNameLikeValueEditor(props: IValueEditorProps<string>) {
+    return renderTextValueEditor(props);
+}
+
+function renderDimNamesLikeValueEditor(props: IValueEditorProps<string>) {
+    return renderTextValueEditor(props);
+}
+
 function renderDictLikeValueEditor(props: IValueEditorProps<string>) {
     return <DictValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
 }
@@ -149,6 +157,8 @@ const VALUE_EDITOR_FACTORIES = {
     [types.TIME_RANGE_LIKE_TYPE]: renderTimeRangeLikeValueEditor,
     [types.VAR_NAME_LIKE_TYPE]: renderVarNameLikeValueEditor,
     [types.VAR_NAMES_LIKE_TYPE]: renderVarNamesLikeValueEditor,
+    [types.DIM_NAME_LIKE_TYPE]: renderDimNameLikeValueEditor,
+    [types.DIM_NAMES_LIKE_TYPE]: renderDimNamesLikeValueEditor,
     [types.DICT_LIKE_TYPE]: renderDictLikeValueEditor,
     [types.FILE_LIKE_TYPE]: renderFileValueEditor,
     [types.LITERAL_TYPE]: renderLiteralValueEditor,
