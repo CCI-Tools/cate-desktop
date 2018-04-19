@@ -1,6 +1,6 @@
-import * as React from "react";
-import {connect} from "react-redux";
-import {State, DataStoreState, DataSourceState} from "../state";
+import * as React from 'react';
+import {connect} from 'react-redux';
+import {State, DataStoreState, DataSourceState} from '../state';
 import {
     AnchorButton,
     InputGroup,
@@ -8,25 +8,23 @@ import {
     Tag,
     Tabs2,
     Tab2,
-    Tooltip,
     Checkbox,
-    Colors,
-    Position
-} from "@blueprintjs/core";
-import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
-import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
-import {Card} from "../components/Card";
-import {ScrollablePanelContent} from "../components/ScrollableContent";
-import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
-import DownloadDatasetDialog from "./DownloadDataSourceDialog";
-import OpenDatasetDialog from "./OpenDatasetDialog";
-import AddDatasetDialog from "./AddDatasetDialog";
-import RemoveDatasetDialog from "./RemoveDatasetDialog";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import {NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES} from "../messages";
-import {CSSProperties} from "react";
-import {ToolButton} from "../components/ToolButton";
+    Colors
+} from '@blueprintjs/core';
+import {Table, Column, Cell, TruncatedFormat} from '@blueprintjs/table';
+import {ListBox, ListBoxSelectionMode} from '../components/ListBox';
+import {Card} from '../components/Card';
+import {ScrollablePanelContent} from '../components/ScrollableContent';
+import {ContentWithDetailsPanel} from '../components/ContentWithDetailsPanel';
+import DownloadDatasetDialog from './DownloadDataSourceDialog';
+import OpenDatasetDialog from './OpenDatasetDialog';
+import AddDatasetDialog from './AddDatasetDialog';
+import RemoveDatasetDialog from './RemoveDatasetDialog';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import {NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES} from '../messages';
+import {CSSProperties} from 'react';
+import {ToolButton} from '../components/ToolButton';
 
 
 interface IDataSourcesPanelProps {
@@ -98,7 +96,7 @@ const mapDispatchToProps = {
  */
 class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSourcesPanelDispatch, null> {
 
-    private static readonly FLEX_ROW_STYLE: CSSProperties = {display: "flex", alignItems: "center"};
+    private static readonly FLEX_ROW_STYLE: CSSProperties = {display: 'flex', alignItems: 'center'};
     private static readonly SPACER_STYLE: CSSProperties = {flex: 1};
 
     constructor(props: IDataSourcesPanelProps & IDataSourcesPanelDispatch) {
@@ -188,7 +186,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             const actionComponent = (
                 <div className="pt-button-group">
                     <ToolButton tooltipContent="Add local data source"
-                                className={(isDynamicLocalStore && !hasDataSources) ? "pt-intent-primary" : ""}
+                                className={(isDynamicLocalStore && !hasDataSources) ? 'pt-intent-primary' : ''}
                                 onClick={this.handleAddDatasetDialog}
                                 disabled={!canAdd}
                                 iconName="add"/>
@@ -241,21 +239,23 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
 
     private renderDataSourceFilterExprInput() {
         const resultsTag = (
-            <Tag className={Classes.MINIMAL} onRemove={(event) => this.props.setDataSourceFilterExpr("")}>
+            <Tag className={Classes.MINIMAL} onRemove={() => this.props.setDataSourceFilterExpr('')}>
                 {this.props.filteredDataSources && this.props.filteredDataSources.length}
             </Tag>
         );
 
-        return (<div style={{paddingTop: 4, paddingBottom: 2}}>
-            <InputGroup
-                disabled={false}
-                leftIconName="filter"
-                onChange={(event) => this.props.setDataSourceFilterExpr(event.target.value)}
-                placeholder="Find data source"
-                rightElement={resultsTag}
-                value={this.props.dataSourceFilterExpr}
-            />
-        </div>);
+        return (
+            <div style={{paddingTop: 4, paddingBottom: 2}}>
+                <InputGroup
+                    disabled={false}
+                    leftIconName="filter"
+                    onChange={(event) => this.props.setDataSourceFilterExpr(event.target.value)}
+                    placeholder="Find data source"
+                    rightElement={resultsTag}
+                    value={this.props.dataSourceFilterExpr}
+                />
+            </div>
+        );
     }
 
     private renderDataStoreSelector() {
@@ -265,8 +265,9 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
 
         const dataStoreOptions = [];
         for (let dataStore of this.props.dataStores) {
-            dataStoreOptions.push(<option key={dataStore.id}
-                                          value={dataStore.id}>{dataStore.title || dataStore.id}</option>);
+            dataStoreOptions.push(
+                <option key={dataStore.id} value={dataStore.id}>{dataStore.title || dataStore.id}</option>
+            );
         }
 
         const selectedDataStore = this.props.selectedDataStore;
@@ -274,7 +275,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         //  a label has by default a 15px margin at the bottom
         return (
             <div style={DataSourcesPanel.FLEX_ROW_STYLE}>
-                <label className="pt-label pt-inline" style={{margin: "0 0 0 0"}}>
+                <label className="pt-label pt-inline" style={{margin: '0 0 0 0'}}>
                     Data store:
                     <div className="pt-select" style={{padding: '0.2em'}}>
                         <select value={selectedDataStore ? selectedDataStore.id : ''}
@@ -422,7 +423,7 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
 
     private openOdpLink() {
         const uuid = this.props.dataSource.meta_info.uuid;
-        const url = "http://catalogue.ceda.ac.uk/uuid/" + uuid;
+        const url = 'http://catalogue.ceda.ac.uk/uuid/' + uuid;
         actions.openExternal(url);
     }
 
@@ -435,57 +436,64 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         }
         let spatialCoverage;
         if (meta_info.bbox_miny && meta_info.bbox_maxy && meta_info.bbox_minx && meta_info.bbox_maxx) {
-            spatialCoverage = (<div><h5>Spatial coverage</h5>
-                <table>
-                    <tbody>
-                    <tr>
-                        <td/>
-                        <td className="user-selectable">{meta_info.bbox_maxy}&#176;</td>
-                        <td/>
-                    </tr>
-                    <tr>
-                        <td className="user-selectable">{meta_info.bbox_minx}&#176;</td>
-                        <td/>
-                        <td className="user-selectable">{meta_info.bbox_maxx}&#176;</td>
-                    </tr>
-                    <tr>
-                        <td/>
-                        <td className="user-selectable">{meta_info.bbox_miny}&#176;</td>
-                        <td/>
-                    </tr>
-                    </tbody>
-                </table>
-                <br/>
-            </div>)
+            spatialCoverage = (
+                <div>
+                    <h5>Spatial coverage</h5>
+                    <table>
+                        <tbody>
+                        <tr>
+                            <td/>
+                            <td className="user-selectable">{meta_info.bbox_maxy}&#176;</td>
+                            <td/>
+                        </tr>
+                        <tr>
+                            <td className="user-selectable">{meta_info.bbox_minx}&#176;</td>
+                            <td/>
+                            <td className="user-selectable">{meta_info.bbox_maxx}&#176;</td>
+                        </tr>
+                        <tr>
+                            <td/>
+                            <td className="user-selectable">{meta_info.bbox_miny}&#176;</td>
+                            <td/>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <br/>
+                </div>
+            );
         }
         let temporalCoverage;
         if (dataSource.temporalCoverage) {
-            temporalCoverage = (<div><h5>Temporal coverage</h5>
-                <table>
-                    <tbody>
-                    <tr>
-                        <td>Start</td>
-                        <td className="user-selectable">{dataSource.temporalCoverage[0]}</td>
-                    </tr>
-                    <tr>
-                        <td>End</td>
-                        <td className="user-selectable">{dataSource.temporalCoverage[1]}</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <br/>
-            </div>)
+            temporalCoverage = (
+                <div><h5>Temporal coverage</h5>
+                    <table>
+                        <tbody>
+                        <tr>
+                            <td>Start</td>
+                            <td className="user-selectable">{dataSource.temporalCoverage[0]}</td>
+                        </tr>
+                        <tr>
+                            <td>End</td>
+                            <td className="user-selectable">{dataSource.temporalCoverage[1]}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <br/>
+                </div>
+            );
         }
         let summary;
         if (meta_info.abstract) {
-            summary = (<div><h5>Summary</h5>
-                <p className="user-selectable">{meta_info.abstract}</p>
-            </div>)
+            summary = (
+                <div><h5>Summary</h5>
+                    <p className="user-selectable">{meta_info.abstract}</p>
+                </div>
+            );
         }
 
         return {
-            title: "Abstract",
-            id: "abstract",
+            title: 'Abstract',
+            id: 'abstract',
             element: (
                 <ScrollablePanelContent>
                     <Card>
@@ -511,7 +519,11 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
 
         function renderUnit(rowIndex: number) {
             const variable = variables[rowIndex];
-            return (<Cell><TruncatedFormat className="user-selectable">{variable.units || '-'}</TruncatedFormat></Cell>);
+            return (
+                <Cell>
+                    <TruncatedFormat className="user-selectable">{variable.units || '-'}</TruncatedFormat>
+                </Cell>
+            );
         }
 
         function getCellClipboardData(row: number, col: number) {
@@ -519,8 +531,8 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         }
 
         return {
-            title: "Variables",
-            id: "var",
+            title: 'Variables',
+            id: 'var',
             element: (
                 <Table numRows={variables.length}
                        isRowHeaderShown={false}
@@ -548,8 +560,8 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         }
 
         return {
-            title: "Meta-Info",
-            id: "meta",
+            title: 'Meta-Info',
+            id: 'meta',
             element: (
                 <Table numRows={metaInfoKeys.length}
                        isRowHeaderShown={false}
@@ -557,6 +569,18 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
                     <Column name="Key" renderCell={renderKey}/>
                     <Column name="Value" renderCell={renderValue}/>
                 </Table>
+            )
+        };
+    }
+
+    private static renderMetaInfoLicences(meta_info: any): DetailPart {
+        return {
+            title: 'Licences',
+            id: 'licences',
+            element: (
+                <div>
+                    <p className="user-selectable">{meta_info.licences}</p>
+                </div>
             )
         };
     }
@@ -580,6 +604,9 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
             }
             if (metaInfoKeys.length) {
                 details.push(DataSourceDetails.renderMetaInfoTable(metaInfoKeys, dataSource.meta_info));
+            }
+            if (dataSource.meta_info.licences) {
+                details.push(DataSourceDetails.renderMetaInfoLicences(dataSource.meta_info));
             }
         }
 
