@@ -190,7 +190,6 @@ function findVariable(props: IValueEditorProps<any>) {
     const valueSetSource = props.input.valueSetSource.split(".");
     const resources = props.resources;
     const inputAssignments = props.inputAssignments;
-    console.log(inputAssignments);
 
     let resource;
     let variable;
@@ -208,7 +207,6 @@ function findVariable(props: IValueEditorProps<any>) {
         if (valueSetSource[1] && variables && inputAssignments) {
             const inputAssignment = inputAssignments[valueSetSource[1]];
             if (inputAssignment && inputAssignment.constantValue) {
-                console.log('aaa');
                 const varName = inputAssignment.constantValue.textValue;
                 variable = variables.find(v => v.name === varName);
             }
@@ -216,7 +214,6 @@ function findVariable(props: IValueEditorProps<any>) {
         }
     }
 
-    console.log(variable);
     return variable;
 }
 
