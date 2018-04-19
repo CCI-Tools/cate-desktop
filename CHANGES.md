@@ -1,6 +1,8 @@
 ## Changes in 2.0.0-dev.10 (in dev)
 
 ### New Features and UX Improvements
+
+* Missing notification on auto-update [#615](https://github.com/CCI-Tools/cate/issues/615)
 * Show a data source's terms and conditions [#518](https://github.com/CCI-Tools/cate/issues/518)
 
 
