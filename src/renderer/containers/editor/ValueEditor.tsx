@@ -10,6 +10,7 @@ import {FileValueEditor} from "./FileValueEditor";
 import {GeometryValueEditor} from "./GeometryValueEditor";
 import {TimeRangeValueEditor} from "./TimeRangeValueEditor";
 import {VarNameValueEditor} from "./VarNameValueEditor";
+import {DimNameValueEditor} from "./DimNameValueEditor";
 import {DictValueEditor} from "./DictValueEditor";
 import {LiteralValueEditor} from "./LiteralValueEditor";
 import {TimeValueEditor} from "./TimeValueEditor";
@@ -130,11 +131,13 @@ function renderVarNamesLikeValueEditor(props: IValueEditorProps<string>) {
 }
 
 function renderDimNameLikeValueEditor(props: IValueEditorProps<string>) {
-    return renderTextValueEditor(props);
+    return <DimNameValueEditor input={props.input} value={props.value} onChange={props.onChange}
+                               variable={findVariable(props)} multi={false}/>;
 }
 
 function renderDimNamesLikeValueEditor(props: IValueEditorProps<string>) {
-    return renderTextValueEditor(props);
+    return <DimNameValueEditor input={props.input} value={props.value} onChange={props.onChange}
+                               variable={findVariable(props)} multi={true}/>;
 }
 
 function renderDictLikeValueEditor(props: IValueEditorProps<string>) {
@@ -180,5 +183,40 @@ function findResource(props: IValueEditorProps<any>) {
         }
     }
     return resource;
+}
+
+
+function findVariable(props: IValueEditorProps<any>) {
+    const valueSetSource = props.input.valueSetSource.split(".");
+    const resources = props.resources;
+    const inputAssignments = props.inputAssignments;
+    console.log(inputAssignments);
+
+    let resource;
+    let variable;
+
+    if (valueSetSource[0] && resources && inputAssignments) {
+        const inputAssignment = inputAssignments[valueSetSource[0]];
+        const resourceName = inputAssignment.resourceName;
+        if (inputAssignment && resourceName && !inputAssignment.isValueUsed) {
+            resource = resources.find(r => r.name === resourceName);
+        }
+    }
+
+    if (resource) {
+        const variables = resource.variables;
+        if (valueSetSource[1] && variables && inputAssignments) {
+            const inputAssignment = inputAssignments[valueSetSource[1]];
+            if (inputAssignment && inputAssignment.constantValue) {
+                console.log('aaa');
+                const varName = inputAssignment.constantValue.textValue;
+                variable = variables.find(v => v.name === varName);
+            }
+
+        }
+    }
+
+    console.log(variable);
+    return variable;
 }
 
