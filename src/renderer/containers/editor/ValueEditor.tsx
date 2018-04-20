@@ -132,12 +132,12 @@ function renderVarNamesLikeValueEditor(props: IValueEditorProps<string>) {
 
 function renderDimNameLikeValueEditor(props: IValueEditorProps<string>) {
     return <DimNameValueEditor input={props.input} value={props.value} onChange={props.onChange}
-                               variable={findVariable(props)} multi={false}/>;
+                               dimNames={findDims(props)} multi={false}/>;
 }
 
 function renderDimNamesLikeValueEditor(props: IValueEditorProps<string>) {
     return <DimNameValueEditor input={props.input} value={props.value} onChange={props.onChange}
-                               variable={findVariable(props)} multi={true}/>;
+                               dimNames={findDims(props)} multi={true}/>;
 }
 
 function renderDictLikeValueEditor(props: IValueEditorProps<string>) {
@@ -186,13 +186,14 @@ function findResource(props: IValueEditorProps<any>) {
 }
 
 
-function findVariable(props: IValueEditorProps<any>) {
+function findDims(props: IValueEditorProps<any>) {
     const valueSetSource = props.input.valueSetSource.split(".");
     const resources = props.resources;
     const inputAssignments = props.inputAssignments;
 
     let resource;
     let variable;
+    let dimNames;
 
     if (valueSetSource[0] && resources && inputAssignments) {
         const inputAssignment = inputAssignments[valueSetSource[0]];
@@ -214,6 +215,13 @@ function findVariable(props: IValueEditorProps<any>) {
         }
     }
 
-    return variable;
+    if (valueSetSource[0] && valueSetSource[1] && variable) {
+        dimNames = variable.dimNames;
+    }
+    else if (valueSetSource[0] && !valueSetSource[1] && resource) {
+        dimNames = resource.coordVariables.map(c => c.name);
+    }
+
+    return dimNames;
 }
 

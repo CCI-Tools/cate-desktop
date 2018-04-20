@@ -4,10 +4,9 @@ import {AnchorButton} from "@blueprintjs/core";
 import {FieldValue, toTextValue} from "../../components/field/Field";
 import {TextField} from "../../components/field/TextField";
 import {DimensionsDialog} from "../DimensionsDialog";
-import {VariableState} from "../../state";
 
 interface IDimNamesValueEditorProps extends IValueEditorProps<string> {
-	variable: VariableState;
+	dimNames: string[];
 	multi?: boolean;
 }
 
@@ -33,13 +32,13 @@ export class DimNameValueEditor extends React.Component<IDimNamesValueEditorProp
     }
 
     validate(value: string) {
-        validateDimNamesText(value, this.props.input.nullable, this.props.multi, this.props.variable);
+        validateDimNamesText(value, this.props.input.nullable, this.props.multi, this.props.dimNames);
     }
 
     render() {
         const textValue = toTextValue(this.props.value);
-        const dimNames = textValue !== '' ? textValue.split(',').map(name => name.trim()) : [];
-        const hasSelectableDims = this.props.variable && this.props.variable.dimNames && this.props.variable.dimNames.length;
+        const valueDims = textValue !== '' ? textValue.split(',').map(name => name.trim()) : [];
+        const hasSelectableDims = this.props.dimNames && this.props.dimNames.length;
         return (
             <div className="pt-control-group" style={DimNameValueEditor.DIV_STYLE}>
                 <TextField
@@ -58,9 +57,9 @@ export class DimNameValueEditor extends React.Component<IDimNamesValueEditorProp
                               style={DimNameValueEditor.BUTTON_STYLE}>...</AnchorButton>
 
                 <DimensionsDialog isOpen={this.state.isDetailsEditorOpen}
-                                  variable={this.props.variable}
+                                  dimNames={this.props.dimNames}
                                   multiSelect={this.props.multi}
-                                  value={dimNames}
+                                  value={valueDims}
                                   onConfirm={(value: string[]) => {
                                       const textValue = value ? value.join(', ') : null;
                                       this.setState({isDetailsEditorOpen: false});
@@ -74,33 +73,33 @@ export class DimNameValueEditor extends React.Component<IDimNamesValueEditorProp
     }
 }
 
-export function validateDimNamesText(value: string | null, nullable: boolean, multi: boolean, variable: VariableState) {
+export function validateDimNamesText(value: string | null, nullable: boolean, multi: boolean, dimNames: string[]) {
     if (!value || value.trim() === '') {
         if (!nullable) {
             throw new Error(multi ? 'One or more dimension names expected.' : 'Dimension name expected.');
         }
         return;
     }
-    const dimNames = value.split(',');
+    const valueDims = value.split(',');
     if (multi) {
-        for (let dimName of dimNames) {
+        for (let dimName of valueDims) {
             if (dimName.trim() === '') {
                 throw new Error('Value must be a comma-separated list of dimension names.');
             }
         }
     } else {
-        if (dimNames.length !== 1) {
+        if (valueDims.length !== 1) {
             throw new Error('Value must be a single dimension name.');
         }
-        if (dimNames[0].trim() === '') {
+        if (valueDims[0].trim() === '') {
             throw new Error('Value must be a dimension name.');
         }
     }
-    if (variable && variable.dimNames) {
-        const validNames = new Set(variable.dimNames.map(v => v));
-        for (let dimName of dimNames) {
-            if (!validNames.has(dimName)) {
-                throw new Error(`"${dimName}" is not a dimension of variable ${variable.name}.`);
+    if (dimNames) {
+        for (let dimName of valueDims) {
+            const dimSet = new Set(dimNames);
+            if (!dimSet.has(dimName)) {
+                throw new Error(`"${dimName}" is not a valid dimension. Valid dimensions are: "${dimNames}"`);
             }
         }
     }

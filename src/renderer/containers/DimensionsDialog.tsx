@@ -1,5 +1,4 @@
 import * as React from 'react';
-import {VariableState, ResourceState} from "../state";
 import {ListBoxSelectionMode, ListBox} from "../components/ListBox";
 import {LabelWithType} from "../components/LabelWithType";
 import {ModalDialog} from "../components/ModalDialog";
@@ -8,7 +7,7 @@ import {ScrollablePanelContent} from "../components/ScrollableContent";
 interface IDimensionsDialogProps {
     isOpen: boolean;
     value: string[];
-    variable: VariableState;
+    dimNames: string[];
     onConfirm: (value: string[]) => void;
     onCancel: () => void;
     multiSelect?: boolean;
@@ -54,9 +53,9 @@ export class DimensionsDialog extends React.Component<IDimensionsDialogProps, ID
             return null;
         }
 
-        const dimensions = this.props.variable.dimNames;
+        const dimensions = this.props.dimNames;
         if (!dimensions) {
-            return (<p>{`Variable "${this.props.variable.name}" does not seem to have any dimensions.`}</p>);
+            return (<p>{`No dimensions names found for the given source.`}</p>);
         }
         return (
             <ScrollablePanelContent>
