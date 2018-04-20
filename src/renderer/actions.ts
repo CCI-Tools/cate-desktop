@@ -5,7 +5,7 @@ import {
     OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
     SplitMode,
 } from './state';
-import {ViewState, ViewPath} from './components/ViewState';
+import { ViewState, ViewPath } from './components/ViewState';
 import {
     JobProgress,
     JobFailure,
@@ -16,31 +16,31 @@ import {
 } from './webapi';
 import * as selectors from './selectors';
 import * as assert from '../common/assert';
-import {PanelContainerLayout} from './components/PanelContainer';
+import { PanelContainerLayout } from './components/PanelContainer';
 import {
     newVariableLayer, getCsvUrl, AUTO_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
     isAnimationResource, getHtmlUrl, MY_PLACES_LAYER_ID, getNonSpatialIndexers, genSimpleId, PLACEMARK_ID_PREFIX,
     getWorldViewVectorLayerForEntity
 } from './state-util';
-import {SplitDir} from './components/Splitter';
-import {updateObject} from '../common/objutil';
-import {showToast} from './toast';
+import { SplitDir } from './components/Splitter';
+import { updateObject } from '../common/objutil';
+import { showToast } from './toast';
 import * as redux from 'redux';
 import * as d3 from 'd3-fetch';
 import * as Cesium from 'cesium';
-import {isDefined, isNumber} from '../common/types';
-import {reloadEntityWithOriginalGeometry} from './containers/globe-view-layers';
-import {DirectGeometryObject, Feature} from 'geojson';
-import {SimpleStyle} from '../common/geojson-simple-style';
-import {GeometryToolType} from './components/cesium/geometry-tool';
-import {getEntityByEntityId} from './components/cesium/cesium-util';
-import {isAssignableFrom, VAR_NAME_LIKE_TYPE, VAR_NAMES_LIKE_TYPE} from '../common/cate-types';
+import { isDefined, isNumber } from '../common/types';
+import { reloadEntityWithOriginalGeometry } from './containers/globe-view-layers';
+import { DirectGeometryObject, Feature } from 'geojson';
+import { SimpleStyle } from '../common/geojson-simple-style';
+import { GeometryToolType } from './components/cesium/geometry-tool';
+import { getEntityByEntityId } from './components/cesium/cesium-util';
+import { isAssignableFrom, VAR_NAME_LIKE_TYPE, VAR_NAMES_LIKE_TYPE } from '../common/cate-types';
 import {
     assignConstantValueInput, assignResourceNameInput, InputAssignments,
     isInputAssigned
 } from './containers/editor/value-editor-assign';
-import {ERROR_CODE_CANCELLED} from './webapi';
+import { ERROR_CODE_CANCELLED } from './webapi/WebAPIClient';
 
 
 /**
@@ -184,7 +184,7 @@ export function setGlobeViewPosition(position: GeographicPosition): ThunkAction 
                         dispatch(setGlobeViewPositionData(positionData));
                     }
 
-                    callAPI(dispatch, 'Loading pixel values', call, action);
+                    callAPI(dispatch, 'Loading pixel values', call, action, undefined, undefined, true);
                     return;
                 }
             }
@@ -335,7 +335,11 @@ function jobDone(jobId: number): Action {
     return updateTaskState(jobId, {status: JobStatusEnum.DONE});
 }
 
-function jobFailed(jobId: number, jobTitle: string, failure: JobFailure, dispatch: (action: Action) => void): void {
+function jobFailed(jobId: number,
+                   jobTitle: string,
+                   failure: JobFailure,
+                   dispatch: (action: Action) => void,
+                   notificationDisabled: boolean): void {
     const status = failure.code === ERROR_CODE_CANCELLED ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED;
     let type, text, action;
     if (status === JobStatusEnum.CANCELLED) {
@@ -352,10 +356,12 @@ function jobFailed(jobId: number, jobTitle: string, failure: JobFailure, dispatc
         };
     }
     dispatch(updateTaskState(jobId, {status, failure}));
-    if (failure.code === ERROR_CODE_INVALID_PARAMS) {
-        dispatch(showJobFailureDetails(jobTitle, failure));
-    } else {
-        showToast({type, text, action} as MessageState);
+    if (!notificationDisabled) {
+        if (failure.code === ERROR_CODE_INVALID_PARAMS) {
+            dispatch(showJobFailureDetails(jobTitle, failure));
+        } else {
+            showToast({type, text, action} as MessageState);
+        }
     }
 }
 
@@ -376,48 +382,54 @@ export type JobPromisePlanB = (jobFailure: JobFailure) => void;
  * @param requestLock A lock to prevent multiple invocations
  * @param action The action to be performed when the API call succeeds.
  * @param planB The action to be performed when the API call fails.
+ * @param notificationDisabled If true, no notifications about job status will be delivered, except errors.
  */
 export function callAPI<T>(dispatch: (action: Action) => void,
                            title: string,
                            call: JobPromiseFactory<T>,
                            action?: JobPromiseAction<T>,
                            requestLock?: string,
-                           planB?: JobPromisePlanB): void {
+                           planB?: JobPromisePlanB,
+                           notificationDisabled?: boolean): void {
     const onProgress = (progress: JobProgress) => {
-        dispatch(jobProgress(progress));
+        if (!notificationDisabled) {
+            dispatch(jobProgress(progress));
+        }
     };
-
     const jobPromise = call(onProgress);
-    const startToastDelayMs = 500;
+
     let startToastShown = false;
-    const startToastTimeoutHandler = setTimeout(() => {
-        showToast({
-                      type: 'notification',
-                      text: 'Started: ' + title,
-                  });
-        startToastShown = true;
-    }, startToastDelayMs);
-    dispatch(jobSubmitted(jobPromise.getJobId(), title, requestLock));
+    let startToastTimeoutHandler;
+    if (!notificationDisabled) {
+        const startToastDelayMs = 500;
+        startToastTimeoutHandler = setTimeout(() => {
+            showToast({type: 'notification', text: 'Started: ' + title});
+            startToastShown = true;
+        }, startToastDelayMs);
+        dispatch(jobSubmitted(jobPromise.getJobId(), title, requestLock));
+    }
 
     const onDone = (jobResult: T) => {
-        if (startToastShown) {
-            showToast({
-                          type: 'success',
-                          text: 'Done: ' + title,
-                      });
-        } else {
-            clearTimeout(startToastTimeoutHandler);
+        if (!notificationDisabled) {
+            if (startToastShown) {
+                showToast({type: 'success', text: 'Done: ' + title});
+            } else {
+                clearTimeout(startToastTimeoutHandler);
+            }
+            dispatch(jobDone(jobPromise.getJobId()));
         }
-        dispatch(jobDone(jobPromise.getJobId()));
         if (action) {
             action(jobResult);
         }
     };
     const onFailure = jobFailure => {
-        if (!startToastShown) {
-            clearTimeout(startToastTimeoutHandler);
+        if (!notificationDisabled) {
+            if (!startToastShown) {
+                clearTimeout(startToastTimeoutHandler);
+            }
         }
-        jobFailed(jobPromise.getJobId(), title, jobFailure, dispatch);
+        // Always show errors in TASKS panel
+        jobFailed(jobPromise.getJobId(), title, jobFailure, dispatch, notificationDisabled);
         if (planB) {
             planB(jobFailure);
         }
@@ -997,7 +1009,7 @@ export function deleteResourceInteractive(resName: string): ThunkAction {
                                           title: 'Remove Resource and Workflow Step',
                                           message: `Do you really want to delete resource and step "${resName}"?`,
                                           detail: 'This will also delete the workflow step that created it.\n' +
-                                          'You will not be able to undo this operation.',
+                                                  'You will not be able to undo this operation.',
                                           buttons: ['Yes', 'No'],
                                           defaultId: 1,
                                           cancelId: 1,

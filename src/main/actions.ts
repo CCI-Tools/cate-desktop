@@ -1,5 +1,5 @@
 import * as electron from 'electron';
-import {getAppDataDir, getAppIconPath, APP_CLI_VERSION_RANGE, getCateDir} from "./appenv";
+import { getAppDataDir, getAppIconPath, APP_CLI_VERSION_RANGE, getCateDir } from './appenv';
 
 
 function ifDarwinOrElse(darwinValue, elseValue) {
@@ -59,31 +59,31 @@ export const actions = {
 
     newWorkspace: {
         label: 'New Workspace',
-        category: "file",
+        category: 'file',
         click: (item, focusedWindow) => performRendererAction(focusedWindow, 'new-workspace'),
     },
 
     openWorkspace: {
         label: 'Open Workspace',
-        category: "file",
+        category: 'file',
         click: (item, focusedWindow) => performRendererAction(focusedWindow, 'open-workspace'),
     },
 
     closeWorkspace: {
         label: 'Close Workspace',
-        category: "file",
+        category: 'file',
         click: (item, focusedWindow) => performRendererAction(focusedWindow, 'close-workspace'),
     },
 
     saveWorkspace: {
         label: 'Save Workspace',
-        category: "file",
+        category: 'file',
         click: (item, focusedWindow) => performRendererAction(focusedWindow, 'save-workspace'),
     },
 
     saveWorkspaceAs: {
         label: 'Save Workspace As...',
-        category: "file",
+        category: 'file',
         click: (item, focusedWindow) => performRendererAction(focusedWindow, 'save-workspace-as'),
     },
 
@@ -290,7 +290,7 @@ export const actions = {
             const detail = '' +
                            `Program: ${electron.app.getAppPath()}\n` +
                            `Data: ${getAppDataDir()}\n` +
-                           `CLI env: ${getCateDir() ? getCateDir() : "<unknown>"}\n` +
+                           `CLI env: ${getCateDir() ? getCateDir() : '<unknown>'}\n` +
                            `Requires Cate Core ${APP_CLI_VERSION_RANGE}\n` +
                            '\n' +
                            'Cate is open source software distributed under the MIT license.\n\n' +
