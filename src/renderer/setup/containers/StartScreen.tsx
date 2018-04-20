@@ -13,6 +13,7 @@ interface IStartScreenProps {
     oldCateVersion: string;
     newCateVersion: string;
     setupMode: SetupMode;
+    validation?: string;
 }
 
 function mapStateToProps(state: State): IStartScreenProps {
@@ -21,6 +22,7 @@ function mapStateToProps(state: State): IStartScreenProps {
         oldCateVersion: state.setupInfo.oldCateVersion,
         newCateVersion: state.setupInfo.newCateVersion,
         setupMode: state.setupMode,
+        validation: state.validations[state.screenId],
     };
 }
 
@@ -36,6 +38,16 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & actions.Dispa
             reasonText = <p>Cate Desktop requires an update of the Python
                 package <code>{`cate-${this.props.oldCateVersion}`}</code> to <code>{`cate-${this.props.newCateVersion}`}</code>.
             </p>;
+        }
+
+        let validationErrorDiv;
+        if (this.props.validation && this.props.setupMode === SETUP_MODE_AUTO) {
+            validationErrorDiv = (
+                <div style={{marginTop: 32}}>
+                    <span className="pt-icon-large pt-icon-warning-sign pt-intent-danger"/>
+                    <span style={{marginLeft: 8}}>A problem prevents automatic setup: {this.props.validation}</span>
+                </div>
+            );
         }
 
         const panel = (
@@ -62,6 +74,8 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & actions.Dispa
                     the <a href="http://cate.readthedocs.io/en/latest/" target="_blank">documentation</a>.
                 </p>
 
+                {validationErrorDiv}
+
             </div>
         );
 
@@ -69,6 +83,7 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & actions.Dispa
             <SetupScreen title="Cate Desktop Setup"
                          panel={panel}
                          noBackButton={true}
+                         nextButtonDisabled={!!validationErrorDiv}
                          onNextButtonClick={() => this.props.dispatch(actions.moveForward())}
                          onCancelClick={() => this.props.dispatch(actions.cancelSetup())}
             />

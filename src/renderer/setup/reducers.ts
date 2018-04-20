@@ -49,9 +49,12 @@ export const stateReducer: Reducer<State> = (state: State = initialState, action
             return {...state, setupInfo, newCateDir, oldCateDir, cateMode};
         }
         case "MOVE_FORWARD":
-            if (state.validations[state.screenId]) {
-                // Don't move forward, if this screen's validation failed.
-                return state;
+            let hasErrors = !!state.validations[state.screenId];
+            if (hasErrors) {
+                const isStartAndUserDefined = state.screenId === SCREEN_ID_START && state.setupMode === SETUP_MODE_USER;
+                if (!isStartAndUserDefined) {
+                    return state;
+                }
             }
             switch (state.screenId) {
                 case SCREEN_ID_START:
