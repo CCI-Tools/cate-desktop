@@ -4,8 +4,8 @@ import {
     OperationState, BackendConfigState, VariableState,
     OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
     SplitMode,
-} from "./state";
-import { ViewState, ViewPath } from "./components/ViewState";
+} from './state';
+import { ViewState, ViewPath } from './components/ViewState';
 import {
     JobProgress,
     JobFailure,
@@ -13,34 +13,34 @@ import {
     JobPromise,
     JobProgressHandler,
     ERROR_CODE_INVALID_PARAMS
-} from "./webapi";
-import * as selectors from "./selectors";
-import * as assert from "../common/assert";
-import { PanelContainerLayout } from "./components/PanelContainer";
+} from './webapi';
+import * as selectors from './selectors';
+import * as assert from '../common/assert';
+import { PanelContainerLayout } from './components/PanelContainer';
 import {
     newVariableLayer, getCsvUrl, AUTO_LAYER_ID, isFigureResource, findResourceByName,
     getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
     isAnimationResource, getHtmlUrl, MY_PLACES_LAYER_ID, getNonSpatialIndexers, genSimpleId, PLACEMARK_ID_PREFIX,
     getWorldViewVectorLayerForEntity
-} from "./state-util";
-import { SplitDir } from "./components/Splitter";
-import { updateObject } from "../common/objutil";
-import { showToast } from "./toast";
-import * as redux from "redux";
-import * as d3 from "d3-fetch";
-import * as Cesium from "cesium";
-import { isDefined, isNumber } from "../common/types";
-import { reloadEntityWithOriginalGeometry } from "./containers/globe-view-layers";
-import { DirectGeometryObject, Feature } from "geojson";
-import { SimpleStyle } from "../common/geojson-simple-style";
-import { GeometryToolType } from "./components/cesium/geometry-tool";
-import { getEntityByEntityId } from "./components/cesium/cesium-util";
-import { isAssignableFrom, VAR_NAME_LIKE_TYPE, VAR_NAMES_LIKE_TYPE } from "../common/cate-types";
+} from './state-util';
+import { SplitDir } from './components/Splitter';
+import { updateObject } from '../common/objutil';
+import { showToast } from './toast';
+import * as redux from 'redux';
+import * as d3 from 'd3-fetch';
+import * as Cesium from 'cesium';
+import { isDefined, isNumber } from '../common/types';
+import { reloadEntityWithOriginalGeometry } from './containers/globe-view-layers';
+import { DirectGeometryObject, Feature } from 'geojson';
+import { SimpleStyle } from '../common/geojson-simple-style';
+import { GeometryToolType } from './components/cesium/geometry-tool';
+import { getEntityByEntityId } from './components/cesium/cesium-util';
+import { isAssignableFrom, VAR_NAME_LIKE_TYPE, VAR_NAMES_LIKE_TYPE } from '../common/cate-types';
 import {
     assignConstantValueInput, assignResourceNameInput, InputAssignments,
     isInputAssigned
-} from "./containers/editor/value-editor-assign";
-import { ERROR_CODE_CANCELLED } from "./webapi/WebAPIClient";
+} from './containers/editor/value-editor-assign';
+import { ERROR_CODE_CANCELLED } from './webapi/WebAPIClient';
 
 
 /**
@@ -93,9 +93,9 @@ export function addPlacemark(placemark: Placemark): Action {
 export function addPointPlacemark(longitude: number, latitude: number, properties: any): Action {
     const placemark = {
         id: genSimpleId(PLACEMARK_ID_PREFIX),
-        type: "Feature",
+        type: 'Feature',
         geometry: {
-            type: "Point",
+            type: 'Point',
             coordinates: [longitude, latitude]
         },
         properties,
@@ -191,7 +191,7 @@ export function setGlobeViewPosition(position: GeographicPosition): ThunkAction 
                         dispatch(setGlobeViewPositionData(positionData));
                     }
 
-                    callAPI(dispatch, 'Loading pixel values', call, action);
+                    callAPI(dispatch, 'Loading pixel values', call, action, undefined, undefined, true);
                     return;
                 }
             }
@@ -342,7 +342,11 @@ function jobDone(jobId: number): Action {
     return updateTaskState(jobId, {status: JobStatusEnum.DONE});
 }
 
-function jobFailed(jobId: number, jobTitle: string, failure: JobFailure, dispatch: (action: Action) => void): void {
+function jobFailed(jobId: number,
+                   jobTitle: string,
+                   failure: JobFailure,
+                   dispatch: (action: Action) => void,
+                   notificationDisabled: boolean): void {
     const status = failure.code === ERROR_CODE_CANCELLED ? JobStatusEnum.CANCELLED : JobStatusEnum.FAILED;
     let type, text, action;
     if (status === JobStatusEnum.CANCELLED) {
@@ -359,10 +363,12 @@ function jobFailed(jobId: number, jobTitle: string, failure: JobFailure, dispatc
         };
     }
     dispatch(updateTaskState(jobId, {status, failure}));
-    if (failure.code === ERROR_CODE_INVALID_PARAMS) {
-        dispatch(showJobFailureDetails(jobTitle, failure));
-    } else {
-        showToast({type, text, action} as MessageState);
+    if (!notificationDisabled) {
+        if (failure.code === ERROR_CODE_INVALID_PARAMS) {
+            dispatch(showJobFailureDetails(jobTitle, failure));
+        } else {
+            showToast({type, text, action} as MessageState);
+        }
     }
 }
 
@@ -383,48 +389,54 @@ export type JobPromisePlanB = (jobFailure: JobFailure) => void;
  * @param requestLock A lock to prevent multiple invocations
  * @param action The action to be performed when the API call succeeds.
  * @param planB The action to be performed when the API call fails.
+ * @param notificationDisabled If true, no notifications about job status will be delivered, except errors.
  */
 export function callAPI<T>(dispatch: (action: Action) => void,
                            title: string,
                            call: JobPromiseFactory<T>,
                            action?: JobPromiseAction<T>,
                            requestLock?: string,
-                           planB?: JobPromisePlanB): void {
+                           planB?: JobPromisePlanB,
+                           notificationDisabled?: boolean): void {
     const onProgress = (progress: JobProgress) => {
-        dispatch(jobProgress(progress));
+        if (!notificationDisabled) {
+            dispatch(jobProgress(progress));
+        }
     };
-
     const jobPromise = call(onProgress);
-    const startToastDelayMs = 500;
+
     let startToastShown = false;
-    const startToastTimeoutHandler = setTimeout(() => {
-        showToast({
-                      type: 'notification',
-                      text: 'Started: ' + title,
-                  });
-        startToastShown = true;
-    }, startToastDelayMs);
-    dispatch(jobSubmitted(jobPromise.getJobId(), title, requestLock));
+    let startToastTimeoutHandler;
+    if (!notificationDisabled) {
+        const startToastDelayMs = 500;
+        startToastTimeoutHandler = setTimeout(() => {
+            showToast({type: 'notification', text: 'Started: ' + title});
+            startToastShown = true;
+        }, startToastDelayMs);
+        dispatch(jobSubmitted(jobPromise.getJobId(), title, requestLock));
+    }
 
     const onDone = (jobResult: T) => {
-        if (startToastShown) {
-            showToast({
-                          type: 'success',
-                          text: 'Done: ' + title,
-                      });
-        } else {
-            clearTimeout(startToastTimeoutHandler);
+        if (!notificationDisabled) {
+            if (startToastShown) {
+                showToast({type: 'success', text: 'Done: ' + title});
+            } else {
+                clearTimeout(startToastTimeoutHandler);
+            }
+            dispatch(jobDone(jobPromise.getJobId()));
         }
-        dispatch(jobDone(jobPromise.getJobId()));
         if (action) {
             action(jobResult);
         }
     };
     const onFailure = jobFailure => {
-        if (!startToastShown) {
-            clearTimeout(startToastTimeoutHandler);
+        if (!notificationDisabled) {
+            if (!startToastShown) {
+                clearTimeout(startToastTimeoutHandler);
+            }
         }
-        jobFailed(jobPromise.getJobId(), title, jobFailure, dispatch);
+        // Always show errors in TASKS panel
+        jobFailed(jobPromise.getJobId(), title, jobFailure, dispatch, notificationDisabled);
         if (planB) {
             planB(jobFailure);
         }
@@ -722,8 +734,8 @@ export function newWorkspace(workspacePath: string | null): ThunkAction {
 
         function planB(jobFailure: JobFailure) {
             showMessageBox({
-                               type: "error",
-                               title: "New Workspace",
+                               type: 'error',
+                               title: 'New Workspace',
                                message: 'Failed to create new workspace.',
                                detail: jobFailure.message
                            });
@@ -813,8 +825,8 @@ export function saveWorkspace(): ThunkAction {
 
         function planB(jobFailure: JobFailure) {
             showMessageBox({
-                               type: "error",
-                               title: "Save Workspace",
+                               type: 'error',
+                               title: 'Save Workspace',
                                message: 'Failed to save workspace.',
                                detail: jobFailure.message
                            });
@@ -844,8 +856,8 @@ export function saveWorkspaceAs(workspacePath: string): ThunkAction {
 
         function planB(jobFailure: JobFailure) {
             showMessageBox({
-                               type: "error",
-                               title: "Save Workspace As",
+                               type: 'error',
+                               title: 'Save Workspace As',
                                message: 'Failed to save workspace.',
                                detail: jobFailure.message
                            });
@@ -920,8 +932,8 @@ export function newWorkspaceInteractive() {
 export function openWorkspaceInteractive(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         const workspacePath = showSingleFileOpenDialog({
-                                                           title: "Open Workspace - Select Directory",
-                                                           buttonLabel: "Open",
+                                                           title: 'Open Workspace - Select Directory',
+                                                           buttonLabel: 'Open',
                                                            properties: ['openDirectory'],
                                                        });
         if (workspacePath) {
@@ -940,9 +952,9 @@ export function openWorkspaceInteractive(): ThunkAction {
                     return;
                 }
                 ok = maybeSaveCurrentWorkspace(dispatch, getState,
-                                               "Open Workspace",
-                                               "Would you like to save the current workspace before opening the new one?",
-                                               "Press \"Cancel\" to cancel opening a new workspace."
+                                               'Open Workspace',
+                                               'Would you like to save the current workspace before opening the new one?',
+                                               'Press "Cancel" to cancel opening a new workspace.'
                 );
             }
             if (ok) {
@@ -960,9 +972,9 @@ export function openWorkspaceInteractive(): ThunkAction {
 export function closeWorkspaceInteractive(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         const ok = maybeSaveCurrentWorkspace(dispatch, getState,
-                                             "Close Workspace",
-                                             "Would you like to save the current workspace before closing it?",
-                                             "Press \"Cancel\" to cancel closing the workspace."
+                                             'Close Workspace',
+                                             'Would you like to save the current workspace before closing it?',
+                                             'Press "Cancel" to cancel closing the workspace.'
         );
         if (ok) {
             dispatch(closeWorkspace())
@@ -982,7 +994,7 @@ export function cleanWorkspaceInteractive(): ThunkAction {
                                           title: 'Clean Workspace',
                                           message: 'Do you really want to clean this workspace?',
                                           detail: 'This will delete all resources and workflow steps.\nYou will not be able to undo this operation.',
-                                          buttons: ["Yes", "No"],
+                                          buttons: ['Yes', 'No'],
                                           defaultId: 1,
                                           cancelId: 1,
                                       });
@@ -1005,7 +1017,7 @@ export function deleteResourceInteractive(resName: string): ThunkAction {
                                           message: `Do you really want to delete resource and step "${resName}"?`,
                                           detail: 'This will also delete the workflow step that created it.\n' +
                                                   'You will not be able to undo this operation.',
-                                          buttons: ["Yes", "No"],
+                                          buttons: ['Yes', 'No'],
                                           defaultId: 1,
                                           cancelId: 1,
                                       });
@@ -1037,7 +1049,7 @@ export function saveWorkspaceInteractive(): ThunkAction {
  * @returns a Redux action
  */
 export function saveWorkspaceAsInteractive() {
-    return showDialog("saveWorkspaceAsDialog");
+    return showDialog('saveWorkspaceAsDialog');
 }
 
 /**
@@ -1055,7 +1067,7 @@ function maybeSaveCurrentWorkspace(dispatch, getState: GetState, title: string, 
                                               title,
                                               message,
                                               detail,
-                                              buttons: ["Yes", "No", "Cancel"],
+                                              buttons: ['Yes', 'No', 'Cancel'],
                                               defaultId: 0,
                                               cancelId: 2,
                                           });
@@ -1188,7 +1200,7 @@ export function setWorkspaceResourcePersistence(resName: string, persistent: boo
             dispatch(setCurrentWorkspace(workspace));
         }
 
-        callAPI(dispatch, "Changing resource persistence", call, action);
+        callAPI(dispatch, 'Changing resource persistence', call, action);
     }
 }
 
@@ -1257,7 +1269,7 @@ export function saveFigureImageAs(imageUrl: string, figureId: number): ThunkActi
     return () => {
         // console.log("saveFigureImageAs: ", imageUrl, figureId);
         const electron = require('electron');
-        electron.shell.openExternal(imageUrl + "/png");
+        electron.shell.openExternal(imageUrl + '/png');
 
         // showFileSaveDialog({
         //     title: "Save Figure As",
@@ -1326,14 +1338,14 @@ export function setSelectedRightBottomPanelId(selectedRightBottomPanelId: string
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ViewManager actions
 
-export const ADD_WORLD_VIEW = "ADD_WORLD_VIEW";
-export const ADD_TABLE_VIEW = "ADD_TABLE_VIEW";
-export const SELECT_VIEW = "SELECT_VIEW";
-export const CLOSE_VIEW = "CLOSE_VIEW";
-export const CLOSE_ALL_VIEWS = "CLOSE_ALL_VIEWS";
-export const SPLIT_VIEW_PANEL = "SPLIT_VIEW_PANEL";
-export const CHANGE_VIEW_SPLIT_POS = "CHANGE_VIEW_SPLIT_POS";
-export const MOVE_VIEW = "MOVE_VIEW";
+export const ADD_WORLD_VIEW = 'ADD_WORLD_VIEW';
+export const ADD_TABLE_VIEW = 'ADD_TABLE_VIEW';
+export const SELECT_VIEW = 'SELECT_VIEW';
+export const CLOSE_VIEW = 'CLOSE_VIEW';
+export const CLOSE_ALL_VIEWS = 'CLOSE_ALL_VIEWS';
+export const SPLIT_VIEW_PANEL = 'SPLIT_VIEW_PANEL';
+export const CHANGE_VIEW_SPLIT_POS = 'CHANGE_VIEW_SPLIT_POS';
+export const MOVE_VIEW = 'MOVE_VIEW';
 
 
 export function addWorldView(placeAfterViewId: string | null): Action {
@@ -1360,7 +1372,7 @@ export function changeViewSplitPos(viewPath: ViewPath, delta: number): Action {
     return {type: CHANGE_VIEW_SPLIT_POS, payload: {viewPath, delta}};
 }
 
-export function moveView(sourceViewId: string, placement: "before" | "after", targetViewId: string): Action {
+export function moveView(sourceViewId: string, placement: 'before' | 'after', targetViewId: string): Action {
     return {type: MOVE_VIEW, payload: {sourceViewId, placement, targetViewId}};
 }
 
@@ -1374,7 +1386,7 @@ export const SET_LAYER_SPLIT_MODE = 'SET_LAYER_SPLIT_MODE';
 export const SET_LAYER_SPLIT_POSITION = 'SET_LAYER_SPLIT_POSITION';
 export const SET_SELECTED_ENTITY_ID = 'SET_SELECTED_ENTITY_ID';
 export const INC_ENTITY_UPDATE_COUNT = 'INC_ENTITY_UPDATE_COUNT';
-export const UPDATE_ENTITY_STYLE = "UPDATE_ENTITY_STYLE";
+export const UPDATE_ENTITY_STYLE = 'UPDATE_ENTITY_STYLE';
 
 export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
@@ -1455,7 +1467,7 @@ function incEntityUpdateCount(): Action {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Table view actions
 
-export const UPDATE_TABLE_VIEW_DATA = "UPDATE_TABLE_VIEW_DATA";
+export const UPDATE_TABLE_VIEW_DATA = 'UPDATE_TABLE_VIEW_DATA';
 
 export function updateTableViewData(viewId: string,
                                     resName: string | null,
@@ -1491,7 +1503,7 @@ export function loadTableViewData(viewId: string, resName: string, varName: stri
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Animation view actions
 
-export const UPDATE_ANIMATION_VIEW_DATA = "UPDATE_ANIMATION_VIEW_DATA";
+export const UPDATE_ANIMATION_VIEW_DATA = 'UPDATE_ANIMATION_VIEW_DATA';
 
 export function loadAnimationViewData(viewId: string, resId: number): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
@@ -1505,7 +1517,7 @@ export function loadAnimationViewData(viewId: string, resId: number): ThunkActio
                 dispatch(setAnimationResult(viewId, xmlHttp.responseText, xmlHttp.status));
             }
         };
-        xmlHttp.open("GET", htmlUrl, true); // true for asynchronous
+        xmlHttp.open('GET', htmlUrl, true); // true for asynchronous
         xmlHttp.send(null);
     }
 }
