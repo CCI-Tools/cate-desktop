@@ -2,6 +2,7 @@
 
 ### New Features and UX Improvements
 
+* New / save / close workspace toasts sometimes not displayed [#619](https://github.com/CCI-Tools/cate/issues/619)
 * Missing notification on auto-update [#615](https://github.com/CCI-Tools/cate/issues/615)
 * Show a data source's terms and conditions [#518](https://github.com/CCI-Tools/cate/issues/518)
 
