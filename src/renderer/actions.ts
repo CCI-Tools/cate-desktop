@@ -40,7 +40,7 @@ import {
     assignConstantValueInput, assignResourceNameInput, InputAssignments,
     isInputAssigned
 } from './containers/editor/value-editor-assign';
-import { ERROR_CODE_CANCELLED } from './webapi/WebAPIClient';
+import { ERROR_CODE_CANCELLED } from './webapi';
 
 
 /**
@@ -191,7 +191,7 @@ export function setGlobeViewPosition(position: GeographicPosition): ThunkAction 
                         dispatch(setGlobeViewPositionData(positionData));
                     }
 
-                    callAPI(dispatch, 'Loading pixel values', call, action, undefined, undefined, true);
+                    callAPI({title: 'Load cell values', dispatch, call, action, disableNotifications: true});
                     return;
                 }
             }
@@ -304,7 +304,7 @@ export function loadBackendConfig(): ThunkAction {
             dispatch(updateBackendConfig(backendConfig));
         }
 
-        callAPI(dispatch, 'Loading configuration', call, action);
+        callAPI({title: 'Load configuration', dispatch, call, action});
     };
 }
 
@@ -319,7 +319,7 @@ export function storeBackendConfig(backendConfig: BackendConfigState): ThunkActi
             return selectors.backendConfigAPISelector(getState()).setBackendConfig(backendConfig);
         }
 
-        callAPI(dispatch, 'Storing configuration', call);
+        callAPI({title: 'Store configuration', dispatch, call});
     };
 }
 
@@ -380,26 +380,47 @@ export type JobPromiseFactory<T> = (jobProgressHandler: JobProgressHandler) => J
 export type JobPromiseAction<T> = (jobResult: T) => void;
 export type JobPromisePlanB = (jobFailure: JobFailure) => void;
 
+interface CallAPIOptions<T> {
+    /** The actual API call. */
+    call: JobPromiseFactory<T>;
+    /** A human-readable title for the job that is being created. */
+    title: string;
+    /** Redux' dispatch() function. */
+    dispatch: (action: Action) => void;
+    /** The action to be performed when the API call succeeds. */
+    action?: JobPromiseAction<T>;
+    /** A lock to prevent multiple invocations. */
+    requestLock?: string;
+    /** The action to be performed when the API call fails. */
+    planB?: JobPromisePlanB;
+    /** If true, no notifications about job status will be delivered, except errors. */
+    disableNotifications?: boolean;
+    /** If true, a notification is shown when done even when no start notification was shown (due to startToastDelay). */
+    requireDoneNotification?: boolean;
+    /** Delay in milliseconds before a toast is shown. */
+    startToastDelay?: number;
+}
+
 /**
  * Call some (remote) API asynchronously.
  *
- * @param dispatch Redux' dispatch() function.
- * @param title A human-readable title for the job that is being created
- * @param call The API call which must produce a JobPromise
- * @param requestLock A lock to prevent multiple invocations
- * @param action The action to be performed when the API call succeeds.
- * @param planB The action to be performed when the API call fails.
- * @param notificationDisabled If true, no notifications about job status will be delivered, except errors.
+ * @param options Options that control the API call.
  */
-export function callAPI<T>(dispatch: (action: Action) => void,
-                           title: string,
-                           call: JobPromiseFactory<T>,
-                           action?: JobPromiseAction<T>,
-                           requestLock?: string,
-                           planB?: JobPromisePlanB,
-                           notificationDisabled?: boolean): void {
+export function callAPI<T>(options: CallAPIOptions<T>): void {
+    const {
+        call,
+        title,
+        dispatch,
+        action,
+        requestLock,
+        planB,
+        disableNotifications = false,
+        requireDoneNotification = false,
+        startToastDelay = 500,
+    } = options;
+
     const onProgress = (progress: JobProgress) => {
-        if (!notificationDisabled) {
+        if (!disableNotifications) {
             dispatch(jobProgress(progress));
         }
     };
@@ -407,21 +428,19 @@ export function callAPI<T>(dispatch: (action: Action) => void,
 
     let startToastShown = false;
     let startToastTimeoutHandler;
-    if (!notificationDisabled) {
-        const startToastDelayMs = 500;
+    if (!disableNotifications) {
         startToastTimeoutHandler = setTimeout(() => {
             showToast({type: 'notification', text: 'Started: ' + title});
             startToastShown = true;
-        }, startToastDelayMs);
+        }, startToastDelay);
         dispatch(jobSubmitted(jobPromise.getJobId(), title, requestLock));
     }
 
     const onDone = (jobResult: T) => {
-        if (!notificationDisabled) {
-            if (startToastShown) {
+        if (!disableNotifications) {
+            clearTimeout(startToastTimeoutHandler);
+            if (startToastShown || requireDoneNotification) {
                 showToast({type: 'success', text: 'Done: ' + title});
-            } else {
-                clearTimeout(startToastTimeoutHandler);
             }
             dispatch(jobDone(jobPromise.getJobId()));
         }
@@ -430,13 +449,13 @@ export function callAPI<T>(dispatch: (action: Action) => void,
         }
     };
     const onFailure = jobFailure => {
-        if (!notificationDisabled) {
+        if (!disableNotifications) {
             if (!startToastShown) {
                 clearTimeout(startToastTimeoutHandler);
             }
         }
         // Always show errors in TASKS panel
-        jobFailed(jobPromise.getJobId(), title, jobFailure, dispatch, notificationDisabled);
+        jobFailed(jobPromise.getJobId(), title, jobFailure, dispatch, disableNotifications);
         if (planB) {
             planB(jobFailure);
         }
@@ -479,7 +498,7 @@ export function loadDataStores(): ThunkAction {
             }
         }
 
-        callAPI(dispatch, 'Loading data stores', call, action);
+        callAPI({title: 'Loading data stores', dispatch, call, action});
     }
 }
 
@@ -519,7 +538,7 @@ export function loadDataSources(dataStoreId: string, setSelection: boolean): Thu
         }
 
         const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === dataStoreId);
-        callAPI(dispatch, `Loading data sources for store "${dataStore ? dataStore.id : '?'}"`, call, action, requestLock);
+        callAPI({title: `Load data sources for store "${dataStore ? dataStore.id : '?'}"`, dispatch, call, action, requestLock});
     }
 }
 
@@ -565,7 +584,7 @@ export function loadTemporalCoverage(dataStoreId: string, dataSourceId: string):
             dispatch(updateDataSourceTemporalCoverage(dataStoreId, dataSourceId, temporalCoverage));
         }
 
-        callAPI(dispatch, `Loading temporal coverage for ${dataSourceId}`, call, action);
+        callAPI({title: `Load temporal coverage for ${dataSourceId}`, dispatch, call, action});
     };
 }
 
@@ -616,7 +635,8 @@ export function addLocalDataset(dataSourceId: string, filePathPattern: string): 
             dispatch(updateDataSources('local', dataSources));
         }
 
-        callAPI(dispatch, `Adding local data source "${dataSourceId}"`, call, action);
+        callAPI({title: `Add local data source "${dataSourceId}"`,
+                    dispatch, call, action, requireDoneNotification: true});
     }
 }
 
@@ -630,7 +650,8 @@ export function removeLocalDataset(dataSourceId: string, removeFiles: boolean): 
             dispatch(updateDataSources('local', dataSources));
         }
 
-        callAPI(dispatch, `Removing local copy of data source "${dataSourceId}"`, call, action);
+        callAPI({title: `Remove local copy of data source "${dataSourceId}"`,
+                    dispatch, call, action, requireDoneNotification: true});
     }
 }
 
@@ -650,7 +671,7 @@ export function loadOperations(): ThunkAction {
             dispatch(updateOperations(operations));
         }
 
-        callAPI(dispatch, 'Loading operations', call, action);
+        callAPI({title: 'Load operations', dispatch, call, action});
     };
 }
 
@@ -741,7 +762,8 @@ export function newWorkspace(workspacePath: string | null): ThunkAction {
                            });
         }
 
-        callAPI(dispatch, 'New workspace' + (workspacePath ? ` "${workspacePath}"` : ''), call, action, null, planB);
+        callAPI({title: 'New workspace' + (workspacePath ? ` "${workspacePath}"` : ''),
+                    dispatch, call, action, planB, requireDoneNotification: true});
     }
 }
 
@@ -773,7 +795,8 @@ export function openWorkspace(workspacePath?: string | null): ThunkAction {
             }
         }
 
-        callAPI(dispatch, `Open workspace "${workspacePath}"`, call, action, null, planB);
+        callAPI({title: `Open workspace "${workspacePath}"`,
+                    dispatch, call, action, planB, requireDoneNotification: true});
     }
 }
 
@@ -795,7 +818,8 @@ export function closeWorkspace(): ThunkAction {
             dispatch(newWorkspace(null));
         }
 
-        callAPI(dispatch, 'Close workspace', call, action);
+        callAPI({title: 'Close workspace',
+                    dispatch, call, action, requireDoneNotification: true});
     }
 }
 
@@ -832,7 +856,8 @@ export function saveWorkspace(): ThunkAction {
                            });
         }
 
-        callAPI(dispatch, 'Save workspace', call, action, null, planB);
+        callAPI({title: 'Save workspace',
+                    dispatch, call, action, planB, requireDoneNotification: true});
     }
 }
 
@@ -863,7 +888,8 @@ export function saveWorkspaceAs(workspacePath: string): ThunkAction {
                            });
         }
 
-        callAPI(dispatch, `Save workspace as "${workspacePath}"`, call, action, null, planB);
+        callAPI({title: `Save workspace as "${workspacePath}"`,
+                    dispatch, call, action, planB, requireDoneNotification: true});
     }
 }
 
@@ -886,7 +912,8 @@ export function cleanWorkspace(): ThunkAction {
             dispatch(setCurrentWorkspace(workspace));
         }
 
-        callAPI(dispatch, `Clean workspace "${baseDir}"`, call, action);
+        callAPI({title: `Clean workspace "${baseDir}"`,
+                    dispatch, call, action, requireDoneNotification: true});
     }
 }
 
@@ -910,7 +937,8 @@ export function deleteResource(resName: string): ThunkAction {
             dispatch(setCurrentWorkspace(workspace));
         }
 
-        callAPI(dispatch, `Deleting step/resource "${resName}"`, call, action);
+        callAPI({title: `Delete step/resource "${resName}"`, dispatch, call, action,
+                    requireDoneNotification: true});
     }
 }
 
@@ -1183,7 +1211,7 @@ export function setWorkspaceResource(opName: string,
             }
         }
 
-        callAPI(dispatch, title, call, action);
+        callAPI({dispatch, title, call, action, requireDoneNotification: true});
     }
 }
 
@@ -1200,7 +1228,7 @@ export function setWorkspaceResourcePersistence(resName: string, persistent: boo
             dispatch(setCurrentWorkspace(workspace));
         }
 
-        callAPI(dispatch, 'Changing resource persistence', call, action);
+        callAPI({title: 'Change resource persistence', dispatch, call});
     }
 }
 
@@ -1218,7 +1246,7 @@ export function renameWorkspaceResource(resName: string, newResName: string): Th
             dispatch(renameWorkspaceResourceImpl(resName, newResName));
         }
 
-        callAPI(dispatch, 'Renaming resource', call, action);
+        callAPI({title: 'Rename resource', dispatch, call, action});
     };
 }
 
@@ -1248,7 +1276,7 @@ export function getWorkspaceVariableStatistics(resName: string,
 
         const title = `Computing statistics for variable "${varName}"`;
         const requestLock = getLockForGetWorkspaceVariableStatistics(resName, varName, varIndex);
-        callAPI(dispatch, title, call, action2, requestLock);
+        callAPI({title, dispatch, call, action: action2, requestLock});
     }
 }
 
@@ -1618,7 +1646,7 @@ export function loadColorMaps(): ThunkAction {
             dispatch(updateColorMaps(colorMaps));
         }
 
-        callAPI(dispatch, 'Loading color maps', call, action);
+        callAPI({title: 'Load color maps', dispatch, call, action});
     }
 }
 
