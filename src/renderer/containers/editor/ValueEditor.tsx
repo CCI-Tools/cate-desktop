@@ -1,21 +1,21 @@
 import * as React from 'react';
-import * as types from "../../../common/cate-types";
-import {OperationInputState, ResourceState} from "../../state";
-import {FieldValue} from "../../components/field/Field";
-import {BooleanValueEditor} from "./BooleanValueEditor";
-import {IntegerValueEditor} from "./IntegerValueEditor";
-import {FloatValueEditor} from "./FloatValueEditor";
-import {TextValueEditor} from "./TextValueEditor";
-import {FileValueEditor} from "./FileValueEditor";
-import {GeometryValueEditor} from "./GeometryValueEditor";
-import {TimeRangeValueEditor} from "./TimeRangeValueEditor";
-import {VarNameValueEditor} from "./VarNameValueEditor";
-import {DimNameValueEditor} from "./DimNameValueEditor";
-import {DictValueEditor} from "./DictValueEditor";
-import {LiteralValueEditor} from "./LiteralValueEditor";
-import {TimeValueEditor} from "./TimeValueEditor";
-import {ScriptValueEditor} from "./ScriptValueEditor";
-import {InputAssignments} from "./value-editor-assign";
+import * as types from '../../../common/cate-types';
+import { OperationInputState, ResourceState } from '../../state';
+import { FieldValue } from '../../components/field/Field';
+import { BooleanValueEditor } from './BooleanValueEditor';
+import { IntegerValueEditor } from './IntegerValueEditor';
+import { FloatValueEditor } from './FloatValueEditor';
+import { TextValueEditor } from './TextValueEditor';
+import { FileValueEditor } from './FileValueEditor';
+import { GeometryValueEditor } from './GeometryValueEditor';
+import { TimeRangeValueEditor } from './TimeRangeValueEditor';
+import { VarNameValueEditor } from './VarNameValueEditor';
+import { DimNameValueEditor } from './DimNameValueEditor';
+import { DictValueEditor } from './DictValueEditor';
+import { LiteralValueEditor } from './LiteralValueEditor';
+import { TimeValueEditor } from './TimeValueEditor';
+import { ScriptValueEditor } from './ScriptValueEditor';
+import { InputAssignments } from './value-editor-assign';
 
 export type ValueEditorValue<T> = FieldValue<T> | T | null;
 export type ValueEditorCallback<T> = (input: OperationInputState, value: ValueEditorValue<T>) => void;
@@ -187,7 +187,7 @@ function findResource(props: IValueEditorProps<any>) {
 
 
 function findDims(props: IValueEditorProps<any>) {
-    const valueSetSource = props.input.valueSetSource.split(".");
+    const valueSetSource = props.input.valueSetSource.split('.');
     const resources = props.resources;
     const inputAssignments = props.inputAssignments;
 
@@ -224,4 +224,3 @@ function findDims(props: IValueEditorProps<any>) {
 
     return dimNames;
 }
-

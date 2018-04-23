@@ -1,6 +1,6 @@
-import {WebAPIClient} from '../WebAPIClient';
-import {JobPromise, JobProgress} from '../Job';
-import {DataStoreState, DataSourceState, DimSizes} from '../../state';
+import { WebAPIClient } from '../WebAPIClient';
+import { JobPromise, JobProgress } from '../Job';
+import { DataStoreState, DataSourceState, DimSizes } from '../../state';
 
 
 function responseToTemporalCoverage(response: any): [string, string] | null {
@@ -50,7 +50,7 @@ export class DatasetAPI {
 
     extractPixelValues(baseDir: string,
                        source: string,
-                       point:[number, number],
+                       point: [number, number],
                        indexers: DimSizes): JobPromise<{ [varName: string]: number } | null> {
         return this.webAPIClient.call('extract_pixel_values', [baseDir, source, point, indexers]);
     }

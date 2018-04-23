@@ -1,17 +1,17 @@
 import * as React from 'react';
-import {IValueEditorProps} from "./ValueEditor";
-import {AnchorButton} from "@blueprintjs/core";
-import {FieldValue, toTextValue} from "../../components/field/Field";
-import {TextField} from "../../components/field/TextField";
-import {DimensionsDialog} from "../DimensionsDialog";
+import { IValueEditorProps } from './ValueEditor';
+import { AnchorButton } from '@blueprintjs/core';
+import { FieldValue, toTextValue } from '../../components/field/Field';
+import { TextField } from '../../components/field/TextField';
+import { DimensionsDialog } from '../DimensionsDialog';
 
 interface IDimNamesValueEditorProps extends IValueEditorProps<string> {
-	dimNames: string[];
-	multi?: boolean;
+    dimNames: string[];
+    multi?: boolean;
 }
 
 interface IDimNamesValueEditorState {
-	isDetailsEditorOpen: boolean;
+    isDetailsEditorOpen: boolean;
 }
 
 export class DimNameValueEditor extends React.Component<IDimNamesValueEditorProps, IDimNamesValueEditorState> {

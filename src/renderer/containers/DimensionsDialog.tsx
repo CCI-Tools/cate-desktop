@@ -1,8 +1,7 @@
 import * as React from 'react';
-import {ListBoxSelectionMode, ListBox} from "../components/ListBox";
-import {LabelWithType} from "../components/LabelWithType";
-import {ModalDialog} from "../components/ModalDialog";
-import {ScrollablePanelContent} from "../components/ScrollableContent";
+import { ListBoxSelectionMode, ListBox } from '../components/ListBox';
+import { ModalDialog } from '../components/ModalDialog';
+import { ScrollablePanelContent } from '../components/ScrollableContent';
 
 interface IDimensionsDialogProps {
     isOpen: boolean;
@@ -39,7 +38,7 @@ export class DimensionsDialog extends React.Component<IDimensionsDialogProps, ID
         return (
             <ModalDialog
                 isOpen={this.props.isOpen}
-                title={this.props.multiSelect ? "Select Dimensions" : "Select Dimension"}
+                title={this.props.multiSelect ? 'Select Dimensions' : 'Select Dimension'}
                 iconName="variable"
                 onConfirm={this.onConfirm}
                 onCancel={this.props.onCancel}
@@ -59,7 +58,7 @@ export class DimensionsDialog extends React.Component<IDimensionsDialogProps, ID
         }
         return (
             <ScrollablePanelContent>
-                <p>{this.props.multiSelect ? "Select one or more dimensions:" : "Select dimension:"}</p>
+                <p>{this.props.multiSelect ? 'Select one or more dimensions:' : 'Select dimension:'}</p>
                 <ListBox items={dimensions}
                          getItemKey={DimensionsDialog.getDimItemKey}
                          renderItem={DimensionsDialog.renderDimItem}
@@ -80,7 +79,7 @@ export class DimensionsDialog extends React.Component<IDimensionsDialogProps, ID
     private static renderDimItem(dimension: string) {
         return (
             <div>
-            {dimension}
+                {dimension}
             </div>
         );
     }
