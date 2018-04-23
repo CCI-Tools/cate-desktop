@@ -10,6 +10,7 @@ import {FileValueEditor} from "./FileValueEditor";
 import {GeometryValueEditor} from "./GeometryValueEditor";
 import {TimeRangeValueEditor} from "./TimeRangeValueEditor";
 import {VarNameValueEditor} from "./VarNameValueEditor";
+import {DimNameValueEditor} from "./DimNameValueEditor";
 import {DictValueEditor} from "./DictValueEditor";
 import {LiteralValueEditor} from "./LiteralValueEditor";
 import {TimeValueEditor} from "./TimeValueEditor";
@@ -129,6 +130,16 @@ function renderVarNamesLikeValueEditor(props: IValueEditorProps<string>) {
                                resource={findResource(props)} multi={true}/>;
 }
 
+function renderDimNameLikeValueEditor(props: IValueEditorProps<string>) {
+    return <DimNameValueEditor input={props.input} value={props.value} onChange={props.onChange}
+                               dimNames={findDims(props)} multi={false}/>;
+}
+
+function renderDimNamesLikeValueEditor(props: IValueEditorProps<string>) {
+    return <DimNameValueEditor input={props.input} value={props.value} onChange={props.onChange}
+                               dimNames={findDims(props)} multi={true}/>;
+}
+
 function renderDictLikeValueEditor(props: IValueEditorProps<string>) {
     return <DictValueEditor input={props.input} value={props.value} onChange={props.onChange}/>;
 }
@@ -149,6 +160,8 @@ const VALUE_EDITOR_FACTORIES = {
     [types.TIME_RANGE_LIKE_TYPE]: renderTimeRangeLikeValueEditor,
     [types.VAR_NAME_LIKE_TYPE]: renderVarNameLikeValueEditor,
     [types.VAR_NAMES_LIKE_TYPE]: renderVarNamesLikeValueEditor,
+    [types.DIM_NAME_LIKE_TYPE]: renderDimNameLikeValueEditor,
+    [types.DIM_NAMES_LIKE_TYPE]: renderDimNamesLikeValueEditor,
     [types.DICT_LIKE_TYPE]: renderDictLikeValueEditor,
     [types.FILE_LIKE_TYPE]: renderFileValueEditor,
     [types.LITERAL_TYPE]: renderLiteralValueEditor,
@@ -170,5 +183,45 @@ function findResource(props: IValueEditorProps<any>) {
         }
     }
     return resource;
+}
+
+
+function findDims(props: IValueEditorProps<any>) {
+    const valueSetSource = props.input.valueSetSource.split(".");
+    const resources = props.resources;
+    const inputAssignments = props.inputAssignments;
+
+    let resource;
+    let variable;
+    let dimNames;
+
+    if (valueSetSource[0] && resources && inputAssignments) {
+        const inputAssignment = inputAssignments[valueSetSource[0]];
+        const resourceName = inputAssignment.resourceName;
+        if (inputAssignment && resourceName && !inputAssignment.isValueUsed) {
+            resource = resources.find(r => r.name === resourceName);
+        }
+    }
+
+    if (resource) {
+        const variables = resource.variables;
+        if (valueSetSource[1] && variables && inputAssignments) {
+            const inputAssignment = inputAssignments[valueSetSource[1]];
+            if (inputAssignment && inputAssignment.constantValue) {
+                const varName = inputAssignment.constantValue.textValue;
+                variable = variables.find(v => v.name === varName);
+            }
+
+        }
+    }
+
+    if (valueSetSource[0] && valueSetSource[1] && variable) {
+        dimNames = variable.dimNames;
+    }
+    else if (valueSetSource[0] && !valueSetSource[1] && resource) {
+        dimNames = resource.coordVariables.map(c => c.name);
+    }
+
+    return dimNames;
 }
 
