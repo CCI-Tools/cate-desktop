@@ -173,18 +173,11 @@ export function setGlobeViewPosition(position: GeographicPosition): ThunkAction 
                 if (layer && resource) {
                     const indexers = getNonSpatialIndexers(resource, layer);
 
-                    function call(onProgress) {
-                        const opName = '_extract_point';
-                        const opArgs = {
-                            ds: {source: resource.name},
-                            point: {value: `${position.longitude}, ${position.latitude}`},
-                            indexers: {value: indexers},
-                            should_return: {value: true},
-                        };
-                        return selectors.workspaceAPISelector(getState()).runOpInWorkspace(baseDir,
-                                                                                           opName,
-                                                                                           opArgs,
-                                                                                           onProgress);
+                    function call() {
+                        return selectors.datasetAPISelector(getState()).extractPixelValues(baseDir,
+                                                                                           resource.name,
+                                                                                           [position.longitude, position.latitude],
+                                                                                           indexers);
                     }
 
                     function action(positionData: { [varName: string]: number }) {
@@ -1518,12 +1511,12 @@ export function loadTableViewData(viewId: string, resName: string, varName: stri
             const csvUrl = getCsvUrl(restUrl, baseDir, {resId: resource.id}, varName);
             dispatch(updateTableViewData(viewId, resName, varName, null, null, true));
             d3.csv(csvUrl)
-              .then((dataRows: any[]) => {
-                  dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
-              })
-              .catch((error: any) => {
-                  dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
-              });
+                .then((dataRows: any[]) => {
+                    dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
+                })
+                .catch((error: any) => {
+                    dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
+                });
         }
     }
 }

@@ -7,6 +7,10 @@
 * Show a data source's terms and conditions [#518](https://github.com/CCI-Tools/cate/issues/518)
 * Implement a dimensions' selector dialog [#503](https://github.com/CCI-Tools/cate/issues/503)
 
+### Fixes
+
+* A failed workflow causes a failed pixel values extraction [#616](https://github.com/CCI-Tools/cate/issues/616)
+
 
 ## Changes in 2.0.0-dev.9
 

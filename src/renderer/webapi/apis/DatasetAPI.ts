@@ -1,9 +1,9 @@
-import {WebAPIClient} from "../WebAPIClient";
-import {JobPromise, JobProgress} from "../Job";
-import {DataStoreState, DataSourceState} from "../../state";
+import {WebAPIClient} from '../WebAPIClient';
+import {JobPromise, JobProgress} from '../Job';
+import {DataStoreState, DataSourceState, DimSizes} from '../../state';
 
 
-function responseToTemporalCoverage(response: any): [string, string]|null {
+function responseToTemporalCoverage(response: any): [string, string] | null {
     if (response && response.temporal_coverage_start && response.temporal_coverage_end) {
         return [response.temporal_coverage_start, response.temporal_coverage_end];
     }
@@ -27,10 +27,10 @@ export class DatasetAPI {
     }
 
     getDataSourceTemporalCoverage(dataStoreId: string, dataSourceId: string,
-                                  onProgress: (progress: JobProgress) => void): JobPromise<[string, string]|null> {
+                                  onProgress: (progress: JobProgress) => void): JobPromise<[string, string] | null> {
         return this.webAPIClient.call('get_data_source_temporal_coverage',
-            [dataStoreId, dataSourceId],
-            onProgress, responseToTemporalCoverage
+                                      [dataStoreId, dataSourceId],
+                                      onProgress, responseToTemporalCoverage
         );
     }
 
@@ -46,5 +46,12 @@ export class DatasetAPI {
         return this.webAPIClient.call('remove_local_data_source',
                                       [dataSourceId, removeFiles],
                                       onProgress);
+    }
+
+    extractPixelValues(baseDir: string,
+                       source: string,
+                       point:[number, number],
+                       indexers: DimSizes): JobPromise<{ [varName: string]: number } | null> {
+        return this.webAPIClient.call('extract_pixel_values', [baseDir, source, point, indexers]);
     }
 }
