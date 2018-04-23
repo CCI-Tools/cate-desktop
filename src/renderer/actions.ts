@@ -531,7 +531,13 @@ export function loadDataSources(dataStoreId: string, setSelection: boolean): Thu
         }
 
         const dataStore = getState().data.dataStores.find(dataStore => dataStore.id === dataStoreId);
-        callAPI({title: `Load data sources for store "${dataStore ? dataStore.id : '?'}"`, dispatch, call, action, requestLock});
+        callAPI({
+                    title: `Load data sources for store "${dataStore ? dataStore.id : '?'}"`,
+                    dispatch,
+                    call,
+                    action,
+                    requestLock
+                });
     }
 }
 
@@ -628,8 +634,10 @@ export function addLocalDataset(dataSourceId: string, filePathPattern: string): 
             dispatch(updateDataSources('local', dataSources));
         }
 
-        callAPI({title: `Add local data source "${dataSourceId}"`,
-                    dispatch, call, action, requireDoneNotification: true});
+        callAPI({
+                    title: `Add local data source "${dataSourceId}"`,
+                    dispatch, call, action, requireDoneNotification: true
+                });
     }
 }
 
@@ -643,8 +651,10 @@ export function removeLocalDataset(dataSourceId: string, removeFiles: boolean): 
             dispatch(updateDataSources('local', dataSources));
         }
 
-        callAPI({title: `Remove local copy of data source "${dataSourceId}"`,
-                    dispatch, call, action, requireDoneNotification: true});
+        callAPI({
+                    title: `Remove local copy of data source "${dataSourceId}"`,
+                    dispatch, call, action, requireDoneNotification: true
+                });
     }
 }
 
@@ -755,8 +765,10 @@ export function newWorkspace(workspacePath: string | null): ThunkAction {
                            });
         }
 
-        callAPI({title: 'New workspace' + (workspacePath ? ` "${workspacePath}"` : ''),
-                    dispatch, call, action, planB, requireDoneNotification: true});
+        callAPI({
+                    title: 'New workspace' + (workspacePath ? ` "${workspacePath}"` : ''),
+                    dispatch, call, action, planB, requireDoneNotification: true
+                });
     }
 }
 
@@ -788,8 +800,10 @@ export function openWorkspace(workspacePath?: string | null): ThunkAction {
             }
         }
 
-        callAPI({title: `Open workspace "${workspacePath}"`,
-                    dispatch, call, action, planB, requireDoneNotification: true});
+        callAPI({
+                    title: `Open workspace "${workspacePath}"`,
+                    dispatch, call, action, planB, requireDoneNotification: true
+                });
     }
 }
 
@@ -811,8 +825,10 @@ export function closeWorkspace(): ThunkAction {
             dispatch(newWorkspace(null));
         }
 
-        callAPI({title: 'Close workspace',
-                    dispatch, call, action, requireDoneNotification: true});
+        callAPI({
+                    title: 'Close workspace',
+                    dispatch, call, action, requireDoneNotification: true
+                });
     }
 }
 
@@ -849,8 +865,10 @@ export function saveWorkspace(): ThunkAction {
                            });
         }
 
-        callAPI({title: 'Save workspace',
-                    dispatch, call, action, planB, requireDoneNotification: true});
+        callAPI({
+                    title: 'Save workspace',
+                    dispatch, call, action, planB, requireDoneNotification: true
+                });
     }
 }
 
@@ -881,8 +899,10 @@ export function saveWorkspaceAs(workspacePath: string): ThunkAction {
                            });
         }
 
-        callAPI({title: `Save workspace as "${workspacePath}"`,
-                    dispatch, call, action, planB, requireDoneNotification: true});
+        callAPI({
+                    title: `Save workspace as "${workspacePath}"`,
+                    dispatch, call, action, planB, requireDoneNotification: true
+                });
     }
 }
 
@@ -905,8 +925,10 @@ export function cleanWorkspace(): ThunkAction {
             dispatch(setCurrentWorkspace(workspace));
         }
 
-        callAPI({title: `Clean workspace "${baseDir}"`,
-                    dispatch, call, action, requireDoneNotification: true});
+        callAPI({
+                    title: `Clean workspace "${baseDir}"`,
+                    dispatch, call, action, requireDoneNotification: true
+                });
     }
 }
 
@@ -930,8 +952,10 @@ export function deleteResource(resName: string): ThunkAction {
             dispatch(setCurrentWorkspace(workspace));
         }
 
-        callAPI({title: `Delete step/resource "${resName}"`, dispatch, call, action,
-                    requireDoneNotification: true});
+        callAPI({
+                    title: `Delete step/resource "${resName}"`, dispatch, call, action,
+                    requireDoneNotification: true
+                });
     }
 }
 
@@ -1221,7 +1245,7 @@ export function setWorkspaceResourcePersistence(resName: string, persistent: boo
             dispatch(setCurrentWorkspace(workspace));
         }
 
-        callAPI({title: 'Change resource persistence', dispatch, call});
+        callAPI({title: 'Change resource persistence', dispatch, call, action});
     }
 }
 
@@ -1511,12 +1535,12 @@ export function loadTableViewData(viewId: string, resName: string, varName: stri
             const csvUrl = getCsvUrl(restUrl, baseDir, {resId: resource.id}, varName);
             dispatch(updateTableViewData(viewId, resName, varName, null, null, true));
             d3.csv(csvUrl)
-                .then((dataRows: any[]) => {
-                    dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
-                })
-                .catch((error: any) => {
-                    dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
-                });
+              .then((dataRows: any[]) => {
+                  dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
+              })
+              .catch((error: any) => {
+                  dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
+              });
         }
     }
 }
