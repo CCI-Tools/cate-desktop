@@ -264,6 +264,9 @@ const controlReducer = (state: ControlState = INITIAL_CONTROL_STATE, action: Act
             dialogState = {...dialogState, isOpen: true, inputAssignments};
             return {...state, selectedCtxOperationName, dialogs: {...state.dialogs, [NEW_CTX_OPERATION_STEP_DIALOG_ID]: dialogState}};
         }
+        case actions.UPDATE_MOUSE_IDLE_STATE: {
+            return {...state, ...action.payload}
+        }
         default: {
             const newViews = viewsReducer(state.views, action, state.activeViewId);
             if (newViews !== state.views) {

@@ -5,7 +5,6 @@ import {
 import {newWorldView, hasWebGL, MY_PLACES_LAYER} from "./state-util";
 import {SimpleStyle} from "../common/geojson-simple-style";
 import {ViewState} from "./components/ViewState";
-import {EMPTY_OBJECT} from "./selectors";
 
 export const INITIAL_DATA_STATE: DataState = {
     appConfig: {
@@ -44,6 +43,8 @@ export const INITIAL_CONTROL_STATE: ControlState = {
 
     newPlacemarkToolType: "NoTool",
     entityUpdateCount: 0,
+
+    mouseIdle: false
 };
 
 export const INITIAL_SESSION_STATE: SessionState = {
