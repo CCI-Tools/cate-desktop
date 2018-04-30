@@ -5,7 +5,7 @@ import {
     DataStoreState,
     DialogState,
     FigureViewDataState,
-    GeographicPosition, ImageLayerBase,
+    GeographicPosition,
     ImageLayerState,
     LayerState,
     LayerVariableState,
@@ -14,8 +14,10 @@ import {
     PlacemarkCollection,
     ResourceState,
     ResourceVectorLayerState,
-    SavedLayers, SPLIT_MODE_OFF,
-    State, STYLE_CONTEXT_ENTITY, STYLE_CONTEXT_LAYER,
+    SavedLayers,
+    State,
+    STYLE_CONTEXT_ENTITY,
+    STYLE_CONTEXT_LAYER,
     VariableImageLayerState,
     VariableLayerBase,
     VariableState,
@@ -34,8 +36,10 @@ import {
     getLockForGetWorkspaceVariableStatistics,
     getWorldViewSelectedEntity,
     getWorldViewSelectedGeometryWKTGetter,
-    getWorldViewVectorLayerForEntity, getWorldViewViewer, isAnimationResource,
-    isFigureResource, isImageLayer,
+    getWorldViewVectorLayerForEntity,
+    getWorldViewViewer,
+    isAnimationResource,
+    isFigureResource,
     isSpatialImageVariable,
     isSpatialVectorVariable,
 } from './state-util';
@@ -45,7 +49,7 @@ import * as Cesium from 'cesium';
 import {GeometryWKTGetter} from './containers/editor/ValueEditor';
 import {entityToSimpleStyle} from './components/cesium/cesium-util';
 import {SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties} from '../common/geojson-simple-style';
-import {GeometryToolType} from "./components/cesium/geometry-tool";
+import {GeometryToolType} from './components/cesium/geometry-tool';
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
@@ -180,6 +184,7 @@ export const selectedPlacemarkSelector = createSelector<State,
 
 export const globeMousePositionSelector = (state: State): GeographicPosition | null => state.location.globeMousePosition;
 export const globeViewPositionSelector = (state: State): GeographicPosition | null => state.location.globeViewPosition;
+export const mouseIdleState = (state: State): boolean => state.control.mouseIdle;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation selectors

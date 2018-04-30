@@ -1,28 +1,39 @@
 import * as React from 'react';
-import {connect, DispatchProp} from "react-redux";
+import {CSSProperties} from 'react';
+import {connect, DispatchProp} from 'react-redux';
 import {
-    State, WorkspaceState, VariableImageLayerState,
-    WorldViewDataState, ResourceState, LayerState, PlacemarkCollection, Placemark, OperationState, SPLIT_MODE_OFF,
-} from "../state";
-import * as selectors from "../selectors";
-import * as actions from "../actions";
-import {NO_WEB_GL} from "../messages";
-import {EMPTY_ARRAY, EMPTY_OBJECT} from "../selectors";
+    LayerState,
+    OperationState,
+    Placemark,
+    PlacemarkCollection,
+    ResourceState,
+    SPLIT_MODE_OFF,
+    State,
+    VariableImageLayerState,
+    WorkspaceState,
+    WorldViewDataState,
+} from '../state';
+import * as selectors from '../selectors';
+import {EMPTY_ARRAY, EMPTY_OBJECT} from '../selectors';
+import * as actions from '../actions';
+import {NO_WEB_GL} from '../messages';
 import {
-    CanvasPosition, CesiumGlobe, GeographicPosition, ImageLayerDescriptor,
+    CanvasPosition,
+    CesiumGlobe,
+    GeographicPosition,
+    ImageLayerDescriptor,
     LayerDescriptors
-} from "../components/cesium/CesiumGlobe";
-import {findVariableIndexCoordinates, isImageLayer, PLACEMARK_ID_PREFIX} from "../state-util";
-import {ViewState} from "../components/ViewState";
-import {convertLayersToLayerDescriptors} from "./globe-view-layers";
-import * as Cesium from "cesium";
-import {GeometryToolType} from "../components/cesium/geometry-tool";
-import {entityToGeoJson, entityToGeometryWkt} from "../components/cesium/cesium-util";
-import {featurePropertiesFromSimpleStyle, SimpleStyle} from "../../common/geojson-simple-style";
-import {Menu, MenuDivider, MenuItem} from "@blueprintjs/core";
-import {GEOMETRY_LIKE_TYPE, POINT_LIKE_TYPE, POLYGON_LIKE_TYPE} from "../../common/cate-types";
-import {geometryGeoJsonToGeometryWkt} from "../../common/geometry-util";
-import { CSSProperties } from "react";
+} from '../components/cesium/CesiumGlobe';
+import {findVariableIndexCoordinates, PLACEMARK_ID_PREFIX} from '../state-util';
+import {ViewState} from '../components/ViewState';
+import {convertLayersToLayerDescriptors} from './globe-view-layers';
+import * as Cesium from 'cesium';
+import {GeometryToolType} from '../components/cesium/geometry-tool';
+import {entityToGeoJson, entityToGeometryWkt} from '../components/cesium/cesium-util';
+import {featurePropertiesFromSimpleStyle, SimpleStyle} from '../../common/geojson-simple-style';
+import {Menu, MenuDivider, MenuItem} from '@blueprintjs/core';
+import {GEOMETRY_LIKE_TYPE, POINT_LIKE_TYPE, POLYGON_LIKE_TYPE} from '../../common/cate-types';
+import {geometryGeoJsonToGeometryWkt} from '../../common/geometry-util';
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -44,6 +55,11 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     externalObjectStore: any;
     newPlacemarkToolType: GeometryToolType;
     defaultPlacemarkStyle: SimpleStyle;
+    mouseIdle: boolean
+}
+
+interface GlobeViewState {
+    idleTimer: number | null
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -64,31 +80,56 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         externalObjectStore: selectors.externalObjectStoreSelector(state),
         newPlacemarkToolType: selectors.newPlacemarkToolTypeSelector(state),
         defaultPlacemarkStyle: selectors.defaultPlacemarkStyleSelector(state),
+        mouseIdle: selectors.mouseIdleState(state)
     };
 }
 
 /**
  * This component displays a 3D globe with a number of layers.
  */
-class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>, null> {
-    static readonly CESIUM_GLOBE_STYLE: CSSProperties = {position: 'relative', width: "100%", height: "100%", overflow: "hidden"};
+class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>, GlobeViewState> {
+    static readonly CESIUM_GLOBE_STYLE: CSSProperties = {
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden'
+    };
+    static readonly MOUSE_IDLE_TIMEOUT: number = 500;
 
     constructor(props: IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>) {
         super(props);
         this.handleMouseMove = this.handleMouseMove.bind(this);
-        this.handleLeftUp = this.handleLeftUp.bind(this);
         this.handleSelectedEntityChanged = this.handleSelectedEntityChanged.bind(this);
         this.handleNewEntityAdded = this.handleNewEntityAdded.bind(this);
         this.handleSplitLayerPosChange = this.handleSplitLayerPosChange.bind(this);
         this.renderContextMenu = this.renderContextMenu.bind(this);
+        this.state = {
+            idleTimer: null
+        };
     }
 
     handleMouseMove(geoPos: GeographicPosition) {
         this.props.dispatch(actions.setGlobeMousePosition(geoPos));
-    }
-
-    handleLeftUp(position: GeographicPosition) {
-        this.props.dispatch(actions.setGlobeViewPosition(position));
+        clearTimeout(this.state.idleTimer);
+        if (this.props.mouseIdle) {
+            this.props.dispatch(actions.updateMouseIdleState(false));
+        }
+        if (geoPos) {
+            let idleTimer: number = window.setTimeout(
+                () => {
+                    this.props.dispatch(actions.updateMouseIdleState(true));
+                    this.props.dispatch(actions.setGlobeViewPosition(geoPos));
+                }, GlobeView.MOUSE_IDLE_TIMEOUT
+            );
+            this.setState(
+                {
+                    idleTimer: idleTimer
+                }
+            )
+        } else {
+            this.props.dispatch(actions.setGlobeMousePosition(null));
+            this.props.dispatch(actions.setGlobeViewPosition(null));
+        }
     }
 
     handleSelectedEntityChanged(selectedEntity: Cesium.Entity | null) {
@@ -150,9 +191,9 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         if (entity && operations) {
 
             let expectedInputType;
-            if (wkt.startsWith("POINT ")) {
+            if (wkt.startsWith('POINT ')) {
                 expectedInputType = POINT_LIKE_TYPE;
-            } else if (wkt.startsWith("POLYGON ")) {
+            } else if (wkt.startsWith('POLYGON ')) {
                 expectedInputType = POLYGON_LIKE_TYPE;
             }
 
@@ -173,7 +214,13 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                             dividerAdded = true;
                             key++;
                         }
-                        const inputAssignments = {[geometryInput.name]: {isValueUsed: true, constantValue: wkt, resourceName: null}};
+                        const inputAssignments = {
+                            [geometryInput.name]: {
+                                isValueUsed: true,
+                                constantValue: wkt,
+                                resourceName: null
+                            }
+                        };
                         const action = actions.invokeCtxOperation(operation, inputAssignments);
                         const text = `${operation.name}()`;
                         menuItems.push(<MenuItem key={key}
@@ -200,7 +247,6 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         const view = this.props.view;
         const viewId = this.props.view.id;
         const layers = view.data.layers;
-        const selectedLayer = this.props.selectedLayer;
         const placemarks = this.props.placemarks;
         const showLayerTextOverlay = this.props.showLayerTextOverlay;
         const workspace = this.props.workspace;
@@ -244,7 +290,6 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                          offlineMode={this.props.offlineMode}
                          style={GlobeView.CESIUM_GLOBE_STYLE}
                          onMouseMove={this.props.isDialogOpen ? null : this.handleMouseMove}
-                         onLeftUp={this.props.isDialogOpen ? null : this.handleLeftUp}
                          onSelectedEntityChanged={this.handleSelectedEntityChanged}
                          onNewEntityAdded={this.handleNewEntityAdded}
                          geometryToolType={this.props.newPlacemarkToolType}

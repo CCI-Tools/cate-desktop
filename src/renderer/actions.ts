@@ -1432,6 +1432,7 @@ export const SET_LAYER_SPLIT_POSITION = 'SET_LAYER_SPLIT_POSITION';
 export const SET_SELECTED_ENTITY_ID = 'SET_SELECTED_ENTITY_ID';
 export const INC_ENTITY_UPDATE_COUNT = 'INC_ENTITY_UPDATE_COUNT';
 export const UPDATE_ENTITY_STYLE = 'UPDATE_ENTITY_STYLE';
+export const UPDATE_MOUSE_IDLE_STATE = 'UPDATE_MOUSE_IDLE_STATE';
 
 export function setViewMode(viewId: string, viewMode: WorldViewMode): Action {
     return {type: SET_VIEW_MODE, payload: {viewId, viewMode}};
@@ -1507,6 +1508,10 @@ function updateEntityStyleImpl(viewId: string, layerId: string, entityId: string
 
 function incEntityUpdateCount(): Action {
     return {type: INC_ENTITY_UPDATE_COUNT};
+}
+
+export function updateMouseIdleState(mouseIdle: boolean): Action {
+    return {type: UPDATE_MOUSE_IDLE_STATE, payload: {mouseIdle}};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
