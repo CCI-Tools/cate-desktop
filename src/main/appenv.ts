@@ -20,7 +20,7 @@ export const APP_CLI_VERSION_RANGE = ">=2.0.0-dev.10 <2.1.0";
  * with that version should have been deployed.
  * @type {string}
  */
-export const EXPECTED_APP_CLI_VERSION = "2.0.0.dev10";
+export const EXPECTED_APP_CLI_VERSION = "2.0.0.dev11";
 
 export const CATE_CLI_NAME = "cate";
 export const CATE_WEBAPI_NAME = "cate-webapi-start";
