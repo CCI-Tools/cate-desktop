@@ -9,6 +9,7 @@
 
 ### Fixes
 
+* Too many "Loading Pixel Values" [#581](https://github.com/CCI-Tools/cate/issues/581)
 * A failed workflow causes a failed pixel values extraction [#616](https://github.com/CCI-Tools/cate/issues/616)
 
 
