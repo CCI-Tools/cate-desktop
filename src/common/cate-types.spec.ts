@@ -106,6 +106,8 @@ describe('isAssignableFrom()', function () {
         expect(isAssignableFrom(DATA_FRAME_LIKE_TYPE, DATA_FRAME_TYPE)).to.be.true;
         expect(isAssignableFrom(DATA_FRAME_LIKE_TYPE, GEO_DATA_FRAME_TYPE)).to.be.true;
         expect(isAssignableFrom(DATA_FRAME_LIKE_TYPE, GEO_DATA_FRAME_PROXY_TYPE)).to.be.true;
+        expect(isAssignableFrom(DATA_FRAME_LIKE_TYPE, DATASET_TYPE)).to.be.true;
+        expect(isAssignableFrom(DATA_FRAME_LIKE_TYPE, DATASET_LIKE_TYPE)).to.be.true;
         // No
         expect(isAssignableFrom(DATA_FRAME_LIKE_TYPE, 'bool')).to.be.false;
         expect(isAssignableFrom(DATA_FRAME_LIKE_TYPE, 'int')).to.be.false;
