@@ -134,7 +134,7 @@ function readDroppedFile(file: File, dispatch: Dispatch<State>) {
                                               {file: {value: file.path}},
                                               null,
                                               false,
-                                              'Reading dropped file'));
+                                              `Reading dropped file ${file.path}`));
     } else {
         console.warn('Dropped file of unrecognized type: ', file.path);
     }
