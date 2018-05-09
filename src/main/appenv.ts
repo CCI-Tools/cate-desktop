@@ -112,7 +112,7 @@ export function getCateDir() {
 export function setCateDir(cateDir: string) {
     assert.ok(cateDir && cateDir !== '', `internal error: cateDir=${cateDir}`);
     _cateDir = cateDir;
-    log.info(`cateDir=${_cateDir}`)
+    log.info(`Cate directory set to ${_cateDir}`)
 }
 
 export function getCateWebAPISetupInfo(): SetupInfo {

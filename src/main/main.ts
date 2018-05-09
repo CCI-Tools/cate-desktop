@@ -618,7 +618,7 @@ class CateDesktopApp {
 
     private ensureCateDir(callback: (setupPerformed: boolean) => void) {
         const setupInfo = getCateWebAPISetupInfo();
-        log.info('setupInfo: ', setupInfo);
+        log.info('Computed setup information: ', setupInfo);
 
         if (setupInfo.oldCateDir) {
             setCateDir(setupInfo.oldCateDir);
