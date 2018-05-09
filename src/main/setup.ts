@@ -146,7 +146,8 @@ function validateNewCateDir(event, newCateDir: string) {
     if (validateAbsoluteDir(event, channel, CATE_MODE_NEW_CATE_DIR, newCateDir, true)) {
         fs.access(newCateDir, fs.constants.O_DIRECTORY | fs.constants.R_OK | fs.constants.W_OK, (err) => {
             if (err) {
-                if (err.code === 'ENOENT') {
+                // See https://github.com/CCI-Tools/cate/issues/642, regarding 'EINVAL'
+                if (err.code === 'ENOENT' || err.code === 'EINVAL') {
                     event.sender.send(channel, null);
                 } else {
                     event.sender.send(channel, `${newCateDir} has access restrictions (${err})`);
