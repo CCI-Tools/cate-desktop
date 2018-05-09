@@ -116,9 +116,10 @@ function connectWebAPIClient(store: Store<State>) {
 }
 
 function readDroppedFile(file: File, dispatch: Dispatch<State>) {
-    let opName;
+    let opName, opArgs;
     if (file.path.endsWith('.nc')) {
         opName = 'read_netcdf';
+        opArgs = {file: {value: file.path}, normalize: {value: false}}
     } else if (file.path.endsWith('.txt')) {
         opName = 'read_text';
     } else if (file.path.endsWith('.json')) {
@@ -128,10 +129,12 @@ function readDroppedFile(file: File, dispatch: Dispatch<State>) {
     } else if (file.path.endsWith('.geojson') || file.path.endsWith('.shp') || file.path.endsWith('.gml')) {
         opName = 'read_geo_data_frame';
     }
-
+    if (!opArgs) {
+        opArgs = {file: {value: file.path}};
+    }
     if (opName) {
         dispatch(actions.setWorkspaceResource(opName,
-                                              {file: {value: file.path}},
+                                              opArgs,
                                               null,
                                               false,
                                               `Reading dropped file ${file.path}`));
