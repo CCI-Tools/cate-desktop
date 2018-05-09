@@ -149,12 +149,12 @@ function validateNewCateDir(event, newCateDir: string) {
                 if (err.code === 'ENOENT') {
                     event.sender.send(channel, null);
                 } else {
-                    event.sender.send(channel, `${newCateDir} has access restrictions`);
+                    event.sender.send(channel, `${newCateDir} has access restrictions (${err})`);
                 }
             } else {
                 fs.readdir(newCateDir, (err, files) => {
                     if (err) {
-                        event.sender.send(channel, `${newCateDir} is not readable`);
+                        event.sender.send(channel, `${newCateDir} is not readable (${err})`);
                     } else if (files && files.length > 0) {
                         event.sender.send(channel, `${newCateDir} is not empty`);
                     } else {
@@ -244,7 +244,7 @@ function validateExecutables(event, channel: string, dirPath: string, executable
         fs.access(exeFile, fs.constants.F_OK | fs.constants.X_OK, (err) => {
             if (err) {
                 hasError = true;
-                event.sender.send(channel, `${exeFile} not found or not executable`);
+                event.sender.send(channel, `${exeFile} not found or not executable (${err})`);
             } else if (i === executables.length - 1) {
                 event.sender.send(channel, null);
             }
@@ -281,7 +281,7 @@ export function performSetupTasks(event, setupInfo: SetupInfo, setupOptions: Set
         const installOrUpdateCate = new InstallOrUpdateCate(newCateVersion, installCondaEnv.getCondaEnvDir(), [installCondaEnv.id]);
         transactions = [installCondaEnv, installOrUpdateCate];
     } else {
-        event.sender.send(channel, {message: 'Internal error: illegal cate setup mode: ' + cateMode});
+        event.sender.send(channel, {message: 'Internal error: illegal Cate setup mode: ' + cateMode});
         return;
     }
 
@@ -293,8 +293,8 @@ export function performSetupTasks(event, setupInfo: SetupInfo, setupOptions: Set
         log.info('Setup successful');
         event.sender.send(channel);
     }).catch((error: TransactionError) => {
-        log.error('Setup failed:', error);
-        const reason = error.reason;
+        const reason = error ? error.reason : error;
+        log.error('Setup failed:', reason);
         const name = reason.name;
         const message = reason.message || reason.toString();
         const stack = reason.stack;

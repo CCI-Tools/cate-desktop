@@ -1,10 +1,11 @@
 import * as electron from 'electron';
+import * as log from 'electron-log';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as semver from "semver";
-import {pep440ToSemver} from "../common/version";
-import {SETUP_REASON_INSTALL_CATE, SETUP_REASON_UPDATE_CATE, SetupInfo} from "../common/setup";
-import * as assert from "../common/assert";
+import * as semver from 'semver';
+import { pep440ToSemver } from '../common/version';
+import { SETUP_REASON_INSTALL_CATE, SETUP_REASON_UPDATE_CATE, SetupInfo } from '../common/setup';
+import * as assert from '../common/assert';
 
 
 /**
@@ -12,40 +13,42 @@ import * as assert from "../common/assert";
  * The value is a SemVer (https://github.com/npm/semver) compatible version range string.
  * @type {string}
  */
-export const APP_CLI_VERSION_RANGE = ">=2.0.0-dev.10 <2.1.0";
+export const CATE_WEBAPI_VERSION_RANGE = '>=2.0.0-dev.10 <2.1.0';
 
 /**
- * Version of cate-cli that is know to run with this version of Cate Desktop.
- * Note the version name must be compatible with PEP-440 and a cate-cli package
- * with that version should have been deployed.
+ * Version of the Cate WebAPI that is know to run with this version of Cate Desktop.
+ * Note that
+ * - the version name must be compatible with PEP-440 and
+ * - a "cate-cli" package with that version should have been deployed to Anaconda channel "ccitools".
+ *
  * @type {string}
  */
-export const EXPECTED_APP_CLI_VERSION = "2.0.0.dev11";
+export const EXPECTED_CATE_WEBAPI_VERSION = '2.0.0.dev11';
 
-export const CATE_CLI_NAME = "cate";
-export const CATE_WEBAPI_NAME = "cate-webapi-start";
+export const CATE_CLI_NAME = 'cate';
+export const CATE_WEBAPI_NAME = 'cate-webapi-start';
 
 export const CATE_CLI_EXECUTABLE = (() => {
     if (process.platform === 'win32') {
-        return path.join("Scripts", `${CATE_CLI_NAME}.exe`);
+        return path.join('Scripts', `${CATE_CLI_NAME}.exe`);
     } else {
-        return path.join("bin", CATE_CLI_NAME);
+        return path.join('bin', CATE_CLI_NAME);
     }
 })();
 
 export const CATE_WEBAPI_EXECUTABLE = (() => {
     if (process.platform === 'win32') {
-        return path.join("Scripts", `${CATE_WEBAPI_NAME}.exe`);
+        return path.join('Scripts', `${CATE_WEBAPI_NAME}.exe`);
     } else {
-        return path.join("bin", CATE_WEBAPI_NAME);
+        return path.join('bin', CATE_WEBAPI_NAME);
     }
 })();
 
 export const CONDA_EXECUTABLES = (() => {
     if (process.platform === 'win32') {
-        return ["python.exe", path.join("Scripts", "activate.bat"), path.join("Scripts", "deactivate.bat")];
+        return ['python.exe', path.join('Scripts', 'activate.bat'), path.join('Scripts', 'deactivate.bat')];
     } else {
-        return [path.join("bin", "python"), path.join("bin", "activate"), path.join("bin", "deactivate")];
+        return [path.join('bin', 'python'), path.join('bin', 'activate'), path.join('bin', 'deactivate')];
     }
 })();
 
@@ -57,11 +60,11 @@ export const CATE_EXECUTABLES = (() => {
 let _cateDir = null;
 
 export function getAppIconPath() {
-    let iconFile = "cate-icon.png";
-    if (process.platform === "darwin") {
-        iconFile = "darwin/cate-icon.hqx";
-    } else if (process.platform === "win32") {
-        iconFile = "win32/cate-icon.ico";
+    let iconFile = 'cate-icon.png';
+    if (process.platform === 'darwin') {
+        iconFile = 'darwin/cate-icon.hqx';
+    } else if (process.platform === 'win32') {
+        iconFile = 'win32/cate-icon.ico';
     }
     return path.join(electron.app.getAppPath(), 'resources', iconFile);
 }
@@ -74,7 +77,7 @@ export function isWebAPIVersionCompatible(version: string, pep440?: boolean) {
     if (pep440) {
         version = pep440ToSemver(version);
     }
-    return semver.satisfies(version, APP_CLI_VERSION_RANGE, true);
+    return semver.satisfies(version, CATE_WEBAPI_VERSION_RANGE, true);
 }
 
 export function getWebAPIStartCommand(webAPIConfig): string {
@@ -98,7 +101,7 @@ export function getMPLWebSocketsUrl(webAPIConfig) {
 }
 
 export function getCateDirSafe() {
-    assert.ok(_cateDir && _cateDir !== "", "internal error: _cateDir=" + _cateDir);
+    assert.ok(_cateDir && _cateDir !== '', `internal error: cateDir=${_cateDir}`);
     return _cateDir;
 }
 
@@ -107,13 +110,14 @@ export function getCateDir() {
 }
 
 export function setCateDir(cateDir: string) {
-    assert.ok(cateDir && cateDir !== "", "internal error: cateDir=" + cateDir);
+    assert.ok(cateDir && cateDir !== '', `internal error: cateDir=${cateDir}`);
     _cateDir = cateDir;
+    log.info(`cateDir=${_cateDir}`)
 }
 
-export function getCateCliSetupInfo(): SetupInfo {
-    const newCateVersion = EXPECTED_APP_CLI_VERSION; // PEP440
-    const newCateDir = path.join(electron.app.getPath("home"), "cate-" + newCateVersion);
+export function getCateWebAPISetupInfo(): SetupInfo {
+    const newCateVersion = EXPECTED_CATE_WEBAPI_VERSION; // PEP440
+    const newCateDir = path.join(electron.app.getPath('home'), 'cate-' + newCateVersion);
     const dataDir = getAppDataDir();
     if (fs.existsSync(dataDir)) {
         const expectedVersion = pep440ToSemver(newCateVersion); // SemVer
@@ -124,21 +128,26 @@ export function getCateCliSetupInfo(): SetupInfo {
             if (semver.valid(version, true)) {
                 const oldCateVersion = fileName;
                 const locationFile = path.join(dataDir, fileName, 'cate.location');
+                log.info(`Checking Cate installation directory: ${locationFile}`);
                 let oldCateDir;
                 try {
                     oldCateDir = fs.readFileSync(locationFile, 'utf8').trim();
                 } catch (err) {
+                    log.error(err);
                     continue;
                 }
 
                 const cateWebapiExe = path.join(oldCateDir, CATE_WEBAPI_EXECUTABLE);
                 if (isExec(cateWebapiExe)) {
+                    log.info(`Cate WebAPI executable found: ${cateWebapiExe}`);
                     const updateInfo = {oldCateDir, newCateDir, oldCateVersion, newCateVersion, setupReason: null};
                     // Return immediately if the versions are equal.
                     if (semver.eq(version, electron.app.getVersion(), true)) {
                         return updateInfo;
                     }
                     updateInfos[version] = updateInfo;
+                } else {
+                    log.error(`Cate WebAPI executable not found: ${cateWebapiExe}`);
                 }
             }
         }
@@ -189,27 +198,31 @@ export function getCommandInActivatedCate(cateDir: string, command: string) {
 
 export function getCommandInActivatedCondaEnv(condaDir: string, envDir: string, command: string) {
     if (process.platform === 'win32') {
-        const activatePath = path.join(condaDir, "Scripts", "activate");
+        const activatePath = path.join(condaDir, 'Scripts', 'activate');
         return `"${activatePath}" "${envDir}" & ${command}`;
     } else {
-        const activatePath = path.join(condaDir, "bin", "activate");
+        const activatePath = path.join(condaDir, 'bin', 'activate');
         return `source "${activatePath}" "${envDir}"; exec ${command}`;
     }
 }
 
 
-// on Unix '/bin/sh' is the dafault
-// BUT on Ubuntu this links to 'dash' which doesn't work together with 'conda'
 export function defaultSpawnShellOption() {
-    if (process.platform === "win32") {
+    if (process.platform === 'win32') {
         return {shell: true};
     } else {
+        // On Unix '/bin/sh' is the default, on Ubuntu this links to
+        // dash which doesn't work together with conda.
         return {shell: '/bin/bash'};
     }
 }
 
 export function defaultExecShellOption() {
-    if (process.platform !== "win32") {
+    if (process.platform === 'win32') {
+        return null;
+    } else {
+        // On Unix '/bin/sh' is the default, on Ubuntu this links to
+        // dash which doesn't work together with conda.
         return {shell: '/bin/bash'};
     }
 }

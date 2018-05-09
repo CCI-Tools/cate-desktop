@@ -1,5 +1,5 @@
 import * as electron from 'electron';
-import { getAppDataDir, getAppIconPath, APP_CLI_VERSION_RANGE, getCateDir } from './appenv';
+import { getAppDataDir, getAppIconPath, CATE_WEBAPI_VERSION_RANGE, getCateDir } from './appenv';
 
 
 function ifDarwinOrElse(darwinValue, elseValue) {
@@ -291,7 +291,7 @@ export const actions = {
                            `Program: ${electron.app.getAppPath()}\n` +
                            `Data: ${getAppDataDir()}\n` +
                            `CLI env: ${getCateDir() ? getCateDir() : '<unknown>'}\n` +
-                           `Requires Cate Core ${APP_CLI_VERSION_RANGE}\n` +
+                           `Requires Cate Core ${CATE_WEBAPI_VERSION_RANGE}\n` +
                            '\n' +
                            'Cate is open source software distributed under the MIT license.\n\n' +
                            'Cate is developed on top of numerous 3rd party software packages.\n' +

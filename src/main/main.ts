@@ -12,9 +12,9 @@ import { Configuration } from './configuration';
 import { menuTemplate } from './menu';
 import {
     getAppDataDir, getAppIconPath,
-    getCateCliSetupInfo, setCateDir, getWebAPIStartCommand, getWebAPIRestUrl,
+    getCateWebAPISetupInfo, setCateDir, getWebAPIStartCommand, getWebAPIRestUrl,
     getMPLWebSocketsUrl, getAPIWebSocketsUrl, defaultSpawnShellOption,
-    isWebAPIVersionCompatible, EXPECTED_APP_CLI_VERSION
+    isWebAPIVersionCompatible, EXPECTED_CATE_WEBAPI_VERSION
 } from './appenv';
 import * as net from 'net';
 import { installAutoUpdate } from './update-frontend';
@@ -313,7 +313,7 @@ class CateDesktopApp {
                         this.loadMainWindow();
                     } else {
                         // Incompatible WebAPI service version
-                        throw new Error(`Cate service version ${EXPECTED_APP_CLI_VERSION} expected, but found ${version}`);
+                        throw new Error(`Cate service version ${EXPECTED_CATE_WEBAPI_VERSION} expected, but found ${version}`);
                     }
                 } else {
                     // Can't get version info
@@ -617,7 +617,7 @@ class CateDesktopApp {
     }
 
     private ensureCateDir(callback: (setupPerformed: boolean) => void) {
-        const setupInfo = getCateCliSetupInfo();
+        const setupInfo = getCateWebAPISetupInfo();
         log.info('setupInfo: ', setupInfo);
 
         if (setupInfo.oldCateDir) {

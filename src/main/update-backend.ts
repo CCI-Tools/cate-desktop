@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import {URL} from "url";
+import * as log from 'electron-log';
 import {existsFile, deleteFile, downloadFile, ExecOutput, spawnAsync, execAsync} from './fileutil';
 import {
     Transaction,
@@ -9,6 +10,7 @@ import {
     TransactionProgressHandler, TransactionState
 } from '../common/transaction';
 import {defaultExecShellOption, defaultSpawnShellOption, getCommandInActivatedCondaEnv} from "./appenv";
+import { ExecOptions, SpawnOptions } from 'child_process';
 
 
 function _getOutput(output: ExecOutput) {
@@ -105,7 +107,7 @@ export class InstallMiniconda extends Transaction {
         const minicondaInstallerExecutable = context.getTransactionState('DownloadMiniconda').minicondaInstallerExecutable;
         this.getState(context).minicondaInstalled = true;
         notifyExecFile(minicondaInstallerExecutable, args, onProgress);
-        return spawnAsync(minicondaInstallerExecutable, args, defaultSpawnShellOption(), onProgress);
+        return spawnAsyncAndLog(minicondaInstallerExecutable, args, defaultSpawnShellOption(), onProgress);
     }
 
     rollback(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
@@ -146,7 +148,7 @@ export class InstallCondaEnv extends Transaction {
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
         const command = getCommandInActivatedCondaEnv(this.getCondaDir(), this.getCondaDir(), "conda env create --name cate-env python=3");
         notifyExecCommand(command, onProgress);
-        return spawnAsync(command, undefined, defaultSpawnShellOption(), onProgress);
+        return spawnAsyncAndLog(command, undefined, defaultSpawnShellOption(), onProgress);
     }
 }
 
@@ -174,7 +176,7 @@ export class InstallOrUpdateCate extends Transaction {
     fulfilled(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<boolean> {
         const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), "cate --version");
         notifyExecCommand(command, onProgress);
-        return execAsync(command, defaultExecShellOption()).then((output: ExecOutput) => {
+        return execAsyncAndLog(command, defaultExecShellOption()).then((output: ExecOutput) => {
             const line = _getOutput(output);
             return line.startsWith("cate " + this.cateVersion);
         }).catch(() => {
@@ -185,7 +187,7 @@ export class InstallOrUpdateCate extends Transaction {
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
         const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `conda install --yes -c ccitools -c conda-forge cate-cli=${this.cateVersion}`);
         notifyExecCommand(command, onProgress);
-        return spawnAsync(command, undefined, defaultSpawnShellOption(), onProgress)
+        return spawnAsyncAndLog(command, undefined, defaultSpawnShellOption(), onProgress)
             .then(() => this.fulfilled(context, onProgress))
             .then(ok => {
                 if (!ok) {
@@ -198,7 +200,7 @@ export class InstallOrUpdateCate extends Transaction {
 function isCompatiblePython(condaDir: string, condaEnvDir: string, onProgress: TransactionProgressHandler): Promise<boolean> {
     const command = getCommandInActivatedCondaEnv(condaDir, condaEnvDir, "python --version");
     notifyExecCommand(command, onProgress);
-    return execAsync(command, defaultExecShellOption()).then((output: ExecOutput) => {
+    return execAsyncAndLog(command, defaultExecShellOption()).then((output: ExecOutput) => {
         const line = _getOutput(output);
         return line.startsWith("Python 3.");
     }).catch(() => {
@@ -212,4 +214,18 @@ function notifyExecCommand(command: string, onProgress: TransactionProgressHandl
 
 function notifyExecFile(file: string, args: string[], onProgress: TransactionProgressHandler) {
     onProgress({message: `${file} ` + args.map(a => a.indexOf(' ') >= 0 ? `"${a}"` : a).join(' ')});
+}
+
+function spawnAsyncAndLog(command: string,
+                          args: undefined | string[],
+                          options: undefined | SpawnOptions,
+                          onProgress: (progress: ExecOutput) => any): Promise<number> {
+    log.info('spawning asynchronously: ', command, args, options);
+    return spawnAsync(command, args, options, onProgress);
+}
+
+function execAsyncAndLog(command: string,
+                                options?: ExecOptions): Promise<ExecOutput> {
+    log.info('executing asynchronously: ', command, options);
+    return execAsync(command, options);
 }
