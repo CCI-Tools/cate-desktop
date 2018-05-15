@@ -1,5 +1,9 @@
 ## Changes in 2.0.0-dev.11 (in dev)
 
+* Setup error: directory has access restrictions [#642](https://github.com/CCI-Tools/cate/issues/642)
+* Cate Desktop's log file `~/.cate/cate-desktop.log` now contains more details about process invocations to allow
+  for more effective debugging of setup problems 
+* Using `localhost` instead of explicit IP to maybe target [#627](https://github.com/CCI-Tools/cate/issues/627) 
 
 ## Changes in 2.0.0-dev.10
 
