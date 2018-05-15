@@ -179,7 +179,8 @@ export class InstallOrUpdateCate extends Transaction {
         return execAsyncAndLog(command, defaultExecShellOption()).then((output: ExecOutput) => {
             const line = _getOutput(output);
             return line.startsWith("cate " + this.cateVersion);
-        }).catch(() => {
+        }).catch((e) => {
+            log.warn('Retrieving Cate version failed (and this may be ok):', e);
             return false;
         });
     }
@@ -203,7 +204,8 @@ function isCompatiblePython(condaDir: string, condaEnvDir: string, onProgress: T
     return execAsyncAndLog(command, defaultExecShellOption()).then((output: ExecOutput) => {
         const line = _getOutput(output);
         return line.startsWith("Python 3.");
-    }).catch(() => {
+    }).catch((e) => {
+        log.warn('Python compatibility check failed (and this may be ok):', e);
         return false;
     });
 }
