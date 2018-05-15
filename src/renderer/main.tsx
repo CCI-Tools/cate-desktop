@@ -119,7 +119,7 @@ function readDroppedFile(file: File, dispatch: Dispatch<State>) {
     let opName, opArgs;
     if (file.path.endsWith('.nc')) {
         opName = 'read_netcdf';
-        opArgs = {file: {value: file.path}, normalize: {value: false}}
+        // opArgs = {file: {value: file.path}, normalize: {value: false}}
     } else if (file.path.endsWith('.txt')) {
         opName = 'read_text';
     } else if (file.path.endsWith('.json')) {
