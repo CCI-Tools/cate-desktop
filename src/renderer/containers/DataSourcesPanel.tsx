@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {connect} from 'react-redux';
-import Linkify from 'react-linkify';
-import {State, DataStoreState, DataSourceState} from '../state';
+import { CSSProperties } from 'react';
+import { connect } from 'react-redux';
+import { State, DataStoreState, DataSourceState } from '../state';
 import {
     AnchorButton,
     InputGroup,
@@ -12,20 +12,20 @@ import {
     Checkbox,
     Colors
 } from '@blueprintjs/core';
-import {Table, Column, Cell, TruncatedFormat} from '@blueprintjs/table';
-import {ListBox, ListBoxSelectionMode} from '../components/ListBox';
-import {Card} from '../components/Card';
-import {ScrollablePanelContent} from '../components/ScrollableContent';
-import {ContentWithDetailsPanel} from '../components/ContentWithDetailsPanel';
+import { Table, Column, Cell, TruncatedFormat } from '@blueprintjs/table';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
+import { Card } from '../components/Card';
+import { ScrollablePanelContent } from '../components/ScrollableContent';
+import { ContentWithDetailsPanel } from '../components/ContentWithDetailsPanel';
+import { ToolButton } from '../components/ToolButton';
+import { TextWithLinks } from '../components/TextWithLinks';
 import DownloadDatasetDialog from './DownloadDataSourceDialog';
 import OpenDatasetDialog from './OpenDatasetDialog';
 import AddDatasetDialog from './AddDatasetDialog';
 import RemoveDatasetDialog from './RemoveDatasetDialog';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
-import {NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES} from '../messages';
-import {CSSProperties} from 'react';
-import {ToolButton} from '../components/ToolButton';
+import { NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES } from '../messages';
 
 
 interface IDataSourcesPanelProps {
@@ -487,7 +487,7 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         if (meta_info.abstract) {
             summary = (
                 <div><h5>Summary</h5>
-                    <p className="user-selectable"><Linkify>{meta_info.abstract}</Linkify></p>
+                    <p className="user-selectable"><TextWithLinks>{meta_info.abstract}</TextWithLinks></p>
                 </div>
             );
         }
@@ -580,7 +580,7 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
             id: 'licences',
             element: (
                 <div>
-                    <p className="user-selectable"><Linkify>{meta_info.licences}</Linkify></p>
+                    <p className="user-selectable"><TextWithLinks>{meta_info.licences}</TextWithLinks></p>
                 </div>
             )
         };

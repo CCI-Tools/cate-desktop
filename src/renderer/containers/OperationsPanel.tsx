@@ -1,18 +1,19 @@
 import * as React from 'react';
-import {connect, DispatchProp} from 'react-redux';
-import {Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent, PopoverInteractionKind} from "@blueprintjs/core";
-import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
-import {LabelWithType} from "../components/LabelWithType";
-import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
-import {Card} from "../components/Card";
-import OperationStepDialog from "./OperationStepDialog";
-import {State, OperationState, WorkspaceState, OperationOutputState, OperationInputState} from "../state";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import {ScrollablePanelContent} from "../components/ScrollableContent";
-import {NO_OPERATIONS_FOUND} from "../messages";
-import {ToolButton} from "../components/ToolButton";
-import {NEW_OPERATION_STEP_DIALOG_ID} from "./operation-step-dialog-ids";
+import { connect, DispatchProp } from 'react-redux';
+import { Popover, Menu, MenuItem, InputGroup, Classes, Tag, Intent, PopoverInteractionKind } from '@blueprintjs/core';
+import { ContentWithDetailsPanel } from '../components/ContentWithDetailsPanel';
+import { LabelWithType } from '../components/LabelWithType';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
+import { Card } from '../components/Card';
+import OperationStepDialog from './OperationStepDialog';
+import { State, OperationState, WorkspaceState, OperationOutputState, OperationInputState } from '../state';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import { ScrollablePanelContent } from '../components/ScrollableContent';
+import { NO_OPERATIONS_FOUND } from '../messages';
+import { ToolButton } from '../components/ToolButton';
+import { NEW_OPERATION_STEP_DIALOG_ID } from './operation-step-dialog-ids';
+import { TextWithLinks } from '../components/TextWithLinks';
 
 
 interface IOperationsPanelProps {
@@ -78,7 +79,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
     }
 
     private handleOperationFilterExprCleared() {
-        this.props.dispatch(actions.setOperationFilterExpr(""));
+        this.props.dispatch(actions.setOperationFilterExpr(''));
     }
 
     private handleOperationFilterExprChange(event) {
@@ -262,12 +263,12 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
     }
 
     private static getMultiplicityText(n: number, singularText: string, pluralText?: string): string {
-        return n == 1 ? singularText : (pluralText || singularText + "s");
+        return n == 1 ? singularText : (pluralText || singularText + 's');
     }
 
     private renderOperationDetailsCard() {
         const operation = this.props.selectedOperation;
-        let title = "No selection";
+        let title = 'No selection';
         let description = null;
         let tags = null;
         let inputs = null;
@@ -276,7 +277,10 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
             title = operation.name;
 
             if (operation.description) {
-                description = (<p className="user-selectable">{operation.description}</p>);
+                description = (
+                    <p className="user-selectable">
+                        <TextWithLinks>{operation.description}</TextWithLinks>
+                    </p>);
             }
 
             if (operation.tags) {
@@ -287,13 +291,15 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
                 const outputElems = operation.outputs.map(output => (
                     <li key={output.name}>
                         <LabelWithType label={output.name} dataType={output.dataType} units={output.units}/>
-                        <span className="user-selectable">{OperationsPanel.getOutputDescriptionText(output)}</span>
+                        <span className="user-selectable">
+                            <TextWithLinks>{OperationsPanel.getOutputDescriptionText(output)}</TextWithLinks>
+                        </span>
                     </li>
                 ));
                 outputs = (
                     <div>
                         <p>
-                            <strong>{OperationsPanel.getMultiplicityText(operation.outputs.length, 'Output') + ":"}</strong>
+                            <strong>{OperationsPanel.getMultiplicityText(operation.outputs.length, 'Output') + ':'}</strong>
                         </p>
                         <ul>{outputElems}</ul>
                     </div>
@@ -305,13 +311,15 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
                 const inputElems = operation.inputs.map(input => (
                     <li key={input.name}>
                         <LabelWithType label={input.name} dataType={input.dataType} units={input.units}/>
-                        <span className="user-selectable">{OperationsPanel.getInputDescriptionText(input)}</span>
+                        <span className="user-selectable">
+                            <TextWithLinks>{OperationsPanel.getInputDescriptionText(input)}</TextWithLinks>
+                        </span>
                     </li>
                 ));
                 inputs = (
                     <div>
                         <p>
-                            <strong>{OperationsPanel.getMultiplicityText(operation.outputs.length, 'Input') + ":"}</strong>
+                            <strong>{OperationsPanel.getMultiplicityText(operation.outputs.length, 'Input') + ':'}</strong>
                         </p>
                         <ul>{inputElems}</ul>
                     </div>
