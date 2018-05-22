@@ -142,6 +142,8 @@ class CateDesktopApp {
 
         log.info('process.versions =', process.versions);
 
+        electron.app.commandLine.appendSwitch('no-proxy-server');
+
         if (process.platform === 'darwin') {
             // Try getting around https://github.com/CCI-Tools/cate-desktop/issues/32
             // See https://electron.atom.io/docs/api/app/#appcommandlineappendswitchswitch-value
