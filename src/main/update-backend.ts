@@ -186,7 +186,7 @@ export class InstallOrUpdateCate extends Transaction {
     }
 
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
-        const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `conda install --yes -c ccitools -c conda-forge cate-cli=${this.cateVersion}`);
+        const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `conda install --yes -c ccitools -c conda-forge conda cate-cli=${this.cateVersion}`);
         notifyExecCommand(command, onProgress);
         return spawnAsyncAndLog(command, undefined, defaultSpawnShellOption(), onProgress)
             .then(() => this.fulfilled(context, onProgress))
