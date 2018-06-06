@@ -1,4 +1,8 @@
-## Changes in 2.0.0-dev.11 (in dev)
+## Changes in 2.0.0-dev.12
+* Some fixes to installation issues
+* Requires cate-webapi 2.0.0-dev.12
+
+## Changes in 2.0.0-dev.11
 
 * Setup error: directory has access restrictions [#642](https://github.com/CCI-Tools/cate/issues/642)
 * Cate Desktop's log file `~/.cate/cate-desktop.log` now contains more details about process invocations to allow
