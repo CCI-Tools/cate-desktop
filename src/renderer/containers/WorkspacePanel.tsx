@@ -573,7 +573,7 @@ function convertSteps(operations: OperationState[], steps: WorkflowStepState[], 
     // TODO (forman): move this to backend, as this is best done in Python
     let lines = [];
     if (target === 'python') {
-        lines.push('import cate');
+        lines.push('import cate.ops');
     } else {
         lines.push('cate ws new');
     }
