@@ -1,8 +1,12 @@
-## Changes in 2.0.0-dev.12
+## Changes in 2.0.0-dev.13
 
 * Error when executing exported Python scripts: module 'cate' has no attribute 'ops' [#668](https://github.com/CCI-Tools/cate/issues/668)
 * Some fixes to installation issues
 * Requires cate-webapi 2.0.0-dev.12
+
+## Changes in 2.0.0-dev.12
+
+Version 2.0.0-dev.12 has been recalled.
 
 ## Changes in 2.0.0-dev.11
 
