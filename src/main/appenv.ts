@@ -229,3 +229,47 @@ export function defaultExecShellOption() {
         return {shell: '/bin/bash'};
     }
 }
+
+// Names of environment variables that provide a proxy setting
+const PROXY_ENV_VAR_NAMES = ['http_proxy', 'HTTP_PROXY', 'https_proxy', 'HTTPS_PROXY', 'socks_proxy', 'SOCKS_PROXY'];
+const NO_PROXY_ENV_VAR_NAMES = ['no_proxy', 'NO_PROXY'];
+
+
+export function getProxySettings(env?: { [name: string]: string }):
+    { proxyServer: string | undefined, proxyBypassList: string | undefined } | null {
+    const proxyServer = PROXY_ENV_VAR_NAMES.map(n => env[n])
+                                           .find(v => !!v);
+    if (!proxyServer) {
+        return null;
+    }
+    const proxyBypassList = getProxyBypassRules(env);
+    return {proxyServer, proxyBypassList};
+}
+
+export function getSessionProxyConfig(env?: { [name: string]: string }):
+    { pacScript: string, proxyRules: string, proxyBypassRules: string } | null {
+    const proxyRules = Array.from(new Set(PROXY_ENV_VAR_NAMES.map(n => env[n])
+                                                             .filter(v => !!v))).join(';');
+    if (!proxyRules) {
+        return null;
+    }
+    const proxyBypassRules = getProxyBypassRules(env);
+    return {pacScript: '', proxyRules, proxyBypassRules};
+}
+
+function getProxyBypassRules(env?: { [name: string]: string }) {
+    let noProxyHostsSet = new Set();
+    NO_PROXY_ENV_VAR_NAMES.map(n => env[n])
+                          .filter(v => !!v)
+                          .forEach(noProxy => {
+                              let noProxyHosts = noProxy.split(',');
+                              if (noProxyHosts.length === 1) {
+                                  noProxyHosts = noProxy.split(';');
+                              }
+                              noProxyHosts.map(h => h.trim())
+                                          .filter(h => !!h)
+                                          .forEach(noProxyHost => noProxyHostsSet.add(noProxyHost));
+                          });
+    ['localhost', '127.0.0.1', '::1'].forEach(host => noProxyHostsSet.delete(host));
+    return ['<local>', 'dev.virtualearth.net'].concat(Array.from(noProxyHostsSet)).join(';')
+}

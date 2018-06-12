@@ -14,7 +14,7 @@ import {
     getAppDataDir, getAppIconPath,
     getCateWebAPISetupInfo, setCateDir, getWebAPIStartCommand, getWebAPIRestUrl,
     getMPLWebSocketsUrl, getAPIWebSocketsUrl, defaultSpawnShellOption,
-    isWebAPIVersionCompatible, EXPECTED_CATE_WEBAPI_VERSION
+    isWebAPIVersionCompatible, EXPECTED_CATE_WEBAPI_VERSION, getProxySettings, getSessionProxyConfig
 } from './appenv';
 import * as net from 'net';
 import { installAutoUpdate } from './update-frontend';
@@ -46,8 +46,9 @@ const WEBAPI_ACCESS_DELAY_MAX = 0.5;
 // Signal used to kill a running WebAPI service if a stop requiest times out:
 const WEBAPI_KILL_SIGNAL = 'SIGTERM';
 
-
 const NANOS_PER_SEC = 1.0e9;
+
+const USE_PROXY_CONFIG_IF_SET = false;
 
 // Global, so it will not be garbage collected.
 let app;
@@ -131,7 +132,6 @@ class CateDesktopApp {
             return;
         }
 
-
         // Configure logging
         log.transports.file.level = 'info';
         log.transports.file.file = path.join(getAppDataDir(), 'cate-desktop.log');
@@ -142,7 +142,15 @@ class CateDesktopApp {
 
         log.info('process.versions =', process.versions);
 
-        electron.app.commandLine.appendSwitch('no-proxy-server');
+        const proxySettings = getProxySettings(process.env);
+        if (USE_PROXY_CONFIG_IF_SET && proxySettings) {
+            log.info('proxySettings:', proxySettings);
+            // See https://github.com/electron/electron/blob/master/docs/api/chrome-command-line-switches.md#--proxy-bypass-listhosts
+            electron.app.commandLine.appendSwitch('proxy-server', proxySettings.proxyServer);
+            if (proxySettings.proxyBypassList) {
+                electron.app.commandLine.appendSwitch('proxy-bypass-list', proxySettings.proxyBypassList);
+            }
+        }
 
         if (process.platform === 'darwin') {
             // Try getting around https://github.com/CCI-Tools/cate-desktop/issues/32
@@ -590,6 +598,15 @@ class CateDesktopApp {
                                                protocol: 'file:',
                                                slashes: true
                                            }));
+
+
+        let sessionProxyConfig = getSessionProxyConfig(process.env);
+        if (USE_PROXY_CONFIG_IF_SET && sessionProxyConfig) {
+            this.mainWindow.webContents.session.setProxy(sessionProxyConfig, () => {
+                // See https://electronjs.org/docs/api/session
+                log.info('session proxy configuration set: ', sessionProxyConfig);
+            });
+        }
 
         this.mainWindow.webContents.on('did-finish-load', () => {
             this.showSplashMessage('Done.');

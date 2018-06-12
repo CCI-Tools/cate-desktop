@@ -1,5 +1,7 @@
 ## Changes in 2.0.0-dev.14 (in development)
 
+* Now using environment variables `HTTP_PROXY`, `NO_PROXY`, etc to configure Electron's proxy command-line switches
+  to maybe target [#627](https://github.com/CCI-Tools/cate/issues/627) 
 * No longer disable table view in **VARIABLES** panel if #rows is > 10000. 
 
 ## Changes in 2.0.0-dev.13
