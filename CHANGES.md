@@ -1,3 +1,7 @@
+## Changes in 2.0.0-dev.14 (in development)
+
+* No longer disable table view in **VARIABLES** panel if #rows is > 10000. 
+
 ## Changes in 2.0.0-dev.13
 
 * Error when executing exported Python scripts: module 'cate' has no attribute 'ops' [#668](https://github.com/CCI-Tools/cate/issues/668)

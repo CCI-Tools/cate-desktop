@@ -187,7 +187,6 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         const canAddHistogramPlot = selectedVariable && selectedVariable.numDims > 0;
         const size = selectedVariable && selectedVariable.shape && selectedVariable.shape.reduce((a, b) => a * b, 1);
         const maxSize = 10000;
-        const canShowTableView = selectedVariable && size < maxSize;
         return (
             <div className="pt-button-group">
                 <ToolButton tooltipContent="Toggle image layer visibility"
@@ -212,9 +211,8 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
                             iconName="timeline-bar-chart"
                             onClick={this.handleAddVariableHistogramPlot}
                 />
-                <ToolButton tooltipContent={`Show data in table (for sizes < ${maxSize})`}
+                <ToolButton tooltipContent={`Show data in table (only first ${maxSize} values)`}
                             tooltipPosition={Position.LEFT}
-                            disabled={!canShowTableView}
                             iconName="pt-icon-th"
                             onClick={this.handleShowVariableTableView}
                 />
