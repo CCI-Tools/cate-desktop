@@ -34,15 +34,6 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, nu
 
     private static ACTION_ITEM_STYLE = {margin: "0.1em 0em 2em 0em"};
     private static PROPERTY_ITEM_STYLE = {margin: "0.1em 0em 0.6em 0em"};
-    private static CREDITS_LABEL_STYLE = {margin: "2em 0em 0.6em 0em"};
-    private static CREDITS_CONTAINER_STYLE: any = {
-        width: "100%",
-        minHeight: "6em",
-        position: "relative",
-        padding: "0.2em 0.2em 0.2em 0.2em",
-        margin: "0.2em 0 0.2em 0",
-        backgroundColor: 'rgba(255,255,255,0.1)'
-    };
 
     constructor(props: IViewPanelProps & IViewPanelDispatch) {
         super(props);
@@ -103,12 +94,6 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, nu
                               style={ViewPanel.PROPERTY_ITEM_STYLE}
                               checked={this.props.showLayerTextOverlay}
                               onChange={this.onShowLayerTextOverlayChange}/>
-
-                    <label className="pt-label" style={ViewPanel.CREDITS_LABEL_STYLE}>
-                        Imagery layer credits:
-                        <div id="creditContainer"
-                             style={ViewPanel.CREDITS_CONTAINER_STYLE}/>
-                    </label>
                 </div>
             );
         } else {

@@ -98,7 +98,6 @@ export default class ApplicationPage extends React.PureComponent<null, null> {
                 <SaveWorkspaceAsDialog/>
                 <OperationStepDialog id={NEW_CTX_OPERATION_STEP_DIALOG_ID}/>
                 <JobFailureDialog/>
-                <div id="creditContainer" style={ApplicationPage.CREDITS_DIV_STYLE}/>
             </div>
         );
     }

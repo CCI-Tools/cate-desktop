@@ -173,7 +173,6 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             sceneModePicker: true,
             timeline: false,
             navigationHelpButton: false,
-            creditContainer: 'creditContainer',
             imageryProvider: baseLayerImageryProvider,
             navigationInstructionsInitiallyVisible: false,
             automaticallyTrackDataSourceClocks: false,

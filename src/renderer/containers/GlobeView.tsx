@@ -318,7 +318,7 @@ function getOverlayHtml(layers: LayerState[],
                 if (!overlayHtml) {
                     overlayHtml = document.createElement('div');
                     overlayHtml.id = 'CesiumGlobeOverlay-' + viewId;
-                    overlayHtml.style.position = 'relative';
+                    overlayHtml.style.position = 'absolute';
                     overlayHtml.style['z-index'] = 10;
                     overlayHtml.style['pointer-events'] = 'none';
                     overlayHtml.style['padding'] = '1em';
@@ -334,7 +334,8 @@ function getOverlayHtml(layers: LayerState[],
                 textDivElement.style['font-size'] = '1.4em';
                 textDivElement.innerText = varText;
                 overlayHtml.appendChild(textDivElement);
-                overlayHtml.style.top = `-${2 + (layerInfoCount + 1) * 1.5}em`;
+                overlayHtml.style.top = '0';
+                overlayHtml.style.width = '100%';
                 layerInfoCount++;
             }
         }
