@@ -48,7 +48,7 @@ const WEBAPI_KILL_SIGNAL = 'SIGTERM';
 
 const NANOS_PER_SEC = 1.0e9;
 
-const USE_PROXY_CONFIG_IF_SET = false;
+const USE_PROXY_CONFIG_IF_SET = true;
 
 // Global, so it will not be garbage collected.
 let app;
