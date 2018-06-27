@@ -90,7 +90,7 @@ export const NO_WEB_GL = (
 export const NO_PLACES = (
     <NonIdealState
         title="No places"
-        description={<span>Press the <span className="pt-icon-selection"/> or <span className="pt-icon-add"/> button to add a place.</span>}
+        description={<span>Press the tool buttons below to add a new place.</span>}
         visual={ICON_CIRCLE}/>
 );
 
