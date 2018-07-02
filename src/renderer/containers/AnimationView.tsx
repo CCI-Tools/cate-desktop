@@ -69,7 +69,6 @@ class AnimationView extends React.Component<IAnimationViewProps & DispatchProp<S
             const elements = divElement.getElementsByTagName("script");
             for (let element of elements) {
                 let script = element.innerHTML;
-                console.warn("Executing script: ", script);
                 try {
                     // indirect eval call evaluates in global scope
                     eval('eval')(script);
