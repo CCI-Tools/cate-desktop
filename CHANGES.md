@@ -1,5 +1,6 @@
 ## Changes in 2.0.0-dev.16 (in development)
 
+* Fixed issue in **STYLES** panel that caused UI to hang if min and max were equal 
 
 ## Changes in 2.0.0-dev.15
 

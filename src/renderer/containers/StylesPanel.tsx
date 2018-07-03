@@ -16,7 +16,7 @@ import {NO_ENTITY_FOR_STYLE, NO_LAYER_FOR_STYLE} from '../messages';
 import {SubPanelHeader} from '../components/SubPanelHeader';
 import {
     AnchorButton,
-    Button,
+    Button, Colors,
     NumberRange,
     Popover,
     PopoverInteractionKind,
@@ -523,11 +523,15 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
 
         const statistics = layer.statistics;
         if (!statistics) {
-            return null;
+            return <span style={{color: Colors.ORANGE3}}>Missing data min/max</span>;
         }
 
         let min = statistics.min;
         let max = statistics.max;
+        if (min === max) {
+            return <span style={{color: Colors.ORANGE3}}>All values are {min}</span>;
+        }
+
         const fractionDigits = getDisplayFractionDigits(min, max);
 
         return (
