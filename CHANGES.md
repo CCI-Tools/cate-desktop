@@ -1,4 +1,7 @@
-## Changes in 2.0.0-dev.14 (in development)
+## Changes in 2.0.0-dev.16 (in development)
+
+
+## Changes in 2.0.0-dev.15
 
 * Now using environment variables `HTTP_PROXY`, `NO_PROXY`, etc to configure Electron's proxy command-line switches
   to maybe target [#627](https://github.com/CCI-Tools/cate/issues/627) 
