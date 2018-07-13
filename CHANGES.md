@@ -1,6 +1,8 @@
 ## Changes in 2.0.0-dev.16 (in development)
 
 * Fixed issue in **STYLES** panel that caused UI to hang if min and max were equal 
+* Fixed issue with unresponsive or slow **WORKSPACE** panel / **Workflow Steps** tab renderings,
+  caused by operation parameter values that are very large strings, such as Glacier CCI polygon WKT values.
 
 ## Changes in 2.0.0-dev.15
 

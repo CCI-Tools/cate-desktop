@@ -521,7 +521,14 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
             if (source) {
                 cellValue = (<span>&#8599; <em>{source}</em></span>);
             } else {
-                cellValue = (<span>{`${port.value}`}{units}</span>);
+                let value = port.value;
+                const maxTextLen = 128;
+                if (isString(value) &&  value.length > maxTextLen) {
+                    // Note we do this for performance reasons. BlueprintJS renders very slowly
+                    // e.g. for large Geometry WKT values.
+                    value = value.substr(0, maxTextLen) + '...';
+                }
+                cellValue = (<span>{value}{units}</span>);
             }
         } else {
             let defaultValue = (portProps as OperationInputState).defaultValue;
