@@ -1,4 +1,8 @@
-## Changes in 2.0.0-dev.16 (in development)
+## Changes in 2.0.0-dev.17 (in development)
+
+* Now creating a new workspace automatically saves it in the file system [#690](https://github.com/CCI-Tools/cate/issues/690)
+
+## Changes in 2.0.0-dev.16
 
 * Fixed issue in **STYLES** panel that caused UI to hang if min and max were equal 
 * Fixed issue with unresponsive or slow **WORKSPACE** panel / **Workflow Steps** tab renderings,
