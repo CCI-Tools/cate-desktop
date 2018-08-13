@@ -749,6 +749,7 @@ export function newWorkspace(workspacePath: string | null): ThunkAction {
 
         function action(workspace: WorkspaceState) {
             dispatch(setCurrentWorkspace(workspace));
+            dispatch(saveWorkspace());
             if (workspace && workspace.workflow.steps.length > 0) {
                 dispatch(setSelectedWorkspaceResourceName(workspace.workflow.steps[0].id));
             } else {
