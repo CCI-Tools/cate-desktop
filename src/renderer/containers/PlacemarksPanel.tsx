@@ -131,7 +131,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     private handleChangedPointLatitude(latitude: NumericFieldValue) {
         const placemark = this.props.selectedPlacemark;
         let geometry = placemark.geometry;
-        geometry = {...geometry, coordinates: [geometry.coordinates[1], latitude.value]};
+        geometry = {...geometry, coordinates: [geometry.coordinates[0], latitude.value]};
         this.props.dispatch(actions.updatePlacemarkGeometry(placemark.id, geometry));
     }
 
