@@ -121,6 +121,9 @@
       "target": [
         "AppImage"
       ],
+      "depends": [
+        "libgconf-2-4"
+      ],
       "category": "Science"
     }
   }
