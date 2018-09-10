@@ -1,26 +1,32 @@
 import * as React from 'react';
-import {connect, DispatchProp} from 'react-redux';
+import { CSSProperties } from 'react';
+import { connect, DispatchProp } from 'react-redux';
 import {
-    State, WorkspaceState, WorkflowStepState, ResourceState, WorkflowPortState, OperationState,
-    OperationIOBaseState, OperationInputState
+    OperationInputState,
+    OperationIOBaseState,
+    OperationState,
+    ResourceState,
+    State,
+    WorkflowPortState,
+    WorkflowStepState,
+    WorkspaceState
 } from "../state";
-import {Tabs2, Tab2, Tooltip, Position, Popover, Menu, MenuItem} from "@blueprintjs/core";
-import {Table, Column, Cell, TruncatedFormat} from "@blueprintjs/table";
-import {ListBox} from "../components/ListBox";
-import {LabelWithType} from "../components/LabelWithType";
+import { Menu, MenuItem, Popover, Position, Tab2, Tabs2, Tooltip } from "@blueprintjs/core";
+import { Cell, Column, Table, TruncatedFormat, TruncatedPopoverMode } from "@blueprintjs/table";
+import { ListBox } from "../components/ListBox";
+import { LabelWithType } from "../components/LabelWithType";
 import WorkflowStepPropertiesDialog from "./WorkflowStepPropertiesDialog";
 import OperationStepDialog from "./OperationStepDialog";
-import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
+import { ContentWithDetailsPanel } from "../components/ContentWithDetailsPanel";
 import * as assert from "../../common/assert";
 import * as actions from '../actions'
 import * as selectors from '../selectors'
-import {ScrollablePanelContent} from "../components/ScrollableContent";
-import {NO_WORKSPACE, NO_WORKSPACE_RESOURCES, NO_WORKFLOW_STEPS} from "../messages";
-import {findOperation, isDataFrameResource, isFigureResource} from "../state-util";
-import {isBoolean, isDefined, isString, isUndefined, isUndefinedOrNull} from "../../common/types";
-import {CSSProperties} from "react";
-import {ToolButton} from "../components/ToolButton";
-import {EDIT_OPERATION_STEP_DIALOG_ID} from "./operation-step-dialog-ids";
+import { ScrollablePanelContent } from "../components/ScrollableContent";
+import { NO_WORKFLOW_STEPS, NO_WORKSPACE, NO_WORKSPACE_RESOURCES } from "../messages";
+import { findOperation, isDataFrameResource, isFigureResource } from "../state-util";
+import { isBoolean, isDefined, isString, isUndefined, isUndefinedOrNull } from "../../common/types";
+import { ToolButton } from "../components/ToolButton";
+import { EDIT_OPERATION_STEP_DIALOG_ID } from "./operation-step-dialog-ids";
 
 interface IWorkspacePanelProps {
     workspace: WorkspaceState;
@@ -474,11 +480,18 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
     }
 
     renderResourceAttrName(row: number) {
-        return <Cell><TruncatedFormat>{this.props.selectedResourceAttributes[row][0]}</TruncatedFormat></Cell>;
+        return <Cell><TruncatedFormat>{this.props.selectedResourceAttributes[row][0]}</TruncatedFormat></Cell>
     }
 
     renderResourceAttrValue(row: number): any {
-        return <Cell><TruncatedFormat>{`${this.props.selectedResourceAttributes[row][1]}`}</TruncatedFormat></Cell>;
+        return <Cell>
+            <TruncatedFormat
+                showPopover={TruncatedPopoverMode.WHEN_TRUNCATED}
+                detectTruncation={true}
+            >
+                {`${this.props.selectedResourceAttributes[row][1]}`}
+            </TruncatedFormat>
+        </Cell>;
     }
 
     renderOperationStepInputName(row: number) {
@@ -507,7 +520,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
 
     //noinspection JSUnusedLocalSymbols
     static renderWorkflowPortName(portProps: OperationIOBaseState, port: WorkflowPortState) {
-        return (<Cell><TruncatedFormat>{portProps.name}</TruncatedFormat></Cell>);
+        return (
+            <Cell><TruncatedFormat showPopover={TruncatedPopoverMode.ALWAYS}>{portProps.name}</TruncatedFormat></Cell>);
     }
 
     static renderWorkflowPortValue(portProps: OperationIOBaseState, port: WorkflowPortState) {
@@ -523,7 +537,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
             } else {
                 let value = port.value;
                 const maxTextLen = 128;
-                if (isString(value) &&  value.length > maxTextLen) {
+                if (isString(value) && value.length > maxTextLen) {
                     // Note we do this for performance reasons. BlueprintJS renders very slowly
                     // e.g. for large Geometry WKT values.
                     value = value.substr(0, maxTextLen) + '...';
