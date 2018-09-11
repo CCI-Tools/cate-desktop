@@ -3,6 +3,7 @@
 * Fixed issue that caused longitude value to change unexpectedly when latitude value is set on a placemark [#682]
   (https://github.com/CCI-Tools/cate/issues/682)
 * Now creating a new workspace automatically saves it in the file system [#690](https://github.com/CCI-Tools/cate/issues/690)
+* Filled details section for geo data frames in teh WORKSPACE section
 
 ## Changes in 2.0.0-dev.16
 
