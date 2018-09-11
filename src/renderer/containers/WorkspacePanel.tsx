@@ -484,14 +484,16 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
     }
 
     renderResourceAttrValue(row: number): any {
-        return <Cell>
-            <TruncatedFormat
-                showPopover={TruncatedPopoverMode.WHEN_TRUNCATED}
-                detectTruncation={true}
-            >
-                {`${this.props.selectedResourceAttributes[row][1]}`}
-            </TruncatedFormat>
-        </Cell>;
+        return (
+            <Cell>
+                <TruncatedFormat
+                    showPopover={TruncatedPopoverMode.WHEN_TRUNCATED}
+                    detectTruncation={true}
+                >
+                    {`${this.props.selectedResourceAttributes[row][1]}`}
+                </TruncatedFormat>
+            </Cell>
+        );
     }
 
     renderOperationStepInputName(row: number) {
