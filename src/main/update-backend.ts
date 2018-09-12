@@ -28,11 +28,11 @@ export class DownloadMiniconda extends Transaction {
     getMinicondaInstallerUrl(): string {
         const platform = process.platform;
         if (platform === "win32") {
-            return "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe";
+            return "https://repo.continuum.io/miniconda/Miniconda3-4.5.4-Windows-x86_64.exe";
         } else if (platform === "darwin") {
-            return "https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh";
+            return "https://repo.continuum.io/miniconda/Miniconda3-4.5.4-MacOSX-x86_64.sh";
         } else if (platform === "linux") {
-            return "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh";
+            return "https://repo.continuum.io/miniconda/Miniconda3-4.5.4-Linux-x86_64.sh";
         }
         throw new Error(`${this.name}: platform "${platform}" is not supported`);
     }
