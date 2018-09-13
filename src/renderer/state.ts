@@ -283,6 +283,8 @@ export interface VariableState {
     colorMapName?: string;
     displayMin?: number;
     displayMax?: number;
+    // Only given, if variable is scalar, see issue #702
+    value?: number | string | boolean;
 }
 
 /**
