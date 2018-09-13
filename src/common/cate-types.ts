@@ -61,7 +61,7 @@ export function isAssignableFrom(targetDataType: string, sourceDataType: string)
         case LITERAL_TYPE:
             return sourceDataType === STR_TYPE;
         case BOOL_TYPE:
-            return sourceDataType === BOOL_TYPE || sourceDataType === INT_TYPE || sourceDataType === FLOAT_TYPE;
+            return sourceDataType === INT_TYPE || sourceDataType === FLOAT_TYPE;
         case INT_TYPE:
             return sourceDataType === BOOL_TYPE;
         case FLOAT_TYPE:
