@@ -61,7 +61,7 @@ export function isAssignableFrom(targetDataType: string, sourceDataType: string)
         case LITERAL_TYPE:
             return sourceDataType === STR_TYPE;
         case BOOL_TYPE:
-            return sourceDataType !== ND_ARRAY_TYPE; // Non-empty numpy arrays don't work as booleans
+            return sourceDataType === BOOL_TYPE || sourceDataType === INT_TYPE || sourceDataType === FLOAT_TYPE;
         case INT_TYPE:
             return sourceDataType === BOOL_TYPE;
         case FLOAT_TYPE:
@@ -70,11 +70,11 @@ export function isAssignableFrom(targetDataType: string, sourceDataType: string)
             return sourceDataType === DATA_ARRAY_TYPE;
         case DATA_FRAME_TYPE:
             return sourceDataType === DATA_FRAME_LIKE_TYPE || sourceDataType === GEO_DATA_FRAME_TYPE
-                || sourceDataType === GEO_DATA_FRAME_PROXY_TYPE;
+                   || sourceDataType === GEO_DATA_FRAME_PROXY_TYPE;
         case DATA_FRAME_LIKE_TYPE:
             return sourceDataType === DATA_FRAME_TYPE
-                || sourceDataType === GEO_DATA_FRAME_TYPE || sourceDataType === GEO_DATA_FRAME_PROXY_TYPE
-                || sourceDataType === DATASET_TYPE || sourceDataType === DATASET_LIKE_TYPE;
+                   || sourceDataType === GEO_DATA_FRAME_TYPE || sourceDataType === GEO_DATA_FRAME_PROXY_TYPE
+                   || sourceDataType === DATASET_TYPE || sourceDataType === DATASET_LIKE_TYPE;
         case GEO_DATA_FRAME_TYPE:
             return sourceDataType === GEO_DATA_FRAME_PROXY_TYPE;
         case DATASET_TYPE:
@@ -105,16 +105,16 @@ export function isAssignableFrom(targetDataType: string, sourceDataType: string)
             return sourceDataType === STR_TYPE || sourceDataType === POLYGON_TYPE;
         case GEOMETRY_LIKE_TYPE:
             return sourceDataType === STR_TYPE
-                || sourceDataType === POINT_LIKE_TYPE
-                || sourceDataType === POLYGON_LIKE_TYPE
-                || sourceDataType === GEOMETRY_TYPE
-                || sourceDataType === POINT_TYPE
-                || sourceDataType === MULTI_POINT_TYPE
-                || sourceDataType === LINE_STRING_TYPE
-                || sourceDataType === MULTI_LINE_STRING_TYPE
-                || sourceDataType === POLYGON_TYPE
-                || sourceDataType === MULTI_POLYGON_TYPE
-                || sourceDataType === GEOMETRY_COLLECTION_TYPE;
+                   || sourceDataType === POINT_LIKE_TYPE
+                   || sourceDataType === POLYGON_LIKE_TYPE
+                   || sourceDataType === GEOMETRY_TYPE
+                   || sourceDataType === POINT_TYPE
+                   || sourceDataType === MULTI_POINT_TYPE
+                   || sourceDataType === LINE_STRING_TYPE
+                   || sourceDataType === MULTI_LINE_STRING_TYPE
+                   || sourceDataType === POLYGON_TYPE
+                   || sourceDataType === MULTI_POLYGON_TYPE
+                   || sourceDataType === GEOMETRY_COLLECTION_TYPE;
     }
     return false;
 }

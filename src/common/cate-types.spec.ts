@@ -21,9 +21,9 @@ describe('isAssignableFrom()', function () {
         expect(isAssignableFrom('bool', 'bool')).to.be.true;
         expect(isAssignableFrom('bool', 'int')).to.be.true;
         expect(isAssignableFrom('bool', 'float')).to.be.true;
-        expect(isAssignableFrom('bool', 'str')).to.be.true;
-        expect(isAssignableFrom('bool', DATA_FRAME_TYPE)).to.be.true;
         // No
+        expect(isAssignableFrom('bool', 'str')).to.be.false;
+        expect(isAssignableFrom('bool', DATA_FRAME_TYPE)).to.be.false;
         expect(isAssignableFrom('bool', ND_ARRAY_TYPE)).to.be.false;
     });
 

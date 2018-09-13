@@ -1,5 +1,7 @@
 ## Changes in 2.0.0-dev.18 (in development)
 
+* Subset spatial 'mask' parameter shouldn't have resource selection enabled [#699](https://github.com/CCI-Tools/cate/issues/699)
+
 ## Changes in 2.0.0-dev.17
 
 * User-defined Setup fails with existing Miniconda/Anaconda installation [#728](https://github.com/CCI-Tools/cate/issues/728)
