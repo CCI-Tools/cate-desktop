@@ -23,7 +23,7 @@ export const CATE_WEBAPI_VERSION_RANGE = '>=2.0.0-dev.17 <2.1.0';
  *
  * @type {string}
  */
-export const EXPECTED_CATE_WEBAPI_VERSION = '2.0.0.dev17';
+export const EXPECTED_CATE_WEBAPI_VERSION = '2.0.0.dev18';
 
 export const CATE_CLI_NAME = 'cate';
 export const CATE_WEBAPI_NAME = 'cate-webapi-start';

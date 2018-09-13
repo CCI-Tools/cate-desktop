@@ -1,4 +1,6 @@
-## Changes in 2.0.0-dev.17 (in development)
+## Changes in 2.0.0-dev.18 (in development)
+
+## Changes in 2.0.0-dev.17
 
 * User-defined Setup fails with existing Miniconda/Anaconda installation [#728](https://github.com/CCI-Tools/cate/issues/728)
 * Fixed issue that caused longitude value to change unexpectedly when latitude value is set on a placemark [#682](https://github.com/CCI-Tools/cate/issues/682)
