@@ -1,21 +1,21 @@
-import * as React from "react";
-import {connect, DispatchProp} from "react-redux";
-import {State, VariableState, ResourceState, SavedLayers, Placemark} from "../state";
-import * as assert from "../../common/assert";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
-import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
-import {LabelWithType} from "../components/LabelWithType";
-import {Position, Colors} from "@blueprintjs/core";
-import {Cell, Column, Table, TruncatedFormat} from "@blueprintjs/table";
-import {ScrollablePanelContent} from "../components/ScrollableContent";
-import {NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE} from "../messages";
-import {CSSProperties} from 'react';
-import * as Cesium from "cesium";
-import {ToolButton} from "../components/ToolButton";
-import {isSpatialImageVariable, isSpatialVectorVariable} from "../state-util";
-import {isDefinedAndNotNull} from "../../common/types";
+import * as React from 'react';
+import { connect, DispatchProp } from 'react-redux';
+import { State, VariableState, ResourceState, SavedLayers, Placemark } from '../state';
+import * as assert from '../../common/assert';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
+import { ContentWithDetailsPanel } from '../components/ContentWithDetailsPanel';
+import { LabelWithType } from '../components/LabelWithType';
+import { Position, Colors } from '@blueprintjs/core';
+import { Cell, Column, Table, TruncatedFormat } from '@blueprintjs/table';
+import { ScrollablePanelContent } from '../components/ScrollableContent';
+import { NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE } from '../messages';
+import { CSSProperties } from 'react';
+import * as Cesium from 'cesium';
+import { ToolButton } from '../components/ToolButton';
+import { isSpatialImageVariable, isSpatialVectorVariable } from '../state-util';
+import { isDefined, isDefinedAndNotNull } from '../../common/types';
 
 interface IVariablesPanelProps {
     variables: VariableState[];
@@ -60,7 +60,7 @@ function mapStateToProps(state: State): IVariablesPanelProps {
  */
 class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp<State>, null> {
     static readonly DIV_STYLE: CSSProperties = {paddingTop: 4, width: '100%'};
-    static readonly VALUE_STYLE: CSSProperties = {float: "right", color: Colors.BLUE5};
+    static readonly VALUE_STYLE: CSSProperties = {float: 'right', color: Colors.BLUE5};
 
 
     constructor(props: IVariablesPanelProps & DispatchProp<State>) {
@@ -144,7 +144,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         };
         this.props.dispatch(actions.setWorkspaceResource('cate.ops.plot.plot_hist', opArgs,
                                                          null, false,
-                                                         "Creating histogram plot"));
+                                                         'Creating histogram plot'));
     }
 
     private handleShowVariableTableView() {
@@ -185,13 +185,12 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         const canAddLayer = isSpatialVariable && hasWorldView;
         const canAddTimeSeriesPlot = isSpatialVariable && placemark;
         const canAddHistogramPlot = selectedVariable && selectedVariable.numDims > 0;
-        const size = selectedVariable && selectedVariable.shape && selectedVariable.shape.reduce((a, b) => a * b, 1);
         const maxSize = 10000;
         return (
             <div className="pt-button-group">
                 <ToolButton tooltipContent="Toggle image layer visibility"
                             tooltipPosition={Position.LEFT}
-                            iconName={this.props.showSelectedVariableLayer ? "eye-open" : "eye-off"}
+                            iconName={this.props.showSelectedVariableLayer ? 'eye-open' : 'eye-off'}
                             onClick={this.handleShowSelectedVariableLayer}/>
                 <ToolButton tooltipContent="Add a new image layer"
                             tooltipPosition={Position.LEFT}
@@ -247,47 +246,48 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         return variable.name;
     }
 
-    private static renderItem(variable: VariableState) {
-        return <LabelWithType label={variable.name}
-                              dataType={variable.dataType}
-                              tooltipText={variable.attributes && variable.attributes.long_name}/>;
-    }
-
-    private renderVariablesList() {
+    private renderItem = (variable: VariableState) => {
+        const positionData = this.props.positionData;
+        const selectedEntity = this.props.selectedEntity;
         const selectedVariable = this.props.selectedVariable;
         const isImageVariable = selectedVariable && isSpatialImageVariable(selectedVariable);
         const isVectorVariable = selectedVariable && isSpatialVectorVariable(selectedVariable);
-        const positionData = this.props.positionData;
-        const selectedEntity = this.props.selectedEntity;
-        let renderItemFunc = VariablesPanel.renderItem;
+        let value;
+
         if (isVectorVariable && selectedEntity && selectedEntity.properties) {
-            renderItemFunc = (variable: VariableState) => {
-                const varNameRender = VariablesPanel.renderItem(variable);
-                const property = selectedEntity.properties[variable.name];
-                if (property) {
-                    return (
-                        <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property.getValue()}</span></div>
-                    );
-                }
-                return varNameRender;
+            const property = selectedEntity.properties[variable.name];
+            if (isDefinedAndNotNull(property)) {
+                value = property.getValue();
             }
         } else if (isImageVariable && positionData) {
-            renderItemFunc = (variable: VariableState) => {
-                const varNameRender = VariablesPanel.renderItem(variable);
-                const property = positionData[variable.name];
-                if (isDefinedAndNotNull(property)) {
-                    return (
-                        <div>{varNameRender}<span style={VariablesPanel.VALUE_STYLE}>{property}</span></div>
-                    );
-                }
-                return varNameRender;
-            }
+            value = positionData[variable.name];
         }
+        if (!isDefined(value)) {
+            value = variable.value;
+        }
+
+        const label = <LabelWithType label={variable.name}
+                                     dataType={variable.dataType}
+                                     tooltipText={variable.attributes && variable.attributes.long_name}/>;
+        if (!isDefined(value)) {
+            return label;
+        }
+        return (
+            <div>
+                <LabelWithType label={variable.name}
+                               dataType={variable.dataType}
+                               tooltipText={variable.attributes && variable.attributes.long_name}/>
+                <span style={VariablesPanel.VALUE_STYLE}>{value}</span>
+            </div>
+        );
+    };
+
+    private renderVariablesList() {
         return (
             <ScrollablePanelContent>
                 <ListBox items={this.props.variables}
                          getItemKey={VariablesPanel.getItemKey}
-                         renderItem={renderItemFunc}
+                         renderItem={this.renderItem}
                          selection={this.props.selectedVariableName}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          onSelection={this.handleSelectedVariableName}/>

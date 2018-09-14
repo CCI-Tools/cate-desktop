@@ -1,6 +1,7 @@
 ## Changes in 2.0.0-dev.18 (in development)
 
 * Subset spatial 'mask' parameter shouldn't have resource selection enabled [#699](https://github.com/CCI-Tools/cate/issues/699)
+* Values of scalar variables are now always shown in **VARIABLES** panel in Cate Desktop [#702](https://github.com/CCI-Tools/cate/issues/702)
 
 ## Changes in 2.0.0-dev.17
 
