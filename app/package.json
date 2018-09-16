@@ -1,7 +1,7 @@
 {
   "name": "cate-desktop",
   "productName": "Cate Desktop",
-  "version": "2.0.0-dev.18",
+  "version": "2.0.0-dev.19",
   "description": "A graphical user interface for the ESA CCI Toolbox (Cate)",
   "main": "main.js",
   "author": "CCI Toolbox (Cate) Development Team",
