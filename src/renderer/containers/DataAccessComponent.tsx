@@ -44,8 +44,8 @@ export interface IDataAccessComponentProps {
  */
 export class DataAccessComponent extends React.Component<IDataAccessComponentProps, null> {
     static readonly VAR_NAMES_INPUT = {name: 'varNames', dataType: 'string', description: null, nullable: true};
-    static readonly OPTION_CHECK_STYPE = {marginTop: '1em'};
-    static readonly OPTION_DIV_STYPE = {marginLeft: '2em'};
+    static readonly OPTION_CHECK_STYLE = {marginTop: '1em'};
+    static readonly OPTION_DIV_STYLE = {marginLeft: '2em'};
 
     constructor(props: IDataAccessComponentProps) {
         super(props);
@@ -143,7 +143,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         let localDataSourceCheck;
         let localDataSourcePanel;
         // let openDatasetResourceNamePanel = (
-        //     <div style={DataAccessComponent.OPTION_DIV_STYPE}>
+        //     <div style={DataAccessComponent.OPTION_DIV_STYLE}>
         //         <label className="pt-label">
         //             Unique name for the new dataset resource
         //             <span className="pt-text-muted"> (required)</span>
@@ -163,7 +163,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             localDataSourceCheck = (
                 <Tooltip
                     content="If unchecked, remote data will be accessed using an available protocol, e.g. OPeNDAP.">
-                    <Checkbox style={DataAccessComponent.OPTION_CHECK_STYPE}
+                    <Checkbox style={DataAccessComponent.OPTION_CHECK_STYLE}
                               checked={isMakeLocalSelected}
                               label="Download and make local data source (allocates space on disk)"
                               onChange={this.onMakeLocalSelectedChange}/>
@@ -171,7 +171,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             );
             localDataSourcePanel = (
                 <Collapse isOpen={isMakeLocalSelected}>
-                    <div style={DataAccessComponent.OPTION_DIV_STYPE}>
+                    <div style={DataAccessComponent.OPTION_DIV_STYLE}>
                         <label className="pt-label">
                             Unique identifier for the new local data source
                             <span className="pt-text-muted"> (optional)</span>
@@ -197,13 +197,13 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             <div>
                 {headerText}
 
-                <Checkbox style={DataAccessComponent.OPTION_CHECK_STYPE}
+                <Checkbox style={DataAccessComponent.OPTION_CHECK_STYLE}
                           disabled={!temporalCoverage}
                           checked={hasTimeConstraint}
                           label="Time constraint"
                           onChange={this.onHasTimeConstraintChange}/>
                 <Collapse isOpen={hasTimeConstraint}>
-                    <div style={DataAccessComponent.OPTION_DIV_STYPE}>
+                    <div style={DataAccessComponent.OPTION_DIV_STYLE}>
                                 <DateRangeField
                                     nullable={true}
                                     min={minDate}
@@ -214,24 +214,24 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
                     </div>
                 </Collapse>
 
-                <Checkbox style={DataAccessComponent.OPTION_CHECK_STYPE}
+                <Checkbox style={DataAccessComponent.OPTION_CHECK_STYLE}
                           checked={hasRegionConstraint}
                           label="Region constraint"
                           onChange={this.onHasRegionConstraintChange}/>
                 <Collapse isOpen={hasRegionConstraint}>
-                    <div style={DataAccessComponent.OPTION_DIV_STYPE}>
+                    <div style={DataAccessComponent.OPTION_DIV_STYLE}>
                         <Region value={region}
                                 disabled={!hasRegionConstraint}
                                 onChange={this.onRegionChange}/>
                     </div>
                 </Collapse>
 
-                <Checkbox style={DataAccessComponent.OPTION_CHECK_STYPE}
+                <Checkbox style={DataAccessComponent.OPTION_CHECK_STYLE}
                           checked={hasVariablesConstraint}
                           label="Variables constraint"
                           onChange={this.onHasVariablesConstraintChange}/>
                 <Collapse isOpen={hasVariablesConstraint}>
-                    <div style={DataAccessComponent.OPTION_DIV_STYPE}>
+                    <div style={DataAccessComponent.OPTION_DIV_STYLE}>
                         <VarNameValueEditor input={DataAccessComponent.VAR_NAMES_INPUT}
                                             value={options.variableNames}
                                             onChange={this.onVariableNamesChange}
