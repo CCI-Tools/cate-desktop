@@ -193,12 +193,12 @@ const createResourceGeoJSONDataSourceImpl: ResourceGeoJSONDataSourceFactory =
 
             const features = event.data;
             if (!features) {
-                console.log(`Received ${numFeatures} feature(s) in total from ${url}`);
+                // console.log(`Received ${numFeatures} feature(s) in total from ${url}`);
                 return;
             }
 
             numFeatures += features.length;
-            console.log(`Received another ${features.length} feature(s) from ${url}`);
+            // console.log(`Received another ${features.length} feature(s) from ${url}`);
 
             // Style for points symbolizing a more complex geometry
             const pixelSizeMin = 10;
@@ -286,7 +286,7 @@ const createResourceGeoJSONDataSourceImpl: ResourceGeoJSONDataSourceFactory =
 
                       geoJsonDataSource.entities.removeAll();
                       customDataSource.entities.resumeEvents();
-                      console.log(`Added another ${features.length} feature(s) to Cesium custom data source`);
+                      // console.log(`Added another ${features.length} feature(s) to Cesium custom data source`);
                   });
         };
         return customDataSource;
