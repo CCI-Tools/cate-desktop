@@ -1,6 +1,13 @@
 import * as React from 'react';
 import { connect, DispatchProp } from 'react-redux';
-import { State, VariableState, ResourceState, SavedLayers, Placemark, LocationState } from '../state';
+import {
+    State,
+    VariableState,
+    ResourceState,
+    SavedLayers,
+    Placemark,
+    GeographicPosition
+} from '../state';
 import * as assert from '../../common/assert';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
@@ -31,7 +38,8 @@ interface IVariablesPanelProps {
     savedLayers: SavedLayers;
     selectedPlacemark: Placemark | null;
     selectedEntity: Cesium.Entity | null;
-    location: LocationState | null;
+    globeViewPosition: GeographicPosition | null;
+    positionData: { [varName: string]: number } | null
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
@@ -49,7 +57,8 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         savedLayers: selectors.savedLayersSelector(state),
         selectedPlacemark: selectors.selectedPlacemarkSelector(state),
         selectedEntity: selectors.selectedEntitySelector(state),
-        location: state.location,
+        globeViewPosition: state.location.globeViewPosition,
+        positionData: state.location.positionData,
     }
 }
 
@@ -59,13 +68,12 @@ function mapStateToProps(state: State): IVariablesPanelProps {
  * @author Marco Zuehlke, Norman Fomferra
  */
 class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp<State>, null> {
-    static readonly DIV_STYLE: CSSProperties = {paddingTop: 4, width: '100%'};
     static readonly VALUE_STYLE: CSSProperties = {float: 'right', color: Colors.BLUE5};
 
 
     constructor(props: IVariablesPanelProps & DispatchProp<State>) {
         super(props);
-        this.handleSelectedVariableName = this.handleSelectedVariableName.bind(this);
+        this.handleSelectedVariableNameChanged = this.handleSelectedVariableNameChanged.bind(this);
         this.handleListHeightChanged = this.handleListHeightChanged.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleShowSelectedVariableLayer = this.handleShowSelectedVariableLayer.bind(this);
@@ -73,11 +81,9 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         this.handleAddVariableTimeSeriesPlot = this.handleAddVariableTimeSeriesPlot.bind(this);
         this.handleAddVariableHistogramPlot = this.handleAddVariableHistogramPlot.bind(this);
         this.handleShowVariableTableView = this.handleShowVariableTableView.bind(this);
-        this.renderAttributeName = this.renderAttributeName.bind(this);
-        this.renderAttributeValue = this.renderAttributeValue.bind(this);
     }
 
-    private handleSelectedVariableName(newSelection: Array<React.Key>) {
+    private handleSelectedVariableNameChanged(newSelection: Array<React.Key>) {
         const resource = this.props.selectedResource;
         assert.ok(resource);
         if (newSelection && newSelection.length) {
@@ -166,8 +172,17 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
                                          contentHeight={this.props.variableListHeight}
                                          onContentHeightChange={this.handleListHeightChanged}
                                          actionComponent={this.renderVariableActionRow()}>
-                    {this.renderVariablesList()}
-                    {this.renderVariableDetails()}
+                    <VariablesListPanel
+                        selectedEntity={this.props.selectedEntity}
+                        globeViewPosition={this.props.globeViewPosition}
+                        positionData={this.props.positionData}
+                        selectedVariableName={this.props.selectedVariableName}
+                        onSelectedVariableNameChanged={this.handleSelectedVariableNameChanged}
+                        variables={this.props.variables}
+                    />
+                    <VariableDetailsPanel
+                        tableData={this.props.selectedVariableAttributesTableData}
+                    />
                 </ContentWithDetailsPanel>
             );
         } else if (resource) {
@@ -219,29 +234,22 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         );
     }
 
-    private renderAttributeName(index: number): any {
-        return <Cell>{this.props.selectedVariableAttributesTableData[index][0]}</Cell>;
-    }
 
-    private renderAttributeValue(index: number): any {
-        return <Cell><TruncatedFormat>{this.props.selectedVariableAttributesTableData[index][1]}</TruncatedFormat></Cell>;
-    }
+}
 
-    private renderVariableDetails() {
-        const tableData = this.props.selectedVariableAttributesTableData;
-        if (!tableData || !tableData.length) {
-            return null;
-        }
-        return (
-            <div style={VariablesPanel.DIV_STYLE}>
-                <Table numRows={tableData.length} isRowHeaderShown={false}>
-                    <Column name="Name" renderCell={this.renderAttributeName}/>
-                    <Column name="Value" renderCell={this.renderAttributeValue}/>
-                </Table>
-            </div>
-        );
-    }
+export default connect(mapStateToProps)(VariablesPanel);
 
+
+interface VariablesListPanelProps {
+    variables: VariableState[];
+    selectedVariableName: string | null;
+    onSelectedVariableNameChanged: (selectedVariableName: Array<React.Key>) => void;
+    selectedEntity: Cesium.Entity | null;
+    globeViewPosition: GeographicPosition | null;
+    positionData: { [varName: string]: number } | null
+}
+
+class VariablesListPanel extends React.PureComponent<VariablesListPanelProps> {
     private getItemKey = (variable: VariableState) => {
         return variable.name;
     };
@@ -250,7 +258,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
 
         let value;
 
-        if (isSpatialVectorVariable(variable) ) {
+        if (isSpatialVectorVariable(variable)) {
             const selectedEntity = this.props.selectedEntity;
             if (selectedEntity && selectedEntity.properties) {
                 const property = selectedEntity.properties[variable.name];
@@ -259,8 +267,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
                 }
             }
         } else if (isSpatialImageVariable(variable)) {
-            const location = this.props.location;
-            const positionData = location && location.positionData;
+            const positionData = this.props.positionData;
             if (positionData) {
                 value = positionData[variable.name];
             }
@@ -292,16 +299,21 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         );
     };
 
-    private renderVariablesList() {
-        let key = 'VariablesListBox';
-        if (this.props.selectedEntity) {
-            key += `_${this.props.selectedEntity.id}`;
+    private handleVariableNameSelection = (selectedVariableName: Array<React.Key>) => {
+        this.props.onSelectedVariableNameChanged(selectedVariableName);
+    };
+
+    render() {
+        // We compute a new key here to force updates of the list box items either when the selected entity
+        // changes or new position data may be available.
+        let key = 'vlb';
+        const selectedEntityId = this.props.selectedEntity && this.props.selectedEntity.id;
+        if (selectedEntityId) {
+            key += `_${selectedEntityId}`;
         }
-        if (this.props.location) {
-            const globeMousePosition = this.props.location.globeMousePosition;
-            if (globeMousePosition) {
-                key += `_${globeMousePosition.longitude},${globeMousePosition.latitude}`;
-            }
+        const geoPos = this.props.globeViewPosition;
+        if (geoPos) {
+            key += `_${geoPos.longitude},${geoPos.latitude}`;
         }
         return (
             <ScrollablePanelContent>
@@ -311,10 +323,39 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
                          renderItem={this.renderItem}
                          selection={this.props.selectedVariableName}
                          selectionMode={ListBoxSelectionMode.SINGLE}
-                         onSelection={this.handleSelectedVariableName}/>
+                         onSelection={this.handleVariableNameSelection}/>
             </ScrollablePanelContent>
         );
     }
 }
 
-export default connect(mapStateToProps)(VariablesPanel);
+interface VariableDetailsPanelProps {
+    tableData: [string, any][] | null;
+}
+
+class VariableDetailsPanel extends React.PureComponent<VariableDetailsPanelProps> {
+    static readonly DIV_STYLE: CSSProperties = {paddingTop: 4, width: '100%'};
+
+    private renderAttributeName = (index: number): any => {
+        return <Cell>{this.props.tableData[index][0]}</Cell>;
+    };
+
+    private renderAttributeValue = (index: number): any => {
+        return <Cell><TruncatedFormat>{this.props.tableData[index][1]}</TruncatedFormat></Cell>;
+    };
+
+    render() {
+        const tableData = this.props.tableData;
+        if (!tableData || !tableData.length) {
+            return null;
+        }
+        return (
+            <div style={VariableDetailsPanel.DIV_STYLE}>
+                <Table numRows={tableData.length} isRowHeaderShown={false}>
+                    <Column name="Name" renderCell={this.renderAttributeName}/>
+                    <Column name="Value" renderCell={this.renderAttributeValue}/>
+                </Table>
+            </div>
+        );
+    }
+}
