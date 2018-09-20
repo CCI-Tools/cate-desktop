@@ -1,5 +1,8 @@
 ## Changes in 2.0.0-dev.19 (in development)
 
+* Fixed regression introduced by solution for [#702](https://github.com/CCI-Tools/cate/issues/702).
+  Value of selected features and value of grid cells at mouse pointer didn't show anymore.
+
 ## Changes in 2.0.0-dev.18
 
 * Subset spatial 'mask' parameter shouldn't have resource selection enabled [#699](https://github.com/CCI-Tools/cate/issues/699)

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect, DispatchProp } from 'react-redux';
-import { State, VariableState, ResourceState, SavedLayers, Placemark } from '../state';
+import { State, VariableState, ResourceState, SavedLayers, Placemark, LocationState } from '../state';
 import * as assert from '../../common/assert';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
@@ -31,7 +31,7 @@ interface IVariablesPanelProps {
     savedLayers: SavedLayers;
     selectedPlacemark: Placemark | null;
     selectedEntity: Cesium.Entity | null;
-    positionData: { [varName: string]: number } | null;
+    location: LocationState | null;
 }
 
 function mapStateToProps(state: State): IVariablesPanelProps {
@@ -49,7 +49,7 @@ function mapStateToProps(state: State): IVariablesPanelProps {
         savedLayers: selectors.savedLayersSelector(state),
         selectedPlacemark: selectors.selectedPlacemarkSelector(state),
         selectedEntity: selectors.selectedEntitySelector(state),
-        positionData: state.location.positionData,
+        location: state.location,
     }
 }
 
@@ -242,51 +242,72 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         );
     }
 
-    private static getItemKey(variable: VariableState) {
+    private getItemKey = (variable: VariableState) => {
         return variable.name;
-    }
+    };
 
-    private renderItem = (variable: VariableState) => {
-        const positionData = this.props.positionData;
-        const selectedEntity = this.props.selectedEntity;
-        const selectedVariable = this.props.selectedVariable;
-        const isImageVariable = selectedVariable && isSpatialImageVariable(selectedVariable);
-        const isVectorVariable = selectedVariable && isSpatialVectorVariable(selectedVariable);
+    private getItemValue = (variable: VariableState) => {
+
         let value;
 
-        if (isVectorVariable && selectedEntity && selectedEntity.properties) {
-            const property = selectedEntity.properties[variable.name];
-            if (isDefinedAndNotNull(property)) {
-                value = property.getValue();
+        if (isSpatialVectorVariable(variable) ) {
+            const selectedEntity = this.props.selectedEntity;
+            if (selectedEntity && selectedEntity.properties) {
+                const property = selectedEntity.properties[variable.name];
+                if (isDefinedAndNotNull(property)) {
+                    value = property.getValue();
+                }
             }
-        } else if (isImageVariable && positionData) {
-            value = positionData[variable.name];
-        }
-        if (!isDefined(value)) {
-            value = variable.value;
+        } else if (isSpatialImageVariable(variable)) {
+            const location = this.props.location;
+            const positionData = location && location.positionData;
+            if (positionData) {
+                value = positionData[variable.name];
+            }
         }
 
-        const label = <LabelWithType label={variable.name}
-                                     dataType={variable.dataType}
-                                     tooltipText={variable.attributes && variable.attributes.long_name}/>;
+        return isDefined(value) ? value : variable.value;
+    };
+
+    private renderItem = (variable: VariableState) => {
+
+        const label = (
+            <LabelWithType
+                label={variable.name}
+                dataType={variable.dataType}
+                tooltipText={variable.attributes && variable.attributes.long_name}
+            />
+        );
+
+        const value = this.getItemValue(variable);
         if (!isDefined(value)) {
             return label;
         }
+
         return (
             <div>
-                <LabelWithType label={variable.name}
-                               dataType={variable.dataType}
-                               tooltipText={variable.attributes && variable.attributes.long_name}/>
+                {label}
                 <span style={VariablesPanel.VALUE_STYLE}>{value}</span>
             </div>
         );
     };
 
     private renderVariablesList() {
+        let key = 'VariablesListBox';
+        if (this.props.selectedEntity) {
+            key += `_${this.props.selectedEntity.id}`;
+        }
+        if (this.props.location) {
+            const globeMousePosition = this.props.location.globeMousePosition;
+            if (globeMousePosition) {
+                key += `_${globeMousePosition.longitude},${globeMousePosition.latitude}`;
+            }
+        }
         return (
             <ScrollablePanelContent>
-                <ListBox items={this.props.variables}
-                         getItemKey={VariablesPanel.getItemKey}
+                <ListBox key={key}
+                         items={this.props.variables}
+                         getItemKey={this.getItemKey}
                          renderItem={this.renderItem}
                          selection={this.props.selectedVariableName}
                          selectionMode={ListBoxSelectionMode.SINGLE}
