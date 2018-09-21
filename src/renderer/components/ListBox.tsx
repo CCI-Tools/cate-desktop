@@ -8,7 +8,6 @@ export enum ListBoxSelectionMode {
 
 
 export interface IListBoxProps {
-    key?: string | number;
     items: any[];
     renderItem: (item: any, itemIndex: number) => JSX.Element;
     getItemKey?: (item: any, itemIndex: number) => React.Key;
@@ -113,7 +112,7 @@ export class ListBox extends React.PureComponent<IListBoxProps, any> {
         }
 
         return (
-            <ul key={this.props.key} className="cate-list-box" style={listStyle}>
+            <ul className="cate-list-box" style={listStyle}>
                 {renderedItems}
             </ul>
         );
