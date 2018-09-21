@@ -154,20 +154,28 @@ export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 export const SET_GLOBE_MOUSE_POSITION = 'SET_GLOBE_MOUSE_POSITION';
 export const SET_GLOBE_VIEW_POSITION = 'SET_GLOBE_VIEW_POSITION';
 export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
-export const SET_GLOBE_VIEW_POSITION_DATA = 'SET_GLOBE_VIEW_POSITION_DATA';
 
 export function setGlobeMousePosition(position: GeographicPosition): Action {
     return {type: SET_GLOBE_MOUSE_POSITION, payload: {position}};
 }
 
+
+function setGlobeViewPositionImpl(position: GeographicPosition | null,
+                                  positionData: { [varName: string]: number } | null): Action {
+    return {type: SET_GLOBE_VIEW_POSITION, payload: {position, positionData}};
+}
+
 export function setGlobeViewPosition(position: GeographicPosition): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        dispatch(setGlobeViewPositionImpl(position));
         if (position) {
+            // TODO: using selectedRightBottomPanelID is no good indicator for checking VARIABLES panel visibility.
             const selectedRightBottomPanelID = selectors.selectedRightBottomPanelIdSelector(getState());
             if (selectedRightBottomPanelID === 'variables') {
                 const baseDir = selectors.workspaceBaseDirSelector(getState());
-                assert.ok(baseDir);
+                if (!baseDir) {
+                    // Workspace not yet ready, that's ok.
+                    return;
+                }
                 const resource = selectors.selectedResourceSelector(getState());
                 const layer = selectors.selectedVariableImageLayerSelector(getState());
                 if (layer && resource) {
@@ -181,24 +189,17 @@ export function setGlobeViewPosition(position: GeographicPosition): ThunkAction 
                     }
 
                     function action(positionData: { [varName: string]: number }) {
-                        dispatch(setGlobeViewPositionData(positionData));
+                        dispatch(setGlobeViewPositionImpl(position, positionData));
                     }
 
                     callAPI({title: 'Load cell values', dispatch, call, action, disableNotifications: true});
                     return;
                 }
             }
+        } else {
+            dispatch(setGlobeViewPositionImpl(null, null));
         }
-        dispatch(setGlobeViewPositionData(null));
     }
-}
-
-function setGlobeViewPositionImpl(position: GeographicPosition): Action {
-    return {type: SET_GLOBE_VIEW_POSITION, payload: {position}};
-}
-
-function setGlobeViewPositionData(positionData: { [varName: string]: number } | null): Action {
-    return {type: SET_GLOBE_VIEW_POSITION_DATA, payload: {positionData}};
 }
 
 export function updateInitialState(initialState: Object): Action {
@@ -1509,10 +1510,6 @@ function updateEntityStyleImpl(viewId: string, layerId: string, entityId: string
 
 function incEntityUpdateCount(): Action {
     return {type: INC_ENTITY_UPDATE_COUNT};
-}
-
-export function updateMouseIdleState(mouseIdle: boolean): Action {
-    return {type: UPDATE_MOUSE_IDLE_STATE, payload: {mouseIdle}};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

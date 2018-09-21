@@ -184,7 +184,6 @@ export const selectedPlacemarkSelector = createSelector<State,
 
 export const globeMousePositionSelector = (state: State): GeographicPosition | null => state.location.globeMousePosition;
 export const globeViewPositionSelector = (state: State): GeographicPosition | null => state.location.globeViewPosition;
-export const mouseIdleState = (state: State): boolean => state.control.mouseIdle;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operation selectors

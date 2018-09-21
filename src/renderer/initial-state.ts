@@ -43,8 +43,6 @@ export const INITIAL_CONTROL_STATE: ControlState = {
 
     newPlacemarkToolType: "NoTool",
     entityUpdateCount: 0,
-
-    mouseIdle: false
 };
 
 export const INITIAL_SESSION_STATE: SessionState = {

@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {CSSProperties} from 'react';
-import {connect, DispatchProp} from 'react-redux';
+import { CSSProperties } from 'react';
+import { connect, DispatchProp } from 'react-redux';
 import {
     LayerState,
     OperationState,
@@ -14,9 +14,9 @@ import {
     WorldViewDataState,
 } from '../state';
 import * as selectors from '../selectors';
-import {EMPTY_ARRAY, EMPTY_OBJECT} from '../selectors';
+import { EMPTY_ARRAY, EMPTY_OBJECT } from '../selectors';
 import * as actions from '../actions';
-import {NO_WEB_GL} from '../messages';
+import { NO_WEB_GL } from '../messages';
 import {
     CanvasPosition,
     CesiumGlobe,
@@ -24,16 +24,16 @@ import {
     ImageLayerDescriptor,
     LayerDescriptors
 } from '../components/cesium/CesiumGlobe';
-import {findVariableIndexCoordinates, PLACEMARK_ID_PREFIX} from '../state-util';
-import {ViewState} from '../components/ViewState';
-import {convertLayersToLayerDescriptors} from './globe-view-layers';
+import { findVariableIndexCoordinates, PLACEMARK_ID_PREFIX } from '../state-util';
+import { ViewState } from '../components/ViewState';
+import { convertLayersToLayerDescriptors } from './globe-view-layers';
 import * as Cesium from 'cesium';
-import {GeometryToolType} from '../components/cesium/geometry-tool';
-import {entityToGeoJson, entityToGeometryWkt} from '../components/cesium/cesium-util';
-import {featurePropertiesFromSimpleStyle, SimpleStyle} from '../../common/geojson-simple-style';
-import {Menu, MenuDivider, MenuItem} from '@blueprintjs/core';
-import {GEOMETRY_LIKE_TYPE, POINT_LIKE_TYPE, POLYGON_LIKE_TYPE} from '../../common/cate-types';
-import {geometryGeoJsonToGeometryWkt} from '../../common/geometry-util';
+import { GeometryToolType } from '../components/cesium/geometry-tool';
+import { entityToGeoJson, entityToGeometryWkt } from '../components/cesium/cesium-util';
+import { featurePropertiesFromSimpleStyle, SimpleStyle } from '../../common/geojson-simple-style';
+import { Menu, MenuDivider, MenuItem } from '@blueprintjs/core';
+import { GEOMETRY_LIKE_TYPE, POINT_LIKE_TYPE, POLYGON_LIKE_TYPE } from '../../common/cate-types';
+import { geometryGeoJsonToGeometryWkt } from '../../common/geometry-util';
 
 interface IGlobeViewOwnProps {
     view: ViewState<WorldViewDataState>;
@@ -55,7 +55,6 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     externalObjectStore: any;
     newPlacemarkToolType: GeometryToolType;
     defaultPlacemarkStyle: SimpleStyle;
-    mouseIdle: boolean
 }
 
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
@@ -76,7 +75,6 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
         externalObjectStore: selectors.externalObjectStoreSelector(state),
         newPlacemarkToolType: selectors.newPlacemarkToolTypeSelector(state),
         defaultPlacemarkStyle: selectors.defaultPlacemarkStyleSelector(state),
-        mouseIdle: selectors.mouseIdleState(state)
     };
 }
 
@@ -90,39 +88,50 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
         height: '100%',
         overflow: 'hidden'
     };
-    static readonly MOUSE_IDLE_TIMEOUT: number = 500;
+    static readonly POS_UPDATE_PERIOD: number = 500;
 
-    idleTimer: number | null;
+    intervalHandle: number | null;
+    lastPosition: GeographicPosition | null;
+    positionChanged: boolean;
 
     constructor(props: IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>) {
         super(props);
-        this.idleTimer = null;
+        this.intervalHandle = null;
+        this.lastPosition = null;
+        this.positionChanged = false;
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleSelectedEntityChanged = this.handleSelectedEntityChanged.bind(this);
         this.handleNewEntityAdded = this.handleNewEntityAdded.bind(this);
         this.handleSplitLayerPosChange = this.handleSplitLayerPosChange.bind(this);
+        this.handlePosDataUpdate = this.handlePosDataUpdate.bind(this);
         this.renderContextMenu = this.renderContextMenu.bind(this);
     }
 
-    handleMouseMove(geoPos: GeographicPosition) {
-        this.props.dispatch(actions.setGlobeMousePosition(geoPos));
-        if (this.idleTimer !== null) {
-            clearTimeout(this.idleTimer);
-            this.idleTimer = null;
+    componentDidMount(): void {
+        this.intervalHandle = window.setInterval(this.handlePosDataUpdate, GlobeView.POS_UPDATE_PERIOD);
+    }
+
+    componentWillUnmount(): void {
+        window.clearInterval(this.intervalHandle);
+    }
+
+    handlePosDataUpdate() {
+        if (this.positionChanged) {
+            this.props.dispatch(actions.setGlobeViewPosition(this.lastPosition));
+            this.positionChanged = false;
         }
-        if (this.props.mouseIdle) {
-            this.props.dispatch(actions.updateMouseIdleState(false));
-        }
-        if (geoPos) {
-            this.idleTimer = window.setTimeout(
-                () => {
-                    this.props.dispatch(actions.updateMouseIdleState(true));
-                    this.props.dispatch(actions.setGlobeViewPosition(geoPos));
-                }, GlobeView.MOUSE_IDLE_TIMEOUT
-            );
-        } else {
-            this.props.dispatch(actions.setGlobeMousePosition(null));
-            this.props.dispatch(actions.setGlobeViewPosition(null));
+    }
+
+    handleMouseMove(newPosition: GeographicPosition | undefined | null) {
+        const lastPosition = this.lastPosition;
+        if (newPosition !== lastPosition) {
+            if (!newPosition || !lastPosition
+                || newPosition.longitude !== lastPosition.longitude
+                || newPosition.latitude !== lastPosition.latitude) {
+                this.props.dispatch(actions.setGlobeMousePosition(newPosition));
+                this.lastPosition = newPosition;
+                this.positionChanged = true;
+            }
         }
     }
 

@@ -675,8 +675,6 @@ export interface ControlState {
 
     // Used to force component update after an entity's properties have changed
     entityUpdateCount: number;
-
-    mouseIdle: boolean;
 }
 
 export interface DialogState {

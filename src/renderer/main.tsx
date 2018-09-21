@@ -20,7 +20,7 @@ export function main() {
                                                  // Too much noise:
                                                  actions.SET_GLOBE_MOUSE_POSITION,
                                                  actions.SET_GLOBE_VIEW_POSITION,
-                                                 actions.SET_GLOBE_VIEW_POSITION_DATA,
+                                                 actions.SET_GLOBE_VIEW_POSITION,
                                                  actions.UPDATE_MOUSE_IDLE_STATE,
                                              ]);
         const loggerOptions = {
