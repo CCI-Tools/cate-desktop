@@ -1,5 +1,7 @@
 ## Changes in 2.0.0-dev.19 (in development)
 
+* Fixed performance regression introduced by solution for [#592](https://github.com/CCI-Tools/cate/issues/592).
+  If **VARIABLES** panel was opened, the 3D Globe rendering performance was poor.
 * Fixed regression introduced by solution for [#702](https://github.com/CCI-Tools/cate/issues/702).
   Value of selected features and value of grid cells at mouse pointer didn't show anymore.
 

@@ -58,10 +58,6 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
     mouseIdle: boolean
 }
 
-interface GlobeViewState {
-    idleTimer: number | null
-}
-
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
     return {
         view: ownProps.view,
@@ -87,7 +83,7 @@ function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeView
 /**
  * This component displays a 3D globe with a number of layers.
  */
-class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>, GlobeViewState> {
+class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>> {
     static readonly CESIUM_GLOBE_STYLE: CSSProperties = {
         position: 'relative',
         width: '100%',
@@ -96,36 +92,34 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     };
     static readonly MOUSE_IDLE_TIMEOUT: number = 500;
 
+    idleTimer: number | null;
+
     constructor(props: IGlobeViewProps & IGlobeViewOwnProps & DispatchProp<State>) {
         super(props);
+        this.idleTimer = null;
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleSelectedEntityChanged = this.handleSelectedEntityChanged.bind(this);
         this.handleNewEntityAdded = this.handleNewEntityAdded.bind(this);
         this.handleSplitLayerPosChange = this.handleSplitLayerPosChange.bind(this);
         this.renderContextMenu = this.renderContextMenu.bind(this);
-        this.state = {
-            idleTimer: null
-        };
     }
 
     handleMouseMove(geoPos: GeographicPosition) {
         this.props.dispatch(actions.setGlobeMousePosition(geoPos));
-        clearTimeout(this.state.idleTimer);
+        if (this.idleTimer !== null) {
+            clearTimeout(this.idleTimer);
+            this.idleTimer = null;
+        }
         if (this.props.mouseIdle) {
             this.props.dispatch(actions.updateMouseIdleState(false));
         }
         if (geoPos) {
-            let idleTimer: number = window.setTimeout(
+            this.idleTimer = window.setTimeout(
                 () => {
                     this.props.dispatch(actions.updateMouseIdleState(true));
                     this.props.dispatch(actions.setGlobeViewPosition(geoPos));
                 }, GlobeView.MOUSE_IDLE_TIMEOUT
             );
-            this.setState(
-                {
-                    idleTimer: idleTimer
-                }
-            )
         } else {
             this.props.dispatch(actions.setGlobeMousePosition(null));
             this.props.dispatch(actions.setGlobeViewPosition(null));
