@@ -434,7 +434,8 @@ const FILL_COLORS = [
     "#FFFF00",
     "#00FF00",
     "#0000FF",
-    "#FFFFFF",
+    "#FF00FF",
+    "#00FFFF",
 ];
 
 export function newVariableLayer(resource: ResourceState,
