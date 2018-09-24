@@ -1,14 +1,14 @@
 import * as React from 'react';
 import * as Cesium from "cesium";
-import {diff} from "deep-object-diff"
-import {Feature, FeatureCollection, Point} from "geojson";
-import {ContextMenu} from "@blueprintjs/core";
-import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
+import { diff } from "deep-object-diff"
+import { Feature, FeatureCollection, Point } from "geojson";
+import { ContextMenu } from "@blueprintjs/core";
+import { IExternalObjectComponentProps, ExternalObjectComponent } from '../ExternalObjectComponent'
 import * as assert from "../../../common/assert";
-import {isBoolean, isNumber, isString} from "../../../common/types";
-import {arrayDiff} from "../../../common/array-diff";
-import {SimpleStyle} from "../../../common/geojson-simple-style";
-import {SplitSlider} from "./SplitSlider";
+import { isBoolean, isNumber, isString } from "../../../common/types";
+import { arrayDiff } from "../../../common/array-diff";
+import { SimpleStyle } from "../../../common/geojson-simple-style";
+import { SplitSlider } from "./SplitSlider";
 import {
     applyStyleToEntity, applyStyleToEntityCollection, getEntityByEntityId, canvasToCartographic,
     simpleStyleToCesium, pickEntity, clientToCanvas
@@ -635,7 +635,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                 console.log(`CesiumGlobe: added data source: ${layer.name}`);
             }
             dataSourceMap[layer.id] = resolvedDataSource;
-            CesiumGlobe.setDataSourceProps(resolvedDataSource, layer);
+            this.setDataSourceProps(viewer, resolvedDataSource, layer);
         });
     }
 
@@ -649,6 +649,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             if (this.props.debug) {
                 console.log(`CesiumGlobe: removed data source: ${layer.name}`);
             }
+            viewer.scene.requestRender();
         }
     }
 
@@ -706,7 +707,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
                 }
             }
         }
-        CesiumGlobe.setDataSourceProps(dataSource, newLayer);
+        this.setDataSourceProps(viewer, dataSource, newLayer);
     }
 
     private addLayer(viewer: Cesium.Viewer, layerDescriptor: ImageLayerDescriptor, layerIndex: number): Cesium.ImageryLayer {
@@ -747,11 +748,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         }
     }
 
-    private static setDataSourceProps(dataSource: Cesium.DataSource
-        | Promise<Cesium.DataSource>, dataSourceDescriptor: VectorLayerDescriptor) {
+    private setDataSourceProps(viewer: Cesium.Viewer,
+                               dataSource: Cesium.DataSource | Promise<Cesium.DataSource>,
+                               dataSourceDescriptor: VectorLayerDescriptor) {
         Promise.resolve(dataSource).then((resolvedDataSource: Cesium.DataSource) => {
             //resolvedDataSource.name = dataSourceDescriptor.name;
             resolvedDataSource.show = dataSourceDescriptor.visible;
+            viewer.scene.requestRender();
         });
     }
 
