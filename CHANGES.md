@@ -1,4 +1,7 @@
-## Changes in 2.0.0-dev.19 (in development)
+## Changes in 2.0.0-dev.20 (in development)
+
+
+## Changes in 2.0.0-dev.19
 
 * Fixed performance regression introduced by solution for [#592](https://github.com/CCI-Tools/cate/issues/592).
   If **VARIABLES** panel was opened, the 3D Globe rendering performance was poor.
