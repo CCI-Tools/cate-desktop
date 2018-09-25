@@ -193,6 +193,7 @@ class CateDesktopApp {
 
         // Emitted before the application starts closing its windows.
         electron.app.on('before-quit', () => {
+            log.info('Quit requested.');
             this.quitRequested = true;
         });
 
@@ -212,6 +213,7 @@ class CateDesktopApp {
             }
         });
         if (shouldQuit) {
+            log.warn('Should quit, because it is a second app instance.');
             electron.app.quit();
             return;
         }
@@ -477,7 +479,8 @@ class CateDesktopApp {
 
         // Emitted when the window is going to be closed.
         this.mainWindow.on('close', event => {
-            log.info('Main window will be closed.');
+            log.info(`Main window will be closed. `
+                     +`Possible reason: ${this.quitRequested ? "quit requested" :  "window closed"}`);
             this.requestPreferencesUpdate();
             this.preferences.set('mainWindowBounds', this.mainWindow.getBounds());
             this.preferences.set('devToolsOpened', this.mainWindow.webContents.isDevToolsOpened());
@@ -485,22 +488,34 @@ class CateDesktopApp {
                 const suppressQuitConfirm = this.preferences.get('suppressQuitConfirm', false);
                 if (suppressQuitConfirm) {
                     this.quitConfirmed = true;
+                    log.info('Quit confirmed by user preference.');
                     this.forceQuit();
                 } else {
+                    log.info('Quit to be confirmed by user...');
                     // Prevent default behavior, which is closing the main window.
                     event.preventDefault();
                     // Bring up exit prompt.
                     this.confirmQuit((suppressQuitConfirm) => {
-                        this.preferences.set('suppressQuitConfirm', suppressQuitConfirm);
-                        this.storeUserPreferences();
                         this.quitConfirmed = true;
-                        // Force window close, so app can quit after all windows are closed.
-                        // We must call destroy() here, calling close() seems to have no effect on Mac (Electron 1.8.2).
-                        this.mainWindow.destroy();
-                        this.forceQuit();
+                        log.info(`Quit confirmed by user (suppressQuitConfirm=${suppressQuitConfirm}).`);
+                        try {
+                            this.preferences.set('suppressQuitConfirm', suppressQuitConfirm);
+                            this.storeUserPreferences();
+                            // Possible fix for https://github.com/CCI-Tools/cate/issues/765
+                            // Force window close by destroying it unconditionally,
+                            // so app can quit after all windows are closed.
+                            // We must call destroy() here, calling close()
+                            // seems to have no effect on Mac (Electron 1.8.2).
+                            this.mainWindow.destroy();
+                        } catch (e) {
+                            log.error(e);
+                        } finally {
+                            this.forceQuit();
+                        }
                     });
                 }
             } else {
+                log.info('Quit confirmed.');
                 this.forceQuit();
             }
         });
@@ -513,28 +528,31 @@ class CateDesktopApp {
     }
 
     private forceQuit() {
+        // if this.quitRequested is false, the event "before-quit" has not been sent, which means
+        // electron.app.quit() has not been called.
+        // This happens on Mac, when users click the main window's close icon.
         if (!this.quitRequested) {
-            // Force quit on Mac
+            // So we do force quit now.
             log.warn('Forcing quit.');
             electron.app.quit();
         }
     }
 
     private confirmQuit(callback: (suppressQuitConfirm: boolean) => void) {
-        const quitName = process.platform === 'darwin' ? 'Quit' : 'Exit';
-        const options = {
-            type: 'question',
-            title: `${electron.app.getName()} - Confirm ${quitName}`,
-            buttons: ['Cancel', quitName],
-            //buttons: ['Cancel', "Yes"],
-            cancelId: 0,
-            message: `Are you sure you want to exit ${electron.app.getName()}?`,
-            checkboxLabel: 'Do not ask me again',
-            checkboxChecked: false,
-        };
-        electron.dialog.showMessageBox(this.mainWindow, options, (response: number, checkboxChecked: boolean) => {
-            if (response === 1) {
-                callback(checkboxChecked);
+            const quitName = process.platform === 'darwin' ? 'Quit' : 'Exit';
+            const options = {
+                type: 'question',
+                title: `${electron.app.getName()} - Confirm ${quitName}`,
+                buttons: ['Cancel', quitName],
+                //buttons: ['Cancel', "Yes"],
+                cancelId: 0,
+                message: `Are you sure you want to exit ${electron.app.getName()}?`,
+                checkboxLabel: 'Do not ask me again',
+                checkboxChecked: false,
+            };
+            electron.dialog.showMessageBox(this.mainWindow, options, (response: number, checkboxChecked: boolean) => {
+                if (response === 1) {
+                    callback(checkboxChecked);
             }
         });
     }
