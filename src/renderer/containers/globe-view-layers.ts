@@ -233,6 +233,7 @@ const createResourceGeoJSONDataSourceImpl: ResourceGeoJSONDataSourceFactory =
                           if (feature
                               && isNumber(feature._simp)
                               && isNumber(feature._resId)
+                              && isNumber(feature._idx)
                               && !!(entity.point || entity.billboard || entity.label)) {
 
                               // TODO #477 (nf): Generalize this code. This is for Glaciers CCI.
@@ -262,6 +263,7 @@ const createResourceGeoJSONDataSourceImpl: ResourceGeoJSONDataSourceFactory =
                                   // Cesium will turn _simp and _resId into ES6 Property instances (get/set).
                                   _simp: feature._simp,
                                   _resId: feature._resId,
+                                  _idx: feature._idx,
                                   point: {
                                       // Style for points symbolizing a more complex geometry
                                       color: pointColor,

@@ -1456,17 +1456,16 @@ export function notifySelectedEntityChange(viewId: string, layer: LayerState | n
 
         if (selectedEntity
             && isNumber(selectedEntity._simp)
-            && isNumber(selectedEntity._resId)) {
+            && isNumber(selectedEntity._resId)
+            && isNumber(selectedEntity._idx)) {
             const isGeometrySimplified = (selectedEntity._simp & 0x01) != 0;
             if (isGeometrySimplified) {
                 const workspace = selectors.workspaceSelector(getState());
                 if (workspace) {
                     const resId = selectedEntity._resId;
+                    const featureIndex = +selectedEntity._idx;
                     const baseUrl = selectors.webAPIRestUrlSelector(getState());
                     const baseDir = workspace.baseDir;
-                    // TODO #477 (nf): how can we know that +selectedEntity.id *is really* the feature index
-                    // within the collection?
-                    const featureIndex = +selectedEntity.id;
                     const featureUrl = getFeatureUrl(baseUrl, baseDir, {resId}, featureIndex);
                     reloadEntityWithOriginalGeometry(selectedEntity, featureUrl, (layer as any).style);
                 }
