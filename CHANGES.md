@@ -1,6 +1,7 @@
 ## Changes in 2.0.0-dev.20 (in development)
 
 * GUI doesn't reopen after closing it [#765](https://github.com/CCI-Tools/cate/issues/765).
+* On exit, warn user for unsaved changes.
 
 ## Changes in 2.0.0-dev.19
 
