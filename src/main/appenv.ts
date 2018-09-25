@@ -13,7 +13,7 @@ import * as assert from '../common/assert';
  * The value is a SemVer (https://github.com/npm/semver) compatible version range string.
  * @type {string}
  */
-export const CATE_WEBAPI_VERSION_RANGE = '>=2.0.0-dev.19 <2.1.0';
+export const CATE_WEBAPI_VERSION_RANGE = '>=2.0.0-dev.20 <2.1.0';
 
 /**
  * Version of the Cate WebAPI that is know to run with this version of Cate Desktop.
@@ -23,7 +23,7 @@ export const CATE_WEBAPI_VERSION_RANGE = '>=2.0.0-dev.19 <2.1.0';
  *
  * @type {string}
  */
-export const EXPECTED_CATE_WEBAPI_VERSION = '2.0.0.dev19';
+export const EXPECTED_CATE_WEBAPI_VERSION = '2.0.0.dev20';
 
 export const CATE_CLI_NAME = 'cate';
 export const CATE_WEBAPI_NAME = 'cate-webapi-start';
