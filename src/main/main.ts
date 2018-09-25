@@ -87,6 +87,7 @@ class CateDesktopApp {
 
     private quitRequested = false;
     private quitConfirmed = false;
+    private exitRequested = false;
 
     get webAPIConfig(): any {
         return this.configuration.get('webAPIConfig');
@@ -199,8 +200,15 @@ class CateDesktopApp {
 
         // Emitted when all windows have been closed and the application will quit.
         electron.app.on('quit', () => {
-            log.info('Quit.');
+            log.info('Quit!');
             this.stopWebAPIService();
+            // Unconditionally exit the application.
+            // This is not nice but should be solid fix for annoying issue
+            // https://github.com/CCI-Tools/cate/issues/765
+            // "GUI doesn't reopen after closing it"
+            log.info('Exiting now...');
+            this.exitRequested = true;
+            app.exit(0);
         });
 
         const shouldQuit = electron.app.makeSingleInstance(() => {
@@ -501,12 +509,6 @@ class CateDesktopApp {
                         try {
                             this.preferences.set('suppressQuitConfirm', suppressQuitConfirm);
                             this.storeUserPreferences();
-                            // Possible fix for https://github.com/CCI-Tools/cate/issues/765
-                            // Force window close by destroying it unconditionally,
-                            // so app can quit after all windows are closed.
-                            // We must call destroy() here, calling close()
-                            // seems to have no effect on Mac (Electron 1.8.2).
-                            this.mainWindow.destroy();
                         } catch (e) {
                             log.error(e);
                         } finally {
@@ -528,14 +530,15 @@ class CateDesktopApp {
     }
 
     private forceQuit() {
-        // if this.quitRequested is false, the event "before-quit" has not been sent, which means
-        // electron.app.quit() has not been called.
-        // This happens on Mac, when users click the main window's close icon.
-        if (!this.quitRequested) {
-            // So we do force quit now.
-            log.warn('Forcing quit.');
-            electron.app.quit();
+        if (this.quitRequested) {
+            log.info('Forcing quit due to explicit request.');
+        } else {
+            // if this.quitRequested is false, the event "before-quit" has not been sent, which means
+            // electron.app.quit() has not been called.
+            // This happens on Mac, when users click the main window's close icon.
+            log.warn('Forcing quit without explicit request.');
         }
+        electron.app.quit();
     }
 
     private confirmQuit(callback: (suppressQuitConfirm: boolean) => void) {
