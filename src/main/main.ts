@@ -192,6 +192,12 @@ class CateDesktopApp {
             });
         });
 
+        electron.app.on('window-all-closed', () => {
+            log.info('All windows closed.');
+            // Quit - also on Mac OS.
+            electron.app.quit();
+        });
+
         // Emitted before the application starts closing its windows.
         electron.app.on('before-quit', () => {
             log.info('Quit requested.');
@@ -208,7 +214,7 @@ class CateDesktopApp {
             // "GUI doesn't reopen after closing it"
             log.info('Exiting now...');
             this.exitRequested = true;
-            app.exit(0);
+            electron.app.exit(0);
         });
 
         const shouldQuit = electron.app.makeSingleInstance(() => {
@@ -509,6 +515,10 @@ class CateDesktopApp {
                         try {
                             this.preferences.set('suppressQuitConfirm', suppressQuitConfirm);
                             this.storeUserPreferences();
+                            // Force window to be destroyed.
+                            // Neither this.mainWindow.close() nor the following this.forceQuit() alone
+                            // has the desired effect on Mac OS.
+                            this.mainWindow.destroy();
                         } catch (e) {
                             log.error(e);
                         } finally {
