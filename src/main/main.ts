@@ -559,7 +559,7 @@ class CateDesktopApp {
                 buttons: ['Cancel', quitName],
                 //buttons: ['Cancel', "Yes"],
                 cancelId: 0,
-                message: `Are you sure you want to exit ${electron.app.getName()}?`,
+                message: `Are you sure you want to exit ${electron.app.getName()}?\nUnsaved workspace changes will be lost.`,
                 checkboxLabel: 'Do not ask me again',
                 checkboxChecked: false,
             };
