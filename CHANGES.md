@@ -1,4 +1,7 @@
-## Changes in 2.0.0-dev.20 (in development)
+## Changes in 2.0.0-dev.21 (in development)
+
+
+## Changes in 2.0.0-dev.20
 
 * Fixed: Simplified GeoDataFrame subsets cannot provide detailed geometry [#768](https://github.com/CCI-Tools/cate/issues/768).
 * Fixed: GUI doesn't reopen after closing it [#765](https://github.com/CCI-Tools/cate/issues/765).
