@@ -528,6 +528,11 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
 
         let min = statistics.min;
         let max = statistics.max;
+
+        if (isNaN(min) || isNaN(max)){
+            return <span style={{color: Colors.ORANGE3}}>All values are NaN</span>;
+        }
+
         if (min === max) {
             return <span style={{color: Colors.ORANGE3}}>All values are {min}</span>;
         }

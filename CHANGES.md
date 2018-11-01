@@ -1,5 +1,6 @@
 ## Changes in 2.0.0-dev.21 (in development)
 
+* Fix: Cate does not freeze when computing min max on data that is all NaN [#797](https://github.com/CCI-Tools/cate/issues/797)
 
 ## Changes in 2.0.0-dev.20
 
