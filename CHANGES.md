@@ -1,4 +1,18 @@
-## Changes in 2.0.0-dev.21 (in development)
+## Version 2.0.0.dev24 (in development)
+
+* Cate now distinguishes network connection problems from errors of other origin. 
+  Improved the error dialog so that network problems are clearly indicated. 
+  [#789](https://github.com/CCI-Tools/cate/issues/789)
+
+## Changes in 2.0.0-dev.23
+
+Backend cate-cli 2.0.0.dev22 changes only. 
+
+## Changes in 2.0.0-dev.22
+
+Invalid release.
+
+## Changes in 2.0.0-dev.21
 
 * Fix: Cate does not freeze when computing min max on data that is all NaN [#797](https://github.com/CCI-Tools/cate/issues/797)
 
