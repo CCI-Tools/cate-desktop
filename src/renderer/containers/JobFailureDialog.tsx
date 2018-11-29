@@ -35,8 +35,8 @@ function mapStateToProps(state: State): IJobFailureDialogProps {
 class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailureDialogProps, IJobFailureDialogState> {
 
     static readonly DIALOG_ID = 'jobFailureDialog';
-    //private static readonly DIALOG_STYLE: React.CSSProperties = {width: '40em'};
-    private static readonly DIALOG_STYLE: React.CSSProperties = {};
+    // BlueprintJS Dialog width is 500px by default
+    private static readonly DIALOG_STYLE: React.CSSProperties = {width: '600px'};
 
     constructor(props: IJobFailureDialogProps) {
         super(props);
@@ -111,7 +111,7 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
         let messageDiv = (
             <div>
                 <p>Oops, Cate couldn't carry out the request</p>
-                <p className="user-selectable"><em>{this.props.jobTitle}</em></p>
+                <em><p className="user-selectable">{this.props.jobTitle}</p></em>
                 <div>Reason:</div>
                 <div className="user-selectable">{messageText}</div>
             </div>
@@ -125,7 +125,7 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
                     <Button onClick={this.handleShowDetails}>{this.state.showDetails ? 'Hide' : 'Show'} Details</Button>
                     <Collapse isOpen={this.state.showDetails}>
                         <pre className="user-selectable"
-                             style={{overflow: 'auto', height: '20em'}}>{this.props.jobFailure.data.traceback}</pre>
+                             style={{overflow: 'auto', width: '36em', height: '20em'}}>{this.props.jobFailure.data.traceback}</pre>
                     </Collapse>
                 </div>
             );
@@ -158,7 +158,7 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
                 <div style={{fontSize: "4em", flex: "0 1 1em"}}>
                     <Icon iconName={iconName} iconSize={'inherit'} intent={iconIntent}/>
                 </div>
-                <div style={{flex: "1 1 auto", marginLeft: "1em"}}>
+                <div style={{flex: "1 1 90%", marginLeft: "1em"}}>
                     {messageDiv}
                     {traceback}
                     {reporting}
