@@ -1,15 +1,16 @@
 import * as React from 'react';
-import { ModalDialog } from "../components/ModalDialog";
+import { ModalDialog } from '../components/ModalDialog';
 import {
-    ERROR_CODE_INVALID_PARAMS,
-    getJobFailureIconName, getJobFailureTitle,
+    ERROR_CODE_CANCELLED,
+    ERROR_CODE_INVALID_PARAMS, ERROR_CODE_OS_ERROR, ERROR_CODE_OUT_OF_MEMORY,
+    getJobFailureIconName, getJobFailureIntentName, getJobFailureTitle, isDeveloperError, isUserError,
     JobFailure
-} from "../webapi";
-import { Button, Checkbox, Collapse, IconName, Label } from "@blueprintjs/core";
-import * as selectors from "../selectors";
-import { State } from "../state";
-import { connect, DispatchProp } from "react-redux";
-import * as actions from "../actions";
+} from '../webapi';
+import { Button, Checkbox, Collapse, Icon, IconName, Intent, Label } from '@blueprintjs/core';
+import * as selectors from '../selectors';
+import { State } from '../state';
+import { connect, DispatchProp } from 'react-redux';
+import * as actions from '../actions';
 
 interface IJobFailureDialogProps {
     isOpen: boolean;
@@ -31,10 +32,11 @@ function mapStateToProps(state: State): IJobFailureDialogProps {
     };
 }
 
-
 class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailureDialogProps, IJobFailureDialogState> {
 
     static readonly DIALOG_ID = 'jobFailureDialog';
+    //private static readonly DIALOG_STYLE: React.CSSProperties = {width: '40em'};
+    private static readonly DIALOG_STYLE: React.CSSProperties = {};
 
     constructor(props: IJobFailureDialogProps) {
         super(props);
@@ -84,16 +86,16 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
         if (!this.props.isOpen || !this.props.jobFailure) {
             return null;
         }
-        const iconName = getJobFailureIconName(this.props.jobFailure) as IconName;
         const title = getJobFailureTitle(this.props.jobFailure);
         return (
             <ModalDialog isOpen={this.props.isOpen}
-                         iconName={iconName}
+                         iconName={'error'}
                          title={title}
                          onConfirm={this.handleConfirm}
                          onCancel={this.handleCancel}
                          noCancelButton={true}
-                         renderBody={this.renderBody}/>
+                         renderBody={this.renderBody}
+                         style={JobFailureDialog.DIALOG_STYLE}/>
         );
     }
 
@@ -106,18 +108,21 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
         if (!messageText) {
             messageText = `An unknown error occurred (code ${this.props.jobFailure.code}).`;
         }
-        let message = (
+        let messageDiv = (
             <div>
-                <p>Oops, Cate couldn't carry out the request <em>{this.props.jobTitle}</em> because:</p>
-                <h6 className="user-selectable">{messageText}</h6>
+                <p>Oops, Cate couldn't carry out the request</p>
+                <p className="user-selectable"><em>{this.props.jobTitle}</em></p>
+                <div>Reason:</div>
+                <div className="user-selectable">{messageText}</div>
             </div>
         );
 
         let traceback;
-        if (this.props.jobFailure.data && this.props.jobFailure.data.traceback) {
+        if (!isUserError(this.props.jobFailure)
+            && this.props.jobFailure.data && this.props.jobFailure.data.traceback) {
             traceback = (
-                <div style={{marginTop: '0.5em'}}>
-                    <Button onClick={this.handleShowDetails}>{this.state.showDetails ? "Hide" : "Show"} Details</Button>
+                <div style={{marginTop: '1em'}}>
+                    <Button onClick={this.handleShowDetails}>{this.state.showDetails ? 'Hide' : 'Show'} Details</Button>
                     <Collapse isOpen={this.state.showDetails}>
                         <pre className="user-selectable"
                              style={{overflow: 'auto', height: '20em'}}>{this.props.jobFailure.data.traceback}</pre>
@@ -127,26 +132,38 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
         }
 
         let reporting;
-        if (this.props.jobFailure.code !== ERROR_CODE_INVALID_PARAMS) {
+        if (isDeveloperError(this.props.jobFailure)) {
             reporting = (
-                <Label
-                    style={{marginTop: '0.5em'}}
-                    text={<span className="pt-text-muted">Please consider reporting this issue in Cate's <a
-                        href="https://github.com/CCI-Tools/cate/issues" target="_blank">issue tracker</a>.</span>}
-                >
+                <div style={{marginTop: '1em'}}>
+                    <span className="pt-text-muted">Please consider reporting this issue in Cate's <a
+                        href="https://github.com/CCI-Tools/cate/issues" target="_blank">issue tracker</a>.</span>
                     <Checkbox label='Copy error report to clipboard'
                               checked={this.state.copyReport}
                               onChange={this.handleCopyReport}/>
-                </Label>
+                </div>
             );
         }
 
+        const iconName = getJobFailureIconName(this.props.jobFailure) as IconName;
+        const intentName = getJobFailureIntentName(this.props.jobFailure);
+        let iconIntent;
+        if (isUserError(this.props.jobFailure)) {
+            iconIntent = Intent.PRIMARY;
+        } else {
+            iconIntent = Intent.WARNING;
+        }
+
         return (
-            <React.Fragment>
-                {message}
-                {traceback}
-                {reporting}
-            </React.Fragment>
+            <div style={{display: "flex"}}>
+                <div style={{fontSize: "4em", flex: "0 1 1em"}}>
+                    <Icon iconName={iconName} iconSize={'inherit'} intent={iconIntent}/>
+                </div>
+                <div style={{flex: "1 1 auto", marginLeft: "1em"}}>
+                    {messageDiv}
+                    {traceback}
+                    {reporting}
+                </div>
+            </div>
         );
     }
 }

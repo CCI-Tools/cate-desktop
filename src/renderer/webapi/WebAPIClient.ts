@@ -177,9 +177,9 @@ class WebAPIClientImpl implements WebAPIClient {
                       onProgress?: (progress: JobProgress) => void,
                       transformer?: JobResponseTransformer<JobResponse>): JobPromise<JobResponse> {
         const request = {
-            "id": this.newId(),
-            "method": method,
-            "params": params,
+            'id': this.newId(),
+            'method': method,
+            'params': params,
         };
         const job = new JobImpl(this, request, transformer);
         this.activeJobs[request.id] = job;
@@ -202,7 +202,7 @@ class WebAPIClientImpl implements WebAPIClient {
 
     sendMessage(request: JobRequest) {
         // console.log('WebAPIClient.sendMessage: request=', request)
-        const message = Object.assign({}, {jsonrpc: "2.0"}, request);
+        const message = Object.assign({}, {jsonrpc: '2.0'}, request);
         const messageText = JSON.stringify(message);
         this.socket.send(messageText);
     }
@@ -387,9 +387,17 @@ export function getJobFailureIntentName(failure: JobFailure): string {
 
 export function getJobFailureIconName(failure: JobFailure): string {
     if (failure) {
+        if (failure.data) {
+            if (failure.data.exception === 'cate.core.ds.NetworkError') {
+                return 'offline';
+            }
+            if (failure.data.exception === 'cate.core.ds.DataAccessError') {
+                return 'database';
+            }
+        }
         switch (failure.code) {
             case ERROR_CODE_INVALID_PARAMS:
-                return 'info-sign';
+                return 'manually-entered-data';
             case ERROR_CODE_CANCELLED:
                 return 'hand';
             default:
@@ -402,6 +410,15 @@ export function getJobFailureIconName(failure: JobFailure): string {
 export function getJobFailureTitle(failure: JobFailure): string {
 
     if (failure) {
+        console.log(failure);
+        if (failure.data) {
+            if (failure.data.exception === 'cate.core.ds.NetworkError') {
+                return 'Network Problem';
+            }
+            if (failure.data.exception === 'cate.core.ds.DataAccessError') {
+                return 'Data Access Error';
+            }
+        }
         switch (failure.code) {
             case ERROR_CODE_INVALID_PARAMS:
                 return 'Invalid Input';
@@ -423,4 +440,25 @@ export function getJobFailureTitle(failure: JobFailure): string {
     }
 
     return 'Unknown Error';
+}
+
+const NON_DEVELOPER_ERRORS = [
+    ERROR_CODE_INVALID_PARAMS,
+    ERROR_CODE_CANCELLED,
+    ERROR_CODE_OS_ERROR,
+    ERROR_CODE_OUT_OF_MEMORY,
+];
+
+export function isDeveloperError(failure: JobFailure): boolean {
+    return NON_DEVELOPER_ERRORS.indexOf(failure.code) < 0;
+}
+
+
+const USER_ERRORS = [
+    ERROR_CODE_INVALID_PARAMS,
+    ERROR_CODE_CANCELLED,
+];
+
+export function isUserError(failure: JobFailure): boolean {
+    return USER_ERRORS.indexOf(failure.code) >= 0;
 }
