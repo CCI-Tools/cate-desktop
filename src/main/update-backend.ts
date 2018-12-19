@@ -146,7 +146,7 @@ export class InstallCondaEnv extends Transaction {
     }
 
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
-        const command = getCommandInActivatedCondaEnv(this.getCondaDir(), this.getCondaDir(), "conda create --name cate-env -c conda-forge python=3.6");
+        const command = getCommandInActivatedCondaEnv(this.getCondaDir(), this.getCondaDir(), "conda create --name cate-env -c conda-forge python=3.7");
         notifyExecCommand(command, onProgress);
         return spawnAsyncAndLog(command, undefined, defaultSpawnShellOption(), onProgress);
     }
