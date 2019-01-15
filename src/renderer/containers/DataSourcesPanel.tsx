@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { CSSProperties } from 'react';
 import { connect } from 'react-redux';
+import { Table, Column, Cell, TruncatedFormat } from '@blueprintjs/table';
+import * as Markdown from 'react-markdown';
 import { State, DataStoreState, DataSourceState } from '../state';
 import {
     AnchorButton,
@@ -12,7 +14,6 @@ import {
     Checkbox,
     Colors
 } from '@blueprintjs/core';
-import { Table, Column, Cell, TruncatedFormat } from '@blueprintjs/table';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import { Card } from '../components/Card';
 import { ScrollablePanelContent } from '../components/ScrollableContent';
@@ -27,6 +28,7 @@ import * as actions from '../actions';
 import * as selectors from '../selectors';
 import { NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES } from '../messages';
 
+const MARKDOWN = "# Gnaaaah!\n\nWat, wat, wat!";
 
 interface IDataSourcesPanelProps {
     hasWorkspace: boolean;
@@ -275,23 +277,28 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         const showDataSourceTitles = this.props.showDataSourceTitles;
         //  a label has by default a 15px margin at the bottom
         return (
-            <div style={DataSourcesPanel.FLEX_ROW_STYLE}>
-                <label className="pt-label pt-inline" style={{margin: '0 0 0 0'}}>
-                    Data store:
-                    <div className="pt-select" style={{padding: '0.2em'}}>
-                        <select value={selectedDataStore ? selectedDataStore.id : ''}
-                                onChange={this.handleDataStoreSelected}>
-                            {dataStoreOptions}
-                        </select>
-                    </div>
-                </label>
-                <span style={DataSourcesPanel.SPACER_STYLE}/>
-                <Checkbox style={{marginTop: '1em'}}
-                          label="Titles"
-                          checked={showDataSourceTitles}
-                          onChange={this.handleShowDataSourceTitlesChanged}
-                />
-            </div>
+            <React.Fragment>
+                <div style={DataSourcesPanel.FLEX_ROW_STYLE}>
+                    <label className="pt-label pt-inline" style={{margin: '0 0 0 0'}}>
+                        Data store:
+                        <div className="pt-select" style={{padding: '0.2em'}}>
+                            <select value={selectedDataStore ? selectedDataStore.id : ''}
+                                    onChange={this.handleDataStoreSelected}>
+                                {dataStoreOptions}
+                            </select>
+                        </div>
+                    </label>
+                    <span style={DataSourcesPanel.SPACER_STYLE}/>
+                    <Checkbox style={{marginTop: '1em'}}
+                              label="Titles"
+                              checked={showDataSourceTitles}
+                              onChange={this.handleShowDataSourceTitlesChanged}
+                    />
+                </div>
+                <Card>
+                    <Markdown>{MARKDOWN}</Markdown>
+                </Card>
+            </React.Fragment>
         );
     }
 
