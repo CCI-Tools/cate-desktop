@@ -1,16 +1,25 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import {URL} from "url";
+import { URL } from "url";
 import * as log from 'electron-log';
-import {existsFile, deleteFile, downloadFile, ExecOutput, spawnAsync, execAsync} from './fileutil';
+import { existsFile, deleteFile, downloadFile, ExecOutput, spawnAsync, execAsync } from './fileutil';
 import {
     Transaction,
     TransactionContext,
     TransactionProgressHandler, TransactionState
 } from '../common/transaction';
-import {defaultExecShellOption, defaultSpawnShellOption, getCommandInActivatedCondaEnv} from "./appenv";
+import { defaultExecShellOption, defaultSpawnShellOption, getCommandInActivatedCondaEnv } from "./appenv";
 import { ExecOptions, SpawnOptions } from 'child_process';
+
+const MINICONDA_VERSION = "latest";
+// const MINICONDA_VERSION = "4.5.12";
+
+const MINICONDA_INSTALLER_URLS = {
+    win32: `https://repo.anaconda.com/miniconda/Miniconda3-${MINICONDA_VERSION}-Windows-x86_64.exe`,
+    darwin: `https://repo.anaconda.com/miniconda/Miniconda3-${MINICONDA_VERSION}-MacOSX-x86_64.sh`,
+    linux: `https://repo.anaconda.com/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh`,
+};
 
 
 function _getOutput(output: ExecOutput) {
@@ -27,14 +36,11 @@ export class DownloadMiniconda extends Transaction {
 
     getMinicondaInstallerUrl(): string {
         const platform = process.platform;
-        if (platform === "win32") {
-            return "https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe";
-        } else if (platform === "darwin") {
-            return "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh";
-        } else if (platform === "linux") {
-            return "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh";
+        const minicondaInstallerUrl = MINICONDA_INSTALLER_URLS[platform];
+        if (!minicondaInstallerUrl) {
+            throw new Error(`${this.name}: platform "${platform}" is not supported`);
         }
-        throw new Error(`${this.name}: platform "${platform}" is not supported`);
+        return minicondaInstallerUrl;
     }
 
     getMinicondaInstallerExecutable(context: TransactionContext): string {
@@ -186,7 +192,7 @@ export class InstallOrUpdateCate extends Transaction {
     }
 
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
-        const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `conda install --yes -c ccitools -c conda-forge conda cate-cli=${this.cateVersion}`);
+        const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), `conda install --yes -c ccitools -c conda-forge cate-cli=${this.cateVersion}`);
         notifyExecCommand(command, onProgress);
         return spawnAsyncAndLog(command, undefined, defaultSpawnShellOption(), onProgress)
             .then(() => this.fulfilled(context, onProgress))
@@ -227,7 +233,7 @@ function spawnAsyncAndLog(command: string,
 }
 
 function execAsyncAndLog(command: string,
-                                options?: ExecOptions): Promise<ExecOutput> {
+                         options?: ExecOptions): Promise<ExecOutput> {
     log.info('executing asynchronously: ', command, options);
     return execAsync(command, options);
 }
