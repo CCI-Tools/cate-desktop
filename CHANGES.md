@@ -1,5 +1,9 @@
 ## Version 2.0.0.dev24 (in development)
 
+
+
+## Version 2.0.0.dev24
+
 * Cate now distinguishes network connection problems from errors of other origin. 
   Improved the error dialog so that network problems are clearly indicated. 
   [#789](https://github.com/CCI-Tools/cate/issues/789)
