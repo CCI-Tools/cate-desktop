@@ -334,12 +334,12 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                     </label>
                     <span style={DataSourcesPanel.SPACER_STYLE}/>
                     <div className="pt-button-group">
-                        <ToolButton tooltipContent="Show data store description"
+                        <ToolButton tooltipContent="Show/hide data store description"
                                     onClick={this.handleShowDataStoreDescriptionChanged}
                                     disabled={!hasDataStoreDescription}
                                     active={showDataStoreDescription}
                                     iconName="help"/>
-                        <ToolButton tooltipContent="Show data store notices"
+                        <ToolButton tooltipContent="Show/hide data store notices"
                                     onClick={this.handleShowDataStoreNoticesChanged}
                                     disabled={!hasDataStoreNotices}
                                     active={showDataStoreNotices}
