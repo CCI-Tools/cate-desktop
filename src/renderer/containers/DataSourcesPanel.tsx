@@ -3,7 +3,7 @@ import { CSSProperties } from 'react';
 import { connect } from 'react-redux';
 import { Table, Column, Cell, TruncatedFormat } from '@blueprintjs/table';
 import * as Markdown from 'react-markdown';
-import { State, DataStoreState, DataSourceState } from '../state';
+import { State, DataStoreState, DataSourceState, DataStoreNotice } from '../state';
 import {
     AnchorButton,
     InputGroup,
@@ -12,7 +12,7 @@ import {
     Tabs2,
     Tab2,
     Checkbox,
-    Colors
+    Colors, Collapse, Callout, Intent
 } from '@blueprintjs/core';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import { Card } from '../components/Card';
@@ -27,8 +27,15 @@ import RemoveDatasetDialog from './RemoveDatasetDialog';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
 import { NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES } from '../messages';
+import { IconName } from "@blueprintjs/core/src/components/icon/icon";
 
-const MARKDOWN = "# Gnaaaah!\n\nWat, wat, wat!";
+const INTENTS = {
+    "default": Intent.NONE,
+    "primary": Intent.PRIMARY,
+    "success": Intent.SUCCESS,
+    "warning": Intent.WARNING,
+    "danger": Intent.DANGER,
+};
 
 interface IDataSourcesPanelProps {
     hasWorkspace: boolean;
@@ -39,8 +46,10 @@ interface IDataSourcesPanelProps {
     selectedDataSources: DataSourceState[] | null;
     filteredDataSources: DataSourceState[] | null;
     dataSourceListHeight: number;
-    showDataSourceDetails: boolean;
     showDataSourceTitles: boolean;
+    showDataSourceDetails: boolean;
+    showDataStoreDescription: boolean;
+    showDataStoreNotices: boolean;
     offlineMode: boolean;
 }
 
@@ -56,6 +65,8 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         dataSourceListHeight: selectors.dataSourceListHeightSelector(state),
         showDataSourceDetails: selectors.showDataSourceDetailsSelector(state),
         showDataSourceTitles: selectors.showDataSourceTitlesSelector(state),
+        showDataStoreDescription: selectors.showDataStoreDescriptionSelector(state),
+        showDataStoreNotices: selectors.showDataStoreNoticesSelector(state),
         offlineMode: selectors.offlineModeSelector(state),
     };
 }
@@ -111,6 +122,8 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         this.handleListHeightChanged = this.handleListHeightChanged.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleDataStoreSelected = this.handleDataStoreSelected.bind(this);
+        this.handleShowDataStoreDescriptionChanged = this.handleShowDataStoreDescriptionChanged.bind(this);
+        this.handleShowDataStoreNoticesChanged = this.handleShowDataStoreNoticesChanged.bind(this);
         this.handleShowDataSourceTitlesChanged = this.handleShowDataSourceTitlesChanged.bind(this);
     }
 
@@ -151,6 +164,14 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         this.props.setSessionState('showDataSourceDetails', value);
     }
 
+    private handleShowDataStoreDescriptionChanged() {
+        this.props.updateSessionState({showDataStoreDescription: !this.props.showDataStoreDescription});
+    }
+
+    private handleShowDataStoreNoticesChanged() {
+        this.props.updateSessionState({showDataStoreNotices: !this.props.showDataStoreNotices});
+    }
+
     private handleShowDataSourceTitlesChanged(ev: any) {
         this.props.updateSessionState({showDataSourceTitles: ev.target.checked});
     }
@@ -171,7 +192,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             let primaryAction;
             if (isLocalStore) {
                 primaryAction = (
-                    <ToolButton tooltipContent="Open local dataset"
+                    <ToolButton tooltipContent="Open local data source"
                                 className="pt-intent-primary"
                                 onClick={this.handleShowOpenDatasetDialog}
                                 disabled={!canOpen}
@@ -179,7 +200,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                 );
             } else {
                 primaryAction = (
-                    <ToolButton tooltipContent="Download and/or open remote dataset"
+                    <ToolButton tooltipContent="Download and/or open remote data source"
                                 className="pt-intent-primary"
                                 onClick={this.handleShowDownloadDataSourceDialog}
                                 disabled={!canDownload}
@@ -230,10 +251,12 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                 </div>
             );
         } else if (hasDataStores) {
-            body = <div>
-                {this.renderDataStoreSelector()}
-                {this.renderNoDataSourcesMessage()}
-            </div>;
+            body = (
+                <div>
+                    {this.renderDataStoreSelector()}
+                    {this.renderNoDataSourcesMessage()}
+                </div>
+            );
         } else {
             body = this.renderNoDataStoreMessage();
         }
@@ -248,7 +271,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         );
 
         return (
-            <div style={{paddingTop: 4, paddingBottom: 2}}>
+            <div style={{paddingBottom: 2}}>
                 <InputGroup
                     disabled={false}
                     leftIconName="filter"
@@ -273,8 +296,29 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             );
         }
 
-        const selectedDataStore = this.props.selectedDataStore;
-        const showDataSourceTitles = this.props.showDataSourceTitles;
+        const {selectedDataStore, showDataStoreDescription, showDataStoreNotices, showDataSourceTitles} = this.props;
+
+        const hasDataStoreDescription = selectedDataStore && selectedDataStore.description;
+        const hasDataStoreNotices = selectedDataStore && selectedDataStore.notices && selectedDataStore.notices.length;
+
+        const callouts = [];
+        if (hasDataStoreNotices) {
+            selectedDataStore.notices.forEach((notice: DataStoreNotice) => {
+                callouts.push(
+                    <div style={{margin: "0 4px 4px 4px"}}>
+                        <Callout
+                            key={notice.id}
+                            title={notice.title}
+                            iconName={notice.icon as IconName}
+                            intent={notice.intent in INTENTS ? INTENTS[notice.intent] : Intent.NONE}
+                        >
+                            {this.renderMarkdown(notice.content)}
+                        </Callout>
+                    </div>
+                );
+            });
+        }
+
         //  a label has by default a 15px margin at the bottom
         return (
             <React.Fragment>
@@ -289,15 +333,39 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                         </div>
                     </label>
                     <span style={DataSourcesPanel.SPACER_STYLE}/>
-                    <Checkbox style={{marginTop: '1em'}}
-                              label="Titles"
+                    <div className="pt-button-group">
+                        <ToolButton tooltipContent="Show data store description"
+                                    onClick={this.handleShowDataStoreDescriptionChanged}
+                                    disabled={!hasDataStoreDescription}
+                                    active={showDataStoreDescription}
+                                    iconName="help"/>
+                        <ToolButton tooltipContent="Show data store notices"
+                                    onClick={this.handleShowDataStoreNoticesChanged}
+                                    disabled={!hasDataStoreNotices}
+                                    active={showDataStoreNotices}
+                                    iconName="notifications"/>
+                    </div>
+                </div>
+
+                <Collapse isOpen={hasDataStoreDescription && showDataStoreDescription}>
+                    <Card>
+                        {this.renderMarkdown(selectedDataStore.description)}
+                    </Card>
+                </Collapse>
+
+                <Collapse isOpen={hasDataStoreNotices && showDataStoreNotices}>
+                    {callouts}
+                </Collapse>
+
+                <div style={DataSourcesPanel.FLEX_ROW_STYLE}>
+                    <span style={DataSourcesPanel.SPACER_STYLE}/>
+                    <Checkbox label="Show long data source titles"
                               checked={showDataSourceTitles}
                               onChange={this.handleShowDataSourceTitlesChanged}
+                              style={{marginBottom: 2, marginTop: 6}}
                     />
                 </div>
-                <Card>
-                    <Markdown>{MARKDOWN}</Markdown>
-                </Card>
+
             </React.Fragment>
         );
     }
@@ -316,7 +384,48 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             return NO_DATA_SOURCES_FOUND;
         }
     }
+
+    //noinspection JSMethodCanBeStatic
+    private renderMarkdown(source: string) {
+        return <Markdown renderers={MARKDOWN_RENDERERS} source={source}/>
+    }
 }
+
+/**
+ * Allow Markdown text elements to be user-selectable.
+ */
+class MarkdownText extends React.PureComponent<any> {
+    render() {
+        return <span className="user-selectable">{this.props.value}</span>
+    }
+}
+
+/**
+ * Allow Markdown inline code elements to be user-selectable.
+ */
+class MarkdownInlineCode extends React.PureComponent<any> {
+    static readonly SPAN_STYLE = {
+        fontFamily: "Source Code Pro, Consolas, monospace",
+        color: "#CED9E0", // BlueprintJS color @light-gray1
+    };
+
+    render() {
+        return <span className="user-selectable" style={MarkdownInlineCode.SPAN_STYLE}>{this.props.value}</span>
+    }
+}
+
+/**
+ * Allow Markdown code elements to be user-selectable.
+ */
+class MarkdownCode extends React.PureComponent<any> {
+
+    render() {
+        return <pre className="user-selectable">{this.props.value}</pre>
+    }
+}
+
+const MARKDOWN_RENDERERS = {text: MarkdownText, inlineCode: MarkdownInlineCode, code: MarkdownCode};
+
 
 interface IDataSourcesListProps {
     dataSources: DataSourceState[];

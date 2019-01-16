@@ -274,6 +274,8 @@ export const dataSourceFilterExprSelector = (state: State) => state.session.data
 export const dataSourceListHeightSelector = (state: State) => state.session.dataSourceListHeight;
 export const showDataSourceDetailsSelector = (state: State) => state.session.showDataSourceDetails;
 export const showDataSourceTitlesSelector = (state: State): boolean => state.session.showDataSourceTitles;
+export const showDataStoreDescriptionSelector = (state: State): boolean => state.session.showDataStoreDescription;
+export const showDataStoreNoticesSelector = (state: State): boolean => state.session.showDataStoreNotices;
 
 export const selectedDataStoreSelector = createSelector<State, DataStoreState | null,
     DataStoreState[] | null,
