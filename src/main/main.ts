@@ -639,6 +639,16 @@ class CateDesktopApp {
             });
         }
 
+        // Solution found at
+        // https://stackoverflow.com/questions/32402327/how-can-i-force-external-links-from-browser-window-to-open-in-a-default-browser
+        this.mainWindow.webContents.on('will-navigate', (e, url) => {
+            /* If url isn't the actual page */
+            if (url != this.mainWindow.webContents.getURL()) {
+                e.preventDefault();
+                electron.shell.openExternal(url);
+            }
+        });
+
         this.mainWindow.webContents.on('did-finish-load', () => {
             this.showSplashMessage('Done.');
             if (this.isSplashWindowAlive()) {
