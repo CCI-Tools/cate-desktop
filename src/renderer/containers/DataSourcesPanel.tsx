@@ -14,6 +14,7 @@ import {
     Checkbox,
     Colors, Collapse, Callout, Intent
 } from '@blueprintjs/core';
+import { IconName } from "@blueprintjs/core/src/components/icon/icon";
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import { Card } from '../components/Card';
 import { ScrollablePanelContent } from '../components/ScrollableContent';
@@ -27,7 +28,7 @@ import RemoveDatasetDialog from './RemoveDatasetDialog';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
 import { NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES } from '../messages';
-import { IconName } from "@blueprintjs/core/src/components/icon/icon";
+
 
 const INTENTS = {
     "default": Intent.NONE,
@@ -545,161 +546,176 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
     }
 
     private renderAbstract(dataSource: DataSourceState): DetailPart {
-        const meta_info = dataSource.meta_info;
-        let openOdpPage;
-        if (meta_info.uuid) {
-            openOdpPage =
-                <AnchorButton onClick={this.openOdpLink} style={{float: 'right', margin: 4}}>Catalogue</AnchorButton>
-        }
-        let spatialCoverage;
-        if (meta_info.bbox_miny && meta_info.bbox_maxy && meta_info.bbox_minx && meta_info.bbox_maxx) {
-            spatialCoverage = (
-                <div>
-                    <h5>Spatial coverage</h5>
-                    <table>
-                        <tbody>
-                        <tr>
-                            <td/>
-                            <td className="user-selectable">{meta_info.bbox_maxy}&#176;</td>
-                            <td/>
-                        </tr>
-                        <tr>
-                            <td className="user-selectable">{meta_info.bbox_minx}&#176;</td>
-                            <td/>
-                            <td className="user-selectable">{meta_info.bbox_maxx}&#176;</td>
-                        </tr>
-                        <tr>
-                            <td/>
-                            <td className="user-selectable">{meta_info.bbox_miny}&#176;</td>
-                            <td/>
-                        </tr>
-                        </tbody>
-                    </table>
-                    <br/>
-                </div>
-            );
-        }
-        let temporalCoverage;
-        if (dataSource.temporalCoverage) {
-            temporalCoverage = (
-                <div><h5>Temporal coverage</h5>
-                    <table>
-                        <tbody>
-                        <tr>
-                            <td>Start</td>
-                            <td className="user-selectable">{dataSource.temporalCoverage[0]}</td>
-                        </tr>
-                        <tr>
-                            <td>End</td>
-                            <td className="user-selectable">{dataSource.temporalCoverage[1]}</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    <br/>
-                </div>
-            );
-        }
-        let summary;
-        if (meta_info.abstract) {
-            summary = (
-                <div><h5>Summary</h5>
-                    <p className="user-selectable"><TextWithLinks>{meta_info.abstract}</TextWithLinks></p>
-                </div>
-            );
+        const metaInfo = dataSource.meta_info;
+        let element;
+        if (metaInfo) {
+            let openOdpPage;
+            if (metaInfo.uuid) {
+                openOdpPage =
+                    <AnchorButton onClick={this.openOdpLink}
+                                  style={{float: 'right', margin: 4}}>Catalogue</AnchorButton>
+            }
+            let spatialCoverage;
+            if (metaInfo.bbox_miny && metaInfo.bbox_maxy && metaInfo.bbox_minx && metaInfo.bbox_maxx) {
+                spatialCoverage = (
+                    <div>
+                        <h5>Spatial coverage</h5>
+                        <table>
+                            <tbody>
+                            <tr>
+                                <td/>
+                                <td className="user-selectable">{metaInfo.bbox_maxy}&#176;</td>
+                                <td/>
+                            </tr>
+                            <tr>
+                                <td className="user-selectable">{metaInfo.bbox_minx}&#176;</td>
+                                <td/>
+                                <td className="user-selectable">{metaInfo.bbox_maxx}&#176;</td>
+                            </tr>
+                            <tr>
+                                <td/>
+                                <td className="user-selectable">{metaInfo.bbox_miny}&#176;</td>
+                                <td/>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <br/>
+                    </div>
+                );
+            }
+            let temporalCoverage;
+            if (dataSource.temporalCoverage) {
+                temporalCoverage = (
+                    <div><h5>Temporal coverage</h5>
+                        <table>
+                            <tbody>
+                            <tr>
+                                <td>Start</td>
+                                <td className="user-selectable">{dataSource.temporalCoverage[0]}</td>
+                            </tr>
+                            <tr>
+                                <td>End</td>
+                                <td className="user-selectable">{dataSource.temporalCoverage[1]}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <br/>
+                    </div>
+                );
+            }
+            let summary;
+            if (metaInfo.abstract) {
+                summary = (
+                    <div><h5>Summary</h5>
+                        <p className="user-selectable"><TextWithLinks>{metaInfo.abstract}</TextWithLinks></p>
+                    </div>
+                );
+            }
+            if (openOdpPage || spatialCoverage || temporalCoverage || summary) {
+                element = (
+                    <ScrollablePanelContent>
+                        <Card>
+                            {openOdpPage}
+                            {spatialCoverage}
+                            {temporalCoverage}
+                            {summary}
+                        </Card>
+                    </ScrollablePanelContent>
+                );
+            }
         }
 
-        return {
-            title: 'Abstract',
-            id: 'abstract',
-            element: (
-                <ScrollablePanelContent>
-                    <Card>
-                        {openOdpPage}
-                        {spatialCoverage}
-                        {temporalCoverage}
-                        {summary}
-                    </Card>
-                </ScrollablePanelContent>
-            )
-        };
+        if (!element) {
+            element = <Card>No abstract available.</Card>;
+        }
+
+        return {title: 'Abstract', id: 'abstract', element};
     }
 
-    private static renderVariablesTable(variables: any[]): DetailPart {
-        function renderName(rowIndex: number) {
-            const variable = variables[rowIndex];
-            return (
-                <Cell tooltip={variable.long_name}>
-                    <TruncatedFormat className="user-selectable">{variable.name}</TruncatedFormat>
-                </Cell>
-            );
-        }
+    private static renderVariablesTable(variables?: any[]): DetailPart {
+        let element;
+        if (variables && variables.length > 0) {
+            function renderName(rowIndex: number) {
+                const variable = variables[rowIndex];
+                return (
+                    <Cell tooltip={variable.long_name}>
+                        <TruncatedFormat className="user-selectable">{variable.name}</TruncatedFormat>
+                    </Cell>
+                );
+            }
 
-        function renderUnit(rowIndex: number) {
-            const variable = variables[rowIndex];
-            return (
-                <Cell>
-                    <TruncatedFormat className="user-selectable">{variable.units || '-'}</TruncatedFormat>
-                </Cell>
-            );
-        }
+            function renderUnit(rowIndex: number) {
+                const variable = variables[rowIndex];
+                return (
+                    <Cell>
+                        <TruncatedFormat className="user-selectable">{variable.units || '-'}</TruncatedFormat>
+                    </Cell>
+                );
+            }
 
-        function getCellClipboardData(row: number, col: number) {
-            console.log('getCellClipboardData: ', row, col);
-        }
+            function getCellClipboardData(row: number, col: number) {
+                console.log('getCellClipboardData: ', row, col);
+            }
 
-        return {
-            title: 'Variables',
-            id: 'var',
-            element: (
+            element = (
                 <Table numRows={variables.length}
                        isRowHeaderShown={false}
                        getCellClipboardData={getCellClipboardData}>
                     <Column name="Name" renderCell={renderName}/>
                     <Column name="Units" renderCell={renderUnit}/>
                 </Table>
-            )
-        };
+            );
+        } else {
+            element = <Card>No information about variables available.</Card>;
+        }
+        return {title: 'Variables', id: 'var', element};
     }
 
-    private static renderMetaInfoTable(metaInfoKeys: string[], meta_info: any): DetailPart {
-        function renderKey(rowIndex: number) {
-            const key = metaInfoKeys[rowIndex];
-            return <Cell><TruncatedFormat>{key}</TruncatedFormat></Cell>;
-        }
+    private static renderMetaInfoTable(metaInfo?: any, metaInfoKeys?: string[]): DetailPart {
+        let element;
+        if (metaInfo && metaInfoKeys) {
 
-        function renderValue(rowIndex: number) {
-            const key = metaInfoKeys[rowIndex];
-            return <Cell><TruncatedFormat>{meta_info[key]}</TruncatedFormat></Cell>;
-        }
+            function renderKey(rowIndex: number) {
+                const key = metaInfoKeys[rowIndex];
+                return <Cell><TruncatedFormat>{key}</TruncatedFormat></Cell>;
+            }
 
-        function getCellClipboardData(row: number, col: number) {
-            console.log('getCellClipboardData: ', row, col);
-        }
+            function renderValue(rowIndex: number) {
+                const key = metaInfoKeys[rowIndex];
+                return <Cell><TruncatedFormat>{metaInfo[key]}</TruncatedFormat></Cell>;
+            }
 
-        return {
-            title: 'Meta-Info',
-            id: 'meta',
-            element: (
+            function getCellClipboardData(row: number, col: number) {
+                console.log('getCellClipboardData: ', row, col);
+            }
+
+            element = (
                 <Table numRows={metaInfoKeys.length}
                        isRowHeaderShown={false}
                        getCellClipboardData={getCellClipboardData}>
                     <Column name="Key" renderCell={renderKey}/>
                     <Column name="Value" renderCell={renderValue}/>
                 </Table>
-            )
-        };
+            );
+        } else {
+            element = <Card>No global meta-information available.</Card>;
+        }
+
+        return {title: 'Meta-Info', id: 'meta', element};
     }
 
-    private static renderMetaInfoLicences(meta_info: any): DetailPart {
-        return {
-            title: 'Licences',
-            id: 'licences',
-            element: (
+    private static renderMetaInfoLicences(metaInfo: any): DetailPart {
+        let element;
+        if (metaInfo && metaInfo.licences) {
+            element = (
                 <div>
-                    <p className="user-selectable"><TextWithLinks>{meta_info.licences}</TextWithLinks></p>
+                    <p className="user-selectable"><TextWithLinks>{metaInfo.licences}</TextWithLinks></p>
                 </div>
-            )
-        };
+            );
+        } else {
+            element = <Card>No license information available.</Card>;
+        }
+        return {title: 'Licences', id: 'licences', element};
     }
 
     render() {
@@ -707,42 +723,26 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         if (!dataSource) {
             return null;
         }
-        const details: DetailPart[] = [];
+        let metaInfoKeys;
         if (dataSource.meta_info) {
-            if (dataSource.meta_info.abstract) {
-                details.push(this.renderAbstract(dataSource));
-            }
-            const metaInfoKeys = Object.keys(dataSource.meta_info).filter(key => key !== 'variables');
-            if (dataSource.meta_info.variables) {
-                const variables = dataSource.meta_info.variables;
-                if (variables.length) {
-                    details.push(DataSourceDetails.renderVariablesTable(variables));
-                }
-            }
-            if (metaInfoKeys.length) {
-                details.push(DataSourceDetails.renderMetaInfoTable(metaInfoKeys, dataSource.meta_info));
-            }
-            if (dataSource.meta_info.licences) {
-                details.push(DataSourceDetails.renderMetaInfoLicences(dataSource.meta_info));
-            }
+            metaInfoKeys = Object.keys(dataSource.meta_info).filter(key => key !== 'variables');
+        }
+        let variables;
+        if (dataSource.meta_info.variables) {
+            variables = dataSource.meta_info.variables;
         }
 
-        if (details.length == 1) {
-            return details[0].element;
-        } else if (details.length > 1) {
-            return (
-                <Tabs2 id="dsDetails" renderActiveTabPanelOnly={true}>
-                    {details.map(d => <Tab2 key={d.id} id={d.id} title={d.title} panel={d.element}/>)}
-                </Tabs2>
-            );
-        } else {
-            return (
-                <Card>
-                    <p>No meta-information available.</p>
-                </Card>
-            );
-        }
+        const details: DetailPart[] = [];
+        details.push(this.renderAbstract(dataSource));
+        details.push(DataSourceDetails.renderVariablesTable(variables));
+        details.push(DataSourceDetails.renderMetaInfoTable(dataSource.meta_info, metaInfoKeys));
+        details.push(DataSourceDetails.renderMetaInfoLicences(dataSource.meta_info));
 
+        return (
+            <Tabs2 id="dsDetails" renderActiveTabPanelOnly={true}>
+                {details.map(d => <Tab2 key={d.id} id={d.id} title={d.title} panel={d.element}/>)}
+            </Tabs2>
+        );
     }
 }
 
