@@ -35,7 +35,7 @@ describe('DataStore/DataSource selectors', function () {
     const getState = (dataStores, selectedDataStoreId?, selectedDataSourceId?, dataSourceFilterExpr?) => {
         return {
             data: {dataStores},
-            session: {selectedDataStoreId, selectedDataSourceId, dataSourceFilterExpr, showDataSourceTitles: false}
+            session: {selectedDataStoreId, selectedDataSourceId, dataSourceFilterExpr, showDataSourceIdsOnly: false}
         };
     };
 

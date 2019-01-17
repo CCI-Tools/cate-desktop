@@ -1,11 +1,11 @@
-import {WebAPIClient} from './webapi';
-import {JobStatus, JobFailure, JobProgress} from "./webapi";
-import {PanelContainerLayout} from "./components/PanelContainer";
-import {ViewLayoutState, ViewState} from "./components/ViewState";
-import {Feature, FeatureCollection, GeoJsonObject, Point} from "geojson";
-import {IconName} from "@blueprintjs/core";
-import {SimpleStyle} from "../common/geojson-simple-style";
-import {GeometryToolType} from "./components/cesium/geometry-tool";
+import { WebAPIClient } from './webapi';
+import { JobStatus, JobFailure, JobProgress } from "./webapi";
+import { PanelContainerLayout } from "./components/PanelContainer";
+import { ViewLayoutState, ViewState } from "./components/ViewState";
+import { Feature, FeatureCollection, GeoJsonObject, Point } from "geojson";
+import { IconName } from "@blueprintjs/core";
+import { SimpleStyle } from "../common/geojson-simple-style";
+import { GeometryToolType } from "./components/cesium/geometry-tool";
 
 /**
  * Interface describing Cate's application state structure.
@@ -59,10 +59,20 @@ export interface WebAPIConfig {
     mplWebSocketUrl: string;
 }
 
+export interface DataStoreNotice {
+    id: string;
+    title: string;
+    content: string;
+    icon: string | null;
+    intent: string | null;
+}
+
 export interface DataStoreState {
     id: string;
     title: string | null;
     isLocal: boolean;
+    description: string | null;
+    notices: DataStoreNotice[] | null;
     dataSources?: DataSourceState[] | null;
 }
 
@@ -495,7 +505,7 @@ export interface VectorLayerBase extends LayerState {
      * This object will only contain keys, if an entities style has changed.
      * Default styles come from the SimpleStyle interface of VectorLayerBase.
      */
-    entityStyles?: {[entityId: string]: SimpleStyle};
+    entityStyles?: { [entityId: string]: SimpleStyle };
 }
 
 
@@ -750,7 +760,9 @@ export interface SessionState {
     dataSourceFilterExpr: string;
     dataSourceListHeight: number;
     showDataSourceDetails: boolean;
-    showDataSourceTitles: boolean;
+    showDataSourceIdsOnly: boolean;
+    showDataStoreDescription: boolean;
+    showDataStoreNotices: boolean;
 
     // OperationsPanel
     selectedOperationName: string | null;

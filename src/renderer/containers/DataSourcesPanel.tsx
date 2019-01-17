@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { CSSProperties } from 'react';
 import { connect } from 'react-redux';
-import { State, DataStoreState, DataSourceState } from '../state';
+import { Table, Column, Cell, TruncatedFormat } from '@blueprintjs/table';
+import * as Markdown from 'react-markdown';
+import { State, DataStoreState, DataSourceState, DataStoreNotice } from '../state';
 import {
     AnchorButton,
     InputGroup,
@@ -10,9 +12,8 @@ import {
     Tabs2,
     Tab2,
     Checkbox,
-    Colors
+    Colors, Collapse, Callout, Intent
 } from '@blueprintjs/core';
-import { Table, Column, Cell, TruncatedFormat } from '@blueprintjs/table';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import { Card } from '../components/Card';
 import { ScrollablePanelContent } from '../components/ScrollableContent';
@@ -26,7 +27,15 @@ import RemoveDatasetDialog from './RemoveDatasetDialog';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
 import { NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES } from '../messages';
+import { IconName } from "@blueprintjs/core/src/components/icon/icon";
 
+const INTENTS = {
+    "default": Intent.NONE,
+    "primary": Intent.PRIMARY,
+    "success": Intent.SUCCESS,
+    "warning": Intent.WARNING,
+    "danger": Intent.DANGER,
+};
 
 interface IDataSourcesPanelProps {
     hasWorkspace: boolean;
@@ -37,8 +46,10 @@ interface IDataSourcesPanelProps {
     selectedDataSources: DataSourceState[] | null;
     filteredDataSources: DataSourceState[] | null;
     dataSourceListHeight: number;
+    showDataSourceIdsOnly: boolean;
     showDataSourceDetails: boolean;
-    showDataSourceTitles: boolean;
+    showDataStoreDescription: boolean;
+    showDataStoreNotices: boolean;
     offlineMode: boolean;
 }
 
@@ -53,7 +64,9 @@ function mapStateToProps(state: State): IDataSourcesPanelProps {
         filteredDataSources: selectors.filteredDataSourcesSelector(state),
         dataSourceListHeight: selectors.dataSourceListHeightSelector(state),
         showDataSourceDetails: selectors.showDataSourceDetailsSelector(state),
-        showDataSourceTitles: selectors.showDataSourceTitlesSelector(state),
+        showDataSourceIdsOnly: selectors.showDataSourceIdsOnlySelector(state),
+        showDataStoreDescription: selectors.showDataStoreDescriptionSelector(state),
+        showDataStoreNotices: selectors.showDataStoreNoticesSelector(state),
         offlineMode: selectors.offlineModeSelector(state),
     };
 }
@@ -109,7 +122,9 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         this.handleListHeightChanged = this.handleListHeightChanged.bind(this);
         this.handleShowDetailsChanged = this.handleShowDetailsChanged.bind(this);
         this.handleDataStoreSelected = this.handleDataStoreSelected.bind(this);
-        this.handleShowDataSourceTitlesChanged = this.handleShowDataSourceTitlesChanged.bind(this);
+        this.handleShowDataStoreDescriptionChanged = this.handleShowDataStoreDescriptionChanged.bind(this);
+        this.handleShowDataStoreNoticesChanged = this.handleShowDataStoreNoticesChanged.bind(this);
+        this.handleShowDataSourceIdsOnlyChanged = this.handleShowDataSourceIdsOnlyChanged.bind(this);
     }
 
     private handleAddDatasetDialog() {
@@ -149,8 +164,16 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         this.props.setSessionState('showDataSourceDetails', value);
     }
 
-    private handleShowDataSourceTitlesChanged(ev: any) {
-        this.props.updateSessionState({showDataSourceTitles: ev.target.checked});
+    private handleShowDataStoreDescriptionChanged() {
+        this.props.updateSessionState({showDataStoreDescription: !this.props.showDataStoreDescription});
+    }
+
+    private handleShowDataStoreNoticesChanged() {
+        this.props.updateSessionState({showDataStoreNotices: !this.props.showDataStoreNotices});
+    }
+
+    private handleShowDataSourceIdsOnlyChanged(ev: any) {
+        this.props.updateSessionState({showDataSourceIdsOnly: ev.target.checked});
     }
 
     render() {
@@ -169,7 +192,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             let primaryAction;
             if (isLocalStore) {
                 primaryAction = (
-                    <ToolButton tooltipContent="Open local dataset"
+                    <ToolButton tooltipContent="Open local data source"
                                 className="pt-intent-primary"
                                 onClick={this.handleShowOpenDatasetDialog}
                                 disabled={!canOpen}
@@ -177,7 +200,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                 );
             } else {
                 primaryAction = (
-                    <ToolButton tooltipContent="Download and/or open remote dataset"
+                    <ToolButton tooltipContent="Download and/or open remote data source"
                                 className="pt-intent-primary"
                                 onClick={this.handleShowDownloadDataSourceDialog}
                                 disabled={!canDownload}
@@ -221,17 +244,19 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                         <DataSourcesList dataSources={this.props.filteredDataSources}
                                          selectedDataSourceId={this.props.selectedDataSource ? this.props.selectedDataSource.id : null}
                                          setSelectedDataSourceId={this.props.setSelectedDataSourceId}
-                                         showDataSourceTitles={this.props.showDataSourceTitles}
+                                         showDataSourceIdsOnly={this.props.showDataSourceIdsOnly}
                                          doubleClickAction={listItemDoubleClickAction}/>
                         <DataSourceDetails dataSource={this.props.selectedDataSource}/>
                     </ContentWithDetailsPanel>
                 </div>
             );
         } else if (hasDataStores) {
-            body = <div>
-                {this.renderDataStoreSelector()}
-                {this.renderNoDataSourcesMessage()}
-            </div>;
+            body = (
+                <div>
+                    {this.renderDataStoreSelector()}
+                    {this.renderNoDataSourcesMessage()}
+                </div>
+            );
         } else {
             body = this.renderNoDataStoreMessage();
         }
@@ -246,7 +271,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         );
 
         return (
-            <div style={{paddingTop: 4, paddingBottom: 2}}>
+            <div style={{paddingBottom: 2}}>
                 <InputGroup
                     disabled={false}
                     leftIconName="filter"
@@ -271,27 +296,77 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             );
         }
 
-        const selectedDataStore = this.props.selectedDataStore;
-        const showDataSourceTitles = this.props.showDataSourceTitles;
+        const {selectedDataStore, showDataStoreDescription, showDataStoreNotices, showDataSourceIdsOnly} = this.props;
+
+        const hasDataStoreDescription = selectedDataStore && selectedDataStore.description;
+        const hasDataStoreNotices = selectedDataStore && selectedDataStore.notices && selectedDataStore.notices.length;
+
+        const callouts = [];
+        if (hasDataStoreNotices) {
+            selectedDataStore.notices.forEach((notice: DataStoreNotice) => {
+                callouts.push(
+                    <div style={{margin: "0 4px 4px 4px"}}>
+                        <Callout
+                            key={notice.id}
+                            title={notice.title}
+                            iconName={notice.icon as IconName}
+                            intent={notice.intent in INTENTS ? INTENTS[notice.intent] : Intent.NONE}
+                        >
+                            {this.renderMarkdown(notice.content)}
+                        </Callout>
+                    </div>
+                );
+            });
+        }
+
         //  a label has by default a 15px margin at the bottom
         return (
-            <div style={DataSourcesPanel.FLEX_ROW_STYLE}>
-                <label className="pt-label pt-inline" style={{margin: '0 0 0 0'}}>
-                    Data store:
-                    <div className="pt-select" style={{padding: '0.2em'}}>
-                        <select value={selectedDataStore ? selectedDataStore.id : ''}
-                                onChange={this.handleDataStoreSelected}>
-                            {dataStoreOptions}
-                        </select>
+            <React.Fragment>
+                <div style={DataSourcesPanel.FLEX_ROW_STYLE}>
+                    <label className="pt-label pt-inline" style={{margin: '0 0 0 0'}}>
+                        Data store:
+                        <div className="pt-select" style={{padding: '0.2em'}}>
+                            <select value={selectedDataStore ? selectedDataStore.id : ''}
+                                    onChange={this.handleDataStoreSelected}>
+                                {dataStoreOptions}
+                            </select>
+                        </div>
+                    </label>
+                    <span style={DataSourcesPanel.SPACER_STYLE}/>
+                    <div className="pt-button-group">
+                        <ToolButton tooltipContent="Show/hide data store description"
+                                    onClick={this.handleShowDataStoreDescriptionChanged}
+                                    disabled={!hasDataStoreDescription}
+                                    active={showDataStoreDescription}
+                                    iconName="help"/>
+                        <ToolButton tooltipContent="Show/hide data store notices"
+                                    onClick={this.handleShowDataStoreNoticesChanged}
+                                    disabled={!hasDataStoreNotices}
+                                    active={showDataStoreNotices}
+                                    iconName="notifications"/>
                     </div>
-                </label>
-                <span style={DataSourcesPanel.SPACER_STYLE}/>
-                <Checkbox style={{marginTop: '1em'}}
-                          label="Titles"
-                          checked={showDataSourceTitles}
-                          onChange={this.handleShowDataSourceTitlesChanged}
-                />
-            </div>
+                </div>
+
+                <Collapse isOpen={hasDataStoreDescription && showDataStoreDescription}>
+                    <Card>
+                        {this.renderMarkdown(selectedDataStore.description)}
+                    </Card>
+                </Collapse>
+
+                <Collapse isOpen={hasDataStoreNotices && showDataStoreNotices}>
+                    {callouts}
+                </Collapse>
+
+                <div style={DataSourcesPanel.FLEX_ROW_STYLE}>
+                    <span style={DataSourcesPanel.SPACER_STYLE}/>
+                    <Checkbox label="Show data source IDs only"
+                              checked={showDataSourceIdsOnly}
+                              onChange={this.handleShowDataSourceIdsOnlyChanged}
+                              style={{marginBottom: 2, marginTop: 6}}
+                    />
+                </div>
+
+            </React.Fragment>
         );
     }
 
@@ -309,19 +384,60 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             return NO_DATA_SOURCES_FOUND;
         }
     }
+
+    //noinspection JSMethodCanBeStatic
+    private renderMarkdown(source: string) {
+        return <Markdown renderers={MARKDOWN_RENDERERS} source={source}/>
+    }
 }
+
+/**
+ * Allow Markdown text elements to be user-selectable.
+ */
+class MarkdownText extends React.PureComponent<any> {
+    render() {
+        return <span className="user-selectable">{this.props.value}</span>
+    }
+}
+
+/**
+ * Allow Markdown inline code elements to be user-selectable.
+ */
+class MarkdownInlineCode extends React.PureComponent<any> {
+    static readonly SPAN_STYLE = {
+        fontFamily: "Source Code Pro, Consolas, monospace",
+        color: Colors.LIGHT_GRAY1,
+    };
+
+    render() {
+        return <span className="user-selectable" style={MarkdownInlineCode.SPAN_STYLE}>{this.props.value}</span>
+    }
+}
+
+/**
+ * Allow Markdown code elements to be user-selectable.
+ */
+class MarkdownCode extends React.PureComponent<any> {
+
+    render() {
+        return <pre className="user-selectable">{this.props.value}</pre>
+    }
+}
+
+const MARKDOWN_RENDERERS = {text: MarkdownText, inlineCode: MarkdownInlineCode, code: MarkdownCode};
+
 
 interface IDataSourcesListProps {
     dataSources: DataSourceState[];
     selectedDataSourceId: string | null;
     setSelectedDataSourceId: (selectedDataSourceId: string) => void;
-    showDataSourceTitles: boolean;
+    showDataSourceIdsOnly: boolean;
     doubleClickAction: (dataSource: DataSourceState) => any;
 }
 
 class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
     static readonly ITEM_DIV_STYLE: CSSProperties = {display: 'flex', alignItems: 'flex-start'};
-    static readonly ID_DIV_STYLE: CSSProperties = {color: Colors.BLUE5};
+    static readonly ID_DIV_STYLE: CSSProperties = {color: Colors.GREEN4, fontSize: "0.8em"};
     static readonly ICON_DIV_STYLE: CSSProperties = {width: 32, height: 32, flex: 'none', marginRight: 6};
     readonly defaultIconName = 'cci';
 
@@ -384,10 +500,10 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
 
     render() {
         let renderTitle;
-        if (this.props.showDataSourceTitles) {
-            renderTitle = this.renderDataSourceTitleAndId;
-        } else {
+        if (this.props.showDataSourceIdsOnly) {
             renderTitle = this.renderDataSourceId;
+        } else {
+            renderTitle = this.renderDataSourceTitleAndId;
         }
 
         return (

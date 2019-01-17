@@ -92,7 +92,10 @@ export const INITIAL_SESSION_STATE: SessionState = {
 
     workspacePanelMode: 'steps',
 
-    showDataSourceTitles: true,
+    showDataStoreDescription: false,
+    showDataStoreNotices: true,
+    showDataSourceIdsOnly: false,
+
     showLayerTextOverlay: true,
     debugWorldView: false,
     styleContext: STYLE_CONTEXT_ENTITY,
