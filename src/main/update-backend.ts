@@ -12,8 +12,8 @@ import {
 import { defaultExecShellOption, defaultSpawnShellOption, getCommandInActivatedCondaEnv } from "./appenv";
 import { ExecOptions, SpawnOptions } from 'child_process';
 
-const MINICONDA_VERSION = "latest";
-// const MINICONDA_VERSION = "4.5.12";
+// const MINICONDA_VERSION = "latest";
+const MINICONDA_VERSION = "4.5.12";
 
 const MINICONDA_INSTALLER_URLS = {
     win32: `https://repo.anaconda.com/miniconda/Miniconda3-${MINICONDA_VERSION}-Windows-x86_64.exe`,
