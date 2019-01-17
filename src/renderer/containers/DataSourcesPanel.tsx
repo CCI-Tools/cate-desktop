@@ -302,8 +302,20 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         const hasDataStoreDescription = selectedDataStore && selectedDataStore.description;
         const hasDataStoreNotices = selectedDataStore && selectedDataStore.notices && selectedDataStore.notices.length;
 
-        const callouts = [];
+        let dataStoreDescriptionElement;
+        if (hasDataStoreDescription) {
+            dataStoreDescriptionElement = (
+                <Collapse isOpen={showDataStoreDescription}>
+                    <Card>
+                        {this.renderMarkdown(selectedDataStore.description)}
+                    </Card>
+                </Collapse>
+            );
+        }
+
+        let dataStoreNoticesElement;
         if (hasDataStoreNotices) {
+            const callouts = [];
             selectedDataStore.notices.forEach((notice: DataStoreNotice) => {
                 callouts.push(
                     <div style={{margin: "0 4px 4px 4px"}}>
@@ -318,6 +330,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                     </div>
                 );
             });
+            dataStoreNoticesElement = (<Collapse isOpen={showDataStoreNotices}>{callouts}</Collapse>);
         }
 
         //  a label has by default a 15px margin at the bottom
@@ -348,15 +361,8 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                     </div>
                 </div>
 
-                <Collapse isOpen={hasDataStoreDescription && showDataStoreDescription}>
-                    <Card>
-                        {this.renderMarkdown(selectedDataStore.description)}
-                    </Card>
-                </Collapse>
-
-                <Collapse isOpen={hasDataStoreNotices && showDataStoreNotices}>
-                    {callouts}
-                </Collapse>
+                {dataStoreDescriptionElement}
+                {dataStoreNoticesElement}
 
                 <div style={DataSourcesPanel.FLEX_ROW_STYLE}>
                     <span style={DataSourcesPanel.SPACER_STYLE}/>
