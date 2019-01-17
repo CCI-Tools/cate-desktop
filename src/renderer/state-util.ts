@@ -514,7 +514,7 @@ export function updateAutoLayer(layer: LayerState,
     } else {
         return {
             type: 'Unknown' as any,
-            name: variable ? `Auto ${variable.name} (not geo-spatial)` : 'Auto (no selection)',
+            name: variable ? `Auto ${variable.name} (geo-ref not found or recognized)` : 'Auto (no selection)',
             visible: layer.visible,
             id: AUTO_LAYER_ID,
         } as any;
