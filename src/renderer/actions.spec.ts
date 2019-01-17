@@ -396,7 +396,7 @@ describe('Actions', () => {
                     {
                         id: AUTO_LAYER_ID,
                         type: "Unknown",
-                        name: "Auto profile (not geo-spatial)",
+                        name: "Auto profile (geo-ref not found or recognized)",
                         visible: true,
                     },
                     defaultCountriesLayer,
