@@ -1,4 +1,8 @@
-## Version 2.0.0.dev25 (in development)
+## Version 2.0.0.dev26 (in development)
+
+* Upgraded Cesium to version 1.53.
+
+## Version 2.0.0.dev25
 
 * Fixed installation problem with latest Miniconda 4.5.12
   [#831](https://github.com/CCI-Tools/cate/issues/831)
