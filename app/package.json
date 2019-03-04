@@ -11,7 +11,7 @@
     "@blueprintjs/core": "^1.35.5",
     "@blueprintjs/datetime": "^1.25.4",
     "@blueprintjs/table": "^1.31.2",
-    "cesium": "^1.53.0",
+    "cesium": "1.53.0",
     "classnames": "^2.2.5",
     "d3-fetch": "^1.1.0",
     "deep-equal": "^1.0.1",

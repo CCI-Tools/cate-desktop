@@ -63,7 +63,7 @@
     "@types/react-test-renderer": "^16.8.1",
     "@types/redux-logger": "^3.0.7",
     "@types/tether": "^1.4.4",
-    "cesium": "^1.53.0",
+    "cesium": "1.53.0",
     "cesium-typings": "^1.50.2",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
