@@ -1,6 +1,9 @@
 ## Version 2.0.0.dev26 (in development)
 
+* Removed checking for existence of `deactivate.bat` as part of installation validation on Windows. 
+  The `deactivate.bat` script is no longer part of conda environments.
 * Upgraded Cesium to version 1.53.
+
 
 ## Version 2.0.0.dev25
 
@@ -14,7 +17,7 @@
   [#789](https://github.com/CCI-Tools/cate/issues/789)
 
 ## Changes in 2.0.0-dev.23
-
+ 
 Backend cate-cli 2.0.0.dev22 changes only. 
 
 ## Changes in 2.0.0-dev.22
