@@ -46,10 +46,10 @@ export const CATE_WEBAPI_EXECUTABLE = (() => {
 
 export const CONDA_EXECUTABLES = (() => {
     if (process.platform === 'win32') {
-        return ['python.exe', path.join('Scripts', 'activate.bat'), path.join('Scripts', 'deactivate.bat')];
+        return ['python.exe', path.join('Scripts', 'activate.bat')];
     } else {
         // On Darwin/Linux the bin/activate and bin/deactivate scripts may have no execute permission
-        return [path.join('bin', 'python') /*, path.join('bin', 'activate'), path.join('bin', 'deactivate')*/];
+        return [path.join('bin', 'python') /*, path.join('bin', 'activate')*/];
     }
 })();
 
