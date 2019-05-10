@@ -7,6 +7,8 @@
 
 `cate-desktop` provides a desktop GUI for *Cate*, the ESA CCI Toolbox.
 
+![cate-desktop](https://github.com/CCI-Tools/cate/blob/master/doc/source/_static/figures/cate_desktop.png)
+
 ## Building from Sources
 
 ### Setting up Cate Core
