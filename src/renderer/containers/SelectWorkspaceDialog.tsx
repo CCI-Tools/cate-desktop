@@ -1,10 +1,10 @@
 import * as React from "react";
-import {AnchorButton} from "@blueprintjs/core";
-import {DialogState, State} from "../state";
-import {ModalDialog} from "../components/ModalDialog";
-import {connect, DispatchProp} from "react-redux";
+import { AnchorButton } from "@blueprintjs/core";
+import { DialogState, State } from "../state";
+import { ModalDialog } from "../components/ModalDialog";
+import { connect, DispatchProp } from "react-redux";
 import * as actions from "../actions";
-import {OpenDialogProperty} from "../actions";
+import { OpenDialogProperty } from "../actions";
 import * as selectors from "../selectors";
 
 interface ISelectWorkspaceDialogState extends DialogState {
@@ -16,9 +16,10 @@ interface ISelectWorkspaceDialogOwnProps {
     dialogId: string;
 }
 
-interface ISelectWorkspaceDialogProps extends ISelectWorkspaceDialogState,  ISelectWorkspaceDialogOwnProps {
+interface ISelectWorkspaceDialogProps extends ISelectWorkspaceDialogState, ISelectWorkspaceDialogOwnProps {
     isOpen: boolean;
     isNewDialog: boolean;
+    isRemote: boolean;
 }
 
 function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps): ISelectWorkspaceDialogProps {
@@ -33,7 +34,7 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
             workspaceDir = workspaceDir || selectors.workspaceDirSelector(state);
             workspaceName = workspaceName || selectors.workspaceNameSelector(state);
         }
-        workspaceDir = workspaceDir || selectors.lastWorkspaceDirSelector(state);;
+        workspaceDir = workspaceDir || selectors.lastWorkspaceDirSelector(state);
     }
     workspaceDir = workspaceDir || "";
     workspaceName = workspaceName || "";
@@ -43,10 +44,12 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
         dialogId,
         isNewDialog,
         isOpen,
+        // TODO (Sabine): make Selector, e.g. "isRemoteWebAPIClientSelector()", make check more general
+        isRemote: state.data.appConfig.webAPIClient.url.indexOf('localhost') === -1
     };
 }
 
-class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps  & ISelectWorkspaceDialogOwnProps & DispatchProp<State>, ISelectWorkspaceDialogState> {
+class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps & ISelectWorkspaceDialogOwnProps & DispatchProp<State>, ISelectWorkspaceDialogState> {
 
     constructor(props: ISelectWorkspaceDialogProps & DispatchProp<State>) {
         super(props);
@@ -131,20 +134,29 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
         if (!this.props.isOpen) {
             return null;
         }
+
+        let directoryChooser = null;
+        if (!this.props.isRemote) {
+            directoryChooser = (
+                <React.Fragment>
+                    <p style={{marginTop: '1em'}}>Workspace parent directory:</p>
+                    <div className="pt-control-group"
+                         style={{flexGrow: 1, display: 'flex', marginLeft: '1em', width: '100%'}}>
+                        <input className="pt-input"
+                               type="text"
+                               style={{flex: 'auto'}}
+                               value={this.state.workspaceDir}
+                               onChange={this.onWorkspaceDirChange}/>
+                        <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
+                                      onClick={this.showSelectDirectoryDialog}>...</AnchorButton>
+                    </div>
+                </React.Fragment>
+            );
+        }
+
         return (
             <div>
-                <p style={{marginTop: '1em'}}>Workspace parent directory:</p>
-                <div className="pt-control-group"
-                     style={{flexGrow: 1, display: 'flex', marginLeft: '1em', width: '100%'}}>
-                    <input className="pt-input"
-                           type="text"
-                           style={{flex: 'auto'}}
-                           value={this.state.workspaceDir}
-                           onChange={this.onWorkspaceDirChange}/>
-                    <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
-                                  onClick={this.showSelectDirectoryDialog}>...</AnchorButton>
-                </div>
-
+                {directoryChooser}
                 <p style={{marginTop: '1em'}}>Workspace name:</p>
                 <input className="pt-input"
                        type="text"
@@ -155,4 +167,5 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
         );
     }
 }
+
 export default connect(mapStateToProps)(SelectWorkspaceDialog);
