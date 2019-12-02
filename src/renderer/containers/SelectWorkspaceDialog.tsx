@@ -44,8 +44,7 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
         dialogId,
         isNewDialog,
         isOpen,
-        // TODO (Sabine): make Selector, e.g. "isRemoteWebAPIClientSelector()", make check more general
-        isRemote: state.data.appConfig.webAPIClient.url.indexOf('localhost') === -1
+        isRemote: false,
     };
 }
 
