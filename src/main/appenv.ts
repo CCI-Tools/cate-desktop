@@ -6,6 +6,7 @@ import * as semver from 'semver';
 import { pep440ToSemver } from '../common/version';
 import { SETUP_REASON_INSTALL_CATE, SETUP_REASON_UPDATE_CATE, SetupInfo } from '../common/setup';
 import * as assert from '../common/assert';
+import { WebAPIConfig } from '../renderer/state';
 
 
 /**
@@ -13,7 +14,7 @@ import * as assert from '../common/assert';
  * The value is a SemVer (https://github.com/npm/semver) compatible version range string.
  * @type {string}
  */
-export const CATE_WEBAPI_VERSION_RANGE = '>=2.0.0-dev.26 <2.1.0';
+export const CATE_WEBAPI_VERSION_RANGE = '>=2.1.0-dev.0 <=2.1.0';
 
 /**
  * Version of the Cate WebAPI that is know to run with this version of Cate Desktop.
@@ -23,7 +24,7 @@ export const CATE_WEBAPI_VERSION_RANGE = '>=2.0.0-dev.26 <2.1.0';
  *
  * @type {string}
  */
-export const EXPECTED_CATE_WEBAPI_VERSION = '2.0.0';
+export const EXPECTED_CATE_WEBAPI_VERSION = '2.1.0.dev0';
 
 export const CATE_CLI_NAME = 'cate';
 export const CATE_WEBAPI_NAME = 'cate-webapi-start';
@@ -83,7 +84,7 @@ export function isWebAPIVersionCompatible(version: string, pep440?: boolean) {
     return semver.satisfies(version, CATE_WEBAPI_VERSION_RANGE, true);
 }
 
-export function getWebAPIStartCommand(webAPIConfig): string {
+export function getWebAPIStartCommand(webAPIConfig: WebAPIConfig): string {
     let command = `cate-webapi-start --caller cate-desktop --port ${webAPIConfig.servicePort} --file "${webAPIConfig.serviceFile}" --verbose`;
     if (webAPIConfig.serviceAddress) {
         command += ` --address "${webAPIConfig.serviceAddress}"`;
@@ -91,16 +92,25 @@ export function getWebAPIStartCommand(webAPIConfig): string {
     return getCommandInActivatedCate(getCateDirSafe(), command);
 }
 
-export function getWebAPIRestUrl(webAPIConfig) {
-    return `http://${webAPIConfig.serviceAddress || DEFAULT_SERVICE_ADDRESS}:${webAPIConfig.servicePort}/`;
+export function getWebAPIRestUrl(webAPIConfig: WebAPIConfig) {
+    const serviceProtocol = webAPIConfig.serviceProtocol || 'http';
+    return `${serviceProtocol}://${getWebAPIAddressAndPort(webAPIConfig)}/`;
 }
 
-export function getAPIWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || DEFAULT_SERVICE_ADDRESS}:${webAPIConfig.servicePort}/api`;
+export function getAPIWebSocketsUrl(webAPIConfig: WebAPIConfig) {
+    return `ws://${getWebAPIAddressAndPort(webAPIConfig)}/api`;
 }
 
-export function getMPLWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || DEFAULT_SERVICE_ADDRESS}:${webAPIConfig.servicePort}/mpl/figures/`;
+export function getMPLWebSocketsUrl(webAPIConfig: WebAPIConfig) {
+    return `ws://${getWebAPIAddressAndPort(webAPIConfig)}/mpl/figures/`;
+}
+
+function getWebAPIAddressAndPort(webAPIConfig: WebAPIConfig) {
+    const serviceAddress = webAPIConfig.serviceAddress || DEFAULT_SERVICE_ADDRESS;
+    if (typeof(webAPIConfig.servicePort) === 'number') {
+        return `${serviceAddress}:${webAPIConfig.servicePort}`;
+    }
+    return serviceAddress;
 }
 
 export function getCateDirSafe() {

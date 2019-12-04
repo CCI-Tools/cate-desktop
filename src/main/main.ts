@@ -21,6 +21,7 @@ import { installAutoUpdate } from './update-frontend';
 import { isDefined, isNumber, isString } from '../common/types';
 import { doSetup } from './setup';
 import { SetupResult } from '../common/setup';
+import { WebAPIConfig } from '../renderer/state';
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -123,6 +124,7 @@ class CateDesktopApp {
     }
 
     start() {
+
         // Ensure we have a valid "~/.cate/"
         if (!CateDesktopApp.ensureAppDataDir()) {
             return;
@@ -310,11 +312,14 @@ class CateDesktopApp {
         webAPIConfig = updateConditionally(webAPIConfig, {
             servicePort: 9090,
             serviceAddress: '',
+            serviceProtocol: 'http',
             serviceFile: path.join(getAppDataDir(), 'webapi-info.json'),
             // Refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
             processOptions: {},
         });
         this.configuration.set('webAPIConfig', webAPIConfig);
+        // TODO (SabineEmbacher) find a better solution for context injection
+        electron.app['_configuration'] = this.configuration;
     }
 
     private startUpWithWebAPIService() {
@@ -654,7 +659,7 @@ class CateDesktopApp {
             if (this.isSplashWindowAlive()) {
                 this.splashWindow.close();
             }
-            const webAPIConfig = this.configuration.data.webAPIConfig;
+            const webAPIConfig = this.configuration.data.webAPIConfig as WebAPIConfig;
             this.mainWindow.webContents.send('apply-initial-state', {
                 session: this.preferences.data,
                 appConfig: Object.assign({}, this.configuration.data, {
