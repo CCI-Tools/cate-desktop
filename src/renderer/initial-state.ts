@@ -9,8 +9,9 @@ import {ViewState} from "./components/ViewState";
 export const INITIAL_DATA_STATE: DataState = {
     appConfig: {
         webAPIConfig: {
-            servicePort: -1,
+            servicePort: null,
             serviceAddress: '',
+            serviceProtocol: 'http',
             restUrl: '',
             apiWebSocketUrl: '',
             mplWebSocketUrl: '',

@@ -48,8 +48,9 @@ export interface AppConfigState {
 
 export interface WebAPIConfig {
     // Values read by main.ts from ./cate-config.js
-    servicePort: number;
+    servicePort?: number | null;
     serviceAddress: string;
+    serviceProtocol?: 'http' | 'https';
     serviceFile?: string;
     processOptions?: Object;
     useMockService?: boolean;
