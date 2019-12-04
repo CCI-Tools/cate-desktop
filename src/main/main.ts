@@ -345,7 +345,7 @@ class CateDesktopApp {
         const internalErrorTitle = `${electron.app.getName()} - Internal Error`;
         const localWebAPIService = isLocalWebAPIService(this.webAPIConfig);
 
-        log.info(`Waiting for response from Cate service ${this.webAPIRestUrl}`);
+        log.info(`Waiting for response from ${localWebAPIService ? 'local' : 'remote'} Cate service ${this.webAPIRestUrl}`);
         request(this.webAPIRestUrl, this.webAPIAccessTimeout)
             .then((response: string) => {
                 serviceFound = true;
