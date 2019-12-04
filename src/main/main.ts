@@ -318,6 +318,7 @@ class CateDesktopApp {
             processOptions: {},
         });
         this.configuration.set('webAPIConfig', webAPIConfig);
+        // TODO (SabineEmbacher) find a better solution for context injection
         electron.app['_configuration'] = this.configuration;
     }
 
