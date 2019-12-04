@@ -19,7 +19,7 @@ interface ISelectWorkspaceDialogOwnProps {
 interface ISelectWorkspaceDialogProps extends ISelectWorkspaceDialogState, ISelectWorkspaceDialogOwnProps {
     isOpen: boolean;
     isNewDialog: boolean;
-    isRemote: boolean;
+    isLocalWebAPI: boolean;
 }
 
 function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps): ISelectWorkspaceDialogProps {
@@ -27,6 +27,7 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
     const isOpen = dialogState.isOpen;
     const dialogId = ownProps.dialogId;
     const isNewDialog = ownProps.dialogId === 'newWorkspaceDialog';
+    const isLocalWebAPI = selectors.isLocalWebAPISelector(state);
     let workspaceDir = dialogState.workspaceDir;
     let workspaceName = dialogState.workspaceName;
     if (isOpen) {
@@ -44,8 +45,7 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
         dialogId,
         isNewDialog,
         isOpen,
-        // TODO (Sabine): make Selector, e.g. "isRemoteWebAPIClientSelector()", make check more general
-        isRemote: state.data.appConfig.webAPIClient.url.indexOf('localhost') === -1
+        isLocalWebAPI,
     };
 }
 
@@ -136,7 +136,7 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
         }
 
         let directoryChooser = null;
-        if (!this.props.isRemote) {
+        if (this.props.isLocalWebAPI) {
             directoryChooser = (
                 <React.Fragment>
                     <p style={{marginTop: '1em'}}>Workspace parent directory:</p>

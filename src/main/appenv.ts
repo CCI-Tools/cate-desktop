@@ -92,20 +92,34 @@ export function getWebAPIStartCommand(webAPIConfig: WebAPIConfig): string {
     return getCommandInActivatedCate(getCateDirSafe(), command);
 }
 
-export function getWebAPIRestUrl(webAPIConfig: WebAPIConfig) {
-    const serviceProtocol = webAPIConfig.serviceProtocol || 'http';
-    return `${serviceProtocol}://${getWebAPIAddressAndPort(webAPIConfig)}/`;
+export function getWebAPIRestUrl(webAPIConfig: WebAPIConfig): string {
+    const protocol = getWebAPIHttpServiceProtocol(webAPIConfig);
+    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
+    return `${protocol}://${addressAndPort}/`;
 }
 
-export function getAPIWebSocketsUrl(webAPIConfig: WebAPIConfig) {
-    return `ws://${getWebAPIAddressAndPort(webAPIConfig)}/api`;
+export function getAPIWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
+    const protocol = getWebAPIWebSocketServiceProtocol(webAPIConfig);
+    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
+    return `${protocol}://${addressAndPort}/api`;
 }
 
-export function getMPLWebSocketsUrl(webAPIConfig: WebAPIConfig) {
-    return `ws://${getWebAPIAddressAndPort(webAPIConfig)}/mpl/figures/`;
+export function getMPLWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
+    const protocol = getWebAPIWebSocketServiceProtocol(webAPIConfig);
+    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
+    return `${protocol}://${addressAndPort}/mpl/figures/`;
 }
 
-function getWebAPIAddressAndPort(webAPIConfig: WebAPIConfig) {
+function getWebAPIHttpServiceProtocol(webAPIConfig: WebAPIConfig): 'http' | 'https' {
+    return webAPIConfig.serviceProtocol || 'http';
+}
+
+function getWebAPIWebSocketServiceProtocol(webAPIConfig: WebAPIConfig): 'wss' | 'ws' {
+    const protocol = getWebAPIHttpServiceProtocol(webAPIConfig);
+    return protocol === 'https' ? 'wss' : 'ws'
+}
+
+function getWebAPIAddressAndPort(webAPIConfig: WebAPIConfig): string {
     const serviceAddress = webAPIConfig.serviceAddress || DEFAULT_SERVICE_ADDRESS;
     if (typeof(webAPIConfig.servicePort) === 'number') {
         return `${serviceAddress}:${webAPIConfig.servicePort}`;

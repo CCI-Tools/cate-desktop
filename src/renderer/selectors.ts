@@ -1,4 +1,5 @@
 import {
+    AppConfigState,
     ColorMapCategoryState,
     ColorMapState,
     DataSourceState,
@@ -21,7 +22,7 @@ import {
     VariableImageLayerState,
     VariableLayerBase,
     VariableState,
-    VectorLayerState,
+    VectorLayerState, WebAPIConfig,
     WorkflowStepState,
     WorkspaceState,
     WorldViewDataState
@@ -54,17 +55,32 @@ import {GeometryToolType} from './components/cesium/geometry-tool';
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
 
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application selectors
 
 export const offlineModeSelector = (state: State): boolean => state.session.offlineMode;
 
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remote API selectors
 
 export const webAPIClientSelector = (state: State): WebAPIClient => state.data.appConfig.webAPIClient;
+export const webAPIConfigSelector = (state: State): WebAPIConfig => state.data.appConfig.webAPIConfig;
 export const webAPIRestUrlSelector = (state: State): string => state.data.appConfig.webAPIConfig.restUrl;
 export const mplWebSocketUrlSelector = (state: State): string => state.data.appConfig.webAPIConfig.mplWebSocketUrl;
+
+
+export const isLocalWebAPISelector = createSelector(
+    webAPIConfigSelector,
+    (webAPIConfig: WebAPIConfig) => {
+        const serviceAddress = webAPIConfig.serviceAddress;
+        return serviceAddress === ''
+               || serviceAddress === 'localhost'
+               || serviceAddress === '127.0.0.1'
+               || serviceAddress === '::1';
+    }
+);
 
 
 export const backendConfigAPISelector = createSelector(
