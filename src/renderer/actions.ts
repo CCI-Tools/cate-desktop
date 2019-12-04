@@ -978,11 +978,23 @@ export function newWorkspaceInteractive() {
  */
 export function openWorkspaceInteractive(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        const workspacePath = showSingleFileOpenDialog({
-                                                           title: 'Open Workspace - Select Directory',
-                                                           buttonLabel: 'Open',
-                                                           properties: ['openDirectory'],
-                                                       });
+        let isRemote: boolean = selectors.isRemoteWebAPIClientSelector(getState());
+
+        let workspacePath: string;
+        if (isRemote) {
+            let state = getState();
+            workspacePath = showWorkspaceOpenDialog(state,
+                                                    {
+                                                        title: 'Open Workspace',
+                                                        buttonLabel: 'Open'
+                                                    });
+        } else {
+            workspacePath = showSingleFileOpenDialog({
+                                                         title: 'Open Workspace - Select Directory',
+                                                         buttonLabel: 'Open',
+                                                         properties: ['openDirectory'],
+                                                     });
+        }
         if (workspacePath) {
             const workspace = getState().data.workspace;
             let ok = true;
@@ -1159,7 +1171,7 @@ export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: 
                 if (resource && resource.variables && resource.variables.length) {
                     const variable = resource.variables.find(variable => !!variable.isDefault);
                     dispatch(setSelectedVariable(resource,
-                        variable || resource.variables[0],
+                                                 variable || resource.variables[0],
                                                  selectors.savedLayersSelector(getState())));
                 }
             }
@@ -1820,6 +1832,11 @@ export function showSingleFileOpenDialog(openDialogOptions: OpenDialogOptions,
         };
     }
     return getFirstFile(showFileOpenDialog(openDialogOptions, callbackThunk));
+}
+
+export function showWorkspaceOpenDialog(state: State, properties: { title: string; buttonLabel: string }): string | null {
+    let jobPromise: JobPromise<string[]> = selectors.workspaceAPISelector(state).listWorkspaces();
+    return;
 }
 
 //noinspection JSUnusedGlobalSymbols
