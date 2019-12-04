@@ -7,6 +7,8 @@ import { pep440ToSemver } from '../common/version';
 import { SETUP_REASON_INSTALL_CATE, SETUP_REASON_UPDATE_CATE, SetupInfo } from '../common/setup';
 import * as assert from '../common/assert';
 import { WebAPIConfig } from '../renderer/state';
+import { webAPIConfigSelector } from '../renderer/selectors';
+import { createSelector } from 'reselect';
 
 
 /**
@@ -108,6 +110,15 @@ export function getMPLWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
     const protocol = getWebAPIWebSocketServiceProtocol(webAPIConfig);
     const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
     return `${protocol}://${addressAndPort}/mpl/figures/`;
+}
+
+export function isLocalWebAPIService(webAPIConfig: WebAPIConfig) {
+    const serviceAddress = webAPIConfig.serviceAddress;
+    return !serviceAddress
+           || serviceAddress === ''
+           || serviceAddress === 'localhost'
+           || serviceAddress === '127.0.0.1'
+           || serviceAddress === '::1';
 }
 
 function getWebAPIHttpServiceProtocol(webAPIConfig: WebAPIConfig): 'http' | 'https' {

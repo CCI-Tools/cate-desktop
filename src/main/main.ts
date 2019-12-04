@@ -11,10 +11,20 @@ import { updateConditionally } from '../common/objutil';
 import { Configuration } from './configuration';
 import { menuTemplate } from './menu';
 import {
-    getAppDataDir, getAppIconPath,
-    getCateWebAPISetupInfo, setCateDir, getWebAPIStartCommand, getWebAPIRestUrl,
-    getMPLWebSocketsUrl, getAPIWebSocketsUrl, defaultSpawnShellOption,
-    isWebAPIVersionCompatible, EXPECTED_CATE_WEBAPI_VERSION, getProxySettings, getSessionProxyConfig
+    getAppDataDir,
+    getAppIconPath,
+    getCateWebAPISetupInfo,
+    setCateDir,
+    getWebAPIStartCommand,
+    getWebAPIRestUrl,
+    getMPLWebSocketsUrl,
+    getAPIWebSocketsUrl,
+    defaultSpawnShellOption,
+    isWebAPIVersionCompatible,
+    EXPECTED_CATE_WEBAPI_VERSION,
+    getProxySettings,
+    getSessionProxyConfig,
+    isLocalWebAPIService
 } from './appenv';
 import * as net from 'net';
 import { installAutoUpdate } from './update-frontend';
@@ -32,6 +42,7 @@ const WEBAPI_LOG_PREFIX = 'cate-webapi:';
 const ERRCODE_WEBAPI_INTERNAL_ERROR = 1;
 const ERRCODE_WEBAPI_TIMEOUT = 2;
 const ERRCODE_WEBAPI_NO_FREE_PORT = 3;
+const ERRCODE_WEBAPI_VERSION = 4;
 const ERRCODE_SETUP_FAILED = 5;
 
 // Timeout for starting WebAPI in seconds.
@@ -331,6 +342,9 @@ class CateDesktopApp {
 
         let serviceFound = false;
 
+        const internalErrorTitle = `${electron.app.getName()} - Internal Error`;
+        const localWebAPIService = isLocalWebAPIService(this.webAPIConfig);
+
         log.info(`Waiting for response from Cate service ${this.webAPIRestUrl}`);
         request(this.webAPIRestUrl, this.webAPIAccessTimeout)
             .then((response: string) => {
@@ -344,14 +358,26 @@ class CateDesktopApp {
                         this.loadMainWindow();
                     } else {
                         // Incompatible WebAPI service version
-                        throw new Error(`Cate service version ${EXPECTED_CATE_WEBAPI_VERSION} expected, but found ${version}`);
+                        const msg = `Cate service version ${EXPECTED_CATE_WEBAPI_VERSION} expected, but found ${version}`;
+                        electron.dialog.showErrorBox(internalErrorTitle, msg);
+                        electron.app.exit(ERRCODE_WEBAPI_VERSION);
+                        return;
                     }
                 } else {
                     // Can't get version info
-                    throw new Error('Can\'t retrieve version information from Cate service');
+                    const msg = `Cate service version ${EXPECTED_CATE_WEBAPI_VERSION} expected, but found none at all.`;
+                    electron.dialog.showErrorBox(internalErrorTitle, msg);
+                    electron.app.exit(ERRCODE_WEBAPI_VERSION);
+                    return;
                 }
             })
             .catch((err) => {
+                if (!localWebAPIService) {
+                    const msg = `Failed to connect to Cate service within ${this.webAPIAccessTimeout / 1000} seconds:\n${err}`;
+                    electron.dialog.showErrorBox(internalErrorTitle, msg);
+                    electron.app.exit(ERRCODE_WEBAPI_TIMEOUT);
+                    return;
+                }
                 const delta = this.webAPIStartTimeDelta;
                 const deltaStr = delta.toFixed(2);
                 if (serviceFound) {
@@ -364,8 +390,8 @@ class CateDesktopApp {
                     if (delta > this.webAPIStartTimeout) {
                         log.error(`Failed to start Cate service within ${deltaStr} seconds: ${err}`);
                         if (!this.webAPIError) {
-                            electron.dialog.showErrorBox(`${electron.app.getName()} - Internal Error`,
-                                                         `Failed to start Cate service within ${deltaStr} seconds:\n${err}`);
+                            const msg = `Failed to start Cate service within ${deltaStr} seconds:\n${err}`;
+                            electron.dialog.showErrorBox(internalErrorTitle, msg);
                         }
                         electron.app.exit(ERRCODE_WEBAPI_TIMEOUT);
                     } else {
@@ -499,7 +525,7 @@ class CateDesktopApp {
         // Emitted when the window is going to be closed.
         this.mainWindow.on('close', event => {
             log.info(`Main window will be closed. `
-                     +`Possible reason: ${this.quitRequested ? "quit requested" :  "window closed"}`);
+                     + `Possible reason: ${this.quitRequested ? 'quit requested' : 'window closed'}`);
             this.requestPreferencesUpdate();
             this.preferences.set('mainWindowBounds', this.mainWindow.getBounds());
             this.preferences.set('devToolsOpened', this.mainWindow.webContents.isDevToolsOpened());
@@ -557,20 +583,20 @@ class CateDesktopApp {
     }
 
     private confirmQuit(callback: (suppressQuitConfirm: boolean) => void) {
-            const quitName = process.platform === 'darwin' ? 'Quit' : 'Exit';
-            const options = {
-                type: 'question',
-                title: `${electron.app.getName()} - Confirm ${quitName}`,
-                buttons: ['Cancel', quitName],
-                //buttons: ['Cancel', "Yes"],
-                cancelId: 0,
-                message: `Are you sure you want to exit ${electron.app.getName()}?\nUnsaved workspace changes will be lost.`,
-                checkboxLabel: 'Do not ask me again',
-                checkboxChecked: false,
-            };
-            electron.dialog.showMessageBox(this.mainWindow, options, (response: number, checkboxChecked: boolean) => {
-                if (response === 1) {
-                    callback(checkboxChecked);
+        const quitName = process.platform === 'darwin' ? 'Quit' : 'Exit';
+        const options = {
+            type: 'question',
+            title: `${electron.app.getName()} - Confirm ${quitName}`,
+            buttons: ['Cancel', quitName],
+            //buttons: ['Cancel', "Yes"],
+            cancelId: 0,
+            message: `Are you sure you want to exit ${electron.app.getName()}?\nUnsaved workspace changes will be lost.`,
+            checkboxLabel: 'Do not ask me again',
+            checkboxChecked: false,
+        };
+        electron.dialog.showMessageBox(this.mainWindow, options, (response: number, checkboxChecked: boolean) => {
+            if (response === 1) {
+                callback(checkboxChecked);
             }
         });
     }
