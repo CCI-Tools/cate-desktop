@@ -384,10 +384,6 @@ export const workspaceSelector = (state: State): WorkspaceState | null => {
 export const isScratchWorkspaceSelector = (state: State): boolean => {
     return state.data.workspace && state.data.workspace.isScratch;
 };
-export const isRemoteWebAPIClientSelector = (state: State): boolean => {
-    // TODO (Sabine): make check more general
-    return state.data.appConfig.webAPIClient.url.indexOf('localhost') === -1
-};
 export const workspaceBaseDirSelector = (state: State): string | null => {
     return state.data.workspace && state.data.workspace.baseDir;
 };
