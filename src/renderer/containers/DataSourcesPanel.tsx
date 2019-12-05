@@ -318,9 +318,8 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             const callouts = [];
             selectedDataStore.notices.forEach((notice: DataStoreNotice) => {
                 callouts.push(
-                    <div style={{margin: "0 4px 4px 4px"}}>
+                    <div key={notice.id} style={{margin: "0 4px 4px 4px"}}>
                         <Callout
-                            key={notice.id}
                             title={notice.title}
                             iconName={notice.icon as IconName}
                             intent={notice.intent in INTENTS ? INTENTS[notice.intent] : Intent.NONE}

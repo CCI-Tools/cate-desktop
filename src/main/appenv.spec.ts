@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import * as semver from 'semver';
-import { CATE_WEBAPI_VERSION_RANGE, getProxySettings, getSessionProxyConfig } from './appenv';
+import { CATE_WEBAPI_VERSION_RANGE, getProxySettings, getSessionProxyConfig, isLocalWebAPIService } from './appenv';
+import { WebAPIConfig } from '../renderer/state';
 
 describe('appenv', function () {
 
@@ -58,9 +59,9 @@ describe('appenv', function () {
                 proxyBypassRules: '<local>;dev.virtualearth.net'
             });
         expect(getSessionProxyConfig({
-                                    HTTP_PROXY: 'http://ofsquid.dwd.de:8080',
-                                    no_proxy: 'www.google.de'
-                                })).to.deep.equal(
+                                         HTTP_PROXY: 'http://ofsquid.dwd.de:8080',
+                                         no_proxy: 'www.google.de'
+                                     })).to.deep.equal(
             {
                 pacScript: '',
                 proxyRules: 'http://ofsquid.dwd.de:8080',
@@ -70,13 +71,25 @@ describe('appenv', function () {
                                          socks_proxy: 'ws:ws.bc.com',
                                          https_proxy: 'https://ofsquid.dwd.de:80',
                                          HTTP_PROXY: 'http://ofsquid.dwd.de:8080',
-                                    no_proxy: '127.0.0.1, dwd.de, localhost',
-                                    NO_PROXY: '*.foogle.com'
-                                })).to.deep.equal(
+                                         no_proxy: '127.0.0.1, dwd.de, localhost',
+                                         NO_PROXY: '*.foogle.com'
+                                     })).to.deep.equal(
             {
                 pacScript: '',
                 proxyRules: 'http://ofsquid.dwd.de:8080;https://ofsquid.dwd.de:80;ws:ws.bc.com',
                 proxyBypassRules: '<local>;dev.virtualearth.net;dwd.de;*.foogle.com'
             });
+    });
+
+    it('implements isLocalWebAPIService() correctly', function () {
+
+        expect(isLocalWebAPIService({} as WebAPIConfig)).to.be.true;
+        expect(isLocalWebAPIService({serviceAddress: ''} as WebAPIConfig)).to.be.true;
+        expect(isLocalWebAPIService({serviceAddress: 'localhost'} as WebAPIConfig)).to.be.true;
+        expect(isLocalWebAPIService({serviceAddress: '::1'} as WebAPIConfig)).to.be.true;
+        expect(isLocalWebAPIService({serviceAddress: '127.0.0.1'} as WebAPIConfig)).to.be.true;
+
+        expect(isLocalWebAPIService({serviceAddress: '192.171.139.57'} as WebAPIConfig)).to.be.false;
+        expect(isLocalWebAPIService({serviceAddress: 'cate-webapi.192.171.139.57.nip.io'} as WebAPIConfig)).to.be.false;
     });
 });
