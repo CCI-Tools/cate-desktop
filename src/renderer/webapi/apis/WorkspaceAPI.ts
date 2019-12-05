@@ -68,6 +68,10 @@ export class WorkspaceAPI {
         this.webAPIClient = webAPI;
     }
 
+    listWorkspaces(): JobPromise<string[]> {
+        return this.webAPIClient.call('list_workspace_names', []);
+    }
+
     newWorkspace(baseDir: string | null): JobPromise<WorkspaceState> {
         return this.webAPIClient.call('new_workspace',
                                       [baseDir],
