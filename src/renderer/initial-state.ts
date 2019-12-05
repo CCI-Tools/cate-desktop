@@ -110,6 +110,8 @@ export const INITIAL_SESSION_STATE: SessionState = {
 };
 
 export const INITIAL_COMMUNICATION_STATE: CommunicationState = {
+    isSignedIn: false,
+    webAPIMode: null,
     webAPIStatus: null,
     tasks: {}
 };

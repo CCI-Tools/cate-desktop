@@ -348,7 +348,7 @@ class CateDesktopApp {
 
         const internalErrorTitle = `${electron.app.getName()} - Internal Error`;
 
-        log.info(`Waiting for response from ${localWebAPIService ? 'local' : 'remote'} Cate service ${this.webAPIRestUrl}`);
+        log.info(`Waiting for response from local Cate service ${this.webAPIRestUrl}`);
         request(this.webAPIRestUrl, this.webAPIAccessTimeout)
             .then((response: string) => {
                 serviceFound = true;
@@ -371,7 +371,19 @@ class CateDesktopApp {
                     electron.app.exit(ERRCODE_WEBAPI_VERSION);
                     return;
                 }
-                this.mainWindow.webContents.send('connected-to-service', message.content);
+
+                const webAPIConfig = this.configuration.data.webAPIConfig as WebAPIConfig;
+                this.mainWindow.webContents.send('apply-initial-state', {
+                    session: this.preferences.data,
+                    appConfig: Object.assign({}, this.configuration.data, {
+                        appPath: electron.app.getAppPath(),
+                        webAPIConfig: Object.assign({}, webAPIConfig, {
+                            restUrl: getWebAPIRestUrl(webAPIConfig),
+                            apiWebSocketUrl: getAPIWebSocketsUrl(webAPIConfig),
+                            mplWebSocketUrl: getMPLWebSocketsUrl(webAPIConfig),
+                        }),
+                    })
+                });
             })
             .catch((err) => {
                 const delta = this.webAPIStartTimeDelta;
@@ -645,19 +657,6 @@ class CateDesktopApp {
 
         this.mainWindow.webContents.on('did-finish-load', () => {
             this.updateInitMessage('Done.');
-            const webAPIConfig = this.configuration.data.webAPIConfig as WebAPIConfig;
-            this.mainWindow.webContents.send('apply-initial-state', {
-                session: this.preferences.data,
-                appConfig: Object.assign({}, this.configuration.data, {
-                    appPath: electron.app.getAppPath(),
-                    webAPIConfig: Object.assign({}, webAPIConfig, {
-                        restUrl: getWebAPIRestUrl(webAPIConfig),
-                        apiWebSocketUrl: getAPIWebSocketsUrl(webAPIConfig),
-                        mplWebSocketUrl: getMPLWebSocketsUrl(webAPIConfig),
-                    }),
-                })
-            });
-
             this.maybeInstallAutoUpdate();
         });
 

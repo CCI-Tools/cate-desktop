@@ -639,6 +639,8 @@ export interface ColorMapCategoryState {
  * Communication state is the status of any not-yet-complete requests to other services.
  */
 export interface CommunicationState {
+    isSignedIn: boolean;
+    webAPIMode: 'local' | 'remote' | null;
     webAPIStatus: 'connecting' | 'open' | 'error' | 'closed' | null;
 
     // A map that stores the current state of any tasks (e.g. data fetch jobs from remote API) given a jobId

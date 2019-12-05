@@ -3,7 +3,7 @@ import {
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
     OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
-    SplitMode,
+    SplitMode, WebAPIConfig,
 } from './state';
 import { ViewState, ViewPath } from './components/ViewState';
 import {
@@ -12,7 +12,7 @@ import {
     JobStatusEnum,
     JobPromise,
     JobProgressHandler,
-    ERROR_CODE_INVALID_PARAMS
+    ERROR_CODE_INVALID_PARAMS, newWebAPIClient
 } from './webapi';
 import * as selectors from './selectors';
 import * as assert from '../common/assert';
@@ -145,69 +145,65 @@ export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Acti
 // Application-level actions
 
 export const UPDATE_INITIAL_STATE = 'UPDATE_INITIAL_STATE';
+export const SIGN_IN = 'SIGN_IN';
+export const SET_WEBAPI_MODE = 'SET_WEBAPI_MODE';
+export const SET_WEBAPI_CONFIG = 'SET_WEBAPI_CONFIG';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const UPDATE_DIALOG_STATE = 'UPDATE_DIALOG_STATE';
 export const UPDATE_TASK_STATE = 'UPDATE_TASK_STATE';
 export const REMOVE_TASK_STATE = 'REMOVE_TASK_STATE';
 export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
-export const SET_GLOBE_MOUSE_POSITION = 'SET_GLOBE_MOUSE_POSITION';
-export const SET_GLOBE_VIEW_POSITION = 'SET_GLOBE_VIEW_POSITION';
 export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
 
-export function setGlobeMousePosition(position: GeographicPosition): Action {
-    return {type: SET_GLOBE_MOUSE_POSITION, payload: {position}};
+export function signIn(): Action {
+    return {type: SIGN_IN}
 }
 
-
-function setGlobeViewPositionImpl(position: GeographicPosition | null,
-                                  positionData: { [varName: string]: number } | null): Action {
-    return {type: SET_GLOBE_VIEW_POSITION, payload: {position, positionData}};
+export function setWebAPIMode(webAPIMode: 'local' | 'remote' | null): Action {
+    return {type: SET_WEBAPI_MODE, payload: {webAPIMode}}
 }
 
-export function setGlobeViewPosition(position: GeographicPosition): ThunkAction {
-    return (dispatch: Dispatch, getState: GetState) => {
-        if (position) {
-            // TODO: using selectedRightBottomPanelID is no good indicator for checking VARIABLES panel visibility.
-            const selectedRightBottomPanelID = selectors.selectedRightBottomPanelIdSelector(getState());
-            if (selectedRightBottomPanelID === 'variables') {
-                const baseDir = selectors.workspaceBaseDirSelector(getState());
-                if (!baseDir) {
-                    // Workspace not yet ready, that's ok.
-                    return;
-                }
-                const resource = selectors.selectedResourceSelector(getState());
-                const layer = selectors.selectedVariableImageLayerSelector(getState());
-                if (layer && resource) {
-                    const indexers = getNonSpatialIndexers(resource, layer);
-
-                    function call() {
-                        return selectors.datasetAPISelector(getState()).extractPixelValues(baseDir,
-                                                                                           resource.name,
-                                                                                           [position.longitude, position.latitude],
-                                                                                           indexers);
-                    }
-
-                    function action(positionData: { [varName: string]: number }) {
-                        dispatch(setGlobeViewPositionImpl(position, positionData));
-                    }
-
-                    callAPI({title: 'Load cell values', dispatch, call, action, disableNotifications: true});
-                    return;
-                }
-            }
-        } else {
-            dispatch(setGlobeViewPositionImpl(null, null));
-        }
-    }
-}
-
-export function updateInitialState(initialState: Object): Action {
-    return {type: UPDATE_INITIAL_STATE, payload: initialState};
+export function setWebAPIConfig(webAPIConfig: WebAPIConfig): Action {
+    return {type: SET_WEBAPI_CONFIG, payload: {webAPIConfig}}
 }
 
 export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting' | 'open' | 'error' | 'closed'): Action {
     return {type: SET_WEBAPI_STATUS, payload: {webAPIClient, webAPIStatus}};
+}
+
+export function connectWebAPIClient(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        dispatch(setWebAPIStatus(null, 'connecting'));
+
+        const webAPIConfig = getState().data.appConfig.webAPIConfig;
+        console.log('webAPIConfig:', webAPIConfig);
+        const webAPIClient = newWebAPIClient(webAPIConfig.apiWebSocketUrl);
+
+        webAPIClient.onOpen = () => {
+            dispatch(setWebAPIStatus(webAPIClient, 'open'));
+            dispatch(loadBackendConfig());
+            dispatch(loadDataStores());
+            dispatch(loadOperations());
+            dispatch(loadInitialWorkspace());
+        };
+
+        webAPIClient.onClose = () => {
+            dispatch(setWebAPIStatus(null, 'closed'));
+        };
+
+        webAPIClient.onError = () => {
+            dispatch(setWebAPIStatus(webAPIClient, 'error'));
+        };
+
+        webAPIClient.onWarning = (event) => {
+            console.warn(`cate-desktop: warning from cate-webapi: ${event.message}`);
+        };
+    };
+}
+
+export function updateInitialState(initialState: Object): Action {
+    return {type: UPDATE_INITIAL_STATE, payload: initialState};
 }
 
 export function updateDialogState(dialogId: string, ...dialogState): Action {
@@ -456,6 +452,59 @@ export function callAPI<T>(options: CallAPIOptions<T>): void {
     };
 
     jobPromise.then(onDone, onFailure);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Globe State
+
+export const SET_GLOBE_MOUSE_POSITION = 'SET_GLOBE_MOUSE_POSITION';
+export const SET_GLOBE_VIEW_POSITION = 'SET_GLOBE_VIEW_POSITION';
+
+export function setGlobeMousePosition(position: GeographicPosition): Action {
+    return {type: SET_GLOBE_MOUSE_POSITION, payload: {position}};
+}
+
+
+function setGlobeViewPositionImpl(position: GeographicPosition | null,
+                                  positionData: { [varName: string]: number } | null): Action {
+    return {type: SET_GLOBE_VIEW_POSITION, payload: {position, positionData}};
+}
+
+export function setGlobeViewPosition(position: GeographicPosition): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        if (position) {
+            // TODO: using selectedRightBottomPanelID is no good indicator for checking VARIABLES panel visibility.
+            const selectedRightBottomPanelID = selectors.selectedRightBottomPanelIdSelector(getState());
+            if (selectedRightBottomPanelID === 'variables') {
+                const baseDir = selectors.workspaceBaseDirSelector(getState());
+                if (!baseDir) {
+                    // Workspace not yet ready, that's ok.
+                    return;
+                }
+                const resource = selectors.selectedResourceSelector(getState());
+                const layer = selectors.selectedVariableImageLayerSelector(getState());
+                if (layer && resource) {
+                    const indexers = getNonSpatialIndexers(resource, layer);
+
+                    function call() {
+                        return selectors.datasetAPISelector(getState()).extractPixelValues(baseDir,
+                                                                                           resource.name,
+                                                                                           [position.longitude, position.latitude],
+                                                                                           indexers);
+                    }
+
+                    function action(positionData: { [varName: string]: number }) {
+                        dispatch(setGlobeViewPositionImpl(position, positionData));
+                    }
+
+                    callAPI({title: 'Load cell values', dispatch, call, action, disableNotifications: true});
+                    return;
+                }
+            }
+        } else {
+            dispatch(setGlobeViewPositionImpl(null, null));
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1159,7 +1208,7 @@ export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: 
                 if (resource && resource.variables && resource.variables.length) {
                     const variable = resource.variables.find(variable => !!variable.isDefault);
                     dispatch(setSelectedVariable(resource,
-                                                 variable || resource.variables[0],
+                        variable || resource.variables[0],
                                                  selectors.savedLayersSelector(getState())));
                 }
             }
