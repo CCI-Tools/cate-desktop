@@ -7,7 +7,7 @@ import * as selectors from '../selectors';
 import {ListBox, ListBoxSelectionMode} from '../components/ListBox';
 
 interface IChooseWorkspaceDialogState extends DialogState {
-    workspaceDir: string;
+    workspaceDir: string | null;
     workspaceName: string;
 }
 
@@ -35,7 +35,7 @@ function mapStateToProps(state: State, ownProps: IChooseWorkspaceDialogOwnProps)
         }
         workspaceDir = workspaceDir || selectors.lastWorkspaceDirSelector(state);
     }
-    workspaceDir = isLocalWebAPI ? workspaceDir || '' : ' ';
+    workspaceDir = isLocalWebAPI ? workspaceDir || '' : null;
     workspaceName = workspaceName || '';
     return {
         workspaceDir,
@@ -80,7 +80,7 @@ class ChooseWorkspaceDialog extends React.Component<IChooseWorkspaceDialogProps 
     private composeWorkspacePath(): string {
         let workspaceDir = this.state.workspaceDir;
         let workspaceName = this.state.workspaceName;
-        if (workspaceDir === ' ') {
+        if (workspaceDir === null) {
             return workspaceName;
         }
         return workspaceDir + '/' + workspaceName;

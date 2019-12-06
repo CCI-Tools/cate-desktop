@@ -8,7 +8,7 @@ import { OpenDialogProperty } from "../actions";
 import * as selectors from "../selectors";
 
 interface ISelectWorkspaceDialogState extends DialogState {
-    workspaceDir: string;
+    workspaceDir: string | null;
     workspaceName: string;
 }
 
