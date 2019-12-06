@@ -82,7 +82,7 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
     private composeWorkspacePath(): string {
         let workspaceDir = this.state.workspaceDir;
         let workspaceName = this.state.workspaceName;
-        if (workspaceDir === ' ') {
+        if (workspaceDir === null) {
             return workspaceName;
         }
         return workspaceDir + '/' + workspaceName;
