@@ -37,7 +37,7 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
         }
         workspaceDir = workspaceDir || selectors.lastWorkspaceDirSelector(state);
     }
-    workspaceDir = isLocalWebAPI ? workspaceDir || '' : ' ';
+    workspaceDir = isLocalWebAPI ? workspaceDir || '' : null;
     workspaceName = workspaceName || '';
     return {
         workspaceDir,
