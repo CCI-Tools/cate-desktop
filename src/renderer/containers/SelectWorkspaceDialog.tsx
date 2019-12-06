@@ -37,8 +37,8 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
         }
         workspaceDir = workspaceDir || selectors.lastWorkspaceDirSelector(state);
     }
-    workspaceDir = workspaceDir || "";
-    workspaceName = workspaceName || "";
+    workspaceDir = isLocalWebAPI ? workspaceDir || '' : ' ';
+    workspaceName = workspaceName || '';
     return {
         workspaceDir,
         workspaceName,
@@ -78,12 +78,21 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
         return /^([A-Za-z_\-\s0-9.]+)$/.test(this.state.workspaceName);
     }
 
+    private composeWorkspacePath(): string {
+        let workspaceDir = this.state.workspaceDir;
+        let workspaceName = this.state.workspaceName;
+        if (workspaceDir === ' ') {
+            return workspaceName;
+        }
+        return workspaceDir + '/' + workspaceName;
+    }
+
     private onConfirm() {
         this.props.dispatch(actions.hideDialog(this.props.dialogId, this.state));
         if (this.props.isNewDialog) {
-            this.props.dispatch(actions.newWorkspace(this.state.workspaceDir + '/' + this.state.workspaceName));
+            this.props.dispatch(actions.newWorkspace(this.composeWorkspacePath()));
         } else {
-            this.props.dispatch(actions.saveWorkspaceAs(this.state.workspaceDir + '/' + this.state.workspaceName));
+            this.props.dispatch(actions.saveWorkspaceAs(this.composeWorkspacePath()));
         }
     }
 

@@ -9,7 +9,7 @@ export enum ListBoxSelectionMode {
 
 export interface IListBoxProps {
     items: any[];
-    renderItem: (item: any, itemIndex: number) => JSX.Element;
+    renderItem?: (item: any, itemIndex: number) => JSX.Element;
     getItemKey?: (item: any, itemIndex: number) => React.Key;
     onItemClick?: (item: any, itemIndex: number) => void;
     onItemDoubleClick?: (item: any, itemIndex: number) => void;
@@ -96,7 +96,7 @@ export class ListBox extends React.PureComponent<IListBoxProps, any> {
         for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
             const item = items[itemIndex];
             const key = getItemKey(item, itemIndex);
-            const renderedItem = renderItem(item, itemIndex);
+            const renderedItem = renderItem ? renderItem(item, itemIndex) : item;
             const selected = selection.has(key);
             const itemStyle = selected ? selectedItemStyle : normalItemStyle;
             const className = selected ? 'cate-selected' : null;

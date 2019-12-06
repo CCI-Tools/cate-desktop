@@ -75,6 +75,10 @@ input, button, textarea, :focus {
     background-color: #293742;
 }
 
+.pt-dialog-body .cate-list-box {
+    background-color: #212F3A;
+}
+
 .cate-list-box li {
     padding: 0.2em 0.4em;
     /* blueprint's @dark-grey1 */
