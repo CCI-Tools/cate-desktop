@@ -35,7 +35,7 @@ function mapStateToProps(state: State, ownProps: IChooseWorkspaceDialogOwnProps)
         }
         workspaceDir = workspaceDir || selectors.lastWorkspaceDirSelector(state);
     }
-    workspaceDir = isLocalWebAPI ? workspaceDir || '': ' ';
+    workspaceDir = isLocalWebAPI ? workspaceDir || '' : ' ';
     workspaceName = workspaceName || '';
     return {
         workspaceDir,
@@ -43,7 +43,9 @@ function mapStateToProps(state: State, ownProps: IChooseWorkspaceDialogOwnProps)
         dialogId,
         isOpen,
         isLocalWebAPI,
-        workspaceNames: state.data.workspaceNames
+        // TODO (SabineEmbacher) convert into selector
+        // the selector should return a list of workspace names without the current workspace.
+        workspaceNames: state.data.workspaceNames || []
     };
 }
 
@@ -124,6 +126,14 @@ class ChooseWorkspaceDialog extends React.Component<IChooseWorkspaceDialogProps 
             return null;
         }
 
+        if (this.props.workspaceNames.length === 0) {
+            return (
+                <div>
+                    <p style={{marginTop: '1em'}}>No saved workspaces found.</p>
+                </div>
+            );
+        }
+
         return (
             <div>
                 <p style={{marginTop: '1em'}}>Workspace names:</p>
@@ -135,7 +145,6 @@ class ChooseWorkspaceDialog extends React.Component<IChooseWorkspaceDialogProps 
                 />
             </div>
         );
-
     }
 }
 

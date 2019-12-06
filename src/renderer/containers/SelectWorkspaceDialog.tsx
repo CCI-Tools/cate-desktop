@@ -72,6 +72,7 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
     }
 
     private canConfirm(): boolean {
+        // TODO (SabineEmbacher) validate against existing workspace names
         if (!this.state.workspaceDir || !this.state.workspaceName) {
             return false;
         }
