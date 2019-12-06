@@ -6,7 +6,6 @@ import thunkMiddleware from 'redux-thunk';
 import { Provider } from 'react-redux';
 import { ipcRenderer } from 'electron';
 import ApplicationPage from './containers/ApplicationPage'
-import { newWebAPIClient } from './webapi'
 import { State } from './state';
 import * as actions from './actions'
 import { stateReducer } from './reducers';
@@ -72,6 +71,10 @@ export function main() {
 
     ipcRenderer.on('get-preferences', () => {
         store.dispatch(actions.sendPreferencesToMain());
+    });
+
+    ipcRenderer.on('set-preferences', (event, preferences) => {
+        store.dispatch(actions.updatePreferences(preferences, false));
     });
 
     document.addEventListener('drop', function (event: any) {

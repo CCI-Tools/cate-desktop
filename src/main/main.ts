@@ -201,9 +201,6 @@ class CateDesktopApp {
         // By default NODE_ENV will be 'production' so react is much faster
         process.env.NODE_ENV = this.configuration.get('NODE_ENV', 'production');
         log.info('process.env.NODE_ENV = ' + process.env.NODE_ENV);
-
-        this.initWebAPIConfig();
-
         log.info('appPath:', electron.app.getAppPath());
         log.info('appConfig:', this.configuration.data);
 
@@ -302,6 +299,16 @@ class CateDesktopApp {
             }
         });
 
+        electron.ipcMain.on('set-webapi-config', (event, webAPIConfig) => {
+            this.configuration.set('webAPIConfig', {
+                ...webAPIConfig,
+                restUrl: getWebAPIRestUrl(webAPIConfig),
+                apiWebSocketUrl: getAPIWebSocketsUrl(webAPIConfig),
+                mplWebSocketUrl: getMPLWebSocketsUrl(webAPIConfig),
+            });
+            log.info('Received webAPI configuration from UI...', this.configuration.get('webAPIConfig'));
+        });
+
         electron.ipcMain.on('start-local-service', (event) => {
             log.info(`Starting local Cate service...`);
             this.maybeStartLocalWebAPIService();
@@ -320,21 +327,6 @@ class CateDesktopApp {
             // This will respond with on 'set-preferences' channel
             this.mainWindow.webContents.send('get-preferences');
         }
-    }
-
-    private initWebAPIConfig() {
-        let webAPIConfig = this.configuration.get('webAPIConfig', {});
-        webAPIConfig = updateConditionally(webAPIConfig, {
-            servicePort: 9090,
-            serviceAddress: '',
-            serviceProtocol: 'http',
-            serviceFile: path.join(getAppDataDir(), 'webapi-info.json'),
-            // Refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
-            processOptions: {},
-        });
-        this.configuration.set('webAPIConfig', webAPIConfig);
-        // TODO (SabineEmbacher) find a better solution for context injection
-        electron.app['_configuration'] = this.configuration;
     }
 
     private maybeStartLocalWebAPIService() {
@@ -371,19 +363,7 @@ class CateDesktopApp {
                     electron.app.exit(ERRCODE_WEBAPI_VERSION);
                     return;
                 }
-
-                const webAPIConfig = this.configuration.data.webAPIConfig as WebAPIConfig;
-                this.mainWindow.webContents.send('apply-initial-state', {
-                    session: this.preferences.data,
-                    appConfig: Object.assign({}, this.configuration.data, {
-                        appPath: electron.app.getAppPath(),
-                        webAPIConfig: Object.assign({}, webAPIConfig, {
-                            restUrl: getWebAPIRestUrl(webAPIConfig),
-                            apiWebSocketUrl: getAPIWebSocketsUrl(webAPIConfig),
-                            mplWebSocketUrl: getMPLWebSocketsUrl(webAPIConfig),
-                        }),
-                    })
-                });
+                this.mainWindow.webContents.send('local-service-started');
             })
             .catch((err) => {
                 const delta = this.webAPIStartTimeDelta;
@@ -658,12 +638,14 @@ class CateDesktopApp {
         this.mainWindow.webContents.on('did-finish-load', () => {
             this.updateInitMessage('Done.');
             this.maybeInstallAutoUpdate();
+            this.mainWindow.webContents.send('set-preferences', this.preferences.data);
         });
 
         if (this.preferences.data.devToolsOpened) {
             // Open the DevTools.
             this.mainWindow.webContents.openDevTools();
         }
+
     }
 
     private ensureLocalCateDir(callback: (setupPerformed: boolean) => void) {

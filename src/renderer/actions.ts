@@ -127,6 +127,7 @@ export function connectWebAPIClient(): ThunkAction {
         webAPIClient.onOpen = () => {
             dispatch(setWebAPIStatus(webAPIClient, 'open'));
             dispatch(loadBackendConfig());
+            dispatch(loadColorMaps());
             dispatch(loadDataStores());
             dispatch(loadOperations());
             dispatch(loadInitialWorkspace());
@@ -211,11 +212,13 @@ export function updateControlState(controlState: any): Action {
     return {type: UPDATE_CONTROL_STATE, payload: controlState};
 }
 
-export function updatePreferences(session: any): ThunkAction {
+export function updatePreferences(session: any, sendToMain: boolean = false): ThunkAction {
     return (dispatch: Dispatch) => {
         session = {...session, hasWebGL: hasWebGL()};
         dispatch(updateSessionState(session));
-        dispatch(sendPreferencesToMain());
+        if (sendToMain) {
+            dispatch(sendPreferencesToMain());
+        }
     };
 }
 
@@ -1228,7 +1231,7 @@ export function setCurrentWorkspace(workspace: WorkspaceState): ThunkAction {
     return (dispatch: Dispatch) => {
         dispatch(setCurrentWorkspaceImpl(workspace));
         if (!workspace.isScratch) {
-            dispatch(updatePreferences({lastWorkspacePath: workspace.baseDir} as any));
+            dispatch(updatePreferences({lastWorkspacePath: workspace.baseDir} as any,true));
         }
     }
 }
