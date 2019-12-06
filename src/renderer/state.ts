@@ -36,6 +36,7 @@ export interface DataState {
     operations: OperationState[] | null;
     workspace: WorkspaceState | null;
     colorMaps: ColorMapCategoryState[] | null;
+    workspaceNames: string[] | null;
 }
 
 // Maybe put it into the communication state, see http://jamesknelson.com/5-types-react-application-state/

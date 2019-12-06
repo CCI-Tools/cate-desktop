@@ -8,7 +8,7 @@ import { OpenDialogProperty } from "../actions";
 import * as selectors from "../selectors";
 
 interface ISelectWorkspaceDialogState extends DialogState {
-    workspaceDir: string;
+    workspaceDir: string | null;
     workspaceName: string;
 }
 
@@ -37,8 +37,8 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
         }
         workspaceDir = workspaceDir || selectors.lastWorkspaceDirSelector(state);
     }
-    workspaceDir = workspaceDir || "";
-    workspaceName = workspaceName || "";
+    workspaceDir = isLocalWebAPI ? workspaceDir || '' : null;
+    workspaceName = workspaceName || '';
     return {
         workspaceDir,
         workspaceName,
@@ -49,6 +49,7 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
     };
 }
 
+// TODO (forman): Rename to (Get)WorkspaceNameDialog
 class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps & ISelectWorkspaceDialogOwnProps & DispatchProp<State>, ISelectWorkspaceDialogState> {
 
     constructor(props: ISelectWorkspaceDialogProps & DispatchProp<State>) {
@@ -72,18 +73,28 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
     }
 
     private canConfirm(): boolean {
+        // TODO (SabineEmbacher) validate against existing workspace names
         if (!this.state.workspaceDir || !this.state.workspaceName) {
             return false;
         }
         return /^([A-Za-z_\-\s0-9.]+)$/.test(this.state.workspaceName);
     }
 
+    private composeWorkspacePath(): string {
+        let workspaceDir = this.state.workspaceDir;
+        let workspaceName = this.state.workspaceName;
+        if (workspaceDir === null) {
+            return workspaceName;
+        }
+        return workspaceDir + '/' + workspaceName;
+    }
+
     private onConfirm() {
         this.props.dispatch(actions.hideDialog(this.props.dialogId, this.state));
         if (this.props.isNewDialog) {
-            this.props.dispatch(actions.newWorkspace(this.state.workspaceDir + '/' + this.state.workspaceName));
+            this.props.dispatch(actions.newWorkspace(this.composeWorkspacePath()));
         } else {
-            this.props.dispatch(actions.saveWorkspaceAs(this.state.workspaceDir + '/' + this.state.workspaceName));
+            this.props.dispatch(actions.saveWorkspaceAs(this.composeWorkspacePath()));
         }
     }
 

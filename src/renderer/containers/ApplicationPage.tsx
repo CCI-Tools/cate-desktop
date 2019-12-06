@@ -29,6 +29,35 @@ import OperationStepDialog from './OperationStepDialog';
 import { NEW_CTX_OPERATION_STEP_DIALOG_ID } from './operation-step-dialog-ids';
 import AnimationView from './AnimationView';
 import JobFailureDialog from './JobFailureDialog';
+import FigureView from "./FigureView";
+import TableView from "./TableView";
+import DataSourcesPanel from "./DataSourcesPanel";
+import OperationsPanel from "./OperationsPanel";
+import WorkspacePanel from "./WorkspacePanel";
+import VariablePanel from "./VariablesPanel";
+import PlacemarksPanel from "./PlacemarksPanel";
+import ViewPanel from "./ViewPanel";
+import TaskPanel from "./TasksPanel";
+import StatusBar from "./StatusBar";
+import LayersPanel from "./LayersPanel";
+import StylesPanel from "./StylesPanel";
+import NewWorkspaceDialog from "./NewWorkspaceDialog";
+import SaveWorkspaceAsDialog from "./SaveWorkspaceAsDialog";
+import PreferencesDialog from "./PreferencesDialog";
+import {PanelContainer, PanelContainerLayout} from "../components/PanelContainer";
+import {Panel} from "../components/Panel";
+import {connect, Dispatch} from "react-redux";
+import {State, WorldViewDataState, FigureViewDataState, TableViewDataState, AnimationViewDataState} from "../state";
+import * as actions from "../actions";
+import * as selectors from "../selectors";
+import {ViewManager, ViewRenderMap} from "../components/ViewManager";
+import {ViewLayoutState, ViewState, ViewPath, SplitDir} from "../components/ViewState";
+import {CSSProperties} from "react";
+import OperationStepDialog from "./OperationStepDialog";
+import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./operation-step-dialog-ids";
+import AnimationView from "./AnimationView";
+import JobFailureDialog from "./JobFailureDialog";
+import ChooseWorkspaceDialog from './ChooseWorkspaceDialog';
 
 
 function renderWorldView(view: ViewState<WorldViewDataState>) {
@@ -204,6 +233,7 @@ class _ApplicationPage extends React.PureComponent<IApplicationPageProps & IDisp
                 <PreferencesDialog/>
                 <NewWorkspaceDialog/>
                 <SaveWorkspaceAsDialog/>
+                <ChooseWorkspaceDialog dialogId={"openWorkspaceDialog"}/>
                 <OperationStepDialog id={NEW_CTX_OPERATION_STEP_DIALOG_ID}/>
                 <JobFailureDialog/>
             </div>

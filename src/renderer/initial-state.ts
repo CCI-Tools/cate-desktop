@@ -22,7 +22,8 @@ export const INITIAL_DATA_STATE: DataState = {
     dataStores: null,
     operations: null,
     workspace: null,
-    colorMaps: null
+    colorMaps: null,
+    workspaceNames: null
 };
 
 const INITIAL_WORLD_VIEW: ViewState<WorldViewDataState> = newWorldView();
