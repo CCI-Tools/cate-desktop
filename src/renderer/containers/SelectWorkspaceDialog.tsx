@@ -49,6 +49,7 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
     };
 }
 
+// TODO (forman): Rename to (Get)WorkspaceNameDialog
 class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps & ISelectWorkspaceDialogOwnProps & DispatchProp<State>, ISelectWorkspaceDialogState> {
 
     constructor(props: ISelectWorkspaceDialogProps & DispatchProp<State>) {
