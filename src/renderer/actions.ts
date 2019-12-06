@@ -3,7 +3,7 @@ import {
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
     OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
-    SplitMode, WebAPIConfig,
+    SplitMode
 } from './state';
 import { ViewState, ViewPath } from './components/ViewState';
 import {
@@ -73,81 +73,11 @@ export type GetState = () => State;
 export type ThunkAction = (dispatch?: Dispatch, getState?: GetState) => void;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// (User) Feature actions
-
-export const ACTIVATE_NEW_PLACEMARK_TOOL = 'ACTIVATE_NEW_PLACEMARK_TOOL';
-export const ADD_PLACEMARK = 'ADD_PLACEMARK';
-export const REMOVE_PLACEMARK = 'REMOVE_PLACEMARK';
-export const UPDATE_PLACEMARK_GEOMETRY = 'UPDATE_PLACEMARK_GEOMETRY';
-export const UPDATE_PLACEMARK_PROPERTIES = 'UPDATE_PLACEMARK_PROPERTIES';
-export const UPDATE_PLACEMARK_STYLE = 'UPDATE_PLACEMARK_STYLE';
-
-export function activateNewPlacemarkTool(newPlacemarkToolType: GeometryToolType) {
-    return {type: ACTIVATE_NEW_PLACEMARK_TOOL, payload: {newPlacemarkToolType}};
-}
-
-export function addPlacemark(placemark: Placemark): Action {
-    return {type: ADD_PLACEMARK, payload: {placemark}};
-}
-
-export function addPointPlacemark(longitude: number, latitude: number, properties: any): Action {
-    const placemark = {
-        id: genSimpleId(PLACEMARK_ID_PREFIX),
-        type: 'Feature',
-        geometry: {
-            type: 'Point',
-            coordinates: [longitude, latitude]
-        },
-        properties,
-    };
-    return addPlacemark(placemark as any);
-}
-
-export function removePlacemark(placemarkId: string): Action {
-    return {type: REMOVE_PLACEMARK, payload: {placemarkId}};
-}
-
-export function updatePlacemarkGeometry(placemarkId: string, geometry: DirectGeometryObject | any): Action {
-    return {type: UPDATE_PLACEMARK_GEOMETRY, payload: {placemarkId, geometry}};
-}
-
-export function updatePlacemarkProperties(placemarkId: string, properties: any): Action {
-    return {type: UPDATE_PLACEMARK_PROPERTIES, payload: {placemarkId, properties}};
-}
-
-export function updatePlacemarkStyle(placemarkId: string, style: SimpleStyle): Action {
-    return {type: UPDATE_PLACEMARK_STYLE, payload: {placemarkId, style}};
-}
-
-export function locatePlacemark(placemarkId: string): ThunkAction {
-    return (dispatch: Dispatch, getState: GetState) => {
-        let viewer = selectors.selectedWorldViewViewerSelector(getState());
-        if (viewer) {
-            let selectedEntity = getEntityByEntityId(viewer, placemarkId);
-            if (selectedEntity) {
-                let headingPitchRange;
-                if (selectedEntity.position) {
-                    let heading = 0, pitch = -3.14159 / 2, range = 2500000;
-                    headingPitchRange = new Cesium.HeadingPitchRange(heading, pitch, range);
-                }
-                viewer.zoomTo(selectedEntity, headingPitchRange);
-            }
-        }
-    };
-}
-
-export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Action {
-    return updateSessionState({selectedPlacemarkId});
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application-level actions
 
 export const UPDATE_INITIAL_STATE = 'UPDATE_INITIAL_STATE';
 export const SIGN_IN = 'SIGN_IN';
 export const SET_WEBAPI_MODE = 'SET_WEBAPI_MODE';
-export const SET_WEBAPI_CONFIG = 'SET_WEBAPI_CONFIG';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const UPDATE_DIALOG_STATE = 'UPDATE_DIALOG_STATE';
 export const UPDATE_TASK_STATE = 'UPDATE_TASK_STATE';
@@ -156,16 +86,30 @@ export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
 
-export function signIn(): Action {
+export function signIn(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        dispatch(_signIn());
+        if (getState().communication.webAPIMode === 'remote') {
+            dispatch(connectWebAPIClient());
+        }
+    };
+}
+
+export function _signIn(): Action {
     return {type: SIGN_IN}
 }
 
-export function setWebAPIMode(webAPIMode: 'local' | 'remote' | null): Action {
-    return {type: SET_WEBAPI_MODE, payload: {webAPIMode}}
+export function setWebAPIMode(webAPIMode: 'local' | 'remote' | null): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        dispatch(_setWebAPIMode(webAPIMode));
+        if (getState().communication.webAPIMode === 'local') {
+            dispatch(connectWebAPIClient());
+        }
+    };
 }
 
-export function setWebAPIConfig(webAPIConfig: WebAPIConfig): Action {
-    return {type: SET_WEBAPI_CONFIG, payload: {webAPIConfig}}
+export function _setWebAPIMode(webAPIMode: 'local' | 'remote' | null): Action {
+    return {type: SET_WEBAPI_MODE, payload: {webAPIMode}}
 }
 
 export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting' | 'open' | 'error' | 'closed'): Action {
@@ -178,7 +122,7 @@ export function connectWebAPIClient(): ThunkAction {
 
         const webAPIConfig = getState().data.appConfig.webAPIConfig;
         console.log('webAPIConfig:', webAPIConfig);
-        const webAPIClient = newWebAPIClient(webAPIConfig.apiWebSocketUrl);
+        const webAPIClient = newWebAPIClient(selectors.apiWebSocketsUrlSelector(getState()));
 
         webAPIClient.onOpen = () => {
             dispatch(setWebAPIStatus(webAPIClient, 'open'));
@@ -506,6 +450,75 @@ export function setGlobeViewPosition(position: GeographicPosition): ThunkAction 
         }
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// (User) Placemark actions
+
+export const ACTIVATE_NEW_PLACEMARK_TOOL = 'ACTIVATE_NEW_PLACEMARK_TOOL';
+export const ADD_PLACEMARK = 'ADD_PLACEMARK';
+export const REMOVE_PLACEMARK = 'REMOVE_PLACEMARK';
+export const UPDATE_PLACEMARK_GEOMETRY = 'UPDATE_PLACEMARK_GEOMETRY';
+export const UPDATE_PLACEMARK_PROPERTIES = 'UPDATE_PLACEMARK_PROPERTIES';
+export const UPDATE_PLACEMARK_STYLE = 'UPDATE_PLACEMARK_STYLE';
+
+export function activateNewPlacemarkTool(newPlacemarkToolType: GeometryToolType) {
+    return {type: ACTIVATE_NEW_PLACEMARK_TOOL, payload: {newPlacemarkToolType}};
+}
+
+export function addPlacemark(placemark: Placemark): Action {
+    return {type: ADD_PLACEMARK, payload: {placemark}};
+}
+
+export function addPointPlacemark(longitude: number, latitude: number, properties: any): Action {
+    const placemark = {
+        id: genSimpleId(PLACEMARK_ID_PREFIX),
+        type: 'Feature',
+        geometry: {
+            type: 'Point',
+            coordinates: [longitude, latitude]
+        },
+        properties,
+    };
+    return addPlacemark(placemark as any);
+}
+
+export function removePlacemark(placemarkId: string): Action {
+    return {type: REMOVE_PLACEMARK, payload: {placemarkId}};
+}
+
+export function updatePlacemarkGeometry(placemarkId: string, geometry: DirectGeometryObject | any): Action {
+    return {type: UPDATE_PLACEMARK_GEOMETRY, payload: {placemarkId, geometry}};
+}
+
+export function updatePlacemarkProperties(placemarkId: string, properties: any): Action {
+    return {type: UPDATE_PLACEMARK_PROPERTIES, payload: {placemarkId, properties}};
+}
+
+export function updatePlacemarkStyle(placemarkId: string, style: SimpleStyle): Action {
+    return {type: UPDATE_PLACEMARK_STYLE, payload: {placemarkId, style}};
+}
+
+export function locatePlacemark(placemarkId: string): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        let viewer = selectors.selectedWorldViewViewerSelector(getState());
+        if (viewer) {
+            let selectedEntity = getEntityByEntityId(viewer, placemarkId);
+            if (selectedEntity) {
+                let headingPitchRange;
+                if (selectedEntity.position) {
+                    let heading = 0, pitch = -3.14159 / 2, range = 2500000;
+                    headingPitchRange = new Cesium.HeadingPitchRange(heading, pitch, range);
+                }
+                viewer.zoomTo(selectedEntity, headingPitchRange);
+            }
+        }
+    };
+}
+
+export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Action {
+    return updateSessionState({selectedPlacemarkId});
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data stores / data sources actions
@@ -1138,7 +1151,7 @@ export function deleteResourceInteractive(resName: string): ThunkAction {
                                           title: 'Remove Resource and Workflow Step',
                                           message: `Do you really want to delete resource and step "${resName}"?`,
                                           detail: 'This will also delete the workflow step that created it.\n' +
-                                                  'You will not be able to undo this operation.',
+                                              'You will not be able to undo this operation.',
                                           buttons: ['Yes', 'No'],
                                           defaultId: 1,
                                           cancelId: 1,
@@ -1234,7 +1247,7 @@ export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: 
                 if (resource && resource.variables && resource.variables.length) {
                     const variable = resource.variables.find(variable => !!variable.isDefault);
                     dispatch(setSelectedVariable(resource,
-                        variable || resource.variables[0],
+                                                 variable || resource.variables[0],
                                                  selectors.savedLayersSelector(getState())));
                 }
             }
@@ -1539,7 +1552,7 @@ export function notifySelectedEntityChange(viewId: string, layer: LayerState | n
                 if (workspace) {
                     const resId = selectedEntity._resId;
                     const featureIndex = +selectedEntity._idx;
-                    const baseUrl = selectors.webAPIRestUrlSelector(getState());
+                    const baseUrl = selectors.restUrlSelector(getState());
                     const baseDir = workspace.baseDir;
                     const featureUrl = getFeatureUrl(baseUrl, baseDir, {resId}, featureIndex);
                     reloadEntityWithOriginalGeometry(selectedEntity, featureUrl, (layer as any).style);
@@ -1605,19 +1618,19 @@ export function updateTableViewData(viewId: string,
 
 export function loadTableViewData(viewId: string, resName: string, varName: string | null): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        const restUrl = selectors.webAPIRestUrlSelector(getState());
+        const restUrl = selectors.restUrlSelector(getState());
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         const resource = selectors.resourcesSelector(getState()).find(res => res.name === resName);
         if (resource) {
             const csvUrl = getCsvUrl(restUrl, baseDir, {resId: resource.id}, varName);
             dispatch(updateTableViewData(viewId, resName, varName, null, null, true));
             d3.csv(csvUrl)
-              .then((dataRows: any[]) => {
-                  dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
-              })
-              .catch((error: any) => {
-                  dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
-              });
+                .then((dataRows: any[]) => {
+                    dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
+                })
+                .catch((error: any) => {
+                    dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
+                });
         }
     }
 }
@@ -1629,7 +1642,7 @@ export const UPDATE_ANIMATION_VIEW_DATA = 'UPDATE_ANIMATION_VIEW_DATA';
 
 export function loadAnimationViewData(viewId: string, resId: number): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        const restUrl = selectors.webAPIRestUrlSelector(getState());
+        const restUrl = selectors.restUrlSelector(getState());
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         const htmlUrl = getHtmlUrl(restUrl, baseDir, resId);
 

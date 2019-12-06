@@ -1,8 +1,8 @@
 import {combineReducers, Reducer} from 'redux';
 import deepEqual = require("deep-equal");
 import {
-State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
-LayerState, VectorLayerBase
+    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
+    LayerState, VectorLayerBase, WebAPIConfig
 } from './state';
 import * as actions from './actions';
 import {Action} from "./actions";
@@ -47,6 +47,24 @@ const updateDataStores = (state: DataState, action: Action, createDataSources: (
 
 const dataReducer = (state: DataState = INITIAL_DATA_STATE, action: Action) => {
     switch (action.type) {
+        case actions.SET_WEBAPI_MODE: {
+            const webAPIMode = action.payload.webAPIMode;
+            let webAPIConfig: WebAPIConfig;
+            if (webAPIMode === 'local') {
+                webAPIConfig = {
+                    servicePort: 9090,
+                    serviceAddress: 'localhost',
+                    serviceProtocol: 'http',
+                };
+            } else {
+                webAPIConfig = {
+                    servicePort: null,
+                    serviceAddress: 'cate-webapi.192.171.139.57.nip.io',
+                    serviceProtocol: 'https',
+                };
+            }
+            return {...state, appConfig: {...state.appConfig, webAPIConfig}};
+        }
         case actions.UPDATE_WORKSPACE_NAMES: {
             const workspaceNames = action.payload.workspaceNames || null;
             return {...state, workspaceNames};

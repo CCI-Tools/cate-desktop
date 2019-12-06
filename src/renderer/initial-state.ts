@@ -12,9 +12,10 @@ export const INITIAL_DATA_STATE: DataState = {
             servicePort: null,
             serviceAddress: '',
             serviceProtocol: 'http',
-            restUrl: '',
-            apiWebSocketUrl: '',
-            mplWebSocketUrl: '',
+            // TODO (forman): remove next props
+            // restUrl: '',
+            // apiWebSocketUrl: '',
+            // mplWebSocketUrl: '',
         },
         webAPIClient: null,
         hasWebGL: hasWebGL(),

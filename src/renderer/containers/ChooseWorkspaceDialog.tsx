@@ -136,7 +136,7 @@ class ChooseWorkspaceDialog extends React.Component<IChooseWorkspaceDialogProps 
 
         return (
             <div>
-                <p style={{marginTop: '1em'}}>Workspace names:</p>
+                <p style={{marginTop: '1em'}}>Saved workspaces:</p>
                 <ListBox items={this.props.workspaceNames}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          getItemKey={(item: any, itemIndex: number) => item}

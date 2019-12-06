@@ -54,11 +54,11 @@ export interface WebAPIConfig {
     serviceProtocol?: 'http' | 'https';
     serviceFile?: string;
     processOptions?: Object;
-    useMockService?: boolean;
+    // TODO (forman): remove next props
     // Values computed in main.ts
-    restUrl: string;
-    apiWebSocketUrl: string;
-    mplWebSocketUrl: string;
+    //restUrl: string;
+    //apiWebSocketUrl: string;
+    //mplWebSocketUrl: string;
 }
 
 export interface DataStoreNotice {
