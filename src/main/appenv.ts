@@ -7,8 +7,6 @@ import { pep440ToSemver } from '../common/version';
 import { SETUP_REASON_INSTALL_CATE, SETUP_REASON_UPDATE_CATE, SetupInfo } from '../common/setup';
 import * as assert from '../common/assert';
 import { WebAPIConfig } from '../renderer/state';
-import { webAPIConfigSelector } from '../renderer/selectors';
-import { createSelector } from 'reselect';
 
 
 /**

@@ -47,6 +47,10 @@ const updateDataStores = (state: DataState, action: Action, createDataSources: (
 
 const dataReducer = (state: DataState = INITIAL_DATA_STATE, action: Action) => {
     switch (action.type) {
+        case actions.UPDATE_WORKSPACE_NAMES: {
+            const workspaceNames = action.payload.workspaceNames || null;
+            return {...state, workspaceNames};
+        }
         case actions.UPDATE_INITIAL_STATE:
             const appConfig = updateObject(state.appConfig, action.payload.appConfig);
             return updateObject(state, {appConfig});

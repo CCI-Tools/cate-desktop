@@ -713,10 +713,15 @@ export function hideOperationStepDialog(dialogId: string, inputAssignments?): Th
 // Workspace actions
 
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
+export const UPDATE_WORKSPACE_NAMES = 'UPDATE_WORKSPACE_NAMES';
 export const RENAME_RESOURCE = 'RENAME_RESOURCE';
 export const SHOW_FIGURE_VIEW = 'SHOW_FIGURE_VIEW';
 export const SHOW_ANIMATION_VIEW = 'SHOW_ANIMATION_VIEW';
 export const SHOW_TABLE_VIEW = 'SHOW_TABLE_VIEW';
+
+export function updateWorkspaceNames(workspaceNames: string[]): Action {
+    return {type: UPDATE_WORKSPACE_NAMES, payload: {workspaceNames}};
+}
 
 /**
  * Asynchronously load the initial workspace.
@@ -971,42 +976,63 @@ export function newWorkspaceInteractive() {
     return showDialog('newWorkspaceDialog');
 }
 
+function openRemoteWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
+                             getState: () => State) {
+    let jobPromise = selectors.workspaceAPISelector(getState()).listWorkspaces();
+    jobPromise.then(workspaceNames => {
+        dispatch(updateWorkspaceNames(workspaceNames));
+        console.log("workspaceNames :");
+        console.log(workspaceNames);
+        dispatch(showDialog('openWorkspaceDialog'));
+    })
+}
+
+function openLocalWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
+                            getState: () => State) {
+    const workspacePath = showSingleFileOpenDialog({
+                                                       title: 'Open Workspace - Select Directory',
+                                                       buttonLabel: 'Open',
+                                                       properties: ['openDirectory'],
+                                                   });
+    if (workspacePath) {
+        const workspace = getState().data.workspace;
+        let ok = true;
+        if (workspace) {
+            if (workspace.baseDir === workspacePath) {
+                // showMessageBox({
+                //     title: 'Open Workspace',
+                //     message: 'Workspace is already open.'
+                // }, MESSAGE_BOX_NO_REPLY);
+                showToast({
+                              type: 'warning',
+                              text: 'Workspace is already open.',
+                          });
+                return;
+            }
+            ok = maybeSaveCurrentWorkspace(dispatch, getState,
+                                           'Open Workspace',
+                                           'Would you like to save the current workspace before opening the new one?',
+                                           'Press "Cancel" to cancel opening a new workspace.'
+            );
+        }
+        if (ok) {
+            dispatch(openWorkspace(workspacePath));
+        }
+    }
+}
+
 /**
  * Let user select a workspace directory, then ask whether to save the existing workspace, then open new one.
  *
  * @returns a Redux thunk action
  */
 export function openWorkspaceInteractive(): ThunkAction {
+
     return (dispatch: Dispatch, getState: GetState) => {
-        const workspacePath = showSingleFileOpenDialog({
-                                                           title: 'Open Workspace - Select Directory',
-                                                           buttonLabel: 'Open',
-                                                           properties: ['openDirectory'],
-                                                       });
-        if (workspacePath) {
-            const workspace = getState().data.workspace;
-            let ok = true;
-            if (workspace) {
-                if (workspace.baseDir === workspacePath) {
-                    // showMessageBox({
-                    //     title: 'Open Workspace',
-                    //     message: 'Workspace is already open.'
-                    // }, MESSAGE_BOX_NO_REPLY);
-                    showToast({
-                                  type: 'warning',
-                                  text: 'Workspace is already open.',
-                              });
-                    return;
-                }
-                ok = maybeSaveCurrentWorkspace(dispatch, getState,
-                                               'Open Workspace',
-                                               'Would you like to save the current workspace before opening the new one?',
-                                               'Press "Cancel" to cancel opening a new workspace.'
-                );
-            }
-            if (ok) {
-                dispatch(openWorkspace(workspacePath));
-            }
+        if (selectors.isLocalWebAPISelector(getState())) {
+            openLocalWorkspace(dispatch, getState);
+        } else {
+            openRemoteWorkspace(dispatch, getState);
         }
     };
 }
