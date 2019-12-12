@@ -1046,8 +1046,6 @@ function openRemoteWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
     let jobPromise = selectors.workspaceAPISelector(getState()).listWorkspaces();
     jobPromise.then(workspaceNames => {
         dispatch(updateWorkspaceNames(workspaceNames));
-        console.log("workspaceNames :");
-        console.log(workspaceNames);
         dispatch(showDialog('openWorkspaceDialog'));
     })
 }
