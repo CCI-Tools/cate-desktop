@@ -134,6 +134,7 @@ class _ApplicationPage extends React.PureComponent<IApplicationPageProps & IDisp
         };
 
         if (this.props.webAPIMode === null) {
+            // TODO (forman): extract new container SelectAppModePage
             return (
                 <div style={_ApplicationPage.CENTER_DIV_STYLE}>
                     <div style={_ApplicationPage.BOX_STYLE}>
@@ -155,6 +156,7 @@ class _ApplicationPage extends React.PureComponent<IApplicationPageProps & IDisp
         }
 
         if (this.props.webAPIMode === 'remote' && !this.props.isSignedIn) {
+            // TODO (forman): extract new container SignInPage
             return (
                 <div style={_ApplicationPage.CENTER_DIV_STYLE}>
                     <div style={_ApplicationPage.BOX_2_STYLE}>
