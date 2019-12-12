@@ -50,6 +50,7 @@ const dataReducer = (state: DataState = INITIAL_DATA_STATE, action: Action) => {
         case actions.SET_WEBAPI_MODE: {
             const webAPIMode = action.payload.webAPIMode;
             let webAPIConfig: WebAPIConfig;
+            // TODO (forman): replace hard-coded webAPIConfig properties
             if (webAPIMode === 'local') {
                 webAPIConfig = {
                     servicePort: 9090,
