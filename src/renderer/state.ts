@@ -54,11 +54,11 @@ export interface WebAPIConfig {
     serviceProtocol?: 'http' | 'https';
     serviceFile?: string;
     processOptions?: Object;
-    useMockService?: boolean;
+    // TODO (forman): remove next props
     // Values computed in main.ts
-    restUrl: string;
-    apiWebSocketUrl: string;
-    mplWebSocketUrl: string;
+    //restUrl: string;
+    //apiWebSocketUrl: string;
+    //mplWebSocketUrl: string;
 }
 
 export interface DataStoreNotice {
@@ -640,6 +640,8 @@ export interface ColorMapCategoryState {
  * Communication state is the status of any not-yet-complete requests to other services.
  */
 export interface CommunicationState {
+    isSignedIn: boolean;
+    webAPIMode: 'local' | 'remote' | null;
     webAPIStatus: 'connecting' | 'open' | 'error' | 'closed' | null;
 
     // A map that stores the current state of any tasks (e.g. data fetch jobs from remote API) given a jobId

@@ -6,7 +6,6 @@ import thunkMiddleware from 'redux-thunk';
 import { Provider } from 'react-redux';
 import { ipcRenderer } from 'electron';
 import ApplicationPage from './containers/ApplicationPage'
-import { newWebAPIClient } from './webapi'
 import { State } from './state';
 import * as actions from './actions'
 import { stateReducer } from './reducers';
@@ -35,9 +34,15 @@ export function main() {
     const middleware = applyMiddleware(...middlewares);
     const store = createStore(stateReducer, middleware) as Store<State>;
 
+    ReactDOM.render(
+        <Provider store={store}>
+            <ApplicationPage/>
+        </Provider>,
+        document.getElementById('container')
+    );
+
     ipcRenderer.on('apply-initial-state', (event, initialState) => {
         store.dispatch(actions.updateInitialState(initialState));
-        connectWebAPIClient(store);
     });
 
     ipcRenderer.on('new-workspace', () => {
@@ -68,6 +73,10 @@ export function main() {
         store.dispatch(actions.sendPreferencesToMain());
     });
 
+    ipcRenderer.on('set-preferences', (event, preferences) => {
+        store.dispatch(actions.updatePreferences(preferences, false));
+    });
+
     document.addEventListener('drop', function (event: any) {
         event.preventDefault();
         event.stopPropagation();
@@ -80,41 +89,6 @@ export function main() {
         event.preventDefault();
         event.stopPropagation();
     });
-}
-
-function connectWebAPIClient(store: Store<State>) {
-    store.dispatch(actions.setWebAPIStatus(null, 'connecting'));
-
-    const webAPIConfig = store.getState().data.appConfig.webAPIConfig;
-    console.log('webAPIConfig:', webAPIConfig);
-    const webAPIClient = newWebAPIClient(webAPIConfig.apiWebSocketUrl);
-
-    webAPIClient.onOpen = () => {
-        store.dispatch(actions.setWebAPIStatus(webAPIClient, 'open'));
-        store.dispatch(actions.loadBackendConfig());
-        store.dispatch(actions.loadDataStores());
-        store.dispatch(actions.loadOperations());
-        store.dispatch(actions.loadInitialWorkspace());
-
-        ReactDOM.render(
-            <Provider store={store}>
-                <ApplicationPage/>
-            </Provider>,
-            document.getElementById('container')
-        );
-    };
-
-    webAPIClient.onClose = () => {
-        store.dispatch(actions.setWebAPIStatus(null, 'closed'));
-    };
-
-    webAPIClient.onError = () => {
-        store.dispatch(actions.setWebAPIStatus(webAPIClient, 'error'));
-    };
-
-    webAPIClient.onWarning = (event) => {
-        console.warn(`cate-desktop: warning from cate-webapi: ${event.message}`);
-    };
 }
 
 function readDroppedFile(file: File, dispatch: Dispatch<State>) {

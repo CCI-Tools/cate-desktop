@@ -1,33 +1,34 @@
 import * as React from 'react';
-import GlobeView from './GlobeView'
-import FigureView from "./FigureView";
-import TableView from "./TableView";
-import DataSourcesPanel from "./DataSourcesPanel";
-import OperationsPanel from "./OperationsPanel";
-import WorkspacePanel from "./WorkspacePanel";
-import VariablePanel from "./VariablesPanel";
-import PlacemarksPanel from "./PlacemarksPanel";
-import ViewPanel from "./ViewPanel";
-import TaskPanel from "./TasksPanel";
-import StatusBar from "./StatusBar";
-import LayersPanel from "./LayersPanel";
-import StylesPanel from "./StylesPanel";
-import NewWorkspaceDialog from "./NewWorkspaceDialog";
-import SaveWorkspaceAsDialog from "./SaveWorkspaceAsDialog";
-import PreferencesDialog from "./PreferencesDialog";
-import {PanelContainer, PanelContainerLayout} from "../components/PanelContainer";
-import {Panel} from "../components/Panel";
-import {connect, Dispatch} from "react-redux";
-import {State, WorldViewDataState, FigureViewDataState, TableViewDataState, AnimationViewDataState} from "../state";
+import { connect, Dispatch } from 'react-redux';
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import {ViewManager, ViewRenderMap} from "../components/ViewManager";
-import {ViewLayoutState, ViewState, ViewPath, SplitDir} from "../components/ViewState";
-import {CSSProperties} from "react";
+import { Button, Checkbox, InputGroup, Intent } from '@blueprintjs/core';
+import GlobeView from './GlobeView'
+import FigureView from './FigureView';
+import TableView from './TableView';
+import DataSourcesPanel from './DataSourcesPanel';
+import OperationsPanel from './OperationsPanel';
+import WorkspacePanel from './WorkspacePanel';
+import VariablePanel from './VariablesPanel';
+import PlacemarksPanel from './PlacemarksPanel';
+import ViewPanel from './ViewPanel';
+import TaskPanel from './TasksPanel';
+import StatusBar from './StatusBar';
+import LayersPanel from './LayersPanel';
+import StylesPanel from './StylesPanel';
+import NewWorkspaceDialog from './NewWorkspaceDialog';
+import SaveWorkspaceAsDialog from './SaveWorkspaceAsDialog';
+import PreferencesDialog from './PreferencesDialog';
+import { NEW_CTX_OPERATION_STEP_DIALOG_ID } from './operation-step-dialog-ids';
+import AnimationView from './AnimationView';
+import JobFailureDialog from './JobFailureDialog';
+import { PanelContainer, PanelContainerLayout } from "../components/PanelContainer";
+import { Panel } from "../components/Panel";
+import { State, WorldViewDataState, FigureViewDataState, TableViewDataState, AnimationViewDataState } from "../state";
+import { ViewManager, ViewRenderMap } from "../components/ViewManager";
+import { ViewLayoutState, ViewState, ViewPath, SplitDir } from "../components/ViewState";
+import { CSSProperties } from "react";
 import OperationStepDialog from "./OperationStepDialog";
-import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./operation-step-dialog-ids";
-import AnimationView from "./AnimationView";
-import JobFailureDialog from "./JobFailureDialog";
 import ChooseWorkspaceDialog from './ChooseWorkspaceDialog';
 
 
@@ -61,34 +62,143 @@ interface IDispatch {
     dispatch: Dispatch<State>;
 }
 
+interface IApplicationPageProps {
+    webAPIMode: 'local' | 'remote' | null;
+    isSignedIn: boolean | null;
+}
+
+function mapStateToPropsApplication(state: State): IApplicationPageProps {
+    return {
+        webAPIMode: state.communication.webAPIMode,
+        isSignedIn: state.communication.isSignedIn,
+    };
+}
+
 //noinspection JSUnusedLocalSymbols
-export default class ApplicationPage extends React.PureComponent<null, null> {
+class _ApplicationPage extends React.PureComponent<IApplicationPageProps & IDispatch, null> {
     static readonly ROOT_DIV_STYLE: CSSProperties = {
-        display: "flex",
-        flexFlow: "column nowrap",
-        width: "100%",
-        height: "100%",
-        overflow: "hidden"
+        display: 'flex',
+        flexFlow: 'column nowrap',
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden'
     };
     static readonly MAIN_DIV_STYLE: CSSProperties = {
-        display: "flex",
-        flexFlow: "row nowrap",
-        flex: "auto",
-        height: "100%",
-        overflow: "hidden"
+        display: 'flex',
+        flexFlow: 'row nowrap',
+        flex: 'auto',
+        height: '100%',
+        overflow: 'hidden'
     };
     static readonly CREDITS_DIV_STYLE: CSSProperties = {
-        minWidth: "10em",
-        minHeight: "4em",
-        position: "relative",
-        overflow: "auto",
-        display: "none"
+        minWidth: '10em',
+        minHeight: '4em',
+        position: 'relative',
+        overflow: 'auto',
+        display: 'none'
+    };
+    static readonly CENTER_DIV_STYLE: CSSProperties = {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100%',
+    };
+    static readonly BOX_STYLE: CSSProperties = {
+        display: 'flex',
+        flexFlow: 'column nowrap',
+        alignItems: 'stretch'
+    };
+    static readonly BOX_2_STYLE: CSSProperties = {
+        display: 'flex',
+        flexFlow: 'column nowrap',
+        alignItems: 'center'
     };
 
     render() {
+
+        const signIn = () => {
+            this.props.dispatch(actions.signIn());
+        };
+
+        const setLocalMode = () => {
+            this.props.dispatch(actions.setWebAPIMode('local'));
+        };
+
+        const setRemoteMode = () => {
+            this.props.dispatch(actions.setWebAPIMode('remote'));
+        };
+
+        const setRememberMyDecision = () => {
+
+        };
+
+        if (this.props.webAPIMode === null) {
+            // TODO (forman): extract new container SelectAppModePage
+            return (
+                <div style={_ApplicationPage.CENTER_DIV_STYLE}>
+                    <div style={_ApplicationPage.BOX_STYLE}>
+                        <div style={{alignContent: 'center', textAlign: 'center'}}>
+                            <img src={'resources/cate-icon@8x.png'} alt={'cate icon'}/>
+                        </div>
+                        <Button className={'pt-large'} intent={Intent.PRIMARY} style={{marginTop: 12}}
+                                onClick={setRemoteMode}>Connect to
+                            CateHub</Button>
+                        <Button className={'pt-large'} intent={Intent.NONE} style={{marginTop: 6}}
+                                onClick={setLocalMode}>Stand-Alone
+                            Mode</Button>
+                        <div style={{marginTop: 6}}>
+                            <Checkbox checked={true} onChange={setRememberMyDecision}>Remember my decision</Checkbox>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        if (this.props.webAPIMode === 'remote' && !this.props.isSignedIn) {
+            // TODO (forman): extract new container SignInPage
+            return (
+                <div style={_ApplicationPage.CENTER_DIV_STYLE}>
+                    <div style={_ApplicationPage.BOX_2_STYLE}>
+                        <h4>Sign in to CateHub</h4>
+
+                        <div style={{marginTop: 24, alignContent: 'center', textAlign: 'center', display: 'flex'}}>
+                            <img width={32} height={32} src={'resources/images/github-120.png'} alt={'github icon'}/>
+                            <span>&nbsp;&nbsp;&nbsp;</span>
+                            <Button onClick={signIn} intent={Intent.PRIMARY} className={'pt-large'}>Using your GitHub
+                                Account</Button>
+                        </div>
+
+                        <h4 style={{marginTop: 24}}>or</h4>
+
+                        <p style={{marginTop: 24, alignSelf: 'center'}}>Using your CateHub Account</p>
+                        <InputGroup
+                            style={{marginTop: 6, alignSelf: 'stretch', width: '24em'}}
+                            placeholder="Enter your username or e-mail..."
+                            type={'text'}
+                            leftIconName={'user'}
+                        />
+                        <InputGroup
+                            style={{marginTop: 3, alignSelf: 'stretch', width: '24em'}}
+                            placeholder="Enter your password..."
+                            type={'password'}
+                            leftIconName={'key'}
+                        />
+                        <div style={{marginTop: 6, alignSelf: 'flex-end'}}>
+                            <Button intent={Intent.PRIMARY} onClick={signIn}>Sign in</Button>
+                        </div>
+                        <div style={{marginTop: 12, alignSelf: 'center'}}>
+                            <span>Don't have an account yet?&nbsp;</span><a href={'https://github.com/login'}>Sign
+                            on!</a>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
         return (
-            <div style={ApplicationPage.ROOT_DIV_STYLE}>
-                <div style={ApplicationPage.MAIN_DIV_STYLE}>
+            <div style={_ApplicationPage.ROOT_DIV_STYLE}>
+                <div style={_ApplicationPage.MAIN_DIV_STYLE}>
                     <LeftPanel/>
                     <CenterPanel/>
                     <RightPanel/>
@@ -104,6 +214,9 @@ export default class ApplicationPage extends React.PureComponent<null, null> {
         );
     }
 }
+
+const ApplicationPage = connect(mapStateToPropsApplication)(_ApplicationPage);
+export default ApplicationPage;
 
 interface ILeftPanelProps {
     panelContainerUndockedMode: boolean;
@@ -166,6 +279,7 @@ class _LeftPanel extends React.PureComponent<ILeftPanelProps & IDispatch, null> 
         );
     }
 }
+
 const LeftPanel = connect(mapStateToPropsLeft)(_LeftPanel);
 
 interface IRightPanelProps {
@@ -234,6 +348,7 @@ class _RightPanel extends React.PureComponent<IRightPanelProps & IDispatch, null
         );
     }
 }
+
 const RightPanel = connect(mapStateToPropsRight)(_RightPanel);
 
 interface IViewManagerPanelProps {
@@ -251,7 +366,7 @@ function mapStateToPropsView(state: State): IViewManagerPanelProps {
 }
 
 class _CenterPanel extends React.PureComponent<IViewManagerPanelProps & IDispatch, null> {
-    static readonly DIV_STYLE: CSSProperties = {flex: "auto", height: "100%", overflow: "hidden"};
+    static readonly DIV_STYLE: CSSProperties = {flex: 'auto', height: '100%', overflow: 'hidden'};
 
     constructor(props: IViewManagerPanelProps & IDispatch) {
         super(props);
@@ -275,7 +390,7 @@ class _CenterPanel extends React.PureComponent<IViewManagerPanelProps & IDispatc
         this.props.dispatch(actions.closeAllViews(viewPath));
     }
 
-    onMoveView(sourceViewId: string, placement: "before" | "after", targetViewId: string) {
+    onMoveView(sourceViewId: string, placement: 'before' | 'after', targetViewId: string) {
         this.props.dispatch(actions.moveView(sourceViewId, placement, targetViewId));
     }
 
@@ -307,6 +422,7 @@ class _CenterPanel extends React.PureComponent<IViewManagerPanelProps & IDispatc
         );
     }
 }
+
 const CenterPanel = connect(mapStateToPropsView)(_CenterPanel);
 
 

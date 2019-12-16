@@ -3,7 +3,7 @@ import {
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
     OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
-    SplitMode,
+    SplitMode
 } from './state';
 import { ViewState, ViewPath } from './components/ViewState';
 import {
@@ -12,7 +12,7 @@ import {
     JobStatusEnum,
     JobPromise,
     JobProgressHandler,
-    ERROR_CODE_INVALID_PARAMS
+    ERROR_CODE_INVALID_PARAMS, newWebAPIClient
 } from './webapi';
 import * as selectors from './selectors';
 import * as assert from '../common/assert';
@@ -73,141 +73,82 @@ export type GetState = () => State;
 export type ThunkAction = (dispatch?: Dispatch, getState?: GetState) => void;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// (User) Feature actions
-
-export const ACTIVATE_NEW_PLACEMARK_TOOL = 'ACTIVATE_NEW_PLACEMARK_TOOL';
-export const ADD_PLACEMARK = 'ADD_PLACEMARK';
-export const REMOVE_PLACEMARK = 'REMOVE_PLACEMARK';
-export const UPDATE_PLACEMARK_GEOMETRY = 'UPDATE_PLACEMARK_GEOMETRY';
-export const UPDATE_PLACEMARK_PROPERTIES = 'UPDATE_PLACEMARK_PROPERTIES';
-export const UPDATE_PLACEMARK_STYLE = 'UPDATE_PLACEMARK_STYLE';
-
-export function activateNewPlacemarkTool(newPlacemarkToolType: GeometryToolType) {
-    return {type: ACTIVATE_NEW_PLACEMARK_TOOL, payload: {newPlacemarkToolType}};
-}
-
-export function addPlacemark(placemark: Placemark): Action {
-    return {type: ADD_PLACEMARK, payload: {placemark}};
-}
-
-export function addPointPlacemark(longitude: number, latitude: number, properties: any): Action {
-    const placemark = {
-        id: genSimpleId(PLACEMARK_ID_PREFIX),
-        type: 'Feature',
-        geometry: {
-            type: 'Point',
-            coordinates: [longitude, latitude]
-        },
-        properties,
-    };
-    return addPlacemark(placemark as any);
-}
-
-export function removePlacemark(placemarkId: string): Action {
-    return {type: REMOVE_PLACEMARK, payload: {placemarkId}};
-}
-
-export function updatePlacemarkGeometry(placemarkId: string, geometry: DirectGeometryObject | any): Action {
-    return {type: UPDATE_PLACEMARK_GEOMETRY, payload: {placemarkId, geometry}};
-}
-
-export function updatePlacemarkProperties(placemarkId: string, properties: any): Action {
-    return {type: UPDATE_PLACEMARK_PROPERTIES, payload: {placemarkId, properties}};
-}
-
-export function updatePlacemarkStyle(placemarkId: string, style: SimpleStyle): Action {
-    return {type: UPDATE_PLACEMARK_STYLE, payload: {placemarkId, style}};
-}
-
-export function locatePlacemark(placemarkId: string): ThunkAction {
-    return (dispatch: Dispatch, getState: GetState) => {
-        let viewer = selectors.selectedWorldViewViewerSelector(getState());
-        if (viewer) {
-            let selectedEntity = getEntityByEntityId(viewer, placemarkId);
-            if (selectedEntity) {
-                let headingPitchRange;
-                if (selectedEntity.position) {
-                    let heading = 0, pitch = -3.14159 / 2, range = 2500000;
-                    headingPitchRange = new Cesium.HeadingPitchRange(heading, pitch, range);
-                }
-                viewer.zoomTo(selectedEntity, headingPitchRange);
-            }
-        }
-    };
-}
-
-export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Action {
-    return updateSessionState({selectedPlacemarkId});
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application-level actions
 
 export const UPDATE_INITIAL_STATE = 'UPDATE_INITIAL_STATE';
+export const SIGN_IN = 'SIGN_IN';
+export const SET_WEBAPI_MODE = 'SET_WEBAPI_MODE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const UPDATE_DIALOG_STATE = 'UPDATE_DIALOG_STATE';
 export const UPDATE_TASK_STATE = 'UPDATE_TASK_STATE';
 export const REMOVE_TASK_STATE = 'REMOVE_TASK_STATE';
 export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
-export const SET_GLOBE_MOUSE_POSITION = 'SET_GLOBE_MOUSE_POSITION';
-export const SET_GLOBE_VIEW_POSITION = 'SET_GLOBE_VIEW_POSITION';
 export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
 
-export function setGlobeMousePosition(position: GeographicPosition): Action {
-    return {type: SET_GLOBE_MOUSE_POSITION, payload: {position}};
-}
-
-
-function setGlobeViewPositionImpl(position: GeographicPosition | null,
-                                  positionData: { [varName: string]: number } | null): Action {
-    return {type: SET_GLOBE_VIEW_POSITION, payload: {position, positionData}};
-}
-
-export function setGlobeViewPosition(position: GeographicPosition): ThunkAction {
+export function signIn(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        if (position) {
-            // TODO: using selectedRightBottomPanelID is no good indicator for checking VARIABLES panel visibility.
-            const selectedRightBottomPanelID = selectors.selectedRightBottomPanelIdSelector(getState());
-            if (selectedRightBottomPanelID === 'variables') {
-                const baseDir = selectors.workspaceBaseDirSelector(getState());
-                if (!baseDir) {
-                    // Workspace not yet ready, that's ok.
-                    return;
-                }
-                const resource = selectors.selectedResourceSelector(getState());
-                const layer = selectors.selectedVariableImageLayerSelector(getState());
-                if (layer && resource) {
-                    const indexers = getNonSpatialIndexers(resource, layer);
-
-                    function call() {
-                        return selectors.datasetAPISelector(getState()).extractPixelValues(baseDir,
-                                                                                           resource.name,
-                                                                                           [position.longitude, position.latitude],
-                                                                                           indexers);
-                    }
-
-                    function action(positionData: { [varName: string]: number }) {
-                        dispatch(setGlobeViewPositionImpl(position, positionData));
-                    }
-
-                    callAPI({title: 'Load cell values', dispatch, call, action, disableNotifications: true});
-                    return;
-                }
-            }
-        } else {
-            dispatch(setGlobeViewPositionImpl(null, null));
+        dispatch(_signIn());
+        if (getState().communication.webAPIMode === 'remote') {
+            dispatch(connectWebAPIClient());
         }
-    }
+    };
 }
 
-export function updateInitialState(initialState: Object): Action {
-    return {type: UPDATE_INITIAL_STATE, payload: initialState};
+export function _signIn(): Action {
+    return {type: SIGN_IN}
+}
+
+export function setWebAPIMode(webAPIMode: 'local' | 'remote' | null): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        dispatch(_setWebAPIMode(webAPIMode));
+        if (getState().communication.webAPIMode === 'local') {
+            dispatch(connectWebAPIClient());
+        }
+    };
+}
+
+export function _setWebAPIMode(webAPIMode: 'local' | 'remote' | null): Action {
+    return {type: SET_WEBAPI_MODE, payload: {webAPIMode}}
 }
 
 export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting' | 'open' | 'error' | 'closed'): Action {
     return {type: SET_WEBAPI_STATUS, payload: {webAPIClient, webAPIStatus}};
+}
+
+export function connectWebAPIClient(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        dispatch(setWebAPIStatus(null, 'connecting'));
+
+        const webAPIConfig = getState().data.appConfig.webAPIConfig;
+        console.log('webAPIConfig:', webAPIConfig);
+        const webAPIClient = newWebAPIClient(selectors.apiWebSocketsUrlSelector(getState()));
+
+        webAPIClient.onOpen = () => {
+            dispatch(setWebAPIStatus(webAPIClient, 'open'));
+            dispatch(loadBackendConfig());
+            dispatch(loadColorMaps());
+            dispatch(loadDataStores());
+            dispatch(loadOperations());
+            dispatch(loadInitialWorkspace());
+        };
+
+        webAPIClient.onClose = () => {
+            dispatch(setWebAPIStatus(null, 'closed'));
+        };
+
+        webAPIClient.onError = () => {
+            dispatch(setWebAPIStatus(webAPIClient, 'error'));
+        };
+
+        webAPIClient.onWarning = (event) => {
+            console.warn(`cate-desktop: warning from cate-webapi: ${event.message}`);
+        };
+    };
+}
+
+export function updateInitialState(initialState: Object): Action {
+    return {type: UPDATE_INITIAL_STATE, payload: initialState};
 }
 
 export function updateDialogState(dialogId: string, ...dialogState): Action {
@@ -271,11 +212,13 @@ export function updateControlState(controlState: any): Action {
     return {type: UPDATE_CONTROL_STATE, payload: controlState};
 }
 
-export function updatePreferences(session: any): ThunkAction {
+export function updatePreferences(session: any, sendToMain: boolean = false): ThunkAction {
     return (dispatch: Dispatch) => {
         session = {...session, hasWebGL: hasWebGL()};
         dispatch(updateSessionState(session));
-        dispatch(sendPreferencesToMain());
+        if (sendToMain) {
+            dispatch(sendPreferencesToMain());
+        }
     };
 }
 
@@ -457,6 +400,128 @@ export function callAPI<T>(options: CallAPIOptions<T>): void {
 
     jobPromise.then(onDone, onFailure);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Globe State
+
+export const SET_GLOBE_MOUSE_POSITION = 'SET_GLOBE_MOUSE_POSITION';
+export const SET_GLOBE_VIEW_POSITION = 'SET_GLOBE_VIEW_POSITION';
+
+export function setGlobeMousePosition(position: GeographicPosition): Action {
+    return {type: SET_GLOBE_MOUSE_POSITION, payload: {position}};
+}
+
+
+function setGlobeViewPositionImpl(position: GeographicPosition | null,
+                                  positionData: { [varName: string]: number } | null): Action {
+    return {type: SET_GLOBE_VIEW_POSITION, payload: {position, positionData}};
+}
+
+export function setGlobeViewPosition(position: GeographicPosition): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        if (position) {
+            // TODO: using selectedRightBottomPanelID is no good indicator for checking VARIABLES panel visibility.
+            const selectedRightBottomPanelID = selectors.selectedRightBottomPanelIdSelector(getState());
+            if (selectedRightBottomPanelID === 'variables') {
+                const baseDir = selectors.workspaceBaseDirSelector(getState());
+                if (!baseDir) {
+                    // Workspace not yet ready, that's ok.
+                    return;
+                }
+                const resource = selectors.selectedResourceSelector(getState());
+                const layer = selectors.selectedVariableImageLayerSelector(getState());
+                if (layer && resource) {
+                    const indexers = getNonSpatialIndexers(resource, layer);
+
+                    function call() {
+                        return selectors.datasetAPISelector(getState()).extractPixelValues(baseDir,
+                                                                                           resource.name,
+                                                                                           [position.longitude, position.latitude],
+                                                                                           indexers);
+                    }
+
+                    function action(positionData: { [varName: string]: number }) {
+                        dispatch(setGlobeViewPositionImpl(position, positionData));
+                    }
+
+                    callAPI({title: 'Load cell values', dispatch, call, action, disableNotifications: true});
+                    return;
+                }
+            }
+        } else {
+            dispatch(setGlobeViewPositionImpl(null, null));
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// (User) Placemark actions
+
+export const ACTIVATE_NEW_PLACEMARK_TOOL = 'ACTIVATE_NEW_PLACEMARK_TOOL';
+export const ADD_PLACEMARK = 'ADD_PLACEMARK';
+export const REMOVE_PLACEMARK = 'REMOVE_PLACEMARK';
+export const UPDATE_PLACEMARK_GEOMETRY = 'UPDATE_PLACEMARK_GEOMETRY';
+export const UPDATE_PLACEMARK_PROPERTIES = 'UPDATE_PLACEMARK_PROPERTIES';
+export const UPDATE_PLACEMARK_STYLE = 'UPDATE_PLACEMARK_STYLE';
+
+export function activateNewPlacemarkTool(newPlacemarkToolType: GeometryToolType) {
+    return {type: ACTIVATE_NEW_PLACEMARK_TOOL, payload: {newPlacemarkToolType}};
+}
+
+export function addPlacemark(placemark: Placemark): Action {
+    return {type: ADD_PLACEMARK, payload: {placemark}};
+}
+
+export function addPointPlacemark(longitude: number, latitude: number, properties: any): Action {
+    const placemark = {
+        id: genSimpleId(PLACEMARK_ID_PREFIX),
+        type: 'Feature',
+        geometry: {
+            type: 'Point',
+            coordinates: [longitude, latitude]
+        },
+        properties,
+    };
+    return addPlacemark(placemark as any);
+}
+
+export function removePlacemark(placemarkId: string): Action {
+    return {type: REMOVE_PLACEMARK, payload: {placemarkId}};
+}
+
+export function updatePlacemarkGeometry(placemarkId: string, geometry: DirectGeometryObject | any): Action {
+    return {type: UPDATE_PLACEMARK_GEOMETRY, payload: {placemarkId, geometry}};
+}
+
+export function updatePlacemarkProperties(placemarkId: string, properties: any): Action {
+    return {type: UPDATE_PLACEMARK_PROPERTIES, payload: {placemarkId, properties}};
+}
+
+export function updatePlacemarkStyle(placemarkId: string, style: SimpleStyle): Action {
+    return {type: UPDATE_PLACEMARK_STYLE, payload: {placemarkId, style}};
+}
+
+export function locatePlacemark(placemarkId: string): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        let viewer = selectors.selectedWorldViewViewerSelector(getState());
+        if (viewer) {
+            let selectedEntity = getEntityByEntityId(viewer, placemarkId);
+            if (selectedEntity) {
+                let headingPitchRange;
+                if (selectedEntity.position) {
+                    let heading = 0, pitch = -3.14159 / 2, range = 2500000;
+                    headingPitchRange = new Cesium.HeadingPitchRange(heading, pitch, range);
+                }
+                viewer.zoomTo(selectedEntity, headingPitchRange);
+            }
+        }
+    };
+}
+
+export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Action {
+    return updateSessionState({selectedPlacemarkId});
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data stores / data sources actions
@@ -1087,7 +1152,7 @@ export function deleteResourceInteractive(resName: string): ThunkAction {
                                           title: 'Remove Resource and Workflow Step',
                                           message: `Do you really want to delete resource and step "${resName}"?`,
                                           detail: 'This will also delete the workflow step that created it.\n' +
-                                                  'You will not be able to undo this operation.',
+                                              'You will not be able to undo this operation.',
                                           buttons: ['Yes', 'No'],
                                           defaultId: 1,
                                           cancelId: 1,
@@ -1164,7 +1229,7 @@ export function setCurrentWorkspace(workspace: WorkspaceState): ThunkAction {
     return (dispatch: Dispatch) => {
         dispatch(setCurrentWorkspaceImpl(workspace));
         if (!workspace.isScratch) {
-            dispatch(updatePreferences({lastWorkspacePath: workspace.baseDir} as any));
+            dispatch(updatePreferences({lastWorkspacePath: workspace.baseDir} as any,true));
         }
     }
 }
@@ -1488,7 +1553,7 @@ export function notifySelectedEntityChange(viewId: string, layer: LayerState | n
                 if (workspace) {
                     const resId = selectedEntity._resId;
                     const featureIndex = +selectedEntity._idx;
-                    const baseUrl = selectors.webAPIRestUrlSelector(getState());
+                    const baseUrl = selectors.restUrlSelector(getState());
                     const baseDir = workspace.baseDir;
                     const featureUrl = getFeatureUrl(baseUrl, baseDir, {resId}, featureIndex);
                     reloadEntityWithOriginalGeometry(selectedEntity, featureUrl, (layer as any).style);
@@ -1554,19 +1619,19 @@ export function updateTableViewData(viewId: string,
 
 export function loadTableViewData(viewId: string, resName: string, varName: string | null): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        const restUrl = selectors.webAPIRestUrlSelector(getState());
+        const restUrl = selectors.restUrlSelector(getState());
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         const resource = selectors.resourcesSelector(getState()).find(res => res.name === resName);
         if (resource) {
             const csvUrl = getCsvUrl(restUrl, baseDir, {resId: resource.id}, varName);
             dispatch(updateTableViewData(viewId, resName, varName, null, null, true));
             d3.csv(csvUrl)
-              .then((dataRows: any[]) => {
-                  dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
-              })
-              .catch((error: any) => {
-                  dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
-              });
+                .then((dataRows: any[]) => {
+                    dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
+                })
+                .catch((error: any) => {
+                    dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
+                });
         }
     }
 }
@@ -1578,7 +1643,7 @@ export const UPDATE_ANIMATION_VIEW_DATA = 'UPDATE_ANIMATION_VIEW_DATA';
 
 export function loadAnimationViewData(viewId: string, resId: number): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        const restUrl = selectors.webAPIRestUrlSelector(getState());
+        const restUrl = selectors.restUrlSelector(getState());
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         const htmlUrl = getHtmlUrl(restUrl, baseDir, resId);
 
