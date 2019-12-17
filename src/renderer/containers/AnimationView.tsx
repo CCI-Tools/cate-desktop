@@ -1,11 +1,11 @@
 import * as React from 'react';
-import {State, ResourceState, AnimationViewDataState} from "../state";
-import {connect, DispatchProp} from "react-redux";
-import {ViewState} from "../components/ViewState";
+import { State, ResourceState, AnimationViewDataState } from "../state";
+import { connect, DispatchProp } from "react-redux";
+import { ViewState } from "../components/ViewState";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import {Card} from "../components/Card";
-import {isNumber} from "../../common/types";
+import { Card } from "../components/Card";
+import { isNumber } from "../../common/types";
 
 
 interface IAnimationViewOwnProps {
@@ -26,10 +26,10 @@ interface IAnimationViewState {
 function mapStateToProps(state: State, ownProps: IAnimationViewOwnProps): IAnimationViewProps {
     return {
         view: ownProps.view,
-        baseUrl: selectors.webAPIRestUrlSelector(state),
+        baseUrl: selectors.restUrlSelector(state),
         baseDir: selectors.workspaceBaseDirSelector(state),
         animationResources: selectors.animationResourcesSelector(state),
-        mplWebSocketUrl: selectors.mplWebSocketUrlSelector(state),
+        mplWebSocketUrl: selectors.mplWebSocketsUrlSelector(state),
     };
 }
 

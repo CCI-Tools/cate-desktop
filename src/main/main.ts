@@ -29,8 +29,6 @@ import {
 import * as net from 'net';
 import { installAutoUpdate } from './update-frontend';
 import { isDefined, isNumber, isString } from '../common/types';
-import { doSetup } from './setup';
-import { SetupResult } from '../common/setup';
 import { WebAPIConfig } from '../renderer/state';
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
@@ -95,7 +93,6 @@ class CateDesktopApp {
     // Keep a global reference of window objects, if you don't, the windows will
     // be closed automatically when the JavaScript object is garbage collected.
     private mainWindow: electron.BrowserWindow = null;
-    private splashWindow: electron.BrowserWindow = null;
 
     private quitRequested = false;
     private quitConfirmed = false;
@@ -135,6 +132,20 @@ class CateDesktopApp {
     }
 
     start() {
+        const shouldQuit = electron.app.makeSingleInstance(() => {
+            // Someone tried to run a second instance, we should focus our window.
+            if (this.mainWindow) {
+                if (this.mainWindow.isMinimized()) {
+                    this.mainWindow.restore();
+                }
+                this.mainWindow.focus();
+            }
+        });
+        if (shouldQuit) {
+            log.warn('Should quit, because it is a second app instance.');
+            electron.app.quit();
+            return;
+        }
 
         // Ensure we have a valid "~/.cate/"
         if (!CateDesktopApp.ensureAppDataDir()) {
@@ -190,9 +201,6 @@ class CateDesktopApp {
         // By default NODE_ENV will be 'production' so react is much faster
         process.env.NODE_ENV = this.configuration.get('NODE_ENV', 'production');
         log.info('process.env.NODE_ENV = ' + process.env.NODE_ENV);
-
-        this.initWebAPIConfig();
-
         log.info('appPath:', electron.app.getAppPath());
         log.info('appConfig:', this.configuration.data);
 
@@ -200,9 +208,7 @@ class CateDesktopApp {
         electron.app.on('ready', (): void => {
             log.info('Ready.');
             this.initMainWindow();
-            this.showSplashWindow(() => {
-                this.startUpWithWebAPIService();
-            });
+            this.loadMainWindow();
         });
 
         electron.app.on('window-all-closed', () => {
@@ -220,7 +226,7 @@ class CateDesktopApp {
         // Emitted when all windows have been closed and the application will quit.
         electron.app.on('quit', () => {
             log.info('Quit!');
-            this.stopWebAPIService();
+            this.maybeStopLocalWebAPIService();
             // Unconditionally exit the application.
             // This is not nice but should be solid fix for annoying issue
             // https://github.com/CCI-Tools/cate/issues/765
@@ -229,21 +235,6 @@ class CateDesktopApp {
             this.exitRequested = true;
             electron.app.exit(0);
         });
-
-        const shouldQuit = electron.app.makeSingleInstance(() => {
-            // Someone tried to run a second instance, we should focus our window.
-            if (this.mainWindow) {
-                if (this.mainWindow.isMinimized()) {
-                    this.mainWindow.restore();
-                }
-                this.mainWindow.focus();
-            }
-        });
-        if (shouldQuit) {
-            log.warn('Should quit, because it is a second app instance.');
-            electron.app.quit();
-            return;
-        }
 
         electron.ipcMain.on('show-open-dialog', (event, openDialogOptions, synchronous?: boolean) => {
             electron.dialog.showOpenDialog(this.mainWindow, openDialogOptions, (filePaths: Array<string>) => {
@@ -307,6 +298,26 @@ class CateDesktopApp {
                 event.sender.send('set-preferences-reply', err.toString());
             }
         });
+
+        electron.ipcMain.on('set-webapi-config', (event, webAPIConfig) => {
+            this.configuration.set('webAPIConfig', {
+                ...webAPIConfig,
+                restUrl: getWebAPIRestUrl(webAPIConfig),
+                apiWebSocketUrl: getAPIWebSocketsUrl(webAPIConfig),
+                mplWebSocketUrl: getMPLWebSocketsUrl(webAPIConfig),
+            });
+            log.info('Received webAPI configuration from UI...', this.configuration.get('webAPIConfig'));
+        });
+
+        electron.ipcMain.on('start-local-service', (event) => {
+            log.info(`Starting local Cate service...`);
+            this.maybeStartLocalWebAPIService();
+        });
+
+        electron.ipcMain.on('stop-local-service', (event) => {
+            log.info(`Stopping local Cate service...`);
+            this.maybeStopLocalWebAPIService();
+        });
     }
 
     private requestPreferencesUpdate() {
@@ -318,34 +329,18 @@ class CateDesktopApp {
         }
     }
 
-    private initWebAPIConfig() {
-        let webAPIConfig = this.configuration.get('webAPIConfig', {});
-        webAPIConfig = updateConditionally(webAPIConfig, {
-            servicePort: 9090,
-            serviceAddress: '',
-            serviceProtocol: 'http',
-            serviceFile: path.join(getAppDataDir(), 'webapi-info.json'),
-            // Refer to https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
-            processOptions: {},
-        });
-        this.configuration.set('webAPIConfig', webAPIConfig);
-        // TODO (SabineEmbacher) find a better solution for context injection
-        electron.app['_configuration'] = this.configuration;
-    }
-
-    private startUpWithWebAPIService() {
+    private maybeStartLocalWebAPIService() {
         if (this.webAPIStartTime === null) {
             // Set start time, unless it has already been done
             this.resetWebAPIStartTime();
-            this.showSplashMessage('Waiting for Cate service...');
+            this.updateInitMessage('Waiting for Cate service...');
         }
 
         let serviceFound = false;
 
         const internalErrorTitle = `${electron.app.getName()} - Internal Error`;
-        const localWebAPIService = isLocalWebAPIService(this.webAPIConfig);
 
-        log.info(`Waiting for response from ${localWebAPIService ? 'local' : 'remote'} Cate service ${this.webAPIRestUrl}`);
+        log.info(`Waiting for response from local Cate service ${this.webAPIRestUrl}`);
         request(this.webAPIRestUrl, this.webAPIAccessTimeout)
             .then((response: string) => {
                 serviceFound = true;
@@ -354,9 +349,7 @@ class CateDesktopApp {
                 const message = JSON.parse(response);
                 const version = message.status === 'ok' && message.content && message.content.version;
                 if (version) {
-                    if (isWebAPIVersionCompatible(version, true)) {
-                        this.loadMainWindow();
-                    } else {
+                    if (!isWebAPIVersionCompatible(version, true)) {
                         // Incompatible WebAPI service version
                         const msg = `Cate service version ${EXPECTED_CATE_WEBAPI_VERSION} expected, but found ${version}`;
                         electron.dialog.showErrorBox(internalErrorTitle, msg);
@@ -370,14 +363,9 @@ class CateDesktopApp {
                     electron.app.exit(ERRCODE_WEBAPI_VERSION);
                     return;
                 }
+                this.mainWindow.webContents.send('local-service-started');
             })
             .catch((err) => {
-                if (!localWebAPIService) {
-                    const msg = `Failed to connect to Cate service within ${this.webAPIAccessTimeout / 1000} seconds:\n${err}`;
-                    electron.dialog.showErrorBox(internalErrorTitle, msg);
-                    electron.app.exit(ERRCODE_WEBAPI_TIMEOUT);
-                    return;
-                }
                 const delta = this.webAPIStartTimeDelta;
                 const deltaStr = delta.toFixed(2);
                 if (serviceFound) {
@@ -385,7 +373,7 @@ class CateDesktopApp {
                 } else {
                     log.info(`No response from Cate service after ${deltaStr} seconds: ${err}`);
                 }
-                this.showSplashMessage(`Waiting for Cate service (${deltaStr}s)`);
+                this.updateInitMessage(`Waiting for Cate service (${deltaStr}s)`);
                 let callback = () => {
                     if (delta > this.webAPIStartTimeout) {
                         log.error(`Failed to start Cate service within ${deltaStr} seconds: ${err}`);
@@ -395,16 +383,16 @@ class CateDesktopApp {
                         }
                         electron.app.exit(ERRCODE_WEBAPI_TIMEOUT);
                     } else {
-                        setTimeout(this.startUpWithWebAPIService.bind(this), 1000 * this.webAPIAccessDelay);
+                        setTimeout(this.maybeStartLocalWebAPIService.bind(this), 1000 * this.webAPIAccessDelay);
                     }
                 };
                 if (!this.webAPIProcess) {
-                    this.ensureCateDir((setupPerformed: boolean) => {
+                    this.ensureLocalCateDir((setupPerformed: boolean) => {
                         if (setupPerformed) {
                             // We may have spend considerable time in the setup dialog, so reset the start time.
                             this.resetWebAPIStartTime();
                         }
-                        this.startWebAPIService(callback)
+                        this.startLocalWebAPIService(callback)
                     });
                 } else {
                     callback();
@@ -412,9 +400,9 @@ class CateDesktopApp {
             });
     }
 
-    private startWebAPIService(callback: () => void) {
+    private startLocalWebAPIService(callback: () => void) {
 
-        this.showSplashMessage('Searching unused port...');
+        this.updateInitMessage('Searching unused port...');
         findFreePort(this.webAPIConfig.servicePort, null, (freePort: number) => {
             if (freePort < this.webAPIConfig.servicePort) {
                 log.error('Can\'t find any free port');
@@ -461,7 +449,7 @@ class CateDesktopApp {
         });
     }
 
-    private stopWebAPIService() {
+    private maybeStopLocalWebAPIService() {
         // If there is no webAPIProcess instance, we haven't started the WebAPI service on our own.
         if (!this.webAPIProcess) {
             log.info(`Not stopping Cate service because we haven't started it.`);
@@ -499,7 +487,8 @@ class CateDesktopApp {
 
     private maybeInstallAutoUpdate() {
         if (process.env.NODE_ENV !== 'development') {
-            const autoUpdateSoftware = this.preferences.data.autoUpdateSoftware || !isDefined(this.preferences.data.autoUpdateSoftware);
+            const autoUpdateSoftware = this.preferences.data.autoUpdateSoftware
+                || !isDefined(this.preferences.data.autoUpdateSoftware);
             if (autoUpdateSoftware) {
                 installAutoUpdate(this.mainWindow);
             }
@@ -525,7 +514,7 @@ class CateDesktopApp {
         // Emitted when the window is going to be closed.
         this.mainWindow.on('close', event => {
             log.info(`Main window will be closed. `
-                     + `Possible reason: ${this.quitRequested ? 'quit requested' : 'window closed'}`);
+                         + `Possible reason: ${this.quitRequested ? 'quit requested' : 'window closed'}`);
             this.requestPreferencesUpdate();
             this.preferences.set('mainWindowBounds', this.mainWindow.getBounds());
             this.preferences.set('devToolsOpened', this.mainWindow.webContents.isDevToolsOpened());
@@ -601,45 +590,20 @@ class CateDesktopApp {
         });
     }
 
-    private showSplashWindow(callback: () => void) {
-        this.splashWindow = new electron.BrowserWindow({
-                                                           width: 256,
-                                                           height: 280,
-                                                           center: true,
-                                                           show: true,
-                                                           useContentSize: true,
-                                                           frame: false,
-                                                           alwaysOnTop: false,
-                                                           transparent: true,
-                                                           parent: this.mainWindow
-                                                       });
-
-        this.splashWindow.setIgnoreMouseEvents(true);
-        this.splashWindow.on('closed', () => {
-            this.splashWindow = null;
-        });
-
-        this.splashWindow.loadURL(url.format({
-                                                 pathname: path.join(electron.app.getAppPath(), 'splash.html'),
-                                                 protocol: 'file:',
-                                                 slashes: true
-                                             }));
-        this.splashWindow.webContents.on('did-finish-load', callback);
-    }
-
-    private showSplashMessage(message: string) {
-        log.info('Splash says:', message);
-        if (this.isSplashWindowVisible()) {
-            this.splashWindow.webContents.send('update-splash-message', message);
-        } else {
-            log.warn('showSplashMessage: splash not available', message);
-        }
+    private updateInitMessage(message: string) {
+        log.info('Status update:', message);
+        this.mainWindow.webContents.send('update-init-message', message);
     }
 
     private loadMainWindow() {
+        this.mainWindow.loadURL(url.format({
+                                               pathname: path.join(electron.app.getAppPath(), 'index.html'),
+                                               protocol: 'file:',
+                                               slashes: true
+                                           }));
 
         if (this.configuration.data.devToolsExtensions) {
-            this.showSplashMessage('Installing developer tools...');
+            this.updateInitMessage('Installing developer tools...');
             for (let devToolsExtensionName of this.configuration.data.devToolsExtensions) {
                 const devToolExtension = devTools[devToolsExtensionName];
                 if (devToolExtension) {
@@ -650,17 +614,8 @@ class CateDesktopApp {
             }
         }
 
-        this.showSplashMessage('Loading user interface...');
-
         const menu = electron.Menu.buildFromTemplate(menuTemplate);
         electron.Menu.setApplicationMenu(menu);
-
-        this.mainWindow.loadURL(url.format({
-                                               pathname: path.join(electron.app.getAppPath(), 'index.html'),
-                                               protocol: 'file:',
-                                               slashes: true
-                                           }));
-
 
         let sessionProxyConfig = getSessionProxyConfig(process.env);
         if (USE_PROXY_CONFIG_IF_SET && sessionProxyConfig) {
@@ -681,33 +636,19 @@ class CateDesktopApp {
         });
 
         this.mainWindow.webContents.on('did-finish-load', () => {
-            this.showSplashMessage('Done.');
-            if (this.isSplashWindowAlive()) {
-                this.splashWindow.close();
-            }
-            const webAPIConfig = this.configuration.data.webAPIConfig as WebAPIConfig;
-            this.mainWindow.webContents.send('apply-initial-state', {
-                session: this.preferences.data,
-                appConfig: Object.assign({}, this.configuration.data, {
-                    appPath: electron.app.getAppPath(),
-                    webAPIConfig: Object.assign({}, webAPIConfig, {
-                        restUrl: getWebAPIRestUrl(webAPIConfig),
-                        apiWebSocketUrl: getAPIWebSocketsUrl(webAPIConfig),
-                        mplWebSocketUrl: getMPLWebSocketsUrl(webAPIConfig),
-                    }),
-                })
-            });
-
+            this.updateInitMessage('Done.');
             this.maybeInstallAutoUpdate();
+            this.mainWindow.webContents.send('set-preferences', this.preferences.data);
         });
 
         if (this.preferences.data.devToolsOpened) {
             // Open the DevTools.
             this.mainWindow.webContents.openDevTools();
         }
+
     }
 
-    private ensureCateDir(callback: (setupPerformed: boolean) => void) {
+    private ensureLocalCateDir(callback: (setupPerformed: boolean) => void) {
         const setupInfo = getCateWebAPISetupInfo();
         log.info('Computed setup information: ', setupInfo);
 
@@ -721,56 +662,22 @@ class CateDesktopApp {
             return;
         }
 
-        // Close splash screen, because we now bring up the setup dialog
-        if (this.isSplashWindowVisible()) {
-            this.splashWindow.hide();
+        if (setupInfo.setupReason === 'INSTALL_CATE') {
+            electron.dialog.showErrorBox(
+                `${electron.app.getName()} - Error`,
+                `Unable locating "cate" Python package,\n`
+                    + `requiring version ${setupInfo.newCateVersion}.`
+            );
+        } else if (setupInfo.setupReason === 'UPDATE_CATE') {
+            electron.dialog.showErrorBox(
+                `${electron.app.getName()} - Error`,
+                'Found out-of-date "cate" Python package,\n'
+                    + `requiring version ${setupInfo.newCateVersion}.`
+                    + `found version ${setupInfo.oldCateVersion},\n`
+                    + `in ${setupInfo.oldCateDir},\n`
+            );
         }
-
-        // Bring up the setup dialog
-        doSetup(setupInfo, (setupResult: SetupResult) => {
-            log.info('After setup: setupResult =', setupResult);
-            if (setupResult) {
-                const {cateDir, cateVersion} = setupResult;
-                setCateDir(cateDir);
-                if (this.isSplashWindowAlive()) {
-                    this.splashWindow.show();
-                }
-                const versionDir = path.join(getAppDataDir(), cateVersion);
-                const locationFile = path.join(versionDir, 'cate.location');
-                const errorHandler = (err) => {
-                    log.error('Writing failed: ', err);
-                    electron.dialog.showErrorBox(`${electron.app.getName()} - Error`,
-                                                 `Writing to ${locationFile} failed:\n${err}`);
-                    electron.app.exit(ERRCODE_SETUP_FAILED);
-                };
-                log.warn('Writing ', locationFile);
-                if (!fs.existsSync(versionDir)) {
-                    try {
-                        fs.mkdirSync(versionDir);
-                    } catch (err) {
-                        errorHandler(err);
-                    }
-                }
-                fs.writeFile(locationFile, cateDir, {encoding: 'utf8'}, err => {
-                    if (!err) {
-                        callback(true);
-                    } else {
-                        errorHandler(err);
-                    }
-                });
-            } else {
-                // User cancelled update: exit immediately
-                electron.app.exit(0);
-            }
-        });
-    }
-
-    private isSplashWindowVisible() {
-        return this.isSplashWindowAlive() && this.splashWindow.isVisible();
-    }
-
-    private isSplashWindowAlive() {
-        return this.splashWindow && !this.splashWindow.isDestroyed();
+        electron.app.exit(ERRCODE_SETUP_FAILED);
     }
 
     private getOptionArg(options: string[]): string | null {

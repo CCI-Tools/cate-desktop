@@ -174,12 +174,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             timeline: false,
             navigationHelpButton: false,
             imageryProvider: baseLayerImageryProvider,
+            terrainProvider: !this.props.offlineMode,
             navigationInstructionsInitiallyVisible: false,
             automaticallyTrackDataSourceClocks: false,
             // Create a viewer that will not render frames based on changes in simulation time.
             // https://cesium.com/blog/2018/01/24/cesium-scene-rendering-performance/
             requestRenderMode: true,
-            maximumRenderTimeChange: Infinity
+            maximumRenderTimeChange: Infinity,
         };
 
         // Create the CesiumCesium.Viewer

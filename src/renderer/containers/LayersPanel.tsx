@@ -32,7 +32,6 @@ interface ILayersPanelProps {
     selectedVariableImageLayer: VariableImageLayerState | null;
     layerListHeight: number;
     showLayerDetails: boolean;
-    colorMapCategories: Array<ColorMapCategoryState>;
 }
 
 function mapStateToProps(state: State): ILayersPanelProps {
@@ -47,7 +46,6 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
         layerListHeight: state.session.layerListHeight,
         showLayerDetails: state.session.showLayerDetails,
-        colorMapCategories: selectors.colorMapCategoriesSelector(state)
     };
 }
 
@@ -73,12 +71,6 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.handleChangedLayerVisibility = this.handleChangedLayerVisibility.bind(this);
         this.handleChangedLayerSplitMode = this.handleChangedLayerSplitMode.bind(this);
         this.renderLayerItem = this.renderLayerItem.bind(this);
-    }
-
-    componentDidMount(): void {
-        if (!this.props.colorMapCategories) {
-            this.props.dispatch(actions.loadColorMaps());
-        }
     }
 
     private handleShowDetailsChanged(value: boolean) {

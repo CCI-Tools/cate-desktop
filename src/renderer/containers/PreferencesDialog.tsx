@@ -47,7 +47,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
             const backendConfig = this.state.backendConfig;
             const autoUpdateSoftwareChangeDetected = this.props.preferences.autoUpdateSoftware !== this.state.autoUpdateSoftware;
             const backendChangesDetected = !deepEqual(this.props.preferences.backendConfig, backendConfig);
-            this.props.dispatch(actions.updatePreferences(this.state));
+            this.props.dispatch(actions.updatePreferences(this.state, true));
             if (autoUpdateSoftwareChangeDetected || backendChangesDetected) {
                 this.props.dispatch(actions.storeBackendConfig(backendConfig));
                 showMessageBox({
