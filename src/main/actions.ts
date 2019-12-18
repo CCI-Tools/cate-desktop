@@ -75,6 +75,12 @@ export const actions = {
         click: (item, focusedWindow) => performRendererAction(focusedWindow, 'close-workspace'),
     },
 
+    deleteWorkspace: {
+        label: 'Delete Workspace',
+        category: 'file',
+        click: (item, focusedWindow) => performRendererAction(focusedWindow, 'delete-workspace'),
+    },
+
     saveWorkspace: {
         label: 'Save Workspace',
         category: 'file',

@@ -52,6 +52,8 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
 // TODO (forman): Rename to (Get)WorkspaceNameDialog
 class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps & ISelectWorkspaceDialogOwnProps & DispatchProp<State>, ISelectWorkspaceDialogState> {
 
+    private localWebAPI: boolean;
+
     constructor(props: ISelectWorkspaceDialogProps & DispatchProp<State>) {
         super(props);
         this.state = {workspaceDir: '', workspaceName: ''};
@@ -62,6 +64,7 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
         this.onWorkspaceNameChange = this.onWorkspaceNameChange.bind(this);
         this.onWorkspaceDirChange = this.onWorkspaceDirChange.bind(this);
         this.showSelectDirectoryDialog = this.showSelectDirectoryDialog.bind(this);
+        this.localWebAPI = props.isLocalWebAPI;
     }
 
     componentWillReceiveProps(nextProps: ISelectWorkspaceDialogProps) {
@@ -74,7 +77,7 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
 
     private canConfirm(): boolean {
         // TODO (SabineEmbacher) validate against existing workspace names
-        if (!this.state.workspaceDir || !this.state.workspaceName) {
+        if ((this.localWebAPI && !this.state.workspaceDir) || !this.state.workspaceName) {
             return false;
         }
         return /^([A-Za-z_\-\s0-9.]+)$/.test(this.state.workspaceName);

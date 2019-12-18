@@ -148,6 +148,13 @@ export class WorkspaceAPI {
                                       responseToWorkspace);
     }
 
+    deleteWorkspace(baseDir: string, deleteEntireWorkspace = true): JobPromise<WorkspaceState> {
+        return this.webAPIClient.call('delete_workspace',
+                                      [baseDir, deleteEntireWorkspace],
+                                      null,
+                                      responseToWorkspace);
+    }
+
     deleteWorkspaceResource(baseDir: string, resName: string): JobPromise<WorkspaceState> {
         return this.webAPIClient.call('delete_workspace_resource',
                                       [baseDir, resName],

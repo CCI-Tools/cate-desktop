@@ -41,6 +41,7 @@ import {
     isInputAssigned
 } from './containers/editor/value-editor-assign';
 import { ERROR_CODE_CANCELLED } from './webapi';
+import { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './containers/ChooseWorkspaceDialog';
 
 
 /**
@@ -1031,6 +1032,25 @@ export function deleteResource(resName: string): ThunkAction {
     }
 }
 
+/**
+ * Asynchronously delete the workspace with the given name.
+ *
+ * @returns a Redux thunk action
+ */
+export function deleteWorkspace(workspaceName: string, deleteEntireWorkspace= true): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+
+        function call() {
+            return selectors.workspaceAPISelector(getState()).deleteWorkspace(workspaceName, deleteEntireWorkspace);
+        }
+
+        callAPI({
+                    title: `Delete step/workspace "${workspaceName}"`, dispatch, call,
+                    requireDoneNotification: true
+                });
+    }
+}
+
 
 /**
  * Bring up the "New Workspace" dialog.
@@ -1046,7 +1066,17 @@ function openRemoteWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
     let jobPromise = selectors.workspaceAPISelector(getState()).listWorkspaces();
     jobPromise.then(workspaceNames => {
         dispatch(updateWorkspaceNames(workspaceNames));
-        dispatch(showDialog('openWorkspaceDialog'));
+        dispatch(showDialog(OPEN_WORKSPACE_DIALOG_ID));
+    })
+}
+
+function deleteRemoteWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
+                               getState: () => State) {
+    let state = getState();
+    let jobPromise = selectors.workspaceAPISelector(getState()).listWorkspaces();
+    jobPromise.then(workspaceNames => {
+        dispatch(updateWorkspaceNames(workspaceNames));
+        dispatch(showDialog(DELETE_WORKSPACE_DIALOG_ID));
     })
 }
 
@@ -1085,7 +1115,7 @@ function openLocalWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
 }
 
 /**
- * Let user select a workspace directory, then ask whether to save the existing workspace, then open new one.
+ * Let user select a workspace, then ask whether to save the existing workspace, then open new one.
  *
  * @returns a Redux thunk action
  */
@@ -1096,6 +1126,20 @@ export function openWorkspaceInteractive(): ThunkAction {
             openLocalWorkspace(dispatch, getState);
         } else {
             openRemoteWorkspace(dispatch, getState);
+        }
+    };
+}
+
+/**
+ * Let user select a workspace, then ask whether to delete the selected workspace.
+ *
+ * @returns a Redux thunk action
+ */
+export function deleteWorkspaceInteractive(): ThunkAction {
+
+    return (dispatch: Dispatch, getState: GetState) => {
+        if (!selectors.isLocalWebAPISelector(getState())) {
+            deleteRemoteWorkspace(dispatch, getState);
         }
     };
 }
@@ -2100,4 +2144,3 @@ export function sendPreferencesToMain(callback?: (error: any) => void): ThunkAct
         }
     };
 }
-

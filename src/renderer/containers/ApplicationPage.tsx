@@ -29,7 +29,7 @@ import { ViewManager, ViewRenderMap } from "../components/ViewManager";
 import { ViewLayoutState, ViewState, ViewPath, SplitDir } from "../components/ViewState";
 import { CSSProperties } from "react";
 import OperationStepDialog from "./OperationStepDialog";
-import ChooseWorkspaceDialog from './ChooseWorkspaceDialog';
+import ChooseWorkspaceDialog, { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './ChooseWorkspaceDialog';
 
 
 function renderWorldView(view: ViewState<WorldViewDataState>) {
@@ -207,7 +207,8 @@ class _ApplicationPage extends React.PureComponent<IApplicationPageProps & IDisp
                 <PreferencesDialog/>
                 <NewWorkspaceDialog/>
                 <SaveWorkspaceAsDialog/>
-                <ChooseWorkspaceDialog dialogId={"openWorkspaceDialog"}/>
+                <ChooseWorkspaceDialog dialogId={OPEN_WORKSPACE_DIALOG_ID}/>
+                <ChooseWorkspaceDialog dialogId={DELETE_WORKSPACE_DIALOG_ID}/>
                 <OperationStepDialog id={NEW_CTX_OPERATION_STEP_DIALOG_ID}/>
                 <JobFailureDialog/>
             </div>
@@ -424,6 +425,5 @@ class _CenterPanel extends React.PureComponent<IViewManagerPanelProps & IDispatc
 }
 
 const CenterPanel = connect(mapStateToPropsView)(_CenterPanel);
-
 
 

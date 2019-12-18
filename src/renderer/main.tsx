@@ -57,6 +57,10 @@ export function main() {
         store.dispatch(actions.closeWorkspaceInteractive());
     });
 
+    ipcRenderer.on('delete-workspace', () => {
+        store.dispatch(actions.deleteWorkspaceInteractive());
+    });
+
     ipcRenderer.on('save-workspace', () => {
         store.dispatch(actions.saveWorkspaceInteractive());
     });
