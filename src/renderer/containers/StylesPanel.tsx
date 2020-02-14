@@ -134,12 +134,6 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         this.handleChangedMarkerSymbol = this.handleChangedMarkerSymbol.bind(this);
     }
 
-    componentDidMount(): void {
-        if (!this.props.colorMapCategories) {
-            this.props.dispatch(actions.loadColorMaps());
-        }
-    }
-
     public render() {
         return (
             <React.Fragment>

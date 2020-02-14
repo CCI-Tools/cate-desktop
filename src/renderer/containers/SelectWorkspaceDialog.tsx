@@ -8,7 +8,7 @@ import { OpenDialogProperty } from "../actions";
 import * as selectors from "../selectors";
 
 interface ISelectWorkspaceDialogState extends DialogState {
-    workspaceDir: string;
+    workspaceDir: string | null;
     workspaceName: string;
 }
 
@@ -19,7 +19,7 @@ interface ISelectWorkspaceDialogOwnProps {
 interface ISelectWorkspaceDialogProps extends ISelectWorkspaceDialogState, ISelectWorkspaceDialogOwnProps {
     isOpen: boolean;
     isNewDialog: boolean;
-    isRemote: boolean;
+    isLocalWebAPI: boolean;
 }
 
 function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps): ISelectWorkspaceDialogProps {
@@ -27,6 +27,7 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
     const isOpen = dialogState.isOpen;
     const dialogId = ownProps.dialogId;
     const isNewDialog = ownProps.dialogId === 'newWorkspaceDialog';
+    const isLocalWebAPI = selectors.isLocalWebAPISelector(state);
     let workspaceDir = dialogState.workspaceDir;
     let workspaceName = dialogState.workspaceName;
     if (isOpen) {
@@ -36,19 +37,22 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
         }
         workspaceDir = workspaceDir || selectors.lastWorkspaceDirSelector(state);
     }
-    workspaceDir = workspaceDir || "";
-    workspaceName = workspaceName || "";
+    workspaceDir = isLocalWebAPI ? workspaceDir || '' : null;
+    workspaceName = workspaceName || '';
     return {
         workspaceDir,
         workspaceName,
         dialogId,
         isNewDialog,
         isOpen,
-        isRemote: false,
+        isLocalWebAPI,
     };
 }
 
+// TODO (forman): Rename to (Get)WorkspaceNameDialog
 class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps & ISelectWorkspaceDialogOwnProps & DispatchProp<State>, ISelectWorkspaceDialogState> {
+
+    private localWebAPI: boolean;
 
     constructor(props: ISelectWorkspaceDialogProps & DispatchProp<State>) {
         super(props);
@@ -60,6 +64,7 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
         this.onWorkspaceNameChange = this.onWorkspaceNameChange.bind(this);
         this.onWorkspaceDirChange = this.onWorkspaceDirChange.bind(this);
         this.showSelectDirectoryDialog = this.showSelectDirectoryDialog.bind(this);
+        this.localWebAPI = props.isLocalWebAPI;
     }
 
     componentWillReceiveProps(nextProps: ISelectWorkspaceDialogProps) {
@@ -71,18 +76,28 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
     }
 
     private canConfirm(): boolean {
-        if (!this.state.workspaceDir || !this.state.workspaceName) {
+        // TODO (SabineEmbacher) validate against existing workspace names
+        if ((this.localWebAPI && !this.state.workspaceDir) || !this.state.workspaceName) {
             return false;
         }
         return /^([A-Za-z_\-\s0-9.]+)$/.test(this.state.workspaceName);
     }
 
+    private composeWorkspacePath(): string {
+        let workspaceDir = this.state.workspaceDir;
+        let workspaceName = this.state.workspaceName;
+        if (workspaceDir === null) {
+            return workspaceName;
+        }
+        return workspaceDir + '/' + workspaceName;
+    }
+
     private onConfirm() {
         this.props.dispatch(actions.hideDialog(this.props.dialogId, this.state));
         if (this.props.isNewDialog) {
-            this.props.dispatch(actions.newWorkspace(this.state.workspaceDir + '/' + this.state.workspaceName));
+            this.props.dispatch(actions.newWorkspace(this.composeWorkspacePath()));
         } else {
-            this.props.dispatch(actions.saveWorkspaceAs(this.state.workspaceDir + '/' + this.state.workspaceName));
+            this.props.dispatch(actions.saveWorkspaceAs(this.composeWorkspacePath()));
         }
     }
 
@@ -135,7 +150,7 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
         }
 
         let directoryChooser = null;
-        if (!this.props.isRemote) {
+        if (this.props.isLocalWebAPI) {
             directoryChooser = (
                 <React.Fragment>
                     <p style={{marginTop: '1em'}}>Workspace parent directory:</p>

@@ -3,7 +3,7 @@ import {
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
     OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
-    SplitMode,
+    SplitMode
 } from './state';
 import { ViewState, ViewPath } from './components/ViewState';
 import {
@@ -12,7 +12,7 @@ import {
     JobStatusEnum,
     JobPromise,
     JobProgressHandler,
-    ERROR_CODE_INVALID_PARAMS
+    ERROR_CODE_INVALID_PARAMS, newWebAPIClient
 } from './webapi';
 import * as selectors from './selectors';
 import * as assert from '../common/assert';
@@ -41,6 +41,7 @@ import {
     isInputAssigned
 } from './containers/editor/value-editor-assign';
 import { ERROR_CODE_CANCELLED } from './webapi';
+import { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './containers/ChooseWorkspaceDialog';
 
 
 /**
@@ -73,141 +74,82 @@ export type GetState = () => State;
 export type ThunkAction = (dispatch?: Dispatch, getState?: GetState) => void;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// (User) Feature actions
-
-export const ACTIVATE_NEW_PLACEMARK_TOOL = 'ACTIVATE_NEW_PLACEMARK_TOOL';
-export const ADD_PLACEMARK = 'ADD_PLACEMARK';
-export const REMOVE_PLACEMARK = 'REMOVE_PLACEMARK';
-export const UPDATE_PLACEMARK_GEOMETRY = 'UPDATE_PLACEMARK_GEOMETRY';
-export const UPDATE_PLACEMARK_PROPERTIES = 'UPDATE_PLACEMARK_PROPERTIES';
-export const UPDATE_PLACEMARK_STYLE = 'UPDATE_PLACEMARK_STYLE';
-
-export function activateNewPlacemarkTool(newPlacemarkToolType: GeometryToolType) {
-    return {type: ACTIVATE_NEW_PLACEMARK_TOOL, payload: {newPlacemarkToolType}};
-}
-
-export function addPlacemark(placemark: Placemark): Action {
-    return {type: ADD_PLACEMARK, payload: {placemark}};
-}
-
-export function addPointPlacemark(longitude: number, latitude: number, properties: any): Action {
-    const placemark = {
-        id: genSimpleId(PLACEMARK_ID_PREFIX),
-        type: 'Feature',
-        geometry: {
-            type: 'Point',
-            coordinates: [longitude, latitude]
-        },
-        properties,
-    };
-    return addPlacemark(placemark as any);
-}
-
-export function removePlacemark(placemarkId: string): Action {
-    return {type: REMOVE_PLACEMARK, payload: {placemarkId}};
-}
-
-export function updatePlacemarkGeometry(placemarkId: string, geometry: DirectGeometryObject | any): Action {
-    return {type: UPDATE_PLACEMARK_GEOMETRY, payload: {placemarkId, geometry}};
-}
-
-export function updatePlacemarkProperties(placemarkId: string, properties: any): Action {
-    return {type: UPDATE_PLACEMARK_PROPERTIES, payload: {placemarkId, properties}};
-}
-
-export function updatePlacemarkStyle(placemarkId: string, style: SimpleStyle): Action {
-    return {type: UPDATE_PLACEMARK_STYLE, payload: {placemarkId, style}};
-}
-
-export function locatePlacemark(placemarkId: string): ThunkAction {
-    return (dispatch: Dispatch, getState: GetState) => {
-        let viewer = selectors.selectedWorldViewViewerSelector(getState());
-        if (viewer) {
-            let selectedEntity = getEntityByEntityId(viewer, placemarkId);
-            if (selectedEntity) {
-                let headingPitchRange;
-                if (selectedEntity.position) {
-                    let heading = 0, pitch = -3.14159 / 2, range = 2500000;
-                    headingPitchRange = new Cesium.HeadingPitchRange(heading, pitch, range);
-                }
-                viewer.zoomTo(selectedEntity, headingPitchRange);
-            }
-        }
-    };
-}
-
-export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Action {
-    return updateSessionState({selectedPlacemarkId});
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application-level actions
 
 export const UPDATE_INITIAL_STATE = 'UPDATE_INITIAL_STATE';
+export const SIGN_IN = 'SIGN_IN';
+export const SET_WEBAPI_MODE = 'SET_WEBAPI_MODE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const UPDATE_DIALOG_STATE = 'UPDATE_DIALOG_STATE';
 export const UPDATE_TASK_STATE = 'UPDATE_TASK_STATE';
 export const REMOVE_TASK_STATE = 'REMOVE_TASK_STATE';
 export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
-export const SET_GLOBE_MOUSE_POSITION = 'SET_GLOBE_MOUSE_POSITION';
-export const SET_GLOBE_VIEW_POSITION = 'SET_GLOBE_VIEW_POSITION';
 export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
 
-export function setGlobeMousePosition(position: GeographicPosition): Action {
-    return {type: SET_GLOBE_MOUSE_POSITION, payload: {position}};
-}
-
-
-function setGlobeViewPositionImpl(position: GeographicPosition | null,
-                                  positionData: { [varName: string]: number } | null): Action {
-    return {type: SET_GLOBE_VIEW_POSITION, payload: {position, positionData}};
-}
-
-export function setGlobeViewPosition(position: GeographicPosition): ThunkAction {
+export function signIn(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        if (position) {
-            // TODO: using selectedRightBottomPanelID is no good indicator for checking VARIABLES panel visibility.
-            const selectedRightBottomPanelID = selectors.selectedRightBottomPanelIdSelector(getState());
-            if (selectedRightBottomPanelID === 'variables') {
-                const baseDir = selectors.workspaceBaseDirSelector(getState());
-                if (!baseDir) {
-                    // Workspace not yet ready, that's ok.
-                    return;
-                }
-                const resource = selectors.selectedResourceSelector(getState());
-                const layer = selectors.selectedVariableImageLayerSelector(getState());
-                if (layer && resource) {
-                    const indexers = getNonSpatialIndexers(resource, layer);
-
-                    function call() {
-                        return selectors.datasetAPISelector(getState()).extractPixelValues(baseDir,
-                                                                                           resource.name,
-                                                                                           [position.longitude, position.latitude],
-                                                                                           indexers);
-                    }
-
-                    function action(positionData: { [varName: string]: number }) {
-                        dispatch(setGlobeViewPositionImpl(position, positionData));
-                    }
-
-                    callAPI({title: 'Load cell values', dispatch, call, action, disableNotifications: true});
-                    return;
-                }
-            }
-        } else {
-            dispatch(setGlobeViewPositionImpl(null, null));
+        dispatch(_signIn());
+        if (getState().communication.webAPIMode === 'remote') {
+            dispatch(connectWebAPIClient());
         }
-    }
+    };
 }
 
-export function updateInitialState(initialState: Object): Action {
-    return {type: UPDATE_INITIAL_STATE, payload: initialState};
+export function _signIn(): Action {
+    return {type: SIGN_IN}
+}
+
+export function setWebAPIMode(webAPIMode: 'local' | 'remote' | null): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        dispatch(_setWebAPIMode(webAPIMode));
+        if (getState().communication.webAPIMode === 'local') {
+            dispatch(connectWebAPIClient());
+        }
+    };
+}
+
+export function _setWebAPIMode(webAPIMode: 'local' | 'remote' | null): Action {
+    return {type: SET_WEBAPI_MODE, payload: {webAPIMode}}
 }
 
 export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting' | 'open' | 'error' | 'closed'): Action {
     return {type: SET_WEBAPI_STATUS, payload: {webAPIClient, webAPIStatus}};
+}
+
+export function connectWebAPIClient(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        dispatch(setWebAPIStatus(null, 'connecting'));
+
+        const webAPIConfig = getState().data.appConfig.webAPIConfig;
+        console.log('webAPIConfig:', webAPIConfig);
+        const webAPIClient = newWebAPIClient(selectors.apiWebSocketsUrlSelector(getState()));
+
+        webAPIClient.onOpen = () => {
+            dispatch(setWebAPIStatus(webAPIClient, 'open'));
+            dispatch(loadBackendConfig());
+            dispatch(loadColorMaps());
+            dispatch(loadDataStores());
+            dispatch(loadOperations());
+            dispatch(loadInitialWorkspace());
+        };
+
+        webAPIClient.onClose = () => {
+            dispatch(setWebAPIStatus(null, 'closed'));
+        };
+
+        webAPIClient.onError = () => {
+            dispatch(setWebAPIStatus(webAPIClient, 'error'));
+        };
+
+        webAPIClient.onWarning = (event) => {
+            console.warn(`cate-desktop: warning from cate-webapi: ${event.message}`);
+        };
+    };
+}
+
+export function updateInitialState(initialState: Object): Action {
+    return {type: UPDATE_INITIAL_STATE, payload: initialState};
 }
 
 export function updateDialogState(dialogId: string, ...dialogState): Action {
@@ -271,11 +213,13 @@ export function updateControlState(controlState: any): Action {
     return {type: UPDATE_CONTROL_STATE, payload: controlState};
 }
 
-export function updatePreferences(session: any): ThunkAction {
+export function updatePreferences(session: any, sendToMain: boolean = false): ThunkAction {
     return (dispatch: Dispatch) => {
         session = {...session, hasWebGL: hasWebGL()};
         dispatch(updateSessionState(session));
-        dispatch(sendPreferencesToMain());
+        if (sendToMain) {
+            dispatch(sendPreferencesToMain());
+        }
     };
 }
 
@@ -457,6 +401,128 @@ export function callAPI<T>(options: CallAPIOptions<T>): void {
 
     jobPromise.then(onDone, onFailure);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Globe State
+
+export const SET_GLOBE_MOUSE_POSITION = 'SET_GLOBE_MOUSE_POSITION';
+export const SET_GLOBE_VIEW_POSITION = 'SET_GLOBE_VIEW_POSITION';
+
+export function setGlobeMousePosition(position: GeographicPosition): Action {
+    return {type: SET_GLOBE_MOUSE_POSITION, payload: {position}};
+}
+
+
+function setGlobeViewPositionImpl(position: GeographicPosition | null,
+                                  positionData: { [varName: string]: number } | null): Action {
+    return {type: SET_GLOBE_VIEW_POSITION, payload: {position, positionData}};
+}
+
+export function setGlobeViewPosition(position: GeographicPosition): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        if (position) {
+            // TODO: using selectedRightBottomPanelID is no good indicator for checking VARIABLES panel visibility.
+            const selectedRightBottomPanelID = selectors.selectedRightBottomPanelIdSelector(getState());
+            if (selectedRightBottomPanelID === 'variables') {
+                const baseDir = selectors.workspaceBaseDirSelector(getState());
+                if (!baseDir) {
+                    // Workspace not yet ready, that's ok.
+                    return;
+                }
+                const resource = selectors.selectedResourceSelector(getState());
+                const layer = selectors.selectedVariableImageLayerSelector(getState());
+                if (layer && resource) {
+                    const indexers = getNonSpatialIndexers(resource, layer);
+
+                    function call() {
+                        return selectors.datasetAPISelector(getState()).extractPixelValues(baseDir,
+                                                                                           resource.name,
+                                                                                           [position.longitude, position.latitude],
+                                                                                           indexers);
+                    }
+
+                    function action(positionData: { [varName: string]: number }) {
+                        dispatch(setGlobeViewPositionImpl(position, positionData));
+                    }
+
+                    callAPI({title: 'Load cell values', dispatch, call, action, disableNotifications: true});
+                    return;
+                }
+            }
+        } else {
+            dispatch(setGlobeViewPositionImpl(null, null));
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// (User) Placemark actions
+
+export const ACTIVATE_NEW_PLACEMARK_TOOL = 'ACTIVATE_NEW_PLACEMARK_TOOL';
+export const ADD_PLACEMARK = 'ADD_PLACEMARK';
+export const REMOVE_PLACEMARK = 'REMOVE_PLACEMARK';
+export const UPDATE_PLACEMARK_GEOMETRY = 'UPDATE_PLACEMARK_GEOMETRY';
+export const UPDATE_PLACEMARK_PROPERTIES = 'UPDATE_PLACEMARK_PROPERTIES';
+export const UPDATE_PLACEMARK_STYLE = 'UPDATE_PLACEMARK_STYLE';
+
+export function activateNewPlacemarkTool(newPlacemarkToolType: GeometryToolType) {
+    return {type: ACTIVATE_NEW_PLACEMARK_TOOL, payload: {newPlacemarkToolType}};
+}
+
+export function addPlacemark(placemark: Placemark): Action {
+    return {type: ADD_PLACEMARK, payload: {placemark}};
+}
+
+export function addPointPlacemark(longitude: number, latitude: number, properties: any): Action {
+    const placemark = {
+        id: genSimpleId(PLACEMARK_ID_PREFIX),
+        type: 'Feature',
+        geometry: {
+            type: 'Point',
+            coordinates: [longitude, latitude]
+        },
+        properties,
+    };
+    return addPlacemark(placemark as any);
+}
+
+export function removePlacemark(placemarkId: string): Action {
+    return {type: REMOVE_PLACEMARK, payload: {placemarkId}};
+}
+
+export function updatePlacemarkGeometry(placemarkId: string, geometry: DirectGeometryObject | any): Action {
+    return {type: UPDATE_PLACEMARK_GEOMETRY, payload: {placemarkId, geometry}};
+}
+
+export function updatePlacemarkProperties(placemarkId: string, properties: any): Action {
+    return {type: UPDATE_PLACEMARK_PROPERTIES, payload: {placemarkId, properties}};
+}
+
+export function updatePlacemarkStyle(placemarkId: string, style: SimpleStyle): Action {
+    return {type: UPDATE_PLACEMARK_STYLE, payload: {placemarkId, style}};
+}
+
+export function locatePlacemark(placemarkId: string): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        let viewer = selectors.selectedWorldViewViewerSelector(getState());
+        if (viewer) {
+            let selectedEntity = getEntityByEntityId(viewer, placemarkId);
+            if (selectedEntity) {
+                let headingPitchRange;
+                if (selectedEntity.position) {
+                    let heading = 0, pitch = -3.14159 / 2, range = 2500000;
+                    headingPitchRange = new Cesium.HeadingPitchRange(heading, pitch, range);
+                }
+                viewer.zoomTo(selectedEntity, headingPitchRange);
+            }
+        }
+    };
+}
+
+export function setSelectedPlacemarkId(selectedPlacemarkId: string | null): Action {
+    return updateSessionState({selectedPlacemarkId});
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data stores / data sources actions
@@ -713,10 +779,15 @@ export function hideOperationStepDialog(dialogId: string, inputAssignments?): Th
 // Workspace actions
 
 export const SET_CURRENT_WORKSPACE = 'SET_CURRENT_WORKSPACE';
+export const UPDATE_WORKSPACE_NAMES = 'UPDATE_WORKSPACE_NAMES';
 export const RENAME_RESOURCE = 'RENAME_RESOURCE';
 export const SHOW_FIGURE_VIEW = 'SHOW_FIGURE_VIEW';
 export const SHOW_ANIMATION_VIEW = 'SHOW_ANIMATION_VIEW';
 export const SHOW_TABLE_VIEW = 'SHOW_TABLE_VIEW';
+
+export function updateWorkspaceNames(workspaceNames: string[]): Action {
+    return {type: UPDATE_WORKSPACE_NAMES, payload: {workspaceNames}};
+}
 
 /**
  * Asynchronously load the initial workspace.
@@ -961,6 +1032,25 @@ export function deleteResource(resName: string): ThunkAction {
     }
 }
 
+/**
+ * Asynchronously delete the workspace with the given name.
+ *
+ * @returns a Redux thunk action
+ */
+export function deleteWorkspace(workspaceName: string, deleteEntireWorkspace= true): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+
+        function call() {
+            return selectors.workspaceAPISelector(getState()).deleteWorkspace(workspaceName, deleteEntireWorkspace);
+        }
+
+        callAPI({
+                    title: `Delete step/workspace "${workspaceName}"`, dispatch, call,
+                    requireDoneNotification: true
+                });
+    }
+}
+
 
 /**
  * Bring up the "New Workspace" dialog.
@@ -971,42 +1061,85 @@ export function newWorkspaceInteractive() {
     return showDialog('newWorkspaceDialog');
 }
 
+function openRemoteWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
+                             getState: () => State) {
+    let jobPromise = selectors.workspaceAPISelector(getState()).listWorkspaces();
+    jobPromise.then(workspaceNames => {
+        dispatch(updateWorkspaceNames(workspaceNames));
+        dispatch(showDialog(OPEN_WORKSPACE_DIALOG_ID));
+    })
+}
+
+function deleteRemoteWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
+                               getState: () => State) {
+    let state = getState();
+    let jobPromise = selectors.workspaceAPISelector(getState()).listWorkspaces();
+    jobPromise.then(workspaceNames => {
+        dispatch(updateWorkspaceNames(workspaceNames));
+        dispatch(showDialog(DELETE_WORKSPACE_DIALOG_ID));
+    })
+}
+
+function openLocalWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
+                            getState: () => State) {
+    const workspacePath = showSingleFileOpenDialog({
+                                                       title: 'Open Workspace - Select Directory',
+                                                       buttonLabel: 'Open',
+                                                       properties: ['openDirectory'],
+                                                   });
+    if (workspacePath) {
+        const workspace = getState().data.workspace;
+        let ok = true;
+        if (workspace) {
+            if (workspace.baseDir === workspacePath) {
+                // showMessageBox({
+                //     title: 'Open Workspace',
+                //     message: 'Workspace is already open.'
+                // }, MESSAGE_BOX_NO_REPLY);
+                showToast({
+                              type: 'warning',
+                              text: 'Workspace is already open.',
+                          });
+                return;
+            }
+            ok = maybeSaveCurrentWorkspace(dispatch, getState,
+                                           'Open Workspace',
+                                           'Would you like to save the current workspace before opening the new one?',
+                                           'Press "Cancel" to cancel opening a new workspace.'
+            );
+        }
+        if (ok) {
+            dispatch(openWorkspace(workspacePath));
+        }
+    }
+}
+
 /**
- * Let user select a workspace directory, then ask whether to save the existing workspace, then open new one.
+ * Let user select a workspace, then ask whether to save the existing workspace, then open new one.
  *
  * @returns a Redux thunk action
  */
 export function openWorkspaceInteractive(): ThunkAction {
+
     return (dispatch: Dispatch, getState: GetState) => {
-        const workspacePath = showSingleFileOpenDialog({
-                                                           title: 'Open Workspace - Select Directory',
-                                                           buttonLabel: 'Open',
-                                                           properties: ['openDirectory'],
-                                                       });
-        if (workspacePath) {
-            const workspace = getState().data.workspace;
-            let ok = true;
-            if (workspace) {
-                if (workspace.baseDir === workspacePath) {
-                    // showMessageBox({
-                    //     title: 'Open Workspace',
-                    //     message: 'Workspace is already open.'
-                    // }, MESSAGE_BOX_NO_REPLY);
-                    showToast({
-                                  type: 'warning',
-                                  text: 'Workspace is already open.',
-                              });
-                    return;
-                }
-                ok = maybeSaveCurrentWorkspace(dispatch, getState,
-                                               'Open Workspace',
-                                               'Would you like to save the current workspace before opening the new one?',
-                                               'Press "Cancel" to cancel opening a new workspace.'
-                );
-            }
-            if (ok) {
-                dispatch(openWorkspace(workspacePath));
-            }
+        if (selectors.isLocalWebAPISelector(getState())) {
+            openLocalWorkspace(dispatch, getState);
+        } else {
+            openRemoteWorkspace(dispatch, getState);
+        }
+    };
+}
+
+/**
+ * Let user select a workspace, then ask whether to delete the selected workspace.
+ *
+ * @returns a Redux thunk action
+ */
+export function deleteWorkspaceInteractive(): ThunkAction {
+
+    return (dispatch: Dispatch, getState: GetState) => {
+        if (!selectors.isLocalWebAPISelector(getState())) {
+            deleteRemoteWorkspace(dispatch, getState);
         }
     };
 }
@@ -1063,7 +1196,7 @@ export function deleteResourceInteractive(resName: string): ThunkAction {
                                           title: 'Remove Resource and Workflow Step',
                                           message: `Do you really want to delete resource and step "${resName}"?`,
                                           detail: 'This will also delete the workflow step that created it.\n' +
-                                                  'You will not be able to undo this operation.',
+                                              'You will not be able to undo this operation.',
                                           buttons: ['Yes', 'No'],
                                           defaultId: 1,
                                           cancelId: 1,
@@ -1140,7 +1273,7 @@ export function setCurrentWorkspace(workspace: WorkspaceState): ThunkAction {
     return (dispatch: Dispatch) => {
         dispatch(setCurrentWorkspaceImpl(workspace));
         if (!workspace.isScratch) {
-            dispatch(updatePreferences({lastWorkspacePath: workspace.baseDir} as any));
+            dispatch(updatePreferences({lastWorkspacePath: workspace.baseDir} as any,true));
         }
     }
 }
@@ -1159,7 +1292,7 @@ export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: 
                 if (resource && resource.variables && resource.variables.length) {
                     const variable = resource.variables.find(variable => !!variable.isDefault);
                     dispatch(setSelectedVariable(resource,
-                        variable || resource.variables[0],
+                                                 variable || resource.variables[0],
                                                  selectors.savedLayersSelector(getState())));
                 }
             }
@@ -1464,7 +1597,7 @@ export function notifySelectedEntityChange(viewId: string, layer: LayerState | n
                 if (workspace) {
                     const resId = selectedEntity._resId;
                     const featureIndex = +selectedEntity._idx;
-                    const baseUrl = selectors.webAPIRestUrlSelector(getState());
+                    const baseUrl = selectors.restUrlSelector(getState());
                     const baseDir = workspace.baseDir;
                     const featureUrl = getFeatureUrl(baseUrl, baseDir, {resId}, featureIndex);
                     reloadEntityWithOriginalGeometry(selectedEntity, featureUrl, (layer as any).style);
@@ -1530,19 +1663,19 @@ export function updateTableViewData(viewId: string,
 
 export function loadTableViewData(viewId: string, resName: string, varName: string | null): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        const restUrl = selectors.webAPIRestUrlSelector(getState());
+        const restUrl = selectors.restUrlSelector(getState());
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         const resource = selectors.resourcesSelector(getState()).find(res => res.name === resName);
         if (resource) {
             const csvUrl = getCsvUrl(restUrl, baseDir, {resId: resource.id}, varName);
             dispatch(updateTableViewData(viewId, resName, varName, null, null, true));
             d3.csv(csvUrl)
-              .then((dataRows: any[]) => {
-                  dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
-              })
-              .catch((error: any) => {
-                  dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
-              });
+                .then((dataRows: any[]) => {
+                    dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
+                })
+                .catch((error: any) => {
+                    dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
+                });
         }
     }
 }
@@ -1554,7 +1687,7 @@ export const UPDATE_ANIMATION_VIEW_DATA = 'UPDATE_ANIMATION_VIEW_DATA';
 
 export function loadAnimationViewData(viewId: string, resId: number): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        const restUrl = selectors.webAPIRestUrlSelector(getState());
+        const restUrl = selectors.restUrlSelector(getState());
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         const htmlUrl = getHtmlUrl(restUrl, baseDir, resId);
 
@@ -2011,4 +2144,3 @@ export function sendPreferencesToMain(callback?: (error: any) => void): ThunkAct
         }
     };
 }
-

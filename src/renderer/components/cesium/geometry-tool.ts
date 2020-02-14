@@ -400,7 +400,9 @@ class PolyTool extends ToolBase {
         this.polylineEntity = null;
         this.polygonEntity = null;
         this.hasRubberband = false;
-        this.context.removeAllToolEntities();
+        if (this.context !== null) {
+            this.context.removeAllToolEntities();
+        }
     }
 
 }
@@ -499,7 +501,9 @@ export class BoxTool extends ToolBase {
     reset() {
         this.position1 = this.position2 = null;
         this.polygonEntity = null;
-        this.context.removeAllToolEntities();
+        if (this.context !== null) {
+            this.context.removeAllToolEntities();
+        }
     }
 }
 

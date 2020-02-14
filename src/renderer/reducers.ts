@@ -1,8 +1,8 @@
 import {combineReducers, Reducer} from 'redux';
 import deepEqual = require("deep-equal");
 import {
-State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
-LayerState, VectorLayerBase
+    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
+    LayerState, VectorLayerBase, WebAPIConfig
 } from './state';
 import * as actions from './actions';
 import {Action} from "./actions";
@@ -47,6 +47,29 @@ const updateDataStores = (state: DataState, action: Action, createDataSources: (
 
 const dataReducer = (state: DataState = INITIAL_DATA_STATE, action: Action) => {
     switch (action.type) {
+        case actions.SET_WEBAPI_MODE: {
+            const webAPIMode = action.payload.webAPIMode;
+            let webAPIConfig: WebAPIConfig;
+            // TODO (forman): replace hard-coded webAPIConfig properties
+            if (webAPIMode === 'local') {
+                webAPIConfig = {
+                    servicePort: 9090,
+                    serviceAddress: 'localhost',
+                    serviceProtocol: 'http',
+                };
+            } else {
+                webAPIConfig = {
+                    servicePort: null,
+                    serviceAddress: 'cate-webapi.192.171.139.57.nip.io',
+                    serviceProtocol: 'https',
+                };
+            }
+            return {...state, appConfig: {...state.appConfig, webAPIConfig}};
+        }
+        case actions.UPDATE_WORKSPACE_NAMES: {
+            const workspaceNames = action.payload.workspaceNames || null;
+            return {...state, workspaceNames};
+        }
         case actions.UPDATE_INITIAL_STATE:
             const appConfig = updateObject(state.appConfig, action.payload.appConfig);
             return updateObject(state, {appConfig});
@@ -709,6 +732,10 @@ const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Act
 
 const communicationReducer = (state: CommunicationState = INITIAL_COMMUNICATION_STATE, action: Action) => {
     switch (action.type) {
+        case actions.SIGN_IN:
+            return {...state, isSignedIn: true};
+        case actions.SET_WEBAPI_MODE:
+            return {...state, webAPIMode: action.payload.webAPIMode};
         case actions.SET_WEBAPI_STATUS:
             return updateObject(state, {webAPIStatus: action.payload.webAPIStatus});
         case actions.UPDATE_TASK_STATE:

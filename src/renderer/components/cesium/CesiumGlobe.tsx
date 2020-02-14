@@ -72,8 +72,8 @@ export interface LayerDescriptors {
 // * Key / Application Type: Basic / Dev/Test
 // * Application URL: http://cci.esa.int/
 //
-Cesium.BingMapsApi.defaultKey = 'AnCcpOxnAAgq-KyFcczSZYZ_iFvCOmWl0Mx-6QzQ_rzMtpgxZrPZZNxa8_9ZNXci';
 
+Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhNzYzYzJjYS00YzY5LTQzN2ItOWQzNy03NWZmZTQyMjU1ZDgiLCJpZCI6MjAwNTAsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1NzY2NjU5ODN9.f-uN5Ocljn77-O2aDNEGPSr8HRHym5RA0aqSWKMgYYk';
 
 interface CesiumGlobeStateBase {
     selectedPlacemarkId?: string;
@@ -158,8 +158,8 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         if (this.props.offlineMode) {
             baseLayerImageryProvider = CesiumGlobe.getStaticNaturalEarthImageryProvider();
         } else {
-            baseLayerImageryProvider = new Cesium.BingMapsImageryProvider({url: 'http://dev.virtualearth.net'});
-            baseLayerImageryProvider.errorEvent.addEventListener(this.handleRemoteBaseLayerError);
+            //baseLayerImageryProvider = new Cesium.BingMapsImageryProvider({url: 'https://dev.virtualearth.net', key: BING_MAPS_API_DEFAULT_KEY});
+            //baseLayerImageryProvider.errorEvent.addEventListener(this.handleRemoteBaseLayerError);
         }
 
         const cesiumViewerOptions = {
@@ -173,13 +173,13 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             sceneModePicker: true,
             timeline: false,
             navigationHelpButton: false,
-            imageryProvider: baseLayerImageryProvider,
             navigationInstructionsInitiallyVisible: false,
             automaticallyTrackDataSourceClocks: false,
+            imageryProvider: baseLayerImageryProvider,
             // Create a viewer that will not render frames based on changes in simulation time.
             // https://cesium.com/blog/2018/01/24/cesium-scene-rendering-performance/
             requestRenderMode: true,
-            maximumRenderTimeChange: Infinity
+            maximumRenderTimeChange: Infinity,
         };
 
         // Create the CesiumCesium.Viewer

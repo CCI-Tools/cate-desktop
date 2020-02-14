@@ -60,7 +60,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
     return {
         view: ownProps.view,
-        baseUrl: selectors.webAPIRestUrlSelector(state),
+        baseUrl: selectors.restUrlSelector(state),
         operations: selectors.operationsSelector(state),
         workspace: selectors.workspaceSelector(state),
         offlineMode: selectors.offlineModeSelector(state),

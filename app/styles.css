@@ -75,6 +75,11 @@ input, button, textarea, :focus {
     background-color: #293742;
 }
 
+.pt-dialog-body .cate-list-box {
+    background-color: #212F3A;
+    margin-bottom: 10px;
+}
+
 .cate-list-box li {
     padding: 0.2em 0.4em;
     /* blueprint's @dark-grey1 */
@@ -82,7 +87,7 @@ input, button, textarea, :focus {
 }
 
 .cate-list-box li:last-child {
-    border-bottom: none
+    border-bottom: none;
 }
 
 .cate-list-box li:hover {

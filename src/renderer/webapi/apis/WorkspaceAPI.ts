@@ -68,6 +68,10 @@ export class WorkspaceAPI {
         this.webAPIClient = webAPI;
     }
 
+    listWorkspaces(): JobPromise<string[]> {
+        return this.webAPIClient.call('list_workspace_names', []);
+    }
+
     newWorkspace(baseDir: string | null): JobPromise<WorkspaceState> {
         return this.webAPIClient.call('new_workspace',
                                       [baseDir],
@@ -140,6 +144,13 @@ export class WorkspaceAPI {
     renameWorkspaceResource(baseDir: string, resName: string, newResName: string): JobPromise<WorkspaceState> {
         return this.webAPIClient.call('rename_workspace_resource',
                                       [baseDir, resName, newResName],
+                                      null,
+                                      responseToWorkspace);
+    }
+
+    deleteWorkspace(baseDir: string, deleteEntireWorkspace = true): JobPromise<WorkspaceState> {
+        return this.webAPIClient.call('delete_workspace',
+                                      [baseDir, deleteEntireWorkspace],
                                       null,
                                       responseToWorkspace);
     }

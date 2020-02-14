@@ -1,7 +1,7 @@
 {
   "name": "cate-desktop",
   "productName": "Cate Desktop",
-  "version": "2.0.0",
+  "version": "2.1.0-dev.0",
   "description": "A graphical user interface for the ESA CCI Toolbox (Cate)",
   "private": true,
   "scripts": {
@@ -12,7 +12,7 @@
     "postinstall": "electron-builder install-app-deps",
     "compile": "tsc",
     "compile:trace": "tsc --traceResolution",
-    "build": "build --x64 --publish never",
+    "build": "npm run copy_cesium_assets && build --x64 --publish never",
     "publish": "build --x64 --publish always",
     "publish:win": "build --x64 --win --publish always",
     "publish:mac": "build --x64 --mac --publish always",
@@ -20,7 +20,8 @@
     "pack": "npm run clean && npm run compile && build --x64 --publish never --dir",
     "clean": "rimraf app/main app/renderer app/common npm-debug.log",
     "clean:dist": "rimraf dist",
-    "clean:all": "npm run clean && rimraf dist app/node_modules && npm prune"
+    "clean:all": "npm run clean && rimraf dist app/node_modules && npm prune",
+    "copy_cesium_assets": "copyfiles -u 5 ./app/node_modules/cesium/Build/Cesium/**/* ./app/cesium"
   },
   "repository": {
     "type": "git",
@@ -67,6 +68,7 @@
     "cesium-typings": "^1.50.2",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
+    "copyfiles": "^2.1.1",
     "classnames": "^2.2.6",
     "d3-fetch": "^1.1.2",
     "deep-equal": "^1.0.1",
@@ -79,6 +81,7 @@
     "jsdom": "11.6.2",
     "jsdom-global": "3.0.2",
     "mocha": "^5.2.0",
+    "npm": "^6.13.2",
     "oboe": "^2.1.5",
     "react": "16.7.0",
     "react-ace": "^5.9.0",
