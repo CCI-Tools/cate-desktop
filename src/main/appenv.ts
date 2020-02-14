@@ -14,7 +14,7 @@ import { WebAPIConfig } from '../renderer/state';
  * The value is a SemVer (https://github.com/npm/semver) compatible version range string.
  * @type {string}
  */
-export const CATE_WEBAPI_VERSION_RANGE = '>=2.1.0-dev.0 <=2.1.0';
+export const CATE_WEBAPI_VERSION_RANGE = '>=2.1.0-dev.0 <2.2.0';
 
 /**
  * Version of the Cate WebAPI that is know to run with this version of Cate Desktop.
