@@ -18,6 +18,8 @@ describe('Version-related utilities', function () {
         expect(pep440ToSemver('1.6.2a11.dev104')).to.equal('1.6.2-a.11.dev.104');
         expect(pep440ToSemver('1.6.2rc2')).to.equal('1.6.2-rc.2');
         expect(pep440ToSemver('1.6.2rc2.dev5')).to.equal('1.6.2-rc.2.dev.5');
+
+        expect(pep440ToSemver('2.1.0.dev0')).to.equal('2.1.0-dev.0');
     });
 
     it('uses semver correctly', function () {
@@ -47,6 +49,12 @@ describe('Version-related utilities', function () {
         // out of range
         expect(satisfies('0.9.0', requiredVersion)).to.be.false;
         expect(satisfies('0.9.0-dev.1', requiredVersion)).to.be.false;
+
+        requiredVersion = ">=2.1.0-dev.0 <=2.1.0";
+        expect(satisfies('2.1.0-dev.0', requiredVersion)).to.be.true;
+        expect(satisfies('2.0.0', requiredVersion)).to.be.false;
+        expect(satisfies('2.2.0-dev.1', requiredVersion)).to.be.false;
+        expect(satisfies('2.2.2', requiredVersion)).to.be.false;
     });
 });
 

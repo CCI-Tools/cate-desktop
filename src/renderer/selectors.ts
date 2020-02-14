@@ -21,15 +21,15 @@ import {
     VariableImageLayerState,
     VariableLayerBase,
     VariableState,
-    VectorLayerState,
+    VectorLayerState, WebAPIConfig,
     WorkflowStepState,
     WorkspaceState,
     WorldViewDataState
 } from './state';
-import {createSelector, Selector} from 'reselect';
-import {JobStatusEnum, WebAPIClient} from './webapi';
-import {BackendConfigAPI, ColorMapsAPI, DatasetAPI, OperationAPI, WorkspaceAPI} from './webapi/apis';
-import {PanelContainerLayout} from './components/PanelContainer';
+import { createSelector, Selector } from 'reselect';
+import { JobStatusEnum, WebAPIClient } from './webapi';
+import { BackendConfigAPI, ColorMapsAPI, DatasetAPI, OperationAPI, WorkspaceAPI } from './webapi/apis';
+import { PanelContainerLayout } from './components/PanelContainer';
 import {
     EXTERNAL_OBJECT_STORE,
     findOperation,
@@ -43,28 +43,104 @@ import {
     isSpatialImageVariable,
     isSpatialVectorVariable,
 } from './state-util';
-import {ViewLayoutState, ViewState} from './components/ViewState';
-import {isNumber} from '../common/types';
+import { ViewLayoutState, ViewState } from './components/ViewState';
+import { isNumber } from '../common/types';
 import * as Cesium from 'cesium';
-import {GeometryWKTGetter} from './containers/editor/ValueEditor';
-import {entityToSimpleStyle} from './components/cesium/cesium-util';
-import {SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties} from '../common/geojson-simple-style';
-import {GeometryToolType} from './components/cesium/geometry-tool';
+import { GeometryWKTGetter } from './containers/editor/ValueEditor';
+import { entityToSimpleStyle } from './components/cesium/cesium-util';
+import { SIMPLE_STYLE_DEFAULTS, SimpleStyle, simpleStyleFromFeatureProperties } from '../common/geojson-simple-style';
+import { GeometryToolType } from './components/cesium/geometry-tool';
 
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
+
+const DEFAULT_SERVICE_ADDRESS = 'localhost';
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application selectors
 
 export const offlineModeSelector = (state: State): boolean => state.session.offlineMode;
 
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remote API selectors
 
 export const webAPIClientSelector = (state: State): WebAPIClient => state.data.appConfig.webAPIClient;
-export const webAPIRestUrlSelector = (state: State): string => state.data.appConfig.webAPIConfig.restUrl;
-export const mplWebSocketUrlSelector = (state: State): string => state.data.appConfig.webAPIConfig.mplWebSocketUrl;
+export const webAPIConfigSelector = (state: State): WebAPIConfig => state.data.appConfig.webAPIConfig;
+
+
+export const isLocalWebAPISelector = createSelector(
+    webAPIConfigSelector,
+    (webAPIConfig: WebAPIConfig) => {
+        return isLocalWebAPIService(webAPIConfig);
+    }
+);
+
+export const restUrlSelector = createSelector(
+    webAPIConfigSelector,
+    (webAPIConfig: WebAPIConfig) => {
+        return getRestUrl(webAPIConfig);
+    }
+);
+
+export const apiWebSocketsUrlSelector = createSelector(
+    webAPIConfigSelector,
+    (webAPIConfig: WebAPIConfig) => {
+        return getAPIWebSocketsUrl(webAPIConfig);
+    }
+);
+
+export const mplWebSocketsUrlSelector = createSelector(
+    webAPIConfigSelector,
+    (webAPIConfig: WebAPIConfig) => {
+        return getMPLWebSocketsUrl(webAPIConfig);
+    }
+);
+
+function getRestUrl(webAPIConfig: WebAPIConfig): string {
+    const protocol = getWebAPIHttpServiceProtocol(webAPIConfig);
+    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
+    return `${protocol}://${addressAndPort}/`;
+}
+
+function getAPIWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
+    const protocol = getWebAPIWebSocketServiceProtocol(webAPIConfig);
+    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
+    return `${protocol}://${addressAndPort}/api`;
+}
+
+function getMPLWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
+    const protocol = getWebAPIWebSocketServiceProtocol(webAPIConfig);
+    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
+    return `${protocol}://${addressAndPort}/mpl/figures/`;
+}
+
+function isLocalWebAPIService(webAPIConfig: WebAPIConfig) {
+    const serviceAddress = webAPIConfig.serviceAddress;
+    return !serviceAddress
+        || serviceAddress === ''
+        || serviceAddress === 'localhost'
+        || serviceAddress === '127.0.0.1'
+        || serviceAddress === '::1';
+}
+
+function getWebAPIHttpServiceProtocol(webAPIConfig: WebAPIConfig): 'http' | 'https' {
+    return webAPIConfig.serviceProtocol || 'http';
+}
+
+function getWebAPIWebSocketServiceProtocol(webAPIConfig: WebAPIConfig): 'wss' | 'ws' {
+    const protocol = getWebAPIHttpServiceProtocol(webAPIConfig);
+    return protocol === 'https' ? 'wss' : 'ws'
+}
+
+function getWebAPIAddressAndPort(webAPIConfig: WebAPIConfig): string {
+    const serviceAddress = webAPIConfig.serviceAddress || DEFAULT_SERVICE_ADDRESS;
+    if (typeof (webAPIConfig.servicePort) === 'number') {
+        return `${serviceAddress}:${webAPIConfig.servicePort}`;
+    }
+    return serviceAddress;
+}
 
 
 export const backendConfigAPISelector = createSelector(

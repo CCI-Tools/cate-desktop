@@ -6,6 +6,7 @@ import * as semver from 'semver';
 import { pep440ToSemver } from '../common/version';
 import { SETUP_REASON_INSTALL_CATE, SETUP_REASON_UPDATE_CATE, SetupInfo } from '../common/setup';
 import * as assert from '../common/assert';
+import { WebAPIConfig } from '../renderer/state';
 
 
 /**
@@ -83,7 +84,7 @@ export function isWebAPIVersionCompatible(version: string, pep440?: boolean) {
     return semver.satisfies(version, CATE_WEBAPI_VERSION_RANGE, true);
 }
 
-export function getWebAPIStartCommand(webAPIConfig): string {
+export function getWebAPIStartCommand(webAPIConfig: WebAPIConfig): string {
     let command = `cate-webapi-start --caller cate-desktop --port ${webAPIConfig.servicePort} --file "${webAPIConfig.serviceFile}" --verbose`;
     if (webAPIConfig.serviceAddress) {
         command += ` --address "${webAPIConfig.serviceAddress}"`;
@@ -91,16 +92,48 @@ export function getWebAPIStartCommand(webAPIConfig): string {
     return getCommandInActivatedCate(getCateDirSafe(), command);
 }
 
-export function getWebAPIRestUrl(webAPIConfig) {
-    return `http://${webAPIConfig.serviceAddress || DEFAULT_SERVICE_ADDRESS}:${webAPIConfig.servicePort}/`;
+export function getWebAPIRestUrl(webAPIConfig: WebAPIConfig): string {
+    const protocol = getWebAPIHttpServiceProtocol(webAPIConfig);
+    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
+    return `${protocol}://${addressAndPort}/`;
 }
 
-export function getAPIWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || DEFAULT_SERVICE_ADDRESS}:${webAPIConfig.servicePort}/api`;
+export function getAPIWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
+    const protocol = getWebAPIWebSocketServiceProtocol(webAPIConfig);
+    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
+    return `${protocol}://${addressAndPort}/api`;
 }
 
-export function getMPLWebSocketsUrl(webAPIConfig) {
-    return `ws://${webAPIConfig.serviceAddress || DEFAULT_SERVICE_ADDRESS}:${webAPIConfig.servicePort}/mpl/figures/`;
+export function getMPLWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
+    const protocol = getWebAPIWebSocketServiceProtocol(webAPIConfig);
+    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
+    return `${protocol}://${addressAndPort}/mpl/figures/`;
+}
+
+export function isLocalWebAPIService(webAPIConfig: WebAPIConfig) {
+    const serviceAddress = webAPIConfig.serviceAddress;
+    return !serviceAddress
+           || serviceAddress === ''
+           || serviceAddress === 'localhost'
+           || serviceAddress === '127.0.0.1'
+           || serviceAddress === '::1';
+}
+
+function getWebAPIHttpServiceProtocol(webAPIConfig: WebAPIConfig): 'http' | 'https' {
+    return webAPIConfig.serviceProtocol || 'http';
+}
+
+function getWebAPIWebSocketServiceProtocol(webAPIConfig: WebAPIConfig): 'wss' | 'ws' {
+    const protocol = getWebAPIHttpServiceProtocol(webAPIConfig);
+    return protocol === 'https' ? 'wss' : 'ws'
+}
+
+function getWebAPIAddressAndPort(webAPIConfig: WebAPIConfig): string {
+    const serviceAddress = webAPIConfig.serviceAddress || DEFAULT_SERVICE_ADDRESS;
+    if (typeof(webAPIConfig.servicePort) === 'number') {
+        return `${serviceAddress}:${webAPIConfig.servicePort}`;
+    }
+    return serviceAddress;
 }
 
 export function getCateDirSafe() {

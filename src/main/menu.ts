@@ -1,5 +1,5 @@
 import * as electron from 'electron';
-import {actions} from './actions';
+import { actions } from './actions';
 
 const OS_IS_DARWIN = process.platform === 'darwin';
 const OS_IS_NOT_DARWIN = !OS_IS_DARWIN;
@@ -9,10 +9,13 @@ const ________________ = {type: 'separator'};
 const fileSubMenu: Array<any> = [
     actions.newWorkspace,
     actions.openWorkspace,
-    actions.closeWorkspace,
     ________________,
     actions.saveWorkspace,
     actions.saveWorkspaceAs,
+    ________________,
+    actions.closeWorkspace,
+    ________________,
+    actions.deleteWorkspace,
 ];
 
 if (OS_IS_NOT_DARWIN) {

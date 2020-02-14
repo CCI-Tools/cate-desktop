@@ -1,5 +1,5 @@
 import * as electron from 'electron';
-import { getAppDataDir, getAppIconPath, CATE_WEBAPI_VERSION_RANGE, getCateDir } from './appenv';
+import { getAppDataDir, getAppIconPath, CATE_WEBAPI_VERSION_RANGE, getCateDir, getWebAPIRestUrl } from './appenv';
 
 
 function ifDarwinOrElse(darwinValue, elseValue) {
@@ -73,6 +73,12 @@ export const actions = {
         label: 'Close Workspace',
         category: 'file',
         click: (item, focusedWindow) => performRendererAction(focusedWindow, 'close-workspace'),
+    },
+
+    deleteWorkspace: {
+        label: 'Delete Workspace',
+        category: 'file',
+        click: (item, focusedWindow) => performRendererAction(focusedWindow, 'delete-workspace'),
     },
 
     saveWorkspace: {
@@ -290,6 +296,8 @@ export const actions = {
             const detail = '' +
                            `Program: ${electron.app.getAppPath()}\n` +
                            `Data: ${getAppDataDir()}\n` +
+                           // TODO (SabineEmbacher): find a better solution for context injection
+                           `Web API: ${getWebAPIRestUrl(electron.app['_configuration'].webAPIConfig)}\n` +
                            `CLI env: ${getCateDir() ? getCateDir() : '<unknown>'}\n` +
                            `Requires Cate Core ${CATE_WEBAPI_VERSION_RANGE}\n` +
                            '\n' +
@@ -303,4 +311,3 @@ export const actions = {
         },
     },
 };
-

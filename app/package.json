@@ -1,7 +1,7 @@
 {
   "name": "cate-desktop",
   "productName": "Cate Desktop",
-  "version": "2.0.0",
+  "version": "2.1.0-dev.0",
   "description": "A graphical user interface for the ESA CCI Toolbox (Cate)",
   "main": "main.js",
   "author": "CCI Toolbox (Cate) Development Team",
@@ -11,7 +11,7 @@
     "@blueprintjs/core": "^1.40.0",
     "@blueprintjs/datetime": "^1.25.4",
     "@blueprintjs/table": "^1.31.2",
-    "cesium": "1.53.0",
+    "cesium": "1.64.0",
     "classnames": "^2.2.5",
     "d3-fetch": "^1.1.0",
     "deep-equal": "^1.0.1",

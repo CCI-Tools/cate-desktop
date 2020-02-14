@@ -9,11 +9,13 @@ import {ViewState} from "./components/ViewState";
 export const INITIAL_DATA_STATE: DataState = {
     appConfig: {
         webAPIConfig: {
-            servicePort: -1,
+            servicePort: null,
             serviceAddress: '',
-            restUrl: '',
-            apiWebSocketUrl: '',
-            mplWebSocketUrl: '',
+            serviceProtocol: 'http',
+            // TODO (forman): remove next props
+            // restUrl: '',
+            // apiWebSocketUrl: '',
+            // mplWebSocketUrl: '',
         },
         webAPIClient: null,
         hasWebGL: hasWebGL(),
@@ -21,7 +23,8 @@ export const INITIAL_DATA_STATE: DataState = {
     dataStores: null,
     operations: null,
     workspace: null,
-    colorMaps: null
+    colorMaps: null,
+    workspaceNames: null
 };
 
 const INITIAL_WORLD_VIEW: ViewState<WorldViewDataState> = newWorldView();
@@ -109,6 +112,8 @@ export const INITIAL_SESSION_STATE: SessionState = {
 };
 
 export const INITIAL_COMMUNICATION_STATE: CommunicationState = {
+    isSignedIn: false,
+    webAPIMode: null,
     webAPIStatus: null,
     tasks: {}
 };
