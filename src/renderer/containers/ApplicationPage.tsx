@@ -30,6 +30,8 @@ import { ViewLayoutState, ViewState, ViewPath, SplitDir } from "../components/Vi
 import { CSSProperties } from "react";
 import OperationStepDialog from "./OperationStepDialog";
 import ChooseWorkspaceDialog, { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './ChooseWorkspaceDialog';
+import { ReactEventHandler } from 'react';
+import { EventHandler } from 'react';
 
 
 function renderWorldView(view: ViewState<WorldViewDataState>) {
@@ -65,12 +67,16 @@ interface IDispatch {
 interface IApplicationPageProps {
     webAPIMode: 'local' | 'remote' | null;
     isSignedIn: boolean | null;
+    username: string;
+    password: string;
 }
 
 function mapStateToPropsApplication(state: State): IApplicationPageProps {
     return {
         webAPIMode: state.communication.webAPIMode,
         isSignedIn: state.communication.isSignedIn,
+        username: state.communication.username,
+        password: state.communication.password,
     };
 }
 
@@ -129,6 +135,14 @@ class _ApplicationPage extends React.PureComponent<IApplicationPageProps & IDisp
             this.props.dispatch(actions.setWebAPIMode('remote'));
         };
 
+        const setUsername = (username: string) => {
+            this.props.dispatch(actions.setUsername(username));
+        };
+
+        const setPassword = (password: string) => {
+            this.props.dispatch(actions.setPassword(password));
+        };
+
         const setRememberMyDecision = () => {
 
         };
@@ -174,15 +188,19 @@ class _ApplicationPage extends React.PureComponent<IApplicationPageProps & IDisp
                         <p style={{marginTop: 24, alignSelf: 'center'}}>Using your CateHub Account</p>
                         <InputGroup
                             style={{marginTop: 6, alignSelf: 'stretch', width: '24em'}}
-                            placeholder="Enter your username or e-mail..."
+                            placeholder="Enter your username..."
                             type={'text'}
                             leftIconName={'user'}
+                            value={this.props.username}
+                            onChange={(event) => setUsername(event.target.value)}
                         />
                         <InputGroup
                             style={{marginTop: 3, alignSelf: 'stretch', width: '24em'}}
                             placeholder="Enter your password..."
                             type={'password'}
                             leftIconName={'key'}
+                            value={this.props.password}
+                            onChange={(event) => setPassword(event.target.value)}
                         />
                         <div style={{marginTop: 6, alignSelf: 'flex-end'}}>
                             <Button intent={Intent.PRIMARY} onClick={signIn}>Sign in</Button>
