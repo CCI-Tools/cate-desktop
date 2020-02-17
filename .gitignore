@@ -7,6 +7,7 @@ dist/
 app/main
 app/renderer
 app/common
+app/cesium
 app/node_modules/
 
 src/**/*.js
