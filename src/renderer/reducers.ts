@@ -53,9 +53,12 @@ const dataReducer = (state: DataState = INITIAL_DATA_STATE, action: Action) => {
             // TODO (forman): replace hard-coded webAPIConfig properties
             if (webAPIMode === 'local') {
                 webAPIConfig = {
-                    servicePort: 9090,
-                    serviceAddress: 'localhost',
-                    serviceProtocol: 'http',
+                    // servicePort: 9090,
+                    // serviceAddress: 'localhost',
+                    // serviceProtocol: 'http',
+                    servicePort: null,
+                    serviceAddress: 'catehub.192.171.139.57.nip.io/user/norman',
+                    serviceProtocol: 'https',
                 };
             } else {
                 webAPIConfig = {

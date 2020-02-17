@@ -1,4 +1,12 @@
-## Version 2.0.0.dev26 (in development)
+## Version 2.1.0-dev.0
+
+* Added icon for Sea Surface Salinity CCI ECV. 
+
+## Version 2.0.0
+
+* Released 2.0.0.dev26 as 2.0.0
+
+## Version 2.0.0.dev26
 
 * Removed checking for existence of `deactivate.bat` as part of installation validation on Windows. 
   The `deactivate.bat` script is no longer part of conda environments.
