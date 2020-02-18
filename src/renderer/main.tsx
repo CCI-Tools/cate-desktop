@@ -21,6 +21,7 @@ export function main() {
                                                  actions.SET_GLOBE_VIEW_POSITION,
                                                  actions.SET_GLOBE_VIEW_POSITION,
                                                  actions.UPDATE_MOUSE_IDLE_STATE,
+                                                 actions.SET_USER_CREDENTIALS,
                                              ]);
         const loggerOptions = {
             level: 'info',

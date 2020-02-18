@@ -2,9 +2,9 @@ import {
     DataState, LocationState, SessionState, CommunicationState, ControlState, WorldViewDataState,
     STYLE_CONTEXT_ENTITY
 } from './state';
-import {newWorldView, hasWebGL, MY_PLACES_LAYER} from "./state-util";
-import {SimpleStyle} from "../common/geojson-simple-style";
-import {ViewState} from "./components/ViewState";
+import { newWorldView, hasWebGL, MY_PLACES_LAYER } from './state-util';
+import { SimpleStyle } from '../common/geojson-simple-style';
+import { ViewState } from './components/ViewState';
 
 export const INITIAL_DATA_STATE: DataState = {
     appConfig: {
@@ -44,7 +44,7 @@ export const INITIAL_CONTROL_STATE: ControlState = {
     },
     activeViewId: INITIAL_WORLD_VIEW.id,
 
-    newPlacemarkToolType: "NoTool",
+    newPlacemarkToolType: 'NoTool',
     entityUpdateCount: 0,
 };
 
@@ -115,7 +115,9 @@ export const INITIAL_COMMUNICATION_STATE: CommunicationState = {
     isSignedIn: false,
     webAPIMode: null,
     webAPIStatus: null,
-    tasks: {}
+    tasks: {},
+    username: null,
+    password: null,
 };
 
 export const INITIAL_LOCATION_STATE: LocationState = {

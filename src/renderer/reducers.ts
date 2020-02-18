@@ -750,6 +750,11 @@ const communicationReducer = (state: CommunicationState = INITIAL_COMMUNICATION_
             delete tasks[action.payload.jobId];
             return updateObject(state, {tasks: tasks});
         }
+        case actions.SET_USER_CREDENTIALS: {
+            const username = action.payload.username;
+            const password = action.payload.password;
+            return {...state, username, password};
+        }
     }
     return state;
 };

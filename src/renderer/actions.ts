@@ -42,7 +42,7 @@ import {
 } from './containers/editor/value-editor-assign';
 import { ERROR_CODE_CANCELLED } from './webapi';
 import { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './containers/ChooseWorkspaceDialog';
-
+import { AuthAPI} from './webapi/apis/AuthAPI'
 
 /**
  * The fundamental Action type as it is used here.
@@ -86,11 +86,14 @@ export const REMOVE_TASK_STATE = 'REMOVE_TASK_STATE';
 export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
+export const SET_USER_CREDENTIALS = 'SET_USER_CREDENTIALS';
 
 export function signIn(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         dispatch(_signIn());
         if (getState().communication.webAPIMode === 'remote') {
+            const authAPI = new AuthAPI();
+            authAPI.getToken()
             dispatch(connectWebAPIClient());
         }
     };
@@ -150,6 +153,10 @@ export function connectWebAPIClient(): ThunkAction {
 
 export function updateInitialState(initialState: Object): Action {
     return {type: UPDATE_INITIAL_STATE, payload: initialState};
+}
+
+export function setUserCredentials(username: string, password: string) {
+    return {type: SET_USER_CREDENTIALS, payload: {username, password}};
 }
 
 export function updateDialogState(dialogId: string, ...dialogState): Action {

@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import { Button, Checkbox, InputGroup, Intent } from '@blueprintjs/core';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
 import GlobeView from './GlobeView'
 import FigureView from './FigureView';
 import TableView from './TableView';
@@ -22,16 +21,16 @@ import PreferencesDialog from './PreferencesDialog';
 import { NEW_CTX_OPERATION_STEP_DIALOG_ID } from './operation-step-dialog-ids';
 import AnimationView from './AnimationView';
 import JobFailureDialog from './JobFailureDialog';
-import { PanelContainer, PanelContainerLayout } from "../components/PanelContainer";
-import { Panel } from "../components/Panel";
-import { State, WorldViewDataState, FigureViewDataState, TableViewDataState, AnimationViewDataState } from "../state";
-import { ViewManager, ViewRenderMap } from "../components/ViewManager";
-import { ViewLayoutState, ViewState, ViewPath, SplitDir } from "../components/ViewState";
-import { CSSProperties } from "react";
-import OperationStepDialog from "./OperationStepDialog";
+import { PanelContainer, PanelContainerLayout } from '../components/PanelContainer';
+import { Panel } from '../components/Panel';
+import { State, WorldViewDataState, FigureViewDataState, TableViewDataState, AnimationViewDataState } from '../state';
+import { ViewManager, ViewRenderMap } from '../components/ViewManager';
+import { ViewLayoutState, ViewState, ViewPath, SplitDir } from '../components/ViewState';
+import { CSSProperties } from 'react';
+import OperationStepDialog from './OperationStepDialog';
 import ChooseWorkspaceDialog, { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './ChooseWorkspaceDialog';
-import { ReactEventHandler } from 'react';
-import { EventHandler } from 'react';
+import AppLoginPage from './AppLoginPage';
+import AppModePage from './AppModePage';
 
 
 function renderWorldView(view: ViewState<WorldViewDataState>) {
@@ -67,16 +66,12 @@ interface IDispatch {
 interface IApplicationPageProps {
     webAPIMode: 'local' | 'remote' | null;
     isSignedIn: boolean | null;
-    username: string;
-    password: string;
 }
 
 function mapStateToPropsApplication(state: State): IApplicationPageProps {
     return {
         webAPIMode: state.communication.webAPIMode,
         isSignedIn: state.communication.isSignedIn,
-        username: state.communication.username,
-        password: state.communication.password,
     };
 }
 
@@ -96,122 +91,14 @@ class _ApplicationPage extends React.PureComponent<IApplicationPageProps & IDisp
         height: '100%',
         overflow: 'hidden'
     };
-    static readonly CREDITS_DIV_STYLE: CSSProperties = {
-        minWidth: '10em',
-        minHeight: '4em',
-        position: 'relative',
-        overflow: 'auto',
-        display: 'none'
-    };
-    static readonly CENTER_DIV_STYLE: CSSProperties = {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-        height: '100%',
-    };
-    static readonly BOX_STYLE: CSSProperties = {
-        display: 'flex',
-        flexFlow: 'column nowrap',
-        alignItems: 'stretch'
-    };
-    static readonly BOX_2_STYLE: CSSProperties = {
-        display: 'flex',
-        flexFlow: 'column nowrap',
-        alignItems: 'center'
-    };
 
     render() {
-
-        const signIn = () => {
-            this.props.dispatch(actions.signIn());
-        };
-
-        const setLocalMode = () => {
-            this.props.dispatch(actions.setWebAPIMode('local'));
-        };
-
-        const setRemoteMode = () => {
-            this.props.dispatch(actions.setWebAPIMode('remote'));
-        };
-
-        const setUsername = (username: string) => {
-            this.props.dispatch(actions.setUsername(username));
-        };
-
-        const setPassword = (password: string) => {
-            this.props.dispatch(actions.setPassword(password));
-        };
-
-        const setRememberMyDecision = () => {
-
-        };
-
         if (this.props.webAPIMode === null) {
-            // TODO (forman): extract new container SelectAppModePage
-            return (
-                <div style={_ApplicationPage.CENTER_DIV_STYLE}>
-                    <div style={_ApplicationPage.BOX_STYLE}>
-                        <div style={{alignContent: 'center', textAlign: 'center'}}>
-                            <img src={'resources/cate-icon@8x.png'} alt={'cate icon'}/>
-                        </div>
-                        <Button className={'pt-large'} intent={Intent.PRIMARY} style={{marginTop: 12}}
-                                onClick={setRemoteMode}>Connect to
-                            CateHub</Button>
-                        <Button className={'pt-large'} intent={Intent.NONE} style={{marginTop: 6}}
-                                onClick={setLocalMode}>Stand-Alone
-                            Mode</Button>
-                        <div style={{marginTop: 6}}>
-                            <Checkbox checked={true} onChange={setRememberMyDecision}>Remember my decision</Checkbox>
-                        </div>
-                    </div>
-                </div>
-            );
+            return (<AppModePage/>);
         }
 
         if (this.props.webAPIMode === 'remote' && !this.props.isSignedIn) {
-            // TODO (forman): extract new container SignInPage
-            return (
-                <div style={_ApplicationPage.CENTER_DIV_STYLE}>
-                    <div style={_ApplicationPage.BOX_2_STYLE}>
-                        <h4>Sign in to CateHub</h4>
-
-                        <div style={{marginTop: 24, alignContent: 'center', textAlign: 'center', display: 'flex'}}>
-                            <img width={32} height={32} src={'resources/images/github-120.png'} alt={'github icon'}/>
-                            <span>&nbsp;&nbsp;&nbsp;</span>
-                            <Button onClick={signIn} intent={Intent.PRIMARY} className={'pt-large'}>Using your GitHub
-                                Account</Button>
-                        </div>
-
-                        <h4 style={{marginTop: 24}}>or</h4>
-
-                        <p style={{marginTop: 24, alignSelf: 'center'}}>Using your CateHub Account</p>
-                        <InputGroup
-                            style={{marginTop: 6, alignSelf: 'stretch', width: '24em'}}
-                            placeholder="Enter your username..."
-                            type={'text'}
-                            leftIconName={'user'}
-                            value={this.props.username}
-                            onChange={(event) => setUsername(event.target.value)}
-                        />
-                        <InputGroup
-                            style={{marginTop: 3, alignSelf: 'stretch', width: '24em'}}
-                            placeholder="Enter your password..."
-                            type={'password'}
-                            leftIconName={'key'}
-                            value={this.props.password}
-                            onChange={(event) => setPassword(event.target.value)}
-                        />
-                        <div style={{marginTop: 6, alignSelf: 'flex-end'}}>
-                            <Button intent={Intent.PRIMARY} onClick={signIn}>Sign in</Button>
-                        </div>
-                        <div style={{marginTop: 12, alignSelf: 'center'}}>
-                            <span>Don't have an account yet?&nbsp;</span><a href={'https://github.com/login'}>Sign
-                            on!</a>
-                        </div>
-                    </div>
-                </div>
-            );
+            return (<AppLoginPage/>);
         }
 
         return (
@@ -443,5 +330,3 @@ class _CenterPanel extends React.PureComponent<IViewManagerPanelProps & IDispatc
 }
 
 const CenterPanel = connect(mapStateToPropsView)(_CenterPanel);
-
-
