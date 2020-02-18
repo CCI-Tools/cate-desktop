@@ -735,8 +735,6 @@ const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Act
 
 const communicationReducer = (state: CommunicationState = INITIAL_COMMUNICATION_STATE, action: Action) => {
     switch (action.type) {
-        case actions.SIGN_IN:
-            return {...state, isSignedIn: true};
         case actions.SET_WEBAPI_MODE:
             return {...state, webAPIMode: action.payload.webAPIMode};
         case actions.SET_WEBAPI_STATUS:
@@ -754,6 +752,10 @@ const communicationReducer = (state: CommunicationState = INITIAL_COMMUNICATION_
             const username = action.payload.username;
             const password = action.payload.password;
             return {...state, username, password};
+        }
+        case actions.SET_USER_TOKEN: {
+            const token = action.payload.token;
+            return {...state, token};
         }
     }
     return state;

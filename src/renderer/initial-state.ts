@@ -112,12 +112,12 @@ export const INITIAL_SESSION_STATE: SessionState = {
 };
 
 export const INITIAL_COMMUNICATION_STATE: CommunicationState = {
-    isSignedIn: false,
     webAPIMode: null,
     webAPIStatus: null,
     tasks: {},
     username: null,
     password: null,
+    token: null,
 };
 
 export const INITIAL_LOCATION_STATE: LocationState = {

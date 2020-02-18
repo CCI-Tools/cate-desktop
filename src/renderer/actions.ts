@@ -42,7 +42,7 @@ import {
 } from './containers/editor/value-editor-assign';
 import { ERROR_CODE_CANCELLED } from './webapi';
 import { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './containers/ChooseWorkspaceDialog';
-import { AuthAPI} from './webapi/apis/AuthAPI'
+import { AuthAPI } from './webapi/apis/AuthAPI'
 
 /**
  * The fundamental Action type as it is used here.
@@ -77,7 +77,6 @@ export type ThunkAction = (dispatch?: Dispatch, getState?: GetState) => void;
 // Application-level actions
 
 export const UPDATE_INITIAL_STATE = 'UPDATE_INITIAL_STATE';
-export const SIGN_IN = 'SIGN_IN';
 export const SET_WEBAPI_MODE = 'SET_WEBAPI_MODE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
 export const UPDATE_DIALOG_STATE = 'UPDATE_DIALOG_STATE';
@@ -87,20 +86,24 @@ export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
 export const SET_USER_CREDENTIALS = 'SET_USER_CREDENTIALS';
+export const SET_USER_TOKEN = 'SET_USER_TOKEN';
 
-export function signIn(): ThunkAction {
+export function login(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        dispatch(_signIn());
         if (getState().communication.webAPIMode === 'remote') {
             const authAPI = new AuthAPI();
-            authAPI.getToken()
-            dispatch(connectWebAPIClient());
+            authAPI.getToken(getState().communication.username, getState().communication.password).then(token => {
+                dispatch(_setToken(token));
+                authAPI.startWebAPI(getState().communication.username, getState().communication.token).then(ok => {
+                    dispatch(connectWebAPIClient());
+                });
+            });
         }
     };
 }
 
-export function _signIn(): Action {
-    return {type: SIGN_IN}
+export function _setToken(token: string): Action {
+    return {type: SET_USER_TOKEN, payload: {token}}
 }
 
 export function setWebAPIMode(webAPIMode: 'local' | 'remote' | null): ThunkAction {
@@ -1044,7 +1047,7 @@ export function deleteResource(resName: string): ThunkAction {
  *
  * @returns a Redux thunk action
  */
-export function deleteWorkspace(workspaceName: string, deleteEntireWorkspace= true): ThunkAction {
+export function deleteWorkspace(workspaceName: string, deleteEntireWorkspace = true): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
 
         function call() {
@@ -1203,7 +1206,7 @@ export function deleteResourceInteractive(resName: string): ThunkAction {
                                           title: 'Remove Resource and Workflow Step',
                                           message: `Do you really want to delete resource and step "${resName}"?`,
                                           detail: 'This will also delete the workflow step that created it.\n' +
-                                              'You will not be able to undo this operation.',
+                                                  'You will not be able to undo this operation.',
                                           buttons: ['Yes', 'No'],
                                           defaultId: 1,
                                           cancelId: 1,
@@ -1280,7 +1283,7 @@ export function setCurrentWorkspace(workspace: WorkspaceState): ThunkAction {
     return (dispatch: Dispatch) => {
         dispatch(setCurrentWorkspaceImpl(workspace));
         if (!workspace.isScratch) {
-            dispatch(updatePreferences({lastWorkspacePath: workspace.baseDir} as any,true));
+            dispatch(updatePreferences({lastWorkspacePath: workspace.baseDir} as any, true));
         }
     }
 }
@@ -1299,7 +1302,7 @@ export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: 
                 if (resource && resource.variables && resource.variables.length) {
                     const variable = resource.variables.find(variable => !!variable.isDefault);
                     dispatch(setSelectedVariable(resource,
-                                                 variable || resource.variables[0],
+                        variable || resource.variables[0],
                                                  selectors.savedLayersSelector(getState())));
                 }
             }
@@ -1677,12 +1680,12 @@ export function loadTableViewData(viewId: string, resName: string, varName: stri
             const csvUrl = getCsvUrl(restUrl, baseDir, {resId: resource.id}, varName);
             dispatch(updateTableViewData(viewId, resName, varName, null, null, true));
             d3.csv(csvUrl)
-                .then((dataRows: any[]) => {
-                    dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
-                })
-                .catch((error: any) => {
-                    dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
-                });
+              .then((dataRows: any[]) => {
+                  dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
+              })
+              .catch((error: any) => {
+                  dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
+              });
         }
     }
 }

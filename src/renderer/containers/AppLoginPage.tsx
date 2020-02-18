@@ -11,16 +11,12 @@ interface IDispatch {
 }
 
 interface IAppLoginPageProps {
-    webAPIMode: 'local' | 'remote' | null;
-    isSignedIn: boolean | null;
     username: string;
     password: string;
 }
 
 function mapStateToProps(state: State): IAppLoginPageProps {
     return {
-        webAPIMode: state.communication.webAPIMode,
-        isSignedIn: state.communication.isSignedIn,
         username: state.communication.username,
         password: state.communication.password,
     };
@@ -44,8 +40,8 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
         const password = this.props.password;
         const username = this.props.username;
 
-        const signIn = () => {
-            this.props.dispatch(actions.signIn());
+        const login = () => {
+            this.props.dispatch(actions.login());
         };
 
         const setUsername = (username: string) => {
@@ -96,7 +92,7 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
                         <Button
                             className={'pt-large'}
                             intent={Intent.PRIMARY}
-                            onClick={signIn}
+                            onClick={login}
                             disabled={!hasCredentials}>Login</Button>
                     </div>
                     <div style={{marginTop: 12, alignSelf: 'center'}}>

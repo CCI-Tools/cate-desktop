@@ -11,15 +11,11 @@ interface IDispatch {
 }
 
 interface IAppModePageProps {
-    webAPIMode: 'local' | 'remote' | null;
-    isSignedIn: boolean | null;
 }
 
+// noinspection JSUnusedLocalSymbols
 function mapStateToProps(state: State): IAppModePageProps {
-    return {
-        webAPIMode: state.communication.webAPIMode,
-        isSignedIn: state.communication.isSignedIn,
-    };
+    return {};
 }
 
 class _AppModePage extends React.PureComponent<IAppModePageProps & IDispatch, null> {
@@ -47,10 +43,9 @@ class _AppModePage extends React.PureComponent<IAppModePageProps & IDispatch, nu
         };
 
         const setRememberMyDecision = () => {
-
+            // TODO (forman): implement me!
         };
 
-        // TODO (forman): extract new container SelectAppModePage
         return (
             <div style={_AppModePage.CENTER_DIV_STYLE}>
                 <div style={_AppModePage.BOX_STYLE}>
