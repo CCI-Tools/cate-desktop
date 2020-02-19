@@ -44,6 +44,10 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
             this.props.dispatch(actions.login());
         };
 
+        const back = () => {
+            this.props.dispatch(actions.setWebAPIMode(null));
+        };
+
         const setUsername = (username: string) => {
             this.props.dispatch(actions.setUserCredentials(username, password));
         };
@@ -90,12 +94,17 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
                     </div>
                     <div style={{marginTop: 6, alignSelf: 'flex-end'}}>
                         <Button
-                            className={'pt-large'}
+                            className={'pt-large pt-icon-arrow-left'}
+                            style={{marginRight: 6}}
+                            onClick={back}
+                            disabled={!hasCredentials}>Back</Button>
+                        <Button
+                            className={'pt-large pt-icon-log-in'}
                             intent={Intent.PRIMARY}
                             onClick={login}
                             disabled={!hasCredentials}>Login</Button>
                     </div>
-                    <div style={{marginTop: 12, alignSelf: 'center'}}>
+                    <div style={{marginTop: 18, alignSelf: 'center'}}>
                         <span>Don't have an account yet?&nbsp;</span><a href={'mailto:climate.office@esa.int?subject=Apply%20for%20ESA%20CCI%20Toolbox'}>Apply!</a>
                     </div>
                 </div>
