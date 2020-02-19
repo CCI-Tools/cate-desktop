@@ -96,7 +96,7 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
                             disabled={!hasCredentials}>Login</Button>
                     </div>
                     <div style={{marginTop: 12, alignSelf: 'center'}}>
-                        <span>Don't have an account yet?&nbsp;</span><a href={'https://github.com/login'}>Apply!</a>
+                        <span>Don't have an account yet?&nbsp;</span><a href={'mailto:climate.office@esa.int?subject=Apply%20for%20ESA%20CCI%20Toolbox'}>Apply!</a>
                     </div>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 import { WebAPIConfig } from '../../state';
 
-const CATE_HUB_DOMAIN = 'catehub.192.171.139.57.nip.io';
+const CATE_HUB_DOMAIN = 'catehub-helge.192.171.139.57.nip.io';
 
 const CATE_SERVICE_PROTOCOL = 'https';
 const CATE_SERVICE_ADDRESS = CATE_HUB_DOMAIN + '/user/{username}';
@@ -16,8 +16,8 @@ export interface UserInfo {
     name: string;
     admin: boolean;
     groups: string[];
-    server: string;
-    pending: boolean;
+    server: string | null;
+    pending: string | null;
     created: string;
     last_activity: string;
     servers: any;

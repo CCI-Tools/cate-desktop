@@ -111,10 +111,10 @@ export const INITIAL_COMMUNICATION_STATE: CommunicationState = {
     webAPIStatus: null,
     webAPIClient: null,
     tasks: {},
-    username: 'norman',
-    password: 'reddogisabluecat',
-    // username: process.env.REACT_APP_CATE_USERNAME || null,
-    // password: process.env.REACT_APP_CATE_PASSWORD || null,
+    // username: 'norman',
+    // password: 'reddogisabluecat',
+    username: process.env.REACT_APP_CATE_USERNAME || null,
+    password: process.env.REACT_APP_CATE_PASSWORD || null,
     token: null,
 };
 
