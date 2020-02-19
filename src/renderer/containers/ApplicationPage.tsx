@@ -31,6 +31,7 @@ import OperationStepDialog from './OperationStepDialog';
 import ChooseWorkspaceDialog, { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './ChooseWorkspaceDialog';
 import AppLoginPage from './AppLoginPage';
 import AppModePage from './AppModePage';
+import AppBar from './AppBar';
 
 
 function renderWorldView(view: ViewState<WorldViewDataState>) {
@@ -101,8 +102,14 @@ class _ApplicationPage extends React.PureComponent<IApplicationPageProps & IDisp
             return (<AppLoginPage/>);
         }
 
+        let appBar;
+        if (this.props.webAPIMode === 'remote') {
+            appBar = <AppBar/>;
+        }
+
         return (
             <div style={_ApplicationPage.ROOT_DIV_STYLE}>
+                {appBar}
                 <div style={_ApplicationPage.MAIN_DIV_STYLE}>
                     <LeftPanel/>
                     <CenterPanel/>

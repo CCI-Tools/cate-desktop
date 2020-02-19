@@ -159,6 +159,8 @@ export function setWebAPIMode(webAPIMode: WebAPIMode): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         dispatch(_setWebAPIMode(webAPIMode));
         if (getState().data.appConfig.webAPIMode === 'local') {
+            const electron = require('electron');
+            electron.ipcRenderer.send('set-webapi-mode', getState().data.appConfig.webAPIMode);
             dispatch(connectWebAPIClient());
         }
     };

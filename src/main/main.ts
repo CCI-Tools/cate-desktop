@@ -299,6 +299,14 @@ class CateDesktopApp {
             }
         });
 
+        electron.ipcMain.on('set-webapi-mode', (event, webAPIMode) => {
+            log.info('Received web API mode from UI...', webAPIMode);
+            if (webAPIMode === 'local') {
+                const menu = electron.Menu.buildFromTemplate(menuTemplate);
+                electron.Menu.setApplicationMenu(menu);
+            }
+        });
+
         electron.ipcMain.on('set-webapi-config', (event, webAPIConfig) => {
             this.configuration.set('webAPIConfig', {
                 ...webAPIConfig,
@@ -614,8 +622,7 @@ class CateDesktopApp {
             }
         }
 
-        const menu = electron.Menu.buildFromTemplate(menuTemplate);
-        electron.Menu.setApplicationMenu(menu);
+        electron.Menu.setApplicationMenu(null);
 
         let sessionProxyConfig = getSessionProxyConfig(process.env);
         if (USE_PROXY_CONFIG_IF_SET && sessionProxyConfig) {
