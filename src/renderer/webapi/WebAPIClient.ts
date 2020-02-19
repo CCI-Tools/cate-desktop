@@ -150,7 +150,12 @@ class WebAPIClientImpl implements WebAPIClient {
         this.currentMessageId = firstMessageId;
         this.activeJobs = [];
         this.isOpen = false;
-        this.socket = socket ? socket : new WebSocket(url);
+        try {
+            this.socket = socket ? socket : new WebSocket(url);
+        } catch (error) {
+            console.log('error:', error);
+            console.error(error);
+        }
         this.socket.onopen = (event) => {
             if (this.onOpen) {
                 this.onOpen(event);

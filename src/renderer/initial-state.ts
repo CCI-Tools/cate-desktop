@@ -8,16 +8,12 @@ import { ViewState } from './components/ViewState';
 
 export const INITIAL_DATA_STATE: DataState = {
     appConfig: {
+        webAPIMode: null,
         webAPIConfig: {
             servicePort: null,
             serviceAddress: '',
             serviceProtocol: 'http',
-            // TODO (forman): remove next props
-            // restUrl: '',
-            // apiWebSocketUrl: '',
-            // mplWebSocketUrl: '',
         },
-        webAPIClient: null,
         hasWebGL: hasWebGL(),
     },
     dataStores: null,
@@ -112,11 +108,13 @@ export const INITIAL_SESSION_STATE: SessionState = {
 };
 
 export const INITIAL_COMMUNICATION_STATE: CommunicationState = {
-    webAPIMode: null,
     webAPIStatus: null,
+    webAPIClient: null,
     tasks: {},
-    username: null,
-    password: null,
+    username: 'norman',
+    password: 'reddogisabluecat',
+    // username: process.env.REACT_APP_CATE_USERNAME || null,
+    // password: process.env.REACT_APP_CATE_PASSWORD || null,
     token: null,
 };
 

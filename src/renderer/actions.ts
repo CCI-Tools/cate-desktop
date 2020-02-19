@@ -3,7 +3,7 @@ import {
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
     OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
-    SplitMode
+    SplitMode, WebAPIConfig, WebAPIStatus, WebAPIMode
 } from './state';
 import { ViewState, ViewPath } from './components/ViewState';
 import {
@@ -12,7 +12,7 @@ import {
     JobStatusEnum,
     JobPromise,
     JobProgressHandler,
-    ERROR_CODE_INVALID_PARAMS, newWebAPIClient
+    ERROR_CODE_INVALID_PARAMS, newWebAPIClient, WebAPIClient
 } from './webapi';
 import * as selectors from './selectors';
 import * as assert from '../common/assert';
@@ -42,7 +42,7 @@ import {
 } from './containers/editor/value-editor-assign';
 import { ERROR_CODE_CANCELLED } from './webapi';
 import { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './containers/ChooseWorkspaceDialog';
-import { AuthAPI } from './webapi/apis/AuthAPI'
+import { AuthAPI, UserInfo } from './webapi/apis/AuthAPI'
 
 /**
  * The fundamental Action type as it is used here.
@@ -79,6 +79,7 @@ export type ThunkAction = (dispatch?: Dispatch, getState?: GetState) => void;
 export const UPDATE_INITIAL_STATE = 'UPDATE_INITIAL_STATE';
 export const SET_WEBAPI_MODE = 'SET_WEBAPI_MODE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
+export const SET_WEBAPI_CONFIG = 'SET_WEBAPI_CONFIG';
 export const UPDATE_DIALOG_STATE = 'UPDATE_DIALOG_STATE';
 export const UPDATE_TASK_STATE = 'UPDATE_TASK_STATE';
 export const REMOVE_TASK_STATE = 'REMOVE_TASK_STATE';
@@ -87,52 +88,105 @@ export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
 export const SET_USER_CREDENTIALS = 'SET_USER_CREDENTIALS';
 export const SET_USER_TOKEN = 'SET_USER_TOKEN';
+export const CLEAR_USER_TOKEN = 'CLEAR_USER_TOKEN';
 
 export function login(): ThunkAction {
-    return (dispatch: Dispatch, getState: GetState) => {
-        if (getState().communication.webAPIMode === 'remote') {
-            const authAPI = new AuthAPI();
-            authAPI.getToken(getState().communication.username, getState().communication.password).then(token => {
-                dispatch(_setToken(token));
-                authAPI.startWebAPI(getState().communication.username, getState().communication.token).then(ok => {
-                    dispatch(connectWebAPIClient());
-                });
-            });
+    return async (dispatch: Dispatch, getState: GetState) => {
+
+        const authAPI = new AuthAPI();
+
+        dispatch(setWebAPIStatus('login'));
+
+        let token;
+        try {
+            token = await authAPI.getToken(getState().communication.username,
+                                           getState().communication.password);
+        } catch (error) {
+            console.info('error: ', error);
+            showToast({type: 'error', text: 'Wrong username or password.'});
+            return;
         }
+
+        dispatch(_setToken(token));
+
+        const webAPIConfig = authAPI.getWebAPIConfig(getState().communication.username);
+
+        const userInfo = await authAPI.getUserInfo(getState().communication.username,
+                                                   getState().communication.token);
+        if (userInfo === null || !userInfo.server) {
+            dispatch(setWebAPIStatus('launching'));
+            let webAPIConfig;
+            try {
+                await authAPI.startWebAPI(getState().communication.username,
+                                          getState().communication.token);
+            } catch (error) {
+                console.info('error: ', error);
+                showToast({type: 'error', text: 'Failed to launch remote Cate service.'});
+                return;
+            }
+        }
+
+        dispatch(setWebAPIConfig(webAPIConfig));
+        dispatch(connectWebAPIClient());
     };
 }
 
-export function _setToken(token: string): Action {
+export function logoff(): ThunkAction {
+    return async (dispatch: Dispatch, getState: GetState) => {
+        const authAPI = new AuthAPI();
+        dispatch(setWebAPIStatus('logoff'));
+        try {
+            await authAPI.stopWebAPI(getState().communication.username);
+        } catch (error) {
+            console.info('error: ', error);
+            showToast({type: 'error', text: 'Failed to log off.'});
+            return;
+        }
+        dispatch(_clearToken());
+        dispatch(setWebAPIStatus(null));
+    };
+}
+
+function _setToken(token: string): Action {
     return {type: SET_USER_TOKEN, payload: {token}}
 }
 
-export function setWebAPIMode(webAPIMode: 'local' | 'remote' | null): ThunkAction {
+function _clearToken(): Action {
+    return {type: CLEAR_USER_TOKEN}
+}
+
+export function setWebAPIMode(webAPIMode: WebAPIMode): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         dispatch(_setWebAPIMode(webAPIMode));
-        if (getState().communication.webAPIMode === 'local') {
+        if (getState().data.appConfig.webAPIMode === 'local') {
             dispatch(connectWebAPIClient());
         }
     };
 }
 
-export function _setWebAPIMode(webAPIMode: 'local' | 'remote' | null): Action {
+export function _setWebAPIMode(webAPIMode: WebAPIMode): Action {
     return {type: SET_WEBAPI_MODE, payload: {webAPIMode}}
 }
 
-export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting' | 'open' | 'error' | 'closed'): Action {
-    return {type: SET_WEBAPI_STATUS, payload: {webAPIClient, webAPIStatus}};
+export function setWebAPIStatus(webAPIStatus: WebAPIStatus,
+                                webAPIClient: WebAPIClient | null = null): Action {
+    return {type: SET_WEBAPI_STATUS, payload: {webAPIStatus, webAPIClient}};
+}
+
+export function setWebAPIConfig(webAPIConfig: WebAPIConfig): Action {
+    return {type: SET_WEBAPI_CONFIG, payload: {webAPIConfig}};
 }
 
 export function connectWebAPIClient(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        dispatch(setWebAPIStatus(null, 'connecting'));
+        dispatch(setWebAPIStatus('connecting'));
 
         const webAPIConfig = getState().data.appConfig.webAPIConfig;
         console.log('webAPIConfig:', webAPIConfig);
         const webAPIClient = newWebAPIClient(selectors.apiWebSocketsUrlSelector(getState()));
 
         webAPIClient.onOpen = () => {
-            dispatch(setWebAPIStatus(webAPIClient, 'open'));
+            dispatch(setWebAPIStatus('open', webAPIClient));
             dispatch(loadBackendConfig());
             dispatch(loadColorMaps());
             dispatch(loadDataStores());
@@ -141,11 +195,11 @@ export function connectWebAPIClient(): ThunkAction {
         };
 
         webAPIClient.onClose = () => {
-            dispatch(setWebAPIStatus(null, 'closed'));
+            dispatch(setWebAPIStatus('closed'));
         };
 
         webAPIClient.onError = () => {
-            dispatch(setWebAPIStatus(webAPIClient, 'error'));
+            dispatch(setWebAPIStatus('error'));
         };
 
         webAPIClient.onWarning = (event) => {

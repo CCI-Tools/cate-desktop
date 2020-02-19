@@ -70,7 +70,7 @@ interface IApplicationPageProps {
 
 function mapStateToPropsApplication(state: State): IApplicationPageProps {
     return {
-        webAPIMode: state.communication.webAPIMode,
+        webAPIMode: state.data.appConfig.webAPIMode,
         isSignedIn: state.communication.token != null,
     };
 }

@@ -6,7 +6,7 @@ import {State, ResourceState} from "./state";
 describe('API selectors', function () {
     const getState = () => {
         return {
-            data: {appConfig: {webAPIClient: {}}},
+            communication: {webAPIClient: {}},
         };
     };
 
