@@ -42,7 +42,7 @@ import {
 } from './containers/editor/value-editor-assign';
 import { ERROR_CODE_CANCELLED } from './webapi';
 import { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './containers/ChooseWorkspaceDialog';
-import { AuthAPI, UserInfo } from './webapi/apis/AuthAPI'
+import { AuthAPI, AuthInfo, User } from './webapi/apis/AuthAPI'
 
 /**
  * The fundamental Action type as it is used here.
@@ -87,8 +87,8 @@ export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
 export const SET_USER_CREDENTIALS = 'SET_USER_CREDENTIALS';
-export const SET_USER_TOKEN = 'SET_USER_TOKEN';
-export const CLEAR_USER_TOKEN = 'CLEAR_USER_TOKEN';
+export const SET_AUTH_INFO = 'SET_AUTH_INFO';
+export const CLEAR_AUTH_INFO = 'CLEAR_AUTH_INFO';
 
 export function login(): ThunkAction {
     return async (dispatch: Dispatch, getState: GetState) => {
@@ -97,23 +97,24 @@ export function login(): ThunkAction {
 
         dispatch(setWebAPIStatus('login'));
 
-        let token;
+        let authInfo;
         try {
-            token = await authAPI.getToken(getState().communication.username,
-                                           getState().communication.password);
+            authInfo = await authAPI.auth(getState().communication.username,
+                                          getState().communication.password);
         } catch (error) {
             console.info('error: ', error);
+            //showToast({type: 'error', text: 'Wrong username or password.'});
             showToast({type: 'error', text: 'Wrong username or password.'});
             return;
         }
 
-        dispatch(_setToken(token));
+        dispatch(setAuthInfo(authInfo));
+
+        const user = getState().communication.user;
 
         const webAPIConfig = authAPI.getWebAPIConfig(getState().communication.username);
 
-        const userInfo = await authAPI.getUserInfo(getState().communication.username,
-                                                   getState().communication.token);
-        if (userInfo === null || !userInfo.server) {
+        if (!user || !user.server) {
             dispatch(setWebAPIStatus('launching'));
             let webAPIConfig;
             try {
@@ -126,41 +127,42 @@ export function login(): ThunkAction {
             }
         }
 
+        // const userInfo = await authAPI.getUser(getState().communication.username,
+        //                                        getState().communication.token);
+
         dispatch(setWebAPIConfig(webAPIConfig));
         dispatch(connectWebAPIClient());
     };
 }
 
-export function logoff(): ThunkAction {
+export function logout(): ThunkAction {
     return async (dispatch: Dispatch, getState: GetState) => {
-        const authAPI = new AuthAPI();
         dispatch(setWebAPIStatus('logoff'));
+        dispatch(disconnectWebAPIClient());
+        const authAPI = new AuthAPI();
         try {
             await authAPI.stopWebAPI(getState().communication.username);
         } catch (error) {
             console.info('error: ', error);
-            showToast({type: 'error', text: 'Failed to log off.'});
+            showToast({type: 'error', text: 'Failed to logout.'});
             return;
         }
-        dispatch(_clearToken());
-        dispatch(setWebAPIStatus(null));
+        dispatch(clearAuthInfo());
     };
 }
 
-function _setToken(token: string): Action {
-    return {type: SET_USER_TOKEN, payload: {token}}
+function setAuthInfo(authInfo: AuthInfo): Action {
+    return {type: SET_AUTH_INFO, payload: {...authInfo}}
 }
 
-function _clearToken(): Action {
-    return {type: CLEAR_USER_TOKEN}
+function clearAuthInfo(): Action {
+    return {type: CLEAR_AUTH_INFO}
 }
 
 export function setWebAPIMode(webAPIMode: WebAPIMode): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         dispatch(_setWebAPIMode(webAPIMode));
         if (getState().data.appConfig.webAPIMode === 'local') {
-            const electron = require('electron');
-            electron.ipcRenderer.send('set-webapi-mode', getState().data.appConfig.webAPIMode);
             dispatch(connectWebAPIClient());
         }
     };
@@ -179,12 +181,21 @@ export function setWebAPIConfig(webAPIConfig: WebAPIConfig): Action {
     return {type: SET_WEBAPI_CONFIG, payload: {webAPIConfig}};
 }
 
-export function connectWebAPIClient(): ThunkAction {
+function updateWebAPIInfoInMain(webAPIMode: WebAPIMode, webAPIConfig: WebAPIConfig | null, user: User | null) {
+    const webAPIInfo = {webAPIMode, webAPIConfig, user};
+    console.log('webAPIInfo:', webAPIInfo);
+    const electron = require('electron');
+    electron.ipcRenderer.send('update-webapi-info', webAPIInfo);
+}
+
+function connectWebAPIClient(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
+        updateWebAPIInfoInMain(getState().data.appConfig.webAPIMode,
+                               getState().data.appConfig.webAPIConfig,
+                               getState().communication.user);
+
         dispatch(setWebAPIStatus('connecting'));
 
-        const webAPIConfig = getState().data.appConfig.webAPIConfig;
-        console.log('webAPIConfig:', webAPIConfig);
         const webAPIClient = newWebAPIClient(selectors.apiWebSocketsUrlSelector(getState()));
 
         webAPIClient.onOpen = () => {
@@ -196,17 +207,40 @@ export function connectWebAPIClient(): ThunkAction {
             dispatch(loadInitialWorkspace());
         };
 
-        webAPIClient.onClose = () => {
-            dispatch(setWebAPIStatus('closed'));
+        const formatMessage = (message: string, event: any): string => {
+            if (event.message) {
+                return `${message} (${event.message})`;
+            } else {
+                return message;
+            }
         };
 
-        webAPIClient.onError = () => {
+        webAPIClient.onClose = (event) => {
+            console.error('webAPIClient.onClose:', event);
+            dispatch(setWebAPIStatus('closed'));
+            showToast({type: 'notification', text: formatMessage('Connection to Cate service closed', event)});
+        };
+
+        webAPIClient.onError = (event) => {
+            console.error('webAPIClient.onError:', event);
             dispatch(setWebAPIStatus('error'));
+            showToast({type: 'error', text: formatMessage('Error connecting to Cate service', event)});
         };
 
         webAPIClient.onWarning = (event) => {
-            console.warn(`cate-desktop: warning from cate-webapi: ${event.message}`);
+            console.warn('webAPIClient.onWarning:', event);
+            showToast({type: 'warning', text: formatMessage('Warning from Cate service', event)});
         };
+    };
+}
+
+function disconnectWebAPIClient(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        const webAPIClient = getState().communication.webAPIClient;
+        if (webAPIClient !== null) {
+            webAPIClient.close();
+        }
+        updateWebAPIInfoInMain(null, undefined, null);
     };
 }
 
@@ -1138,7 +1172,6 @@ function openRemoteWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
 
 function deleteRemoteWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
                                getState: () => State) {
-    let state = getState();
     let jobPromise = selectors.workspaceAPISelector(getState()).listWorkspaces();
     jobPromise.then(workspaceNames => {
         dispatch(updateWorkspaceNames(workspaceNames));
@@ -1358,7 +1391,7 @@ export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: 
                 if (resource && resource.variables && resource.variables.length) {
                     const variable = resource.variables.find(variable => !!variable.isDefault);
                     dispatch(setSelectedVariable(resource,
-                        variable || resource.variables[0],
+                                                 variable || resource.variables[0],
                                                  selectors.savedLayersSelector(getState())));
                 }
             }

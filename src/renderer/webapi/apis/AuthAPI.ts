@@ -1,6 +1,6 @@
 import { WebAPIConfig } from '../../state';
 
-const CATE_HUB_DOMAIN = 'catehub-helge.192.171.139.57.nip.io';
+const CATE_HUB_DOMAIN = 'catehub.192.171.139.57.nip.io';
 
 const CATE_SERVICE_PROTOCOL = 'https';
 const CATE_SERVICE_ADDRESS = CATE_HUB_DOMAIN + '/user/{username}';
@@ -11,7 +11,13 @@ const CATE_HUB_TOKEN_URL = CATE_HUB_API_URL + 'authorizations/token';
 const CATE_HUB_USER_SERVER_URL = CATE_HUB_API_URL + 'users/{username}/server';
 const CATE_HUB_USER_URL = CATE_HUB_API_URL + 'users/{username}';
 
-export interface UserInfo {
+export interface AuthInfo {
+    token: string;
+    user: User;
+    warning?: string;
+}
+
+export interface User {
     kind: string;
     name: string;
     admin: boolean;
@@ -20,10 +26,9 @@ export interface UserInfo {
     pending: string | null;
     created: string;
     last_activity: string;
-    servers: any;
-    auth_state: any;
+    servers: any | null;
+    auth_state?: any;
 }
-
 
 export class AuthAPI {
     // noinspection JSMethodCanBeStatic
@@ -35,26 +40,21 @@ export class AuthAPI {
         };
     }
 
-    getToken(username: string, password: string): Promise<string> {
+    auth(username: string, password: string): Promise<AuthInfo> {
         return fetch(CATE_HUB_TOKEN_URL, {
             method: 'post',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({username, password}),
         }).then((response: Response) => {
             if (response.ok) {
-                return response.json();
+                return response.json() as Promise<AuthInfo>;
             } else {
                 throw newFetchError(response);
             }
-        }).then((result: any) => {
-            if (result && typeof result.token === 'string' && result.token.length > 0) {
-                return result.token;
-            }
-            throw new Error('Sorry, no access token for you this time.');
         });
     }
 
-    getUserInfo(username: string, token: string): Promise<UserInfo | null> {
+    getUser(username: string, token: string): Promise<User | null> {
         return fetch(CATE_HUB_USER_URL.replace('{username}', username), {
             method: 'get',
             headers: {
@@ -62,7 +62,7 @@ export class AuthAPI {
             }
         }).then((response: Response) => {
             if (response.ok) {
-                return response.json()as Promise<UserInfo>;
+                return response.json() as Promise<User>;
             }
             return null;
         });

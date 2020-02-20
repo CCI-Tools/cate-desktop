@@ -6,6 +6,7 @@ import { Feature, FeatureCollection, GeoJsonObject, Point } from "geojson";
 import { IconName } from "@blueprintjs/core";
 import { SimpleStyle } from "../common/geojson-simple-style";
 import { GeometryToolType } from "./components/cesium/geometry-tool";
+import { User } from './webapi/apis/AuthAPI';
 
 /**
  * Interface describing Cate's application state structure.
@@ -644,6 +645,7 @@ export interface CommunicationState {
     username: string | null;
     password: string | null;
     token: string | null;
+    user: User | null;
     // A map that stores the current state of any tasks (e.g. data fetch jobs from remote API) given a jobId
     tasks: { [jobId: number]: TaskState; };
 }
@@ -732,6 +734,7 @@ export interface SessionState {
     lastWorkspaceDir?: string | null;
     mainWindowBounds?: { x: number; y: number; width: number; height: number };
     devToolsOpened?: boolean;
+    forceAppBar?: boolean;
     /**
      * lastWorkspacePath != null, only if it is not a scratch-workspace
      */

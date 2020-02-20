@@ -92,7 +92,7 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
                             onChange={(event) => setPassword(event.target.value)}
                         />
                     </div>
-                    <div style={{marginTop: 6, alignSelf: 'flex-end'}}>
+                    <div style={{marginTop: 8, alignSelf: 'flex-end'}}>
                         <Button
                             className={'pt-large pt-icon-arrow-left'}
                             style={{marginRight: 6}}
@@ -102,7 +102,8 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
                             className={'pt-large pt-icon-log-in'}
                             intent={Intent.PRIMARY}
                             onClick={login}
-                            disabled={!hasCredentials}>Login</Button>
+                            disabled={!hasCredentials}
+                            default={true}>Login</Button>
                     </div>
                     <div style={{marginTop: 18, alignSelf: 'center'}}>
                         <span>Don't have an account yet?&nbsp;</span><a href={'mailto:climate.office@esa.int?subject=Apply%20for%20ESA%20CCI%20Toolbox'}>Apply!</a>

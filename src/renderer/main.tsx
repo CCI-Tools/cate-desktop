@@ -83,6 +83,10 @@ export function main() {
         store.dispatch(actions.updatePreferences(preferences, false));
     });
 
+    ipcRenderer.on('logout', () => {
+        store.dispatch(actions.logout());
+    });
+
     document.addEventListener('drop', function (event: any) {
         event.preventDefault();
         event.stopPropagation();

@@ -116,6 +116,7 @@ export const INITIAL_COMMUNICATION_STATE: CommunicationState = {
     username: process.env.REACT_APP_CATE_USERNAME || null,
     password: process.env.REACT_APP_CATE_PASSWORD || null,
     token: null,
+    user: null,
 };
 
 export const INITIAL_LOCATION_STATE: LocationState = {

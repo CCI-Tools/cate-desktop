@@ -741,12 +741,12 @@ const communicationReducer = (state: CommunicationState = INITIAL_COMMUNICATION_
             const password = action.payload.password;
             return {...state, username, password};
         }
-        case actions.SET_USER_TOKEN: {
-            const token = action.payload.token;
-            return {...state, token};
+        case actions.SET_AUTH_INFO: {
+            const {token, user} = action.payload;
+            return {...state, token, user};
         }
-        case actions.CLEAR_USER_TOKEN: {
-            return {...state, token: null};
+        case actions.CLEAR_AUTH_INFO: {
+            return {...state, token: null, user: null};
         }
     }
     return state;

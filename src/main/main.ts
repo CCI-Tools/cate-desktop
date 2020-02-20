@@ -7,9 +7,8 @@ import * as url from 'url';
 import * as fs from 'fs';
 import * as child_process from 'child_process'
 import { request } from './request';
-import { updateConditionally } from '../common/objutil';
 import { Configuration } from './configuration';
-import { menuTemplate } from './menu';
+import { getMenuTemplate } from './menu';
 import {
     getAppDataDir,
     getAppIconPath,
@@ -24,12 +23,10 @@ import {
     EXPECTED_CATE_WEBAPI_VERSION,
     getProxySettings,
     getSessionProxyConfig,
-    isLocalWebAPIService
 } from './appenv';
 import * as net from 'net';
 import { installAutoUpdate } from './update-frontend';
 import { isDefined, isNumber, isString } from '../common/types';
-import { WebAPIConfig } from '../renderer/state';
 
 const PREFS_OPTIONS = ['--prefs', '-p'];
 const CONFIG_OPTIONS = ['--config', '-c'];
@@ -84,6 +81,8 @@ class CateDesktopApp {
      */
     private configuration: Configuration = null;
 
+    private _webAPIMode: string | null = null;
+
     private webAPIProcess: child_process.ChildProcess = null;
 
     private webAPIError = null;
@@ -97,6 +96,14 @@ class CateDesktopApp {
     private quitRequested = false;
     private quitConfirmed = false;
     private exitRequested = false;
+
+    get webAPIMode(): string | null {
+        return this._webAPIMode;
+    }
+
+    set webAPIMode(value: string) {
+        this._webAPIMode = value;
+    }
 
     get webAPIConfig(): any {
         return this.configuration.get('webAPIConfig');
@@ -299,30 +306,29 @@ class CateDesktopApp {
             }
         });
 
-        electron.ipcMain.on('set-webapi-mode', (event, webAPIMode) => {
-            log.info('Received web API mode from UI...', webAPIMode);
-            if (webAPIMode === 'local') {
-                const menu = electron.Menu.buildFromTemplate(menuTemplate);
-                electron.Menu.setApplicationMenu(menu);
+        electron.ipcMain.on('update-webapi-info', (event, webAPIInfo) => {
+            log.info(`Received WebAPI information from UI: `, webAPIInfo);
+
+            const {webAPIMode, webAPIConfig, user} = webAPIInfo;
+            if (typeof webAPIMode !== 'undefined') {
+                this.configuration.set('webAPIMode', webAPIMode);
             }
+            if (typeof webAPIConfig !== 'undefined') {
+                this.configuration.set('webAPIConfig', webAPIConfig);
+            }
+            if (typeof user !== 'undefined') {
+                this.configuration.set('user', user);
+            }
+
+            installAppMenu(this.configuration);
         });
 
-        electron.ipcMain.on('set-webapi-config', (event, webAPIConfig) => {
-            this.configuration.set('webAPIConfig', {
-                ...webAPIConfig,
-                restUrl: getWebAPIRestUrl(webAPIConfig),
-                apiWebSocketUrl: getAPIWebSocketsUrl(webAPIConfig),
-                mplWebSocketUrl: getMPLWebSocketsUrl(webAPIConfig),
-            });
-            log.info('Received webAPI configuration from UI...', this.configuration.get('webAPIConfig'));
-        });
-
-        electron.ipcMain.on('start-local-service', (event) => {
+        electron.ipcMain.on('start-local-service', () => {
             log.info(`Starting local Cate service...`);
             this.maybeStartLocalWebAPIService();
         });
 
-        electron.ipcMain.on('stop-local-service', (event) => {
+        electron.ipcMain.on('stop-local-service', () => {
             log.info(`Stopping local Cate service...`);
             this.maybeStopLocalWebAPIService();
         });
@@ -496,7 +502,7 @@ class CateDesktopApp {
     private maybeInstallAutoUpdate() {
         if (process.env.NODE_ENV !== 'development') {
             const autoUpdateSoftware = this.preferences.data.autoUpdateSoftware
-                || !isDefined(this.preferences.data.autoUpdateSoftware);
+                                       || !isDefined(this.preferences.data.autoUpdateSoftware);
             if (autoUpdateSoftware) {
                 installAutoUpdate(this.mainWindow);
             }
@@ -522,7 +528,7 @@ class CateDesktopApp {
         // Emitted when the window is going to be closed.
         this.mainWindow.on('close', event => {
             log.info(`Main window will be closed. `
-                         + `Possible reason: ${this.quitRequested ? 'quit requested' : 'window closed'}`);
+                     + `Possible reason: ${this.quitRequested ? 'quit requested' : 'window closed'}`);
             this.requestPreferencesUpdate();
             this.preferences.set('mainWindowBounds', this.mainWindow.getBounds());
             this.preferences.set('devToolsOpened', this.mainWindow.webContents.isDevToolsOpened());
@@ -610,6 +616,8 @@ class CateDesktopApp {
                                                slashes: true
                                            }));
 
+        electron.Menu.setApplicationMenu(null);
+
         if (this.configuration.data.devToolsExtensions) {
             this.updateInitMessage('Installing developer tools...');
             for (let devToolsExtensionName of this.configuration.data.devToolsExtensions) {
@@ -621,8 +629,6 @@ class CateDesktopApp {
                 }
             }
         }
-
-        electron.Menu.setApplicationMenu(null);
 
         let sessionProxyConfig = getSessionProxyConfig(process.env);
         if (USE_PROXY_CONFIG_IF_SET && sessionProxyConfig) {
@@ -648,13 +654,18 @@ class CateDesktopApp {
             this.mainWindow.webContents.send('set-preferences', this.preferences.data);
         });
 
-        if (this.preferences.data.devToolsOpened) {
-            // Open the DevTools.
-            this.mainWindow.webContents.openDevTools();
-        }
-
+        this.mainWindow.webContents.on('did-frame-finish-load', () => {
+            if (this.preferences.data.devToolsOpened) {
+                // Open the DevTools.
+                this.mainWindow.webContents.openDevTools();
+                this.mainWindow.webContents.on('devtools-opened', () => {
+                    this.mainWindow.focus();
+                });
+            }
+        });
     }
 
+    // noinspection JSMethodCanBeStatic
     private ensureLocalCateDir(callback: (setupPerformed: boolean) => void) {
         const setupInfo = getCateWebAPISetupInfo();
         log.info('Computed setup information: ', setupInfo);
@@ -673,20 +684,21 @@ class CateDesktopApp {
             electron.dialog.showErrorBox(
                 `${electron.app.getName()} - Error`,
                 `Unable locating "cate" Python package,\n`
-                    + `requiring version ${setupInfo.newCateVersion}.`
+                + `requiring version ${setupInfo.newCateVersion}.`
             );
         } else if (setupInfo.setupReason === 'UPDATE_CATE') {
             electron.dialog.showErrorBox(
                 `${electron.app.getName()} - Error`,
                 'Found out-of-date "cate" Python package,\n'
-                    + `requiring version ${setupInfo.newCateVersion}.`
-                    + `found version ${setupInfo.oldCateVersion},\n`
-                    + `in ${setupInfo.oldCateDir},\n`
+                + `requiring version ${setupInfo.newCateVersion}.`
+                + `found version ${setupInfo.oldCateVersion},\n`
+                + `in ${setupInfo.oldCateDir},\n`
             );
         }
         electron.app.exit(ERRCODE_SETUP_FAILED);
     }
 
+    // noinspection JSMethodCanBeStatic
     private getOptionArg(options: string[]): string | null {
         let args: Array<string> = process.argv.slice(1);
         for (let i = 0; i < args.length; i++) {
@@ -835,4 +847,9 @@ function getLineString(s: string) {
 
 function getAppInfoString() {
     return electron.app.getName() + ', version ' + electron.app.getVersion();
+}
+
+function installAppMenu(configuration: Configuration) {
+    const menu = electron.Menu.buildFromTemplate(getMenuTemplate(configuration));
+    electron.Menu.setApplicationMenu(menu);
 }

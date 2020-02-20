@@ -96,6 +96,22 @@ To clean compilation results:
 To get rid of all outputs since cloning the repo:
 
     $ npm run clean:all
+    
+    
+### Development Settings
+
+In `${HOME}/.cate/preferences.json`:
+
+* set `"debugWorldView": true` to log Cesium globe operations
+* set `"devToolsOpened": true` to open the Electron dev-tools window when the apps starts
+* set `"offlineMode": true` to force offline mode
+* set `"forceAppBar": true` to show the application bar that is used in the non-Electron version of Cate
+  
+Environment variables:
+
+* set `REACT_APP_CATE_USERNAME=YOUR_NAME` and `REACT_APP_CATE_PASSWORD=YOUR_PASSWORD`
+  to use default CateHub username and password.
+
 
 ## Frameworks and Libraries in use
 

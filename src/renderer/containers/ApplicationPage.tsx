@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
 import * as actions from '../actions';
+import { isElectron } from '../is-electron';
 import * as selectors from '../selectors';
 import GlobeView from './GlobeView'
 import FigureView from './FigureView';
@@ -67,12 +68,14 @@ interface IDispatch {
 interface IApplicationPageProps {
     webAPIMode: 'local' | 'remote' | null;
     isSignedIn: boolean | null;
+    forceAppBar?: boolean;
 }
 
 function mapStateToPropsApplication(state: State): IApplicationPageProps {
     return {
         webAPIMode: state.data.appConfig.webAPIMode,
         isSignedIn: state.communication.token != null,
+        forceAppBar: state.session.forceAppBar,
     };
 }
 
@@ -103,7 +106,7 @@ class _ApplicationPage extends React.PureComponent<IApplicationPageProps & IDisp
         }
 
         let appBar;
-        if (this.props.webAPIMode === 'remote') {
+        if (!isElectron() || !!this.props.forceAppBar) {
             appBar = <AppBar/>;
         }
 
