@@ -6,6 +6,7 @@ import { Feature, FeatureCollection, GeoJsonObject, Point } from "geojson";
 import { IconName } from "@blueprintjs/core";
 import { SimpleStyle } from "../common/geojson-simple-style";
 import { GeometryToolType } from "./components/cesium/geometry-tool";
+import { User } from './webapi/apis/AuthAPI';
 
 /**
  * Interface describing Cate's application state structure.
@@ -39,11 +40,15 @@ export interface DataState {
     workspaceNames: string[] | null;
 }
 
+export type WebAPIMode = 'local' | 'remote' | null;
+export type WebAPIStatus = 'login' | 'launching' | 'connecting' | 'open' | 'error' | 'closed' | 'logoff' | null;
+
+
 // Maybe put it into the communication state, see http://jamesknelson.com/5-types-react-application-state/
 // and see https://github.com/trbngr/react-example-pusher
 export interface AppConfigState {
+    webAPIMode: WebAPIMode;
     webAPIConfig: WebAPIConfig;
-    webAPIClient: WebAPIClient | null;
     hasWebGL: boolean;
 }
 
@@ -54,11 +59,6 @@ export interface WebAPIConfig {
     serviceProtocol?: 'http' | 'https';
     serviceFile?: string;
     processOptions?: Object;
-    // TODO (forman): remove next props
-    // Values computed in main.ts
-    //restUrl: string;
-    //apiWebSocketUrl: string;
-    //mplWebSocketUrl: string;
 }
 
 export interface DataStoreNotice {
@@ -640,10 +640,12 @@ export interface ColorMapCategoryState {
  * Communication state is the status of any not-yet-complete requests to other services.
  */
 export interface CommunicationState {
-    isSignedIn: boolean;
-    webAPIMode: 'local' | 'remote' | null;
-    webAPIStatus: 'connecting' | 'open' | 'error' | 'closed' | null;
-
+    webAPIStatus: WebAPIStatus;
+    webAPIClient: WebAPIClient | null;
+    username: string | null;
+    password: string | null;
+    token: string | null;
+    user: User | null;
     // A map that stores the current state of any tasks (e.g. data fetch jobs from remote API) given a jobId
     tasks: { [jobId: number]: TaskState; };
 }
@@ -732,6 +734,7 @@ export interface SessionState {
     lastWorkspaceDir?: string | null;
     mainWindowBounds?: { x: number; y: number; width: number; height: number };
     devToolsOpened?: boolean;
+    forceAppBar?: boolean;
     /**
      * lastWorkspacePath != null, only if it is not a scratch-workspace
      */

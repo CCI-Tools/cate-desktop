@@ -3,7 +3,7 @@ import {
     LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
     OperationState, BackendConfigState, VariableState,
     OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
-    SplitMode
+    SplitMode, WebAPIConfig, WebAPIStatus, WebAPIMode
 } from './state';
 import { ViewState, ViewPath } from './components/ViewState';
 import {
@@ -12,7 +12,7 @@ import {
     JobStatusEnum,
     JobPromise,
     JobProgressHandler,
-    ERROR_CODE_INVALID_PARAMS, newWebAPIClient
+    ERROR_CODE_INVALID_PARAMS, newWebAPIClient, WebAPIClient
 } from './webapi';
 import * as selectors from './selectors';
 import * as assert from '../common/assert';
@@ -42,7 +42,7 @@ import {
 } from './containers/editor/value-editor-assign';
 import { ERROR_CODE_CANCELLED } from './webapi';
 import { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './containers/ChooseWorkspaceDialog';
-
+import { AuthAPI, AuthInfo, User } from './webapi/apis/AuthAPI'
 
 /**
  * The fundamental Action type as it is used here.
@@ -77,56 +77,129 @@ export type ThunkAction = (dispatch?: Dispatch, getState?: GetState) => void;
 // Application-level actions
 
 export const UPDATE_INITIAL_STATE = 'UPDATE_INITIAL_STATE';
-export const SIGN_IN = 'SIGN_IN';
 export const SET_WEBAPI_MODE = 'SET_WEBAPI_MODE';
 export const SET_WEBAPI_STATUS = 'SET_WEBAPI_STATUS';
+export const SET_WEBAPI_CONFIG = 'SET_WEBAPI_CONFIG';
 export const UPDATE_DIALOG_STATE = 'UPDATE_DIALOG_STATE';
 export const UPDATE_TASK_STATE = 'UPDATE_TASK_STATE';
 export const REMOVE_TASK_STATE = 'REMOVE_TASK_STATE';
 export const UPDATE_CONTROL_STATE = 'UPDATE_CONTROL_STATE';
 export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
+export const SET_USER_CREDENTIALS = 'SET_USER_CREDENTIALS';
+export const SET_AUTH_INFO = 'SET_AUTH_INFO';
+export const CLEAR_AUTH_INFO = 'CLEAR_AUTH_INFO';
 
-export function signIn(): ThunkAction {
-    return (dispatch: Dispatch, getState: GetState) => {
-        dispatch(_signIn());
-        if (getState().communication.webAPIMode === 'remote') {
-            dispatch(connectWebAPIClient());
+export function login(): ThunkAction {
+    return async (dispatch: Dispatch, getState: GetState) => {
+
+        const authAPI = new AuthAPI();
+
+        dispatch(setWebAPIStatus('login'));
+
+        let authInfo;
+        try {
+            authInfo = await authAPI.auth(getState().communication.username,
+                                          getState().communication.password);
+        } catch (error) {
+            console.info('error: ', error);
+            //showToast({type: 'error', text: 'Wrong username or password.'});
+            showToast({type: 'error', text: 'Wrong username or password.'});
+            return;
         }
+
+        dispatch(setAuthInfo(authInfo));
+
+        const user = getState().communication.user;
+
+        const webAPIConfig = authAPI.getWebAPIConfig(getState().communication.username);
+
+        if (!user || !user.server) {
+            dispatch(setWebAPIStatus('launching'));
+            let webAPIConfig;
+            try {
+                await authAPI.startWebAPI(getState().communication.username,
+                                          getState().communication.token);
+            } catch (error) {
+                console.info('error: ', error);
+                showToast({type: 'error', text: 'Failed to launch remote Cate service.'});
+                return;
+            }
+        }
+
+        // const userInfo = await authAPI.getUser(getState().communication.username,
+        //                                        getState().communication.token);
+
+        dispatch(setWebAPIConfig(webAPIConfig));
+        dispatch(connectWebAPIClient());
     };
 }
 
-export function _signIn(): Action {
-    return {type: SIGN_IN}
+export function logout(): ThunkAction {
+    return async (dispatch: Dispatch, getState: GetState) => {
+        dispatch(setWebAPIStatus('logoff'));
+        dispatch(disconnectWebAPIClient());
+        const authAPI = new AuthAPI();
+        try {
+            await authAPI.stopWebAPI(getState().communication.username);
+        } catch (error) {
+            console.info('error: ', error);
+            showToast({type: 'error', text: 'Failed to logout.'});
+            return;
+        }
+        dispatch(clearAuthInfo());
+    };
 }
 
-export function setWebAPIMode(webAPIMode: 'local' | 'remote' | null): ThunkAction {
+function setAuthInfo(authInfo: AuthInfo): Action {
+    return {type: SET_AUTH_INFO, payload: {...authInfo}}
+}
+
+function clearAuthInfo(): Action {
+    return {type: CLEAR_AUTH_INFO}
+}
+
+export function setWebAPIMode(webAPIMode: WebAPIMode): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         dispatch(_setWebAPIMode(webAPIMode));
-        if (getState().communication.webAPIMode === 'local') {
+        if (getState().data.appConfig.webAPIMode === 'local') {
             dispatch(connectWebAPIClient());
         }
     };
 }
 
-export function _setWebAPIMode(webAPIMode: 'local' | 'remote' | null): Action {
+export function _setWebAPIMode(webAPIMode: WebAPIMode): Action {
     return {type: SET_WEBAPI_MODE, payload: {webAPIMode}}
 }
 
-export function setWebAPIStatus(webAPIClient, webAPIStatus: 'connecting' | 'open' | 'error' | 'closed'): Action {
-    return {type: SET_WEBAPI_STATUS, payload: {webAPIClient, webAPIStatus}};
+export function setWebAPIStatus(webAPIStatus: WebAPIStatus,
+                                webAPIClient: WebAPIClient | null = null): Action {
+    return {type: SET_WEBAPI_STATUS, payload: {webAPIStatus, webAPIClient}};
 }
 
-export function connectWebAPIClient(): ThunkAction {
-    return (dispatch: Dispatch, getState: GetState) => {
-        dispatch(setWebAPIStatus(null, 'connecting'));
+export function setWebAPIConfig(webAPIConfig: WebAPIConfig): Action {
+    return {type: SET_WEBAPI_CONFIG, payload: {webAPIConfig}};
+}
 
-        const webAPIConfig = getState().data.appConfig.webAPIConfig;
-        console.log('webAPIConfig:', webAPIConfig);
+function updateWebAPIInfoInMain(webAPIMode: WebAPIMode, webAPIConfig: WebAPIConfig | null, user: User | null) {
+    const webAPIInfo = {webAPIMode, webAPIConfig, user};
+    console.log('webAPIInfo:', webAPIInfo);
+    const electron = require('electron');
+    electron.ipcRenderer.send('update-webapi-info', webAPIInfo);
+}
+
+function connectWebAPIClient(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        updateWebAPIInfoInMain(getState().data.appConfig.webAPIMode,
+                               getState().data.appConfig.webAPIConfig,
+                               getState().communication.user);
+
+        dispatch(setWebAPIStatus('connecting'));
+
         const webAPIClient = newWebAPIClient(selectors.apiWebSocketsUrlSelector(getState()));
 
         webAPIClient.onOpen = () => {
-            dispatch(setWebAPIStatus(webAPIClient, 'open'));
+            dispatch(setWebAPIStatus('open', webAPIClient));
             dispatch(loadBackendConfig());
             dispatch(loadColorMaps());
             dispatch(loadDataStores());
@@ -134,22 +207,49 @@ export function connectWebAPIClient(): ThunkAction {
             dispatch(loadInitialWorkspace());
         };
 
-        webAPIClient.onClose = () => {
-            dispatch(setWebAPIStatus(null, 'closed'));
+        const formatMessage = (message: string, event: any): string => {
+            if (event.message) {
+                return `${message} (${event.message})`;
+            } else {
+                return message;
+            }
         };
 
-        webAPIClient.onError = () => {
-            dispatch(setWebAPIStatus(webAPIClient, 'error'));
+        webAPIClient.onClose = (event) => {
+            console.error('webAPIClient.onClose:', event);
+            dispatch(setWebAPIStatus('closed'));
+            showToast({type: 'notification', text: formatMessage('Connection to Cate service closed', event)});
+        };
+
+        webAPIClient.onError = (event) => {
+            console.error('webAPIClient.onError:', event);
+            dispatch(setWebAPIStatus('error'));
+            showToast({type: 'error', text: formatMessage('Error connecting to Cate service', event)});
         };
 
         webAPIClient.onWarning = (event) => {
-            console.warn(`cate-desktop: warning from cate-webapi: ${event.message}`);
+            console.warn('webAPIClient.onWarning:', event);
+            showToast({type: 'warning', text: formatMessage('Warning from Cate service', event)});
         };
+    };
+}
+
+function disconnectWebAPIClient(): ThunkAction {
+    return (dispatch: Dispatch, getState: GetState) => {
+        const webAPIClient = getState().communication.webAPIClient;
+        if (webAPIClient !== null) {
+            webAPIClient.close();
+        }
+        updateWebAPIInfoInMain(null, undefined, null);
     };
 }
 
 export function updateInitialState(initialState: Object): Action {
     return {type: UPDATE_INITIAL_STATE, payload: initialState};
+}
+
+export function setUserCredentials(username: string, password: string) {
+    return {type: SET_USER_CREDENTIALS, payload: {username, password}};
 }
 
 export function updateDialogState(dialogId: string, ...dialogState): Action {
@@ -1037,7 +1137,7 @@ export function deleteResource(resName: string): ThunkAction {
  *
  * @returns a Redux thunk action
  */
-export function deleteWorkspace(workspaceName: string, deleteEntireWorkspace= true): ThunkAction {
+export function deleteWorkspace(workspaceName: string, deleteEntireWorkspace = true): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
 
         function call() {
@@ -1072,7 +1172,6 @@ function openRemoteWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
 
 function deleteRemoteWorkspace(dispatch: (action: (Action | ThunkAction)) => void,
                                getState: () => State) {
-    let state = getState();
     let jobPromise = selectors.workspaceAPISelector(getState()).listWorkspaces();
     jobPromise.then(workspaceNames => {
         dispatch(updateWorkspaceNames(workspaceNames));
@@ -1196,7 +1295,7 @@ export function deleteResourceInteractive(resName: string): ThunkAction {
                                           title: 'Remove Resource and Workflow Step',
                                           message: `Do you really want to delete resource and step "${resName}"?`,
                                           detail: 'This will also delete the workflow step that created it.\n' +
-                                              'You will not be able to undo this operation.',
+                                                  'You will not be able to undo this operation.',
                                           buttons: ['Yes', 'No'],
                                           defaultId: 1,
                                           cancelId: 1,
@@ -1273,7 +1372,7 @@ export function setCurrentWorkspace(workspace: WorkspaceState): ThunkAction {
     return (dispatch: Dispatch) => {
         dispatch(setCurrentWorkspaceImpl(workspace));
         if (!workspace.isScratch) {
-            dispatch(updatePreferences({lastWorkspacePath: workspace.baseDir} as any,true));
+            dispatch(updatePreferences({lastWorkspacePath: workspace.baseDir} as any, true));
         }
     }
 }
@@ -1670,12 +1769,12 @@ export function loadTableViewData(viewId: string, resName: string, varName: stri
             const csvUrl = getCsvUrl(restUrl, baseDir, {resId: resource.id}, varName);
             dispatch(updateTableViewData(viewId, resName, varName, null, null, true));
             d3.csv(csvUrl)
-                .then((dataRows: any[]) => {
-                    dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
-                })
-                .catch((error: any) => {
-                    dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
-                });
+              .then((dataRows: any[]) => {
+                  dispatch(updateTableViewData(viewId, resName, varName, dataRows, null, false));
+              })
+              .catch((error: any) => {
+                  dispatch(updateTableViewData(viewId, resName, varName, null, error, false));
+              });
         }
     }
 }

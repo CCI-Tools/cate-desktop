@@ -21,6 +21,8 @@ export function main() {
                                                  actions.SET_GLOBE_VIEW_POSITION,
                                                  actions.SET_GLOBE_VIEW_POSITION,
                                                  actions.UPDATE_MOUSE_IDLE_STATE,
+                                                 actions.UPDATE_SESSION_STATE,
+                                                 actions.SET_USER_CREDENTIALS,
                                              ]);
         const loggerOptions = {
             level: 'info',
@@ -79,6 +81,10 @@ export function main() {
 
     ipcRenderer.on('set-preferences', (event, preferences) => {
         store.dispatch(actions.updatePreferences(preferences, false));
+    });
+
+    ipcRenderer.on('logout', () => {
+        store.dispatch(actions.logout());
     });
 
     document.addEventListener('drop', function (event: any) {

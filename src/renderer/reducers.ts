@@ -1,30 +1,30 @@
-import {combineReducers, Reducer} from 'redux';
-import deepEqual = require("deep-equal");
+import { combineReducers, Reducer } from 'redux';
+import deepEqual = require('deep-equal');
 import {
     State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
     LayerState, VectorLayerBase, WebAPIConfig
 } from './state';
 import * as actions from './actions';
-import {Action} from "./actions";
-import * as assert from "../common/assert";
-import {updateObject, updatePropertyObject} from "../common/objutil";
+import { Action } from './actions';
+import * as assert from '../common/assert';
+import { updateObject, updatePropertyObject } from '../common/objutil';
 import {
     AUTO_LAYER_ID, updateAutoLayer,
     newWorldView, newTableView, newFigureView, getFigureViewTitle,
     isVectorLayer, PLACEMARK_ID_PREFIX, getPlacemarkTitleAndIndex, newAnimationView, isImageLayer,
-} from "./state-util";
+} from './state-util';
 import {
-removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
-addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos,
-addViewToPanel, moveView, selectView
-} from "./components/ViewState";
-import {isString} from "../common/types";
-import {featurePropertiesFromSimpleStyle} from "../common/geojson-simple-style";
+    removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
+    addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos,
+    addViewToPanel, moveView, selectView
+} from './components/ViewState';
+import { isString } from '../common/types';
+import { featurePropertiesFromSimpleStyle } from '../common/geojson-simple-style';
 import {
     INITIAL_COMMUNICATION_STATE, INITIAL_CONTROL_STATE, INITIAL_DATA_STATE,
     INITIAL_SESSION_STATE, INITIAL_LOCATION_STATE
-} from "./initial-state";
-import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./containers/operation-step-dialog-ids";
+} from './initial-state';
+import { NEW_CTX_OPERATION_STEP_DIALOG_ID } from './containers/operation-step-dialog-ids';
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -49,25 +49,13 @@ const dataReducer = (state: DataState = INITIAL_DATA_STATE, action: Action) => {
     switch (action.type) {
         case actions.SET_WEBAPI_MODE: {
             const webAPIMode = action.payload.webAPIMode;
-            let webAPIConfig: WebAPIConfig;
-            // TODO (forman): replace hard-coded webAPIConfig properties
-            if (webAPIMode === 'local') {
-                webAPIConfig = {
-                    // servicePort: 9090,
-                    // serviceAddress: 'localhost',
-                    // serviceProtocol: 'http',
-                    servicePort: null,
-                    serviceAddress: 'catehub.192.171.139.57.nip.io/user/norman',
-                    serviceProtocol: 'https',
-                };
-            } else {
-                webAPIConfig = {
-                    servicePort: null,
-                    serviceAddress: 'cate-webapi.192.171.139.57.nip.io',
-                    serviceProtocol: 'https',
-                };
-            }
-            return {...state, appConfig: {...state.appConfig, webAPIConfig}};
+            const appConfig = {...state.appConfig, webAPIMode};
+            return {...state, appConfig};
+        }
+        case actions.SET_WEBAPI_CONFIG: {
+            const webAPIConfig = action.payload.webAPIConfig;
+            const appConfig = {...state.appConfig, webAPIConfig};
+            return {...state, appConfig};
         }
         case actions.UPDATE_WORKSPACE_NAMES: {
             const workspaceNames = action.payload.workspaceNames || null;
@@ -76,11 +64,6 @@ const dataReducer = (state: DataState = INITIAL_DATA_STATE, action: Action) => {
         case actions.UPDATE_INITIAL_STATE:
             const appConfig = updateObject(state.appConfig, action.payload.appConfig);
             return updateObject(state, {appConfig});
-        case actions.SET_WEBAPI_STATUS: {
-            const webAPIClient = action.payload.webAPIClient;
-            const appConfig = updateObject(state.appConfig, {webAPIClient});
-            return updateObject(state, {appConfig});
-        }
         case actions.UPDATE_OPERATIONS: {
             const operations = action.payload.operations;
             return updateObject(state, {operations});
@@ -174,11 +157,11 @@ const controlReducer = (state: ControlState = INITIAL_CONTROL_STATE, action: Act
         case actions.UPDATE_CONTROL_STATE:
             return {...state, ...action.payload};
         case actions.ADD_PLACEMARK:
-            return {...state, newPlacemarkToolType: "NoTool"};
+            return {...state, newPlacemarkToolType: 'NoTool'};
         case actions.ACTIVATE_NEW_PLACEMARK_TOOL: {
             let newPlacemarkToolType = action.payload.newPlacemarkToolType;
             if (newPlacemarkToolType === state.newPlacemarkToolType) {
-                newPlacemarkToolType = "NoTool";
+                newPlacemarkToolType = 'NoTool';
             }
             return {...state, newPlacemarkToolType};
         }
@@ -288,7 +271,11 @@ const controlReducer = (state: ControlState = INITIAL_CONTROL_STATE, action: Act
             const {selectedCtxOperationName, inputAssignments} = action.payload;
             let dialogState: any = state.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
             dialogState = {...dialogState, isOpen: true, inputAssignments};
-            return {...state, selectedCtxOperationName, dialogs: {...state.dialogs, [NEW_CTX_OPERATION_STEP_DIALOG_ID]: dialogState}};
+            return {
+                ...state,
+                selectedCtxOperationName,
+                dialogs: {...state.dialogs, [NEW_CTX_OPERATION_STEP_DIALOG_ID]: dialogState}
+            };
         }
         case actions.UPDATE_MOUSE_IDLE_STATE: {
             return {...state, ...action.payload}
@@ -464,7 +451,7 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
                 const layerId = action.payload.id;
                 const layers = state.data.layers.slice();
                 const layerIndex = layers.findIndex(l => l.id === layerId);
-                assert.ok(layerIndex >= 0, "layerIndex >= 0");
+                assert.ok(layerIndex >= 0, 'layerIndex >= 0');
                 if (layerIndex > 0) {
                     const temp = layers[layerIndex - 1];
                     layers[layerIndex - 1] = layers[layerIndex];
@@ -481,7 +468,7 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
                 const layerId = action.payload.id;
                 const layers = state.data.layers.slice();
                 const layerIndex = layers.findIndex(l => l.id === layerId);
-                assert.ok(layerIndex >= 0, "layerIndex >= 0");
+                assert.ok(layerIndex >= 0, 'layerIndex >= 0');
                 if (layerIndex >= 0 && layerIndex < layers.length - 1) {
                     const temp = layers[layerIndex + 1];
                     layers[layerIndex + 1] = layers[layerIndex];
@@ -498,7 +485,7 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
                 const layer = action.payload.layer;
                 const layers = state.data.layers.slice();
                 const layerIndex = layers.findIndex(l => l.id === layer.id);
-                assert.ok(layerIndex >= 0, "layerIndex >= 0");
+                assert.ok(layerIndex >= 0, 'layerIndex >= 0');
                 layers[layerIndex] = updateObject(layers[layerIndex], layer);
                 return {...state, data: {...state.data, layers}};
             }
@@ -511,7 +498,7 @@ const viewReducer = (state: ViewState<any>, action: Action, activeViewId: string
                 const {layerId, style} = action.payload;
                 const layers = state.data.layers.slice();
                 const layerIndex = layers.findIndex(l => l.id === layerId);
-                assert.ok(layerIndex >= 0, "layerIndex >= 0");
+                assert.ok(layerIndex >= 0, 'layerIndex >= 0');
                 let layer = layers[layerIndex];
                 layers[layerIndex] = {...layer, style: {...layer.style, ...style}};
                 return {...state, data: {...state.data, layers}};
@@ -685,8 +672,8 @@ const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Act
             const {title, index} = getPlacemarkTitleAndIndex(placemark, state.placemarkCollection);
             if (title) {
                 properties = {...properties, title};
-                if (placemark.geometry.type === "Point") {
-                    properties["marker-symbol"] = index.toString(16).slice(-1);
+                if (placemark.geometry.type === 'Point') {
+                    properties['marker-symbol'] = index.toString(16).slice(-1);
                 }
                 placemark = {...placemark, properties}
             }
@@ -735,12 +722,11 @@ const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Act
 
 const communicationReducer = (state: CommunicationState = INITIAL_COMMUNICATION_STATE, action: Action) => {
     switch (action.type) {
-        case actions.SIGN_IN:
-            return {...state, isSignedIn: true};
-        case actions.SET_WEBAPI_MODE:
-            return {...state, webAPIMode: action.payload.webAPIMode};
-        case actions.SET_WEBAPI_STATUS:
-            return updateObject(state, {webAPIStatus: action.payload.webAPIStatus});
+        case actions.SET_WEBAPI_STATUS: {
+            const webAPIClient = action.payload.webAPIClient;
+            const webAPIStatus = action.payload.webAPIStatus;
+            return {...state, webAPIClient, webAPIStatus};
+        }
         case actions.UPDATE_TASK_STATE:
             return updateObject(state, {
                 tasks: updatePropertyObject(state.tasks, action.payload.jobId, action.payload.taskState)
@@ -749,6 +735,18 @@ const communicationReducer = (state: CommunicationState = INITIAL_COMMUNICATION_
             const tasks = Object.assign({}, state.tasks);
             delete tasks[action.payload.jobId];
             return updateObject(state, {tasks: tasks});
+        }
+        case actions.SET_USER_CREDENTIALS: {
+            const username = action.payload.username;
+            const password = action.payload.password;
+            return {...state, username, password};
+        }
+        case actions.SET_AUTH_INFO: {
+            const {token, user} = action.payload;
+            return {...state, token, user};
+        }
+        case actions.CLEAR_AUTH_INFO: {
+            return {...state, token: null, user: null};
         }
     }
     return state;

@@ -1,7 +1,7 @@
 import * as React from "react";
 import {CSSProperties} from "react";
 import {connect, DispatchProp} from "react-redux";
-import {GeographicPosition, State, TaskState} from "../state";
+import { GeographicPosition, State, TaskState, WebAPIStatus } from '../state';
 import * as selectors from "../selectors";
 import * as actions from "../actions";
 import {Intent, Popover, PopoverInteractionKind, Position, ProgressBar, Tooltip} from "@blueprintjs/core";
@@ -9,7 +9,7 @@ import {JobStatusEnum} from "../webapi";
 import TaskComponent from "./TaskComponent";
 
 interface IStatusBarProps {
-    webAPIStatus: 'connecting' | 'open' | 'error' | 'closed' | null;
+    webAPIStatus: WebAPIStatus;
     tasks: { [jobId: number]: TaskState };
     globePosition: GeographicPosition | null;
 }

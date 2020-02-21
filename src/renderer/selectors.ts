@@ -66,16 +66,12 @@ export const offlineModeSelector = (state: State): boolean => state.session.offl
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remote API selectors
 
-export const webAPIClientSelector = (state: State): WebAPIClient => state.data.appConfig.webAPIClient;
+export const webAPIClientSelector = (state: State): WebAPIClient => state.communication.webAPIClient;
 export const webAPIConfigSelector = (state: State): WebAPIConfig => state.data.appConfig.webAPIConfig;
 
 
-export const isLocalWebAPISelector = createSelector(
-    webAPIConfigSelector,
-    (webAPIConfig: WebAPIConfig) => {
-        return isLocalWebAPIService(webAPIConfig);
-    }
-);
+export const isLocalWebAPISelector = (state: State): boolean => state.data.appConfig.webAPIMode === 'local';
+export const isRemoteWebAPISelector = (state: State): boolean => state.data.appConfig.webAPIMode === 'remote';
 
 export const restUrlSelector = createSelector(
     webAPIConfigSelector,
