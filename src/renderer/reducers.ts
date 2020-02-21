@@ -62,8 +62,12 @@ const dataReducer = (state: DataState = INITIAL_DATA_STATE, action: Action) => {
             return {...state, workspaceNames};
         }
         case actions.UPDATE_INITIAL_STATE:
-            const appConfig = updateObject(state.appConfig, action.payload.appConfig);
-            return updateObject(state, {appConfig});
+            const webAPIConfig = action.payload.webAPIConfig;
+            if (!!webAPIConfig) {
+                const appConfig = {...state.appConfig, webAPIConfig};
+                return {...state, appConfig};
+            }
+            return state;
         case actions.UPDATE_OPERATIONS: {
             const operations = action.payload.operations;
             return updateObject(state, {operations});
@@ -653,8 +657,6 @@ const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Act
             }
             break;
         }
-        case actions.UPDATE_INITIAL_STATE:
-            return {...state, ...action.payload.session};
         case actions.UPDATE_SESSION_STATE:
             return {...state, ...action.payload};
         case actions.SET_SHOW_SELECTED_VARIABLE_LAYER:

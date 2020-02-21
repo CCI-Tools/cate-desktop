@@ -48,7 +48,7 @@ export type WebAPIStatus = 'login' | 'launching' | 'connecting' | 'open' | 'erro
 // and see https://github.com/trbngr/react-example-pusher
 export interface AppConfigState {
     webAPIMode: WebAPIMode;
-    webAPIConfig: WebAPIConfig;
+    webAPIConfig?: WebAPIConfig;
     hasWebGL: boolean;
 }
 

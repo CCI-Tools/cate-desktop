@@ -43,7 +43,7 @@ export function main() {
         document.getElementById('container')
     );
 
-    ipcRenderer.on('apply-initial-state', (event, initialState) => {
+    ipcRenderer.on('update-initial-state', (event, initialState) => {
         store.dispatch(actions.updateInitialState(initialState));
     });
 

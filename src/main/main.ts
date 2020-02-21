@@ -649,8 +649,9 @@ class CateDesktopApp {
         });
 
         this.mainWindow.webContents.on('did-finish-load', () => {
-            this.updateInitMessage('Done.');
+            this.updateInitMessage('UI loaded.');
             this.maybeInstallAutoUpdate();
+            this.mainWindow.webContents.send('update-initial-state', this.configuration.data);
             this.mainWindow.webContents.send('set-preferences', this.preferences.data);
         });
 

@@ -306,8 +306,8 @@ export function getActions(configuration: Configuration) {
             click: () => {
                 const title = `About ${electron.app.getName()}`;
                 const message = `${electron.app.getName()}, version ${electron.app.getVersion()}`;
-                const webAPIConfig = configuration.get('webAPIConfig');
-                const user = configuration.get('user', {name: process.env["USER"]});
+                const webAPIConfig = configuration.get('webAPIConfig') || {protocol: 'http', serviceAddress: 'unknown.com'};
+                const user = configuration.get('user') || {name: process.env["USER"]};
                 const detail = '' +
                                `Program: ${electron.app.getAppPath()}\n` +
                                `User: ${user.name}\n` +

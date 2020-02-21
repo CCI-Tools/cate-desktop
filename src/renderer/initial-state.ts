@@ -9,11 +9,6 @@ import { ViewState } from './components/ViewState';
 export const INITIAL_DATA_STATE: DataState = {
     appConfig: {
         webAPIMode: null,
-        webAPIConfig: {
-            servicePort: null,
-            serviceAddress: '',
-            serviceProtocol: 'http',
-        },
         hasWebGL: hasWebGL(),
     },
     dataStores: null,
