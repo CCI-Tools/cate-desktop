@@ -1,11 +1,11 @@
 import * as React from "react";
-import {Tooltip, Switch, Popover, PopoverInteractionKind, Position} from "@blueprintjs/core";
-import {LabelWithType} from "../../components/LabelWithType";
-import {ResourceState} from "../../state";
-import {isAssignableFrom} from "../../../common/cate-types";
-import {formatDataTypeName} from "../../../common/format";
+import { Tooltip, Switch, Popover, PopoverInteractionKind, Position, HTMLSelect } from "@blueprintjs/core";
+import { LabelWithType } from "../../components/LabelWithType";
+import { ResourceState } from "../../state";
+import { isAssignableFrom } from "../../../common/cate-types";
+import { formatDataTypeName } from "../../../common/format";
 import * as cateTypes from "../../../common/cate-types";
-import {ReactChild} from "react";
+import { ReactChild } from "react";
 
 export interface IInputEditorProps {
     name: string;
@@ -71,20 +71,24 @@ export class InputEditor extends React.PureComponent<IInputEditorProps, null> {
 
         let editor = (
             <div className="pt-select pt-intent-primary">
-                <select value={this.props.resourceName || NULL_VALUE}
-                        disabled={otherResourceOptions.length === 0}
-                        onChange={(event: any) => this.handleChange(event.target.value === NULL_VALUE ? null : event.target.value, false)}>
+                <HTMLSelect
+                    value={this.props.resourceName || NULL_VALUE}
+                    disabled={otherResourceOptions.length === 0}
+                    onChange={(event: any) => this.handleChange(event.target.value === NULL_VALUE ? null : event.target.value, false)}
+                >
                     {resourceOptions}
-                </select>
+                </HTMLSelect>
             </div>
         );
 
         if (otherResourceOptions.length === 0) {
             editor = (
-                <Popover interactionKind={PopoverInteractionKind.HOVER} hoverOpenDelay={0} hoverCloseDelay={0} position={Position.TOP} >
+                <Popover interactionKind={PopoverInteractionKind.HOVER} hoverOpenDelay={0} hoverCloseDelay={0}
+                         position={Position.TOP}>
                     {editor}
                     <div style={{padding: 8}}>
-                        This parameter requires a resource of type <span style={{color: 'rgba(0,255,0,0.8)'}}>{formatDataTypeName(this.props.dataType, false)}</span>.
+                        This parameter requires a resource of type <span
+                        style={{color: 'rgba(0,255,0,0.8)'}}>{formatDataTypeName(this.props.dataType, false)}</span>.
                         <br/>
                         Currently, no resources of this type are available.<br/>
                         {renderTypeInstanceHintText(this.props.dataType)}

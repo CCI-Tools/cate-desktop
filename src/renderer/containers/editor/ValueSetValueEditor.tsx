@@ -1,6 +1,7 @@
+import { HTMLSelect } from '@blueprintjs/core';
 import * as React from 'react';
-import {IValueEditorProps} from "./ValueEditor";
-import {OperationInputState} from "../../state";
+import { IValueEditorProps } from "./ValueEditor";
+import { OperationInputState } from "../../state";
 
 
 export class ValueSetValueEditor extends React.PureComponent<IValueEditorProps<any>, null> {
@@ -27,10 +28,12 @@ export class ValueSetValueEditor extends React.PureComponent<IValueEditorProps<a
         const value = this.props.value || ValueSetValueEditor.NULL_VALUE;
         return (
             <div className="pt-select">
-                <select value={value}
-                        onChange={(event: any) => this.onChange(event.target.value)}>
+                <HTMLSelect
+                    value={value}
+                    onChange={(event: any) => this.onChange(event.target.value)}
+                >
                     {options}
-                </select>
+                </HTMLSelect>
             </div>
         );
     }

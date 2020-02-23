@@ -16,7 +16,7 @@ import { NO_ENTITY_FOR_STYLE, NO_LAYER_FOR_STYLE } from '../messages';
 import { SubPanelHeader } from '../components/SubPanelHeader';
 import {
     AnchorButton,
-    Button, Colors,
+    Button, Colors, HTMLSelect,
     NumberRange,
     Popover,
     PopoverInteractionKind,
@@ -489,13 +489,14 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
             <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Size</span>
                 <div className="pt-select" style={{flex: 'auto 1'}}>
-                    <select value={this.props.vectorStyle.markerSize}
-                            onChange={this.handleChangedMarkerSize}
+                    <HTMLSelect
+                        value={this.props.vectorStyle.markerSize}
+                        onChange={this.handleChangedMarkerSize}
                     >
                         <option value="small">Small</option>
                         <option value="medium">Medium</option>
                         <option value="large">Large</option>
-                    </select>
+                    </HTMLSelect>
                 </div>
             </label>
         );

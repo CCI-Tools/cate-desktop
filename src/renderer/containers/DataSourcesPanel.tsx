@@ -12,7 +12,7 @@ import {
     Tabs,
     Tab,
     Checkbox,
-    Colors, Collapse, Callout, Intent
+    Colors, Collapse, Callout, Intent, HTMLSelect
 } from '@blueprintjs/core';
 import { IconName } from '@blueprintjs/core/src/components/icon/icon';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
@@ -341,10 +341,12 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                     <label className="pt-label pt-inline" style={{margin: '0 0 0 0'}}>
                         Data store:
                         <div className="pt-select" style={{padding: '0.2em'}}>
-                            <select value={selectedDataStore ? selectedDataStore.id : ''}
-                                    onChange={this.handleDataStoreSelected}>
+                            <HTMLSelect
+                                value={selectedDataStore ? selectedDataStore.id : ''}
+                                onChange={this.handleDataStoreSelected}
+                            >
                                 {dataStoreOptions}
-                            </select>
+                            </HTMLSelect>
                         </div>
                     </label>
                     <span style={DataSourcesPanel.SPACER_STYLE}/>
