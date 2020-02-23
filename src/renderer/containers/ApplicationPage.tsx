@@ -187,9 +187,9 @@ class _LeftPanel extends React.PureComponent<ILeftPanelProps & IDispatch, null> 
                             onSelectedTopPanelChange={this.onSelectedLeftTopPanelChange}
                             onSelectedBottomPanelChange={this.onSelectedLeftBottomPanelChange}
             >
-                <Panel id="dataSources" position="top" icon="pt-icon-database" title="Data Sources"
+                <Panel id="dataSources" position="top" icon="database" title="Data Sources"
                        body={<DataSourcesPanel/>}/>
-                <Panel id="operations" position="bottom" icon="pt-icon-function" title="Operations"
+                <Panel id="operations" position="bottom" icon="function" title="Operations"
                        body={<OperationsPanel/>}/>
             </PanelContainer>
         );
@@ -246,19 +246,19 @@ class _RightPanel extends React.PureComponent<IRightPanelProps & IDispatch, null
                             onSelectedTopPanelChange={this.onSelectedRightTopPanelChange}
                             onSelectedBottomPanelChange={this.onSelectedRightBottomPanelChange}
             >
-                <Panel id="workspace" position="top" icon="pt-icon-flows" title="Workspace"
+                <Panel id="workspace" position="top" icon="flows" title="Workspace"
                        body={<WorkspacePanel/>}/>
-                <Panel id="layers" position="top" icon="pt-icon-layers" title="Layers"
+                <Panel id="layers" position="top" icon="layers" title="Layers"
                        body={<LayersPanel/>}/>
-                <Panel id="placemarks" position="top" icon="pt-icon-map-marker" title="Places"
+                <Panel id="placemarks" position="top" icon="map-marker" title="Places"
                        body={<PlacemarksPanel/>}/>
-                <Panel id="variables" position="bottom" icon="pt-icon-variable" title="Variables"
+                <Panel id="variables" position="bottom" icon="variable" title="Variables"
                        body={<VariablePanel/>}/>
-                <Panel id="style" position="bottom" icon="pt-icon-style" title="Styles"
+                <Panel id="style" position="bottom" icon="style" title="Styles"
                        body={<StylesPanel/>}/>
-                <Panel id="view" position="bottom" icon="pt-icon-eye-open" title="View"
+                <Panel id="view" position="bottom" icon="eye-open" title="View"
                        body={<ViewPanel/>}/>
-                <Panel id="tasks" position="bottom" icon="pt-icon-play" title="Tasks"
+                <Panel id="tasks" position="bottom" icon="play" title="Tasks"
                        body={<TaskPanel/>}/>
             </PanelContainer>
         );

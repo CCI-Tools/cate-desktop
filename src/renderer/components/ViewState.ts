@@ -1,3 +1,4 @@
+import { IconName } from '@blueprintjs/icons';
 import * as assert from "../../common/assert";
 
 
@@ -9,7 +10,7 @@ export type ViewPath = string;
 export interface ViewState<T> {
     id: string;
     title: string;
-    icon?: string;
+    icon?: IconName;
     /**
      * The view type is used to lookup the renderer for this kind of view, e.g. "world".
      */

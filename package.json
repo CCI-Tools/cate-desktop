@@ -74,14 +74,15 @@
     "d3-fetch": "^1.1.2",
     "deep-equal": "^1.0.1",
     "deep-object-diff": "^1.1.0",
-    "electron": "1.8.8",
-    "electron-builder": "19.56.2",
-    "electron-devtools-installer": "2.2.3",
-    "electron-log": "2.2.14",
-    "electron-updater": "2.20.1",
+    "electron": "8.0.1",
+    "electron-builder": "22.3.2",
+    "electron-devtools-installer": "2.2.4",
+    "electron-log": "4.0.6",
+    "electron-updater": "4.2.2",
     "jsdom": "16.2.0",
     "jsdom-global": "3.0.2",
     "mocha": "^5.2.0",
+    "normalize.css": "^8.0.1",
     "npm": "^6.13.7",
     "oboe": "^2.1.5",
     "react": "16.12.0",
@@ -131,9 +132,5 @@
       ],
       "category": "Science"
     }
-  },
-  "dependencies": {
-    "to": "^0.2.9",
-    "update": "^0.7.4"
   }
 }

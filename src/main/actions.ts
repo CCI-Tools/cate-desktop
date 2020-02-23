@@ -252,7 +252,7 @@ export function getActions(configuration: Configuration) {
         openWebsite: {
             label: 'Website',
             click: function () {
-                electron.shell.openExternal('https://climatetoolbox.io/')
+                electron.shell.openExternal('https://climatetoolbox.io/').then(() => true)
             },
             category: 'help',
         },
@@ -260,7 +260,7 @@ export function getActions(configuration: Configuration) {
         openDocumentation: {
             label: 'Documentation',
             click: function () {
-                electron.shell.openExternal('http://cate.readthedocs.io/en/latest/')
+                electron.shell.openExternal('http://cate.readthedocs.io/en/latest/').then(() => true)
             },
             category: 'help',
         },
@@ -268,7 +268,7 @@ export function getActions(configuration: Configuration) {
         openIssueTracker: {
             label: 'Issue Tracker',
             click: function () {
-                electron.shell.openExternal('https://github.com/CCI-Tools/cate/issues')
+                electron.shell.openExternal('https://github.com/CCI-Tools/cate/issues').then(() => true)
             },
             category: 'help',
         },
@@ -276,7 +276,7 @@ export function getActions(configuration: Configuration) {
         openDownloads: {
             label: 'Downloads',
             click: function () {
-                electron.shell.openExternal('https://github.com/CCI-Tools/cate/releases')
+                electron.shell.openExternal('https://github.com/CCI-Tools/cate/releases').then(() => true)
             },
             category: 'help',
         },
@@ -284,7 +284,7 @@ export function getActions(configuration: Configuration) {
         openEsaCCI: {
             label: 'ESA Climate Change Initiative',
             click: function () {
-                electron.shell.openExternal('http://cci.esa.int/')
+                electron.shell.openExternal('http://cci.esa.int/').then(() => true)
             },
             category: 'help',
         },
@@ -322,7 +322,7 @@ export function getActions(configuration: Configuration) {
                                'Python, Conda, Xarray, Dask, Pandas, Numpy, Matplotlib, Tornado, and more for Cate Core;\n' +
                                'TypeScript, Electron, React, Redux, BlueprintJS, Cesium, and more for Cate Desktop.';
                 const icon = electron.nativeImage.createFromPath(getAppIconPath());
-                electron.dialog.showMessageBox({title, message, detail, icon});
+                electron.dialog.showMessageBox({title, message, detail, icon}).then(() => true);
             },
         },
     };

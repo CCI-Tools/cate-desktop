@@ -1,6 +1,7 @@
+import { IconName } from '@blueprintjs/icons';
 import * as React from 'react'
 import {
-    Colors,
+    Colors, Icon,
     Position,
     Tooltip,
     // MenuItem,
@@ -304,7 +305,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
 
 interface IPanelHeaderProps {
     id: string;
-    icon: string;
+    icon: IconName;
     title: string;
     onClose: () => void;
 }
@@ -396,7 +397,7 @@ function PanelBar(props: IPanelBarProps) {
     function renderPanelButton(panel, selectedPanelId: string) {
         const panelId: string = panel.props.id;
         const panelTitle: string = panel.props.title;
-        const panelIconName: string = panel.props.icon;
+        const panelIcon: IconName = panel.props.icon as IconName;
         const selected = panelId === selectedPanelId;
         const style = selected ? PANEL_BAR_ITEM_SELECTED_STYLE : PANEL_BAR_ITEM_NORMAL_STYLE;
         const panelPosition: string = panel.props.position || "top";
@@ -406,8 +407,7 @@ function PanelBar(props: IPanelBarProps) {
                 onClick={onClick}
                 style={style}>
                 <Tooltip content={panelTitle} position={tooltipPos} hoverOpenDelay={1500}>
-                    <span className={"pt-icon-large " + panelIconName}
-                          style={PANEL_BUTTON_STYLE}/>
+                    <span style={PANEL_BUTTON_STYLE}><Icon icon={panelIcon} iconSize={20}/></span>
                 </Tooltip>
             </li>
         );

@@ -10,7 +10,6 @@ import { State } from './state';
 import * as actions from './actions'
 import { stateReducer } from './reducers';
 
-
 export function main() {
     const middlewares: Middleware[] = [thunkMiddleware];
 

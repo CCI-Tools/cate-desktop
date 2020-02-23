@@ -65,7 +65,7 @@ export interface DataStoreNotice {
     id: string;
     title: string;
     content: string;
-    icon: string | null;
+    icon: IconName | null;
     intent: string | null;
 }
 

@@ -296,7 +296,7 @@ export function newWorldView(): ViewState<WorldViewDataState> {
         title: `World (${viewNumber})`,
         id: genSimpleId('world-'),
         type: 'world',
-        icon: "pt-icon-globe",
+        icon: "globe",
         data: newInitialWorldViewData(),
     };
 }
@@ -307,7 +307,7 @@ export function newFigureView(resource: ResourceState): ViewState<FigureViewData
         title: getFigureViewTitle(resource.name),
         id: `fig-${resource.id}`,
         type: 'figure',
-        icon: "pt-icon-timeline-area-chart",
+        icon: "timeline-area-chart",
         data: newInitialFigureViewData(resource.id),
     };
 }
@@ -321,7 +321,7 @@ export function newAnimationView(resource: ResourceState): ViewState<AnimationVi
         title: getAnimationViewTitle(resource.name),
         id: `anim-${resource.id}`,
         type: 'animation',
-        icon: "pt-icon-play",
+        icon: "play",
         data: newInitialAnimationViewData(resource.id),
     };
 }
@@ -335,7 +335,7 @@ export function newTableView(resName: string, varName: string): ViewState<TableV
         title: varName ? `${resName}.${varName}` : resName,
         id: genSimpleId('table-'),
         type: 'table',
-        icon: "pt-icon-th",
+        icon: "th",
         data: newInitialTableViewData(resName, varName),
     };
 }

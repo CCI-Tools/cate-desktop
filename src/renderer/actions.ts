@@ -1944,11 +1944,15 @@ export interface FileDialogOptions {
     filters?: FileFilter[];
 }
 
+// TODO (forman): Replace by electron.SaveDialogOptions
+
 /**
  * See dialog.showSaveDialog() in https://github.com/electron/electron/blob/master/docs/api/dialog.md
  */
 export interface SaveDialogOptions extends FileDialogOptions {
 }
+
+// TODO (forman): Replace by electron.OpenDialogOptions
 
 /**
  * See dialog.showOpenDialog() in https://github.com/electron/electron/blob/master/docs/api/dialog.md
@@ -1968,6 +1972,8 @@ export interface OpenDialogOptions extends FileDialogOptions {
      */
     normalizeAccessKeys?: boolean;
 }
+
+// TODO (forman): Replace by electron.MessageBoxOptions
 
 /**
  * See dialog.showMessageBox() in https://github.com/electron/electron/blob/master/docs/api/dialog.md

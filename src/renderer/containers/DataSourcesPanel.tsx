@@ -332,6 +332,8 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             dataStoreNoticesElement = (<Collapse isOpen={showDataStoreNotices}>{callouts}</Collapse>);
         }
 
+        // TODO (forman): BP3: use new Select component
+
         //  a label has by default a 15px margin at the bottom
         return (
             <React.Fragment>

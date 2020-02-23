@@ -16,8 +16,6 @@ import {
     setCateDir,
     getWebAPIStartCommand,
     getWebAPIRestUrl,
-    getMPLWebSocketsUrl,
-    getAPIWebSocketsUrl,
     defaultSpawnShellOption,
     isWebAPIVersionCompatible,
     EXPECTED_CATE_WEBAPI_VERSION,
@@ -139,7 +137,8 @@ class CateDesktopApp {
     }
 
     start() {
-        const shouldQuit = electron.app.makeSingleInstance(() => {
+        const isInstance = electron.app.requestSingleInstanceLock();
+        if (!isInstance) {
             // Someone tried to run a second instance, we should focus our window.
             if (this.mainWindow) {
                 if (this.mainWindow.isMinimized()) {
@@ -147,8 +146,6 @@ class CateDesktopApp {
                 }
                 this.mainWindow.focus();
             }
-        });
-        if (shouldQuit) {
             log.warn('Should quit, because it is a second app instance.');
             electron.app.quit();
             return;
@@ -166,7 +163,7 @@ class CateDesktopApp {
 
         // Configure logging
         log.transports.file.level = 'info';
-        log.transports.file.file = path.join(getAppDataDir(), 'cate-desktop.log');
+        log.transports.file.fileName = 'cate-desktop.log';
 
         log.info(getLineString('='));
         log.info(getAppInfoString());
@@ -244,23 +241,27 @@ class CateDesktopApp {
         });
 
         electron.ipcMain.on('show-open-dialog', (event, openDialogOptions, synchronous?: boolean) => {
-            electron.dialog.showOpenDialog(this.mainWindow, openDialogOptions, (filePaths: Array<string>) => {
-                if (synchronous) {
-                    event.returnValue = filePaths && filePaths.length ? filePaths : null;
-                } else {
-                    event.sender.send('show-open-dialog-reply', filePaths);
-                }
-            });
+            electron.dialog.showOpenDialog(this.mainWindow, openDialogOptions)
+                    .then((returnValue: electron.OpenDialogReturnValue) => {
+                        const filePaths = returnValue.filePaths;
+                        if (synchronous) {
+                            event.returnValue = filePaths && filePaths.length ? filePaths : null;
+                        } else {
+                            event.sender.send('show-open-dialog-reply', filePaths);
+                        }
+                    });
         });
 
         electron.ipcMain.on('show-save-dialog', (event, saveDialogOptions, synchronous?: boolean) => {
-            electron.dialog.showSaveDialog(this.mainWindow, saveDialogOptions, (filePath: string) => {
-                if (synchronous) {
-                    event.returnValue = filePath ? filePath : null;
-                } else {
-                    event.sender.send('show-save-dialog-reply', filePath);
-                }
-            });
+            electron.dialog.showSaveDialog(this.mainWindow, saveDialogOptions)
+                    .then((returnValue: electron.SaveDialogReturnValue) => {
+                        const filePath = returnValue.filePath;
+                        if (synchronous) {
+                            event.returnValue = filePath ? filePath : null;
+                        } else {
+                            event.sender.send('show-save-dialog-reply', filePath);
+                        }
+                    });
         });
 
         electron.ipcMain.on('show-message-box', (event, messageBoxOptions, synchronous?: boolean) => {
@@ -280,20 +281,23 @@ class CateDesktopApp {
                 };
                 reportingEnabled = true;
             }
-            electron.dialog.showMessageBox(this.mainWindow, messageBoxOptions, (buttonIndex: number, checkboxChecked: boolean) => {
-                if (reportingEnabled && checkboxChecked) {
-                    const reportEntries = [
-                        electron.app.getName() + ', version ' + electron.app.getVersion(),
-                        report,
-                    ];
-                    electron.clipboard.writeText(reportEntries.join('\n\n'));
-                }
-                if (synchronous) {
-                    event.returnValue = {buttonIndex, checkboxChecked};
-                } else {
-                    event.sender.send('show-message-box-reply', buttonIndex, checkboxChecked);
-                }
-            });
+            electron.dialog.showMessageBox(this.mainWindow, messageBoxOptions)
+                    .then((returnValue: electron.MessageBoxReturnValue) => {
+                        const checkboxChecked = returnValue.checkboxChecked;
+                        const buttonIndex = returnValue.response;
+                        if (reportingEnabled && checkboxChecked) {
+                            const reportEntries = [
+                                electron.app.getName() + ', version ' + electron.app.getVersion(),
+                                report,
+                            ];
+                            electron.clipboard.writeText(reportEntries.join('\n\n'));
+                        }
+                        if (synchronous) {
+                            event.returnValue = {buttonIndex, checkboxChecked};
+                        } else {
+                            event.sender.send('show-message-box-reply', buttonIndex, checkboxChecked);
+                        }
+                    });
         });
 
         electron.ipcMain.on('set-preferences', (event, preferences) => {
@@ -515,6 +519,9 @@ class CateDesktopApp {
                                                          icon: getAppIconPath(),
                                                          title: `${electron.app.getName()} ${electron.app.getVersion()}`,
                                                          show: false,
+                                                         webPreferences: {
+                                                             nodeIntegration: true
+                                                         },
                                                          ...mainWindowBounds
                                                      });
 
@@ -597,11 +604,12 @@ class CateDesktopApp {
             checkboxLabel: 'Do not ask me again',
             checkboxChecked: false,
         };
-        electron.dialog.showMessageBox(this.mainWindow, options, (response: number, checkboxChecked: boolean) => {
-            if (response === 1) {
-                callback(checkboxChecked);
-            }
-        });
+        electron.dialog.showMessageBox(this.mainWindow, options)
+                .then((returnValue: electron.MessageBoxReturnValue) => {
+                    if (returnValue.response === 1) {
+                        callback(returnValue.checkboxChecked);
+                    }
+                });
     }
 
     private updateInitMessage(message: string) {
@@ -614,37 +622,39 @@ class CateDesktopApp {
                                                pathname: path.join(electron.app.getAppPath(), 'index.html'),
                                                protocol: 'file:',
                                                slashes: true
-                                           }));
+                                           })).then(() => {
 
-        electron.Menu.setApplicationMenu(null);
+            electron.Menu.setApplicationMenu(null);
 
-        if (this.configuration.data.devToolsExtensions) {
-            this.updateInitMessage('Installing developer tools...');
-            for (let devToolsExtensionName of this.configuration.data.devToolsExtensions) {
-                const devToolExtension = devTools[devToolsExtensionName];
-                if (devToolExtension) {
-                    installDevToolsExtension(devToolExtension)
-                        .then(() => log.info(`Added DevTools extension "${devToolsExtensionName}"`))
-                        .catch((err) => log.error('Failed to add DevTools extension: ', err));
+            if (this.configuration.data.devToolsExtensions) {
+                this.updateInitMessage('Installing developer tools...');
+                for (let devToolsExtensionName of this.configuration.data.devToolsExtensions) {
+                    const devToolExtension = devTools[devToolsExtensionName];
+                    if (devToolExtension) {
+                        installDevToolsExtension(devToolExtension)
+                            .then(() => log.info(`Added DevTools extension "${devToolsExtensionName}"`))
+                            .catch((err) => log.error('Failed to add DevTools extension: ', err));
+                    }
                 }
             }
-        }
 
-        let sessionProxyConfig = getSessionProxyConfig(process.env);
-        if (USE_PROXY_CONFIG_IF_SET && sessionProxyConfig) {
-            this.mainWindow.webContents.session.setProxy(sessionProxyConfig, () => {
-                // See https://electronjs.org/docs/api/session
-                log.info('session proxy configuration set: ', sessionProxyConfig);
-            });
-        }
+            let sessionProxyConfig = getSessionProxyConfig(process.env);
+            if (USE_PROXY_CONFIG_IF_SET && sessionProxyConfig) {
+                this.mainWindow.webContents.session.setProxy(sessionProxyConfig).then(() => {
+                    // See https://electronjs.org/docs/api/session
+                    log.info('session proxy configuration set: ', sessionProxyConfig);
+                });
+            }
+        });
 
         // Solution found at
         // https://stackoverflow.com/questions/32402327/how-can-i-force-external-links-from-browser-window-to-open-in-a-default-browser
         this.mainWindow.webContents.on('will-navigate', (e, url) => {
+            this.updateInitMessage(`Will navigate: ${url}`);
             /* If url isn't the actual page */
             if (url != this.mainWindow.webContents.getURL()) {
                 e.preventDefault();
-                electron.shell.openExternal(url);
+                electron.shell.openExternal(url).then(() => true);
             }
         });
 
@@ -656,6 +666,7 @@ class CateDesktopApp {
         });
 
         this.mainWindow.webContents.on('did-frame-finish-load', () => {
+            this.updateInitMessage('Frame loaded.');
             if (this.preferences.data.devToolsOpened) {
                 // Open the DevTools.
                 this.mainWindow.webContents.openDevTools();

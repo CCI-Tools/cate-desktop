@@ -39,23 +39,24 @@ export function doSetup(setupInfo: SetupInfo, callback: (result?: SetupResult) =
                                            pathname: path.join(electron.app.getAppPath(), 'setup.html'),
                                            protocol: 'file:',
                                            slashes: true
-                                       }));
-        setupWindow.webContents.on('did-finish-load', () => {
-            setupWindow.webContents.send('setSetupInfo', setupInfo);
+                                       })).then(() => {
+            setupWindow.webContents.on('did-finish-load', () => {
+                setupWindow.webContents.send('setSetupInfo', setupInfo);
+            });
+            if (process.env.NODE_ENV === 'development') {
+                setupWindow.webContents.openDevTools();
+            }
+            setupWindow.on('close', () => callback());
+            electron.ipcMain.on('cancelSetup', cancelSetup(setupWindow, callback));
+            electron.ipcMain.on('endSetup', endSetup(setupWindow, callback));
+            electron.ipcMain.on('browseNewCateDir', browseNewCateDir);
+            electron.ipcMain.on('browseOldCateDir', browseOldCateDir);
+            electron.ipcMain.on('browseCondaDir', browseCondaDir);
+            electron.ipcMain.on('validateNewCateDir', validateNewCateDir);
+            electron.ipcMain.on('validateOldCateDir', validateOldCateDir);
+            electron.ipcMain.on('validateCondaDir', validateCondaDir);
+            electron.ipcMain.on('performSetupTasks', performSetupTasks);
         });
-        if (process.env.NODE_ENV === 'development') {
-            setupWindow.webContents.openDevTools();
-        }
-        setupWindow.on('close', () => callback());
-        electron.ipcMain.on('cancelSetup', cancelSetup(setupWindow, callback));
-        electron.ipcMain.on('endSetup', endSetup(setupWindow, callback));
-        electron.ipcMain.on('browseNewCateDir', browseNewCateDir);
-        electron.ipcMain.on('browseOldCateDir', browseOldCateDir);
-        electron.ipcMain.on('browseCondaDir', browseCondaDir);
-        electron.ipcMain.on('validateNewCateDir', validateNewCateDir);
-        electron.ipcMain.on('validateOldCateDir', validateOldCateDir);
-        electron.ipcMain.on('validateCondaDir', validateCondaDir);
-        electron.ipcMain.on('performSetupTasks', performSetupTasks);
     }).catch(() => {
         const messageBoxOptions = {
             type: 'error',
@@ -64,7 +65,7 @@ export function doSetup(setupInfo: SetupInfo, callback: (result?: SetupResult) =
             message: 'Internet connection required.',
             detail: 'Cate Desktop requires performing some setup tasks for which additional online resources are needed.',
         };
-        electron.dialog.showMessageBox(messageBoxOptions, quitApp);
+        electron.dialog.showMessageBox(messageBoxOptions).then(quitApp);
     });
 }
 
@@ -93,12 +94,12 @@ function cancelSetup(setupWindow: BrowserWindow, callback: (setupResult: SetupRe
                 detail: `${title} is currently in progress. If you cancel now, you won't be able to use Cate.`,
                 message: `Really cancel ${title}?`,
                 type: 'question',
-                buttons: ['Yes', 'No'],
-            }, (response => {
-                if (response === 0) {
+                buttons: ['Yes', 'No']
+            }).then((returnValue: electron.MessageBoxReturnValue) => {
+                if (returnValue.response === 0) {
                     endSetupImpl(setupWindow, callback, null);
                 }
-            }));
+            });
         } else {
             endSetupImpl(setupWindow, callback, null);
         }
@@ -133,7 +134,8 @@ function browseDir(event, channel: string, title: string, defaultPath: string) {
         properties: ['createDirectory', 'openDirectory', 'showHiddenFiles'],
         buttonLabel: 'Select',
     };
-    electron.dialog.showOpenDialog(options, (filePaths: string[]) => {
+    electron.dialog.showOpenDialog(options).then((returnValue: electron.OpenDialogReturnValue) => {
+        const filePaths = returnValue.filePaths;
         const dirPath = (filePaths && filePaths.length) ? filePaths[0] : null;
         if (dirPath) {
             event.sender.send(channel, dirPath);

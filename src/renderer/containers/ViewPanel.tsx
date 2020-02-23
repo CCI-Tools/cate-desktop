@@ -73,6 +73,9 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, nu
             return NO_ACTIVE_VIEW;
         }
 
+        // TODO (forman): BP3: use input component replacement
+
+
         // TODO (forman): make title field editable
         const titleField = (
             <label className="pt-label" style={ViewPanel.PROPERTY_ITEM_STYLE}>

@@ -1,5 +1,5 @@
 import * as electron from "electron";
-import {autoUpdater, UpdateCheckResult, UpdateInfo, CancellationToken} from "electron-updater";
+import { autoUpdater, UpdateCheckResult, UpdateInfo, CancellationToken } from "electron-updater";
 import * as log from "electron-log";
 
 
@@ -69,15 +69,16 @@ export function installAutoUpdate(mainWindow: electron.BrowserWindow) {
                     checkboxChecked: _autoQuitAndInstall,
                     buttons: ["OK", "Cancel"],
                 };
-                electron.dialog.showMessageBox(mainWindow, options, (response: number, checkboxChecked: boolean) => {
-                    if (response === 0) {
-                        _autoQuitAndInstall = checkboxChecked;
-                        autoUpdater.downloadUpdate(cancellationToken);
+                electron.dialog.showMessageBox(mainWindow, options).then((returnValue: electron.MessageBoxReturnValue) => {
+                    if (returnValue.response === 0) {
+                        _autoQuitAndInstall = returnValue.checkboxChecked;
+                        autoUpdater.downloadUpdate(cancellationToken).then(() => true);
                     }
                 });
             }
         });
 
+        // noinspection JSUnusedLocalSymbols
         autoUpdater.on('update-not-available', (info) => {
         });
 
@@ -89,6 +90,7 @@ export function installAutoUpdate(mainWindow: electron.BrowserWindow) {
             log.silly(progressObj);
         });
 
+        // noinspection JSUnusedLocalSymbols
         autoUpdater.on('update-downloaded', (info: UpdateInfo) => {
             if (_autoQuitAndInstall) {
                 autoUpdater.quitAndInstall();
@@ -99,8 +101,8 @@ export function installAutoUpdate(mainWindow: electron.BrowserWindow) {
                     detail: "Clicking OK will shutdown Cate Desktop and install the update.",
                     buttons: ["OK", "Cancel"],
                 };
-                electron.dialog.showMessageBox(mainWindow, options, (response: number) => {
-                    if (response === 0) {
+                electron.dialog.showMessageBox(mainWindow, options).then((returnValue: electron.MessageBoxReturnValue) => {
+                    if (returnValue.response === 0) {
                         autoUpdater.quitAndInstall();
                     }
                 });

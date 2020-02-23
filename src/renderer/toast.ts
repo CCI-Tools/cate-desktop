@@ -50,7 +50,7 @@ export function showToast(message: MessageState) {
 
     MessageToaster.show({
         message: message.text,
-        icon: icon,
+        icon,
         intent,
         action,
         timeout,

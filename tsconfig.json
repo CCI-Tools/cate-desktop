@@ -17,7 +17,7 @@
     "rootDir": "./src",
     "skipLibCheck": true,
     "sourceMap": true,
-    "sourceRoot": "src",
+    "sourceRoot": "./src",
     "strict": false,
     "target": "ES6",
     "typeRoots": [
