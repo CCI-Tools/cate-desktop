@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {DateRange} from "@blueprintjs/datetime";
 import {Field, FieldType, IFieldProps} from "./Field";
 import {formatDateAsISODateString} from "../../../common/format";
@@ -23,10 +22,6 @@ export class DateField extends Field<IDateFieldProps> {
         placeholder: 'YYYY-MM-DD'
     };
 
-    constructor(props: IDateFieldProps) {
-        super(props);
-    }
-
     parseValue(textValue: string): DateFieldType {
         return parseDate(textValue, this.props.nullable);
     }
@@ -48,7 +43,7 @@ export function parseDate(textValue: string, nullable: boolean, name?: string): 
         }
         throw new Error('Date must be given.');
     }
-    const dateRegex = /^\d\d\d\d\-\d\d\-\d\d$/;
+    const dateRegex = /^\d\d\d\d-\d\d-\d\d$/;
     if (!dateRegex.test(textValue.trim())) {
         throw new Error('Date not valid: >'+ textValue+'<');
     }

@@ -12,27 +12,27 @@ export function showToast(message: MessageState) {
         });
     }
 
-    let iconName;
+    let icon;
     let intent;
     let timeout = 5000;
     if (message.type === 'info') {
-        iconName = 'info-sign';
+        icon = 'info-sign';
         intent = Intent.NONE;
         timeout = 2500;
     } else if (message.type === 'success') {
-        iconName = 'tick';
+        icon = 'tick';
         intent = Intent.SUCCESS;
         timeout = 2500;
     } else if (message.type === 'notification') {
-        iconName = 'notifications';
+        icon = 'notifications';
         intent = Intent.PRIMARY;
         timeout = 2500;
     } else if (message.type === 'warning') {
-        iconName = 'warning-sign';
+        icon = 'warning-sign';
         intent = Intent.WARNING;
         timeout = 6000;
     } else if (message.type === 'error') {
-        iconName = 'error';
+        icon = 'error';
         intent = Intent.DANGER;
         timeout = 6000;
     }
@@ -42,7 +42,7 @@ export function showToast(message: MessageState) {
         action = {
             onClick: message.action.onClick,
             text: message.action.text,
-            iconName: message.action.iconName,
+            icon: message.action.icon,
             href: message.action.href,
             target: message.action.href ? '_blank' : undefined,
         }
@@ -50,7 +50,7 @@ export function showToast(message: MessageState) {
 
     MessageToaster.show({
         message: message.text,
-        iconName,
+        icon: icon,
         intent,
         action,
         timeout,

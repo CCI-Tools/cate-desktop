@@ -44,13 +44,17 @@ export function validatePythonLiteralText(value: string|null) {
     // Define Python eval context:
     //
     //noinspection JSUnusedLocalSymbols
+    // eslint-disable-next-line
     const None = null;
     //noinspection JSUnusedLocalSymbols
+    // eslint-disable-next-line
     const True = true;
     //noinspection JSUnusedLocalSymbols
+    // eslint-disable-next-line
     const False = false;
     //
     // Use JavaScript's eval() to validate Python literals.
     // This is not exact, but works for most literals.
+    // eslint-disable-next-line
     eval(value);
 }

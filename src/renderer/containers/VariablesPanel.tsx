@@ -135,7 +135,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         };
         this.props.dispatch(actions.setWorkspaceResource('cate.ops.plot.plot', opArgs,
                                                          null, false,
-                                                         `Creating time series plot for placemark ${placemarkName}`));
+                                                         `Creating time series plot for placemark ${placemarkName}`)  as any);
     }
 
     private handleAddVariableHistogramPlot() {
@@ -150,7 +150,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         };
         this.props.dispatch(actions.setWorkspaceResource('cate.ops.plot.plot_hist', opArgs,
                                                          null, false,
-                                                         'Creating histogram plot'));
+                                                         'Creating histogram plot') as any);
     }
 
     private handleShowVariableTableView() {
@@ -205,29 +205,29 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
             <div className="pt-button-group">
                 <ToolButton tooltipContent="Toggle image layer visibility"
                             tooltipPosition={Position.LEFT}
-                            iconName={this.props.showSelectedVariableLayer ? 'eye-open' : 'eye-off'}
+                            icon={this.props.showSelectedVariableLayer ? 'eye-open' : 'eye-off'}
                             onClick={this.handleShowSelectedVariableLayer}/>
                 <ToolButton tooltipContent="Add a new image layer"
                             tooltipPosition={Position.LEFT}
                             disabled={!canAddLayer}
-                            iconName="layer"
+                            icon="layer"
                             onClick={this.handleAddVariableLayer}
                 />
                 <ToolButton tooltipContent="Create a time series plot from selected placemark"
                             tooltipPosition={Position.LEFT}
                             disabled={!canAddTimeSeriesPlot}
-                            iconName="timeline-line-chart"
+                            icon="timeline-line-chart"
                             onClick={this.handleAddVariableTimeSeriesPlot}
                 />
                 <ToolButton tooltipContent="Create a histogram plot"
                             tooltipPosition={Position.LEFT}
                             disabled={!canAddHistogramPlot}
-                            iconName="timeline-bar-chart"
+                            icon="timeline-bar-chart"
                             onClick={this.handleAddVariableHistogramPlot}
                 />
                 <ToolButton tooltipContent={`Show data in table (only first ${maxSize} values)`}
                             tooltipPosition={Position.LEFT}
-                            iconName="pt-icon-th"
+                            icon="th"
                             onClick={this.handleShowVariableTableView}
                 />
             </div>
@@ -351,9 +351,9 @@ class VariableDetailsPanel extends React.PureComponent<VariableDetailsPanelProps
         }
         return (
             <div style={VariableDetailsPanel.DIV_STYLE}>
-                <Table numRows={tableData.length} isRowHeaderShown={false}>
-                    <Column name="Name" renderCell={this.renderAttributeName}/>
-                    <Column name="Value" renderCell={this.renderAttributeValue}/>
+                <Table numRows={tableData.length} enableRowHeader={false}>
+                    <Column name="Name" cellRenderer={this.renderAttributeName}/>
+                    <Column name="Value" cellRenderer={this.renderAttributeValue}/>
                 </Table>
             </div>
         );

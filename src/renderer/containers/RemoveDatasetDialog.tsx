@@ -45,7 +45,7 @@ class RemoveDatasetDialog extends React.Component<IRemoveDatasetDialogProps & Di
 
     private onConfirm() {
         this.props.dispatch(actions.hideDialog(RemoveDatasetDialog.DIALOG_ID, this.state));
-        this.props.dispatch(actions.removeLocalDataset(this.props.dataSource.id, this.state.removeFiles));
+        this.props.dispatch(actions.removeLocalDataset(this.props.dataSource.id, this.state.removeFiles) as any);
     }
 
     private onRemoveFilesChange(ev: any) {
@@ -62,7 +62,7 @@ class RemoveDatasetDialog extends React.Component<IRemoveDatasetDialogProps & Di
             <ModalDialog
                 isOpen={isOpen}
                 title="Remove data source"
-                iconName="trash"
+                icon="trash"
                 confirmTitle="Remove"
                 confirmIconName="delete"
                 confirmTooltip="Remove the local data source."

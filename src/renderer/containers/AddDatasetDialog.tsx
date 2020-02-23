@@ -1,11 +1,11 @@
-import * as React from "react";
-import {AnchorButton} from "@blueprintjs/core";
-import {DialogState, State} from "../state";
-import {ModalDialog} from "../components/ModalDialog";
-import {connect, DispatchProp} from "react-redux";
-import * as actions from "../actions";
-import {OpenDialogProperty} from "../actions";
-import * as selectors from "../selectors";
+import * as React from 'react';
+import { AnchorButton } from '@blueprintjs/core';
+import { DialogState, State } from '../state';
+import { ModalDialog } from '../components/ModalDialog';
+import { connect, DispatchProp } from 'react-redux';
+import * as actions from '../actions';
+import { OpenDialogProperty } from '../actions';
+import * as selectors from '../selectors';
 
 interface IAddDatasetDialogProps {
     isOpen: boolean;
@@ -52,7 +52,7 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & Dispatch
 
     private onConfirm() {
         this.props.dispatch(actions.hideDialog(AddDatasetDialog.DIALOG_ID, this.state));
-        this.props.dispatch(actions.addLocalDataset(this.state.dataSourceName, this.state.filePathPattern));
+        this.props.dispatch(actions.addLocalDataset(this.state.dataSourceName, this.state.filePathPattern) as any);
     }
 
     private onDataSourceNameChange(ev: any) {
@@ -65,9 +65,9 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & Dispatch
 
     private showSelectDirectoryDialog() {
         const openDialogOptions = {
-            title: "Select Directory",
+            title: 'Select Directory',
             defaultPath: this.state.filePathPattern,
-            buttonLabel: "Select",
+            buttonLabel: 'Select',
             properties: [
                 'openDirectory' as OpenDialogProperty,
             ],
@@ -90,7 +90,7 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & Dispatch
             <ModalDialog
                 isOpen={isOpen}
                 title="Add local data source"
-                iconName="add"
+                icon="add"
                 confirmTitle="Add"
                 confirmIconName="add"
                 confirmTooltip="Add local data source."
@@ -131,4 +131,5 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & Dispatch
         );
     }
 }
+
 export default connect(mapStateToProps)(AddDatasetDialog);

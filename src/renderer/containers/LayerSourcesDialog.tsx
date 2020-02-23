@@ -78,7 +78,7 @@ class LayerSourcesDialog extends React.Component<DispatchProp<State> & ILayerSou
             <ModalDialog
                 isOpen={this.props.isOpen}
                 title={LayerSourcesDialog.DIALOG_TITLE}
-                iconName="layers"
+                icon="layers"
                 onCancel={this.onCancel}
                 onConfirm={this.onConfirm}
                 canConfirm={this.canConfirm}

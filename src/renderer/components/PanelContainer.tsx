@@ -1,5 +1,4 @@
 import * as React from 'react'
-import ReactChild = React.ReactChild;
 import {
     Colors,
     Position,
@@ -12,6 +11,7 @@ import {
 } from "@blueprintjs/core";
 import {Splitter} from "./Splitter";
 import {CSSProperties} from "react";
+
 
 export interface PanelContainerLayout {
     horPos: number;
@@ -134,8 +134,8 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
         if (!id) {
             return null;
         }
-        let selectedPanel: JSX.Element = null;
-        React.Children.forEach(this.props.children, (child: ReactChild) => {
+        let selectedPanel: JSX.Element | null = null;
+        React.Children.forEach(this.props.children, (child: React.ReactChild) => {
             const panel = child as JSX.Element;
             if (panel.props && panel.props.id === id) {
                 selectedPanel = panel;
@@ -304,14 +304,14 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
 
 interface IPanelHeaderProps {
     id: string;
-    iconName: string;
+    icon: string;
     title: string;
     onClose: () => void;
 }
 
 function PanelHeader(props: IPanelHeaderProps): JSX.Element | null {
     const panelIcon = <span
-        className={"pt-icon-standard " + props.iconName + " cate-panel-header-item"}/>;
+        className={"pt-icon-standard " + props.icon + " cate-panel-header-item"}/>;
     const panelTitle = <span
         className={"cate-panel-text cate-panel-header-item"}>{props.title.toUpperCase()}</span>;
 
@@ -396,7 +396,7 @@ function PanelBar(props: IPanelBarProps) {
     function renderPanelButton(panel, selectedPanelId: string) {
         const panelId: string = panel.props.id;
         const panelTitle: string = panel.props.title;
-        const panelIconName: string = panel.props.iconName;
+        const panelIconName: string = panel.props.icon;
         const selected = panelId === selectedPanelId;
         const style = selected ? PANEL_BAR_ITEM_SELECTED_STYLE : PANEL_BAR_ITEM_NORMAL_STYLE;
         const panelPosition: string = panel.props.position || "top";
@@ -471,7 +471,7 @@ function PanelPane(props: IPanelPaneProps) {
             <PanelHeader
                 id={panelId}
                 title={panel.props.title}
-                iconName={panel.props.iconName}
+                icon={panel.props.icon}
                 onClose={() => props.onClose(panelId)}
             />
             <div style={PANEL_BODY_CONTAINER_STYLE}>

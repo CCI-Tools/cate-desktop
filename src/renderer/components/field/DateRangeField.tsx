@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {DateRange} from "@blueprintjs/datetime";
 import {Field, FieldType, FieldValue, IFieldProps} from "./Field";
 import {isUndefinedOrNull} from "../../../common/types";
@@ -20,10 +19,6 @@ export class DateRangeField extends Field<IDateRangeFieldProps> {
         placeholder: 'YYYY-MM-DD, YYYY-MM-DD',
         size: 24
     };
-
-    constructor(props: IDateRangeFieldProps) {
-        super(props);
-    }
 
     parseValue(textValue: string): DateRangeFieldType {
         return parseDateRange(textValue, this.props.nullable);

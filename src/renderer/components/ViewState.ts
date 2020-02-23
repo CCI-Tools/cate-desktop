@@ -9,7 +9,7 @@ export type ViewPath = string;
 export interface ViewState<T> {
     id: string;
     title: string;
-    iconName?: string;
+    icon?: string;
     /**
      * The view type is used to lookup the renderer for this kind of view, e.g. "world".
      */
@@ -132,17 +132,17 @@ export function removeAllViewsFromLayout(viewLayout: ViewLayoutState,
     return _removeViewFromLayout(viewLayout, viewPath, null, 0);
 }
 
-function removeViewFromViewIds(viewIds: string[], viewId: string): string[] {
-    while (true) {
-        const i = viewIds.indexOf(viewId);
-        if (i >= 0) {
-            viewIds = viewIds.slice(0, i).concat(viewIds.slice(i + 1));
-        } else {
-            break;
-        }
-    }
-    return viewIds;
-}
+// function removeViewFromViewIds(viewIds: string[], viewId: string): string[] {
+//     while (true) {
+//         const i = viewIds.indexOf(viewId);
+//         if (i >= 0) {
+//             viewIds = viewIds.slice(0, i).concat(viewIds.slice(i + 1));
+//         } else {
+//             break;
+//         }
+//     }
+//     return viewIds;
+// }
 
 export function addViewToViewArray(views: ViewState<any>[], view: ViewState<any>): ViewState<any>[] {
     return views.concat([view]);

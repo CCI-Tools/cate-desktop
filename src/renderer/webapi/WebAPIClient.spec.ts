@@ -1,5 +1,5 @@
 import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 import {WebSocketMock} from './WebSocketMock';
 import {JobStatus, JobProgress, JobStatusEnum} from './Job';
 import {WebAPIClient, newWebAPIClient} from './WebAPIClient';
@@ -49,7 +49,7 @@ describe('WebAPIClient', function () {
             return expect(job).to.be.rejectedWith({
                 message: 'out of memory',
                 code: 512,
-            });
+            } as any);
         });
 
         it('calls "onProgress" handler while running', function () {

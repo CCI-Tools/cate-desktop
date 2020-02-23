@@ -15,7 +15,7 @@ interface IGeometryDialogState {
     error?: Error;
 }
 
-const WKT_LINK = (<a href="https://en.wikipedia.org/wiki/Well-known_text" target="_blank">Well-Known Text (WKT)</a>);
+const WKT_LINK = (<a href="https://en.wikipedia.org/wiki/Well-known_text" target="_blank" rel="noopener noreferrer">Well-Known Text (WKT)</a>);
 
 export class GeometryDialog extends React.Component<IGeometryDialogProps, IGeometryDialogState> {
     static readonly NOMINAL_CLASS = "pt-input pt-fill";

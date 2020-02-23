@@ -115,7 +115,7 @@ class TaskComponent extends React.Component<DispatchProp<State> & ITaskComponent
                 <div>
                     <div className="pt-button-group pt-minimal" style={{float: 'right'}}>
                         {detailsButton}
-                        <AnchorButton iconName="cross" onClick={removeJob}/>
+                        <AnchorButton icon="cross" onClick={removeJob}/>
                     </div>
                     {message}
                 </div>

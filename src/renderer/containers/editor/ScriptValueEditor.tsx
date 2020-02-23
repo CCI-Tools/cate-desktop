@@ -1,9 +1,7 @@
 import * as React from 'react';
-import {GeometryWKTGetter, IValueEditorProps} from "./ValueEditor";
-import {FieldValue} from "../../components/field/Field";
-import {GeometryField} from "../../components/field/GeometryField";
-import {GeometryType} from "../../../common/geometry-util";
-import {ScriptField} from "../../components/field/ScriptField";
+import { IValueEditorProps } from './ValueEditor';
+import { FieldValue } from '../../components/field/Field';
+import { ScriptField } from '../../components/field/ScriptField';
 
 interface IScriptValueEditorProps extends IValueEditorProps<string> {
     placeholder?: string;

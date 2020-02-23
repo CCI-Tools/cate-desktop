@@ -80,7 +80,7 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
             this.props.dataSource.id,
             opArguments,
             this.state.options.isMakeLocalSelected
-        ));
+        ) as any);
         // Save modified state
         this.setState(dialogState);
     }
@@ -113,7 +113,7 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
             <ModalDialog
                 isOpen={isOpen}
                 title="Download Data Source"
-                iconName="cloud-download"
+                icon="cloud-download"
                 confirmTitle={confirmTitle}
                 confirmIconName="cloud-download"
                 confirmTooltip={confirmTooltip}

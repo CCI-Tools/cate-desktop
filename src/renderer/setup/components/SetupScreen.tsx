@@ -56,7 +56,7 @@ export class SetupScreen extends React.PureComponent<ISetupScreenProps> {
         let backButton;
         if (!this.props.noBackButton) {
             backButton = <Button style={{marginRight: 2}}
-                                 iconName="arrow-left"
+                                 icon="arrow-left"
                                  text="Back"
                                  intent={Intent.PRIMARY}
                                  disabled={this.props.backButtonDisabled}
@@ -66,7 +66,7 @@ export class SetupScreen extends React.PureComponent<ISetupScreenProps> {
         let nextButton;
         if (!this.props.noNextButton) {
             nextButton = <Button style={{marginRight: 24}}
-                                 rightIconName={this.props.nextButtonIcon as any || "arrow-right"}
+                                 rightIcon={this.props.nextButtonIcon as any || "arrow-right"}
                                  text={this.props.nextButtonLabel || "Next"}
                                  intent={this.props.nextButtonIntent || Intent.PRIMARY}
                                  disabled={this.props.nextButtonDisabled}

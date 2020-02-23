@@ -282,7 +282,7 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         let validDataSourceId = true;
         if (!isLocalDataSource && options.isMakeLocalSelected) {
             const makeLocalDataSourceId = options.makeLocalDataSourceId;
-            if (makeLocalDataSourceId && !/[^\\\/:*?"<>|\r\n]+$/im.test(makeLocalDataSourceId)) {
+            if (makeLocalDataSourceId && !/[^\\/:*?"<>|\r\n]+$/im.test(makeLocalDataSourceId)) {
                 validDataSourceId = false;
             }
         }

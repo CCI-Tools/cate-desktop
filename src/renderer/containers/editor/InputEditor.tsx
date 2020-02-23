@@ -30,9 +30,6 @@ export interface IInputEditorProps {
  * @author Norman Fomferra
  */
 export class InputEditor extends React.PureComponent<IInputEditorProps, null> {
-    constructor(props: IInputEditorProps) {
-        super(props);
-    }
 
     private handleChange(resourceName: string, isValueEditorShown: boolean) {
         // console.log('InputEditor: handleChange', resourceName, isValueEditorShown);

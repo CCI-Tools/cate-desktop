@@ -25,7 +25,7 @@ export function TimeRange(props: ITimeRangeProps) {
                         labelStepSize={stepSize}
                         onChange={props.onChange}
                         value={props.value}
-                        renderLabel={formatMillisAsISODateString}
+                        labelRenderer={formatMillisAsISODateString}
                     />
                 </div>
             );

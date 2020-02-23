@@ -104,11 +104,11 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     }
 
     private handleLocatePlacemarkButtonClicked() {
-        this.props.dispatch(actions.locatePlacemark(this.props.selectedPlacemarkId));
+        this.props.dispatch(actions.locatePlacemark(this.props.selectedPlacemarkId) as any);
     }
 
     private handlePlacemarkDoubleClick(placemark: Placemark) {
-        this.props.dispatch(actions.locatePlacemark(placemark.id));
+        this.props.dispatch(actions.locatePlacemark(placemark.id) as any);
     }
 
     private handleChangedPlacemarkVisibility(placemark: Placemark, visible: boolean) {
@@ -194,40 +194,40 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                 <ToolButton tooltipContent="New marker"
                             tooltipPosition={Position.LEFT}
                             onClick={this.handleNewPointToolButtonClicked}
-                            iconName="dot"
+                            icon="dot"
                             active={isPointToolActive}
                             disabled={false}/>
                 <ToolButton tooltipContent="New polyline"
                             tooltipPosition={Position.LEFT}
                             onClick={this.handleNewPolylineToolButtonClicked}
-                            iconName="slash"
+                            icon="slash"
                             active={isPolylineToolActive}
                             disabled={false}/>
                 <ToolButton tooltipContent="New polygon"
                             tooltipPosition={Position.LEFT}
                             onClick={this.handleNewPolygonToolButtonClicked}
-                            iconName="polygon-filter"
+                            icon="polygon-filter"
                             active={isPolygonToolActive}
                             disabled={false}/>
                 <ToolButton tooltipContent="New box"
                             tooltipPosition={Position.LEFT}
                             onClick={this.handleNewBoxToolButtonClicked}
-                            iconName="widget"
+                            icon="widget"
                             active={isBoxToolActive}
                             disabled={false}/>
                 <ToolButton tooltipContent="Remove selected place"
                             tooltipPosition={Position.LEFT}
                             disabled={!this.props.selectedPlacemarkId}
                             onClick={this.handleRemovePlacemarkButtonClicked}
-                            iconName="remove"/>
+                            icon="remove"/>
                 <ToolButton tooltipContent="Locate selected place in view"
                             tooltipPosition={Position.LEFT}
                             disabled={!this.props.selectedPlacemarkId}
                             onClick={this.handleLocatePlacemarkButtonClicked}
-                            iconName="locate"/>
+                            icon="locate"/>
                 <Popover position={Position.LEFT}>
                     <ToolButton disabled={!this.props.selectedPlacemarkId}
-                                iconName="clipboard"/>
+                                icon="clipboard"/>
                     <Menu>
                         <MenuItem onClick={this.handleCopySelectedPlacemarkAsCsv} text="Copy as CSV"/>
                         <MenuItem onClick={this.handleCopySelectedPlacemarkAsWkt} text="Copy as WKT"/>

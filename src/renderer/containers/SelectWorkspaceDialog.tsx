@@ -1,10 +1,10 @@
 import * as React from "react";
-import { AnchorButton } from "@blueprintjs/core";
-import { DialogState, State } from "../state";
-import { ModalDialog } from "../components/ModalDialog";
-import { connect, DispatchProp } from "react-redux";
+import {AnchorButton} from "@blueprintjs/core";
+import {DialogState, State} from "../state";
+import {ModalDialog} from "../components/ModalDialog";
+import {connect, DispatchProp} from "react-redux";
 import * as actions from "../actions";
-import { OpenDialogProperty } from "../actions";
+import {OpenDialogProperty} from "../actions";
 import * as selectors from "../selectors";
 
 interface ISelectWorkspaceDialogState extends DialogState {
@@ -16,7 +16,7 @@ interface ISelectWorkspaceDialogOwnProps {
     dialogId: string;
 }
 
-interface ISelectWorkspaceDialogProps extends ISelectWorkspaceDialogState, ISelectWorkspaceDialogOwnProps {
+interface ISelectWorkspaceDialogProps extends ISelectWorkspaceDialogState,  ISelectWorkspaceDialogOwnProps {
     isOpen: boolean;
     isNewDialog: boolean;
     isLocalWebAPI: boolean;
@@ -52,6 +52,7 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
 // TODO (forman): Rename to (Get)WorkspaceNameDialog
 class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps & ISelectWorkspaceDialogOwnProps & DispatchProp<State>, ISelectWorkspaceDialogState> {
 
+    // TODO (forman): Remove member
     private localWebAPI: boolean;
 
     constructor(props: ISelectWorkspaceDialogProps & DispatchProp<State>) {

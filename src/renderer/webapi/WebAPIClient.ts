@@ -219,6 +219,7 @@ class WebAPIClientImpl implements WebAPIClient {
             // See https://stackoverflow.com/questions/15228651/how-to-parse-json-string-containing-nan-in-node-js
             // message = JSON.parse(messageText);
             // So we use evil eval() because JSON is valid JavaScript:
+            // eslint-disable-next-line
             message = eval(`(${messageText})`);
             // We cannot use the following naive approach, because "NaN" appears as word in operation doc strings
             // const TEMP_NAN_STR = '[[<<~~***NaN***~~>>]]';

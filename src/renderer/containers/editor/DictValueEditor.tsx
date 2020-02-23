@@ -43,13 +43,17 @@ export function validateDictText(value: string|null) {
     // Define Python eval context:
     //
     //noinspection JSUnusedLocalSymbols
+    // eslint-disable-next-line
     const None = null;
     //noinspection JSUnusedLocalSymbols
+    // eslint-disable-next-line
     const True = true;
     //noinspection JSUnusedLocalSymbols
+    // eslint-disable-next-line
     const False = false;
     //
     // To validate, e.g. "layers=3, time=19", try eval("var layers=3, time=19;")
     // which should succeed if value is fine
+    // eslint-disable-next-line
     eval(`var ${value};`);
 }

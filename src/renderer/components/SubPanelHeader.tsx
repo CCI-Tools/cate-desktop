@@ -21,10 +21,6 @@ export class SubPanelHeader extends React.PureComponent<ISubPanelHeaderProps, an
         color: '#aaafaf', fontSize: '0.9em', fontWeight: 100
     };
 
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         const divStyle = this.props.divStyle ? {...SubPanelHeader.DIV_STYLE, ...this.props.divStyle} : SubPanelHeader.DIV_STYLE;
         const titleStyle = this.props.titleStyle ? {...SubPanelHeader.SPAN_STYLE, ...this.props.titleStyle} : SubPanelHeader.SPAN_STYLE;

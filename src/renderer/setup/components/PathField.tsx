@@ -20,7 +20,8 @@ export function PathField(props: IPathFieldProps) {
     }
 
     let pathField = (
-        <Label text={props.label}>
+        <Label>
+            {props.label}
             <div className="pt-control-group">
                 <div className="pt-input-group pt-fill">
                     <input type="text"

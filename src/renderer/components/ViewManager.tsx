@@ -95,7 +95,7 @@ export class ViewManager extends React.PureComponent<IViewManagerProps, IViewMan
                     title="No views"
                     description={this.props.noViewsDescription}
                     action={this.props.noViewsAction}
-                    visual={this.props.noViewsVisual}
+                    icon={this.props.noViewsVisual}
                 />
             </div>
         );
@@ -298,7 +298,7 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
             let view = views[i];
             let viewId = view.id;
             let viewTitle = view.title;
-            let viewIconName = view.iconName;
+            let viewIconName = view.icon;
             let tabStyle;
             let titleStyle;
             let closeIconStyle;

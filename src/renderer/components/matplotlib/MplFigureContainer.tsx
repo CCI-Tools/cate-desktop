@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
 import {MplFigure, MplFigureCommandSource, MplFigureMessageCallback} from './MplFigure';
 

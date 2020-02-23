@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {Field, FieldType} from "./Field";
 import {INumericFieldProps, validateNumber} from "./NumericField";
 import {isUndefinedOrNull} from "../../../common/types";

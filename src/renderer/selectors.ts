@@ -54,9 +54,6 @@ import { GeometryToolType } from './components/cesium/geometry-tool';
 export const EMPTY_OBJECT = {};
 export const EMPTY_ARRAY = [];
 
-const DEFAULT_SERVICE_ADDRESS = 'localhost';
-
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application selectors
 
@@ -69,11 +66,10 @@ export const offlineModeSelector = (state: State): boolean => state.session.offl
 export const webAPIClientSelector = (state: State): WebAPIClient => state.communication.webAPIClient;
 export const webAPIConfigSelector = (state: State): WebAPIConfig => state.data.appConfig.webAPIConfig;
 
-
 export const isLocalWebAPISelector = (state: State): boolean => state.data.appConfig.webAPIMode === 'local';
 export const isRemoteWebAPISelector = (state: State): boolean => state.data.appConfig.webAPIMode === 'remote';
 
-export const restUrlSelector = createSelector(
+export const webAPIRestUrlSelector = createSelector(
     webAPIConfigSelector,
     (webAPIConfig: WebAPIConfig) => {
         return getRestUrl(webAPIConfig);
@@ -87,7 +83,7 @@ export const apiWebSocketsUrlSelector = createSelector(
     }
 );
 
-export const mplWebSocketsUrlSelector = createSelector(
+export const mplWebSocketUrlSelector = createSelector(
     webAPIConfigSelector,
     (webAPIConfig: WebAPIConfig) => {
         return getMPLWebSocketsUrl(webAPIConfig);
@@ -131,7 +127,7 @@ function getWebAPIWebSocketServiceProtocol(webAPIConfig: WebAPIConfig): 'wss' | 
 }
 
 function getWebAPIAddressAndPort(webAPIConfig: WebAPIConfig): string {
-    const serviceAddress = webAPIConfig.serviceAddress || DEFAULT_SERVICE_ADDRESS;
+    const serviceAddress = webAPIConfig.serviceAddress || 'localhost';
     if (typeof (webAPIConfig.servicePort) === 'number') {
         return `${serviceAddress}:${webAPIConfig.servicePort}`;
     }
@@ -179,9 +175,9 @@ export const activeRequestLocksSelector = (state: State): Set<string> => {
     const activeRequestLocks = new Set<string>();
     for (let jobId in state.communication.tasks) {
         const task = state.communication.tasks[jobId];
-        if (task.status == JobStatusEnum.NEW ||
-            task.status == JobStatusEnum.SUBMITTED ||
-            task.status == JobStatusEnum.IN_PROGRESS) {
+        if (task.status === JobStatusEnum.NEW ||
+            task.status === JobStatusEnum.SUBMITTED ||
+            task.status === JobStatusEnum.IN_PROGRESS) {
             activeRequestLocks.add(task.requestLock);
         }
     }

@@ -107,6 +107,7 @@ export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDia
 
         const libText = LIBS.map((item, index) => (
             <span><code>{item.module}</code>&nbsp;(<a href={item.href}
+                                                      rel="noopener noreferrer"
                                                       target="_blank">{item.name}</a>){index < LIBS.length - 1 ? ', ' : ''}</span>
         ));
 

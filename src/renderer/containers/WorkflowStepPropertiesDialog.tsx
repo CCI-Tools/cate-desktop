@@ -64,10 +64,10 @@ class WorkflowStepPropertiesDialog extends React.Component<IWorkflowStepProperti
         const newStepPersistent = this.state.stepPersistent || false;
 
         if (oldStepPersistent !== newStepPersistent) {
-            this.props.dispatch(actions.setWorkspaceResourcePersistence(oldStepId, newStepPersistent));
+            this.props.dispatch(actions.setWorkspaceResourcePersistence(oldStepId, newStepPersistent) as any);
         }
         if (oldStepId !== newStepId) {
-            this.props.dispatch(actions.renameWorkspaceResource(oldStepId, newStepId));
+            this.props.dispatch(actions.renameWorkspaceResource(oldStepId, newStepId) as any);
         }
     }
 
@@ -92,7 +92,7 @@ class WorkflowStepPropertiesDialog extends React.Component<IWorkflowStepProperti
             <ModalDialog
                 isOpen={this.props.isOpen}
                 title={DIALOG_TITLE}
-                iconName="edit"
+                icon="edit"
                 onCancel={this.onCancel}
                 onConfirm={this.onConfirm}
                 canConfirm={this.canConfirm}

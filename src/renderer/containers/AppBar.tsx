@@ -43,9 +43,9 @@ class _AppBar extends React.PureComponent<IAppBarProps & IDispatch, null> {
                         <Button className="pt-minimal">Workspaces</Button>
                     </Popover>
                     <NavbarDivider/>
-                    <Button className="pt-minimal" iconName="log-out">Logout</Button>
+                    <Button className="pt-minimal" icon="log-out">Logout</Button>
                     <NavbarDivider/>
-                    <Button className="pt-minimal" iconName='cog' onClick={this.handlePreferencesClick}/>
+                    <Button className="pt-minimal" icon='cog' onClick={this.handlePreferencesClick}/>
                 </NavbarGroup>
             </Navbar>
         );
@@ -64,23 +64,23 @@ const WorkspacesMenu = (props: WorkspacesMenuProps) => {
     return (
         <Menu>
             <MenuItem
-                iconName="folder-new"
+                icon="folder-new"
                 onClick={handleClick}
                 text="New Workspace"
             />
             <MenuItem
-                iconName="folder-shared-open"
+                icon="folder-shared-open"
                 onClick={handleClick}
                 text="Open Workspace"
             />
             <MenuItem
-                iconName="folder-close"
+                icon="folder-close"
                 onClick={handleClick}
                 text="Close Workspace"
             />
             <MenuDivider/>
             <MenuItem
-                iconName="add-to-folder"
+                icon="add-to-folder"
                 onClick={handleClick}
                 text="Save Workspace"
             />
@@ -90,7 +90,7 @@ const WorkspacesMenu = (props: WorkspacesMenuProps) => {
             />
             <MenuDivider/>
             <MenuItem
-                iconName="trash"
+                icon="trash"
                 onClick={handleClick}
                 text="Delete Workspace"
             />

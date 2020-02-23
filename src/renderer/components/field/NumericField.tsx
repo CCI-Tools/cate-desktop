@@ -66,7 +66,7 @@ export class NumericField extends Field<INumericFieldProps> {
                               intent={this.getError() ? Intent.DANGER : Intent.NONE}
                               min={this.props.min}
                               max={this.props.max}
-                              cols={this.props.cols}
+                              // cols={this.props.cols}
                               size={this.props.size}
                               minorStepSize={this.props.isInt ? 1 : 0.1}
                               selectAllOnFocus={true}

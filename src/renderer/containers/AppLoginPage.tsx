@@ -77,7 +77,7 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
                             className={'pt-large'}
                             placeholder="Enter your username..."
                             type={'text'}
-                            leftIconName={'user'}
+                            leftIcon={'user'}
                             value={username || ''}
                             onChange={(event) => setUsername(event.target.value)}
                         />
@@ -87,7 +87,7 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
                             className={'pt-large'}
                             placeholder="Enter your password..."
                             type={'password'}
-                            leftIconName={'key'}
+                            leftIcon={'key'}
                             value={password || ''}
                             onChange={(event) => setPassword(event.target.value)}
                         />
@@ -103,7 +103,7 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
                             intent={Intent.PRIMARY}
                             onClick={login}
                             disabled={!hasCredentials}
-                            default={true}>Login</Button>
+                            autoFocus={true}>Login</Button>
                     </div>
                     <div style={{marginTop: 18, alignSelf: 'center'}}>
                         <span>Don't have an account yet?&nbsp;</span><a href={'mailto:climate.office@esa.int?subject=Apply%20for%20ESA%20CCI%20Toolbox'}>Apply!</a>

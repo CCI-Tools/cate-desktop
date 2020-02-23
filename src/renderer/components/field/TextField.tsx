@@ -1,5 +1,3 @@
-import * as React from 'react'
-
 import {Field, FieldType, FieldValue, IFieldProps} from "./Field";
 
 export type TextFieldType = FieldType<string>;

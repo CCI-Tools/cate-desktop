@@ -291,7 +291,7 @@ export function getSessionProxyConfig(env?: { [name: string]: string }):
 }
 
 function getProxyBypassRules(env?: { [name: string]: string }) {
-    let noProxyHostsSet = new Set();
+    let noProxyHostsSet = new Set<string>();
     NO_PROXY_ENV_VAR_NAMES.map(n => env[n])
                           .filter(v => !!v)
                           .forEach(noProxy => {

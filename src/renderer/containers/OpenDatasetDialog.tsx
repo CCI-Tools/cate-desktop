@@ -78,7 +78,7 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps & Dispat
             this.props.dataSource.id,
             DataAccessComponent.optionsToOperationArguments(this.state.options),
             false
-        ));
+        ) as any);
         // Save modified state
         this.setState(dialogState);
     }
@@ -101,7 +101,7 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps & Dispat
             <ModalDialog
                 isOpen={isOpen}
                 title={"Open Local Dataset"}
-                iconName="database"
+                icon="database"
                 confirmTitle="Open Local"
                 confirmIconName="folder-shared-open"
                 confirmTooltip={confirmTooltip}

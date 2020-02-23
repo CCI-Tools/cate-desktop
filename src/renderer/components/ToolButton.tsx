@@ -6,7 +6,7 @@ export interface IToolButtonProps {
     onClick?: () => void;
     className?: string;
     disabled?: boolean;
-    iconName?: IconName;
+    icon?: IconName;
     tooltipContent?: JSX.Element | string;
     tooltipPosition?: Position;
     style?: CSSProperties;
@@ -27,7 +27,7 @@ export function ToolButton(props: IToolButtonProps) {
         <AnchorButton className={className}
                       onClick={props.onClick}
                       disabled={props.disabled}
-                      iconName={props.iconName}
+                      icon={props.icon}
                       style={props.style}
                       text={props.text}
                       active={props.active}

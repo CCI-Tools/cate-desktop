@@ -7,7 +7,7 @@ interface IModalDialogProps {
     confirmIconName?: IconName;
     confirmTitle?: string;
     confirmTooltip?: JSX.Element | string;
-    iconName?: IconName;
+    icon?: IconName;
     renderBody: () => JSX.Element | JSX.Element[];
     renderActions?: () => JSX.Element[];
     renderExtraActions?: () => JSX.Element[];
@@ -30,7 +30,7 @@ export class ModalDialog extends React.Component<IModalDialogProps, IModalDialog
             <Dialog
                 isOpen={this.props.isOpen}
                 title={this.props.title}
-                iconName={this.props.iconName}
+                icon={this.props.icon}
                 onClose={this.props.onCancel}
                 autoFocus={true}
                 canEscapeKeyClose={true}
@@ -75,10 +75,10 @@ export class ModalDialog extends React.Component<IModalDialogProps, IModalDialog
                                            onClick={this.props.onConfirm}
                                            className="pt-intent-primary"
                                            disabled={!canConfirm}
-                                           iconName={this.props.confirmIconName}>{this.props.confirmTitle || 'OK'}</AnchorButton>);
+                                           icon={this.props.confirmIconName}>{this.props.confirmTitle || 'OK'}</AnchorButton>);
 
         if (this.props.confirmTooltip) {
-            confirmButton = (<Tooltip key="confirmTooltip" content={this.props.confirmTooltip} inline>{confirmButton}</Tooltip>);
+            confirmButton = (<Tooltip key="confirmTooltip" content={this.props.confirmTooltip}>{confirmButton}</Tooltip>);
         }
 
         let extraActions;

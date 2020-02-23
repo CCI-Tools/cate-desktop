@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { State, ResourceState, FigureViewDataState } from "../state";
-import { connect, DispatchProp } from "react-redux";
-import { ViewState } from "../components/ViewState";
+import {State, ResourceState, FigureViewDataState} from "../state";
+import {connect, DispatchProp} from "react-redux";
+import {ViewState} from "../components/ViewState";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import { MplFigurePanel } from "../components/matplotlib/MplFigurePanel";
-import { getMPLDownloadUrl, getMPLWebSocketUrl } from "../state-util";
-import { Card } from "../components/Card";
+import {MplFigurePanel} from "../components/matplotlib/MplFigurePanel";
+import {getMPLDownloadUrl, getMPLWebSocketUrl} from "../state-util";
+import {Card} from "../components/Card";
 
 
 interface IFigureViewOwnProps {
@@ -23,10 +23,10 @@ interface IFigureViewProps extends IFigureViewOwnProps {
 function mapStateToProps(state: State, ownProps: IFigureViewOwnProps): IFigureViewProps {
     return {
         view: ownProps.view,
-        baseUrl: selectors.restUrlSelector(state),
+        baseUrl: selectors.webAPIRestUrlSelector(state),
         baseDir: selectors.workspaceBaseDirSelector(state),
         figureResources: selectors.figureResourcesSelector(state),
-        mplWebSocketUrl: selectors.mplWebSocketsUrlSelector(state),
+        mplWebSocketUrl: selectors.mplWebSocketUrlSelector(state),
     };
 }
 
@@ -43,11 +43,10 @@ class FigureView extends React.Component<IFigureViewProps & DispatchProp<State>,
 
     onDownload(figureId: number) {
         const imageBaseUrl = getMPLDownloadUrl(this.props.baseUrl, this.props.baseDir, figureId);
-        this.props.dispatch(actions.saveFigureImageAs(imageBaseUrl, figureId));
+        this.props.dispatch(actions.saveFigureImageAs(imageBaseUrl, figureId) as any);
     }
 
     render() {
-        const plots = [];
         const view = this.props.view;
         const figureResource = this.getFigureResource();
         if (!figureResource) {

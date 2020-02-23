@@ -160,6 +160,10 @@ class ChooseWorkspaceDialog extends React.Component<IChooseWorkspaceDialogProps 
             />);
     }
 
+    renderItem = (path: string) => {
+        return (<span>{path}</span>);
+    };
+
     private renderBody() {
         if (!this.props.isOpen) {
             return null;
@@ -190,6 +194,7 @@ class ChooseWorkspaceDialog extends React.Component<IChooseWorkspaceDialogProps 
                 <ListBox items={this.props.workspaceNames}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          getItemKey={(item: any, itemIndex: number) => item}
+                         renderItem={this.renderItem}
                          onSelection={newSelection => this.setSelectedWorkspace('' + newSelection[0])}
                          selection={this.state.selectedWorkspaceName}
                 />

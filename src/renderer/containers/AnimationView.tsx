@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { State, ResourceState, AnimationViewDataState } from "../state";
-import { connect, DispatchProp } from "react-redux";
-import { ViewState } from "../components/ViewState";
+import {State, ResourceState, AnimationViewDataState} from "../state";
+import {connect, DispatchProp} from "react-redux";
+import {ViewState} from "../components/ViewState";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import { Card } from "../components/Card";
-import { isNumber } from "../../common/types";
+import {Card} from "../components/Card";
+import {isNumber} from "../../common/types";
 
 
 interface IAnimationViewOwnProps {
@@ -26,10 +26,10 @@ interface IAnimationViewState {
 function mapStateToProps(state: State, ownProps: IAnimationViewOwnProps): IAnimationViewProps {
     return {
         view: ownProps.view,
-        baseUrl: selectors.restUrlSelector(state),
+        baseUrl: selectors.webAPIRestUrlSelector(state),
         baseDir: selectors.workspaceBaseDirSelector(state),
         animationResources: selectors.animationResourcesSelector(state),
-        mplWebSocketUrl: selectors.mplWebSocketsUrlSelector(state),
+        mplWebSocketUrl: selectors.mplWebSocketUrlSelector(state),
     };
 }
 
@@ -57,7 +57,7 @@ class AnimationView extends React.Component<IAnimationViewProps & DispatchProp<S
     componentWillMount(): void {
         if (!this.props.view.data.innerHTML && !this.state.loading) {
             this.setState({loading: true}, () => {
-                this.props.dispatch(actions.loadAnimationViewData(this.props.view.id, this.props.view.data.resourceId));
+                this.props.dispatch(actions.loadAnimationViewData(this.props.view.id, this.props.view.data.resourceId) as any);
             });
         }
     }
@@ -71,6 +71,7 @@ class AnimationView extends React.Component<IAnimationViewProps & DispatchProp<S
                 let script = element.innerHTML;
                 try {
                     // indirect eval call evaluates in global scope
+                    // eslint-disable-next-line
                     eval('eval')(script);
                 } catch (e) {
                     console.error(e);

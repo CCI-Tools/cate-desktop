@@ -6,10 +6,6 @@ import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
 import {ScrollablePanelContent} from "../components/ScrollableContent";
 import * as selectors from "../selectors";
 
-interface IDispatch {
-    dispatch: (action: any) => void;
-}
-
 interface IChartSettingsPanelProps {
     figureResources: ResourceState[];
 }
@@ -27,8 +23,8 @@ function mapStateToProps(state: State): IChartSettingsPanelProps {
  *
  * @author Norman Fomferra
  */
-class ChartSettingsPanel extends React.Component<IChartSettingsPanelProps & IDispatch, null> {
-    constructor(props: IChartSettingsPanelProps & IDispatch) {
+class ChartSettingsPanel extends React.Component<IChartSettingsPanelProps, null> {
+    constructor(props: IChartSettingsPanelProps) {
         super(props);
     }
 

@@ -63,7 +63,7 @@ export class Splitter extends React.PureComponent<ISplitterProps, any> {
         const currentPosition = this.getCurrentPosition(event);
         const positionDelta = currentPosition - this.lastPosition;
         this.lastPosition = currentPosition;
-        if (positionDelta != 0) {
+        if (positionDelta !== 0) {
             this.props.onChange(positionDelta);
         }
     }

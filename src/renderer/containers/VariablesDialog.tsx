@@ -41,7 +41,7 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
             <ModalDialog
                 isOpen={this.props.isOpen}
                 title={this.props.multiSelect ? "Select Variables" : "Select Variable"}
-                iconName="variable"
+                icon="variable"
                 onConfirm={this.onConfirm}
                 onCancel={this.props.onCancel}
                 renderBody={this.renderBody}

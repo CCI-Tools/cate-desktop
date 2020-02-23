@@ -48,23 +48,19 @@ export function main() {
     });
 
     ipcRenderer.on('new-workspace', () => {
-        store.dispatch(actions.newWorkspaceInteractive());
+        store.dispatch(actions.newWorkspaceInteractive() as any);
     });
 
     ipcRenderer.on('open-workspace', () => {
-        store.dispatch(actions.openWorkspaceInteractive());
+        store.dispatch(actions.openWorkspaceInteractive() as any);
     });
 
     ipcRenderer.on('close-workspace', () => {
-        store.dispatch(actions.closeWorkspaceInteractive());
-    });
-
-    ipcRenderer.on('delete-workspace', () => {
-        store.dispatch(actions.deleteWorkspaceInteractive());
+        store.dispatch(actions.closeWorkspaceInteractive() as any);
     });
 
     ipcRenderer.on('save-workspace', () => {
-        store.dispatch(actions.saveWorkspaceInteractive());
+        store.dispatch(actions.saveWorkspaceInteractive() as any);
     });
 
     ipcRenderer.on('save-workspace-as', () => {
@@ -76,15 +72,7 @@ export function main() {
     });
 
     ipcRenderer.on('get-preferences', () => {
-        store.dispatch(actions.sendPreferencesToMain());
-    });
-
-    ipcRenderer.on('set-preferences', (event, preferences) => {
-        store.dispatch(actions.updatePreferences(preferences, false));
-    });
-
-    ipcRenderer.on('logout', () => {
-        store.dispatch(actions.logout());
+        store.dispatch(actions.sendPreferencesToMain() as any);
     });
 
     document.addEventListener('drop', function (event: any) {
@@ -103,29 +91,29 @@ export function main() {
 
 function readDroppedFile(file: File, dispatch: Dispatch<State>) {
     let opName, opArgs;
-    if (file.path.endsWith('.nc')) {
+    if (file.name.endsWith('.nc')) {
         opName = 'read_netcdf';
         // opArgs = {file: {value: file.path}, normalize: {value: false}}
-    } else if (file.path.endsWith('.txt')) {
+    } else if (file.name.endsWith('.txt')) {
         opName = 'read_text';
-    } else if (file.path.endsWith('.json')) {
+    } else if (file.name.endsWith('.json')) {
         opName = 'read_json';
-    } else if (file.path.endsWith('.csv')) {
+    } else if (file.name.endsWith('.csv')) {
         opName = 'read_csv';
-    } else if (file.path.endsWith('.geojson') || file.path.endsWith('.shp') || file.path.endsWith('.gml')) {
+    } else if (file.name.endsWith('.geojson') || file.name.endsWith('.shp') || file.name.endsWith('.gml')) {
         opName = 'read_geo_data_frame';
     }
     if (!opArgs) {
-        opArgs = {file: {value: file.path}};
+        opArgs = {file: {value: file.name}};
     }
     if (opName) {
         dispatch(actions.setWorkspaceResource(opName,
                                               opArgs,
                                               null,
                                               false,
-                                              `Reading dropped file ${file.path}`));
+                                              `Reading dropped file ${file.name}`) as any);
     } else {
-        console.warn('Dropped file of unrecognized type: ', file.path);
+        console.warn('Dropped file of unrecognized type: ', file.name);
     }
 }
 

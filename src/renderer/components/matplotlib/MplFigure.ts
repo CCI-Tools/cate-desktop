@@ -39,7 +39,7 @@ export class MplFigureCommandSourceImpl implements MplFigureCommandSource {
         const listeners = this.listenersMap[figureId];
         if (listeners) {
             listeners.delete(listener);
-            if (listeners.size == 0) {
+            if (listeners.size === 0) {
                 delete this.listenersMap[figureId];
             }
         }
@@ -105,7 +105,7 @@ export class MplFigure {
 
         this.imageObj.onload = () => {
             const canvasContext = this.figureImageCanvas.getContext("2d");
-            if (this.imageMode == 'full') {
+            if (this.imageMode === 'full') {
                 // Full images could contain transparency (where diff images
                 // almost always do), so we need to clear the canvas so that
                 // there is no ghosting.
@@ -268,7 +268,7 @@ export class MplFigure {
             this.sendCanvasUpdated();
             this.waiting = false;
             return;
-        } else if (typeof evt.data === 'string' && evt.data.slice(0, 21) == "data:image/png;base64") {
+        } else if (typeof evt.data === 'string' && evt.data.slice(0, 21) === "data:image/png;base64") {
             this.imageObj.src = evt.data;
             this.sendCanvasUpdated();
             this.waiting = false;
@@ -394,21 +394,21 @@ export class MplFigure {
         const name = extraData.name;
 
         // Prevent repeat events
-        if (name == 'key_press') {
+        if (name === 'key_press') {
             if (event.which === this.lastKey)
                 return;
             else
                 this.lastKey = event.which;
         }
-        if (name == 'key_release')
+        if (name === 'key_release')
             this.lastKey = null;
 
         let value = '';
-        if (event.ctrlKey && event.which != 17)
+        if (event.ctrlKey && event.which !== 17)
             value += "ctrl+";
-        if (event.altKey && event.which != 18)
+        if (event.altKey && event.which !== 18)
             value += "alt+";
-        if (event.shiftKey && event.which != 16)
+        if (event.shiftKey && event.which !== 16)
             value += "shift+";
 
         value += 'k';
@@ -436,7 +436,7 @@ function findpos(e: MouseEvent) {
         targ = e.target;
     else if (e.srcElement)
         targ = e.srcElement;
-    if (targ.nodeType == 3) // defeat Safari bug
+    if (targ.nodeType === 3) // defeat Safari bug
         targ = targ.parentNode;
 
     const bodyRect = document.body.getBoundingClientRect();

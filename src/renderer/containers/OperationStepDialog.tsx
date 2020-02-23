@@ -131,12 +131,12 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
             // Only store input assignments when creating new operation steps
             inputAssignmentsMap = {[operation.qualifiedName]: this.state.inputAssignments};
         }
-        this.props.dispatch(actions.hideOperationStepDialog(this.props.id, inputAssignmentsMap));
+        this.props.dispatch(actions.hideOperationStepDialog(this.props.id, inputAssignmentsMap) as any);
         this.props.dispatch(actions.setWorkspaceResource(operation.qualifiedName,
                                                          this.getInputArguments(),
                                                          this.props.resName,
                                                          isEditMode,
-                                                         `Executing operation "${operation.name}"`));
+                                                         `Executing operation "${operation.name}"`) as any);
     }
 
     private canConfirm() {
@@ -144,7 +144,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
     }
 
     private onCancel() {
-        this.props.dispatch(actions.hideOperationStepDialog(this.props.id));
+        this.props.dispatch(actions.hideOperationStepDialog(this.props.id) as any);
     }
 
     private onValidate() {
@@ -209,7 +209,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
         return (
             <ModalDialog
                 isOpen={true}
-                iconName="function"
+                icon="function"
                 title={dialogTitle}
                 confirmTooltip={tooltipText}
                 confirmTitle={confirmTitle}

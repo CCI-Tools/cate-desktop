@@ -2,19 +2,19 @@ import * as React from 'react';
 import { CSSProperties } from 'react';
 import { connect } from 'react-redux';
 import { Table, Column, Cell, TruncatedFormat } from '@blueprintjs/table';
-import * as Markdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
 import { State, DataStoreState, DataSourceState, DataStoreNotice } from '../state';
 import {
     AnchorButton,
     InputGroup,
     Classes,
     Tag,
-    Tabs2,
-    Tab2,
+    Tabs,
+    Tab,
     Checkbox,
     Colors, Collapse, Callout, Intent
 } from '@blueprintjs/core';
-import { IconName } from "@blueprintjs/core/src/components/icon/icon";
+import { IconName } from '@blueprintjs/core/src/components/icon/icon';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import { Card } from '../components/Card';
 import { ScrollablePanelContent } from '../components/ScrollableContent';
@@ -31,11 +31,11 @@ import { NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES } fr
 
 
 const INTENTS = {
-    "default": Intent.NONE,
-    "primary": Intent.PRIMARY,
-    "success": Intent.SUCCESS,
-    "warning": Intent.WARNING,
-    "danger": Intent.DANGER,
+    'default': Intent.NONE,
+    'primary': Intent.PRIMARY,
+    'success': Intent.SUCCESS,
+    'warning': Intent.WARNING,
+    'danger': Intent.DANGER,
 };
 
 interface IDataSourcesPanelProps {
@@ -197,7 +197,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                                 className="pt-intent-primary"
                                 onClick={this.handleShowOpenDatasetDialog}
                                 disabled={!canOpen}
-                                iconName="folder-shared-open"/>
+                                icon="folder-shared-open"/>
                 );
             } else {
                 primaryAction = (
@@ -205,7 +205,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                                 className="pt-intent-primary"
                                 onClick={this.handleShowDownloadDataSourceDialog}
                                 disabled={!canDownload}
-                                iconName="cloud-download"/>
+                                icon="cloud-download"/>
                 );
             }
             const actionComponent = (
@@ -214,11 +214,11 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                                 className={(isDynamicLocalStore && !hasDataSources) ? 'pt-intent-primary' : ''}
                                 onClick={this.handleAddDatasetDialog}
                                 disabled={!canAdd}
-                                iconName="add"/>
+                                icon="add"/>
                     <ToolButton tooltipContent="Remove local data source"
                                 onClick={this.handleRemoveDatasetDialog}
                                 disabled={!canRemove}
-                                iconName="trash"/>
+                                icon="trash"/>
                     {primaryAction}
                     <AddDatasetDialog/>
                     <RemoveDatasetDialog/>
@@ -275,7 +275,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             <div style={{paddingBottom: 2}}>
                 <InputGroup
                     disabled={false}
-                    leftIconName="filter"
+                    leftIcon="filter"
                     onChange={(event) => this.props.setDataSourceFilterExpr(event.target.value)}
                     placeholder="Find data source"
                     rightElement={resultsTag}
@@ -318,10 +318,10 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             const callouts = [];
             selectedDataStore.notices.forEach((notice: DataStoreNotice) => {
                 callouts.push(
-                    <div key={notice.id} style={{margin: "0 4px 4px 4px"}}>
+                    <div key={notice.id} style={{margin: '0 4px 4px 4px'}}>
                         <Callout
                             title={notice.title}
-                            iconName={notice.icon as IconName}
+                            icon={notice.icon as IconName}
                             intent={notice.intent in INTENTS ? INTENTS[notice.intent] : Intent.NONE}
                         >
                             {this.renderMarkdown(notice.content)}
@@ -351,12 +351,12 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                                     onClick={this.handleShowDataStoreDescriptionChanged}
                                     disabled={!hasDataStoreDescription}
                                     active={showDataStoreDescription}
-                                    iconName="help"/>
+                                    icon="help"/>
                         <ToolButton tooltipContent="Show/hide data store notices"
                                     onClick={this.handleShowDataStoreNoticesChanged}
                                     disabled={!hasDataStoreNotices}
                                     active={showDataStoreNotices}
-                                    iconName="notifications"/>
+                                    icon="notifications"/>
                     </div>
                 </div>
 
@@ -393,7 +393,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
 
     //noinspection JSMethodCanBeStatic
     private renderMarkdown(source: string) {
-        return <Markdown renderers={MARKDOWN_RENDERERS} source={source}/>
+        return <ReactMarkdown renderers={MARKDOWN_RENDERERS} source={source}/>
     }
 }
 
@@ -411,7 +411,7 @@ class MarkdownText extends React.PureComponent<any> {
  */
 class MarkdownInlineCode extends React.PureComponent<any> {
     static readonly SPAN_STYLE = {
-        fontFamily: "Source Code Pro, Consolas, monospace",
+        fontFamily: 'Source Code Pro, Consolas, monospace',
         color: Colors.LIGHT_GRAY1,
     };
 
@@ -443,7 +443,7 @@ interface IDataSourcesListProps {
 
 class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
     static readonly ITEM_DIV_STYLE: CSSProperties = {display: 'flex', alignItems: 'flex-start'};
-    static readonly ID_DIV_STYLE: CSSProperties = {color: Colors.GREEN4, fontSize: "0.8em"};
+    static readonly ID_DIV_STYLE: CSSProperties = {color: Colors.GREEN4, fontSize: '0.8em'};
     static readonly ICON_DIV_STYLE: CSSProperties = {width: 32, height: 32, flex: 'none', marginRight: 6};
     readonly defaultIconName = 'cci';
 
@@ -474,9 +474,10 @@ class DataSourcesList extends React.PureComponent<IDataSourcesListProps, null> {
     }
 
     private renderIcon(dataSource: DataSourceState) {
-        const iconName = ((dataSource.meta_info && dataSource.meta_info.cci_project) || 'cci').toLowerCase();
-        return <img src={`resources/images/data-sources/esacci/${iconName}.png`}
+        const icon = ((dataSource.meta_info && dataSource.meta_info.cci_project) || 'cci').toLowerCase();
+        return <img src={`resources/images/data-sources/esacci/${icon}.png`}
                     style={DataSourcesList.ICON_DIV_STYLE}
+                    alt="cci icon"
                     onError={this.handleIconLoadError}/>
     }
 
@@ -640,34 +641,34 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
     private static renderVariablesTable(variables?: any[]): DetailPart {
         let element;
         if (variables && variables.length > 0) {
-            function renderName(rowIndex: number) {
+            const renderName = (rowIndex: number) => {
                 const variable = variables[rowIndex];
                 return (
                     <Cell tooltip={variable.long_name}>
                         <TruncatedFormat className="user-selectable">{variable.name}</TruncatedFormat>
                     </Cell>
                 );
-            }
+            };
 
-            function renderUnit(rowIndex: number) {
+            const renderUnit = (rowIndex: number) => {
                 const variable = variables[rowIndex];
                 return (
                     <Cell>
                         <TruncatedFormat className="user-selectable">{variable.units || '-'}</TruncatedFormat>
                     </Cell>
                 );
-            }
+            };
 
-            function getCellClipboardData(row: number, col: number) {
+            const getCellClipboardData = (row: number, col: number) => {
                 console.log('getCellClipboardData: ', row, col);
-            }
+            };
 
             element = (
                 <Table numRows={variables.length}
-                       isRowHeaderShown={false}
+                       enableRowHeader={false}
                        getCellClipboardData={getCellClipboardData}>
-                    <Column name="Name" renderCell={renderName}/>
-                    <Column name="Units" renderCell={renderUnit}/>
+                    <Column name="Name" cellRenderer={renderName}/>
+                    <Column name="Units" cellRenderer={renderUnit}/>
                 </Table>
             );
         } else {
@@ -680,26 +681,26 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         let element;
         if (metaInfo && metaInfoKeys) {
 
-            function renderKey(rowIndex: number) {
+            const renderKey = (rowIndex: number) => {
                 const key = metaInfoKeys[rowIndex];
                 return <Cell><TruncatedFormat>{key}</TruncatedFormat></Cell>;
-            }
+            };
 
-            function renderValue(rowIndex: number) {
+            const renderValue = (rowIndex: number) => {
                 const key = metaInfoKeys[rowIndex];
                 return <Cell><TruncatedFormat>{metaInfo[key]}</TruncatedFormat></Cell>;
-            }
+            };
 
-            function getCellClipboardData(row: number, col: number) {
+            const getCellClipboardData = (row: number, col: number) => {
                 console.log('getCellClipboardData: ', row, col);
-            }
+            };
 
             element = (
                 <Table numRows={metaInfoKeys.length}
-                       isRowHeaderShown={false}
+                       enableRowHeader={false}
                        getCellClipboardData={getCellClipboardData}>
-                    <Column name="Key" renderCell={renderKey}/>
-                    <Column name="Value" renderCell={renderValue}/>
+                    <Column name="Key" cellRenderer={renderKey}/>
+                    <Column name="Value" cellRenderer={renderValue}/>
                 </Table>
             );
         } else {
@@ -744,9 +745,9 @@ class DataSourceDetails extends React.PureComponent<IDataSourceDetailsProps, nul
         details.push(DataSourceDetails.renderMetaInfoLicences(dataSource.meta_info));
 
         return (
-            <Tabs2 id="dsDetails" renderActiveTabPanelOnly={true}>
-                {details.map(d => <Tab2 key={d.id} id={d.id} title={d.title} panel={d.element}/>)}
-            </Tabs2>
+            <Tabs id="dsDetails" renderActiveTabPanelOnly={true}>
+                {details.map(d => <Tab key={d.id} id={d.id} title={d.title} panel={d.element}/>)}
+            </Tabs>
         );
     }
 }

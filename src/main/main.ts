@@ -489,7 +489,7 @@ class CateDesktopApp {
 
         if (this.webAPIProcess.connected) {
             log.info(`Sending ${signal} to Cate service parent process...`);
-            this.webAPIProcess.kill(signal);
+            this.webAPIProcess.kill(signal as NodeJS.Signals);
         } else {
             log.info('Cate service parent process is no longer connected.');
         }

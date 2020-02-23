@@ -1690,13 +1690,13 @@ export function notifySelectedEntityChange(viewId: string, layer: LayerState | n
             && isNumber(selectedEntity._simp)
             && isNumber(selectedEntity._resId)
             && isNumber(selectedEntity._idx)) {
-            const isGeometrySimplified = (selectedEntity._simp & 0x01) != 0;
+            const isGeometrySimplified = (selectedEntity._simp & 0x01) !== 0;
             if (isGeometrySimplified) {
                 const workspace = selectors.workspaceSelector(getState());
                 if (workspace) {
                     const resId = selectedEntity._resId;
                     const featureIndex = +selectedEntity._idx;
-                    const baseUrl = selectors.restUrlSelector(getState());
+                    const baseUrl = selectors.webAPIRestUrlSelector(getState());
                     const baseDir = workspace.baseDir;
                     const featureUrl = getFeatureUrl(baseUrl, baseDir, {resId}, featureIndex);
                     reloadEntityWithOriginalGeometry(selectedEntity, featureUrl, (layer as any).style);
@@ -1762,7 +1762,7 @@ export function updateTableViewData(viewId: string,
 
 export function loadTableViewData(viewId: string, resName: string, varName: string | null): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        const restUrl = selectors.restUrlSelector(getState());
+        const restUrl = selectors.webAPIRestUrlSelector(getState());
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         const resource = selectors.resourcesSelector(getState()).find(res => res.name === resName);
         if (resource) {
@@ -1786,13 +1786,13 @@ export const UPDATE_ANIMATION_VIEW_DATA = 'UPDATE_ANIMATION_VIEW_DATA';
 
 export function loadAnimationViewData(viewId: string, resId: number): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        const restUrl = selectors.restUrlSelector(getState());
+        const restUrl = selectors.webAPIRestUrlSelector(getState());
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         const htmlUrl = getHtmlUrl(restUrl, baseDir, resId);
 
         const xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = () => {
-            if (xmlHttp.readyState == 4) {
+            if (xmlHttp.readyState === 4) {
                 dispatch(setAnimationResult(viewId, xmlHttp.responseText, xmlHttp.status));
             }
         };

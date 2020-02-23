@@ -1,4 +1,4 @@
-import {connect, DispatchProp} from 'react-redux';
+import { connect, DispatchProp } from 'react-redux';
 import {
     ColorMapCategoryState,
     ColorMapState,
@@ -12,8 +12,8 @@ import {
     VectorLayerState
 } from '../state';
 import * as React from 'react';
-import {NO_ENTITY_FOR_STYLE, NO_LAYER_FOR_STYLE} from '../messages';
-import {SubPanelHeader} from '../components/SubPanelHeader';
+import { NO_ENTITY_FOR_STYLE, NO_LAYER_FOR_STYLE } from '../messages';
+import { SubPanelHeader } from '../components/SubPanelHeader';
 import {
     AnchorButton,
     Button, Colors,
@@ -30,18 +30,18 @@ import {
 } from '@blueprintjs/core';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
-import {NumericRangeField} from '../components/field/NumericRangeField';
-import {FieldValue} from '../components/field/Field';
-import {ListBox, ListBoxSelectionMode} from '../components/ListBox';
-import {TextField} from '../components/field/TextField';
+import { NumericRangeField } from '../components/field/NumericRangeField';
+import { FieldValue } from '../components/field/Field';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
+import { TextField } from '../components/field/TextField';
 import SketchPicker from 'react-color/lib/components/sketch/Sketch';
-import {ColorResult} from 'react-color';
-import {SimpleStyle} from '../../common/geojson-simple-style';
-import {NumericField} from '../components/field/NumericField';
-import {ViewState} from '../components/ViewState';
+import { ColorState } from 'react-color';
+import { SimpleStyle } from '../../common/geojson-simple-style';
+import { NumericField } from '../components/field/NumericField';
+import { ViewState } from '../components/ViewState';
 import * as Cesium from 'cesium';
-import {getLayerDisplayName} from "../state-util";
-import {ToolButton} from "../components/ToolButton";
+import { getLayerDisplayName } from '../state-util';
+import { ToolButton } from '../components/ToolButton';
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -134,6 +134,12 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         this.handleChangedMarkerSymbol = this.handleChangedMarkerSymbol.bind(this);
     }
 
+    componentDidMount(): void {
+        if (!this.props.colorMapCategories) {
+            this.props.dispatch(actions.loadColorMaps() as any);
+        }
+    }
+
     public render() {
         return (
             <React.Fragment>
@@ -217,7 +223,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                                            uncontrolled={true}
                         />
                         <ToolButton tooltipContent="Compute valid min/max" tooltipPosition={Position.LEFT}
-                                    className="pt-intent-primary" iconName="arrows-horizontal"
+                                    className="pt-intent-primary" icon="arrows-horizontal"
                                     style={{flex: 'none', marginTop: '5px'}}
                                     disabled={this.props.isComputingVariableStatistics}
                                     onClick={this.handleUpdateDisplayStatistics}/>
@@ -266,7 +272,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         }
 
         const handleChangedImageEnhancement = (name: string, value: number) => {
-            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {[name]: value}));
+            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {[name]: value}) as any);
         };
 
         return (
@@ -276,7 +282,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     <Slider min={min}
                             max={max}
                             stepSize={(max - min) / 10.}
-                            renderLabel={false}
+                            labelRenderer={false}
                             value={layer[key]}
                             onChange={(value: number) => handleChangedImageEnhancement(key, value)}/>
                 </div>
@@ -312,21 +318,21 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
 
         if (selectedPlacemark) {
             const title = selectedPlacemark.properties && selectedPlacemark.properties.title;
-            if (title && title !== "") {
+            if (title && title !== '') {
                 entityDisplayName = `My place ${title}`;
             } else {
-                entityDisplayName = "Selected place";
+                entityDisplayName = 'Selected place';
             }
         } else if (selectedEntity) {
-            entityDisplayName = "Selected entity";
+            entityDisplayName = 'Selected entity';
         } else {
-            entityDisplayName = "Selected entity (none)";
+            entityDisplayName = 'Selected entity (none)';
         }
 
         if (selectedLayer) {
             layerDisplayName = `Layer ${getLayerDisplayName(selectedLayer)}`;
         } else {
-            layerDisplayName = "Selected layer";
+            layerDisplayName = 'Selected layer';
         }
 
         return (
@@ -379,7 +385,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     <Slider min={0.0}
                             max={1.0}
                             stepSize={0.05}
-                            renderLabel={false}
+                            labelRenderer={false}
                             value={this.props.vectorStyle.fillOpacity}
                             onChange={this.handleChangedFillOpacity}
                     />
@@ -440,7 +446,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     <Slider min={0.0}
                             max={1.0}
                             stepSize={0.05}
-                            renderLabel={false}
+                            labelRenderer={false}
                             value={this.props.vectorStyle.strokeOpacity}
                             onChange={this.handleChangedStrokeOpacity}
                     />
@@ -523,7 +529,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         let min = statistics.min;
         let max = statistics.max;
 
-        if (isNaN(min) || isNaN(max)){
+        if (isNaN(min) || isNaN(max)) {
             return <span style={{color: Colors.ORANGE3}}>All values are NaN</span>;
         }
 
@@ -539,7 +545,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                 max={max}
                 stepSize={(max - min) / 100.}
                 labelStepSize={max - min}
-                renderLabel={(x: number) => formatNumber(x, fractionDigits)}
+                labelRenderer={(x: number) => formatNumber(x, fractionDigits)}
                 onChange={this.handleChangedDisplayRange}
                 value={[layer.displayMin, layer.displayMax]}
             />
@@ -597,7 +603,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
     private handleChangedDisplayAlphaBlend(event: any) {
         const alphaBlending = event.target.checked;
         const layer = this.props.selectedVariableImageLayer;
-        this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {alphaBlending}));
+        this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {alphaBlending}) as any);
     }
 
     private handleChangedDisplayMinMax(displayMinMax: FieldValue<NumberRange>) {
@@ -605,7 +611,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         if (!displayMinMax.error) {
             const displayMin = displayMinMax.value[0];
             const displayMax = displayMinMax.value[1];
-            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {displayMin, displayMax}));
+            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {displayMin, displayMax}) as any);
         }
     }
 
@@ -624,7 +630,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                                                                            statistics
                                                                        });
                                                                    }
-        ));
+        ) as any);
     }
 
     private handleChangedDisplayRange(displayRange: NumberRange) {
@@ -632,14 +638,14 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {
             displayMin: displayRange[0],
             displayMax: displayRange[1]
-        }));
+        }) as any);
     }
 
     private handleChangedColorMapName(newSelection: string[]) {
         const layer = this.props.selectedVariableImageLayer || this.props.selectedResourceVectorLayer;
         const colorMapName = newSelection && newSelection.length && newSelection[0];
         if (colorMapName) {
-            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {colorMapName}));
+            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {colorMapName}) as any);
         }
     }
 
@@ -651,7 +657,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         this.handleChangedVectorStyle({fill: value.value});
     }
 
-    private handleChangedFillColorFromPicker(color: ColorResult) {
+    private handleChangedFillColorFromPicker(color: ColorState) {
         this.handleChangedVectorStyle({fill: color.hex});
     }
 
@@ -667,7 +673,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         this.handleChangedVectorStyle({stroke: value.value});
     }
 
-    private handleChangedStrokeColorFromPicker(color: ColorResult) {
+    private handleChangedStrokeColorFromPicker(color: ColorState) {
         this.handleChangedVectorStyle({stroke: color.hex});
     }
 
@@ -683,7 +689,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         this.handleChangedVectorStyle({markerColor: value.value});
     }
 
-    private handleChangedMarkerColorFromPicker(color: ColorResult) {
+    private handleChangedMarkerColorFromPicker(color: ColorState) {
         this.handleChangedVectorStyle({markerColor: color.hex});
     }
 
@@ -696,7 +702,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         if (this.props.styleContext === STYLE_CONTEXT_ENTITY) {
             this.props.dispatch(actions.updateEntityStyle(this.props.activeView,
                                                           this.props.selectedEntity,
-                                                          style));
+                                                          style) as any);
         } else {
             this.props.dispatch(actions.updateLayerStyle(this.props.activeView.id,
                                                          this.props.selectedVectorLayer.id,

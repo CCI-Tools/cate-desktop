@@ -830,7 +830,7 @@ export interface MessageActionState {
     text: string;
     onClick?: (...actionArgs) => void;
     href?: string;
-    iconName?: IconName;
+    icon?: IconName;
 }
 
 export interface MessageState {

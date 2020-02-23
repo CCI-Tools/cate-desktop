@@ -657,6 +657,8 @@ const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Act
             }
             break;
         }
+        case actions.UPDATE_INITIAL_STATE:
+            return {...state, ...action.payload.session};
         case actions.UPDATE_SESSION_STATE:
             return {...state, ...action.payload};
         case actions.SET_SHOW_SELECTED_VARIABLE_LAYER:
