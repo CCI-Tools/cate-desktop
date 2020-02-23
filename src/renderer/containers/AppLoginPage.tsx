@@ -94,12 +94,12 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
                     </div>
                     <div style={{marginTop: 8, alignSelf: 'flex-end'}}>
                         <Button
-                            className={'pt-large pt-icon-arrow-left'}
+                            icon={'arrow-left'}
                             style={{marginRight: 6}}
                             onClick={back}
                             disabled={!hasCredentials}>Back</Button>
                         <Button
-                            className={'pt-large pt-icon-log-in'}
+                            icon={'log-in'}
                             intent={Intent.PRIMARY}
                             onClick={login}
                             disabled={!hasCredentials}

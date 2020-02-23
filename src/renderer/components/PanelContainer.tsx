@@ -10,8 +10,8 @@ import {
     // PopoverInteractionKind,
     // Popover
 } from "@blueprintjs/core";
-import {Splitter} from "./Splitter";
-import {CSSProperties} from "react";
+import { Splitter } from "./Splitter";
+import { CSSProperties } from "react";
 
 
 export interface PanelContainerLayout {
@@ -43,7 +43,7 @@ export interface IPanelContainerState {
  */
 export class PanelContainer extends React.PureComponent<IPanelContainerProps, IPanelContainerState> {
 
-    static readonly PANEL_ICON_SIZE = 20; // ==> because pt-icon-large = 20px
+    static readonly PANEL_ICON_SIZE = 20; // ==> because bp3-icon-large = 20px
     static readonly PANEL_ICON_PADDING = 8;
     static readonly PANEL_BAR_SIZE = 2 * PanelContainer.PANEL_ICON_PADDING + PanelContainer.PANEL_ICON_SIZE;
     static readonly PANEL_BAR_PADDING = 8;
@@ -157,7 +157,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
         const selectedBottomPanel = this.getSelectedBottomPanel();
 
         const panelPaneWidth = this.state.layout.horPos;
-        let panelPaneHeight: string|number = "100%";
+        let panelPaneHeight: string | number = "100%";
 
         let topPanelPane;
         if (selectedTopPanel) {
@@ -311,30 +311,12 @@ interface IPanelHeaderProps {
 }
 
 function PanelHeader(props: IPanelHeaderProps): JSX.Element | null {
-    const panelIcon = <span
-        className={"pt-icon-standard " + props.icon + " cate-panel-header-item"}/>;
-    const panelTitle = <span
-        className={"cate-panel-text cate-panel-header-item"}>{props.title.toUpperCase()}</span>;
+    const panelIcon = <Icon icon={props.icon} className={"cate-panel-header-item"}/>;
+    const panelTitle = <span className={"cate-panel-text cate-panel-header-item"}>{props.title.toUpperCase()}</span>;
 
-    /*
-        const panelMenu = (
-            <Menu>
-                <MenuItem text="Move up"/>
-                <MenuItem text="Move down"/>
-                <MenuDivider />
-                <MenuItem text="Hide"/>
-            </Menu>
-        );
-
-        const panelMenuIcon = (
-            <Popover content={panelMenu} interactionKind={PopoverInteractionKind.CLICK}>
-                <span className={"pt-icon-standard pt-icon-properties cate-icon-small cate-panel-header-item"}/>
-            </Popover>
-        );
-    */
     const panelCloseIcon = (
-        <span className={"pt-icon-standard pt-icon-cross cate-icon-small cate-panel-header-item"}
-              onClick={props.onClose}/>);
+        <Icon icon={"cross"} className={"cate-icon-small cate-panel-header-item"} onClick={props.onClose}/>
+    );
 
     return (
         <div className="cate-panel-header" style={{flex: "none"}}>
@@ -407,7 +389,7 @@ function PanelBar(props: IPanelBarProps) {
                 onClick={onClick}
                 style={style}>
                 <Tooltip content={panelTitle} position={tooltipPos} hoverOpenDelay={1500}>
-                    <span style={PANEL_BUTTON_STYLE}><Icon icon={panelIcon} iconSize={20}/></span>
+                    <span style={PANEL_BUTTON_STYLE}><Icon icon={panelIcon} iconSize={PanelContainer.PANEL_ICON_SIZE}/></span>
                 </Tooltip>
             </li>
         );
@@ -445,7 +427,7 @@ function PanelBar(props: IPanelBarProps) {
 
 interface IPanelPaneProps {
     position: "left" | "right";
-    style?: {[key: string]: any};
+    style?: { [key: string]: any };
     panel: JSX.Element | null;
     onClose: (panelId: string) => void;
 }

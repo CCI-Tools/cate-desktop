@@ -194,7 +194,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             if (isLocalStore) {
                 primaryAction = (
                     <ToolButton tooltipContent="Open local data source"
-                                className="pt-intent-primary"
+                                intent={Intent.PRIMARY}
                                 onClick={this.handleShowOpenDatasetDialog}
                                 disabled={!canOpen}
                                 icon="folder-shared-open"/>
@@ -202,7 +202,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             } else {
                 primaryAction = (
                     <ToolButton tooltipContent="Download and/or open remote data source"
-                                className="pt-intent-primary"
+                                intent={Intent.PRIMARY}
                                 onClick={this.handleShowDownloadDataSourceDialog}
                                 disabled={!canDownload}
                                 icon="cloud-download"/>
@@ -211,7 +211,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
             const actionComponent = (
                 <div className="pt-button-group">
                     <ToolButton tooltipContent="Add local data source"
-                                className={(isDynamicLocalStore && !hasDataSources) ? 'pt-intent-primary' : ''}
+                                intent={(isDynamicLocalStore && !hasDataSources) ? Intent.PRIMARY : Intent.NONE}
                                 onClick={this.handleAddDatasetDialog}
                                 disabled={!canAdd}
                                 icon="add"/>

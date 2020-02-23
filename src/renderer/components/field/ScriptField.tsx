@@ -1,8 +1,8 @@
 import * as React from 'react';
-import {AnchorButton} from "@blueprintjs/core";
-import {IFieldProps, toTextValue} from "./Field";
-import {TextField} from "./TextField";
-import {ScriptDialog} from "../ScriptDialog";
+import { AnchorButton, Intent } from "@blueprintjs/core";
+import { IFieldProps, toTextValue } from "./Field";
+import { TextField } from "./TextField";
+import { ScriptDialog } from "../ScriptDialog";
 
 
 interface IScriptFieldProps extends IFieldProps {
@@ -43,7 +43,7 @@ export class ScriptField extends React.Component<IScriptFieldProps, IScriptField
                     style={ScriptField.TEXT_FIELD_STYLE}
                 />
 
-                <AnchorButton className="pt-intent-primary" style={ScriptField.BUTTON_STYLE}
+                <AnchorButton intent={Intent.PRIMARY} style={ScriptField.BUTTON_STYLE}
                               onClick={() => this.setState({isEditorOpen: true})}>...</AnchorButton>
 
                 <ScriptDialog isOpen={this.state.isEditorOpen}

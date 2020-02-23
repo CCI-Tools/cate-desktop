@@ -70,7 +70,7 @@ export class InputEditor extends React.PureComponent<IInputEditorProps, null> {
         const resourceOptions = [firstResourceOption].concat(otherResourceOptions);
 
         let editor = (
-            <div className="pt-select pt-intent-primary">
+            <div className="bp3-intent-primary">
                 <HTMLSelect
                     value={this.props.resourceName || NULL_VALUE}
                     disabled={otherResourceOptions.length === 0}

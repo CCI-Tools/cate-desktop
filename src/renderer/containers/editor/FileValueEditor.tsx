@@ -1,9 +1,9 @@
 import * as React from 'react';
-import {IValueEditorProps, ValueEditorCallback, ValueEditorValue} from "./ValueEditor";
-import {AnchorButton} from "@blueprintjs/core";
+import { AnchorButton, Intent } from "@blueprintjs/core";
+import { IValueEditorProps, ValueEditorCallback, ValueEditorValue } from "./ValueEditor";
 import * as actions from "../../actions";
-import {OperationInputState} from "../../state";
-import {TextField} from "../../components/field/TextField";
+import { OperationInputState } from "../../state";
+import { TextField } from "../../components/field/TextField";
 
 interface IFileValueEditorProps extends IValueEditorProps<string> {
 }
@@ -36,7 +36,7 @@ export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, 
                            onChange={value => onChange(input, value)}
                            nullable={this.props.input.nullable}
                 />
-                <AnchorButton className="pt-intent-primary" style={FileValueEditor.BUTTON_STYLE}
+                <AnchorButton intent={Intent.PRIMARY} style={FileValueEditor.BUTTON_STYLE}
                               onClick={() => showFileDialogCallback(input, value, onChange)}>...</AnchorButton>
             </div>
         );

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { CSSProperties } from "react";
 import { connect, DispatchProp } from "react-redux";
-import { AnchorButton, Intent, ProgressBar } from "@blueprintjs/core";
+import { AnchorButton, Icon, Intent, ProgressBar } from "@blueprintjs/core";
 import { Card } from "../components/Card";
 import { State, TaskState } from "../state";
 import * as actions from "../actions";
@@ -59,8 +59,7 @@ class TaskComponent extends React.Component<DispatchProp<State> & ITaskComponent
         const icon = getJobFailureIconName(jobFailure);
         const intent = getJobFailureIntentName(jobFailure);
         return (
-            <span className={`pt-icon-standard pt-icon-${icon} pt-intent-${intent}`}
-                  style={{paddingRight: '0.4em'}}/>
+            <Icon icon={icon} intent={intent} style={{paddingRight: '0.4em'}}/>
         );
     }
 

@@ -11,7 +11,7 @@ import {
     WorkflowStepState,
     WorkspaceState
 } from "../state";
-import { Menu, MenuItem, Popover, Position, Tab, Tabs, Tooltip } from "@blueprintjs/core";
+import { Icon, Menu, MenuItem, Popover, Position, Tab, Tabs, Tooltip, Intent } from "@blueprintjs/core";
 import { Cell, Column, Table, TruncatedFormat, TruncatedPopoverMode } from "@blueprintjs/table";
 import { ListBox } from "../components/ListBox";
 import { LabelWithType } from "../components/LabelWithType";
@@ -194,12 +194,12 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
 
     private getEffectiveWorkflowStep() {
         return this.props.workspacePanelMode === 'steps'
-            ? this.props.selectedWorkflowStep : this.props.selectedResourceWorkflowStep;
+               ? this.props.selectedWorkflowStep : this.props.selectedResourceWorkflowStep;
     }
 
     private getEffectiveResource() {
         return this.props.workspacePanelMode === 'resources'
-            ? this.props.selectedResource : this.props.selectedWorkflowStepResource;
+               ? this.props.selectedResource : this.props.selectedWorkflowStepResource;
     }
 
     private getEffectiveResourceName() {
@@ -238,8 +238,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         assert.ok(resources);
 
         const workspaceName = (workspace.isScratch || !workspace.baseDir)
-            ? '<unnamed>'
-            : workspace.baseDir.split(/[\\/]/).pop();
+                              ? '<unnamed>'
+                              : workspace.baseDir.split(/[\\/]/).pop();
         const workspaceLabel = (
             <Tooltip content={workspace.baseDir} position={Position.RIGHT}>
                 <strong>{workspaceName}</strong>
@@ -249,12 +249,12 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         if (workspace.isModified) {
             workspaceState = (
                 <span key={0} style={WorkspacePanel.STATE_TAG_STYLE}
-                      className="pt-tag pt-intent-warning pt-minimal">Modified</span>
+                      className="bp3-tag bp3-intent-warning bp3-minimal">Modified</span>
             );
         } else if (!workspace.isSaved) {
             workspaceState = (
                 <span key={1} style={WorkspacePanel.STATE_TAG_STYLE}
-                      className="pt-tag pt-intent-success pt-minimal">Not saved</span>
+                      className="bp3-tag bp3-intent-success bp3-minimal">Not saved</span>
             );
         }
         const openItemButton = (
@@ -290,9 +290,9 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
                     </div>
                 </div>
                 <Tabs id="workflow"
-                       renderActiveTabPanelOnly={true}
-                       selectedTabId={this.props.workspacePanelMode}
-                       onChange={this.handleWorkspacePanelModeChanged}>
+                      renderActiveTabPanelOnly={true}
+                      selectedTabId={this.props.workspacePanelMode}
+                      onChange={this.handleWorkspacePanelModeChanged}>
                     <Tab id="steps" title={`Workflow (${steps.length})`} panel={this.renderWorkflowStepsPanel()}/>
                     <Tab id="resources" title={`Resources (${resources.length})`} panel={this.renderResourcesPanel()}/>
                 </Tabs>
@@ -327,7 +327,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
                             onClick={this.handleWorkflowStepPropertiesButtonClicked}/>
                 <ToolButton tooltipContent="Edit workflow step"
                             tooltipPosition={Position.LEFT}
-                            className="pt-intent-primary"
+                            intent={Intent.PRIMARY}
                             disabled={!workflowStep}
                             icon="edit"
                             onClick={this.handleEditOperationStepButtonClicked}/>
@@ -343,8 +343,8 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
                             onClick={this.handleCleanWorkflowButtonClicked}/>
                 {workflowStep ? <WorkflowStepPropertiesDialog selectedWorkflowStep={workflowStep}/> : null}
                 {isOperationStepSelected
-                    ? <OperationStepDialog id={EDIT_OPERATION_STEP_DIALOG_ID} operationStep={workflowStep}/>
-                    : null}
+                 ? <OperationStepDialog id={EDIT_OPERATION_STEP_DIALOG_ID} operationStep={workflowStep}/>
+                 : null}
             </div>
         );
     }
@@ -582,7 +582,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
 
         if (step && step.persistent) {
             items.push(<span key={3}> </span>);
-            items.push(<span key={4} className="pt-icon-database"/>);
+            items.push(<Icon key={4} icon="database"/>);
         }
 
         return <span>{items}</span>;

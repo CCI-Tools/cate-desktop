@@ -4,7 +4,16 @@ import {connect, DispatchProp} from "react-redux";
 import { GeographicPosition, State, TaskState, WebAPIStatus } from "../state";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
-import {Intent, Popover, PopoverInteractionKind, Position, ProgressBar, Tooltip} from "@blueprintjs/core";
+import {
+    Icon,
+    IconName,
+    Intent,
+    Popover,
+    PopoverInteractionKind,
+    Position,
+    ProgressBar,
+    Tooltip
+} from "@blueprintjs/core";
 import {JobStatusEnum} from "../webapi";
 import TaskComponent from "./TaskComponent";
 
@@ -122,27 +131,27 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
     }
 
     private renderBackendStatus() {
-        let icon = null;
+        let icon: IconName | null = null;
         let tooltipText = null;
         if (this.props.webAPIStatus === 'connecting') {
-            icon = "pt-icon-link";
+            icon = "link";
             tooltipText = "Connecting";
         } else if (this.props.webAPIStatus === 'open') {
-            icon = "pt-icon-link";
+            icon = "link";
             tooltipText = "Connected";
         } else if (this.props.webAPIStatus === 'error') {
-            icon = "pt-icon-offline";
+            icon = "offline";
             tooltipText = "Error";
         } else if (this.props.webAPIStatus === 'closed') {
-            icon = "pt-icon-offline";
+            icon = "offline";
             tooltipText = "Closed";
         } else {
-            icon = "pt-icon-help";
+            icon = "help";
             tooltipText = "Unknown";
         }
         return (
             <Tooltip content={tooltipText} hoverOpenDelay={1500} position={Position.LEFT_TOP}>
-                <span className={`pt-icon-small ${icon}`}/>
+                <Icon icon={icon} iconSize={12}/>
             </Tooltip>
         );
     };

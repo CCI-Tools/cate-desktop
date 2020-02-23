@@ -1,15 +1,15 @@
 import * as React from 'react';
-import {AnchorButton, Switch, Tabs, Tab} from "@blueprintjs/core";
-import {State, SessionState} from "../state";
-import {connect, DispatchProp} from "react-redux";
+import { AnchorButton, Switch, Tabs, Tab, Intent } from "@blueprintjs/core";
+import { State, SessionState } from "../state";
+import { connect, DispatchProp } from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import {TextField} from "../components/field/TextField";
-import {OpenDialogProperty, showMessageBox} from "../actions";
+import { TextField } from "../components/field/TextField";
+import { OpenDialogProperty, showMessageBox } from "../actions";
 import deepEqual from 'deep-equal';
-import {ModalDialog} from "../components/ModalDialog";
-import {showToast} from "../toast";
-import {isDefined} from "../../common/types";
+import { ModalDialog } from "../components/ModalDialog";
+import { showToast } from "../toast";
+import { isDefined } from "../../common/types";
 
 interface IPreferencesDialogProps {
     isOpen: boolean;
@@ -51,16 +51,16 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
             if (autoUpdateSoftwareChangeDetected || backendChangesDetected) {
                 this.props.dispatch(actions.storeBackendConfig(backendConfig) as any);
                 showMessageBox({
-                    type: 'info',
-                    title: PreferencesDialog.DIALOG_TITLE,
-                    message: 'Some changes will be effective only after restart.'
-                });
+                                   type: 'info',
+                                   title: PreferencesDialog.DIALOG_TITLE,
+                                   message: 'Some changes will be effective only after restart.'
+                               });
             }
         } else {
             showToast({
-                type: 'info',
-                text: 'No changes detected.'
-            });
+                          type: 'info',
+                          text: 'No changes detected.'
+                      });
         }
     }
 
@@ -231,7 +231,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
                                placeholder="Enter local directory path"
                                onChange={onChange}
                     />
-                    <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
+                    <AnchorButton intent={Intent.PRIMARY} style={{flex: 'none'}}
                                   onClick={() => PreferencesDialog.showOpenDirectoryDialog(initialValue, onChange)}>...</AnchorButton>
                 </div>
             </div>

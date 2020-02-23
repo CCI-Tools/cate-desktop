@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {connect, DispatchProp} from "react-redux";
-import {AnchorButton, Tooltip} from "@blueprintjs/core";
+import { AnchorButton, Icon, Tooltip } from "@blueprintjs/core";
 import {
     OperationState, WorkspaceState, OperationInputState, State, DialogState, OperationKWArgs,
     ResourceState, WorkflowStepState
@@ -239,7 +239,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
 
         const bodyFooterText = (
             <p key='footer' style={{marginTop: '1em'}}>
-                Pressing <span className="pt-icon-play"/> will add operation <code>{operation.name}</code> as a new
+                Pressing <Icon icon="play"/> will add operation <code>{operation.name}</code> as a new
                 workflow step to the current workspace. The result of the step is a new <em>resource</em> which can
                 be
                 used as input for other operations. You can remove the step or change it's parameters later.

@@ -1,10 +1,10 @@
 import * as React from 'react';
-import {IValueEditorProps} from "./ValueEditor";
-import {AnchorButton} from "@blueprintjs/core";
-import {FieldValue, toTextValue} from "../../components/field/Field";
-import {TextField} from "../../components/field/TextField";
-import {VariablesDialog} from "../VariablesDialog";
-import {ResourceState} from "../../state";
+import { AnchorButton, Intent } from "@blueprintjs/core";
+import { IValueEditorProps } from "./ValueEditor";
+import { FieldValue, toTextValue } from "../../components/field/Field";
+import { TextField } from "../../components/field/TextField";
+import { VariablesDialog } from "../VariablesDialog";
+import { ResourceState } from "../../state";
 
 interface IVariableNamesValueEditorProps extends IValueEditorProps<string> {
     resource: ResourceState;
@@ -52,7 +52,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
                     style={VarNameValueEditor.TEXT_FIELD_STYLE}
                 />
 
-                <AnchorButton className="pt-intent-primary"
+                <AnchorButton intent={Intent.PRIMARY}
                               onClick={() => this.setState({isDetailsEditorOpen: true})}
                               disabled={!hasSelectableVariables}
                               style={VarNameValueEditor.BUTTON_STYLE}>...</AnchorButton>

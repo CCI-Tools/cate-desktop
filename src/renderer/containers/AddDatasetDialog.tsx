@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { AnchorButton } from '@blueprintjs/core';
+import { AnchorButton, InputGroup, Intent } from '@blueprintjs/core';
 import { DialogState, State } from '../state';
 import { ModalDialog } from '../components/ModalDialog';
 import { connect, DispatchProp } from 'react-redux';
@@ -110,21 +110,23 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & Dispatch
                 <p>Define a new local data source using a file pattern.</p>
 
                 <p style={{marginTop: '1em'}}>Name:</p>
-                <input className="pt-input"
-                       type="text"
-                       style={{width: '100%', marginLeft: '1em'}}
-                       value={this.state.dataSourceName}
-                       onChange={this.onDataSourceNameChange}/>
+                <InputGroup
+                    type="text"
+                    style={{width: '100%', marginLeft: '1em'}}
+                    value={this.state.dataSourceName}
+                    onChange={this.onDataSourceNameChange}
+                />
                 <p style={{marginTop: '1em'}}>Path pattern<span className="pt-text-muted"> (can contain wildcards like "*" or "?")</span>:
                 </p>
                 <div className="pt-control-group"
                      style={{flexGrow: 1, display: 'flex', marginLeft: '1em', width: '100%'}}>
-                    <input className="pt-input"
-                           type="text"
-                           style={{flex: 'auto'}}
-                           value={this.state.filePathPattern}
-                           onChange={this.onFilePathPatternChange}/>
-                    <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
+                    <InputGroup
+                        type="text"
+                        style={{flex: 'auto'}}
+                        value={this.state.filePathPattern}
+                        onChange={this.onFilePathPatternChange}
+                    />
+                    <AnchorButton intent={Intent.PRIMARY} style={{flex: 'none'}}
                                   onClick={this.showSelectDirectoryDialog}>...</AnchorButton>
                 </div>
             </div>

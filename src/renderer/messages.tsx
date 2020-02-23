@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {NonIdealState} from '@blueprintjs/core';
+import { Icon, NonIdealState } from '@blueprintjs/core';
 import { IconName } from '@blueprintjs/icons';
 
 export const ICON_CIRCLE: IconName = 'circle';
@@ -112,7 +112,7 @@ export const NO_LAYERS_NO_VIEW = (
 export const NO_LAYERS_EMPTY_VIEW = (
     <NonIdealState
         title="No layers"
-        description={<span>Press the <span className="pt-icon-add"/> button to add a layer.</span>}
+        description={<span>Press the <Icon icon="add"/> button to add a layer.</span>}
         icon={ICON_CIRCLE}/>
 );
 
@@ -140,7 +140,7 @@ export const NO_ENTITY_FOR_STYLE = (
 export const NO_CHARTS = (
     <NonIdealState
         title="No charts"
-        description={<span>Press the <span className="pt-icon-add"/> button to add a new chart.</span>}
+        description={<span>Press the <Icon icon="add"/> button to add a new chart.</span>}
         icon={ICON_CIRCLE}/>
 );
 

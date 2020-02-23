@@ -1,5 +1,6 @@
+import { Classes, InputGroup } from '@blueprintjs/core';
 import * as React from 'react'
-import {isString, isUndefinedOrNull, isDefined, isDefinedAndNotNull} from '../../../common/types';
+import { isString, isUndefinedOrNull, isDefined, isDefinedAndNotNull } from '../../../common/types';
 
 export type FieldType<T> = T | null;
 
@@ -53,8 +54,8 @@ export function toValue(value: any) {
  */
 export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldState> {
 
-    static readonly NOMINAL_CLASS = 'pt-input';
-    static readonly ERROR_CLASS = 'pt-input pt-intent-danger';
+    static readonly NOMINAL_CLASS = '';
+    static readonly ERROR_CLASS = Classes.INTENT_DANGER;
 
     protected _fieldValue: AnyFieldValue;
 
@@ -211,16 +212,17 @@ export class Field<P extends IFieldProps> extends React.PureComponent<P, IFieldS
         const errorClassName = Field.ERROR_CLASS + ' ' + this.props.className;
         const nominalClassName = Field.NOMINAL_CLASS + ' ' + this.props.className;
         return (
-            <input value={this.getTextValue()}
-                   onChange={this.handleInputChange}
-                   onBlur={this.handleBlur}
-                   onKeyPress={this.handleKeyPress}
-                   type="text"
-                   className={error ? errorClassName : nominalClassName}
-                   style={this.props.style}
-                   size={this.props.size}
-                   placeholder={this.props.placeholder}
-                   disabled={this.props.disabled}
+            <InputGroup
+                value={this.getTextValue()}
+                onChange={this.handleInputChange}
+                onBlur={this.handleBlur}
+                onKeyPress={this.handleKeyPress}
+                type="text"
+                className={error ? errorClassName : nominalClassName}
+                style={this.props.style}
+                size={this.props.size}
+                placeholder={this.props.placeholder}
+                disabled={this.props.disabled}
             />
         );
     }

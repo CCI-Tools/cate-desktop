@@ -137,7 +137,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
             const actionComponent = (
                 <div className="pt-button-group">
                     <ToolButton tooltipContent="Add a new operation step to the workspace's workflow."
-                                className="pt-intent-primary"
+                                intent={Intent.PRIMARY}
                                 onClick={this.handleAddOperationStepButtonClicked}
                                 disabled={!canAddStepOperation}
                                 text="Add Step..."
@@ -213,7 +213,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
                 <Popover
                     content={tagMenu}
                     interactionKind={PopoverInteractionKind.CLICK}>
-                    <Tag intent={Intent.SUCCESS} className="pt-icon-small-plus" style={tagStyle}/>
+                    <Tag intent={Intent.SUCCESS} icon="small-plus" style={tagStyle}/>
                 </Popover>
             );
         }

@@ -1,11 +1,11 @@
 import * as React from 'react';
-import {State, ResourceState, DialogState, WorkflowStepState} from "../state";
-import {connect, DispatchProp} from "react-redux";
+import { State, ResourceState, DialogState, WorkflowStepState } from "../state";
+import { connect, DispatchProp } from "react-redux";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import * as assert from "../../common/assert";
-import {ModalDialog} from "../components/ModalDialog";
-import {Checkbox} from "@blueprintjs/core";
+import { ModalDialog } from "../components/ModalDialog";
+import { Checkbox, InputGroup } from "@blueprintjs/core";
 
 const DIALOG_ID = 'workflowStepPropertiesDialog';
 const DIALOG_TITLE = 'Workflow Step & Resource Properties';
@@ -111,11 +111,12 @@ class WorkflowStepPropertiesDialog extends React.Component<IWorkflowStepProperti
                 <label className="pt-label">
                     Resource name
                     <span className="pt-text-muted"> (must be unique within the workspace)</span>
-                    <input className="pt-input"
-                           style={{width: '100%'}}
-                           type="text"
-                           value={this.state.stepId}
-                           onChange={(ev: any) => this.setState({stepId: ev.target.value})}/>
+                    <InputGroup
+                        style={{width: '100%'}}
+                        type="text"
+                        value={this.state.stepId}
+                        onChange={(ev: any) => this.setState({stepId: ev.target.value})}
+                    />
                     <span className="pt-text-muted">The Resource name must only contain the uppercase and lowercase letters A through Z,
                         the underscore _ and, except for the first character, the digits 0 through 9.</span>
                 </label>

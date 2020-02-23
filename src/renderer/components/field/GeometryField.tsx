@@ -1,10 +1,10 @@
 import * as React from 'react';
-import {AnchorButton} from "@blueprintjs/core";
-import {toTextValue} from "./Field";
-import {TextField, TextFieldValue} from "./TextField";
-import {GeometryDialog} from "../GeometryDialog";
-import {GeometryType, validateGeometryValue} from "../../../common/geometry-util";
-import {GeometryWKTGetter} from "../../containers/editor/ValueEditor";
+import { AnchorButton, Intent } from "@blueprintjs/core";
+import { toTextValue } from "./Field";
+import { TextField, TextFieldValue } from "./TextField";
+import { GeometryDialog } from "../GeometryDialog";
+import { GeometryType, validateGeometryValue } from "../../../common/geometry-util";
+import { GeometryWKTGetter } from "../../containers/editor/ValueEditor";
 
 
 interface IGeometryFieldProps {
@@ -34,7 +34,7 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
         this.setGeometryWKT = this.setGeometryWKT.bind(this);
     }
 
-    validateGeometryText(value: string  | null) {
+    validateGeometryText(value: string | null) {
         validateGeometryValue(value, this.props.geometryType);
     }
 
@@ -72,11 +72,11 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
                     style={GeometryField.TEXT_FIELD_STYLE}
                 />
 
-                <AnchorButton className="pt-intent-primary pt-icon-selection" style={GeometryField.BUTTON_STYLE}
+                <AnchorButton icon="selection" style={GeometryField.BUTTON_STYLE}
                               disabled={!this.props.geometryWKTGetter}
                               onClick={this.setGeometryWKT}/>
 
-                <AnchorButton className="pt-intent-primary" style={GeometryField.BUTTON_STYLE}
+                <AnchorButton intent={Intent.PRIMARY} style={GeometryField.BUTTON_STYLE}
                               onClick={() => this.setState({isEditorOpen: true})}>...</AnchorButton>
 
                 <GeometryDialog isOpen={this.state.isEditorOpen}

@@ -1,11 +1,11 @@
 import * as React from 'react';
-import {connect, Dispatch} from 'react-redux';
-import {State} from "../state";
-import {AnchorButton, Checkbox} from "@blueprintjs/core";
+import { connect, Dispatch } from 'react-redux';
+import { State } from "../state";
+import { AnchorButton, Checkbox, InputGroup } from "@blueprintjs/core";
 import * as selectors from "../selectors";
 import * as actions from "../actions";
-import {ViewState} from "../components/ViewState";
-import {NO_ACTIVE_VIEW} from "../messages";
+import { ViewState } from "../components/ViewState";
+import { NO_ACTIVE_VIEW } from "../messages";
 
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
@@ -82,7 +82,12 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, nu
                 Active view:
                 <div className="pt-input-group">
                     <span className={"pt-icon " + activeView.icon}/>
-                    <input className="pt-input" type="text" value={activeView.title} dir="auto" disabled={true}/>
+                    <InputGroup
+                        type="text"
+                        value={activeView.title}
+                        dir="auto"
+                        disabled={true}
+                    />
                 </div>
             </label>
         );

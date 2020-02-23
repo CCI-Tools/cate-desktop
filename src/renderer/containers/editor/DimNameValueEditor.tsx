@@ -1,6 +1,6 @@
 import * as React from 'react';
+import { AnchorButton, Intent } from '@blueprintjs/core';
 import { IValueEditorProps } from './ValueEditor';
-import { AnchorButton } from '@blueprintjs/core';
 import { FieldValue, toTextValue } from '../../components/field/Field';
 import { TextField } from '../../components/field/TextField';
 import { DimensionsDialog } from '../DimensionsDialog';
@@ -51,7 +51,7 @@ export class DimNameValueEditor extends React.Component<IDimNamesValueEditorProp
                     style={DimNameValueEditor.TEXT_FIELD_STYLE}
                 />
 
-                <AnchorButton className="pt-intent-primary"
+                <AnchorButton intent={Intent.PRIMARY}
                               onClick={() => this.setState({isDetailsEditorOpen: true})}
                               disabled={!hasSelectableDims}
                               style={DimNameValueEditor.BUTTON_STYLE}>...</AnchorButton>

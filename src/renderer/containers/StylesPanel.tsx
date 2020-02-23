@@ -26,7 +26,8 @@ import {
     RangeSlider,
     Slider,
     Switch,
-    Tooltip
+    Tooltip,
+    Intent
 } from '@blueprintjs/core';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
@@ -223,7 +224,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                                            uncontrolled={true}
                         />
                         <ToolButton tooltipContent="Compute valid min/max" tooltipPosition={Position.LEFT}
-                                    className="pt-intent-primary" icon="arrows-horizontal"
+                                    intent={Intent.PRIMARY} icon="arrows-horizontal"
                                     style={{flex: 'none', marginTop: '5px'}}
                                     disabled={this.props.isComputingVariableStatistics}
                                     onClick={this.handleUpdateDisplayStatistics}/>

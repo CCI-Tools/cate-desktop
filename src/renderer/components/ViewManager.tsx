@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Colors, IconName, Menu, MenuItem, NonIdealState, Popover, Position} from "@blueprintjs/core";
+import { Colors, Icon, IconName, Menu, MenuItem, NonIdealState, Popover, Position } from "@blueprintjs/core";
 import {Splitter, SplitDir} from "./Splitter";
 import {
     isViewSplitState, ViewState, ViewSplitState, ViewPanelState, ViewLayoutState, ViewPath,
@@ -323,13 +323,13 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
 
             let iconSpan;
             if (viewIconName && viewIconName !== '') {
-                iconSpan = <span className={"pt-icon-standard " + viewIconName} style={titleStyle} onClick={onSelect}/>;
+                iconSpan = <Icon icon={viewIconName} style={titleStyle} onClick={onSelect}/>;
             }
             tabItems.push(
                 <div key={viewId} style={tabStyle}>
                     {iconSpan}
                     <span style={titleStyle} onClick={onSelect}>{viewTitle}</span>
-                    <span style={closeIconStyle} className="pt-icon-standard pt-icon-cross" onClick={onClose}/>
+                    <Icon style={closeIconStyle} icon="cross" onClick={onClose}/>
                 </div>
             );
         }
@@ -344,11 +344,11 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
 
         if (views.length > 1) {
             splitHorEntry = (
-                <span key="splitHor" style={menuIconStyle} className="pt-icon-standard pt-icon-add-column-right"
+                <Icon key="splitHor" style={menuIconStyle} icon="add-column-right"
                       onClick={this.onSplitHor}/>
             );
             splitVerEntry = (
-                <span key="splitVer" style={menuIconStyle} className="pt-icon-standard pt-icon-add-row-bottom"
+                <Icon key="splitVer" style={menuIconStyle} icon="add-row-bottom"
                       onClick={this.onSplitVer}/>
             );
         }
@@ -384,7 +384,7 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
                 const moreMenu = (<Menu>{moveBeforeMenuItem}{moveAfterMenuItem}</Menu>);
                 moreMenuEntry = (
                     <Popover content={moreMenu} position={Position.BOTTOM}>
-                        <span key="more" style={menuIconStyle} className="pt-icon-standard pt-icon-more"/>
+                        <Icon key="more" style={menuIconStyle} icon="more"/>
                     </Popover>
                 );
             }

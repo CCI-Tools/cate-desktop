@@ -18,8 +18,8 @@ interface IGeometryDialogState {
 const WKT_LINK = (<a href="https://en.wikipedia.org/wiki/Well-known_text" target="_blank" rel="noopener noreferrer">Well-Known Text (WKT)</a>);
 
 export class GeometryDialog extends React.Component<IGeometryDialogProps, IGeometryDialogState> {
-    static readonly NOMINAL_CLASS = "pt-input pt-fill";
-    static readonly ERROR_CLASS = "pt-input pt-fill pt-intent-danger";
+    static readonly NOMINAL_CLASS = "bp3-input bp3-fill";
+    static readonly ERROR_CLASS = "bp3-input bp3-fill bp3-intent-danger";
 
     constructor(props: IGeometryDialogProps) {
         super(props);

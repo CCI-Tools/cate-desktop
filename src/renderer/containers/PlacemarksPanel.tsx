@@ -1,22 +1,32 @@
 import * as React from 'react';
-import {Colors, ContextMenuTarget, Menu, MenuItem, Popover, Position} from "@blueprintjs/core";
-import {connect, Dispatch} from 'react-redux';
-import {State, PlacemarkCollection, Placemark} from "../state";
-import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
+import {
+    Checkbox,
+    Colors,
+    ContextMenuTarget,
+    Icon,
+    IconName,
+    Menu,
+    MenuItem,
+    Popover,
+    Position
+} from "@blueprintjs/core";
+import { connect, Dispatch } from 'react-redux';
+import { State, PlacemarkCollection, Placemark } from "../state";
+import { ListBox, ListBoxSelectionMode } from "../components/ListBox";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
-import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
+import { ContentWithDetailsPanel } from "../components/ContentWithDetailsPanel";
 import LayerSourcesDialog from "./LayerSourcesDialog";
-import {ScrollablePanelContent} from "../components/ScrollableContent";
-import {ViewState} from "../components/ViewState";
-import {NO_PLACE_SELECTED, NO_PLACES} from "../messages";
-import {FieldValue} from "../components/field/Field";
-import {TextField} from "../components/field/TextField";
-import {geoJsonToText, geometryGeoJsonToCsv, geometryGeoJsonToGeometryWkt, isBox} from "../../common/geometry-util";
-import {GeometryToolType} from "../components/cesium/geometry-tool";
-import {isBoolean} from "../../common/types";
-import {NumericField, NumericFieldValue} from "../components/field/NumericField";
-import {ToolButton} from "../components/ToolButton";
+import { ScrollablePanelContent } from "../components/ScrollableContent";
+import { ViewState } from "../components/ViewState";
+import { NO_PLACE_SELECTED, NO_PLACES } from "../messages";
+import { FieldValue } from "../components/field/Field";
+import { TextField } from "../components/field/TextField";
+import { geoJsonToText, geometryGeoJsonToCsv, geometryGeoJsonToGeometryWkt, isBox } from "../../common/geometry-util";
+import { GeometryToolType } from "../components/cesium/geometry-tool";
+import { isBoolean } from "../../common/types";
+import { NumericField, NumericFieldValue } from "../components/field/NumericField";
+import { ToolButton } from "../components/ToolButton";
 import { CSSProperties } from "react";
 
 interface IPlacemarksPanelDispatch {
@@ -393,32 +403,31 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
         const visible = placemark.properties['visible'];
         const title = placemark.properties['title'];
         const geometry = placemark.geometry;
-        let icon;
+        let icon: IconName;
         let info;
         if (geometry.type === "Point") {
             const position = geometry.coordinates;
             info = ` ${position[0].toFixed(3)}, ${position[1].toFixed(3)}`;
-            icon = "pt-icon-dot";
+            icon = "dot";
         } else if (geometry.type === "LineString") {
             const coordinates = geometry.coordinates;
             info = ` ${coordinates.length} positions`;
-            icon = "pt-icon-slash";
+            icon = "slash";
         } else if (geometry.type === "Polygon") {
             const ring = geometry.coordinates[0] as any;
             info = ` ${ring.length - 1} positions`;
-            icon = isBox(geometry) ? "pt-icon-widget" : "pt-icon-polygon-filter";
+            icon = isBox(geometry) ? "widget" : "polygon-filter";
         }
 
         return (
-            <div onDoubleClick={this.handleDoubleClick}>
-                <input type="checkbox"
-                       checked={isBoolean(visible) ? visible : true}
-                       onChange={this.handleVisibilityChanged}
-                />
-                <span style={PlacemarkItem.ICON_STYLE} className={icon}/>
+            <Checkbox
+                checked={isBoolean(visible) ? visible : true}
+                onChange={this.handleVisibilityChanged}
+                onDoubleClick={this.handleDoubleClick}>
+                <span style={PlacemarkItem.ICON_STYLE}><Icon icon={icon}/></span>
                 <span style={PlacemarkItem.NAME_STYLE}>{title}</span>
                 <span style={PlacemarkItem.INFO_STYLE}>{info}</span>
-            </div>
+            </Checkbox>
         );
     }
 

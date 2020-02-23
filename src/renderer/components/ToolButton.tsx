@@ -1,12 +1,13 @@
 import * as React from 'react';
 import {CSSProperties} from "react";
-import {AnchorButton, IconName, Tooltip, Position} from "@blueprintjs/core";
+import { AnchorButton, IconName, Tooltip, Position, Intent } from "@blueprintjs/core";
 
 export interface IToolButtonProps {
     onClick?: () => void;
     className?: string;
     disabled?: boolean;
     icon?: IconName;
+    intent?: Intent;
     tooltipContent?: JSX.Element | string;
     tooltipPosition?: Position;
     style?: CSSProperties;
@@ -28,6 +29,7 @@ export function ToolButton(props: IToolButtonProps) {
                       onClick={props.onClick}
                       disabled={props.disabled}
                       icon={props.icon}
+                      intent={props.intent}
                       style={props.style}
                       text={props.text}
                       active={props.active}

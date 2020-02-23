@@ -1,3 +1,4 @@
+import { IconName } from '@blueprintjs/core';
 import {
     VariableState, VariableRefState, ResourceState, LayerState,
     VariableImageLayerState, OperationState, WorldViewDataState,
@@ -142,13 +143,13 @@ export function getLayerDisplayName(layer: LayerState): string {
     return layer.id;
 }
 
-export function getLayerTypeIconName(layer: LayerState): string {
+export function getLayerTypeIconName(layer: LayerState): IconName {
     if (isVectorLayer(layer)) {
-        return "pt-icon-map-marker";
+        return "map-marker";
     } else if (layer.type === "Image" || layer.type === "VariableImage") {
-        return "pt-icon-layout-grid"; // "pt-icon-helper-management" also good
+        return "layout-grid";
     }
-    return "pt-icon-layer";
+    return "layer";
 }
 
 export function findResource(resources: ResourceState[], ref: ResourceRefState): ResourceState | null {

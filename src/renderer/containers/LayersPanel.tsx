@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {connect, DispatchProp} from 'react-redux';
+import { connect, DispatchProp } from 'react-redux';
 import {
     ColorMapCategoryState,
     ImageLayerState,
@@ -8,18 +8,18 @@ import {
     VariableImageLayerState,
     VariableState
 } from '../state';
-import {Position, Radio, RadioGroup, Slider} from '@blueprintjs/core';
-import {ListBox, ListBoxSelectionMode} from '../components/ListBox';
+import { Checkbox, Icon, Position, Radio, RadioGroup, Slider, Intent } from '@blueprintjs/core';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
-import {ContentWithDetailsPanel} from '../components/ContentWithDetailsPanel';
+import { ContentWithDetailsPanel } from '../components/ContentWithDetailsPanel';
 import LayerSourcesDialog from './LayerSourcesDialog';
-import {getLayerDisplayName, getLayerTypeIconName, AUTO_LAYER_ID} from '../state-util';
-import {ScrollablePanelContent} from '../components/ScrollableContent';
-import {ViewState} from '../components/ViewState';
-import {NO_LAYER_SELECTED, NO_LAYERS_EMPTY_VIEW, NO_LAYERS_NO_VIEW} from '../messages';
-import {SubPanelHeader} from '../components/SubPanelHeader';
-import {ToolButton} from "../components/ToolButton";
+import { getLayerDisplayName, getLayerTypeIconName, AUTO_LAYER_ID } from '../state-util';
+import { ScrollablePanelContent } from '../components/ScrollableContent';
+import { ViewState } from '../components/ViewState';
+import { NO_LAYER_SELECTED, NO_LAYERS_EMPTY_VIEW, NO_LAYERS_NO_VIEW } from '../messages';
+import { SubPanelHeader } from '../components/SubPanelHeader';
+import { ToolButton } from "../components/ToolButton";
 
 interface ILayersPanelProps {
     selectedVariable: VariableState | null,
@@ -134,17 +134,16 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     private renderLayerItem(layer: LayerState) {
         return (
-            <div>
-                <input type="checkbox"
-                       checked={layer.visible}
-                       onClick={LayersPanel.stopPropagation}
-                       onChange={(event: any) => {
-                           this.handleChangedLayerVisibility(layer, event.target.checked)
-                       }}
-                />
-                <span style={{marginLeft: '0.5em'}} className={getLayerTypeIconName(layer)}/>
+            <Checkbox
+                checked={layer.visible}
+                onClick={LayersPanel.stopPropagation}
+                onChange={(event: any) => {
+                    this.handleChangedLayerVisibility(layer, event.target.checked)
+                }}
+            >
+                <Icon style={{marginLeft: '0.5em'}} icon={getLayerTypeIconName(layer)} iconSize={12}/>
                 <span style={{marginLeft: '0.5em'}}>{getLayerDisplayName(layer)}</span>
-            </div>
+            </Checkbox>
         );
     }
 
@@ -179,7 +178,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         return (
             <div className="pt-button-group">
                 <ToolButton tooltipContent="Add a new layer" tooltipPosition={Position.LEFT}
-                            className="pt-intent-primary"
+                            intent={Intent.PRIMARY}
                             onClick={this.handleAddLayerButtonClicked}
                             icon="add"/>
                 <ToolButton tooltipContent="Remove selected layer" tooltipPosition={Position.LEFT}

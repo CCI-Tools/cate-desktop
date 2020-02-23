@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Button, Label, Tooltip} from "@blueprintjs/core";
+import { Button, Classes, InputGroup, Label, Tooltip } from "@blueprintjs/core";
 
 export interface IPathFieldProps {
     label: string;
@@ -14,9 +14,9 @@ export function PathField(props: IPathFieldProps) {
     let className;
 
     if (props.validation) {
-        className = "pt-input pt-intent-danger";
+        className = Classes.INTENT_DANGER;
     } else {
-        className = "pt-input";
+        className = '';
     }
 
     let pathField = (
@@ -24,11 +24,13 @@ export function PathField(props: IPathFieldProps) {
             {props.label}
             <div className="pt-control-group">
                 <div className="pt-input-group pt-fill">
-                    <input type="text"
-                           className={className}
-                           placeholder={props.placeholder}
-                           value={props.value}
-                           onChange={props.onChange}/>
+                    <InputGroup
+                        type="text"
+                        className={className}
+                        placeholder={props.placeholder}
+                        value={props.value}
+                        onChange={props.onChange}
+                    />
                 </div>
                 <Button text="Browse..." onClick={props.onBrowse}/>
             </div>
