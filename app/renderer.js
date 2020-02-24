@@ -1,6 +1,4 @@
-const electron = require('electron');
-if (electron.remote.process.env.NODE_ENV === 'development') {
-//if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'development') {
     CESIUM_BASE_URL = './node_modules/cesium/Build/Cesium';
 } else {
     CESIUM_BASE_URL = './cesium';
