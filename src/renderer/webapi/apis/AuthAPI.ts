@@ -41,7 +41,9 @@ export class AuthAPI {
     }
 
     auth(username: string, password: string): Promise<AuthInfo> {
-        return fetch(CATE_HUB_TOKEN_URL, {
+        const url = new URL(CATE_HUB_TOKEN_URL);
+        console.log('POST: ', url);
+        return fetch(url.toString(), {
             method: 'post',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({username, password}),
@@ -55,7 +57,9 @@ export class AuthAPI {
     }
 
     getUser(username: string, token: string): Promise<User | null> {
-        return fetch(CATE_HUB_USER_URL.replace('{username}', username), {
+        const url = new URL(CATE_HUB_USER_URL.replace('{username}', username));
+        console.log('GET: ', url);
+        return fetch(url.toString(), {
             method: 'get',
             headers: {
                 'Authorization': `token ${token}`,
@@ -69,7 +73,9 @@ export class AuthAPI {
     }
 
     startWebAPI(username: string, token: string): Promise<boolean> {
-        return fetch(CATE_HUB_USER_SERVER_URL.replace('{username}', username), {
+        const url = new URL(CATE_HUB_USER_SERVER_URL.replace('{username}', username)).toString();
+        console.log('POST: ', url);
+        return fetch(url.toString(), {
             method: 'post',
             headers: {
                 'Content-Type': 'application/json',
@@ -85,7 +91,9 @@ export class AuthAPI {
     }
 
     stopWebAPI(username: string): Promise<boolean> {
-        return fetch(CATE_HUB_USER_SERVER_URL.replace('{username}', username), {
+        const url = new URL(CATE_HUB_USER_SERVER_URL.replace('{username}', username)).toString();
+        console.log('DELETE: ', url);
+        return fetch(url.toString(), {
             method: 'delete',
         }).then((response: Response) => {
             if (response.ok) {
