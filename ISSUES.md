@@ -5,7 +5,7 @@
   * Fix vertical non-alignment of green "Add tag" button and subsequently added tags in **OPERATIONS** panel.
   * Fix "Display range" input field not aligned with right-side "<->" button in **STYLES** panel. 
   * Fix vertical non-alignment of icon and label in "Active view" control of **VIEW** panel.
-  * ~~Fix too large cell heights in **LAYERS** panel items.~~
+  * Fix too large cell heights in **LAYERS** panel items.
   * Fix non-alignment of checkboxes and label text in **LAYERS** panel items.
   * Fix tooltip flickering in **OPERATIONS** panel (Add Step button).
   * Fix tooltip flickering in **WORKSPACE** panel (Resource/step properties, clean workspace buttons).
@@ -54,4 +54,5 @@
 - Preferences are not effective anymore
   * Fix preferences not loaded or not stored by main OR not passed from main to renderer or the other way round
 
-  
+- CateHub login
+  * Fix error 502  
