@@ -8,7 +8,7 @@ import {
     VariableImageLayerState,
     VariableState
 } from '../state';
-import { Checkbox, Icon, Position, Radio, RadioGroup, Slider, Intent } from '@blueprintjs/core';
+import { Checkbox, Icon, Position, Radio, RadioGroup, Slider, Intent, Label, ButtonGroup } from '@blueprintjs/core';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
@@ -176,7 +176,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         const canMoveLayerUp = selectedLayerIndex > 0;
         const canMoveLayerDown = selectedLayerIndex >= 0 && selectedLayerIndex < layerCount - 1;
         return (
-            <div className="pt-button-group">
+            <ButtonGroup>
                 <ToolButton tooltipContent="Add a new layer" tooltipPosition={Position.LEFT}
                             intent={Intent.PRIMARY}
                             onClick={this.handleAddLayerButtonClicked}
@@ -194,7 +194,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                             onClick={this.handleMoveLayerDownButtonClicked}
                             icon="arrow-down"/>
                 <LayerSourcesDialog/>
-            </div>
+            </ButtonGroup>
         );
     }
 
@@ -225,7 +225,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         if (!this.props.selectedLayer) {
             return (
                 <React.Fragment>
-                    <label className="pt-label" style={{height: '20px'}}> </label>
+                    <Label style={{height: '20px'}}> </Label>
                     {NO_LAYER_SELECTED}
                 </React.Fragment>
             )
@@ -262,7 +262,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             if (max > 0) {
                 const value = layer.varIndex[i];
                 dimensionRows.push(
-                    <label key={dimension + '_index'} className="pt-label pt-inline" style={{display: 'flex'}}>
+                    <Label key={dimension + '_index'} className="bp3-inline" style={{display: 'flex'}}>
                         <span
                             style={LayersPanel.LABEL_SPAN_STYLE_100}>{LayersPanel.capitalizeFirstLetter(dimension) + ' index'}</span>
                         <div style={{
@@ -279,7 +279,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                                     onChange={(value: number) => handleChangedLayerVarIndex(i, value)}
                             />
                         </div>
-                    </label>
+                    </Label>
                 );
             }
         }

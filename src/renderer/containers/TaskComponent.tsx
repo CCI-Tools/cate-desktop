@@ -1,7 +1,7 @@
 import * as React from "react";
 import { CSSProperties } from "react";
 import { connect, DispatchProp } from "react-redux";
-import { AnchorButton, Icon, Intent, ProgressBar } from "@blueprintjs/core";
+import { AnchorButton, ButtonGroup, Icon, Intent, ProgressBar } from '@blueprintjs/core';
 import { Card } from "../components/Card";
 import { State, TaskState } from "../state";
 import * as actions from "../actions";
@@ -90,7 +90,7 @@ class TaskComponent extends React.Component<DispatchProp<State> & ITaskComponent
 
                 let progressMag = null;
                 if (taskState.progress && taskState.progress.message) {
-                    progressMag = (<div className="pt-text-muted">{taskState.progress.message}</div>);
+                    progressMag = (<div className="bp3-text-muted">{taskState.progress.message}</div>);
                 }
                 body = (<div>{cancelableProgress}{progressMag}</div>);
             } else {
@@ -106,16 +106,16 @@ class TaskComponent extends React.Component<DispatchProp<State> & ITaskComponent
                 detailsButton = (<AnchorButton onClick={this.handleShowDetails}>Details</AnchorButton>);
                 message = (
                     <div>{TaskComponent.renderIcon(taskState.failure)}{getJobFailureTitle(taskState.failure)}<br/>
-                        <div className="pt-text-muted" style={{paddingTop: '0.4em'}}>{taskState.failure.message}</div>
+                        <div className="bp3-text-muted" style={{paddingTop: '0.4em'}}>{taskState.failure.message}</div>
                     </div>
                 );
             }
             body = (
                 <div>
-                    <div className="pt-button-group pt-minimal" style={{float: 'right'}}>
+                    <ButtonGroup className="bp3-minimal" style={{float: 'right'}}>
                         {detailsButton}
                         <AnchorButton icon="cross" onClick={removeJob}/>
-                    </div>
+                    </ButtonGroup>
                     {message}
                 </div>
             );

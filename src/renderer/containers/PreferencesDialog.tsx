@@ -1,15 +1,15 @@
 import * as React from 'react';
-import { AnchorButton, Switch, Tabs, Tab, Intent } from "@blueprintjs/core";
-import { State, SessionState } from "../state";
-import { connect, DispatchProp } from "react-redux";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import { TextField } from "../components/field/TextField";
-import { OpenDialogProperty, showMessageBox } from "../actions";
+import { AnchorButton, Switch, Tabs, Tab, Intent, ControlGroup } from '@blueprintjs/core';
+import { State, SessionState } from '../state';
+import { connect, DispatchProp } from 'react-redux';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import { TextField } from '../components/field/TextField';
+import { OpenDialogProperty, showMessageBox } from '../actions';
 import deepEqual from 'deep-equal';
-import { ModalDialog } from "../components/ModalDialog";
-import { showToast } from "../toast";
-import { isDefined } from "../../common/types";
+import { ModalDialog } from '../components/ModalDialog';
+import { showToast } from '../toast';
+import { isDefined } from '../../common/types';
 
 interface IPreferencesDialogProps {
     isOpen: boolean;
@@ -136,7 +136,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
         return this.renderBooleanValue(
             'reopenLastWorkspace',
             false,
-            "Reopen last workspace on startup"
+            'Reopen last workspace on startup'
         );
     }
 
@@ -144,7 +144,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
         return this.renderBooleanValue(
             'autoUpdateSoftware',
             false,
-            "Automatic software updates"
+            'Automatic software updates'
         );
     }
 
@@ -152,7 +152,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
         return this.renderBooleanValue(
             'autoShowNewFigures',
             false,
-            "Open plot view for new Figure resources"
+            'Open plot view for new Figure resources'
         );
     }
 
@@ -160,7 +160,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
         return this.renderBooleanValue(
             'offlineMode',
             false,
-            "Force offline mode (requires restart)"
+            'Force offline mode (requires restart)'
         );
     }
 
@@ -168,7 +168,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
         return this.renderBooleanValue(
             'panelContainerUndockedMode',
             false,
-            "Undocked tool panels (experimental)"
+            'Undocked tool panels (experimental)'
         );
     }
 
@@ -184,7 +184,7 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
         return this.renderBooleanValue(
             'useWorkspaceImageryCache',
             true,
-            "Use per-workspace imagery cache (may accelerate image display)"
+            'Use per-workspace imagery cache (may accelerate image display)'
         );
     }
 
@@ -197,20 +197,19 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
     }
 
     private renderProxyUrlInput() {
-        const initialValue = this.getStateValue("proxyUrl", true);
-        const onChange = this.getChangeHandler("proxyUrl", true);
+        const initialValue = this.getStateValue('proxyUrl', true);
+        const onChange = this.getChangeHandler('proxyUrl', true);
         return (
-            <div className="pt-control-group"
-                 style={{width: '100%', marginBottom: '1em', display: 'flex', alignItems: 'center'}}>
+            <ControlGroup style={{width: '100%', marginBottom: '1em', display: 'flex', alignItems: 'center'}}>
                 <span style={{flexBasis: '100px'}}>Proxy URL:</span>
-                <TextField className="pt-input pt-fill"
+                <TextField className="bp3-input bp3-fill"
                            style={{flexGrow: 0.2, marginLeft: '20px'}}
                            value={initialValue}
                            onChange={onChange}
                            placeholder={'http://user:password@host:port'}
                            nullable={true}
                 />
-            </div>
+            </ControlGroup>
         );
     }
 
@@ -224,16 +223,19 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
         return (
             <div style={{width: '100%', marginBottom: '1em'}}>
                 <p>{label}:</p>
-                <div className="pt-control-group" style={{display: 'flex', alignItems: 'center'}}>
-                    <TextField className="pt-input"
+                <ControlGroup style={{display: 'flex', alignItems: 'center'}}>
+                    <TextField className="bp3-input"
                                style={{flexGrow: 1}}
                                value={initialValue}
                                placeholder="Enter local directory path"
                                onChange={onChange}
                     />
-                    <AnchorButton intent={Intent.PRIMARY} style={{flex: 'none'}}
-                                  onClick={() => PreferencesDialog.showOpenDirectoryDialog(initialValue, onChange)}>...</AnchorButton>
-                </div>
+                    <AnchorButton
+                        intent={Intent.PRIMARY} style={{flex: 'none'}}
+                        onClick={() => PreferencesDialog.showOpenDirectoryDialog(initialValue, onChange)}>
+                        ...
+                    </AnchorButton>
+                </ControlGroup>
             </div>
         );
     }
@@ -242,15 +244,14 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
         const initialValue = this.getStateValue(propertyName, isBackend);
         const onChange = this.getChangeHandler(propertyName, isBackend);
         return (
-            <div className="pt-control-group"
-                 style={{width: '100%', marginBottom: '1em', display: 'flex', alignItems: 'center'}}>
+            <ControlGroup style={{width: '100%', marginBottom: '1em', display: 'flex', alignItems: 'center'}}>
                 <span style={{flexGrow: 0.8}}>{label}:</span>
-                <TextField className="pt-input"
+                <TextField className="bp3-input"
                            style={{flexGrow: 0.2}}
                            value={initialValue}
                            onChange={onChange}
                 />
-            </div>
+            </ControlGroup>
         );
     }
 
@@ -289,9 +290,9 @@ class PreferencesDialog extends React.Component<IPreferencesDialogProps & Dispat
 
     private static showOpenDirectoryDialog(defaultPath: string, onChange: (value) => void) {
         const openDialogOptions = {
-            title: "Select Directory",
+            title: 'Select Directory',
             defaultPath: defaultPath,
-            buttonLabel: "Select",
+            buttonLabel: 'Select',
             properties: [
                 'openDirectory' as OpenDialogProperty,
                 'createDirectory' as OpenDialogProperty,

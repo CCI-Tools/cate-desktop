@@ -1,7 +1,7 @@
 import { HTMLSelect } from '@blueprintjs/core';
 import * as React from 'react';
-import { isDefinedAndNotNull } from "../../common/types";
-import * as assert from "../../common/assert";
+import { isDefinedAndNotNull } from '../../common/types';
+import * as assert from '../../common/assert';
 
 type ItemType = any | null;
 
@@ -56,15 +56,14 @@ export class Select extends React.PureComponent<ISelectProps, null> {
 
         const value = this.props.value || (nullable ? Select.NULL_ITEM_VALUE : '');
         return (
-            <div className="pt-select" style={this.props.style}>
-                <HTMLSelect
-                    value={value}
-                    onChange={this.onChange}
-                    disabled={itemValues.length === 0}
-                >
-                    {options}
-                </HTMLSelect>
-            </div>
+            <HTMLSelect
+                value={value}
+                onChange={this.onChange}
+                disabled={itemValues.length === 0}
+                style={this.props.style}
+            >
+                {options}
+            </HTMLSelect>
         );
     }
 }

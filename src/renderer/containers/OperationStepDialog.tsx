@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {connect, DispatchProp} from "react-redux";
-import { AnchorButton, Icon, Tooltip } from "@blueprintjs/core";
+import { AnchorButton, ButtonGroup, FormGroup, Icon, Tooltip } from '@blueprintjs/core';
 import {
     OperationState, WorkspaceState, OperationInputState, State, DialogState, OperationKWArgs,
     ResourceState, WorkflowStepState
@@ -249,17 +249,17 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
         const parameterPanel = this.renderParameterPanel();
 
         return (
-            <div className="pt-form-group">
+            <FormGroup>
                 {bodyHeaderText}
-                <div className="pt-form-content">
+                <ButtonGroup>
                     {parameterPanel}
-                    <div className="pt-form-helper-text">{bodyFooterText}</div>
-                </div>
+                    <div className="bp3-form-helper-text">{bodyFooterText}</div>
+                </ButtonGroup>
                 <ValidationDialog isOpen={this.state.isValidationDialogOpen}
                                   inputErrors={this.state.inputErrors}
                                   onConfirm={this.hideValidationDialog}
                 />
-            </div>
+            </FormGroup>
         );
     }
 
@@ -505,13 +505,13 @@ export function renderInputErrors(inputErrors: InputErrors, resourceProblems?: n
     </p>) : null;
 
     return (
-        <div className="pt-form-group">
+        <FormGroup>
             {introText}
-            <div className="pt-form-content">
+            <div className="bp3-form-content">
                 {problems}
-                <div className="pt-form-helper-text">{footerText}</div>
+                <div className="bp3-form-helper-text">{footerText}</div>
             </div>
-        </div>
+        </FormGroup>
     );
 }
 

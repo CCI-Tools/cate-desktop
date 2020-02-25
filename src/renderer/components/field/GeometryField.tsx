@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { AnchorButton, Intent } from "@blueprintjs/core";
+import { AnchorButton, Intent, ControlGroup } from "@blueprintjs/core";
 import { toTextValue } from "./Field";
 import { TextField, TextFieldValue } from "./TextField";
 import { GeometryDialog } from "../GeometryDialog";
@@ -61,7 +61,7 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
             }
         }
         return (
-            <div className="pt-control-group" style={GeometryField.DIV_STYLE}>
+            <ControlGroup style={GeometryField.DIV_STYLE}>
                 <TextField
                     value={this.props.value}
                     onChange={this.props.onChange}
@@ -89,7 +89,7 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
                                     this.setState({isEditorOpen: false});
                                 }}
                                 geometryType={this.props.geometryType}/>
-            </div>
+            </ControlGroup>
         );
     }
 }

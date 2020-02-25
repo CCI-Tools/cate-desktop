@@ -66,7 +66,7 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
                     {/*<div style={{marginTop: 24, alignContent: 'center', textAlign: 'center', display: 'flex'}}>*/}
                     {/*<img width={32} height={32} src={'resources/images/github-120.png'} alt={'github icon'}/>*/}
                     {/*<span>&nbsp;&nbsp;&nbsp;</span>*/}
-                    {/*<Button onClick={signIn} intent={Intent.PRIMARY} className={'pt-large'}>Using your GitHub*/}
+                    {/*<Button onClick={signIn} intent={Intent.PRIMARY} className={'bp3-large'}>Using your GitHub*/}
                     {/*Account</Button>*/}
                     {/*</div>*/}
                     {/*<h4 style={{marginTop: 24}}>or</h4>*/}
@@ -74,7 +74,7 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
 
                     <div style={{marginTop: 12, alignSelf: 'stretch', width: '20em'}}>
                         <InputGroup
-                            className={'pt-large'}
+                            className={'bp3-large'}
                             placeholder="Enter your username..."
                             type={'text'}
                             leftIcon={'user'}
@@ -84,7 +84,7 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
                     </div>
                     <div style={{marginTop: 6, alignSelf: 'stretch', width: '20em'}}>
                         <InputGroup
-                            className={'pt-large'}
+                            className={'bp3-large'}
                             placeholder="Enter your password..."
                             type={'password'}
                             leftIcon={'key'}

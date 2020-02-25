@@ -37,15 +37,15 @@ class _AppBar extends React.PureComponent<IAppBarProps & IDispatch, null> {
     render() {
         return (
             <Navbar>
-                <NavbarGroup><span className="pt-ui-text-large">Cate - CCI Toolbox</span></NavbarGroup>
+                <NavbarGroup><span className="bp3-ui-text-large">Cate - CCI Toolbox</span></NavbarGroup>
                 <NavbarGroup align="right">
                     <Popover content={<WorkspacesMenu/>} position={Position.BOTTOM}>
-                        <Button className="pt-minimal">Workspaces</Button>
+                        <Button className="bp3-minimal">Workspaces</Button>
                     </Popover>
                     <NavbarDivider/>
-                    <Button className="pt-minimal" icon="log-out">Logout</Button>
+                    <Button className="bp3-minimal" icon="log-out">Logout</Button>
                     <NavbarDivider/>
-                    <Button className="pt-minimal" icon='cog' onClick={this.handlePreferencesClick}/>
+                    <Button className="bp3-minimal" icon='cog' onClick={this.handlePreferencesClick}/>
                 </NavbarGroup>
             </Navbar>
         );

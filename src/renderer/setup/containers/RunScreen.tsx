@@ -140,7 +140,7 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
             let worked = progress.worked;
             let totalWork = progress.totalWork;
             if (progress.done) {
-                className = "pt-no-stripes";
+                className = "bp3-no-stripes";
                 value = 1;
             } else if (isNumber(worked) && isNumber(totalWork)) {
                 let subWorked = progress.subWorked;

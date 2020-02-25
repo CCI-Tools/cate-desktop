@@ -73,7 +73,7 @@ class TableView extends React.PureComponent<ITableViewProps & ITableViewOwnProps
         if (viewData.isLoading) {
             return (
                 <div style={TableView.LOADING_CONTAINER_STYLE}>
-                    <Spinner className="pt-large"/>
+                    <Spinner className="bp3-large"/>
                     <p>Loading table data...</p>
                 </div>
             );

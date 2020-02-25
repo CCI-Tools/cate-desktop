@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {ModalDialog} from "./ModalDialog";
 import {validateGeometryValue, GeometryType} from "../../common/geometry-util";
+import { FormGroup, Label } from '@blueprintjs/core';
 
 interface IGeometryDialogProps {
     isOpen: boolean;
@@ -75,12 +76,12 @@ export class GeometryDialog extends React.Component<IGeometryDialogProps, IGeome
         const value = this.state.value;
         const hasError = !!this.state.error;
         return (
-            <div className="pt-form-group">
-                <label className="pt-label" htmlFor="wkt">
+            <FormGroup>
+                <Label htmlFor="wkt">
                     {`Enter Geometry of type ${this.props.geometryType}`}
-                    <span className="pt-text-muted"> (WGS84 coordinates in degree)</span>
-                </label>
-                <div className="pt-form-content" style={{width: "100%"}}>
+                    <span className="bp3-text-muted"> (WGS84 coordinates in degree)</span>
+                </Label>
+                <div className="bp3-form-content" style={{width: "100%"}}>
                     <textarea id="wkt"
                               className={hasError ? GeometryDialog.ERROR_CLASS : GeometryDialog.NOMINAL_CLASS}
                               rows={10}
@@ -89,7 +90,7 @@ export class GeometryDialog extends React.Component<IGeometryDialogProps, IGeome
                               onChange={this.onChange}/>
                     {this.getHelpText()}
                 </div>
-            </div>
+            </FormGroup>
         );
     }
 
@@ -110,7 +111,7 @@ export class GeometryDialog extends React.Component<IGeometryDialogProps, IGeome
             helpText = (<p>Use {this.props.geometryType} {WKT_LINK} syntax.</p>);
         }
 
-        return (<div className="pt-form-helper-text">{errorText}{helpText}</div>);
+        return (<div className="bp3-form-helper-text">{errorText}{helpText}</div>);
     }
 }
 

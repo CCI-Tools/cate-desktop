@@ -11,7 +11,7 @@ import {
     WorkflowStepState,
     WorkspaceState
 } from "../state";
-import { Icon, Menu, MenuItem, Popover, Position, Tab, Tabs, Tooltip, Intent } from "@blueprintjs/core";
+import { Icon, Menu, MenuItem, Popover, Position, Tab, Tabs, Tooltip, Intent, ButtonGroup } from '@blueprintjs/core';
 import { Cell, Column, Table, TruncatedFormat, TruncatedPopoverMode } from "@blueprintjs/table";
 import { ListBox } from "../components/ListBox";
 import { LabelWithType } from "../components/LabelWithType";
@@ -284,10 +284,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
                     {workspaceLabel}
                     <span style={WorkspacePanel.SPACER_STYLE}/>
                     {workspaceState}
-                    <div className="pt-button-group">
+                    <ButtonGroup>
                         {openItemButton}
                         {copyItemButton}
-                    </div>
+                    </ButtonGroup>
                 </div>
                 <Tabs id="workflow"
                       renderActiveTabPanelOnly={true}
@@ -308,7 +308,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         const hasSteps = this.props.workspace && this.props.workspace.workflow.steps.length;
         const canShowTableView = isDataFrameResource(resource);
         return (
-            <div className="pt-button-group">
+            <ButtonGroup>
                 <ToolButton tooltipContent="Show figure"
                             tooltipPosition={Position.LEFT}
                             disabled={!canShowFigure}
@@ -345,7 +345,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
                 {isOperationStepSelected
                  ? <OperationStepDialog id={EDIT_OPERATION_STEP_DIALOG_ID} operationStep={workflowStep}/>
                  : null}
-            </div>
+            </ButtonGroup>
         );
     }
 
@@ -531,7 +531,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         if (port) {
             let units;
             if (portProps.units) {
-                units = (<span className="pt-text-muted">{` (${portProps.units})`}</span>);
+                units = (<span className="bp3-text-muted">{` (${portProps.units})`}</span>);
             }
             const source = isString(port) ? port : port.source;
             if (source) {
@@ -549,9 +549,9 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         } else {
             let defaultValue = (portProps as OperationInputState).defaultValue;
             if (isDefined(defaultValue)) {
-                cellValue = (<span>{`${defaultValue}`} <span className="pt-text-muted">(default value)</span></span>);
+                cellValue = (<span>{`${defaultValue}`} <span className="bp3-text-muted">(default value)</span></span>);
             } else {
-                cellValue = (<span className="pt-text-muted">Not given.</span>);
+                cellValue = (<span className="bp3-text-muted">Not given.</span>);
             }
         }
         return (<Cell>{cellValue}</Cell>);

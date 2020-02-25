@@ -133,7 +133,7 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
         if (isDeveloperError(this.props.jobFailure)) {
             reporting = (
                 <div style={{marginTop: '1em'}}>
-                    <span className="pt-text-muted">Please consider reporting this issue in Cate's <a
+                    <span className="bp3-text-muted">Please consider reporting this issue in Cate's <a
                         href="https://github.com/CCI-Tools/cate/issues" target="_blank" rel="noopener noreferrer">issue tracker</a>.</span>
                     <Checkbox label='Copy error report to clipboard'
                               checked={this.state.copyReport}

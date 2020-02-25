@@ -1,6 +1,8 @@
 import * as React from 'react';
 import {CSSProperties} from "react";
 
+// TODO (forman): replace by @blueprintjs.core.Card
+
 /**
  * A card is a bounded unit of UI content with a solid background color.
  *
@@ -16,7 +18,7 @@ export class Card extends React.PureComponent<{}> {
 
     render() {
         return (
-            <div className="pt-elevation-2" style={Card.DIV_STYLE}>
+            <div className="bp3-elevation-2" style={Card.DIV_STYLE}>
                 {this.props.children}
             </div>
         );

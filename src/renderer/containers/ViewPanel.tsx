@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
 import { State } from "../state";
-import { AnchorButton, Checkbox, InputGroup } from "@blueprintjs/core";
+import { AnchorButton, Checkbox, ControlGroup, Icon, InputGroup, Label } from '@blueprintjs/core';
 import * as selectors from "../selectors";
 import * as actions from "../actions";
 import { ViewState } from "../components/ViewState";
@@ -73,23 +73,20 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, nu
             return NO_ACTIVE_VIEW;
         }
 
-        // TODO (forman): BP3: use input component replacement
-
-
         // TODO (forman): make title field editable
         const titleField = (
-            <label className="pt-label" style={ViewPanel.PROPERTY_ITEM_STYLE}>
+            <Label style={ViewPanel.PROPERTY_ITEM_STYLE}>
                 Active view:
-                <div className="pt-input-group">
-                    <span className={"pt-icon " + activeView.icon}/>
+                <ControlGroup>
+                    <Icon icon={activeView.icon}/>
                     <InputGroup
                         type="text"
                         value={activeView.title}
                         dir="auto"
                         disabled={true}
                     />
-                </div>
-            </label>
+                </ControlGroup>
+            </Label>
         );
 
         if (activeView.type === 'world') {

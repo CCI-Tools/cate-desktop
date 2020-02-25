@@ -14,7 +14,7 @@ import * as selectors from '../selectors';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import { ContentWithDetailsPanel } from '../components/ContentWithDetailsPanel';
 import { LabelWithType } from '../components/LabelWithType';
-import { Position, Colors } from '@blueprintjs/core';
+import { Position, Colors, ButtonGroup } from '@blueprintjs/core';
 import { Cell, Column, Table, TruncatedFormat } from '@blueprintjs/table';
 import { ScrollablePanelContent } from '../components/ScrollableContent';
 import { NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE } from '../messages';
@@ -202,7 +202,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         const canAddHistogramPlot = selectedVariable && selectedVariable.numDims > 0;
         const maxSize = 10000;
         return (
-            <div className="pt-button-group">
+            <ButtonGroup>
                 <ToolButton tooltipContent="Toggle image layer visibility"
                             tooltipPosition={Position.LEFT}
                             icon={this.props.showSelectedVariableLayer ? 'eye-open' : 'eye-off'}
@@ -230,7 +230,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
                             icon="th"
                             onClick={this.handleShowVariableTableView}
                 />
-            </div>
+            </ButtonGroup>
         );
     }
 

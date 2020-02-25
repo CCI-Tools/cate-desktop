@@ -27,7 +27,7 @@ export class ValueSetValueEditor extends React.PureComponent<IValueEditorProps<a
         }
         const value = this.props.value || ValueSetValueEditor.NULL_VALUE;
         return (
-            <div className="pt-select">
+            <div className="bp3-select">
                 <HTMLSelect
                     value={value}
                     onChange={(event: any) => this.onChange(event.target.value)}

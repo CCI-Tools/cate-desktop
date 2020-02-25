@@ -12,7 +12,7 @@ import {
     Tabs,
     Tab,
     Checkbox,
-    Colors, Collapse, Callout, Intent, HTMLSelect
+    Colors, Collapse, Callout, Intent, HTMLSelect, Label, ButtonGroup
 } from '@blueprintjs/core';
 import { IconName } from '@blueprintjs/core/src/components/icon/icon';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
@@ -209,7 +209,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                 );
             }
             const actionComponent = (
-                <div className="pt-button-group">
+                <ButtonGroup>
                     <ToolButton tooltipContent="Add local data source"
                                 intent={(isDynamicLocalStore && !hasDataSources) ? Intent.PRIMARY : Intent.NONE}
                                 onClick={this.handleAddDatasetDialog}
@@ -224,7 +224,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                     <RemoveDatasetDialog/>
                     <DownloadDatasetDialog/>
                     <OpenDatasetDialog/>
-                </div>
+                </ButtonGroup>
             );
             let listItemDoubleClickAction = null;
             if (isLocalStore && canOpen) {
@@ -338,19 +338,18 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
         return (
             <React.Fragment>
                 <div style={DataSourcesPanel.FLEX_ROW_STYLE}>
-                    <label className="pt-label pt-inline" style={{margin: '0 0 0 0'}}>
+                    <Label className="bp3-inline" style={{margin: '0 0 0 0'}}>
                         Data store:
-                        <div className="pt-select" style={{padding: '0.2em'}}>
-                            <HTMLSelect
-                                value={selectedDataStore ? selectedDataStore.id : ''}
-                                onChange={this.handleDataStoreSelected}
-                            >
-                                {dataStoreOptions}
-                            </HTMLSelect>
-                        </div>
-                    </label>
+                        <HTMLSelect
+                            style={{padding: '0.2em'}}
+                            value={selectedDataStore ? selectedDataStore.id : ''}
+                            onChange={this.handleDataStoreSelected}
+                        >
+                            {dataStoreOptions}
+                        </HTMLSelect>
+                    </Label>
                     <span style={DataSourcesPanel.SPACER_STYLE}/>
-                    <div className="pt-button-group">
+                    <ButtonGroup>
                         <ToolButton tooltipContent="Show/hide data store description"
                                     onClick={this.handleShowDataStoreDescriptionChanged}
                                     disabled={!hasDataStoreDescription}
@@ -361,7 +360,7 @@ class DataSourcesPanel extends React.Component<IDataSourcesPanelProps & IDataSou
                                     disabled={!hasDataStoreNotices}
                                     active={showDataStoreNotices}
                                     icon="notifications"/>
-                    </div>
+                    </ButtonGroup>
                 </div>
 
                 {dataStoreDescriptionElement}

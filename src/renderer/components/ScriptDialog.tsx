@@ -112,7 +112,7 @@ export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDia
         ));
 
         return (
-            <div className="pt-form-helper-text" style={{marginTop: '0.5em'}}>
+            <div className="bp3-form-helper-text" style={{marginTop: '0.5em'}}>
                 Please use Python 3.6+ syntax. The following modules are imported by default: {libText}. Other
                 modules can be imported: <code>dask</code>, <code>gdal</code>, <code>geos</code> <code>pyshp</code>,
                 <code>scipy</code>, <code>shapely</code>.

@@ -1,15 +1,16 @@
 import * as React from 'react';
 import {
+    ButtonGroup,
     Checkbox,
     Colors,
     ContextMenuTarget,
     Icon,
-    IconName,
+    IconName, Label,
     Menu,
     MenuItem,
     Popover,
     Position
-} from "@blueprintjs/core";
+} from '@blueprintjs/core';
 import { connect, Dispatch } from 'react-redux';
 import { State, PlacemarkCollection, Placemark } from "../state";
 import { ListBox, ListBoxSelectionMode } from "../components/ListBox";
@@ -200,7 +201,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         const isPolygonToolActive = this.props.geometryToolType === "PolygonTool";
         const isBoxToolActive = this.props.geometryToolType === "BoxTool";
         return (
-            <div className="pt-button-group">
+            <ButtonGroup>
                 <ToolButton tooltipContent="New marker"
                             tooltipPosition={Position.LEFT}
                             onClick={this.handleNewPointToolButtonClicked}
@@ -245,7 +246,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                     </Menu>
                 </Popover>
                 <LayerSourcesDialog/>
-            </div>
+            </ButtonGroup>
         );
     }
 
@@ -288,7 +289,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         }
         return (
             <div style={{width: '100%'}}>
-                <label key="spacer" className="pt-label"> </label>
+                <Label key="spacer"> </Label>
                 {this.renderPlacemarkTitle()}
                 {this.renderPlacemarkGeometry()}
             </div>
@@ -299,16 +300,16 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         const placemark = this.props.selectedPlacemark;
         const name = placemark.properties['title'];
         return (
-            <label className="pt-label pt-inline">
+            <Label className="bp3-inline">
                 Name
-                <span className="pt-text-muted"> (optional)</span>
+                <span className="bp3-text-muted"> (optional)</span>
                 <TextField value={{textValue: name, value: name}}
                            onChange={this.handleChangedPlacemarkName}
                            size={16}
                            uncontrolled={true}
                            placeholder="Placemark name"
                 />
-            </label>
+            </Label>
         );
     }
 
@@ -319,9 +320,9 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
             const position = geometry.coordinates;
             return (
                 <div>
-                    <label className="pt-label pt-inline">
+                    <Label className="bp3-inline">
                         Longitude
-                        <span className="pt-text-muted"> (in degrees)</span>
+                        <span className="bp3-text-muted"> (in degrees)</span>
                         <NumericField value={position[0]}
                                       onChange={this.handleChangedPointLongitude}
                                       size={12}
@@ -329,10 +330,10 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                                       min={-180}
                                       max={+180}
                                       placeholder="Longitude in degrees"/>
-                    </label>
-                    <label className="pt-label pt-inline">
+                    </Label>
+                    <Label className="bp3-inline">
                         Latitude
-                        <span className="pt-text-muted"> (in degrees)</span>
+                        <span className="bp3-text-muted"> (in degrees)</span>
                         <NumericField value={position[1]}
                                       onChange={this.handleChangedPointLatitude}
                                       size={12}
@@ -340,7 +341,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                                       min={-90}
                                       max={+90}
                                       placeholder="Latitude in degrees"/>
-                    </label>
+                    </Label>
                 </div>
             );
         } else if (isBox(geometry)) {

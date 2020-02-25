@@ -27,7 +27,7 @@ import {
     Slider,
     Switch,
     Tooltip,
-    Intent
+    Intent, InputGroup, Label
 } from '@blueprintjs/core';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
@@ -215,7 +215,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
 
         return (
             <div style={{width: '100%', marginBottom: '20px'}}>
-                <label key="drange" className="pt-label" style={{display: 'flex'}}>
+                <Label key="drange" style={{display: 'flex'}}>
                     <span style={{...StylesPanel.LABEL_SPAN_STYLE_100, margin: 'auto 0'}}>Display range</span>
                     <div style={{display: 'flex', alignItems: 'center'}}>
                         <NumericRangeField value={this.props.displayMinMax}
@@ -229,7 +229,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                                     disabled={this.props.isComputingVariableStatistics}
                                     onClick={this.handleUpdateDisplayStatistics}/>
                     </div>
-                </label>
+                </Label>
                 <div style={StylesPanel.SLIDER_DIV_STYLE_15}>
                     {this.renderDisplayRangeSlider()}
                 </div>
@@ -249,7 +249,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
             colorBarButton = (
                 <Popover content={popoverContent}
                          interactionKind={PopoverInteractionKind.CLICK}
-                         popoverClassName="pt-popover-content-sizing cate-color-bars-popover"
+                         popoverClassName="bp3-popover-content-sizing cate-color-bars-popover"
                          position={Position.LEFT}>
                     {this.renderColorBarButton(layer, false)}
                 </Popover>
@@ -259,10 +259,10 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         }
 
         return (
-            <label key="cmap" className="pt-label pt-inline" style={{display: 'flex'}}>
+            <Label key="cmap" className="bp3-inline" style={{display: 'flex'}}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Colour bar</span>
                 {colorBarButton}
-            </label>
+            </Label>
         );
     }
 
@@ -277,7 +277,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         };
 
         return (
-            <label key={key} className="pt-label" style={{display: 'flex'}}>
+            <Label key={key} style={{display: 'flex'}}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>{label}</span>
                 <div style={{...StylesPanel.SLIDER_DIV_STYLE_10, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={min}
@@ -287,7 +287,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                             value={layer[key]}
                             onChange={(value: number) => handleChangedImageEnhancement(key, value)}/>
                 </div>
-            </label>
+            </Label>
         );
     }
 
@@ -351,9 +351,9 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
 
     private renderFillColor() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Colour</span>
-                <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
+                <InputGroup style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.fill}
                                style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
                                size={8}
@@ -362,9 +362,9 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     />
                     <Popover
                         interactionKind={PopoverInteractionKind.CLICK}
-                        popoverClassName="pt-minimal"
+                        popoverClassName="bp3-minimal"
                         position={Position.LEFT}
-                        className="pt-input-action"
+                        className="bp3-input-action"
                     >
                         <Button style={{backgroundColor: this.props.vectorStyle.fill}}/>
                         <SketchPicker
@@ -373,14 +373,14 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                             disableAlpha={true}
                         />
                     </Popover>
-                </div>
-            </label>
+                </InputGroup>
+            </Label>
         );
     }
 
     private renderFillOpacity() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Opacity</span>
                 <div style={{...StylesPanel.SLIDER_DIV_STYLE_05, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={0.0}
@@ -391,13 +391,13 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                             onChange={this.handleChangedFillOpacity}
                     />
                 </div>
-            </label>
+            </Label>
         );
     }
 
     private renderStrokeWidth() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Width</span>
                 <NumericField value={this.props.vectorStyle.strokeWidth}
                               style={{flex: 'auto 1', fontFamily: 'courier'}}
@@ -406,15 +406,15 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                               uncontrolled={true}
                               onChange={this.handleChangedStrokeWidth}
                 />
-            </label>
+            </Label>
         );
     }
 
     private renderStrokeColor() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Colour</span>
-                <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
+                <InputGroup style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.stroke}
                                style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
                                size={8}
@@ -423,9 +423,9 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     />
                     <Popover
                         interactionKind={PopoverInteractionKind.CLICK}
-                        popoverClassName="pt-minimal"
+                        popoverClassName="bp3-minimal"
                         position={Position.LEFT}
-                        className="pt-input-action"
+                        className="bp3-input-action"
                     >
                         <Button style={{backgroundColor: this.props.vectorStyle.stroke}}/>
                         <SketchPicker
@@ -434,14 +434,14 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                             disableAlpha={true}
                         />
                     </Popover>
-                </div>
-            </label>
+                </InputGroup>
+            </Label>
         );
     }
 
     private renderStrokeOpacity() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Opacity</span>
                 <div style={{...StylesPanel.SLIDER_DIV_STYLE_05, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={0.0}
@@ -452,15 +452,15 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                             onChange={this.handleChangedStrokeOpacity}
                     />
                 </div>
-            </label>
+            </Label>
         );
     }
 
     private renderMarkerColor() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Colour</span>
-                <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
+                <InputGroup style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.markerColor}
                                style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
                                size={8}
@@ -469,9 +469,9 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     />
                     <Popover
                         interactionKind={PopoverInteractionKind.CLICK}
-                        popoverClassName="pt-minimal"
+                        popoverClassName="bp3-minimal"
                         position={Position.LEFT}
-                        className="pt-input-action"
+                        className="bp3-input-action"
                     >
                         <Button style={{backgroundColor: this.props.vectorStyle.markerColor}}/>
                         <SketchPicker
@@ -480,32 +480,31 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                             disableAlpha={true}
                         />
                     </Popover>
-                </div>
-            </label>
+                </InputGroup>
+            </Label>
         );
     }
 
     private renderMarkerSize() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Size</span>
-                <div className="pt-select" style={{flex: 'auto 1'}}>
-                    <HTMLSelect
-                        value={this.props.vectorStyle.markerSize}
-                        onChange={this.handleChangedMarkerSize}
-                    >
-                        <option value="small">Small</option>
-                        <option value="medium">Medium</option>
-                        <option value="large">Large</option>
-                    </HTMLSelect>
-                </div>
-            </label>
+                <HTMLSelect
+                    style={{flex: 'auto 1'}}
+                    value={this.props.vectorStyle.markerSize}
+                    onChange={this.handleChangedMarkerSize}
+                >
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large">Large</option>
+                </HTMLSelect>
+            </Label>
         );
     }
 
     private renderMarkerSymbol() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Symbol</span>
                 <TextField value={this.props.vectorStyle.markerSymbol}
                            style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
@@ -513,7 +512,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                            uncontrolled={true}
                            onChange={this.handleChangedMarkerSymbol}
                 />
-            </label>
+            </Label>
         );
     }
 
@@ -558,7 +557,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         const selectedColorMapName = layer.colorMapName;
         const selectedColorMapImage = this.renderColorMapImage(this.props.selectedColorMap);
         const buttonContent = (selectedColorMapImage || (selectedColorMapName || 'Select Color Bar'));
-        return (<AnchorButton className="pt-minimal" style={{width: '100%'}}
+        return (<AnchorButton className="bp3-minimal" style={{width: '100%'}}
                               disabled={disabled}>{buttonContent}</AnchorButton>);
     }
 

@@ -65,7 +65,7 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & actions.Dispa
                     </RadioGroup>
                 </div>
 
-                <p className="pt-text-muted" style={{marginTop: 32}}>Background: The Python package <code><a
+                <p className="bp3-text-muted" style={{marginTop: 32}}>Background: The Python package <code><a
                     href="https://github.com/CCI-Tools/cate" target="_blank">cate</a></code> provides
                     the data processing and visualisation service to Cate Desktop.
                     In addition, it offers a command-line interface <code>cate-cli</code> to

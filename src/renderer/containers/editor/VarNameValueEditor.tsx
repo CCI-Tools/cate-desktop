@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { AnchorButton, Intent } from "@blueprintjs/core";
+import { AnchorButton, ControlGroup, Intent } from '@blueprintjs/core';
 import { IValueEditorProps } from "./ValueEditor";
 import { FieldValue, toTextValue } from "../../components/field/Field";
 import { TextField } from "../../components/field/TextField";
@@ -41,7 +41,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
         const varNames = textValue !== '' ? textValue.split(',').map(name => name.trim()) : [];
         const hasSelectableVariables = this.props.resource && this.props.resource.variables && this.props.resource.variables.length;
         return (
-            <div className="pt-control-group" style={VarNameValueEditor.DIV_STYLE}>
+            <ControlGroup style={VarNameValueEditor.DIV_STYLE}>
                 <TextField
                     value={this.props.value}
                     validator={this.validate}
@@ -69,7 +69,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
                                  onCancel={() => {
                                      this.setState({isDetailsEditorOpen: false} as any);
                                  }}/>
-            </div>
+            </ControlGroup>
         );
     }
 }

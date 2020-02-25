@@ -19,7 +19,7 @@ export interface IToolButtonProps {
 export function ToolButton(props: IToolButtonProps) {
     let className;
     if (!props.large) {
-        className = "pt-small";
+        className = "bp3-small";
     }
     if (props.className && props.className !== "") {
         className = `${className} ${props.className}`;

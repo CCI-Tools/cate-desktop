@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { AnchorButton, Intent } from "@blueprintjs/core";
+import { AnchorButton, ControlGroup, Intent } from '@blueprintjs/core';
 import { IValueEditorProps, ValueEditorCallback, ValueEditorValue } from "./ValueEditor";
 import * as actions from "../../actions";
 import { OperationInputState } from "../../state";
@@ -29,7 +29,7 @@ export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, 
         }
 
         return (
-            <div className="pt-control-group" style={FileValueEditor.DIV_STYLE}>
+            <ControlGroup style={FileValueEditor.DIV_STYLE}>
                 <TextField style={FileValueEditor.TEXT_FIELD_STYLE}
                            value={value}
                            placeholder="Enter local file path"
@@ -38,7 +38,7 @@ export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, 
                 />
                 <AnchorButton intent={Intent.PRIMARY} style={FileValueEditor.BUTTON_STYLE}
                               onClick={() => showFileDialogCallback(input, value, onChange)}>...</AnchorButton>
-            </div>
+            </ControlGroup>
         );
     }
 

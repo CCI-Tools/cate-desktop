@@ -67,7 +67,7 @@ class _ConfigScreen extends React.PureComponent<IConfigScreenProps & actions.Dis
 
                 <p>Here you can customize how you want the Python package <code>cate</code> to be installed or updated.</p>
 
-                <p className="pt-text-muted">Please note, the latter option requires you to select an
+                <p className="bp3-text-muted">Please note, the latter option requires you to select an
                     existing <a href="https://www.anaconda.com/download/" target="_blank">Anaconda</a> or <a href="https://conda.io/miniconda.html" target="_blank">Miniconda</a> Python
                     distribution.
                 </p>

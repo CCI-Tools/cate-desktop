@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { AnchorButton, InputGroup, Intent } from '@blueprintjs/core';
+import { AnchorButton, ControlGroup, InputGroup, Intent } from '@blueprintjs/core';
 import { DialogState, State } from '../state';
 import { ModalDialog } from '../components/ModalDialog';
 import { connect, DispatchProp } from 'react-redux';
@@ -106,7 +106,7 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & Dispatch
             return null;
         }
         return (
-            <div>
+            <ControlGroup>
                 <p>Define a new local data source using a file pattern.</p>
 
                 <p style={{marginTop: '1em'}}>Name:</p>
@@ -116,10 +116,9 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & Dispatch
                     value={this.state.dataSourceName}
                     onChange={this.onDataSourceNameChange}
                 />
-                <p style={{marginTop: '1em'}}>Path pattern<span className="pt-text-muted"> (can contain wildcards like "*" or "?")</span>:
+                <p style={{marginTop: '1em'}}>Path pattern<span className="bp3-text-muted"> (can contain wildcards like "*" or "?")</span>:
                 </p>
-                <div className="pt-control-group"
-                     style={{flexGrow: 1, display: 'flex', marginLeft: '1em', width: '100%'}}>
+                <ControlGroup style={{flexGrow: 1, display: 'flex', marginLeft: '1em', width: '100%'}}>
                     <InputGroup
                         type="text"
                         style={{flex: 'auto'}}
@@ -128,8 +127,8 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & Dispatch
                     />
                     <AnchorButton intent={Intent.PRIMARY} style={{flex: 'none'}}
                                   onClick={this.showSelectDirectoryDialog}>...</AnchorButton>
-                </div>
-            </div>
+                </ControlGroup>
+            </ControlGroup>
         );
     }
 }

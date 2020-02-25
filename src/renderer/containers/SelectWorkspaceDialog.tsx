@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AnchorButton, InputGroup, Intent } from "@blueprintjs/core";
+import { AnchorButton, ControlGroup, InputGroup, Intent } from '@blueprintjs/core';
 import { DialogState, State } from "../state";
 import { ModalDialog } from "../components/ModalDialog";
 import { connect, DispatchProp } from "react-redux";
@@ -155,8 +155,7 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
             directoryChooser = (
                 <React.Fragment>
                     <p style={{marginTop: '1em'}}>Workspace parent directory:</p>
-                    <div className="pt-control-group"
-                         style={{flexGrow: 1, display: 'flex', marginLeft: '1em', width: '100%'}}>
+                    <ControlGroup style={{flexGrow: 1, display: 'flex', marginLeft: '1em', width: '100%'}}>
                         <InputGroup
                             type="text"
                             style={{flex: 'auto'}}
@@ -165,7 +164,7 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
                         />
                         <AnchorButton intent={Intent.PRIMARY} style={{flex: 'none'}}
                                       onClick={this.showSelectDirectoryDialog}>...</AnchorButton>
-                    </div>
+                    </ControlGroup>
                 </React.Fragment>
             );
         }

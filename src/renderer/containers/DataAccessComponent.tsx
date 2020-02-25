@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Checkbox, Collapse, InputGroup, Tooltip } from "@blueprintjs/core";
+import { Checkbox, Collapse, InputGroup, Label, Tooltip } from '@blueprintjs/core';
 import { DataSourceState, ResourceState, VariableState } from "../state";
 import { formatDateAsISODateString } from "../../common/format";
 import * as types from "../../common/cate-types";
@@ -144,15 +144,15 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         let localDataSourcePanel;
         // let openDatasetResourceNamePanel = (
         //     <div style={DataAccessComponent.OPTION_DIV_STYLE}>
-        //         <label className="pt-label">
+        //         <Label>
         //             Unique name for the new dataset resource
-        //             <span className="pt-text-muted"> (required)</span>
-        //             <input className="pt-input"
+        //             <span className="bp3-text-muted"> (required)</span>
+        //             <input className="bp3-input"
         //                    style={{width: '100%'}}
         //                    type="text"
         //                    value={options.openDatasetResourceName}
         //                    onChange={this.onOpenDatasetResourceNameChange}/>
-        //         </label>
+        //         </Label>
         //     </div>
         // );
         const dataSourceNameElement = <strong>{this.props.dataSource.id}</strong>;
@@ -174,16 +174,16 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             localDataSourcePanel = (
                 <Collapse isOpen={isMakeLocalSelected}>
                     <div style={DataAccessComponent.OPTION_DIV_STYLE}>
-                        <label className="pt-label">
+                        <Label>
                             Unique identifier for the new local data source
-                            <span className="pt-text-muted"> (optional)</span>
+                            <span className="bp3-text-muted"> (optional)</span>
                             <InputGroup
                                 style={{width: '100%'}}
                                 type="text"
                                 value={options.makeLocalDataSourceId}
                                 onChange={this.onMakeLocalDataSourceIdChange}
                             />
-                        </label>
+                        </Label>
                     </div>
                 </Collapse>
             );
