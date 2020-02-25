@@ -52,10 +52,10 @@ class _AppModePage extends React.PureComponent<IAppModePageProps & IDispatch, nu
                     <div style={{alignContent: 'center', textAlign: 'center'}}>
                         <img src={'resources/cate-icon@8x.png'} alt={'cate icon'}/>
                     </div>
-                    <Button className={'pt-large'} intent={Intent.PRIMARY} style={{marginTop: 12}}
+                    <Button className={'bp3-large'} intent={Intent.PRIMARY} style={{marginTop: 12}}
                             onClick={setRemoteMode}>Connect to
                         CateHub</Button>
-                    <Button className={'pt-large'} intent={Intent.NONE} style={{marginTop: 6}}
+                    <Button className={'bp3-large'} intent={Intent.NONE} style={{marginTop: 6}}
                             onClick={setLocalMode}>Stand-Alone
                         Mode</Button>
                     <div style={{marginTop: 6}}>

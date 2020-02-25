@@ -1,11 +1,11 @@
-import * as React from "react";
-import { AnchorButton } from "@blueprintjs/core";
-import { DialogState, State } from "../state";
-import { ModalDialog } from "../components/ModalDialog";
-import { connect, DispatchProp } from "react-redux";
-import * as actions from "../actions";
-import { OpenDialogProperty } from "../actions";
-import * as selectors from "../selectors";
+import * as React from 'react';
+import { AnchorButton, ControlGroup, InputGroup, Intent } from '@blueprintjs/core';
+import { DialogState, State } from '../state';
+import { ModalDialog } from '../components/ModalDialog';
+import { connect, DispatchProp } from 'react-redux';
+import * as actions from '../actions';
+import { OpenDialogProperty } from '../actions';
+import * as selectors from '../selectors';
 
 interface ISelectWorkspaceDialogState extends DialogState {
     workspaceDir: string | null;
@@ -52,6 +52,7 @@ function mapStateToProps(state: State, ownProps: ISelectWorkspaceDialogOwnProps)
 // TODO (forman): Rename to (Get)WorkspaceNameDialog
 class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps & ISelectWorkspaceDialogOwnProps & DispatchProp<State>, ISelectWorkspaceDialogState> {
 
+    // TODO (forman): Remove member
     private localWebAPI: boolean;
 
     constructor(props: ISelectWorkspaceDialogProps & DispatchProp<State>) {
@@ -111,9 +112,9 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
 
     private showSelectDirectoryDialog() {
         const openDialogOptions = {
-            title: "Select Directory",
+            title: 'Select Directory',
             defaultPath: this.state.workspaceDir,
-            buttonLabel: "Select",
+            buttonLabel: 'Select',
             properties: [
                 'openDirectory' as OpenDialogProperty,
             ],
@@ -135,8 +136,8 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
         return (
             <ModalDialog
                 isOpen={isOpen}
-                title={this.props.isNewDialog ? "New Workspace" : "Save Workspace As"}
-                confirmTitle={this.props.isNewDialog ? "New" : "Save As"}
+                title={this.props.isNewDialog ? 'New Workspace' : 'Save Workspace As'}
+                confirmTitle={this.props.isNewDialog ? 'New' : 'Save As'}
                 onCancel={this.onCancel}
                 canConfirm={this.canConfirm}
                 onConfirm={this.onConfirm}
@@ -154,16 +155,16 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
             directoryChooser = (
                 <React.Fragment>
                     <p style={{marginTop: '1em'}}>Workspace parent directory:</p>
-                    <div className="pt-control-group"
-                         style={{flexGrow: 1, display: 'flex', marginLeft: '1em', width: '100%'}}>
-                        <input className="pt-input"
-                               type="text"
-                               style={{flex: 'auto'}}
-                               value={this.state.workspaceDir}
-                               onChange={this.onWorkspaceDirChange}/>
-                        <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
+                    <ControlGroup style={{flexGrow: 1, display: 'flex', marginLeft: '1em', width: '100%'}}>
+                        <InputGroup
+                            type="text"
+                            style={{flex: 'auto'}}
+                            value={this.state.workspaceDir}
+                            onChange={this.onWorkspaceDirChange}
+                        />
+                        <AnchorButton intent={Intent.PRIMARY} style={{flex: 'none'}}
                                       onClick={this.showSelectDirectoryDialog}>...</AnchorButton>
-                    </div>
+                    </ControlGroup>
                 </React.Fragment>
             );
         }
@@ -172,11 +173,12 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
             <div>
                 {directoryChooser}
                 <p style={{marginTop: '1em'}}>Workspace name:</p>
-                <input className="pt-input"
-                       type="text"
-                       style={{width: '100%', marginLeft: '1em'}}
-                       value={this.state.workspaceName}
-                       onChange={this.onWorkspaceNameChange}/>
+                <InputGroup
+                    type="text"
+                    style={{width: '100%', marginLeft: '1em'}}
+                    value={this.state.workspaceName}
+                    onChange={this.onWorkspaceNameChange}
+                />
             </div>
         );
     }

@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {IValueEditorProps} from "./ValueEditor";
-import {FieldValue, toTextValue} from "../../components/field/Field";
-import {TextField} from "../../components/field/TextField";
+import { IValueEditorProps } from './ValueEditor';
+import { FieldValue, toTextValue } from '../../components/field/Field';
+import { TextField } from '../../components/field/TextField';
 
 // Note: DictValueEditor and LiteralValueEditor are almost the same - use the React HLC pattern
 
@@ -37,20 +37,24 @@ export class LiteralValueEditor extends React.Component<ILiteralValueEditorProps
     }
 }
 
-export function validatePythonLiteralText(value: string|null) {
+export function validatePythonLiteralText(value: string | null) {
     if (!value || value.trim() === '') {
         return;
     }
     // Define Python eval context:
     //
     //noinspection JSUnusedLocalSymbols
+    // eslint-disable-next-line
     const None = null;
     //noinspection JSUnusedLocalSymbols
+    // eslint-disable-next-line
     const True = true;
     //noinspection JSUnusedLocalSymbols
+    // eslint-disable-next-line
     const False = false;
     //
     // Use JavaScript's eval() to validate Python literals.
     // This is not exact, but works for most literals.
+    // eslint-disable-next-line
     eval(value);
 }

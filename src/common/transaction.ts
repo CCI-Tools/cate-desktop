@@ -1,4 +1,3 @@
-
 export interface TransactionProgress {
     name?: string;
     message?: string;
@@ -202,7 +201,12 @@ export class TransactionSet implements TransactionContext {
             return p.then(() => {
                 onProgress({name: t.name});
                 return t.ensureFulfilled(this, onProgress).then(value => {
-                    onProgress({worked: i + 1, totalWork: transactions.length, subWorked: 0, done: i === transactions.length - 1});
+                    onProgress({
+                                   worked: i + 1,
+                                   totalWork: transactions.length,
+                                   subWorked: 0,
+                                   done: i === transactions.length - 1
+                               });
                     return value;
                 }).catch(reason => {
                     while (reason && reason.reason) {

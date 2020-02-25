@@ -1,7 +1,7 @@
 const _DEBUG_WEB_SOCKET_RPC = false;
 
 export type MplFigureMessageCallback = (message: string) => any;
-export type MplFigureCommandData = {name: string};
+export type MplFigureCommandData = { name: string };
 export type MplFigureCommandListener = (figureId: number, commandData: MplFigureCommandData) => void;
 
 /**
@@ -9,7 +9,9 @@ export type MplFigureCommandListener = (figureId: number, commandData: MplFigure
  */
 export interface MplFigureCommandSource {
     addCommandListener(figureId: number, listener: MplFigureCommandListener): void;
+
     removeCommandListener(figureId: number, listener: MplFigureCommandListener): void;
+
     removeCommandListeners(figureId: number): void;
 }
 
@@ -17,7 +19,7 @@ export interface MplFigureCommandSource {
  * Default impl. of MplFigureCommandSource interface
  */
 export class MplFigureCommandSourceImpl implements MplFigureCommandSource {
-    private listenersMap: {[id: number]: Set<MplFigureCommandListener>};
+    private listenersMap: { [id: number]: Set<MplFigureCommandListener> };
 
     constructor() {
         this.listenersMap = {};
@@ -39,7 +41,7 @@ export class MplFigureCommandSourceImpl implements MplFigureCommandSource {
         const listeners = this.listenersMap[figureId];
         if (listeners) {
             listeners.delete(listener);
-            if (listeners.size == 0) {
+            if (listeners.size === 0) {
                 delete this.listenersMap[figureId];
             }
         }
@@ -80,7 +82,7 @@ export class MplFigure {
     private waiting: boolean;
     private lastKey: number | null;
     private resizeTimer: number | null;
-    private lastSize: {width: number; height: number};
+    private lastSize: { width: number; height: number };
 
     constructor(figureId: number,
                 webSocketUrl: string,
@@ -104,8 +106,8 @@ export class MplFigure {
         this.waiting = false;
 
         this.imageObj.onload = () => {
-            const canvasContext = this.figureImageCanvas.getContext("2d");
-            if (this.imageMode == 'full') {
+            const canvasContext = this.figureImageCanvas.getContext('2d');
+            if (this.imageMode === 'full') {
                 // Full images could contain transparency (where diff images
                 // almost always do), so we need to clear the canvas so that
                 // there is no ghosting.
@@ -127,11 +129,11 @@ export class MplFigure {
             this.webSocket.addEventListener('message', this.processMessage);
             const supportsBinary = !!this.webSocket.binaryType;
             if (!supportsBinary) {
-                console.warn("This browser does not support binary websocket messages. " +
-                             "Figure update performance may be slow.");
+                console.warn('This browser does not support binary websocket messages. ' +
+                             'Figure update performance may be slow.');
             }
-            this.sendMessage("supports_binary", {value: supportsBinary});
-            this.sendMessage("send_image_mode");
+            this.sendMessage('supports_binary', {value: supportsBinary});
+            this.sendMessage('send_image_mode');
             this.sendRefresh();
             this.sendResize();
 
@@ -165,7 +167,7 @@ export class MplFigure {
      */
     private handleCommand(figureId: number, commandData: MplFigureCommandData): void {
         if (figureId === this.id) {
-            this.sendMessage("toolbar_button", commandData);
+            this.sendMessage('toolbar_button', commandData);
         } else {
             console.warn(`received invalid figure ID: expected #${this.id}, got #${figureId} for data ${commandData}`);
         }
@@ -183,20 +185,20 @@ export class MplFigure {
 
         const figureImageCanvas = document.createElement('canvas');
         figureImageCanvas.id = 'mpl-figure-image-' + this.id;
-        figureImageCanvas.setAttribute('style', "left: 0; top: 0; z-index: 0; outline: 0");
+        figureImageCanvas.setAttribute('style', 'left: 0; top: 0; z-index: 0; outline: 0');
         this.figureImageCanvas = figureImageCanvas;
 
         const rubberBandCanvas = document.createElement('canvas');
         rubberBandCanvas.id = 'mpl-rubber-band-' + this.id;
-        rubberBandCanvas.setAttribute('style', "position: absolute; left: 0; top: 0; z-index: 1;");
+        rubberBandCanvas.setAttribute('style', 'position: absolute; left: 0; top: 0; z-index: 1;');
         const handleMouseEvent = this.handleMouseEvent.bind(this);
         rubberBandCanvas.onmousedown = wrapEvent('button_press', handleMouseEvent);
         rubberBandCanvas.onmouseup = wrapEvent('button_release', handleMouseEvent);
         rubberBandCanvas.onmousemove = wrapEvent('motion_notify', handleMouseEvent);
         rubberBandCanvas.onmouseenter = wrapEvent('figure_enter', handleMouseEvent);
         rubberBandCanvas.onmouseleave = wrapEvent('figure_leave', handleMouseEvent);
-        const rubberBandContext = rubberBandCanvas.getContext("2d");
-        rubberBandContext.strokeStyle = "#000000";
+        const rubberBandContext = rubberBandCanvas.getContext('2d');
+        rubberBandContext.strokeStyle = '#000000';
         this.rubberBandCanvas = rubberBandCanvas;
 
         this.parentElement.appendChild(figureImageCanvas);
@@ -230,12 +232,12 @@ export class MplFigure {
     }
 
     sendRefresh() {
-        this.sendMessage("refresh");
+        this.sendMessage('refresh');
     }
 
     sendCanvasUpdated() {
         // Called whenever the canvas gets updated.
-        this.sendMessage("ack");
+        this.sendMessage('ack');
     }
 
     sendMessage(type: string, properties?: any) {
@@ -268,7 +270,7 @@ export class MplFigure {
             this.sendCanvasUpdated();
             this.waiting = false;
             return;
-        } else if (typeof evt.data === 'string' && evt.data.slice(0, 21) == "data:image/png;base64") {
+        } else if (typeof evt.data === 'string' && evt.data.slice(0, 21) === 'data:image/png;base64') {
             this.imageObj.src = evt.data;
             this.sendCanvasUpdated();
             this.waiting = false;
@@ -282,17 +284,17 @@ export class MplFigure {
         // Call the  "handle_${msgType}" callback, which takes
         // the JSON message as its only argument.
         try {
-            const callback = this["handle_" + msgType];
+            const callback = this['handle_' + msgType];
             if (callback) {
                 try {
                     // console.log(`Calling: handle_${msg_type}(${jsonText})`);
                     callback.bind(this)(msg);
                 } catch (e) {
-                    console.error("Exception inside the 'handler_" + msgType + "' callback:", e, e.stack, msg);
+                    console.error('Exception inside the \'handler_' + msgType + '\' callback:', e, e.stack, msg);
                 }
             }
         } catch (e) {
-            console.error("No handler for the '" + msgType + "' message type: ", msg);
+            console.error('No handler for the \'' + msgType + '\' message type: ', msg);
         }
     }
 
@@ -325,7 +327,7 @@ export class MplFigure {
         const width = Math.abs(x1 - x0);
         const height = Math.abs(y1 - y0);
 
-        const rubberBandCanvasContext = this.rubberBandCanvas.getContext("2d");
+        const rubberBandCanvasContext = this.rubberBandCanvas.getContext('2d');
         rubberBandCanvasContext.clearRect(0, 0, this.figureImageCanvas.width, this.figureImageCanvas.height);
         rubberBandCanvasContext.strokeRect(xMin, yMin, width, height);
     }
@@ -394,22 +396,22 @@ export class MplFigure {
         const name = extraData.name;
 
         // Prevent repeat events
-        if (name == 'key_press') {
+        if (name === 'key_press') {
             if (event.which === this.lastKey)
                 return;
             else
                 this.lastKey = event.which;
         }
-        if (name == 'key_release')
+        if (name === 'key_release')
             this.lastKey = null;
 
         let value = '';
-        if (event.ctrlKey && event.which != 17)
-            value += "ctrl+";
-        if (event.altKey && event.which != 18)
-            value += "alt+";
-        if (event.shiftKey && event.which != 16)
-            value += "shift+";
+        if (event.ctrlKey && event.which !== 17)
+            value += 'ctrl+';
+        if (event.altKey && event.which !== 18)
+            value += 'alt+';
+        if (event.shiftKey && event.which !== 16)
+            value += 'shift+';
 
         value += 'k';
         value += event.which.toString();
@@ -436,7 +438,7 @@ function findpos(e: MouseEvent) {
         targ = e.target;
     else if (e.srcElement)
         targ = e.srcElement;
-    if (targ.nodeType == 3) // defeat Safari bug
+    if (targ.nodeType === 3) // defeat Safari bug
         targ = targ.parentNode;
 
     const bodyRect = document.body.getBoundingClientRect();
@@ -447,7 +449,7 @@ function findpos(e: MouseEvent) {
     const x = e.pageX - offsetX;
     const y = e.pageY - offsetY;
 
-    return {"x": x, "y": y};
+    return {'x': x, 'y': y};
 }
 
 /*

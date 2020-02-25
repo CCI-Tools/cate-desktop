@@ -1,24 +1,30 @@
 import * as React from 'react';
-import {connect, DispatchProp} from "react-redux";
-import {AnchorButton, Tooltip} from "@blueprintjs/core";
+import { connect, DispatchProp } from 'react-redux';
+import { AnchorButton, ButtonGroup, FormGroup, Icon, Tooltip } from '@blueprintjs/core';
 import {
-    OperationState, WorkspaceState, OperationInputState, State, DialogState, OperationKWArgs,
-    ResourceState, WorkflowStepState
-} from "../state";
-import {InputEditor} from "./editor/InputEditor";
-import {updatePropertyObject} from "../../common/objutil";
-import {ModalDialog} from "../components/ModalDialog";
-import {isFieldValue} from "../components/field/Field";
-import {GeometryWKTGetter, hasValueEditorFactory, renderValueEditor} from "./editor/ValueEditor";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import {isDefined, isString, isUndefinedOrNull} from "../../common/types";
-import {isUndefined} from "../../common/types";
-import {InputAssignment, InputAssignments} from "./editor/value-editor-assign";
+    DialogState,
+    OperationInputState,
+    OperationKWArgs,
+    OperationState,
+    ResourceState,
+    State,
+    WorkflowStepState,
+    WorkspaceState
+} from '../state';
+import { InputEditor } from './editor/InputEditor';
+import { updatePropertyObject } from '../../common/objutil';
+import { ModalDialog } from '../components/ModalDialog';
+import { isFieldValue } from '../components/field/Field';
+import { GeometryWKTGetter, hasValueEditorFactory, renderValueEditor } from './editor/ValueEditor';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import { isDefined, isString, isUndefined, isUndefinedOrNull } from '../../common/types';
+import { InputAssignment, InputAssignments } from './editor/value-editor-assign';
 import {
-    EDIT_OPERATION_STEP_DIALOG_ID, NEW_CTX_OPERATION_STEP_DIALOG_ID,
+    EDIT_OPERATION_STEP_DIALOG_ID,
+    NEW_CTX_OPERATION_STEP_DIALOG_ID,
     NEW_OPERATION_STEP_DIALOG_ID
-} from "./operation-step-dialog-ids";
+} from './operation-step-dialog-ids';
 
 type InputErrors = { [inputName: string]: Error };
 
@@ -54,7 +60,7 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
     if (id === NEW_OPERATION_STEP_DIALOG_ID) {
         operation = selectors.selectedOperationSelector(state);
         if (!operation) {
-            console.error("OperationStepDialog: operation is undefined: dialog id =", id);
+            console.error('OperationStepDialog: operation is undefined: dialog id =', id);
             return {id, isOpen: false} as any;
         }
         // Assign inputs from restored values
@@ -63,7 +69,7 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
     } else if (id === NEW_CTX_OPERATION_STEP_DIALOG_ID) {
         operation = selectors.selectedCtxOperationSelector(state);
         if (!operation) {
-            console.error("OperationStepDialog: operation is undefined: dialog id =", id);
+            console.error('OperationStepDialog: operation is undefined: dialog id =', id);
             return {id, isOpen: false} as any;
         }
         // Assign inputs from context settings
@@ -73,13 +79,13 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
         operation = (selectors.operationsSelector(state) || [])
             .find(op => op.name === operationStep.op || op.qualifiedName === operationStep.op);
         if (!operation) {
-            console.error("OperationStepDialog: operation is undefined: dialog id =", id);
+            console.error('OperationStepDialog: operation is undefined: dialog id =', id);
             return {id, isOpen: false} as any;
         }
         inputAssignments = getInputAssignmentsFromOperationStep(operation, operationStep);
         resName = operationStep.id;
     } else {
-        console.error("OperationStepDialog: unknown dialog id =", id);
+        console.error('OperationStepDialog: unknown dialog id =', id);
         return {id, isOpen: false} as any;
     }
 
@@ -91,7 +97,7 @@ function mapStateToProps(state: State, ownProps: IOperationStepDialogOwnProps): 
 
 class OperationStepDialog extends React.Component<IOperationStepDialogProps & DispatchProp<State>, IOperationStepDialogState> {
 
-    private static readonly DIALOG_STYLE: React.CSSProperties = {width: "42em"};
+    private static readonly DIALOG_STYLE: React.CSSProperties = {width: '42em'};
     private static readonly NO_STATE = {inputAssignments: {}};
 
     constructor(props: IOperationStepDialogProps & DispatchProp<State>) {
@@ -131,12 +137,12 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
             // Only store input assignments when creating new operation steps
             inputAssignmentsMap = {[operation.qualifiedName]: this.state.inputAssignments};
         }
-        this.props.dispatch(actions.hideOperationStepDialog(this.props.id, inputAssignmentsMap));
+        this.props.dispatch(actions.hideOperationStepDialog(this.props.id, inputAssignmentsMap) as any);
         this.props.dispatch(actions.setWorkspaceResource(operation.qualifiedName,
                                                          this.getInputArguments(),
                                                          this.props.resName,
                                                          isEditMode,
-                                                         `Executing operation "${operation.name}"`));
+                                                         `Executing operation "${operation.name}"`) as any);
     }
 
     private canConfirm() {
@@ -144,7 +150,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
     }
 
     private onCancel() {
-        this.props.dispatch(actions.hideOperationStepDialog(this.props.id));
+        this.props.dispatch(actions.hideOperationStepDialog(this.props.id) as any);
     }
 
     private onValidate() {
@@ -209,7 +215,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
         return (
             <ModalDialog
                 isOpen={true}
-                iconName="function"
+                icon="function"
                 title={dialogTitle}
                 confirmTooltip={tooltipText}
                 confirmTitle={confirmTitle}
@@ -239,7 +245,7 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
 
         const bodyFooterText = (
             <p key='footer' style={{marginTop: '1em'}}>
-                Pressing <span className="pt-icon-play"/> will add operation <code>{operation.name}</code> as a new
+                Pressing <Icon icon="play"/> will add operation <code>{operation.name}</code> as a new
                 workflow step to the current workspace. The result of the step is a new <em>resource</em> which can
                 be
                 used as input for other operations. You can remove the step or change it's parameters later.
@@ -249,17 +255,17 @@ class OperationStepDialog extends React.Component<IOperationStepDialogProps & Di
         const parameterPanel = this.renderParameterPanel();
 
         return (
-            <div className="pt-form-group">
+            <FormGroup>
                 {bodyHeaderText}
-                <div className="pt-form-content">
+                <ButtonGroup>
                     {parameterPanel}
-                    <div className="pt-form-helper-text">{bodyFooterText}</div>
-                </div>
+                    <div className="bp3-form-helper-text">{bodyFooterText}</div>
+                </ButtonGroup>
                 <ValidationDialog isOpen={this.state.isValidationDialogOpen}
                                   inputErrors={this.state.inputErrors}
                                   onConfirm={this.hideValidationDialog}
                 />
-            </div>
+            </FormGroup>
         );
     }
 
@@ -494,7 +500,7 @@ export function renderInputErrors(inputErrors: InputErrors, resourceProblems?: n
     if (problems.length === 0) {
         return null;
     } else if (problems.length === 1) {
-        introText = "The following problem has been encountered:";
+        introText = 'The following problem has been encountered:';
     } else {
         introText = `The following ${problems.length} problems have been encountered:`;
     }
@@ -505,13 +511,13 @@ export function renderInputErrors(inputErrors: InputErrors, resourceProblems?: n
     </p>) : null;
 
     return (
-        <div className="pt-form-group">
+        <FormGroup>
             {introText}
-            <div className="pt-form-content">
+            <div className="bp3-form-content">
                 {problems}
-                <div className="pt-form-helper-text">{footerText}</div>
+                <div className="bp3-form-helper-text">{footerText}</div>
             </div>
-        </div>
+        </FormGroup>
     );
 }
 

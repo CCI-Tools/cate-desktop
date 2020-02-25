@@ -1,6 +1,6 @@
 import * as React from 'react';
 import AceEditor from 'react-ace';
-import { ModalDialog } from "./ModalDialog";
+import { ModalDialog } from './ModalDialog';
 
 import 'brace/mode/python';
 import 'brace/theme/monokai';
@@ -27,7 +27,7 @@ const LIBS = [
 ];
 
 export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDialogState> {
-    private static readonly DIALOG_STYLE: React.CSSProperties = {width: "54em"};
+    private static readonly DIALOG_STYLE: React.CSSProperties = {width: '54em'};
 
     constructor(props: IScriptDialogProps) {
         super(props);
@@ -47,7 +47,7 @@ export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDia
     }
 
     onChange(value: string) {
-        console.log("onChange: value =", value);
+        console.log('onChange: value =', value);
         this.setState(this.toState(value));
     }
 
@@ -91,7 +91,7 @@ export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDia
             <React.Fragment>
                 <AceEditor mode={this.props.scriptLang}
                            theme="monokai"
-                           width={"100%"}
+                           width={'100%'}
                            fontSize={14}
                            showGutter={true}
                            highlightActiveLine={true}
@@ -107,11 +107,12 @@ export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDia
 
         const libText = LIBS.map((item, index) => (
             <span><code>{item.module}</code>&nbsp;(<a href={item.href}
+                                                      rel="noopener noreferrer"
                                                       target="_blank">{item.name}</a>){index < LIBS.length - 1 ? ', ' : ''}</span>
         ));
 
         return (
-            <div className="pt-form-helper-text" style={{marginTop: '0.5em'}}>
+            <div className="bp3-form-helper-text" style={{marginTop: '0.5em'}}>
                 Please use Python 3.6+ syntax. The following modules are imported by default: {libText}. Other
                 modules can be imported: <code>dask</code>, <code>gdal</code>, <code>geos</code> <code>pyshp</code>,
                 <code>scipy</code>, <code>shapely</code>.

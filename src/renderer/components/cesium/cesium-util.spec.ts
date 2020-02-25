@@ -1,13 +1,13 @@
-import {expect} from 'chai';
-import * as Cesium from "cesium";
-import {entityToGeoJson} from "./cesium-util";
+import { expect } from 'chai';
+import * as Cesium from 'cesium';
+import { entityToGeoJson } from './cesium-util';
 
 
 describe('cesium-util', function () {
     describe('entityToGeoJson', function () {
 
         it('works for null entities', function () {
-            let obj = entityToGeoJson(null, "x", {});
+            let obj = entityToGeoJson(null, 'x', {});
             expect(obj).to.equal(null);
         });
 
@@ -28,13 +28,13 @@ describe('cesium-util', function () {
                                                                 color: Cesium.Color.WHITE,
                                                                 pixelSize: 10,
                                                             }
-                                                        }), "bibo-643", {visible: true});
+                                                        }), 'bibo-643', {visible: true});
 
             expect(obj).to.exist;
-            expect(obj.type).to.equal("Feature");
-            expect(obj.id).to.equal("bibo-643");
+            expect(obj.type).to.equal('Feature');
+            expect(obj.id).to.equal('bibo-643');
             expect(obj.geometry).to.exist;
-            expect(obj.geometry.type).to.equal("Point");
+            expect(obj.geometry.type).to.equal('Point');
             expect(obj.geometry.coordinates).to.exist;
             expect(obj.geometry.coordinates.length).to.equal(2);
             expect(obj.geometry.coordinates[0]).to.be.approximately(10.24, 1e-5);
@@ -68,13 +68,13 @@ describe('cesium-util', function () {
                                                                 material: Cesium.Color.BLUE,
                                                                 width: 3.5,
                                                             }
-                                                        }), "bibo-644", {visible: true});
+                                                        }), 'bibo-644', {visible: true});
 
             expect(obj).to.exist;
-            expect(obj.type).to.equal("Feature");
-            expect(obj.id).to.equal("bibo-644");
+            expect(obj.type).to.equal('Feature');
+            expect(obj.id).to.equal('bibo-644');
             expect(obj.geometry).to.exist;
-            expect(obj.geometry.type).to.equal("LineString");
+            expect(obj.geometry.type).to.equal('LineString');
             expect(obj.geometry.coordinates).to.exist;
             expect(obj.geometry.coordinates.length).to.equal(3);
             expect(obj.geometry.coordinates[0][0]).to.be.approximately(10.24, 1e-5);
@@ -113,13 +113,13 @@ describe('cesium-util', function () {
                                                                 outlineWidth: 2.8,
                                                                 outlineColor: Cesium.Color.BLACK.withAlpha(0.4),
                                                             }
-                                                        }), "bibo-645", {visible: true});
+                                                        }), 'bibo-645', {visible: true});
 
             expect(obj).to.exist;
-            expect(obj.type).to.equal("Feature");
-            expect(obj.id).to.equal("bibo-645");
+            expect(obj.type).to.equal('Feature');
+            expect(obj.id).to.equal('bibo-645');
             expect(obj.geometry).to.exist;
-            expect(obj.geometry.type).to.equal("Polygon");
+            expect(obj.geometry.type).to.equal('Polygon');
             expect(obj.geometry.coordinates).to.exist;
             expect(obj.geometry.coordinates.length).to.equal(1);
             expect(obj.geometry.coordinates[0]).exist;

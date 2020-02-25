@@ -1,11 +1,10 @@
-import { WebAPIClient } from './webapi';
-import { JobStatus, JobFailure, JobProgress } from "./webapi";
-import { PanelContainerLayout } from "./components/PanelContainer";
-import { ViewLayoutState, ViewState } from "./components/ViewState";
-import { Feature, FeatureCollection, GeoJsonObject, Point } from "geojson";
-import { IconName } from "@blueprintjs/core";
-import { SimpleStyle } from "../common/geojson-simple-style";
-import { GeometryToolType } from "./components/cesium/geometry-tool";
+import { JobFailure, JobProgress, JobStatus, WebAPIClient } from './webapi';
+import { PanelContainerLayout } from './components/PanelContainer';
+import { ViewLayoutState, ViewState } from './components/ViewState';
+import { Feature, FeatureCollection, GeoJsonObject, Point } from 'geojson';
+import { IconName } from '@blueprintjs/core';
+import { SimpleStyle } from '../common/geojson-simple-style';
+import { GeometryToolType } from './components/cesium/geometry-tool';
 import { User } from './webapi/apis/AuthAPI';
 
 /**
@@ -65,7 +64,7 @@ export interface DataStoreNotice {
     id: string;
     title: string;
     content: string;
-    icon: string | null;
+    icon: IconName | null;
     intent: string | null;
 }
 
@@ -328,7 +327,7 @@ export interface ImageLayout {
     tileHeight: number;
 }
 
-export type WorldViewMode = "2D" | "3D";
+export type WorldViewMode = '2D' | '3D';
 
 /**
  * Data object for view type "world".
@@ -439,10 +438,10 @@ export interface ImageStatisticsState {
     max: number;
 }
 
-export const SPLIT_MODE_OFF = "off";
-export const SPLIT_MODE_LEFT = "left";
-export const SPLIT_MODE_RIGHT = "right";
-export type SplitMode = "off" | "left" | "right";
+export const SPLIT_MODE_OFF = 'off';
+export const SPLIT_MODE_LEFT = 'left';
+export const SPLIT_MODE_RIGHT = 'right';
+export type SplitMode = 'off' | 'left' | 'right';
 
 
 /**
@@ -830,7 +829,7 @@ export interface MessageActionState {
     text: string;
     onClick?: (...actionArgs) => void;
     href?: string;
-    iconName?: IconName;
+    icon?: IconName;
 }
 
 export interface MessageState {

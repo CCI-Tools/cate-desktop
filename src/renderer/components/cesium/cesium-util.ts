@@ -1,10 +1,7 @@
-import {isDefined, isNumber, isString} from "../../../common/types";
-import {
-    featurePropertiesFromSimpleStyle, SIMPLE_STYLE_DEFAULTS,
-    SimpleStyle
-} from "../../../common/geojson-simple-style";
-import * as Cesium from "cesium";
-import {DirectGeometryObject, Feature} from "geojson";
+import { isDefined, isNumber, isString } from '../../../common/types';
+import { SIMPLE_STYLE_DEFAULTS, SimpleStyle } from '../../../common/geojson-simple-style';
+import * as Cesium from 'cesium';
+import { DirectGeometryObject, Feature } from 'geojson';
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SimpleStyle
@@ -35,10 +32,10 @@ export function simpleStyleToCesium(style: SimpleStyle, defaults?: SimpleStyle):
     const cStyle: CesiumSimpleStyle = {};
 
     if (isString(style.stroke) || isNumber(style.strokeOpacity) || isNumber(style.strokeWidth)) {
-        const stroke = getString("stroke", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const stroke = getString('stroke', style, defaults, SIMPLE_STYLE_DEFAULTS);
         let color = Cesium.Color.fromCssColorString(stroke);
-        const strokeWidth = getNumber("strokeWidth", style, defaults, SIMPLE_STYLE_DEFAULTS);
-        const strokeOpacity = getNumber("strokeOpacity", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const strokeWidth = getNumber('strokeWidth', style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const strokeOpacity = getNumber('strokeOpacity', style, defaults, SIMPLE_STYLE_DEFAULTS);
         if (strokeOpacity >= 0.0 && strokeOpacity < 1.0) {
             color = Cesium.Color.fromAlpha(color, strokeOpacity);
         }
@@ -47,9 +44,9 @@ export function simpleStyleToCesium(style: SimpleStyle, defaults?: SimpleStyle):
     }
 
     if (isString(style.fill) || isNumber(style.fillOpacity)) {
-        const fill = getString("fill", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const fill = getString('fill', style, defaults, SIMPLE_STYLE_DEFAULTS);
         let color = Cesium.Color.fromCssColorString(fill);
-        const fillOpacity = getNumber("fillOpacity", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const fillOpacity = getNumber('fillOpacity', style, defaults, SIMPLE_STYLE_DEFAULTS);
         if (fillOpacity >= 0.0 && fillOpacity < 1.0) {
             color = Cesium.Color.fromAlpha(color, fillOpacity);
         }
@@ -57,13 +54,13 @@ export function simpleStyleToCesium(style: SimpleStyle, defaults?: SimpleStyle):
     }
 
     if (isString(style.markerSymbol) || isString(style.markerColor) || isString(style.markerSize)) {
-        const markerSymbol = getString("markerSymbol", style, defaults, SIMPLE_STYLE_DEFAULTS);
-        const markerColor = getString("markerColor", style, defaults, SIMPLE_STYLE_DEFAULTS);
-        const markerSize = getString("markerSize", style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const markerSymbol = getString('markerSymbol', style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const markerColor = getString('markerColor', style, defaults, SIMPLE_STYLE_DEFAULTS);
+        const markerSize = getString('markerSize', style, defaults, SIMPLE_STYLE_DEFAULTS);
         const color = Cesium.Color.fromCssColorString(markerColor);
         const size = MARKER_SIZES[markerSize] || MARKER_SIZE_MEDIUM;
         const pinBuilder = new Cesium.PinBuilder();
-        if (markerSymbol === "") {
+        if (markerSymbol === '') {
             cStyle.markerCanvas = pinBuilder.fromColor(color, size);
         } else if (markerSymbol.length === 1) {
             cStyle.markerSymbol = markerSymbol;
@@ -168,17 +165,17 @@ export function applyStyleToEntity(style: CesiumSimpleStyle, entity: Cesium.Enti
 
 function colorToHexString(value: number): string {
     if (value <= 0) {
-        return "00";
+        return '00';
     } else if (value >= 1) {
-        return "ff";
+        return 'ff';
     } else {
         const v = Math.floor(255.9999 * value);
         if (v <= 0) {
-            return "00";
+            return '00';
         } else if (v >= 255) {
-            return "ff";
+            return 'ff';
         } else if (v < 16) {
-            return "0" + v.toString(16);
+            return '0' + v.toString(16);
         } else {
             return v.toString(16);
         }
@@ -189,7 +186,7 @@ function rgbToCssColor(r: number, g: number, b: number): string {
     const rs = colorToHexString(r);
     const gs = colorToHexString(g);
     const bs = colorToHexString(b);
-    return "#" + rs + gs + bs;
+    return '#' + rs + gs + bs;
 }
 
 function pointGraphicsToSimpleStyle(point: Cesium.PointGraphics) {
@@ -198,7 +195,7 @@ function pointGraphicsToSimpleStyle(point: Cesium.PointGraphics) {
     const outlineWidth = point.outlineWidth;
     const pixelSize = point.pixelSize;
     const color = point.color;
-    let markerSize: "small" | "medium" | "large";
+    let markerSize: 'small' | 'medium' | 'large';
     let markerColor: string;
     let markerSymbol: string;
     let stroke: string;
@@ -206,11 +203,11 @@ function pointGraphicsToSimpleStyle(point: Cesium.PointGraphics) {
     if (isDefined(pixelSize)) {
         const pixelSizeValue = pixelSize.getValue(now);
         if (pixelSizeValue <= MARKER_SIZE_SMALL) {
-            markerSize = "small";
+            markerSize = 'small';
         } else if (pixelSizeValue <= MARKER_SIZE_MEDIUM) {
-            markerSize = "medium";
+            markerSize = 'medium';
         } else {
-            markerSize = "large";
+            markerSize = 'large';
         }
     }
     if (isDefined(color)) {
@@ -239,7 +236,7 @@ function billboardGraphicsToSimpleStyle(point: Cesium.BillboardGraphics) {
     const scale = point.scale;
     const color = point.color;
     let markerSymbol: string;
-    let markerSize: "small" | "medium" | "large";
+    let markerSize: 'small' | 'medium' | 'large';
     let markerColor: string;
     if (isDefined(image)) {
         const imageValue = image.getValue(now);
@@ -250,11 +247,11 @@ function billboardGraphicsToSimpleStyle(point: Cesium.BillboardGraphics) {
     if (isDefined(scale)) {
         const scaleValue = scale.getValue(now);
         if (scaleValue < 1) {
-            markerSize = "small";
+            markerSize = 'small';
         } else if (scaleValue < 2) {
-            markerSize = "medium";
+            markerSize = 'medium';
         } else {
-            markerSize = "large";
+            markerSize = 'large';
         }
     }
     if (isDefined(color)) {
@@ -273,18 +270,18 @@ function labelGraphicsToSimpleStyle(point: Cesium.LabelGraphics) {
     const scale = point.scale;
     const fillColor = point.fillColor;
     let title: string;
-    let markerSize: "small" | "medium" | "large";
+    let markerSize: 'small' | 'medium' | 'large';
     let markerColor: string;
     if (isString(text)) {
         title = text;
     }
     if (isNumber(scale)) {
         if (scale < 1) {
-            markerSize = "small";
+            markerSize = 'small';
         } else if (scale < 2) {
-            markerSize = "medium";
+            markerSize = 'medium';
         } else {
-            markerSize = "large";
+            markerSize = 'large';
         }
     }
     if (fillColor) {
@@ -379,7 +376,7 @@ export function entityToGeoJson(entity: Cesium.Entity | null, id: string, proper
         const p = Cesium.Cartographic.fromCartesian(entity.position.getValue(Cesium.JulianDate.now()));
         const coordinates = [Cesium.Math.toDegrees(p.longitude), Cesium.Math.toDegrees(p.latitude)];
         return _entityToGeoJson(entity, id, properties, {
-            type: "Point",
+            type: 'Point',
             coordinates
         });
     }
@@ -392,7 +389,7 @@ export function entityToGeoJson(entity: Cesium.Entity | null, id: string, proper
             coordinates.push([Cesium.Math.toDegrees(p.longitude), Cesium.Math.toDegrees(p.latitude)]);
         }
         return _entityToGeoJson(entity, id, properties, {
-            type: "LineString",
+            type: 'LineString',
             coordinates
         });
     }
@@ -402,7 +399,7 @@ export function entityToGeoJson(entity: Cesium.Entity | null, id: string, proper
         const positions = hierarchy.positions || hierarchy;
         const holes = hierarchy.holes;
         if (holes) {
-            throw new Error("entityToGeoJson() does not yet support polygons with holes");
+            throw new Error('entityToGeoJson() does not yet support polygons with holes');
         }
         let ring = [];
         for (let position of positions) {
@@ -412,7 +409,7 @@ export function entityToGeoJson(entity: Cesium.Entity | null, id: string, proper
         ring.push([ring[0][0], ring[0][1]]);
         const coordinates = [ring];
         return _entityToGeoJson(entity, id, properties, {
-            type: "Polygon",
+            type: 'Polygon',
             coordinates
         });
     }
@@ -423,7 +420,7 @@ export function entityToGeoJson(entity: Cesium.Entity | null, id: string, proper
 export function _entityToGeoJson(entity: Cesium.Entity, id: string | undefined, properties: any, geometry: DirectGeometryObject): Feature<any> | null {
     id = id || entity.id.toString();
     //const properties = {...featurePropertiesFromSimpleStyle(entityToSimpleStyle(entity))};
-    return {type: "Feature", id, geometry, properties};
+    return {type: 'Feature', id, geometry, properties};
 }
 
 
@@ -469,7 +466,7 @@ export function entityToGeometryWkt(entity: Cesium.Entity): string {
         return `POINT (${cartesian3ToWkt(position)})`
     }
 
-    throw new TypeError("can't understand geometry of selected entity");
+    throw new TypeError('can\'t understand geometry of selected entity');
 }
 
 export function canvasToCartographic(viewer: Cesium.Viewer,

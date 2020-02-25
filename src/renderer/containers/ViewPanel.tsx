@@ -1,11 +1,11 @@
 import * as React from 'react';
-import {connect, Dispatch} from 'react-redux';
-import {State} from "../state";
-import {AnchorButton, Checkbox} from "@blueprintjs/core";
-import * as selectors from "../selectors";
-import * as actions from "../actions";
-import {ViewState} from "../components/ViewState";
-import {NO_ACTIVE_VIEW} from "../messages";
+import { connect, Dispatch } from 'react-redux';
+import { State } from '../state';
+import { AnchorButton, Checkbox, ControlGroup, Icon, InputGroup, Label } from '@blueprintjs/core';
+import * as selectors from '../selectors';
+import * as actions from '../actions';
+import { ViewState } from '../components/ViewState';
+import { NO_ACTIVE_VIEW } from '../messages';
 
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
@@ -32,8 +32,8 @@ function mapStateToProps(state: State): IViewPanelProps {
  */
 class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, null> {
 
-    private static ACTION_ITEM_STYLE = {margin: "0.1em 0em 2em 0em"};
-    private static PROPERTY_ITEM_STYLE = {margin: "0.1em 0em 0.6em 0em"};
+    private static ACTION_ITEM_STYLE = {margin: '0.1em 0em 2em 0em'};
+    private static PROPERTY_ITEM_STYLE = {margin: '0.1em 0em 0.6em 0em'};
 
     constructor(props: IViewPanelProps & IViewPanelDispatch) {
         super(props);
@@ -57,8 +57,8 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, nu
 
     render() {
         return (
-            <div style={{margin: "0.2em 0.2em 0.2em 0.2em"}}>
-                <AnchorButton iconName="globe"
+            <div style={{margin: '0.2em 0.2em 0.2em 0.2em'}}>
+                <AnchorButton icon="globe"
                               style={ViewPanel.ACTION_ITEM_STYLE}
                               onClick={this.onAddWorldView}>New World View</AnchorButton>
                 {this.renderActiveViewPanel()}
@@ -75,13 +75,18 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, nu
 
         // TODO (forman): make title field editable
         const titleField = (
-            <label className="pt-label" style={ViewPanel.PROPERTY_ITEM_STYLE}>
+            <Label style={ViewPanel.PROPERTY_ITEM_STYLE}>
                 Active view:
-                <div className="pt-input-group">
-                    <span className={"pt-icon " + activeView.iconName}/>
-                    <input className="pt-input" type="text" value={activeView.title} dir="auto" disabled={true}/>
-                </div>
-            </label>
+                <ControlGroup>
+                    <Icon icon={activeView.icon}/>
+                    <InputGroup
+                        type="text"
+                        value={activeView.title}
+                        dir="auto"
+                        disabled={true}
+                    />
+                </ControlGroup>
+            </Label>
         );
 
         if (activeView.type === 'world') {

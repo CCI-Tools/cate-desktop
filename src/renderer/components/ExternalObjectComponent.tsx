@@ -1,7 +1,7 @@
 import * as React from 'react';
-import * as assert from "../../common/assert";
-import {shallowEqual} from "../../common/shallow-equal";
-import { CSSProperties } from "react";
+import { CSSProperties } from 'react';
+import * as assert from '../../common/assert';
+import { shallowEqual } from '../../common/shallow-equal';
 
 export interface IExternalObjectComponentProps<E, ES> {
     id: string;
@@ -89,7 +89,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
 
     private static checkProps(props: any) {
         if (!props.id) {
-            throw new Error("cannot construct ExternalObjectComponent without id");
+            throw new Error('cannot construct ExternalObjectComponent without id');
         }
     }
 
@@ -193,7 +193,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
      */
     componentWillUpdate(nextProps: Readonly<P & ES>) {
         if (this.props.debug) {
-            console.log("ExternalObjectComponent.componentWillUpdate nextProps.id =", nextProps.id);
+            console.log('ExternalObjectComponent.componentWillUpdate nextProps.id =', nextProps.id);
         }
         ExternalObjectComponent.checkProps(nextProps);
         if (this.props.id === nextProps.id) {
@@ -203,9 +203,9 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         }
     }
 
-    private onRef(parentContainer: HTMLElement | null){
+    private onRef(parentContainer: HTMLElement | null) {
         if (this.props.debug) {
-            console.log("ExternalObjectComponent.onRef: this.props =", this.props);
+            console.log('ExternalObjectComponent.onRef: this.props =', this.props);
         }
         this.remountExternalObject(parentContainer, this.props as Readonly<P & ES>);
     }
@@ -251,7 +251,7 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
 
     protected remountExternalObject(parentContainer: HTMLElement | null, props: Readonly<P & ES>) {
         if (props.debug) {
-            console.log("ExternalObjectComponent.remountExternalObject: props.id =", props.id);
+            console.log('ExternalObjectComponent.remountExternalObject: props.id =', props.id);
         }
         if (parentContainer) {
             if (parentContainer.id !== props.id) {
@@ -269,12 +269,12 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
 
     private mountNewExternalObject(parentContainer: HTMLElement, props: Readonly<P & ES>) {
         if (props.debug) {
-            console.log("ExternalObjectComponent.mountNewExternalObject: props.id =", props.id);
+            console.log('ExternalObjectComponent.mountNewExternalObject: props.id =', props.id);
         }
         const container = this.newContainer(props.id);
         if (container) {
             if (props.debug) {
-                console.log("ExternalObjectComponent: attaching new external object with id =", props.id);
+                console.log('ExternalObjectComponent: attaching new external object with id =', props.id);
             }
             parentContainer.appendChild(container);
         }
@@ -287,14 +287,14 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
 
     private mountExistingExternalObject(parentContainer: HTMLElement, props: Readonly<P & ES>) {
         if (props.debug) {
-            console.log("ExternalObjectComponent.mountExistingExternalObject: props.id =", props.id);
+            console.log('ExternalObjectComponent.mountExistingExternalObject: props.id =', props.id);
         }
         const externalObjectRef = this.externalObjectStore[props.id];
         assert.ok(externalObjectRef);
         const container = externalObjectRef.container;
         if (container && !parentContainer.contains(container)) {
             if (props.debug) {
-                console.log("ExternalObjectComponent: attaching existing external object with id =", props.id);
+                console.log('ExternalObjectComponent: attaching existing external object with id =', props.id);
             }
             parentContainer.appendChild(container);
         }
@@ -305,14 +305,14 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
 
     private unmountExternalObject(parentContainer: HTMLElement, props: Readonly<P & ES>) {
         if (this.props.debug) {
-            console.log("ExternalObjectComponent.unmountExternalObject: parentContainer.id =", parentContainer.id);
+            console.log('ExternalObjectComponent.unmountExternalObject: parentContainer.id =', parentContainer.id);
         }
         const externalObjectRef = this.externalObjectStore[parentContainer.id];
         assert.ok(externalObjectRef);
         const container = externalObjectRef.container;
         if (container && parentContainer.contains(container)) {
             if (props.debug) {
-                console.log("ExternalObjectComponent: detaching external object with id =", container.id);
+                console.log('ExternalObjectComponent: detaching external object with id =', container.id);
             }
             parentContainer.removeChild(container);
         }
@@ -327,11 +327,11 @@ export abstract class ExternalObjectComponent<E, ES, P extends IExternalObjectCo
         const prevState = externalObjectRef.state;
         const nextState = this.propsToExternalObjectState(nextProps, prevState);
         if (this.props.debug) {
-            console.log("ExternalObjectComponent: updating existing external object");
-            console.log("  this.props.id =", this.props.id);
-            console.log("  nextProps.id  =", nextProps.id);
-            console.log("  prevState     =", prevState);
-            console.log("  nextState     =", nextState);
+            console.log('ExternalObjectComponent: updating existing external object');
+            console.log('  this.props.id =', this.props.id);
+            console.log('  nextProps.id  =', nextProps.id);
+            console.log('  prevState     =', prevState);
+            console.log('  nextState     =', nextState);
         }
         if (this.shouldExternalObjectUpdate(prevState, nextState)) {
             this.updateExternalObject(

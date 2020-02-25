@@ -2,6 +2,27 @@ import * as React from 'react';
 import { CSSProperties } from 'react';
 import { connect, DispatchProp } from 'react-redux';
 import {
+    ButtonGroup,
+    Icon,
+    Intent,
+    Menu,
+    MenuItem,
+    Popover,
+    PopoverPosition,
+    Tab,
+    Tabs,
+    Tooltip
+} from '@blueprintjs/core';
+import { Cell, Column, Table, TruncatedFormat, TruncatedPopoverMode } from '@blueprintjs/table';
+import { ListBox } from '../components/ListBox';
+import { LabelWithType } from '../components/LabelWithType';
+import WorkflowStepPropertiesDialog from './WorkflowStepPropertiesDialog';
+import OperationStepDialog from './OperationStepDialog';
+import { ContentWithDetailsPanel } from '../components/ContentWithDetailsPanel';
+import * as assert from '../../common/assert';
+import * as actions from '../actions'
+import * as selectors from '../selectors'
+import {
     OperationInputState,
     OperationIOBaseState,
     OperationState,
@@ -10,23 +31,13 @@ import {
     WorkflowPortState,
     WorkflowStepState,
     WorkspaceState
-} from "../state";
-import { Menu, MenuItem, Popover, Position, Tab2, Tabs2, Tooltip } from "@blueprintjs/core";
-import { Cell, Column, Table, TruncatedFormat, TruncatedPopoverMode } from "@blueprintjs/table";
-import { ListBox } from "../components/ListBox";
-import { LabelWithType } from "../components/LabelWithType";
-import WorkflowStepPropertiesDialog from "./WorkflowStepPropertiesDialog";
-import OperationStepDialog from "./OperationStepDialog";
-import { ContentWithDetailsPanel } from "../components/ContentWithDetailsPanel";
-import * as assert from "../../common/assert";
-import * as actions from '../actions'
-import * as selectors from '../selectors'
-import { ScrollablePanelContent } from "../components/ScrollableContent";
-import { NO_WORKFLOW_STEPS, NO_WORKSPACE, NO_WORKSPACE_RESOURCES } from "../messages";
-import { findOperation, isDataFrameResource, isFigureResource } from "../state-util";
-import { isBoolean, isDefined, isString, isUndefined, isUndefinedOrNull } from "../../common/types";
-import { ToolButton } from "../components/ToolButton";
-import { EDIT_OPERATION_STEP_DIALOG_ID } from "./operation-step-dialog-ids";
+} from '../state';
+import { ScrollablePanelContent } from '../components/ScrollableContent';
+import { NO_WORKFLOW_STEPS, NO_WORKSPACE, NO_WORKSPACE_RESOURCES } from '../messages';
+import { findOperation, isDataFrameResource, isFigureResource } from '../state-util';
+import { isBoolean, isDefined, isString, isUndefined, isUndefinedOrNull } from '../../common/types';
+import { ToolButton } from '../components/ToolButton';
+import { EDIT_OPERATION_STEP_DIALOG_ID } from './operation-step-dialog-ids';
 
 interface IWorkspacePanelProps {
     workspace: WorkspaceState;
@@ -80,7 +91,7 @@ function mapStateToProps(state: State): IWorkspacePanelProps {
 class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & DispatchProp<State>, any> {
 
     private static readonly STATE_TAG_STYLE: CSSProperties = {margin: 2};
-    private static readonly FLEX_ROW_STYLE: CSSProperties = {display: "flex", alignItems: "center"};
+    private static readonly FLEX_ROW_STYLE: CSSProperties = {display: 'flex', alignItems: 'center'};
     private static readonly SPACER_STYLE: CSSProperties = {flex: 1};
 
     constructor(props: IWorkspacePanelProps & DispatchProp<State>) {
@@ -113,17 +124,17 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
 
     private handleResourceNameSelected(newSelection: Array<React.Key>) {
         if (newSelection && newSelection.length) {
-            this.props.dispatch(actions.setSelectedWorkspaceResourceName(newSelection[0] as string));
+            this.props.dispatch(actions.setSelectedWorkspaceResourceName(newSelection[0] as string) as any);
         } else {
-            this.props.dispatch(actions.setSelectedWorkspaceResourceName(null));
+            this.props.dispatch(actions.setSelectedWorkspaceResourceName(null) as any);
         }
     }
 
     private handleWorkflowStepIdSelected(newSelection: Array<React.Key>) {
         if (newSelection && newSelection.length) {
-            this.props.dispatch(actions.setSelectedWorkflowStepId(newSelection[0] as string));
+            this.props.dispatch(actions.setSelectedWorkflowStepId(newSelection[0] as string) as any);
         } else {
-            this.props.dispatch(actions.setSelectedWorkflowStepId(null));
+            this.props.dispatch(actions.setSelectedWorkflowStepId(null) as any);
         }
     }
 
@@ -180,26 +191,26 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
     private handleRemoveOperationStepButtonClicked() {
         const resName = this.getEffectiveResourceName();
         if (resName) {
-            this.props.dispatch(actions.deleteResourceInteractive(resName));
+            this.props.dispatch(actions.deleteResourceInteractive(resName) as any);
         }
     }
 
     private handleCleanWorkflowButtonClicked() {
-        this.props.dispatch(actions.cleanWorkspaceInteractive());
+        this.props.dispatch(actions.cleanWorkspaceInteractive() as any);
     }
 
     private handleWorkspacePanelModeChanged(workspacePanelMode: string) {
-        this.props.dispatch(actions.updateSessionState({workspacePanelMode}));
+        this.props.dispatch(actions.updateSessionState({workspacePanelMode}) as any);
     }
 
     private getEffectiveWorkflowStep() {
         return this.props.workspacePanelMode === 'steps'
-            ? this.props.selectedWorkflowStep : this.props.selectedResourceWorkflowStep;
+               ? this.props.selectedWorkflowStep : this.props.selectedResourceWorkflowStep;
     }
 
     private getEffectiveResource() {
         return this.props.workspacePanelMode === 'resources'
-            ? this.props.selectedResource : this.props.selectedWorkflowStepResource;
+               ? this.props.selectedResource : this.props.selectedWorkflowStepResource;
     }
 
     private getEffectiveResourceName() {
@@ -238,10 +249,10 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         assert.ok(resources);
 
         const workspaceName = (workspace.isScratch || !workspace.baseDir)
-            ? '<unnamed>'
-            : workspace.baseDir.split(/[\\\/]/).pop();
+                              ? '<unnamed>'
+                              : workspace.baseDir.split(/[\\/]/).pop();
         const workspaceLabel = (
-            <Tooltip content={workspace.baseDir} position={Position.RIGHT}>
+            <Tooltip content={workspace.baseDir} position={PopoverPosition.AUTO_START}>
                 <strong>{workspaceName}</strong>
             </Tooltip>
         );
@@ -249,25 +260,25 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         if (workspace.isModified) {
             workspaceState = (
                 <span key={0} style={WorkspacePanel.STATE_TAG_STYLE}
-                      className="pt-tag pt-intent-warning pt-minimal">Modified</span>
+                      className="bp3-tag bp3-intent-warning bp3-minimal">Modified</span>
             );
         } else if (!workspace.isSaved) {
             workspaceState = (
                 <span key={1} style={WorkspacePanel.STATE_TAG_STYLE}
-                      className="pt-tag pt-intent-success pt-minimal">Not saved</span>
+                      className="bp3-tag bp3-intent-success bp3-minimal">Not saved</span>
             );
         }
         const openItemButton = (
             <ToolButton tooltipContent="Show workspace directory in file system"
-                        tooltipPosition={Position.LEFT}
                         onClick={this.handleOpenWorkspaceDirectoryClicked}
-                        iconName="folder-open"
+                        icon="folder-open"
             />
         );
         const copyItemButton = (
-            <Popover position={Position.LEFT}>
-                <ToolButton disabled={!steps.length}
-                            iconName="clipboard"/>
+            <Popover position={PopoverPosition.LEFT}>
+                <ToolButton tooltipContent="Copy workflow"
+                            disabled={!steps.length}
+                            icon="clipboard"/>
                 <Menu>
                     <MenuItem onClick={this.handleCopyWorkflowAsPythonScript} text="Copy workflow as Python Script"/>
                     <MenuItem onClick={this.handleCopyWorkflowAsShellScript} text="Copy workflow as Shell Script"/>
@@ -284,18 +295,18 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
                     {workspaceLabel}
                     <span style={WorkspacePanel.SPACER_STYLE}/>
                     {workspaceState}
-                    <div className="pt-button-group">
+                    <ButtonGroup>
                         {openItemButton}
                         {copyItemButton}
-                    </div>
+                    </ButtonGroup>
                 </div>
-                <Tabs2 id="workflow"
-                       renderActiveTabPanelOnly={true}
-                       selectedTabId={this.props.workspacePanelMode}
-                       onChange={this.handleWorkspacePanelModeChanged}>
-                    <Tab2 id="steps" title={`Workflow (${steps.length})`} panel={this.renderWorkflowStepsPanel()}/>
-                    <Tab2 id="resources" title={`Resources (${resources.length})`} panel={this.renderResourcesPanel()}/>
-                </Tabs2>
+                <Tabs id="workflow"
+                      renderActiveTabPanelOnly={true}
+                      selectedTabId={this.props.workspacePanelMode}
+                      onChange={this.handleWorkspacePanelModeChanged}>
+                    <Tab id="steps" title={`Workflow (${steps.length})`} panel={this.renderWorkflowStepsPanel()}/>
+                    <Tab id="resources" title={`Resources (${resources.length})`} panel={this.renderResourcesPanel()}/>
+                </Tabs>
             </ScrollablePanelContent>
         );
     }
@@ -308,44 +319,38 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         const hasSteps = this.props.workspace && this.props.workspace.workflow.steps.length;
         const canShowTableView = isDataFrameResource(resource);
         return (
-            <div className="pt-button-group">
+            <ButtonGroup>
                 <ToolButton tooltipContent="Show figure"
-                            tooltipPosition={Position.LEFT}
                             disabled={!canShowFigure}
-                            iconName="eye-open"
+                            icon="eye-open"
                             onClick={this.handleShowFigureButtonClicked}/>
                 <ToolButton tooltipContent="Show data in table"
-                            tooltipPosition={Position.LEFT}
                             disabled={!canShowTableView}
-                            iconName="pt-icon-th"
+                            icon="th"
                             onClick={this.handleShowResourceTableView}
                 />
                 <ToolButton tooltipContent="Resource/step properties"
-                            tooltipPosition={Position.LEFT}
                             disabled={!resource}
-                            iconName="label"
+                            icon="label"
                             onClick={this.handleWorkflowStepPropertiesButtonClicked}/>
                 <ToolButton tooltipContent="Edit workflow step"
-                            tooltipPosition={Position.LEFT}
-                            className="pt-intent-primary"
+                            intent={Intent.PRIMARY}
                             disabled={!workflowStep}
-                            iconName="edit"
+                            icon="edit"
                             onClick={this.handleEditOperationStepButtonClicked}/>
                 <ToolButton tooltipContent="Remove workflow step and its resource"
-                            tooltipPosition={Position.LEFT}
                             disabled={!workflowStep}
-                            iconName="remove"
+                            icon="remove"
                             onClick={this.handleRemoveOperationStepButtonClicked}/>
                 <ToolButton tooltipContent="Clean workspace, remove all steps and resources"
-                            tooltipPosition={Position.LEFT}
                             disabled={!hasSteps}
-                            iconName="delete"
+                            icon="delete"
                             onClick={this.handleCleanWorkflowButtonClicked}/>
                 {workflowStep ? <WorkflowStepPropertiesDialog selectedWorkflowStep={workflowStep}/> : null}
                 {isOperationStepSelected
-                    ? <OperationStepDialog id={EDIT_OPERATION_STEP_DIALOG_ID} operationStep={workflowStep}/>
-                    : null}
-            </div>
+                 ? <OperationStepDialog id={EDIT_OPERATION_STEP_DIALOG_ID} operationStep={workflowStep}/>
+                 : null}
+            </ButtonGroup>
         );
     }
 
@@ -390,9 +395,9 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         return (
             <ScrollablePanelContent>
                 <span>Attributes:</span>
-                <Table numRows={selectedResourceAttributes.length} isRowHeaderShown={false}>
-                    <Column name="Name" renderCell={this.renderResourceAttrName}/>
-                    <Column name="Value" renderCell={this.renderResourceAttrValue}/>
+                <Table numRows={selectedResourceAttributes.length} enableRowHeader={false}>
+                    <Column name="Name" cellRenderer={this.renderResourceAttrName}/>
+                    <Column name="Value" cellRenderer={this.renderResourceAttrValue}/>
                 </Table>
             </ScrollablePanelContent>
         );
@@ -440,7 +445,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
 
         let stepInputPanel = WorkspacePanel.renderWorkflowStepPorts(
             selectedWorkflowStepOp.inputs,
-            "Step inputs:", "No step inputs.",
+            'Step inputs:', 'No step inputs.',
             this.renderOperationStepInputName,
             this.renderOperationStepInputValue
         );
@@ -464,9 +469,9 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
             return (
                 <div>
                     <p>{itemsTitle}</p>
-                    <Table numRows={ports.length} isRowHeaderShown={false}>
-                        <Column name="Name" renderCell={renderName}/>
-                        <Column name="Value" renderCell={renderValue}/>
+                    <Table numRows={ports.length} enableRowHeader={false}>
+                        <Column name="Name" cellRenderer={renderName}/>
+                        <Column name="Value" cellRenderer={renderValue}/>
                     </Table>
                 </div>
             );
@@ -531,7 +536,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         if (port) {
             let units;
             if (portProps.units) {
-                units = (<span className="pt-text-muted">{` (${portProps.units})`}</span>);
+                units = (<span className="bp3-text-muted">{` (${portProps.units})`}</span>);
             }
             const source = isString(port) ? port : port.source;
             if (source) {
@@ -549,9 +554,9 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
         } else {
             let defaultValue = (portProps as OperationInputState).defaultValue;
             if (isDefined(defaultValue)) {
-                cellValue = (<span>{`${defaultValue}`} <span className="pt-text-muted">(default value)</span></span>);
+                cellValue = (<span>{`${defaultValue}`} <span className="bp3-text-muted">(default value)</span></span>);
             } else {
-                cellValue = (<span className="pt-text-muted">Not given.</span>);
+                cellValue = (<span className="bp3-text-muted">Not given.</span>);
             }
         }
         return (<Cell>{cellValue}</Cell>);
@@ -582,7 +587,7 @@ class WorkspacePanel extends React.PureComponent<IWorkspacePanelProps & Dispatch
 
         if (step && step.persistent) {
             items.push(<span key={3}> </span>);
-            items.push(<span key={4} className="pt-icon-database"/>);
+            items.push(<Icon key={4} icon="database"/>);
         }
 
         return <span>{items}</span>;

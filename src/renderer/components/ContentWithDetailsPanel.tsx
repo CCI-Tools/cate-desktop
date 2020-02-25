@@ -1,6 +1,6 @@
-import * as React from "react";
-import {SplitPane} from "./SplitPane";
-import {Switch} from "@blueprintjs/core";
+import * as React from 'react';
+import { SplitPane } from './SplitPane';
+import { Switch } from '@blueprintjs/core';
 
 
 export interface IContentWithDetailsPanelProps {
@@ -8,7 +8,7 @@ export interface IContentWithDetailsPanelProps {
     onShowDetailsChange: (value: boolean) => void;
     contentHeight?: number;
     onContentHeightChange?: (value: number) => void;
-    actionComponent?: JSX.Element|null;
+    actionComponent?: JSX.Element | null;
     isSplitPanel?: boolean;
 }
 

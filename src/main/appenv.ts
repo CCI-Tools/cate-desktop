@@ -98,18 +98,6 @@ export function getWebAPIRestUrl(webAPIConfig: WebAPIConfig): string {
     return `${protocol}://${addressAndPort}/`;
 }
 
-export function getAPIWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
-    const protocol = getWebAPIWebSocketServiceProtocol(webAPIConfig);
-    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
-    return `${protocol}://${addressAndPort}/api`;
-}
-
-export function getMPLWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
-    const protocol = getWebAPIWebSocketServiceProtocol(webAPIConfig);
-    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
-    return `${protocol}://${addressAndPort}/mpl/figures/`;
-}
-
 export function isLocalWebAPIService(webAPIConfig: WebAPIConfig) {
     const serviceAddress = webAPIConfig.serviceAddress;
     return !serviceAddress
@@ -121,11 +109,6 @@ export function isLocalWebAPIService(webAPIConfig: WebAPIConfig) {
 
 function getWebAPIHttpServiceProtocol(webAPIConfig: WebAPIConfig): 'http' | 'https' {
     return webAPIConfig.serviceProtocol || 'http';
-}
-
-function getWebAPIWebSocketServiceProtocol(webAPIConfig: WebAPIConfig): 'wss' | 'ws' {
-    const protocol = getWebAPIHttpServiceProtocol(webAPIConfig);
-    return protocol === 'https' ? 'wss' : 'ws'
 }
 
 function getWebAPIAddressAndPort(webAPIConfig: WebAPIConfig): string {
@@ -291,7 +274,7 @@ export function getSessionProxyConfig(env?: { [name: string]: string }):
 }
 
 function getProxyBypassRules(env?: { [name: string]: string }) {
-    let noProxyHostsSet = new Set();
+    let noProxyHostsSet = new Set<string>();
     NO_PROXY_ENV_VAR_NAMES.map(n => env[n])
                           .filter(v => !!v)
                           .forEach(noProxy => {

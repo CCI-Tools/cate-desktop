@@ -1,5 +1,5 @@
-import * as React from "react";
-import {TextLine} from "../../../common/terminal-output";
+import * as React from 'react';
+import { TextLine } from '../../../common/terminal-output';
 
 export interface ILogFieldProps {
     lines: TextLine[];
@@ -10,14 +10,14 @@ export interface ILogFieldProps {
 export class LogField extends React.PureComponent<ILogFieldProps> {
 
     private static STYLE: React.CSSProperties = {
-        overflow: "auto",
-        background: "#464646",
-        color: "#FFFFEE",
+        overflow: 'auto',
+        background: '#464646',
+        color: '#FFFFEE',
         fontFamily: '"Source Code Pro", Consolas, "Lucida Console", "Courier New"',
-        fontSize: "0.9em",
-        width: "100%",
+        fontSize: '0.9em',
+        width: '100%',
         minHeight: 48,
-        flex: "1 1 auto",
+        flex: '1 1 auto',
         padding: 3,
     };
 
@@ -37,7 +37,7 @@ export class LogField extends React.PureComponent<ILogFieldProps> {
 
     scrollToBottom() {
         if (this.terminal) {
-            this.terminal.scrollIntoView({behavior: "smooth"});
+            this.terminal.scrollIntoView({behavior: 'smooth'});
         }
     }
 

@@ -1,6 +1,5 @@
-import {updateObject, updatePropertyObject, updateConditionally} from "./objutil";
-import {should, expect} from "chai";
-import {isDefined, isUndefined} from "./types";
+import { should } from 'chai';
+import { isDefined, isUndefined } from './types';
 
 should();
 

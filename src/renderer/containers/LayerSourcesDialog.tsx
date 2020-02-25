@@ -1,23 +1,23 @@
 import * as React from 'react';
-import {State, ResourceState, LayerState, DialogState, LayerVariableState} from "../state";
-import {connect, DispatchProp} from "react-redux";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import {ListBoxSelectionMode, ListBox} from "../components/ListBox";
-import {LabelWithType} from "../components/LabelWithType";
-import {ModalDialog} from "../components/ModalDialog";
-import {ScrollablePanelContent} from "../components/ScrollableContent";
+import { DialogState, LayerState, LayerVariableState, ResourceState, State } from '../state';
+import { connect, DispatchProp } from 'react-redux';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
+import { LabelWithType } from '../components/LabelWithType';
+import { ModalDialog } from '../components/ModalDialog';
+import { ScrollablePanelContent } from '../components/ScrollableContent';
 
 interface ILayerSourcesDialogProps extends DialogState {
     resources: ResourceState[];
     layers: LayerState[];
-    savedLayers: {[name: string ]: LayerState};
+    savedLayers: { [name: string]: LayerState };
     activeViewId: string;
     layerVariables: LayerVariableState[];
 }
 
 interface ILayerSourcesDialogState {
-    selectedIndices: number[]|null;
+    selectedIndices: number[] | null;
 }
 
 function mapStateToProps(state: State): ILayerSourcesDialogProps {
@@ -56,10 +56,10 @@ class LayerSourcesDialog extends React.Component<DispatchProp<State> & ILayerSou
             const layerVariable = this.props.layerVariables[index];
             this.props.dispatch(
                 actions.addVariableLayer(this.props.activeViewId,
-                    layerVariable.resource,
-                    layerVariable.variable,
-                    selectLayer,
-                    this.props.savedLayers
+                                         layerVariable.resource,
+                                         layerVariable.variable,
+                                         selectLayer,
+                                         this.props.savedLayers
                 ));
             selectLayer = false;
         }
@@ -78,7 +78,7 @@ class LayerSourcesDialog extends React.Component<DispatchProp<State> & ILayerSou
             <ModalDialog
                 isOpen={this.props.isOpen}
                 title={LayerSourcesDialog.DIALOG_TITLE}
-                iconName="layers"
+                icon="layers"
                 onCancel={this.onCancel}
                 onConfirm={this.onConfirm}
                 canConfirm={this.canConfirm}

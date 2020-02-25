@@ -1,6 +1,6 @@
-import {should, expect} from 'chai';
+import { expect, should } from 'chai';
 import * as React from 'react';
-import {IExternalObjectComponentProps, ExternalObjectComponent} from './ExternalObjectComponent';
+import { ExternalObjectComponent, IExternalObjectComponentProps } from './ExternalObjectComponent';
 
 should();
 
@@ -45,7 +45,7 @@ type MyExternalObject = {
     foo: number;
 };
 
-interface MyExternalState  {
+interface MyExternalState {
     foo: number;
 }
 
@@ -60,20 +60,20 @@ class MyExternalComponent extends ExternalObjectComponent<MyExternalObject, MyEx
         super(props);
     }
 
-    mount(parentContainer: HTMLElement|null, props: any) {
+    mount(parentContainer: HTMLElement | null, props: any) {
         this.remountExternalObject(parentContainer as any, props);
     }
 
     newContainer(id: string): HTMLElement {
-        return new HTMLElementMock("div", 'container-' + id) as any;
+        return new HTMLElementMock('div', 'container-' + id) as any;
     }
 
     newExternalObject(container: HTMLElement): MyExternalObject {
-        this.trace.push({method: "create"});
+        this.trace.push({method: 'create'});
         return {id: this.props.id, foo: this.props.foo};
     }
 
-    propsToExternalObjectState(props: MyExternalComponentProps&MyExternalState, prevState?: MyExternalState): MyExternalState {
+    propsToExternalObjectState(props: MyExternalComponentProps & MyExternalState, prevState?: MyExternalState): MyExternalState {
         return {foo: props.foo};
     }
 
@@ -81,15 +81,15 @@ class MyExternalComponent extends ExternalObjectComponent<MyExternalObject, MyEx
                          prevState: MyExternalState,
                          nextState: MyExternalState,
                          container: HTMLElement): void {
-        this.trace.push({method: "updateExternalComponent", object, container, prevState, nextState});
+        this.trace.push({method: 'updateExternalComponent', object, container, prevState, nextState});
     }
 
     externalObjectMounted(object: MyExternalObject): void {
-        this.trace.push({method: "externalObjectMounted", object});
+        this.trace.push({method: 'externalObjectMounted', object});
     }
 
     externalObjectUnmounted(object: MyExternalObject): void {
-        this.trace.push({method: "externalObjectUnmounted", object});
+        this.trace.push({method: 'externalObjectUnmounted', object});
     }
 }
 
@@ -97,51 +97,51 @@ class MyExternalComponent extends ExternalObjectComponent<MyExternalObject, MyEx
 describe('PermanentComponent', function () {
     it('lets update() method correctly mount/unmount the external object', function () {
         let externalObjectStore = {};
-        let instance1 = new MyExternalComponent({id: "ID6", externalObjectStore, foo: 6});
-        let instance2 = new MyExternalComponent({id: "ID6", externalObjectStore, foo: 7});
+        let instance1 = new MyExternalComponent({id: 'ID6', externalObjectStore, foo: 6});
+        let instance2 = new MyExternalComponent({id: 'ID6', externalObjectStore, foo: 7});
 
-        let parentContainer1 = new HTMLElementMock("div", "ID6");
+        let parentContainer1 = new HTMLElementMock('div', 'ID6');
 
         instance1.mount(parentContainer1 as any, instance1.props);
         expect(instance1.trace).to.deep.equal([
-            {
-                method: "create"
-            },
-            {
-                method: "externalObjectMounted",
-                object: {
-                    foo: 6,
-                    id: "ID6",
-                }
-            },
-            {
-                method: "updateExternalComponent",
-                object: {
-                    id: "ID6",
-                    foo: 6,
-                },
-                container: {
-                    children: [
-                        {
-                            children: [],
-                            nodeName: "div",
-                            "id": "container-ID6"
-                        }
-                    ],
-                    nodeName: "div",
-                    id: "ID6"
-                },
-                prevState: undefined,
-                nextState: {
-                    foo: 6
-                },
-            }]);
+                                                  {
+                                                      method: 'create'
+                                                  },
+                                                  {
+                                                      method: 'externalObjectMounted',
+                                                      object: {
+                                                          foo: 6,
+                                                          id: 'ID6',
+                                                      }
+                                                  },
+                                                  {
+                                                      method: 'updateExternalComponent',
+                                                      object: {
+                                                          id: 'ID6',
+                                                          foo: 6,
+                                                      },
+                                                      container: {
+                                                          children: [
+                                                              {
+                                                                  children: [],
+                                                                  nodeName: 'div',
+                                                                  'id': 'container-ID6'
+                                                              }
+                                                          ],
+                                                          nodeName: 'div',
+                                                          id: 'ID6'
+                                                      },
+                                                      prevState: undefined,
+                                                      nextState: {
+                                                          foo: 6
+                                                      },
+                                                  }]);
         instance1.trace = [];
 
         instance1.mount(null, instance1.props);
         expect(instance1.trace).to.deep.equal([{
-            method: "externalObjectUnmounted",
-            object: {id: "ID6", foo: 6}
+            method: 'externalObjectUnmounted',
+            object: {id: 'ID6', foo: 6}
         }]);
 
     });

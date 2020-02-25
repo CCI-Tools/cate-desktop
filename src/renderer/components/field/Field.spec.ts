@@ -1,5 +1,5 @@
-import {should, expect} from 'chai';
-import {Field, IFieldProps} from "./Field";
+import { should } from 'chai';
+import { Field } from './Field';
 
 should();
 

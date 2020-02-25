@@ -1,6 +1,6 @@
-import {WebAPIClient} from "../WebAPIClient";
-import {JobPromise} from "../Job";
-import {ColorMapCategoryState} from "../../state";
+import { WebAPIClient } from '../WebAPIClient';
+import { JobPromise } from '../Job';
+import { ColorMapCategoryState } from '../../state';
 
 
 function responseToColorMaps(colorMapsResponse: any[][]): ColorMapCategoryState[] {

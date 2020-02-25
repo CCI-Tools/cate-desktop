@@ -1,8 +1,7 @@
-import * as React from 'react';
-import {DateRange} from "@blueprintjs/datetime";
-import {Field, FieldType, FieldValue, IFieldProps} from "./Field";
-import {isUndefinedOrNull} from "../../../common/types";
-import {formatDate, parseDate, validateDate} from "./DateField";
+import { DateRange } from '@blueprintjs/datetime';
+import { Field, FieldType, FieldValue, IFieldProps } from './Field';
+import { isUndefinedOrNull } from '../../../common/types';
+import { formatDate, parseDate, validateDate } from './DateField';
 
 export type DateRangeFieldType = FieldType<DateRange>;
 export type DateRangeFieldValue = FieldValue<DateRange>;
@@ -20,10 +19,6 @@ export class DateRangeField extends Field<IDateRangeFieldProps> {
         placeholder: 'YYYY-MM-DD, YYYY-MM-DD',
         size: 24
     };
-
-    constructor(props: IDateRangeFieldProps) {
-        super(props);
-    }
 
     parseValue(textValue: string): DateRangeFieldType {
         return parseDateRange(textValue, this.props.nullable);
@@ -71,7 +66,7 @@ export function formatDateRange(value: DateRange | null): string {
     return formatDate(date1) + ',' + formatDate(date2);
 }
 
-export function validateDateRange(value: DateRange | null, nullable: boolean|null, min: Date|null, max: Date|null) {
+export function validateDateRange(value: DateRange | null, nullable: boolean | null, min: Date | null, max: Date | null) {
     if (!value) {
         if (!nullable) {
             throw Error('Date range value expected.');
@@ -80,8 +75,8 @@ export function validateDateRange(value: DateRange | null, nullable: boolean|nul
     }
     const date1 = value[0];
     const date2 = value[1];
-    validateDate(date1, nullable, min, max, "First date");
-    validateDate(date2, nullable, min, max, "Second date");
+    validateDate(date1, nullable, min, max, 'First date');
+    validateDate(date2, nullable, min, max, 'Second date');
     if (date1 && date2 && date1.valueOf() > date2.valueOf()) {
         throw new Error('First date must not be after second date.');
     }

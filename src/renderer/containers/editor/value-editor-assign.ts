@@ -1,4 +1,4 @@
-import {FieldValue} from "../../components/field/Field";
+import { FieldValue } from '../../components/field/Field';
 
 
 export interface InputAssignment {

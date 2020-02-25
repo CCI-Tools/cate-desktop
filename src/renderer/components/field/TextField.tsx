@@ -1,6 +1,4 @@
-import * as React from 'react'
-
-import {Field, FieldType, FieldValue, IFieldProps} from "./Field";
+import { Field, FieldType, FieldValue, IFieldProps } from './Field';
 
 export type TextFieldType = FieldType<string>;
 export type TextFieldValue = FieldValue<string>;

@@ -1,12 +1,12 @@
 import * as React from 'react';
-import {Checkbox, Collapse, Tooltip} from "@blueprintjs/core";
-import {DataSourceState, ResourceState, VariableState} from "../state";
-import {formatDateAsISODateString} from "../../common/format";
-import * as types from "../../common/cate-types";
-import {Region, RegionValue, GLOBAL} from "../components/Region";
-import {VarNameValueEditor} from "./editor/VarNameValueEditor";
-import {TextFieldValue} from "../components/field/TextField";
-import {DateRangeField, DateRangeFieldValue, validateDateRange} from "../components/field/DateRangeField";
+import { Checkbox, Collapse, InputGroup, Label, Tooltip } from '@blueprintjs/core';
+import { DataSourceState, ResourceState, VariableState } from '../state';
+import { formatDateAsISODateString } from '../../common/format';
+import * as types from '../../common/cate-types';
+import { GLOBAL, Region, RegionValue } from '../components/Region';
+import { VarNameValueEditor } from './editor/VarNameValueEditor';
+import { TextFieldValue } from '../components/field/TextField';
+import { DateRangeField, DateRangeFieldValue, validateDateRange } from '../components/field/DateRangeField';
 
 type TimeRangeValue = [string, string];
 
@@ -120,8 +120,8 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         const temporalCoverage = this.props.temporalCoverage;
         const minDate = temporalCoverage && temporalCoverage[0] ? new Date(temporalCoverage[0]) : new Date('1980-01-01');
         const maxDate = temporalCoverage && temporalCoverage[1] ? new Date(temporalCoverage[1]) : new Date(Date.now());
-        let temporalCoverageText ;
-        if ( temporalCoverage ) {
+        let temporalCoverageText;
+        if (temporalCoverage) {
             temporalCoverageText = <div>Data availability: {temporalCoverage.join(', ')}</div>;
         }
 
@@ -144,15 +144,15 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         let localDataSourcePanel;
         // let openDatasetResourceNamePanel = (
         //     <div style={DataAccessComponent.OPTION_DIV_STYLE}>
-        //         <label className="pt-label">
+        //         <Label>
         //             Unique name for the new dataset resource
-        //             <span className="pt-text-muted"> (required)</span>
-        //             <input className="pt-input"
+        //             <span className="bp3-text-muted"> (required)</span>
+        //             <input className="bp3-input"
         //                    style={{width: '100%'}}
         //                    type="text"
         //                    value={options.openDatasetResourceName}
         //                    onChange={this.onOpenDatasetResourceNameChange}/>
-        //         </label>
+        //         </Label>
         //     </div>
         // );
         const dataSourceNameElement = <strong>{this.props.dataSource.id}</strong>;
@@ -163,24 +163,27 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             localDataSourceCheck = (
                 <Tooltip
                     content="If unchecked, remote data will be accessed using an available protocol, e.g. OPeNDAP.">
-                    <Checkbox style={DataAccessComponent.OPTION_CHECK_STYLE}
-                              checked={isMakeLocalSelected}
-                              label="Download and make local data source (allocates space on disk)"
-                              onChange={this.onMakeLocalSelectedChange}/>
+                    <Checkbox
+                        style={DataAccessComponent.OPTION_CHECK_STYLE}
+                        checked={isMakeLocalSelected}
+                        label="Download and make local data source (allocates space on disk)"
+                        onChange={this.onMakeLocalSelectedChange}
+                    />
                 </Tooltip>
             );
             localDataSourcePanel = (
                 <Collapse isOpen={isMakeLocalSelected}>
                     <div style={DataAccessComponent.OPTION_DIV_STYLE}>
-                        <label className="pt-label">
+                        <Label>
                             Unique identifier for the new local data source
-                            <span className="pt-text-muted"> (optional)</span>
-                            <input className="pt-input"
-                                   style={{width: '100%'}}
-                                   type="text"
-                                   value={options.makeLocalDataSourceId}
-                                   onChange={this.onMakeLocalDataSourceIdChange}/>
-                        </label>
+                            <span className="bp3-text-muted"> (optional)</span>
+                            <InputGroup
+                                style={{width: '100%'}}
+                                type="text"
+                                value={options.makeLocalDataSourceId}
+                                onChange={this.onMakeLocalDataSourceIdChange}
+                            />
+                        </Label>
                     </div>
                 </Collapse>
             );
@@ -197,20 +200,23 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
             <div>
                 {headerText}
 
-                <Checkbox style={DataAccessComponent.OPTION_CHECK_STYLE}
-                          disabled={!temporalCoverage}
-                          checked={hasTimeConstraint}
-                          label="Time constraint"
-                          onChange={this.onHasTimeConstraintChange}/>
+                <Checkbox
+                    style={DataAccessComponent.OPTION_CHECK_STYLE}
+                    disabled={!temporalCoverage}
+                    checked={hasTimeConstraint}
+                    label="Time constraint"
+                    onChange={this.onHasTimeConstraintChange}
+                />
                 <Collapse isOpen={hasTimeConstraint}>
                     <div style={DataAccessComponent.OPTION_DIV_STYLE}>
-                                <DateRangeField
-                                    nullable={true}
-                                    min={minDate}
-                                    max={maxDate}
-                                    value={dateRange}
-                                    onChange={this.onDateRangeChange}/>
-                                {temporalCoverageText}
+                        <DateRangeField
+                            nullable={true}
+                            min={minDate}
+                            max={maxDate}
+                            value={dateRange}
+                            onChange={this.onDateRangeChange}
+                        />
+                        {temporalCoverageText}
                     </div>
                 </Collapse>
 
@@ -282,21 +288,21 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
         let validDataSourceId = true;
         if (!isLocalDataSource && options.isMakeLocalSelected) {
             const makeLocalDataSourceId = options.makeLocalDataSourceId;
-            if (makeLocalDataSourceId && !/[^\\\/:*?"<>|\r\n]+$/im.test(makeLocalDataSourceId)) {
+            if (makeLocalDataSourceId && !/[^\\/:*?"<>|\r\n]+$/im.test(makeLocalDataSourceId)) {
                 validDataSourceId = false;
             }
         }
 
-        return validTimeConstraint &&validRegion && validVariableNames && validDataSourceId ;
+        return validTimeConstraint && validRegion && validVariableNames && validDataSourceId;
     }
 
     static optionsToErrors(options: IDataAccessComponentOptions) {
         const inputErrors = {};
         if (options.hasTimeConstraint && options.dateRange && options.dateRange.error) {
-            inputErrors["Time constraint"] = options.dateRange.error
+            inputErrors['Time constraint'] = options.dateRange.error
         }
         if (options.hasVariablesConstraint && options.variableNames && options.variableNames.error) {
-            inputErrors["Variables constraint"] = options.variableNames.error
+            inputErrors['Variables constraint'] = options.variableNames.error
         }
         return inputErrors;
     }

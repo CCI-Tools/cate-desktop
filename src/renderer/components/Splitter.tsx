@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export type SplitDir = "hor" | "ver";
+export type SplitDir = 'hor' | 'ver';
 
 // TODO (forman): add splitter width, color, handleIcon, etc. style props
 interface ISplitterProps {
@@ -63,7 +63,7 @@ export class Splitter extends React.PureComponent<ISplitterProps, any> {
         const currentPosition = this.getCurrentPosition(event);
         const positionDelta = currentPosition - this.lastPosition;
         this.lastPosition = currentPosition;
-        if (positionDelta != 0) {
+        if (positionDelta !== 0) {
             this.props.onChange(positionDelta);
         }
     }
@@ -102,12 +102,12 @@ export class Splitter extends React.PureComponent<ISplitterProps, any> {
 
     private addBodyMouseListeners() {
         this.bodyEventListeners.forEach((pair: EventListenerItem) =>
-            document.body.addEventListener(pair[0], pair[1]));
+                                            document.body.addEventListener(pair[0], pair[1]));
     }
 
     private removeBodyMouseListeners() {
         this.bodyEventListeners.forEach((pair: EventListenerItem) =>
-            document.body.removeEventListener(pair[0], pair[1]));
+                                            document.body.removeEventListener(pair[0], pair[1]));
     }
 
     componentWillUnmount() {

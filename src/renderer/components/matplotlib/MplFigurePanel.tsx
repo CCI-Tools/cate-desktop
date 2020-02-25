@@ -1,9 +1,9 @@
 import * as React from 'react';
-import {MplFigureCommandListener, MplFigureCommandSourceImpl} from './MplFigure';
-import {MplFigureContainer} from './MplFigureContainer';
-import {AnchorButton, Tag, Tooltip} from "@blueprintjs/core";
-import {CSSProperties} from "react";
-import {ToolButton} from "../ToolButton";
+import { CSSProperties } from 'react';
+import { MplFigureCommandListener, MplFigureCommandSourceImpl } from './MplFigure';
+import { MplFigureContainer } from './MplFigureContainer';
+import { ButtonGroup, Tag } from '@blueprintjs/core';
+import { ToolButton } from '../ToolButton';
 
 
 interface IFigurePanelProps {
@@ -90,40 +90,40 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
 
         this.commands = [
             {
-                label: "Home",
-                tooltip: "Reset original view",
-                icon: "home",
-                name: "home",
+                label: 'Home',
+                tooltip: 'Reset original view',
+                icon: 'home',
+                name: 'home',
             },
             {
-                label: "Back",
-                tooltip: "Back to  previous view",
-                icon: "chevron-left",
-                name: "back",
+                label: 'Back',
+                tooltip: 'Back to  previous view',
+                icon: 'chevron-left',
+                name: 'back',
             },
             {
-                label: "Forward",
-                tooltip: "Forward to next view",
-                icon: "chevron-right",
-                name: "forward",
+                label: 'Forward',
+                tooltip: 'Forward to next view',
+                icon: 'chevron-right',
+                name: 'forward',
             },
             {
-                label: "Pan",
-                tooltip: "Pan axes with left mouse, zoom with right",
-                icon: "move",
-                name: "pan",
+                label: 'Pan',
+                tooltip: 'Pan axes with left mouse, zoom with right',
+                icon: 'move',
+                name: 'pan',
             },
             {
-                label: "Zoom",
-                tooltip: "Zoom to rectangle",
-                icon: "zoom-in",
-                name: "zoom",
+                label: 'Zoom',
+                tooltip: 'Zoom to rectangle',
+                icon: 'zoom-in',
+                name: 'zoom',
             },
             {
-                label: "Save As",
-                tooltip: "Save as image",
-                icon: "download",
-                name: "download",
+                label: 'Save As',
+                tooltip: 'Save as image',
+                icon: 'download',
+                name: 'download',
             }
         ];
 
@@ -152,12 +152,12 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
             const name = command['name'];
             if (name) {
                 const tooltipText = command['tooltip'];
-                const iconName = command['icon'];
+                const icon = command['icon'];
                 const onClick = command['callback'];
                 buttons.push(
                     <ToolButton key={i}
                                 tooltipContent={tooltipText}
-                                iconName={iconName}
+                                icon={icon}
                                 onClick={onClick}/>
                 );
             }
@@ -165,14 +165,14 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
 
         let messageTag;
         if (this.props.message) {
-            messageTag = (<Tag className="pt-minimal">{this.props.message}</Tag>);
+            messageTag = (<Tag className="bp3-minimal">{this.props.message}</Tag>);
         }
 
         return (
             <div style={MplFigureToolbar.DIV_STYLE}>
                 {messageTag}
                 <span style={{flex: 'auto'}}/>
-                <div className="pt-button-group">{buttons}</div>
+                <ButtonGroup>{buttons}</ButtonGroup>
             </div>
         );
     }

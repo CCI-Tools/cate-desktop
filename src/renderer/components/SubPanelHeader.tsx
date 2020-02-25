@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {CSSProperties} from 'react';
+import { CSSProperties } from 'react';
 
 export interface ISubPanelHeaderProps {
     title: string;
@@ -20,10 +20,6 @@ export class SubPanelHeader extends React.PureComponent<ISubPanelHeaderProps, an
     static readonly SPAN_STYLE: CSSProperties = {
         color: '#aaafaf', fontSize: '0.9em', fontWeight: 100
     };
-
-    constructor(props) {
-        super(props);
-    }
 
     render() {
         const divStyle = this.props.divStyle ? {...SubPanelHeader.DIV_STYLE, ...this.props.divStyle} : SubPanelHeader.DIV_STYLE;

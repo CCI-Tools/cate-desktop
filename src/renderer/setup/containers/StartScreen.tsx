@@ -1,12 +1,16 @@
-import * as React from "react";
-import {connect} from "react-redux";
-import {Radio, RadioGroup} from "@blueprintjs/core";
+import * as React from 'react';
+import { connect } from 'react-redux';
+import { Icon, Intent, Radio, RadioGroup } from '@blueprintjs/core';
 import {
-    SETUP_MODE_AUTO, SETUP_MODE_USER, SETUP_REASON_INSTALL_CATE, SetupMode, SetupReason,
-} from "../../../common/setup";
-import * as actions from "../actions";
-import {State} from "../state";
-import {SetupScreen} from "../components/SetupScreen";
+    SETUP_MODE_AUTO,
+    SETUP_MODE_USER,
+    SETUP_REASON_INSTALL_CATE,
+    SetupMode,
+    SetupReason,
+} from '../../../common/setup';
+import * as actions from '../actions';
+import { State } from '../state';
+import { SetupScreen } from '../components/SetupScreen';
 
 interface IStartScreenProps {
     setupReason: SetupReason;
@@ -44,7 +48,7 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & actions.Dispa
         if (this.props.validation && this.props.setupMode === SETUP_MODE_AUTO) {
             validationErrorDiv = (
                 <div style={{marginTop: 32}}>
-                    <span className="pt-icon-large pt-icon-warning-sign pt-intent-danger"/>
+                    <Icon icon="warning-sign" intent={Intent.WARNING}/>
                     <span style={{marginLeft: 8}}>A problem prevents automatic setup: {this.props.validation}</span>
                 </div>
             );
@@ -65,7 +69,7 @@ class _StartScreen extends React.PureComponent<IStartScreenProps & actions.Dispa
                     </RadioGroup>
                 </div>
 
-                <p className="pt-text-muted" style={{marginTop: 32}}>Background: The Python package <code><a
+                <p className="bp3-text-muted" style={{marginTop: 32}}>Background: The Python package <code><a
                     href="https://github.com/CCI-Tools/cate" target="_blank">cate</a></code> provides
                     the data processing and visualisation service to Cate Desktop.
                     In addition, it offers a command-line interface <code>cate-cli</code> to

@@ -24,17 +24,19 @@
  * @author Norman Fomferra
  */
 
+import { IconName, Intent } from '@blueprintjs/core';
 import { WebSocketMin } from './WebSocketMock'
 import {
     Job,
+    JobFailure,
+    JobFailureHandler,
+    JobProgress,
+    JobProgressHandler,
     JobPromise,
     JobRequest,
-    JobProgress,
-    JobFailure,
-    JobStatus,
-    JobProgressHandler,
     JobResponseHandler,
-    JobFailureHandler, JobStatusEnum
+    JobStatus,
+    JobStatusEnum
 } from './Job'
 
 // IMPORTANT NOTE: The following error codes MUST BE COPIED from cate/util/web/jsonrpchandler.py
@@ -219,6 +221,7 @@ class WebAPIClientImpl implements WebAPIClient {
             // See https://stackoverflow.com/questions/15228651/how-to-parse-json-string-containing-nan-in-node-js
             // message = JSON.parse(messageText);
             // So we use evil eval() because JSON is valid JavaScript:
+            // eslint-disable-next-line
             message = eval(`(${messageText})`);
             // We cannot use the following naive approach, because "NaN" appears as word in operation doc strings
             // const TEMP_NAN_STR = '[[<<~~***NaN***~~>>]]';
@@ -375,22 +378,22 @@ class JobImpl<JobResponse> implements Job {
     }
 }
 
-export function getJobFailureIntentName(failure: JobFailure): string {
+export function getJobFailureIntentName(failure: JobFailure): Intent {
     if (failure) {
         switch (failure.code) {
             case ERROR_CODE_INVALID_PARAMS:
             case ERROR_CODE_CANCELLED:
-                return 'primary';
+                return Intent.PRIMARY;
             case ERROR_CODE_OS_ERROR:
-                return 'warning';
+                return Intent.WARNING;
             default:
-                return 'danger';
+                return Intent.WARNING;
         }
     }
-    return 'warning';
+    return Intent.WARNING;
 }
 
-export function getJobFailureIconName(failure: JobFailure): string {
+export function getJobFailureIconName(failure: JobFailure): IconName {
     if (failure) {
         if (failure.data) {
             if (failure.data.exception === 'cate.core.ds.NetworkError') {

@@ -1,23 +1,35 @@
 import * as React from 'react';
-import {Colors, ContextMenuTarget, Menu, MenuItem, Popover, Position} from "@blueprintjs/core";
-import {connect, Dispatch} from 'react-redux';
-import {State, PlacemarkCollection, Placemark} from "../state";
-import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import {ContentWithDetailsPanel} from "../components/ContentWithDetailsPanel";
-import LayerSourcesDialog from "./LayerSourcesDialog";
-import {ScrollablePanelContent} from "../components/ScrollableContent";
-import {ViewState} from "../components/ViewState";
-import {NO_PLACE_SELECTED, NO_PLACES} from "../messages";
-import {FieldValue} from "../components/field/Field";
-import {TextField} from "../components/field/TextField";
-import {geoJsonToText, geometryGeoJsonToCsv, geometryGeoJsonToGeometryWkt, isBox} from "../../common/geometry-util";
-import {GeometryToolType} from "../components/cesium/geometry-tool";
-import {isBoolean} from "../../common/types";
-import {NumericField, NumericFieldValue} from "../components/field/NumericField";
-import {ToolButton} from "../components/ToolButton";
-import { CSSProperties } from "react";
+import { CSSProperties } from 'react';
+import {
+    ButtonGroup,
+    Checkbox,
+    Colors,
+    ContextMenuTarget,
+    Icon,
+    IconName,
+    Label,
+    Menu,
+    MenuItem,
+    Popover,
+    Position
+} from '@blueprintjs/core';
+import { connect, Dispatch } from 'react-redux';
+import { Placemark, PlacemarkCollection, State } from '../state';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import { ContentWithDetailsPanel } from '../components/ContentWithDetailsPanel';
+import LayerSourcesDialog from './LayerSourcesDialog';
+import { ScrollablePanelContent } from '../components/ScrollableContent';
+import { ViewState } from '../components/ViewState';
+import { NO_PLACE_SELECTED, NO_PLACES } from '../messages';
+import { FieldValue } from '../components/field/Field';
+import { TextField } from '../components/field/TextField';
+import { geoJsonToText, geometryGeoJsonToCsv, geometryGeoJsonToGeometryWkt, isBox } from '../../common/geometry-util';
+import { GeometryToolType } from '../components/cesium/geometry-tool';
+import { isBoolean } from '../../common/types';
+import { NumericField, NumericFieldValue } from '../components/field/NumericField';
+import { ToolButton } from '../components/ToolButton';
 
 interface IPlacemarksPanelDispatch {
     dispatch: Dispatch<State>;
@@ -80,19 +92,19 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     }
 
     private handleNewPointToolButtonClicked() {
-        this.props.dispatch(actions.activateNewPlacemarkTool("PointTool"));
+        this.props.dispatch(actions.activateNewPlacemarkTool('PointTool'));
     }
 
     private handleNewPolygonToolButtonClicked() {
-        this.props.dispatch(actions.activateNewPlacemarkTool("PolygonTool"));
+        this.props.dispatch(actions.activateNewPlacemarkTool('PolygonTool'));
     }
 
     private handleNewPolylineToolButtonClicked() {
-        this.props.dispatch(actions.activateNewPlacemarkTool("PolylineTool"));
+        this.props.dispatch(actions.activateNewPlacemarkTool('PolylineTool'));
     }
 
     private handleNewBoxToolButtonClicked() {
-        this.props.dispatch(actions.activateNewPlacemarkTool("BoxTool"));
+        this.props.dispatch(actions.activateNewPlacemarkTool('BoxTool'));
     }
 
     private handleShowDetailsChanged(value: boolean) {
@@ -104,11 +116,11 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     }
 
     private handleLocatePlacemarkButtonClicked() {
-        this.props.dispatch(actions.locatePlacemark(this.props.selectedPlacemarkId));
+        this.props.dispatch(actions.locatePlacemark(this.props.selectedPlacemarkId) as any);
     }
 
     private handlePlacemarkDoubleClick(placemark: Placemark) {
-        this.props.dispatch(actions.locatePlacemark(placemark.id));
+        this.props.dispatch(actions.locatePlacemark(placemark.id) as any);
     }
 
     private handleChangedPlacemarkVisibility(placemark: Placemark, visible: boolean) {
@@ -185,49 +197,44 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
     }
 
     private renderActionButtonRow() {
-        const isPointToolActive = this.props.geometryToolType === "PointTool";
-        const isPolylineToolActive = this.props.geometryToolType === "PolylineTool";
-        const isPolygonToolActive = this.props.geometryToolType === "PolygonTool";
-        const isBoxToolActive = this.props.geometryToolType === "BoxTool";
+        const isPointToolActive = this.props.geometryToolType === 'PointTool';
+        const isPolylineToolActive = this.props.geometryToolType === 'PolylineTool';
+        const isPolygonToolActive = this.props.geometryToolType === 'PolygonTool';
+        const isBoxToolActive = this.props.geometryToolType === 'BoxTool';
         return (
-            <div className="pt-button-group">
+            <ButtonGroup>
                 <ToolButton tooltipContent="New marker"
-                            tooltipPosition={Position.LEFT}
                             onClick={this.handleNewPointToolButtonClicked}
-                            iconName="dot"
+                            icon="dot"
                             active={isPointToolActive}
                             disabled={false}/>
                 <ToolButton tooltipContent="New polyline"
-                            tooltipPosition={Position.LEFT}
                             onClick={this.handleNewPolylineToolButtonClicked}
-                            iconName="slash"
+                            icon="slash"
                             active={isPolylineToolActive}
                             disabled={false}/>
                 <ToolButton tooltipContent="New polygon"
-                            tooltipPosition={Position.LEFT}
                             onClick={this.handleNewPolygonToolButtonClicked}
-                            iconName="polygon-filter"
+                            icon="polygon-filter"
                             active={isPolygonToolActive}
                             disabled={false}/>
                 <ToolButton tooltipContent="New box"
-                            tooltipPosition={Position.LEFT}
                             onClick={this.handleNewBoxToolButtonClicked}
-                            iconName="widget"
+                            icon="widget"
                             active={isBoxToolActive}
                             disabled={false}/>
                 <ToolButton tooltipContent="Remove selected place"
-                            tooltipPosition={Position.LEFT}
                             disabled={!this.props.selectedPlacemarkId}
                             onClick={this.handleRemovePlacemarkButtonClicked}
-                            iconName="remove"/>
+                            icon="remove"/>
                 <ToolButton tooltipContent="Locate selected place in view"
-                            tooltipPosition={Position.LEFT}
                             disabled={!this.props.selectedPlacemarkId}
                             onClick={this.handleLocatePlacemarkButtonClicked}
-                            iconName="locate"/>
+                            icon="locate"/>
                 <Popover position={Position.LEFT}>
-                    <ToolButton disabled={!this.props.selectedPlacemarkId}
-                                iconName="clipboard"/>
+                    <ToolButton tooltipContent="Copy selected place"
+                                disabled={!this.props.selectedPlacemarkId}
+                                icon="clipboard"/>
                     <Menu>
                         <MenuItem onClick={this.handleCopySelectedPlacemarkAsCsv} text="Copy as CSV"/>
                         <MenuItem onClick={this.handleCopySelectedPlacemarkAsWkt} text="Copy as WKT"/>
@@ -235,7 +242,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                     </Menu>
                 </Popover>
                 <LayerSourcesDialog/>
-            </div>
+            </ButtonGroup>
         );
     }
 
@@ -278,7 +285,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         }
         return (
             <div style={{width: '100%'}}>
-                <label key="spacer" className="pt-label"> </label>
+                <Label key="spacer"> </Label>
                 {this.renderPlacemarkTitle()}
                 {this.renderPlacemarkGeometry()}
             </div>
@@ -289,29 +296,29 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
         const placemark = this.props.selectedPlacemark;
         const name = placemark.properties['title'];
         return (
-            <label className="pt-label pt-inline">
+            <Label className="bp3-inline">
                 Name
-                <span className="pt-text-muted"> (optional)</span>
+                <span className="bp3-text-muted"> (optional)</span>
                 <TextField value={{textValue: name, value: name}}
                            onChange={this.handleChangedPlacemarkName}
                            size={16}
                            uncontrolled={true}
                            placeholder="Placemark name"
                 />
-            </label>
+            </Label>
         );
     }
 
     private renderPlacemarkGeometry() {
         const placemark = this.props.selectedPlacemark;
         const geometry = placemark.geometry;
-        if (geometry.type === "Point") {
+        if (geometry.type === 'Point') {
             const position = geometry.coordinates;
             return (
                 <div>
-                    <label className="pt-label pt-inline">
+                    <Label className="bp3-inline">
                         Longitude
-                        <span className="pt-text-muted"> (in degrees)</span>
+                        <span className="bp3-text-muted"> (in degrees)</span>
                         <NumericField value={position[0]}
                                       onChange={this.handleChangedPointLongitude}
                                       size={12}
@@ -319,10 +326,10 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                                       min={-180}
                                       max={+180}
                                       placeholder="Longitude in degrees"/>
-                    </label>
-                    <label className="pt-label pt-inline">
+                    </Label>
+                    <Label className="bp3-inline">
                         Latitude
-                        <span className="pt-text-muted"> (in degrees)</span>
+                        <span className="bp3-text-muted"> (in degrees)</span>
                         <NumericField value={position[1]}
                                       onChange={this.handleChangedPointLatitude}
                                       size={12}
@@ -330,7 +337,7 @@ class PlacemarksPanel extends React.Component<IPlacemarksPanelProps & IPlacemark
                                       min={-90}
                                       max={+90}
                                       placeholder="Latitude in degrees"/>
-                    </label>
+                    </Label>
                 </div>
             );
         } else if (isBox(geometry)) {
@@ -355,9 +362,9 @@ interface IPlacemarkItemProps {
 @ContextMenuTarget
 class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
 
-    static readonly ICON_STYLE: CSSProperties = {marginLeft: "0.5em"};
-    static readonly NAME_STYLE: CSSProperties = {marginLeft: "0.5em"};
-    static readonly INFO_STYLE: CSSProperties = {float: "right", color: Colors.BLUE5};
+    static readonly ICON_STYLE: CSSProperties = {marginLeft: '0.5em'};
+    static readonly NAME_STYLE: CSSProperties = {marginLeft: '0.5em'};
+    static readonly INFO_STYLE: CSSProperties = {float: 'right', color: Colors.BLUE5};
 
     constructor(props: IPlacemarkItemProps) {
         super(props);
@@ -393,32 +400,31 @@ class PlacemarkItem extends React.PureComponent<IPlacemarkItemProps, {}> {
         const visible = placemark.properties['visible'];
         const title = placemark.properties['title'];
         const geometry = placemark.geometry;
-        let icon;
+        let icon: IconName;
         let info;
-        if (geometry.type === "Point") {
+        if (geometry.type === 'Point') {
             const position = geometry.coordinates;
             info = ` ${position[0].toFixed(3)}, ${position[1].toFixed(3)}`;
-            icon = "pt-icon-dot";
-        } else if (geometry.type === "LineString") {
+            icon = 'dot';
+        } else if (geometry.type === 'LineString') {
             const coordinates = geometry.coordinates;
             info = ` ${coordinates.length} positions`;
-            icon = "pt-icon-slash";
-        } else if (geometry.type === "Polygon") {
+            icon = 'slash';
+        } else if (geometry.type === 'Polygon') {
             const ring = geometry.coordinates[0] as any;
             info = ` ${ring.length - 1} positions`;
-            icon = isBox(geometry) ? "pt-icon-widget" : "pt-icon-polygon-filter";
+            icon = isBox(geometry) ? 'widget' : 'polygon-filter';
         }
 
         return (
-            <div onDoubleClick={this.handleDoubleClick}>
-                <input type="checkbox"
-                       checked={isBoolean(visible) ? visible : true}
-                       onChange={this.handleVisibilityChanged}
-                />
-                <span style={PlacemarkItem.ICON_STYLE} className={icon}/>
+            <Checkbox
+                checked={isBoolean(visible) ? visible : true}
+                onChange={this.handleVisibilityChanged}
+                onDoubleClick={this.handleDoubleClick}>
+                <span style={PlacemarkItem.ICON_STYLE}><Icon icon={icon}/></span>
                 <span style={PlacemarkItem.NAME_STYLE}>{title}</span>
                 <span style={PlacemarkItem.INFO_STYLE}>{info}</span>
-            </div>
+            </Checkbox>
         );
     }
 

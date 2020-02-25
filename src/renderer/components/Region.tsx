@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {NumericField, NumericFieldValue} from "./field/NumericField";
+import { NumericField, NumericFieldValue } from './field/NumericField';
 
 // TODO (forman): rename west, south, east, north to lonMin, latMin, lonMax, latMax because we use negative values
 
@@ -28,7 +28,7 @@ export const GLOBAL: RegionValue = {
  * An editor for objects which have the properties west, east, south, north of type number.
  */
 export class Region extends React.PureComponent<IRegionProps, null> {
-    private static readonly NUMBER_FIELD_STYLE = {textAlign: "right"};
+    private static readonly NUMBER_FIELD_STYLE = {textAlign: 'right'};
 
     constructor(props: IRegionProps) {
         super(props);
@@ -59,20 +59,32 @@ export class Region extends React.PureComponent<IRegionProps, null> {
         return (
             <div>
                 <div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'flex-start', padding: 2}}>
-                    <div style={{flexGrow: 0, width: '14em'}}>Lon. from </div>
+                    <div style={{flexGrow: 0, width: '14em'}}>Lon. from</div>
                     <div
-                        style={{flexGrow: 1, width: '100%'}}>{this.renderField(value && value.west || null, -180, 180, this.onWestChange)}</div>
-                    <div style={{flexGrow: 0, width: '4em'}}> to </div>
+                        style={{
+                            flexGrow: 1,
+                            width: '100%'
+                        }}>{this.renderField((value && value.west) || null, -180, 180, this.onWestChange)}</div>
+                    <div style={{flexGrow: 0, width: '4em'}}> to</div>
                     <div
-                        style={{flexGrow: 1, width: '100%'}}>{this.renderField(value && value.east || null, -180, 180, this.onEastChange)}</div>
+                        style={{
+                            flexGrow: 1,
+                            width: '100%'
+                        }}>{this.renderField((value && value.east) || null, -180, 180, this.onEastChange)}</div>
                 </div>
                 <div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'flex-start', padding: 2}}>
-                    <div style={{flexGrow: 0, width: '14em'}}>Lat. from </div>
+                    <div style={{flexGrow: 0, width: '14em'}}>Lat. from</div>
                     <div
-                        style={{flexGrow: 1, width: '100%'}}>{this.renderField(value && value.south || null, -90, 90, this.onSouthChange)}</div>
-                    <div style={{flexGrow: 0, width: '4em'}}>to </div>
+                        style={{
+                            flexGrow: 1,
+                            width: '100%'
+                        }}>{this.renderField((value && value.south) || null, -90, 90, this.onSouthChange)}</div>
+                    <div style={{flexGrow: 0, width: '4em'}}>to</div>
                     <div
-                        style={{flexGrow: 1, width: '100%'}}>{this.renderField(value && value.north || null, -90, 90, this.onNorthChange)}</div>
+                        style={{
+                            flexGrow: 1,
+                            width: '100%'
+                        }}>{this.renderField((value && value.north) || null, -90, 90, this.onNorthChange)}</div>
                 </div>
             </div>
         );

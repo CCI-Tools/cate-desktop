@@ -1,10 +1,10 @@
 import * as React from 'react';
-import {IValueEditorProps} from "./ValueEditor";
-import {AnchorButton} from "@blueprintjs/core";
-import {FieldValue, toTextValue} from "../../components/field/Field";
-import {TextField} from "../../components/field/TextField";
-import {VariablesDialog} from "../VariablesDialog";
-import {ResourceState} from "../../state";
+import { AnchorButton, ControlGroup, Intent } from '@blueprintjs/core';
+import { IValueEditorProps } from './ValueEditor';
+import { FieldValue, toTextValue } from '../../components/field/Field';
+import { TextField } from '../../components/field/TextField';
+import { VariablesDialog } from '../VariablesDialog';
+import { ResourceState } from '../../state';
 
 interface IVariableNamesValueEditorProps extends IValueEditorProps<string> {
     resource: ResourceState;
@@ -41,7 +41,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
         const varNames = textValue !== '' ? textValue.split(',').map(name => name.trim()) : [];
         const hasSelectableVariables = this.props.resource && this.props.resource.variables && this.props.resource.variables.length;
         return (
-            <div className="pt-control-group" style={VarNameValueEditor.DIV_STYLE}>
+            <ControlGroup style={VarNameValueEditor.DIV_STYLE}>
                 <TextField
                     value={this.props.value}
                     validator={this.validate}
@@ -52,7 +52,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
                     style={VarNameValueEditor.TEXT_FIELD_STYLE}
                 />
 
-                <AnchorButton className="pt-intent-primary"
+                <AnchorButton intent={Intent.PRIMARY}
                               onClick={() => this.setState({isDetailsEditorOpen: true})}
                               disabled={!hasSelectableVariables}
                               style={VarNameValueEditor.BUTTON_STYLE}>...</AnchorButton>
@@ -69,7 +69,7 @@ export class VarNameValueEditor extends React.Component<IVariableNamesValueEdito
                                  onCancel={() => {
                                      this.setState({isDetailsEditorOpen: false} as any);
                                  }}/>
-            </div>
+            </ControlGroup>
         );
     }
 }

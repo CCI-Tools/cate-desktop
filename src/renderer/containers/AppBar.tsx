@@ -9,7 +9,7 @@ import {
     NavbarDivider,
     NavbarGroup,
     Popover,
-    Position
+    PopoverPosition,
 } from '@blueprintjs/core';
 import * as actions from '../actions';
 import { State } from '../state';
@@ -37,15 +37,15 @@ class _AppBar extends React.PureComponent<IAppBarProps & IDispatch, null> {
     render() {
         return (
             <Navbar>
-                <NavbarGroup><span className="pt-ui-text-large">Cate - CCI Toolbox</span></NavbarGroup>
+                <NavbarGroup><span className="bp3-ui-text-large">Cate - CCI Toolbox</span></NavbarGroup>
                 <NavbarGroup align="right">
-                    <Popover content={<WorkspacesMenu/>} position={Position.BOTTOM}>
-                        <Button className="pt-minimal">Workspaces</Button>
+                    <Popover content={<WorkspacesMenu/>} position={PopoverPosition.BOTTOM}>
+                        <Button className="bp3-minimal">Workspaces</Button>
                     </Popover>
                     <NavbarDivider/>
-                    <Button className="pt-minimal" iconName="log-out">Logout</Button>
+                    <Button className="bp3-minimal" icon="log-out">Logout</Button>
                     <NavbarDivider/>
-                    <Button className="pt-minimal" iconName='cog' onClick={this.handlePreferencesClick}/>
+                    <Button className="bp3-minimal" icon='cog' onClick={this.handlePreferencesClick}/>
                 </NavbarGroup>
             </Navbar>
         );
@@ -64,23 +64,23 @@ const WorkspacesMenu = (props: WorkspacesMenuProps) => {
     return (
         <Menu>
             <MenuItem
-                iconName="folder-new"
+                icon="folder-new"
                 onClick={handleClick}
                 text="New Workspace"
             />
             <MenuItem
-                iconName="folder-shared-open"
+                icon="folder-shared-open"
                 onClick={handleClick}
                 text="Open Workspace"
             />
             <MenuItem
-                iconName="folder-close"
+                icon="folder-close"
                 onClick={handleClick}
                 text="Close Workspace"
             />
             <MenuDivider/>
             <MenuItem
-                iconName="add-to-folder"
+                icon="add-to-folder"
                 onClick={handleClick}
                 text="Save Workspace"
             />
@@ -90,7 +90,7 @@ const WorkspacesMenu = (props: WorkspacesMenuProps) => {
             />
             <MenuDivider/>
             <MenuItem
-                iconName="trash"
+                icon="trash"
                 onClick={handleClick}
                 text="Delete Workspace"
             />

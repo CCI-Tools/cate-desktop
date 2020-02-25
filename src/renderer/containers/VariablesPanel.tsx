@@ -1,24 +1,17 @@
 import * as React from 'react';
+import { CSSProperties } from 'react';
 import { connect, DispatchProp } from 'react-redux';
-import {
-    State,
-    VariableState,
-    ResourceState,
-    SavedLayers,
-    Placemark,
-    GeographicPosition
-} from '../state';
+import { GeographicPosition, Placemark, ResourceState, SavedLayers, State, VariableState } from '../state';
 import * as assert from '../../common/assert';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import { ContentWithDetailsPanel } from '../components/ContentWithDetailsPanel';
 import { LabelWithType } from '../components/LabelWithType';
-import { Position, Colors } from '@blueprintjs/core';
+import { ButtonGroup, Colors } from '@blueprintjs/core';
 import { Cell, Column, Table, TruncatedFormat } from '@blueprintjs/table';
 import { ScrollablePanelContent } from '../components/ScrollableContent';
 import { NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE } from '../messages';
-import { CSSProperties } from 'react';
 import * as Cesium from 'cesium';
 import { ToolButton } from '../components/ToolButton';
 import { isSpatialImageVariable, isSpatialVectorVariable } from '../state-util';
@@ -135,7 +128,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         };
         this.props.dispatch(actions.setWorkspaceResource('cate.ops.plot.plot', opArgs,
                                                          null, false,
-                                                         `Creating time series plot for placemark ${placemarkName}`));
+                                                         `Creating time series plot for placemark ${placemarkName}`)  as any);
     }
 
     private handleAddVariableHistogramPlot() {
@@ -150,7 +143,7 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         };
         this.props.dispatch(actions.setWorkspaceResource('cate.ops.plot.plot_hist', opArgs,
                                                          null, false,
-                                                         'Creating histogram plot'));
+                                                         'Creating histogram plot') as any);
     }
 
     private handleShowVariableTableView() {
@@ -202,35 +195,26 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         const canAddHistogramPlot = selectedVariable && selectedVariable.numDims > 0;
         const maxSize = 10000;
         return (
-            <div className="pt-button-group">
+            <ButtonGroup>
                 <ToolButton tooltipContent="Toggle image layer visibility"
-                            tooltipPosition={Position.LEFT}
-                            iconName={this.props.showSelectedVariableLayer ? 'eye-open' : 'eye-off'}
+                            icon={this.props.showSelectedVariableLayer ? 'eye-open' : 'eye-off'}
                             onClick={this.handleShowSelectedVariableLayer}/>
                 <ToolButton tooltipContent="Add a new image layer"
-                            tooltipPosition={Position.LEFT}
                             disabled={!canAddLayer}
-                            iconName="layer"
-                            onClick={this.handleAddVariableLayer}
-                />
+                            icon="layer"
+                            onClick={this.handleAddVariableLayer}/>
                 <ToolButton tooltipContent="Create a time series plot from selected placemark"
-                            tooltipPosition={Position.LEFT}
                             disabled={!canAddTimeSeriesPlot}
-                            iconName="timeline-line-chart"
-                            onClick={this.handleAddVariableTimeSeriesPlot}
-                />
+                            icon="timeline-line-chart"
+                            onClick={this.handleAddVariableTimeSeriesPlot}/>
                 <ToolButton tooltipContent="Create a histogram plot"
-                            tooltipPosition={Position.LEFT}
                             disabled={!canAddHistogramPlot}
-                            iconName="timeline-bar-chart"
-                            onClick={this.handleAddVariableHistogramPlot}
-                />
+                            icon="timeline-bar-chart"
+                            onClick={this.handleAddVariableHistogramPlot}/>
                 <ToolButton tooltipContent={`Show data in table (only first ${maxSize} values)`}
-                            tooltipPosition={Position.LEFT}
-                            iconName="pt-icon-th"
-                            onClick={this.handleShowVariableTableView}
-                />
-            </div>
+                            icon="th"
+                            onClick={this.handleShowVariableTableView}/>
+            </ButtonGroup>
         );
     }
 
@@ -351,9 +335,9 @@ class VariableDetailsPanel extends React.PureComponent<VariableDetailsPanelProps
         }
         return (
             <div style={VariableDetailsPanel.DIV_STYLE}>
-                <Table numRows={tableData.length} isRowHeaderShown={false}>
-                    <Column name="Name" renderCell={this.renderAttributeName}/>
-                    <Column name="Value" renderCell={this.renderAttributeValue}/>
+                <Table numRows={tableData.length} enableRowHeader={false}>
+                    <Column name="Name" cellRenderer={this.renderAttributeName}/>
+                    <Column name="Value" cellRenderer={this.renderAttributeValue}/>
                 </Table>
             </div>
         );

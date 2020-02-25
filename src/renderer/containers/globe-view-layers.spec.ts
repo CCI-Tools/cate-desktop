@@ -1,9 +1,8 @@
-import {expect} from 'chai';
-import {convertLayersToLayerDescriptors, transferEntityGeometry} from "./globe-view-layers";
-import {FeatureCollection} from "geojson";
-import {Placemark, PlacemarkCollection} from "../state";
-import {COUNTRIES_LAYER, COUNTRIES_LAYER_ID, MY_PLACES_LAYER, MY_PLACES_LAYER_ID} from "../state-util";
-import {SIMPLE_STYLE_DEFAULTS} from "../../common/geojson-simple-style";
+import { expect } from 'chai';
+import { convertLayersToLayerDescriptors, transferEntityGeometry } from './globe-view-layers';
+import { FeatureCollection } from 'geojson';
+import { Placemark, PlacemarkCollection } from '../state';
+import { COUNTRIES_LAYER, COUNTRIES_LAYER_ID, MY_PLACES_LAYER, MY_PLACES_LAYER_ID } from '../state-util';
 
 describe('convertLayersToLayerDescriptors', function () {
     it('converts correctly', function () {
@@ -22,7 +21,7 @@ describe('convertLayersToLayerDescriptors', function () {
                 visible: true,
                 resId: 1,
                 style: {
-                    fill: "#FFA500",
+                    fill: '#FFA500',
                     fillOpacity: 0.3
                 }
             },
@@ -61,30 +60,30 @@ describe('convertLayersToLayerDescriptors', function () {
         ];
 
         const placemarks = {
-            type: "FeatureCollection",
+            type: 'FeatureCollection',
             features: [
                 {
-                    type: "Feature",
-                    id: "0",
+                    type: 'Feature',
+                    id: '0',
                     geometry: {
-                        type: "Point",
+                        type: 'Point',
                         coordinates: [10.0, 20.0]
                     },
                     properties: {
-                        title: "Pin 1",
-                        description: "I has a bucket"
+                        title: 'Pin 1',
+                        description: 'I has a bucket'
                     }
                 } as Placemark,
                 {
-                    type: "Feature",
-                    id: "1",
+                    type: 'Feature',
+                    id: '1',
                     geometry: {
-                        type: "Point",
+                        type: 'Point',
                         coordinates: [10.2, 20.3]
                     },
                     properties: {
-                        title: "Pin 2",
-                        description: "No, this is ma bucket"
+                        title: 'Pin 2',
+                        description: 'No, this is ma bucket'
                     }
                 } as Placemark,
             ]
@@ -103,30 +102,30 @@ describe('convertLayersToLayerDescriptors', function () {
         const ild = descriptors.imageLayerDescriptors[0];
 
         expect(vld1.id).to.equal(COUNTRIES_LAYER_ID);
-        expect(vld1.name).to.equal("Countries");
+        expect(vld1.name).to.equal('Countries');
         expect(vld1.visible).to.be.false;
         expect(vld1.dataSource).to.be.a('function');
         expect(vld1.dataSourceOptions).to.deep.equal({
-                                                         data: "http://localhost/ws/countries",
+                                                         data: 'http://localhost/ws/countries',
                                                          style: COUNTRIES_LAYER.style
                                                      });
 
-        expect(vld2.id).to.equal("L423");
-        expect(vld2.name).to.equal("I has a bucket");
+        expect(vld2.id).to.equal('L423');
+        expect(vld2.name).to.equal('I has a bucket');
         expect(vld2.visible).to.be.true;
         expect(vld2.resId).to.equal(1);
         expect(vld2.dataSource).to.be.a('function');
         expect(vld2.dataSourceOptions).to.deep.equal({
                                                          resId: 1,
-                                                         data: "http://localhost/ws/res/geojson/hotte/1",
+                                                         data: 'http://localhost/ws/res/geojson/hotte/1',
                                                          style: {
-                                                             fill: "#FFA500",
+                                                             fill: '#FFA500',
                                                              fillOpacity: 0.3
                                                          }
                                                      });
 
         expect(vld3.id).to.equal(MY_PLACES_LAYER_ID);
-        expect(vld3.name).to.equal("My Places");
+        expect(vld3.name).to.equal('My Places');
         expect(vld3.visible).to.be.true;
         expect(vld3.dataSource).to.be.a('function');
         expect(vld3.dataSourceOptions).to.deep.equal({
@@ -134,12 +133,12 @@ describe('convertLayersToLayerDescriptors', function () {
                                                          style: MY_PLACES_LAYER.style
                                                      });
 
-        expect(ild.id).to.equal("L427");
-        expect(ild.name).to.equal("I love ma bucket");
+        expect(ild.id).to.equal('L427');
+        expect(ild.name).to.equal('I love ma bucket');
         expect(ild.visible).to.be.true;
-        expect(ild.type).to.be.equal("VariableImage");
+        expect(ild.type).to.be.equal('VariableImage');
         expect(ild.resId).to.equal(2);
-        expect(ild.varName).to.equal("sst");
+        expect(ild.varName).to.equal('sst');
         expect(ild.imageryProvider).to.be.a('function');
         expect(ild.imageryProviderOptions).to.exist;
         expect(ild.imageryProviderOptions.minimumLevel).to.equal(0);

@@ -1,21 +1,28 @@
 import {
+    LayerState,
+    PlacemarkCollection,
+    ResourceState,
+    ResourceVectorLayerState,
     VariableImageLayerState,
-    VectorLayerState, ResourceState,
-    ResourceVectorLayerState, LayerState, PlacemarkCollection
-} from "../state";
+    VectorLayerState
+} from '../state';
+import { ImageLayerDescriptor, LayerDescriptors, VectorLayerDescriptor, } from '../components/cesium/CesiumGlobe';
 import {
-    ImageLayerDescriptor, VectorLayerDescriptor, LayerDescriptors,
-} from "../components/cesium/CesiumGlobe";
-import {
-    findVariable, findResource, getTileUrl, getFeatureCollectionUrl, getGeoJSONCountriesUrl,
-    AUTO_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID,
-} from "../state-util";
-import {memoize} from '../../common/memoize';
-import {EMPTY_OBJECT} from "../selectors";
-import * as Cesium from "cesium";
-import {isNumber} from "../../common/types";
-import {SimpleStyle} from "../../common/geojson-simple-style";
-import {simpleStyleToCesium} from "../components/cesium/cesium-util";
+    AUTO_LAYER_ID,
+    COUNTRIES_LAYER_ID,
+    findResource,
+    findVariable,
+    getFeatureCollectionUrl,
+    getGeoJSONCountriesUrl,
+    getTileUrl,
+    MY_PLACES_LAYER_ID,
+} from '../state-util';
+import { memoize } from '../../common/memoize';
+import { EMPTY_OBJECT } from '../selectors';
+import * as Cesium from 'cesium';
+import { isNumber } from '../../common/types';
+import { SimpleStyle } from '../../common/geojson-simple-style';
+import { simpleStyleToCesium } from '../components/cesium/cesium-util';
 
 export function convertLayersToLayerDescriptors(layers: LayerState[],
                                                 resources: ResourceState[],
@@ -184,10 +191,10 @@ type ResourceGeoJSONDataSourceFactory = (url: string, resId: number, style: Simp
 
 const createResourceGeoJSONDataSourceImpl: ResourceGeoJSONDataSourceFactory =
     memoize((url: string, resId: number, style: SimpleStyle) => {
-        const customDataSource: Cesium.DataSource = new Cesium.CustomDataSource("Cate Resource #" + resId);
+        const customDataSource: Cesium.DataSource = new Cesium.CustomDataSource('Cate Resource #' + resId);
         const cStyle = simpleStyleToCesium(style);
-        let numFeatures = 0;
-        const worker = new Worker("common/stream-geojson.js");
+        // let numFeatures = 0;
+        const worker = new Worker('common/stream-geojson.js');
         worker.postMessage(url);
         worker.onmessage = function (event: MessageEvent) {
 
@@ -197,7 +204,7 @@ const createResourceGeoJSONDataSourceImpl: ResourceGeoJSONDataSourceFactory =
                 return;
             }
 
-            numFeatures += features.length;
+            // numFeatures += features.length;
             // console.log(`Received another ${features.length} feature(s) from ${url}`);
 
             // Style for points symbolizing a more complex geometry
@@ -282,7 +289,7 @@ const createResourceGeoJSONDataSourceImpl: ResourceGeoJSONDataSourceFactory =
                               entity = customDataSource.entities.add(entity);
                               // console.log("added entity: ", entity);
                           } catch (e) {
-                              console.error("failed to add entity: ", entity, e);
+                              console.error('failed to add entity: ', entity, e);
                           }
                       }
 
@@ -294,7 +301,7 @@ const createResourceGeoJSONDataSourceImpl: ResourceGeoJSONDataSourceFactory =
         return customDataSource;
     });
 
-const entityGeometryPropertyNames = ["billboard", "label", "point", "corridor", "polyline", "polygon"];
+const entityGeometryPropertyNames = ['billboard', 'label', 'point', 'corridor', 'polyline', 'polygon'];
 
 export function reloadEntityWithOriginalGeometry(oldEntity: Cesium.Entity, featureUrl: string, style: SimpleStyle) {
     // TODO #477 (nf): We don't correctly handle multi-geometries here.

@@ -1,5 +1,5 @@
-import {updateObject, updatePropertyObject, updateConditionally} from "./objutil";
-import {should, expect} from "chai";
+import { updateConditionally, updateObject, updatePropertyObject } from './objutil';
+import { expect, should } from 'chai';
 
 should();
 
@@ -22,10 +22,10 @@ describe('updateObject()', function () {
 describe('updatePropertyObject()', function () {
 
     it('works', function () {
-        updatePropertyObject({}, 'a', {x: 1, y:2})
-            .should.deep.equal({a: {x: 1, y:2}});
-        updatePropertyObject({a: {y: 3, z: 4}}, 'a', {x: 1, y:2})
-            .should.deep.equal({a: {x: 1, y:2, z: 4}});
+        updatePropertyObject({}, 'a', {x: 1, y: 2})
+            .should.deep.equal({a: {x: 1, y: 2}});
+        updatePropertyObject({a: {y: 3, z: 4}}, 'a', {x: 1, y: 2})
+            .should.deep.equal({a: {x: 1, y: 2, z: 4}});
     });
 });
 

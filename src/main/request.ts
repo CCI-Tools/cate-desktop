@@ -29,9 +29,9 @@ export class HttpError extends Error {
  * @param timeout the timeout in milliseconds
  * @returns {Promise<string>}
  */
- export function request(url: string, timeout = 1000):Promise<string> {
+export function request(url: string, timeout = 1000): Promise<string> {
     // return new pending promise
-    function requestExecutor(resolve: (response: string) => void, reject: (err:HttpError) => void) {
+    function requestExecutor(resolve: (response: string) => void, reject: (err: HttpError) => void) {
         function httpGetCallback(response) {
             // handle http errors
             if (response.statusCode < 200 || response.statusCode > 299) {
@@ -44,6 +44,7 @@ export class HttpError extends Error {
             // we are done, resolve promise with those joined chunks
             response.on('end', () => resolve(body.join('')));
         }
+
         // select http or https module, depending on reqested url
         const lib = url.startsWith('https') ? https : http;
         const request = lib.get(url, httpGetCallback);
@@ -51,5 +52,6 @@ export class HttpError extends Error {
         // handle connection errors of the request
         request.on('error', (err) => reject(err));
     }
+
     return new Promise<string>(requestExecutor);
 }

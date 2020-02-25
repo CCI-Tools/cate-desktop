@@ -1,9 +1,9 @@
 import * as React from 'react';
-import {VariableState, ResourceState} from "../state";
-import {ListBoxSelectionMode, ListBox} from "../components/ListBox";
-import {LabelWithType} from "../components/LabelWithType";
-import {ModalDialog} from "../components/ModalDialog";
-import {ScrollablePanelContent} from "../components/ScrollableContent";
+import { ResourceState, VariableState } from '../state';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
+import { LabelWithType } from '../components/LabelWithType';
+import { ModalDialog } from '../components/ModalDialog';
+import { ScrollablePanelContent } from '../components/ScrollableContent';
 
 interface IVariablesDialogProps {
     isOpen: boolean;
@@ -40,8 +40,8 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
         return (
             <ModalDialog
                 isOpen={this.props.isOpen}
-                title={this.props.multiSelect ? "Select Variables" : "Select Variable"}
-                iconName="variable"
+                title={this.props.multiSelect ? 'Select Variables' : 'Select Variable'}
+                icon="variable"
                 onConfirm={this.onConfirm}
                 onCancel={this.props.onCancel}
                 renderBody={this.renderBody}
@@ -60,7 +60,7 @@ export class VariablesDialog extends React.Component<IVariablesDialogProps, IVar
         }
         return (
             <ScrollablePanelContent>
-                <p>{this.props.multiSelect ? "Select one or more the variables:" : "Select variable:"}</p>
+                <p>{this.props.multiSelect ? 'Select one or more the variables:' : 'Select variable:'}</p>
                 <ListBox items={variables}
                          getItemKey={VariablesDialog.getVariableItemKey}
                          renderItem={VariablesDialog.renderVariableItem}

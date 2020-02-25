@@ -1,11 +1,12 @@
+import { IconName } from '@blueprintjs/icons';
 import * as React from 'react'
 
 export interface IPanelProps {
     id: string;
     title: string;
-    iconName: string;
-    body?: JSX.Element|null;
-    position?: "top" | "bottom";
+    icon: IconName;
+    body?: JSX.Element | null;
+    position?: 'top' | 'bottom';
 }
 
 /**
@@ -13,10 +14,7 @@ export interface IPanelProps {
  *
  * @author Norman Fomferra
  */
-export class Panel extends React.PureComponent<IPanelProps, any> {
-    constructor(props: IPanelProps) {
-        super(props);
-    }
+export class Panel extends React.PureComponent<IPanelProps> {
 
     //noinspection JSMethodCanBeStatic
     shouldComponentUpdate() {

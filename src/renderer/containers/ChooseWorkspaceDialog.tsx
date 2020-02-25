@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {DialogState, State} from '../state';
-import {ModalDialog} from '../components/ModalDialog';
-import {connect, DispatchProp} from 'react-redux';
+import { DialogState, State } from '../state';
+import { ModalDialog } from '../components/ModalDialog';
+import { connect, DispatchProp } from 'react-redux';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
@@ -68,7 +68,12 @@ class ChooseWorkspaceDialog extends React.Component<IChooseWorkspaceDialogProps 
 
     constructor(props: IChooseWorkspaceDialogProps & DispatchProp<State>) {
         super(props);
-        this.state = {workspaceDir: '', currentWorkspaceName: '', selectedWorkspaceName: '', deleteEntireWorkspace: true};
+        this.state = {
+            workspaceDir: '',
+            currentWorkspaceName: '',
+            selectedWorkspaceName: '',
+            deleteEntireWorkspace: true
+        };
         this.onCancel = this.onCancel.bind(this);
         this.onConfirm = this.onConfirm.bind(this);
         this.canConfirm = this.canConfirm.bind(this);
@@ -87,7 +92,7 @@ class ChooseWorkspaceDialog extends React.Component<IChooseWorkspaceDialogProps 
     }
 
     private canConfirm(): boolean {
-        if (this.state.selectedWorkspaceName === "undefined" || !this.state.selectedWorkspaceName) {
+        if (this.state.selectedWorkspaceName === 'undefined' || !this.state.selectedWorkspaceName) {
             return false;
         }
         return /^([A-Za-z_\-\s0-9.]+)$/.test(this.state.selectedWorkspaceName);
@@ -160,6 +165,10 @@ class ChooseWorkspaceDialog extends React.Component<IChooseWorkspaceDialogProps 
             />);
     }
 
+    renderItem = (path: string) => {
+        return (<span>{path}</span>);
+    };
+
     private renderBody() {
         if (!this.props.isOpen) {
             return null;
@@ -176,9 +185,10 @@ class ChooseWorkspaceDialog extends React.Component<IChooseWorkspaceDialogProps 
         let checkbox: any;
         if (this.props.dialogId === DELETE_WORKSPACE_DIALOG_ID) {
             checkbox =
-                <Checkbox label={'Delete entire workspace'}
-                          checked={this.state.deleteEntireWorkspace}
-                          onChange={this.handleCheckboxChange.bind(this)}
+                <Checkbox
+                    label={'Delete entire workspace'}
+                    checked={this.state.deleteEntireWorkspace}
+                    onChange={this.handleCheckboxChange.bind(this)}
                 />
         } else {
             checkbox = ''
@@ -190,6 +200,7 @@ class ChooseWorkspaceDialog extends React.Component<IChooseWorkspaceDialogProps 
                 <ListBox items={this.props.workspaceNames}
                          selectionMode={ListBoxSelectionMode.SINGLE}
                          getItemKey={(item: any, itemIndex: number) => item}
+                         renderItem={this.renderItem}
                          onSelection={newSelection => this.setSelectedWorkspace('' + newSelection[0])}
                          selection={this.state.selectedWorkspaceName}
                 />

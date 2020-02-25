@@ -1,26 +1,34 @@
-import {connect, DispatchProp} from 'react-redux';
+import { connect, DispatchProp } from 'react-redux';
 import {
     ColorMapCategoryState,
     ColorMapState,
     ImageLayerState,
-    LayerState, Placemark,
+    LayerState,
+    Placemark,
     ResourceState,
     ResourceVectorLayerState,
-    State, STYLE_CONTEXT_ENTITY, STYLE_CONTEXT_LAYER,
+    State,
+    STYLE_CONTEXT_ENTITY,
+    STYLE_CONTEXT_LAYER,
     VariableImageLayerState,
     VariableState,
     VectorLayerState
 } from '../state';
 import * as React from 'react';
-import {NO_ENTITY_FOR_STYLE, NO_LAYER_FOR_STYLE} from '../messages';
-import {SubPanelHeader} from '../components/SubPanelHeader';
+import { NO_ENTITY_FOR_STYLE, NO_LAYER_FOR_STYLE } from '../messages';
+import { SubPanelHeader } from '../components/SubPanelHeader';
 import {
     AnchorButton,
-    Button, Colors,
+    Button,
+    Colors,
+    ControlGroup,
+    HTMLSelect,
+    Intent,
+    Label,
     NumberRange,
     Popover,
     PopoverInteractionKind,
-    Position,
+    PopoverPosition,
     Radio,
     RadioGroup,
     RangeSlider,
@@ -30,18 +38,18 @@ import {
 } from '@blueprintjs/core';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
-import {NumericRangeField} from '../components/field/NumericRangeField';
-import {FieldValue} from '../components/field/Field';
-import {ListBox, ListBoxSelectionMode} from '../components/ListBox';
-import {TextField} from '../components/field/TextField';
+import { NumericRangeField } from '../components/field/NumericRangeField';
+import { FieldValue } from '../components/field/Field';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
+import { TextField } from '../components/field/TextField';
 import SketchPicker from 'react-color/lib/components/sketch/Sketch';
-import {ColorResult} from 'react-color';
-import {SimpleStyle} from '../../common/geojson-simple-style';
-import {NumericField} from '../components/field/NumericField';
-import {ViewState} from '../components/ViewState';
+import { ColorState } from 'react-color';
+import { SimpleStyle } from '../../common/geojson-simple-style';
+import { NumericField } from '../components/field/NumericField';
+import { ViewState } from '../components/ViewState';
 import * as Cesium from 'cesium';
-import {getLayerDisplayName} from "../state-util";
-import {ToolButton} from "../components/ToolButton";
+import { getLayerDisplayName } from '../state-util';
+import { ToolButton } from '../components/ToolButton';
 
 function getDisplayFractionDigits(min: number, max: number) {
     const n = Math.round(Math.log10(max - min));
@@ -134,6 +142,12 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         this.handleChangedMarkerSymbol = this.handleChangedMarkerSymbol.bind(this);
     }
 
+    componentDidMount(): void {
+        if (!this.props.colorMapCategories) {
+            this.props.dispatch(actions.loadColorMaps() as any);
+        }
+    }
+
     public render() {
         return (
             <React.Fragment>
@@ -208,7 +222,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
 
         return (
             <div style={{width: '100%', marginBottom: '20px'}}>
-                <label key="drange" className="pt-label" style={{display: 'flex'}}>
+                <Label key="drange" style={{display: 'flex'}}>
                     <span style={{...StylesPanel.LABEL_SPAN_STYLE_100, margin: 'auto 0'}}>Display range</span>
                     <div style={{display: 'flex', alignItems: 'center'}}>
                         <NumericRangeField value={this.props.displayMinMax}
@@ -216,13 +230,14 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                                            onChange={this.handleChangedDisplayMinMax}
                                            uncontrolled={true}
                         />
-                        <ToolButton tooltipContent="Compute valid min/max" tooltipPosition={Position.LEFT}
-                                    className="pt-intent-primary" iconName="arrows-horizontal"
+                        <ToolButton tooltipContent="Compute valid min/max"
+                                    intent={Intent.PRIMARY}
+                                    icon="arrows-horizontal"
                                     style={{flex: 'none', marginTop: '5px'}}
                                     disabled={this.props.isComputingVariableStatistics}
                                     onClick={this.handleUpdateDisplayStatistics}/>
                     </div>
-                </label>
+                </Label>
                 <div style={StylesPanel.SLIDER_DIV_STYLE_15}>
                     {this.renderDisplayRangeSlider()}
                 </div>
@@ -242,8 +257,8 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
             colorBarButton = (
                 <Popover content={popoverContent}
                          interactionKind={PopoverInteractionKind.CLICK}
-                         popoverClassName="pt-popover-content-sizing cate-color-bars-popover"
-                         position={Position.LEFT}>
+                         popoverClassName="bp3-popover-content-sizing cate-color-bars-popover"
+                         position={PopoverPosition.LEFT}>
                     {this.renderColorBarButton(layer, false)}
                 </Popover>
             );
@@ -252,10 +267,10 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         }
 
         return (
-            <label key="cmap" className="pt-label pt-inline" style={{display: 'flex'}}>
+            <Label key="cmap" className="bp3-inline" style={{display: 'flex'}}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Colour bar</span>
                 {colorBarButton}
-            </label>
+            </Label>
         );
     }
 
@@ -266,21 +281,21 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         }
 
         const handleChangedImageEnhancement = (name: string, value: number) => {
-            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {[name]: value}));
+            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {[name]: value}) as any);
         };
 
         return (
-            <label key={key} className="pt-label" style={{display: 'flex'}}>
+            <Label key={key} style={{display: 'flex'}}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>{label}</span>
                 <div style={{...StylesPanel.SLIDER_DIV_STYLE_10, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={min}
                             max={max}
                             stepSize={(max - min) / 10.}
-                            renderLabel={false}
+                            labelRenderer={false}
                             value={layer[key]}
                             onChange={(value: number) => handleChangedImageEnhancement(key, value)}/>
                 </div>
-            </label>
+            </Label>
         );
     }
 
@@ -312,21 +327,21 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
 
         if (selectedPlacemark) {
             const title = selectedPlacemark.properties && selectedPlacemark.properties.title;
-            if (title && title !== "") {
+            if (title && title !== '') {
                 entityDisplayName = `My place ${title}`;
             } else {
-                entityDisplayName = "Selected place";
+                entityDisplayName = 'Selected place';
             }
         } else if (selectedEntity) {
-            entityDisplayName = "Selected entity";
+            entityDisplayName = 'Selected entity';
         } else {
-            entityDisplayName = "Selected entity (none)";
+            entityDisplayName = 'Selected entity (none)';
         }
 
         if (selectedLayer) {
             layerDisplayName = `Layer ${getLayerDisplayName(selectedLayer)}`;
         } else {
-            layerDisplayName = "Selected layer";
+            layerDisplayName = 'Selected layer';
         }
 
         return (
@@ -344,9 +359,9 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
 
     private renderFillColor() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Colour</span>
-                <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
+                <ControlGroup style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.fill}
                                style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
                                size={8}
@@ -355,9 +370,9 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     />
                     <Popover
                         interactionKind={PopoverInteractionKind.CLICK}
-                        popoverClassName="pt-minimal"
-                        position={Position.LEFT}
-                        className="pt-input-action"
+                        popoverClassName="bp3-minimal"
+                        position={PopoverPosition.LEFT}
+                        className="bp3-input-action"
                     >
                         <Button style={{backgroundColor: this.props.vectorStyle.fill}}/>
                         <SketchPicker
@@ -366,31 +381,31 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                             disableAlpha={true}
                         />
                     </Popover>
-                </div>
-            </label>
+                </ControlGroup>
+            </Label>
         );
     }
 
     private renderFillOpacity() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Opacity</span>
                 <div style={{...StylesPanel.SLIDER_DIV_STYLE_05, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={0.0}
                             max={1.0}
                             stepSize={0.05}
-                            renderLabel={false}
+                            labelRenderer={false}
                             value={this.props.vectorStyle.fillOpacity}
                             onChange={this.handleChangedFillOpacity}
                     />
                 </div>
-            </label>
+            </Label>
         );
     }
 
     private renderStrokeWidth() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Width</span>
                 <NumericField value={this.props.vectorStyle.strokeWidth}
                               style={{flex: 'auto 1', fontFamily: 'courier'}}
@@ -399,15 +414,15 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                               uncontrolled={true}
                               onChange={this.handleChangedStrokeWidth}
                 />
-            </label>
+            </Label>
         );
     }
 
     private renderStrokeColor() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Colour</span>
-                <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
+                <ControlGroup style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.stroke}
                                style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
                                size={8}
@@ -416,9 +431,9 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     />
                     <Popover
                         interactionKind={PopoverInteractionKind.CLICK}
-                        popoverClassName="pt-minimal"
-                        position={Position.LEFT}
-                        className="pt-input-action"
+                        popoverClassName="bp3-minimal"
+                        position={PopoverPosition.LEFT}
+                        className="bp3-input-action"
                     >
                         <Button style={{backgroundColor: this.props.vectorStyle.stroke}}/>
                         <SketchPicker
@@ -427,33 +442,33 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                             disableAlpha={true}
                         />
                     </Popover>
-                </div>
-            </label>
+                </ControlGroup>
+            </Label>
         );
     }
 
     private renderStrokeOpacity() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Opacity</span>
                 <div style={{...StylesPanel.SLIDER_DIV_STYLE_05, width: undefined, flex: 'auto 1', margin: 'auto 0'}}>
                     <Slider min={0.0}
                             max={1.0}
                             stepSize={0.05}
-                            renderLabel={false}
+                            labelRenderer={false}
                             value={this.props.vectorStyle.strokeOpacity}
                             onChange={this.handleChangedStrokeOpacity}
                     />
                 </div>
-            </label>
+            </Label>
         );
     }
 
     private renderMarkerColor() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Colour</span>
-                <div className="pt-input-group" style={{lineHeight: '0', flex: 'auto 1'}}>
+                <ControlGroup style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.markerColor}
                                style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
                                size={8}
@@ -462,9 +477,9 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     />
                     <Popover
                         interactionKind={PopoverInteractionKind.CLICK}
-                        popoverClassName="pt-minimal"
-                        position={Position.LEFT}
-                        className="pt-input-action"
+                        popoverClassName="bp3-minimal"
+                        position={PopoverPosition.LEFT}
+                        className="bp3-input-action"
                     >
                         <Button style={{backgroundColor: this.props.vectorStyle.markerColor}}/>
                         <SketchPicker
@@ -473,31 +488,31 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                             disableAlpha={true}
                         />
                     </Popover>
-                </div>
-            </label>
+                </ControlGroup>
+            </Label>
         );
     }
 
     private renderMarkerSize() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Size</span>
-                <div className="pt-select" style={{flex: 'auto 1'}}>
-                    <select value={this.props.vectorStyle.markerSize}
-                            onChange={this.handleChangedMarkerSize}
-                    >
-                        <option value="small">Small</option>
-                        <option value="medium">Medium</option>
-                        <option value="large">Large</option>
-                    </select>
-                </div>
-            </label>
+                <HTMLSelect
+                    style={{flex: 'auto 1'}}
+                    value={this.props.vectorStyle.markerSize}
+                    onChange={this.handleChangedMarkerSize}
+                >
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large">Large</option>
+                </HTMLSelect>
+            </Label>
         );
     }
 
     private renderMarkerSymbol() {
         return (
-            <label className="pt-label pt-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
+            <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Symbol</span>
                 <TextField value={this.props.vectorStyle.markerSymbol}
                            style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right'}}
@@ -505,7 +520,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                            uncontrolled={true}
                            onChange={this.handleChangedMarkerSymbol}
                 />
-            </label>
+            </Label>
         );
     }
 
@@ -523,7 +538,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         let min = statistics.min;
         let max = statistics.max;
 
-        if (isNaN(min) || isNaN(max)){
+        if (isNaN(min) || isNaN(max)) {
             return <span style={{color: Colors.ORANGE3}}>All values are NaN</span>;
         }
 
@@ -539,7 +554,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                 max={max}
                 stepSize={(max - min) / 100.}
                 labelStepSize={max - min}
-                renderLabel={(x: number) => formatNumber(x, fractionDigits)}
+                labelRenderer={(x: number) => formatNumber(x, fractionDigits)}
                 onChange={this.handleChangedDisplayRange}
                 value={[layer.displayMin, layer.displayMax]}
             />
@@ -550,7 +565,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         const selectedColorMapName = layer.colorMapName;
         const selectedColorMapImage = this.renderColorMapImage(this.props.selectedColorMap);
         const buttonContent = (selectedColorMapImage || (selectedColorMapName || 'Select Color Bar'));
-        return (<AnchorButton className="pt-minimal" style={{width: '100%'}}
+        return (<AnchorButton className="bp3-minimal" style={{width: '100%'}}
                               disabled={disabled}>{buttonContent}</AnchorButton>);
     }
 
@@ -597,7 +612,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
     private handleChangedDisplayAlphaBlend(event: any) {
         const alphaBlending = event.target.checked;
         const layer = this.props.selectedVariableImageLayer;
-        this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {alphaBlending}));
+        this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {alphaBlending}) as any);
     }
 
     private handleChangedDisplayMinMax(displayMinMax: FieldValue<NumberRange>) {
@@ -605,7 +620,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         if (!displayMinMax.error) {
             const displayMin = displayMinMax.value[0];
             const displayMax = displayMinMax.value[1];
-            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {displayMin, displayMax}));
+            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {displayMin, displayMax}) as any);
         }
     }
 
@@ -624,7 +639,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                                                                            statistics
                                                                        });
                                                                    }
-        ));
+        ) as any);
     }
 
     private handleChangedDisplayRange(displayRange: NumberRange) {
@@ -632,14 +647,14 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {
             displayMin: displayRange[0],
             displayMax: displayRange[1]
-        }));
+        }) as any);
     }
 
     private handleChangedColorMapName(newSelection: string[]) {
         const layer = this.props.selectedVariableImageLayer || this.props.selectedResourceVectorLayer;
         const colorMapName = newSelection && newSelection.length && newSelection[0];
         if (colorMapName) {
-            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {colorMapName}));
+            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {colorMapName}) as any);
         }
     }
 
@@ -651,7 +666,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         this.handleChangedVectorStyle({fill: value.value});
     }
 
-    private handleChangedFillColorFromPicker(color: ColorResult) {
+    private handleChangedFillColorFromPicker(color: ColorState) {
         this.handleChangedVectorStyle({fill: color.hex});
     }
 
@@ -667,7 +682,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         this.handleChangedVectorStyle({stroke: value.value});
     }
 
-    private handleChangedStrokeColorFromPicker(color: ColorResult) {
+    private handleChangedStrokeColorFromPicker(color: ColorState) {
         this.handleChangedVectorStyle({stroke: color.hex});
     }
 
@@ -683,7 +698,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         this.handleChangedVectorStyle({markerColor: value.value});
     }
 
-    private handleChangedMarkerColorFromPicker(color: ColorResult) {
+    private handleChangedMarkerColorFromPicker(color: ColorState) {
         this.handleChangedVectorStyle({markerColor: color.hex});
     }
 
@@ -696,7 +711,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         if (this.props.styleContext === STYLE_CONTEXT_ENTITY) {
             this.props.dispatch(actions.updateEntityStyle(this.props.activeView,
                                                           this.props.selectedEntity,
-                                                          style));
+                                                          style) as any);
         } else {
             this.props.dispatch(actions.updateLayerStyle(this.props.activeView.id,
                                                          this.props.selectedVectorLayer.id,

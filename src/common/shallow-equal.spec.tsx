@@ -1,5 +1,5 @@
-import {should, expect} from 'chai';
-import {shallowEqual} from "./shallow-equal";
+import { expect, should } from 'chai';
+import { shallowEqual } from './shallow-equal';
 
 should();
 

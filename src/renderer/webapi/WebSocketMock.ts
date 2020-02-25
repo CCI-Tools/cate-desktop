@@ -10,6 +10,7 @@ export interface WebSocketMin {
     onopen: (this: this, ev: Event) => any;
 
     send(data: any): void;
+
     close(code?: number, reason?: string): void;
 }
 
@@ -32,7 +33,7 @@ export interface IProcessData {
 }
 
 export interface IServiceObject {
-    processData: {[methodName: string]: IProcessData};
+    processData: { [methodName: string]: IProcessData };
 }
 
 /**
@@ -136,13 +137,13 @@ export class WebSocketMock implements WebSocketMin {
         const method = this.serviceObj[requestMessage.method];
         if (!method) {
             this.emulateIncomingMessages({
-                jsonrpc: "2.0",
-                id: requestMessage.id,
-                error: {
-                    code: 1,
-                    message: `${requestMessage.method}(): no such method`
-                }
-            });
+                                             jsonrpc: '2.0',
+                                             id: requestMessage.id,
+                                             error: {
+                                                 code: 1,
+                                                 message: `${requestMessage.method}(): no such method`
+                                             }
+                                         });
             return;
         }
 
@@ -155,68 +156,68 @@ export class WebSocketMock implements WebSocketMin {
 
         for (let i = 0; i < numSteps; i++) {
             responseTasks.push({
-                delay: delayPerStep,
-                perform: () => {
-                    this.emulateIncomingMessages({
-                        jsonrpc: "2.0",
-                        id: requestMessage.id,
-                        progress: {
-                            worked: i + 1,
-                            total: numSteps
-                        }
-                    });
-                }
-            });
+                                   delay: delayPerStep,
+                                   perform: () => {
+                                       this.emulateIncomingMessages({
+                                                                        jsonrpc: '2.0',
+                                                                        id: requestMessage.id,
+                                                                        progress: {
+                                                                            worked: i + 1,
+                                                                            total: numSteps
+                                                                        }
+                                                                    });
+                                   }
+                               });
         }
 
         responseTasks.push({
-            delay: delay,
-            perform: () => {
-                try {
-                    const result = method.apply(this.serviceObj, requestMessage.params);
-                    this.emulateIncomingMessages({
-                        jsonrpc: "2.0",
-                        id: requestMessage.id,
-                        response: result
-                    });
-                } catch (e) {
-                    this.emulateIncomingMessages({
-                        jsonrpc: "2.0",
-                        id: requestMessage.id,
-                        error: {
-                            code: 2,
-                            message: `${requestMessage.method}(): ${e}`,
-                        }
-                    });
-                }
-            }
-        });
+                               delay: delay,
+                               perform: () => {
+                                   try {
+                                       const result = method.apply(this.serviceObj, requestMessage.params);
+                                       this.emulateIncomingMessages({
+                                                                        jsonrpc: '2.0',
+                                                                        id: requestMessage.id,
+                                                                        response: result
+                                                                    });
+                                   } catch (e) {
+                                       this.emulateIncomingMessages({
+                                                                        jsonrpc: '2.0',
+                                                                        id: requestMessage.id,
+                                                                        error: {
+                                                                            code: 2,
+                                                                            message: `${requestMessage.method}(): ${e}`,
+                                                                        }
+                                                                    });
+                                   }
+                               }
+                           });
 
         if (!this.asyncCalls) {
             responseTasks.forEach(task => task.perform());
         } else {
-            function performDeferred(i: number, webSocketMock: WebSocketMock) {
+            const performDeferred = (i: number, webSocketMock: WebSocketMock) => {
                 if (webSocketMock.cancelledJobsIds.has(requestMessage.id)) {
                     webSocketMock.emulateIncomingMessages({
-                        jsonrpc: "2.0",
-                        id: requestMessage.id,
-                        error: {
-                            code: 999,
-                            message: `Cancelled ${requestMessage.method}()`,
-                        }
-                    });
+                                                              jsonrpc: '2.0',
+                                                              id: requestMessage.id,
+                                                              error: {
+                                                                  code: 999,
+                                                                  message: `Cancelled ${requestMessage.method}()`,
+                                                              }
+                                                          });
                 } else {
                     if (i < responseTasks.length) {
                         const task = responseTasks[i];
                         setTimeout(() => {
-                                task.perform();
-                                performDeferred(i + 1, webSocketMock);
-                            },
-                            task.delay
+                                       task.perform();
+                                       performDeferred(i + 1, webSocketMock);
+                                   },
+                                   task.delay
                         );
                     }
                 }
-            }
+            };
             performDeferred(0, this);
         }
     }

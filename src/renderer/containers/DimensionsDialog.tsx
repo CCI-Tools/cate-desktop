@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ListBoxSelectionMode, ListBox } from '../components/ListBox';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import { ModalDialog } from '../components/ModalDialog';
 import { ScrollablePanelContent } from '../components/ScrollableContent';
 
@@ -39,7 +39,7 @@ export class DimensionsDialog extends React.Component<IDimensionsDialogProps, ID
             <ModalDialog
                 isOpen={this.props.isOpen}
                 title={this.props.multiSelect ? 'Select Dimensions' : 'Select Dimension'}
-                iconName="variable"
+                icon="variable"
                 onConfirm={this.onConfirm}
                 onCancel={this.props.onCancel}
                 renderBody={this.renderBody}

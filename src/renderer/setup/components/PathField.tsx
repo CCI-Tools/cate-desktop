@@ -1,5 +1,5 @@
-import * as React from "react";
-import {Button, Label, Tooltip} from "@blueprintjs/core";
+import * as React from 'react';
+import { Button, Classes, ControlGroup, InputGroup, Label } from '@blueprintjs/core';
 
 export interface IPathFieldProps {
     label: string;
@@ -14,23 +14,25 @@ export function PathField(props: IPathFieldProps) {
     let className;
 
     if (props.validation) {
-        className = "pt-input pt-intent-danger";
+        className = Classes.INTENT_DANGER;
     } else {
-        className = "pt-input";
+        className = '';
     }
 
     let pathField = (
-        <Label text={props.label}>
-            <div className="pt-control-group">
-                <div className="pt-input-group pt-fill">
-                    <input type="text"
-                           className={className}
-                           placeholder={props.placeholder}
-                           value={props.value}
-                           onChange={props.onChange}/>
-                </div>
+        <Label>
+            {props.label}
+            <ControlGroup>
+                <InputGroup
+                    type="text"
+                    fill={true}
+                    className={className}
+                    placeholder={props.placeholder}
+                    value={props.value}
+                    onChange={props.onChange}
+                />
                 <Button text="Browse..." onClick={props.onBrowse}/>
-            </div>
+            </ControlGroup>
         </Label>
     );
 
@@ -39,7 +41,7 @@ export function PathField(props: IPathFieldProps) {
         pathField = (
             <div>
                 {pathField}
-                <span style={{fontSize: "0.8em", color: "#A82A2A"}}>{props.validation}</span>
+                <span style={{fontSize: '0.8em', color: '#A82A2A'}}>{props.validation}</span>
             </div>
         );
     }

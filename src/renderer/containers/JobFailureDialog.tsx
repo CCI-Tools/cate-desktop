@@ -1,12 +1,7 @@
 import * as React from 'react';
 import { ModalDialog } from '../components/ModalDialog';
-import {
-    ERROR_CODE_CANCELLED,
-    ERROR_CODE_INVALID_PARAMS, ERROR_CODE_OS_ERROR, ERROR_CODE_OUT_OF_MEMORY,
-    getJobFailureIconName, getJobFailureIntentName, getJobFailureTitle, isDeveloperError, isUserError,
-    JobFailure
-} from '../webapi';
-import { Button, Checkbox, Collapse, Icon, IconName, Intent, Label } from '@blueprintjs/core';
+import { getJobFailureIconName, getJobFailureTitle, isDeveloperError, isUserError, JobFailure } from '../webapi';
+import { Button, Checkbox, Collapse, Icon, IconName, Intent } from '@blueprintjs/core';
 import * as selectors from '../selectors';
 import { State } from '../state';
 import { connect, DispatchProp } from 'react-redux';
@@ -89,7 +84,7 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
         const title = getJobFailureTitle(this.props.jobFailure);
         return (
             <ModalDialog isOpen={this.props.isOpen}
-                         iconName={'error'}
+                         icon={'error'}
                          title={title}
                          onConfirm={this.handleConfirm}
                          onCancel={this.handleCancel}
@@ -125,7 +120,11 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
                     <Button onClick={this.handleShowDetails}>{this.state.showDetails ? 'Hide' : 'Show'} Details</Button>
                     <Collapse isOpen={this.state.showDetails}>
                         <pre className="user-selectable"
-                             style={{overflow: 'auto', width: '36em', height: '20em'}}>{this.props.jobFailure.data.traceback}</pre>
+                             style={{
+                                 overflow: 'auto',
+                                 width: '36em',
+                                 height: '20em'
+                             }}>{this.props.jobFailure.data.traceback}</pre>
                     </Collapse>
                 </div>
             );
@@ -135,8 +134,8 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
         if (isDeveloperError(this.props.jobFailure)) {
             reporting = (
                 <div style={{marginTop: '1em'}}>
-                    <span className="pt-text-muted">Please consider reporting this issue in Cate's <a
-                        href="https://github.com/CCI-Tools/cate/issues" target="_blank">issue tracker</a>.</span>
+                    <span className="bp3-text-muted">Please consider reporting this issue in Cate's <a
+                        href="https://github.com/CCI-Tools/cate/issues" target="_blank" rel="noopener noreferrer">issue tracker</a>.</span>
                     <Checkbox label='Copy error report to clipboard'
                               checked={this.state.copyReport}
                               onChange={this.handleCopyReport}/>
@@ -144,8 +143,7 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
             );
         }
 
-        const iconName = getJobFailureIconName(this.props.jobFailure) as IconName;
-        const intentName = getJobFailureIntentName(this.props.jobFailure);
+        const icon = getJobFailureIconName(this.props.jobFailure) as IconName;
         let iconIntent;
         if (isUserError(this.props.jobFailure)) {
             iconIntent = Intent.PRIMARY;
@@ -154,11 +152,11 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
         }
 
         return (
-            <div style={{display: "flex"}}>
-                <div style={{fontSize: "4em", flex: "0 1 1em"}}>
-                    <Icon iconName={iconName} iconSize={'inherit'} intent={iconIntent}/>
+            <div style={{display: 'flex'}}>
+                <div style={{fontSize: '4em', flex: '0 1 1em'}}>
+                    <Icon icon={icon} intent={iconIntent}/>
                 </div>
-                <div style={{flex: "1 1 90%", marginLeft: "1em"}}>
+                <div style={{flex: '1 1 90%', marginLeft: '1em'}}>
                     {messageDiv}
                     {traceback}
                     {reporting}

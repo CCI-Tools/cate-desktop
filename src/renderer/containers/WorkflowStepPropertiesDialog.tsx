@@ -1,11 +1,11 @@
 import * as React from 'react';
-import {State, ResourceState, DialogState, WorkflowStepState} from "../state";
-import {connect, DispatchProp} from "react-redux";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import * as assert from "../../common/assert";
-import {ModalDialog} from "../components/ModalDialog";
-import {Checkbox} from "@blueprintjs/core";
+import { DialogState, ResourceState, State, WorkflowStepState } from '../state';
+import { connect, DispatchProp } from 'react-redux';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import * as assert from '../../common/assert';
+import { ModalDialog } from '../components/ModalDialog';
+import { Checkbox, InputGroup, Label } from '@blueprintjs/core';
 
 const DIALOG_ID = 'workflowStepPropertiesDialog';
 const DIALOG_TITLE = 'Workflow Step & Resource Properties';
@@ -64,10 +64,10 @@ class WorkflowStepPropertiesDialog extends React.Component<IWorkflowStepProperti
         const newStepPersistent = this.state.stepPersistent || false;
 
         if (oldStepPersistent !== newStepPersistent) {
-            this.props.dispatch(actions.setWorkspaceResourcePersistence(oldStepId, newStepPersistent));
+            this.props.dispatch(actions.setWorkspaceResourcePersistence(oldStepId, newStepPersistent) as any);
         }
         if (oldStepId !== newStepId) {
-            this.props.dispatch(actions.renameWorkspaceResource(oldStepId, newStepId));
+            this.props.dispatch(actions.renameWorkspaceResource(oldStepId, newStepId) as any);
         }
     }
 
@@ -92,7 +92,7 @@ class WorkflowStepPropertiesDialog extends React.Component<IWorkflowStepProperti
             <ModalDialog
                 isOpen={this.props.isOpen}
                 title={DIALOG_TITLE}
-                iconName="edit"
+                icon="edit"
                 onCancel={this.onCancel}
                 onConfirm={this.onConfirm}
                 canConfirm={this.canConfirm}
@@ -108,24 +108,25 @@ class WorkflowStepPropertiesDialog extends React.Component<IWorkflowStepProperti
 
         return (
             <div style={{width: '100%', padding: 6}}>
-                <label className="pt-label">
+                <Label>
                     Resource name
-                    <span className="pt-text-muted"> (must be unique within the workspace)</span>
-                    <input className="pt-input"
-                           style={{width: '100%'}}
-                           type="text"
-                           value={this.state.stepId}
-                           onChange={(ev: any) => this.setState({stepId: ev.target.value})}/>
-                    <span className="pt-text-muted">The Resource name must only contain the uppercase and lowercase letters A through Z,
+                    <span className="bp3-text-muted"> (must be unique within the workspace)</span>
+                    <InputGroup
+                        style={{width: '100%'}}
+                        type="text"
+                        value={this.state.stepId}
+                        onChange={(ev: any) => this.setState({stepId: ev.target.value})}
+                    />
+                    <span className="bp3-text-muted">The Resource name must only contain the uppercase and lowercase letters A through Z,
                         the underscore _ and, except for the first character, the digits 0 through 9.</span>
-                </label>
+                </Label>
 
                 <div style={{paddingTop: 10}}>
                     <Checkbox checked={this.state.stepPersistent}
                               onChange={(ev: any) => this.setState({stepPersistent: ev.target.checked})}
                               label="Persist resulting resource"
                     />
-                    <span className="pt-text-muted">If checked, the resource will be read from a file in the workspac next time the workspace is opened.
+                    <span className="bp3-text-muted">If checked, the resource will be read from a file in the workspac next time the workspace is opened.
                         This usually speeds up the loading of workspace, but requires extra disk space.</span>
                 </div>
             </div>

@@ -1,11 +1,11 @@
-import * as React from "react";
-import {AnchorButton} from "@blueprintjs/core";
-import {DialogState, State} from "../state";
-import {ModalDialog} from "../components/ModalDialog";
-import {connect, DispatchProp} from "react-redux";
-import * as actions from "../actions";
-import {OpenDialogProperty} from "../actions";
-import * as selectors from "../selectors";
+import * as React from 'react';
+import { AnchorButton, ControlGroup, InputGroup, Intent } from '@blueprintjs/core';
+import { DialogState, State } from '../state';
+import { ModalDialog } from '../components/ModalDialog';
+import { connect, DispatchProp } from 'react-redux';
+import * as actions from '../actions';
+import { OpenDialogProperty } from '../actions';
+import * as selectors from '../selectors';
 
 interface IAddDatasetDialogProps {
     isOpen: boolean;
@@ -52,7 +52,7 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & Dispatch
 
     private onConfirm() {
         this.props.dispatch(actions.hideDialog(AddDatasetDialog.DIALOG_ID, this.state));
-        this.props.dispatch(actions.addLocalDataset(this.state.dataSourceName, this.state.filePathPattern));
+        this.props.dispatch(actions.addLocalDataset(this.state.dataSourceName, this.state.filePathPattern) as any);
     }
 
     private onDataSourceNameChange(ev: any) {
@@ -65,9 +65,9 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & Dispatch
 
     private showSelectDirectoryDialog() {
         const openDialogOptions = {
-            title: "Select Directory",
+            title: 'Select Directory',
             defaultPath: this.state.filePathPattern,
-            buttonLabel: "Select",
+            buttonLabel: 'Select',
             properties: [
                 'openDirectory' as OpenDialogProperty,
             ],
@@ -90,7 +90,7 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & Dispatch
             <ModalDialog
                 isOpen={isOpen}
                 title="Add local data source"
-                iconName="add"
+                icon="add"
                 confirmTitle="Add"
                 confirmIconName="add"
                 confirmTooltip="Add local data source."
@@ -106,29 +106,31 @@ class AddDatasetDialog extends React.Component<IAddDatasetDialogProps & Dispatch
             return null;
         }
         return (
-            <div>
+            <ControlGroup>
                 <p>Define a new local data source using a file pattern.</p>
 
                 <p style={{marginTop: '1em'}}>Name:</p>
-                <input className="pt-input"
-                       type="text"
-                       style={{width: '100%', marginLeft: '1em'}}
-                       value={this.state.dataSourceName}
-                       onChange={this.onDataSourceNameChange}/>
-                <p style={{marginTop: '1em'}}>Path pattern<span className="pt-text-muted"> (can contain wildcards like "*" or "?")</span>:
+                <InputGroup
+                    type="text"
+                    style={{width: '100%', marginLeft: '1em'}}
+                    value={this.state.dataSourceName}
+                    onChange={this.onDataSourceNameChange}
+                />
+                <p style={{marginTop: '1em'}}>Path pattern<span className="bp3-text-muted"> (can contain wildcards like "*" or "?")</span>:
                 </p>
-                <div className="pt-control-group"
-                     style={{flexGrow: 1, display: 'flex', marginLeft: '1em', width: '100%'}}>
-                    <input className="pt-input"
-                           type="text"
-                           style={{flex: 'auto'}}
-                           value={this.state.filePathPattern}
-                           onChange={this.onFilePathPatternChange}/>
-                    <AnchorButton className="pt-intent-primary" style={{flex: 'none'}}
+                <ControlGroup style={{flexGrow: 1, display: 'flex', marginLeft: '1em', width: '100%'}}>
+                    <InputGroup
+                        type="text"
+                        style={{flex: 'auto'}}
+                        value={this.state.filePathPattern}
+                        onChange={this.onFilePathPatternChange}
+                    />
+                    <AnchorButton intent={Intent.PRIMARY} style={{flex: 'none'}}
                                   onClick={this.showSelectDirectoryDialog}>...</AnchorButton>
-                </div>
-            </div>
+                </ControlGroup>
+            </ControlGroup>
         );
     }
 }
+
 export default connect(mapStateToProps)(AddDatasetDialog);

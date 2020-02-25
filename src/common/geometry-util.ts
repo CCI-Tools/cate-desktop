@@ -1,5 +1,4 @@
-import {DirectGeometryObject, Feature, GeoJsonObject, Position} from "geojson";
-import * as Cesium from "cesium";
+import { DirectGeometryObject, GeoJsonObject, Position } from 'geojson';
 
 export type GeometryType =
     'Point'
@@ -193,7 +192,7 @@ export function validateGeoCoordinate(lon: number, lat: number) {
 }
 
 export function isBox(geometry: DirectGeometryObject) {
-    if (geometry.type === "Polygon" && geometry.coordinates.length === 1) {
+    if (geometry.type === 'Polygon' && geometry.coordinates.length === 1) {
         const positions = geometry.coordinates[0] as Position[];
         if (positions.length == 5) {
             const x0 = positions[0][0];
@@ -222,19 +221,19 @@ export function isBox(geometry: DirectGeometryObject) {
 }
 
 export function geometryGeoJsonToCsv(geometry: DirectGeometryObject, sep?: string) {
-    sep = sep || ",";
+    sep = sep || ',';
     const header = `longitude${sep}latitude\n`;
-    if (geometry.type === "Point") {
+    if (geometry.type === 'Point') {
         const position = geometry.coordinates;
         return `${header}${position[0]}${sep}${position[1]}\n`;
-    } else if (geometry.type === "LineString") {
+    } else if (geometry.type === 'LineString') {
         const coordinates = geometry.coordinates;
         let a = [];
         for (let position of coordinates) {
             a.push(`${position[0]}${sep}${position[1]}\n`)
         }
         return `${header}${a.join('')}`;
-    } else if (geometry.type === "Polygon") {
+    } else if (geometry.type === 'Polygon') {
         const coordinates = geometry.coordinates;
         let a = [];
         for (let ring of coordinates) {
@@ -247,22 +246,22 @@ export function geometryGeoJsonToCsv(geometry: DirectGeometryObject, sep?: strin
         }
         return `${header}${a.join('')}`;
     }
-    return "";
+    return '';
 }
 
 export function geometryGeoJsonToGeometryWkt(geometry: DirectGeometryObject): string {
 
-    if (geometry.type === "Point") {
+    if (geometry.type === 'Point') {
         const position = geometry.coordinates;
         return `POINT (${position[0]} ${position[1]})`
-    } else if (geometry.type === "LineString") {
+    } else if (geometry.type === 'LineString') {
         const coordinates = geometry.coordinates;
         let a = [];
         for (let position of coordinates) {
             a.push(`${position[0]} ${position[1]}`)
         }
         return `LINESTRING (${a.join(', ')})`;
-    } else if (geometry.type === "Polygon") {
+    } else if (geometry.type === 'Polygon') {
         const coordinates = geometry.coordinates;
         let a1 = [];
         for (let ring of coordinates) {
@@ -274,7 +273,7 @@ export function geometryGeoJsonToGeometryWkt(geometry: DirectGeometryObject): st
         }
         return `POLYGON (${a1.join(', ')})`;
     }
-    return "";
+    return '';
 }
 
 

@@ -1,7 +1,6 @@
-import * as React from 'react'
-import {Field, FieldType} from "./Field";
-import {INumericFieldProps, validateNumber} from "./NumericField";
-import {isUndefinedOrNull} from "../../../common/types";
+import { Field, FieldType } from './Field';
+import { INumericFieldProps, validateNumber } from './NumericField';
+import { isUndefinedOrNull } from '../../../common/types';
 
 export type NumericRange = [number, number];
 export type NumericRangeFieldType = FieldType<NumericRange>;

@@ -1,14 +1,14 @@
-import * as React from "react";
-import {Checkbox} from "@blueprintjs/core";
-import {DataSourceState, DialogState, State} from "../state";
-import {ModalDialog} from "../components/ModalDialog";
-import {connect, DispatchProp} from "react-redux";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
+import * as React from 'react';
+import { Checkbox } from '@blueprintjs/core';
+import { DataSourceState, DialogState, State } from '../state';
+import { ModalDialog } from '../components/ModalDialog';
+import { connect, DispatchProp } from 'react-redux';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
 
 interface IRemoveDatasetDialogProps {
     isOpen: boolean;
-    dataSource: DataSourceState|null;
+    dataSource: DataSourceState | null;
 }
 
 interface IRemoveDatasetDialogState extends DialogState {
@@ -45,7 +45,7 @@ class RemoveDatasetDialog extends React.Component<IRemoveDatasetDialogProps & Di
 
     private onConfirm() {
         this.props.dispatch(actions.hideDialog(RemoveDatasetDialog.DIALOG_ID, this.state));
-        this.props.dispatch(actions.removeLocalDataset(this.props.dataSource.id, this.state.removeFiles));
+        this.props.dispatch(actions.removeLocalDataset(this.props.dataSource.id, this.state.removeFiles) as any);
     }
 
     private onRemoveFilesChange(ev: any) {
@@ -62,7 +62,7 @@ class RemoveDatasetDialog extends React.Component<IRemoveDatasetDialogProps & Di
             <ModalDialog
                 isOpen={isOpen}
                 title="Remove data source"
-                iconName="trash"
+                icon="trash"
                 confirmTitle="Remove"
                 confirmIconName="delete"
                 confirmTooltip="Remove the local data source."
@@ -89,4 +89,5 @@ class RemoveDatasetDialog extends React.Component<IRemoveDatasetDialogProps & Di
         );
     }
 }
+
 export default connect(mapStateToProps)(RemoveDatasetDialog);

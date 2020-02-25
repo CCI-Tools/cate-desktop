@@ -1,13 +1,11 @@
-import {should, expect} from 'chai';
-import {
-    parseTerminalOutput, TEXT_LINE_TYPE, TextLine, TextLineType
-} from "./terminal-output";
+import { expect, should } from 'chai';
+import { parseTerminalOutput, TEXT_LINE_TYPE, TextLine } from './terminal-output';
 
 should();
 
 describe('terminal-output', () => {
 
-    it("parseTerminalOutput", () => {
+    it('parseTerminalOutput', () => {
 
         // original output from conda
         const messages = [
@@ -33,15 +31,15 @@ describe('terminal-output', () => {
         //console.log("===== message end =============");
 
         expect(textLines).to.deep.equal([
-                                               "numba-0.36.2-n 100% |###############################| Time: 0:00:01   1.62 MB/s",
-                                               "openjpeg-2.3.0 100% |###############################| Time: 0:00:01 451.37 kB/s",
-                                               "partd-0.3.8-py 100% |###############################| Time: 0:00:00 250.09 kB/s",
-                                               "pillow-5.0.0-p 100% |###############################| Time: 0:00:01 662.09 kB/s",
-                                               "pyproj-1.9.5.1 100% |###############################| Time: 0:00:03 919.91 kB/s",
-                                               "pyqt-5.6.0-py3 100% |###############################| Time: 0:00:06 779.85 kB/s",
-                                               "python-dateuti 100% |###############################| Time: 0:00:00 676.24 kB/s",
-                                               "scipy-1.0.0-py  12% |###                            | Time: 0:00:00   2.59 MB/s",
-                                           ]);
+                                            'numba-0.36.2-n 100% |###############################| Time: 0:00:01   1.62 MB/s',
+                                            'openjpeg-2.3.0 100% |###############################| Time: 0:00:01 451.37 kB/s',
+                                            'partd-0.3.8-py 100% |###############################| Time: 0:00:00 250.09 kB/s',
+                                            'pillow-5.0.0-p 100% |###############################| Time: 0:00:01 662.09 kB/s',
+                                            'pyproj-1.9.5.1 100% |###############################| Time: 0:00:03 919.91 kB/s',
+                                            'pyqt-5.6.0-py3 100% |###############################| Time: 0:00:06 779.85 kB/s',
+                                            'python-dateuti 100% |###############################| Time: 0:00:00 676.24 kB/s',
+                                            'scipy-1.0.0-py  12% |###                            | Time: 0:00:00   2.59 MB/s',
+                                        ]);
     });
 });
 

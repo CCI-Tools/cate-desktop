@@ -1,9 +1,9 @@
-import * as electron from "electron";
-import {autoUpdater, UpdateCheckResult, UpdateInfo, CancellationToken} from "electron-updater";
-import * as log from "electron-log";
+import * as electron from 'electron';
+import { autoUpdater, CancellationToken, UpdateCheckResult, UpdateInfo } from 'electron-updater';
+import * as log from 'electron-log';
 
 
-const TITLE = "Cate Desktop Update";
+const TITLE = 'Cate Desktop Update';
 const USER_INTERACTION = false;
 
 let _autoQuitAndInstall = false;
@@ -13,7 +13,7 @@ export function installAutoUpdate(mainWindow: electron.BrowserWindow) {
 
     autoUpdater.logger = log;
 
-    log.info("Installing update-check...");
+    log.info('Installing update-check...');
 
     if (!USER_INTERACTION) {
         //-------------------------------------------------------------------
@@ -25,10 +25,10 @@ export function installAutoUpdate(mainWindow: electron.BrowserWindow) {
         const promise = autoUpdater.checkForUpdatesAndNotify();
         if (promise) {
             promise && promise.then((result: UpdateCheckResult) => {
-                log.info("Update-check result:", result);
+                log.info('Update-check result:', result);
             });
         } else {
-            log.error("Update-check NOT installed");
+            log.error('Update-check NOT installed');
         }
     } else {
 
@@ -53,7 +53,7 @@ export function installAutoUpdate(mainWindow: electron.BrowserWindow) {
         autoUpdater.autoInstallOnAppQuit = false;
 
         autoUpdater.checkForUpdates().then((result: UpdateCheckResult) => {
-            log.info("Update-check result:", result);
+            log.info('Update-check result:', result);
         });
 
         autoUpdater.on('checking-for-update', () => {
@@ -65,42 +65,44 @@ export function installAutoUpdate(mainWindow: electron.BrowserWindow) {
                     title: TITLE,
                     message: `An update of Cate Desktop is available!`,
                     detail: `Version: ${info.version}\nRelease date: ${info.releaseDate}\n\nDo you want to download and install it now?`,
-                    checkboxLabel: "Shutdown immediately after download and install update.",
+                    checkboxLabel: 'Shutdown immediately after download and install update.',
                     checkboxChecked: _autoQuitAndInstall,
-                    buttons: ["OK", "Cancel"],
+                    buttons: ['OK', 'Cancel'],
                 };
-                electron.dialog.showMessageBox(mainWindow, options, (response: number, checkboxChecked: boolean) => {
-                    if (response === 0) {
-                        _autoQuitAndInstall = checkboxChecked;
-                        autoUpdater.downloadUpdate(cancellationToken);
+                electron.dialog.showMessageBox(mainWindow, options).then((returnValue: electron.MessageBoxReturnValue) => {
+                    if (returnValue.response === 0) {
+                        _autoQuitAndInstall = returnValue.checkboxChecked;
+                        autoUpdater.downloadUpdate(cancellationToken).then(() => true);
                     }
                 });
             }
         });
 
+        // noinspection JSUnusedLocalSymbols
         autoUpdater.on('update-not-available', (info) => {
         });
 
         autoUpdater.on('error', (err) => {
-            electron.dialog.showErrorBox(TITLE, (err && err.toString()) || "An unknown error occurred during update.");
+            electron.dialog.showErrorBox(TITLE, (err && err.toString()) || 'An unknown error occurred during update.');
         });
 
         autoUpdater.on('download-progress', (progressObj) => {
             log.silly(progressObj);
         });
 
+        // noinspection JSUnusedLocalSymbols
         autoUpdater.on('update-downloaded', (info: UpdateInfo) => {
             if (_autoQuitAndInstall) {
                 autoUpdater.quitAndInstall();
             } else if (!mainWindow.isDestroyed()) {
                 let options: electron.MessageBoxOptions = {
                     title: TITLE,
-                    message: "The update is now ready to be installed.",
-                    detail: "Clicking OK will shutdown Cate Desktop and install the update.",
-                    buttons: ["OK", "Cancel"],
+                    message: 'The update is now ready to be installed.',
+                    detail: 'Clicking OK will shutdown Cate Desktop and install the update.',
+                    buttons: ['OK', 'Cancel'],
                 };
-                electron.dialog.showMessageBox(mainWindow, options, (response: number) => {
-                    if (response === 0) {
+                electron.dialog.showMessageBox(mainWindow, options).then((returnValue: electron.MessageBoxReturnValue) => {
+                    if (returnValue.response === 0) {
                         autoUpdater.quitAndInstall();
                     }
                 });

@@ -1,8 +1,8 @@
-import {WebAPIClient} from "../WebAPIClient";
-import {JobPromise, JobProgress} from "../Job";
-import {WorkspaceState, ImageStatisticsState, OperationKWArgs, ResourceState, VariableState} from "../../state";
-import {EMPTY_ARRAY, EMPTY_OBJECT} from "../../selectors";
-import {isDefined, isNumber} from "../../../common/types";
+import { WebAPIClient } from '../WebAPIClient';
+import { JobProgress, JobPromise } from '../Job';
+import { ImageStatisticsState, OperationKWArgs, ResourceState, VariableState, WorkspaceState } from '../../state';
+import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../selectors';
+import { isDefined, isNumber } from '../../../common/types';
 
 function responseToVariables(variablesResponse: any): VariableState[] {
     return (variablesResponse || EMPTY_ARRAY).map(v => {
@@ -138,7 +138,7 @@ export class WorkspaceAPI {
                      opArgs: OperationKWArgs,
                      onProgress: (progress: JobProgress) => void): JobPromise<any> {
         return this.webAPIClient.call('run_op_in_workspace',
-            [baseDir, opName, opArgs], onProgress);
+                                      [baseDir, opName, opArgs], onProgress);
     }
 
     renameWorkspaceResource(baseDir: string, resName: string, newResName: string): JobPromise<WorkspaceState> {

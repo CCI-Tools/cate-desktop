@@ -1,7 +1,7 @@
 import * as http from 'http';
 import * as https from 'https';
 import * as fs from 'fs';
-import {exec, ExecOptions, spawn, SpawnOptions} from "child_process";
+import { exec, ExecOptions, spawn, SpawnOptions } from 'child_process';
 
 export interface ExecOutput {
     stdout?: string;
@@ -65,14 +65,14 @@ export function downloadFile(sourceUrl: string,
                              onProgress?: (bytesReceived: number, bytesTotal: number) => void): Promise<string> {
 
     return new Promise<string>((resolve, reject) => {
-        const tempTargetFile = targetFile + ".download";
+        const tempTargetFile = targetFile + '.download';
         const file = fs.createWriteStream(tempTargetFile, {mode: targetMode});
         let time1 = process.hrtime();
         const resHandler = (res: http.IncomingMessage) => {
             const bytesTotal = parseInt(res.headers['content-length'] as string);
             let bytesReceived = 0;
             res.pipe(file);
-            res.on("data", function (chunk) {
+            res.on('data', function (chunk) {
                 bytesReceived += chunk.length;
                 if (onProgress) {
                     const time2 = process.hrtime();
@@ -82,8 +82,8 @@ export function downloadFile(sourceUrl: string,
                     }
                 }
             });
-            res.on("end", function () {
-                file.once("close", () => {
+            res.on('end', function () {
+                file.once('close', () => {
                     fs.rename(tempTargetFile, targetFile, (e: Error) => {
                         if (e) {
                             reject(e);
@@ -94,19 +94,19 @@ export function downloadFile(sourceUrl: string,
                 });
                 file.close();
             });
-            res.on("error", function (e: Error) {
+            res.on('error', function (e: Error) {
                 fs.unlink(targetFile, () => reject(e));
             });
         };
 
         let request;
-        if (sourceUrl.startsWith("https:")) {
+        if (sourceUrl.startsWith('https:')) {
             request = https.get(sourceUrl as any, resHandler);
         } else {
             request = http.get(sourceUrl, resHandler);
         }
 
-        request.on("error", function (e: Error) {
+        request.on('error', function (e: Error) {
             fs.unlink(targetFile, () => reject(e));
         });
     });

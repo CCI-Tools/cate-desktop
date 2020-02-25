@@ -1,6 +1,5 @@
-import * as React from 'react';
-import {IExternalObjectComponentProps, ExternalObjectComponent} from '../ExternalObjectComponent'
-import {MplFigure, MplFigureCommandSource, MplFigureMessageCallback} from './MplFigure';
+import { ExternalObjectComponent, IExternalObjectComponentProps } from '../ExternalObjectComponent'
+import { MplFigure, MplFigureCommandSource, MplFigureMessageCallback } from './MplFigure';
 
 
 export interface FigureState {
@@ -28,14 +27,14 @@ export class MplFigureContainer extends ExternalObjectComponent<MplFigure, Figur
     }
 
     newContainer(id: string): HTMLDivElement {
-        const figureDiv = document.createElement("div");
-        figureDiv.setAttribute("id", "mpl-figure-container-" + id);
-        figureDiv.setAttribute("style", "width: 100%; position: relative;");
+        const figureDiv = document.createElement('div');
+        figureDiv.setAttribute('id', 'mpl-figure-container-' + id);
+        figureDiv.setAttribute('style', 'width: 100%; position: relative;');
         if (this.props.figureHeight) {
             figureDiv.style.height = this.props.figureHeight;
         }
         if (this.props.debug) {
-            console.log("MplFigureContainer.newContainer:", figureDiv);
+            console.log('MplFigureContainer.newContainer:', figureDiv);
         }
         return figureDiv;
     }
@@ -54,7 +53,7 @@ export class MplFigureContainer extends ExternalObjectComponent<MplFigure, Figur
                          parentContainer: HTMLElement,
                          container: HTMLElement): void {
         if (this.props.debug) {
-            console.log("MplFigureContainer.updateExternalObject: ", figure, prevState, nextState);
+            console.log('MplFigureContainer.updateExternalObject: ', figure, prevState, nextState);
         }
         if (prevState && prevState.figureUpdateCount !== nextState.figureUpdateCount) {
             figure.sendRefresh();

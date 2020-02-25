@@ -1,27 +1,60 @@
 import {
-    WorkspaceState, DataStoreState, TaskState, ResourceState,
-    LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
-    OperationState, BackendConfigState, VariableState,
-    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
-    SplitMode, WebAPIConfig, WebAPIStatus, WebAPIMode
+    BackendConfigState,
+    ColorMapCategoryState,
+    DataSourceState,
+    DataStoreState,
+    GeographicPosition,
+    ImageStatisticsState,
+    LayerState,
+    MessageState,
+    OperationKWArgs,
+    OperationState,
+    Placemark,
+    ResourceState,
+    SavedLayers,
+    SplitMode,
+    State,
+    TaskState,
+    VariableLayerBase,
+    VariableState,
+    WebAPIConfig,
+    WebAPIMode,
+    WebAPIStatus,
+    WorkspaceState,
+    WorldViewMode
 } from './state';
-import { ViewState, ViewPath } from './components/ViewState';
+import { ViewPath, ViewState } from './components/ViewState';
 import {
-    JobProgress,
+    ERROR_CODE_CANCELLED,
+    ERROR_CODE_INVALID_PARAMS,
     JobFailure,
-    JobStatusEnum,
-    JobPromise,
+    JobProgress,
     JobProgressHandler,
-    ERROR_CODE_INVALID_PARAMS, newWebAPIClient, WebAPIClient
+    JobPromise,
+    JobStatusEnum,
+    newWebAPIClient,
+    WebAPIClient
 } from './webapi';
 import * as selectors from './selectors';
 import * as assert from '../common/assert';
 import { PanelContainerLayout } from './components/PanelContainer';
 import {
-    newVariableLayer, getCsvUrl, AUTO_LAYER_ID, isFigureResource, findResourceByName,
-    getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
-    isAnimationResource, getHtmlUrl, MY_PLACES_LAYER_ID, getNonSpatialIndexers, genSimpleId, PLACEMARK_ID_PREFIX,
-    getWorldViewVectorLayerForEntity
+    AUTO_LAYER_ID,
+    findResourceByName,
+    genSimpleId,
+    getCsvUrl,
+    getFeatureUrl,
+    getHtmlUrl,
+    getLockForGetWorkspaceVariableStatistics,
+    getLockForLoadDataSources,
+    getNonSpatialIndexers,
+    getWorldViewVectorLayerForEntity,
+    hasWebGL,
+    isAnimationResource,
+    isFigureResource,
+    MY_PLACES_LAYER_ID,
+    newVariableLayer,
+    PLACEMARK_ID_PREFIX
 } from './state-util';
 import { SplitDir } from './components/Splitter';
 import { updateObject } from '../common/objutil';
@@ -37,10 +70,11 @@ import { GeometryToolType } from './components/cesium/geometry-tool';
 import { getEntityByEntityId } from './components/cesium/cesium-util';
 import { isAssignableFrom, VAR_NAME_LIKE_TYPE, VAR_NAMES_LIKE_TYPE } from '../common/cate-types';
 import {
-    assignConstantValueInput, assignResourceNameInput, InputAssignments,
+    assignConstantValueInput,
+    assignResourceNameInput,
+    InputAssignments,
     isInputAssigned
 } from './containers/editor/value-editor-assign';
-import { ERROR_CODE_CANCELLED } from './webapi';
 import { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './containers/ChooseWorkspaceDialog';
 import { AuthAPI, AuthInfo, User } from './webapi/apis/AuthAPI'
 
@@ -1391,7 +1425,7 @@ export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: 
                 if (resource && resource.variables && resource.variables.length) {
                     const variable = resource.variables.find(variable => !!variable.isDefault);
                     dispatch(setSelectedVariable(resource,
-                                                 variable || resource.variables[0],
+                        variable || resource.variables[0],
                                                  selectors.savedLayersSelector(getState())));
                 }
             }
@@ -1690,13 +1724,13 @@ export function notifySelectedEntityChange(viewId: string, layer: LayerState | n
             && isNumber(selectedEntity._simp)
             && isNumber(selectedEntity._resId)
             && isNumber(selectedEntity._idx)) {
-            const isGeometrySimplified = (selectedEntity._simp & 0x01) != 0;
+            const isGeometrySimplified = (selectedEntity._simp & 0x01) !== 0;
             if (isGeometrySimplified) {
                 const workspace = selectors.workspaceSelector(getState());
                 if (workspace) {
                     const resId = selectedEntity._resId;
                     const featureIndex = +selectedEntity._idx;
-                    const baseUrl = selectors.restUrlSelector(getState());
+                    const baseUrl = selectors.webAPIRestUrlSelector(getState());
                     const baseDir = workspace.baseDir;
                     const featureUrl = getFeatureUrl(baseUrl, baseDir, {resId}, featureIndex);
                     reloadEntityWithOriginalGeometry(selectedEntity, featureUrl, (layer as any).style);
@@ -1762,7 +1796,7 @@ export function updateTableViewData(viewId: string,
 
 export function loadTableViewData(viewId: string, resName: string, varName: string | null): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        const restUrl = selectors.restUrlSelector(getState());
+        const restUrl = selectors.webAPIRestUrlSelector(getState());
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         const resource = selectors.resourcesSelector(getState()).find(res => res.name === resName);
         if (resource) {
@@ -1786,13 +1820,13 @@ export const UPDATE_ANIMATION_VIEW_DATA = 'UPDATE_ANIMATION_VIEW_DATA';
 
 export function loadAnimationViewData(viewId: string, resId: number): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
-        const restUrl = selectors.restUrlSelector(getState());
+        const restUrl = selectors.webAPIRestUrlSelector(getState());
         const baseDir = selectors.workspaceBaseDirSelector(getState());
         const htmlUrl = getHtmlUrl(restUrl, baseDir, resId);
 
         const xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = () => {
-            if (xmlHttp.readyState == 4) {
+            if (xmlHttp.readyState === 4) {
                 dispatch(setAnimationResult(viewId, xmlHttp.responseText, xmlHttp.status));
             }
         };
@@ -1944,11 +1978,15 @@ export interface FileDialogOptions {
     filters?: FileFilter[];
 }
 
+// TODO (forman): Replace by electron.SaveDialogOptions
+
 /**
  * See dialog.showSaveDialog() in https://github.com/electron/electron/blob/master/docs/api/dialog.md
  */
 export interface SaveDialogOptions extends FileDialogOptions {
 }
+
+// TODO (forman): Replace by electron.OpenDialogOptions
 
 /**
  * See dialog.showOpenDialog() in https://github.com/electron/electron/blob/master/docs/api/dialog.md
@@ -1968,6 +2006,8 @@ export interface OpenDialogOptions extends FileDialogOptions {
      */
     normalizeAccessKeys?: boolean;
 }
+
+// TODO (forman): Replace by electron.MessageBoxOptions
 
 /**
  * See dialog.showMessageBox() in https://github.com/electron/electron/blob/master/docs/api/dialog.md

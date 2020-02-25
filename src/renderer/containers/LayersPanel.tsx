@@ -1,25 +1,28 @@
 import * as React from 'react';
-import {connect, DispatchProp} from 'react-redux';
+import { connect, DispatchProp } from 'react-redux';
 import {
     ColorMapCategoryState,
     ImageLayerState,
-    LayerState, SPLIT_MODE_LEFT, SPLIT_MODE_OFF, SPLIT_MODE_RIGHT,
+    LayerState,
+    SPLIT_MODE_LEFT,
+    SPLIT_MODE_OFF,
+    SPLIT_MODE_RIGHT,
     State,
     VariableImageLayerState,
     VariableState
 } from '../state';
-import {Position, Radio, RadioGroup, Slider} from '@blueprintjs/core';
-import {ListBox, ListBoxSelectionMode} from '../components/ListBox';
+import { ButtonGroup, Checkbox, Icon, Intent, Label, Radio, RadioGroup, Slider } from '@blueprintjs/core';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
-import {ContentWithDetailsPanel} from '../components/ContentWithDetailsPanel';
+import { ContentWithDetailsPanel } from '../components/ContentWithDetailsPanel';
 import LayerSourcesDialog from './LayerSourcesDialog';
-import {getLayerDisplayName, getLayerTypeIconName, AUTO_LAYER_ID} from '../state-util';
-import {ScrollablePanelContent} from '../components/ScrollableContent';
-import {ViewState} from '../components/ViewState';
-import {NO_LAYER_SELECTED, NO_LAYERS_EMPTY_VIEW, NO_LAYERS_NO_VIEW} from '../messages';
-import {SubPanelHeader} from '../components/SubPanelHeader';
-import {ToolButton} from "../components/ToolButton";
+import { AUTO_LAYER_ID, getLayerDisplayName, getLayerTypeIconName } from '../state-util';
+import { ScrollablePanelContent } from '../components/ScrollableContent';
+import { ViewState } from '../components/ViewState';
+import { NO_LAYER_SELECTED, NO_LAYERS_EMPTY_VIEW, NO_LAYERS_NO_VIEW } from '../messages';
+import { SubPanelHeader } from '../components/SubPanelHeader';
+import { ToolButton } from '../components/ToolButton';
 
 interface ILayersPanelProps {
     selectedVariable: VariableState | null,
@@ -32,6 +35,7 @@ interface ILayersPanelProps {
     selectedVariableImageLayer: VariableImageLayerState | null;
     layerListHeight: number;
     showLayerDetails: boolean;
+    colorMapCategories: Array<ColorMapCategoryState>;
 }
 
 function mapStateToProps(state: State): ILayersPanelProps {
@@ -46,6 +50,7 @@ function mapStateToProps(state: State): ILayersPanelProps {
         selectedVariableImageLayer: selectors.selectedVariableImageLayerSelector(state),
         layerListHeight: state.session.layerListHeight,
         showLayerDetails: state.session.showLayerDetails,
+        colorMapCategories: selectors.colorMapCategoriesSelector(state)
     };
 }
 
@@ -58,6 +63,8 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
 
     static readonly SLIDER_DIV_STYLE_10 = {width: '100%', paddingLeft: '1em', paddingRight: '1em'};
     static readonly LABEL_SPAN_STYLE_100 = {flexBasis: '100px', paddingLeft: '5px'};
+    static readonly LAYER_DIV_STYLE = {display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%'};
+    static readonly LAYER_LABEL_ELEMENT_STYLE = {marginLeft: '0.5em'};
 
     constructor(props: ILayersPanelProps & DispatchProp<State>) {
         super(props);
@@ -71,6 +78,45 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.handleChangedLayerVisibility = this.handleChangedLayerVisibility.bind(this);
         this.handleChangedLayerSplitMode = this.handleChangedLayerSplitMode.bind(this);
         this.renderLayerItem = this.renderLayerItem.bind(this);
+    }
+
+    private static getLayerItemKey(layer: LayerState) {
+        return layer.id;
+    }
+
+    private static stopPropagation(event) {
+        event.stopPropagation();
+    }
+
+    private static capitalizeFirstLetter(string: string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    componentDidMount(): void {
+        if (!this.props.colorMapCategories) {
+            this.props.dispatch(actions.loadColorMaps() as any);
+        }
+    }
+
+    render() {
+        let activeView = this.props.activeView;
+        if (!activeView || activeView.type !== 'world') {
+            return NO_LAYERS_NO_VIEW;
+        }
+
+        return (
+            <div style={{width: '100%'}}>
+                <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
+                                         onShowDetailsChange={this.handleShowDetailsChanged}
+                                         isSplitPanel={true}
+                                         contentHeight={this.props.layerListHeight}
+                                         onContentHeightChange={this.handleListHeightChanged}
+                                         actionComponent={this.renderActionButtonRow()}>
+                    {this.renderLayersList()}
+                    {this.renderLayerDetails()}
+                </ContentWithDetailsPanel>
+            </div>
+        );
     }
 
     private handleShowDetailsChanged(value: boolean) {
@@ -98,7 +144,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
     }
 
     private handleChangedLayerVisibility(layer: LayerState, visible: boolean) {
-        this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {visible}));
+        this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {visible}) as any);
     }
 
     private handleChangedLayerSplitMode(event) {
@@ -112,51 +158,17 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         this.props.dispatch(actions.setSelectedLayerId(this.props.activeView.id, selectedLayerId));
     }
 
-    private static getLayerItemKey(layer: LayerState) {
-        return layer.id;
-    }
-
-    private static stopPropagation(event) {
-        event.stopPropagation();
-    }
-
-    private static capitalizeFirstLetter(string: string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-    }
-
     private renderLayerItem(layer: LayerState) {
         return (
-            <div>
-                <input type="checkbox"
-                       checked={layer.visible}
-                       onClick={LayersPanel.stopPropagation}
-                       onChange={(event: any) => {
-                           this.handleChangedLayerVisibility(layer, event.target.checked)
-                       }}
-                />
-                <span style={{marginLeft: '0.5em'}} className={getLayerTypeIconName(layer)}/>
-                <span style={{marginLeft: '0.5em'}}>{getLayerDisplayName(layer)}</span>
-            </div>
-        );
-    }
-
-    render() {
-        let activeView = this.props.activeView;
-        if (!activeView || activeView.type !== 'world') {
-            return NO_LAYERS_NO_VIEW;
-        }
-
-        return (
-            <div style={{width: '100%'}}>
-                <ContentWithDetailsPanel showDetails={this.props.showLayerDetails}
-                                         onShowDetailsChange={this.handleShowDetailsChanged}
-                                         isSplitPanel={true}
-                                         contentHeight={this.props.layerListHeight}
-                                         onContentHeightChange={this.handleListHeightChanged}
-                                         actionComponent={this.renderActionButtonRow()}>
-                    {this.renderLayersList()}
-                    {this.renderLayerDetails()}
-                </ContentWithDetailsPanel>
+            <div style={LayersPanel.LAYER_DIV_STYLE}>
+                <Checkbox
+                    checked={layer.visible}
+                    onClick={LayersPanel.stopPropagation}
+                    onChange={(event: any) => {
+                        this.handleChangedLayerVisibility(layer, event.target.checked)
+                    }}/>
+                <Icon style={LayersPanel.LAYER_LABEL_ELEMENT_STYLE} icon={getLayerTypeIconName(layer)} iconSize={12}/>
+                <span style={LayersPanel.LAYER_LABEL_ELEMENT_STYLE}>{getLayerDisplayName(layer)}</span>
             </div>
         );
     }
@@ -169,25 +181,25 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         const canMoveLayerUp = selectedLayerIndex > 0;
         const canMoveLayerDown = selectedLayerIndex >= 0 && selectedLayerIndex < layerCount - 1;
         return (
-            <div className="pt-button-group">
-                <ToolButton tooltipContent="Add a new layer" tooltipPosition={Position.LEFT}
-                            className="pt-intent-primary"
+            <ButtonGroup>
+                <ToolButton tooltipContent="Add a new layer"
+                            intent={Intent.PRIMARY}
                             onClick={this.handleAddLayerButtonClicked}
-                            iconName="add"/>
-                <ToolButton tooltipContent="Remove selected layer" tooltipPosition={Position.LEFT}
+                            icon="add"/>
+                <ToolButton tooltipContent="Remove selected layer"
                             disabled={!canRemoveLayer}
                             onClick={this.handleRemoveLayerButtonClicked}
-                            iconName="remove"/>
-                <ToolButton tooltipContent="Move layer up" tooltipPosition={Position.LEFT}
+                            icon="remove"/>
+                <ToolButton tooltipContent="Move layer up"
                             disabled={!canMoveLayerUp}
                             onClick={this.handleMoveLayerUpButtonClicked}
-                            iconName="arrow-up"/>
-                <ToolButton tooltipContent="Move layer down" tooltipPosition={Position.LEFT}
+                            icon="arrow-up"/>
+                <ToolButton tooltipContent="Move layer down"
                             disabled={!canMoveLayerDown}
                             onClick={this.handleMoveLayerDownButtonClicked}
-                            iconName="arrow-down"/>
+                            icon="arrow-down"/>
                 <LayerSourcesDialog/>
-            </div>
+            </ButtonGroup>
         );
     }
 
@@ -218,7 +230,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         if (!this.props.selectedLayer) {
             return (
                 <React.Fragment>
-                    <label className="pt-label" style={{height: '20px'}}> </label>
+                    <Label style={{height: '20px'}}> </Label>
                     {NO_LAYER_SELECTED}
                 </React.Fragment>
             )
@@ -244,7 +256,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
         const handleChangedLayerVarIndex = (i: number, value: number) => {
             const varIndex = layer.varIndex.slice();
             varIndex[i] = value;
-            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {varIndex}));
+            this.props.dispatch(actions.updateLayer(this.props.activeView.id, layer, {varIndex}) as any);
         };
 
         const n = variable.numDims - 2;
@@ -255,7 +267,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
             if (max > 0) {
                 const value = layer.varIndex[i];
                 dimensionRows.push(
-                    <label key={dimension + '_index'} className="pt-label pt-inline" style={{display: 'flex'}}>
+                    <Label key={dimension + '_index'} className="bp3-inline" style={{display: 'flex'}}>
                         <span
                             style={LayersPanel.LABEL_SPAN_STYLE_100}>{LayersPanel.capitalizeFirstLetter(dimension) + ' index'}</span>
                         <div style={{
@@ -272,7 +284,7 @@ class LayersPanel extends React.Component<ILayersPanelProps & DispatchProp<State
                                     onChange={(value: number) => handleChangedLayerVarIndex(i, value)}
                             />
                         </div>
-                    </label>
+                    </Label>
                 );
             }
         }

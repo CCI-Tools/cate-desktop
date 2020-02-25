@@ -60,7 +60,7 @@ interface IGlobeViewProps extends IGlobeViewOwnProps {
 function mapStateToProps(state: State, ownProps: IGlobeViewOwnProps): IGlobeViewProps {
     return {
         view: ownProps.view,
-        baseUrl: selectors.restUrlSelector(state),
+        baseUrl: selectors.webAPIRestUrlSelector(state),
         operations: selectors.operationsSelector(state),
         workspace: selectors.workspaceSelector(state),
         offlineMode: selectors.offlineModeSelector(state),
@@ -117,7 +117,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
 
     handlePosDataUpdate() {
         if (this.positionChanged) {
-            this.props.dispatch(actions.setGlobeViewPosition(this.lastPosition));
+            this.props.dispatch(actions.setGlobeViewPosition(this.lastPosition) as any);
             this.positionChanged = false;
         }
     }
@@ -136,7 +136,7 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
     }
 
     handleSelectedEntityChanged(selectedEntity: Cesium.Entity | null) {
-        this.props.dispatch(actions.notifySelectedEntityChange(this.props.view.id, this.props.selectedLayer, selectedEntity));
+        this.props.dispatch(actions.notifySelectedEntityChange(this.props.view.id, this.props.selectedLayer, selectedEntity) as any);
     }
 
     handleNewEntityAdded(newEntity: Cesium.Entity) {
@@ -178,14 +178,14 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
             const properties = this.newPlacemarkProperties();
             const action = actions.addPointPlacemark(geoPos.longitude, geoPos.latitude, properties);
             menuItems.push(<MenuItem key={key}
-                                     iconName="map-marker"
+                                     icon="map-marker"
                                      text="Place point marker here"
                                      onClick={() => this.props.dispatch(action)}/>);
             key++;
         }
 
         if (wkt) {
-            menuItems.push(<MenuItem key={key} iconName="clipboard" text="Copy geometry WKT"
+            menuItems.push(<MenuItem key={key} icon="clipboard" text="Copy geometry WKT"
                                      onClick={() => actions.copyTextToClipboard(wkt)}/>);
             key++;
         }
@@ -227,8 +227,8 @@ class GlobeView extends React.Component<IGlobeViewProps & IGlobeViewOwnProps & D
                         const action = actions.invokeCtxOperation(operation, inputAssignments);
                         const text = `${operation.name}()`;
                         menuItems.push(<MenuItem key={key}
-                                                 iconName="function" text={text}
-                                                 onClick={() => this.props.dispatch(action)}/>);
+                                                 icon="function" text={text}
+                                                 onClick={() => this.props.dispatch(action as any)}/>);
                         key++;
                     }
                 }
@@ -312,7 +312,7 @@ function getOverlayHtml(layers: LayerState[],
     if (!showLayerTextOverlay) {
         return overlayHtml;
     }
-    let layerInfoCount = 0;
+    // let layerInfoCount = 0;
     for (let layerIndex = 0; layerIndex < layers.length; layerIndex++) {
         let layer = layers[layerIndex] as any as VariableImageLayerState;
         if (layer.type === 'VariableImage') {
@@ -339,7 +339,7 @@ function getOverlayHtml(layers: LayerState[],
                 overlayHtml.appendChild(textDivElement);
                 overlayHtml.style.top = '0';
                 overlayHtml.style.width = '100%';
-                layerInfoCount++;
+                // layerInfoCount++;
             }
         }
     }

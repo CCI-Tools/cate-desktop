@@ -1,18 +1,18 @@
 import * as React from 'react';
-import {DataSourceState, DialogState, State} from "../state";
-import {ModalDialog} from "../components/ModalDialog";
-import {connect, DispatchProp} from "react-redux";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import {IDataAccessComponentOptions, DataAccessComponent} from "./DataAccessComponent";
-import {renderInputErrors} from "./OperationStepDialog";
+import { DataSourceState, DialogState, State } from '../state';
+import { ModalDialog } from '../components/ModalDialog';
+import { connect, DispatchProp } from 'react-redux';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import { DataAccessComponent, IDataAccessComponentOptions } from './DataAccessComponent';
+import { renderInputErrors } from './OperationStepDialog';
 
 type TimeRangeValue = [string, string];
 
 interface IDownloadDataSourceDialogProps {
     isOpen: boolean;
-    dataSource: DataSourceState|null;
-    temporalCoverage: TimeRangeValue|null;
+    dataSource: DataSourceState | null;
+    temporalCoverage: TimeRangeValue | null;
     options: IDataAccessComponentOptions;
 }
 
@@ -66,13 +66,15 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
         // Clear makeLocalDataSourceId, so on next props, we can create a new default from selected data source
         // clear makeLocalDataSourceTitle, hasVariablesConstraint, variableNames, too
         // keep time and geo constraint
-        const dialogState = {options:
-            {...options,
-                makeLocalDataSourceId: '',
-                makeLocalDataSourceTitle: '',
-                hasVariablesConstraint: false,
-                variableNames: null,
-            }
+        const dialogState = {
+            options:
+                {
+                    ...options,
+                    makeLocalDataSourceId: '',
+                    makeLocalDataSourceTitle: '',
+                    hasVariablesConstraint: false,
+                    variableNames: null,
+                }
         };
         this.props.dispatch(actions.hideDialog(DownloadDataSourceDialog.DIALOG_ID, dialogState));
         const opArguments = DataAccessComponent.optionsToOperationArguments(options);
@@ -80,7 +82,7 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
             this.props.dataSource.id,
             opArguments,
             this.state.options.isMakeLocalSelected
-        ));
+        ) as any);
         // Save modified state
         this.setState(dialogState);
     }
@@ -102,9 +104,9 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
         const makeLocalSelected = this.state.options.isMakeLocalSelected;
         let confirmTitle;
         if (makeLocalSelected && true) {
-            confirmTitle = "Download & Open Local";
-        } else  {
-            confirmTitle = "Open Remote";
+            confirmTitle = 'Download & Open Local';
+        } else {
+            confirmTitle = 'Open Remote';
         }
         const inputErrors = DataAccessComponent.optionsToErrors(this.state.options);
         const confirmTooltip = renderInputErrors(inputErrors);
@@ -113,7 +115,7 @@ class DownloadDataSourceDialog extends React.Component<IDownloadDataSourceDialog
             <ModalDialog
                 isOpen={isOpen}
                 title="Download Data Source"
-                iconName="cloud-download"
+                icon="cloud-download"
                 confirmTitle={confirmTitle}
                 confirmIconName="cloud-download"
                 confirmTooltip={confirmTooltip}

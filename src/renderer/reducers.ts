@@ -1,30 +1,58 @@
 import { combineReducers, Reducer } from 'redux';
-import deepEqual = require('deep-equal');
 import {
-    State, DataState, LocationState, SessionState, CommunicationState, ControlState, DataStoreState,
-    LayerState, VectorLayerBase, WebAPIConfig
+    CommunicationState,
+    ControlState,
+    DataState,
+    DataStoreState,
+    LayerState,
+    LocationState,
+    SessionState,
+    State,
+    VectorLayerBase
 } from './state';
 import * as actions from './actions';
 import { Action } from './actions';
 import * as assert from '../common/assert';
 import { updateObject, updatePropertyObject } from '../common/objutil';
 import {
-    AUTO_LAYER_ID, updateAutoLayer,
-    newWorldView, newTableView, newFigureView, getFigureViewTitle,
-    isVectorLayer, PLACEMARK_ID_PREFIX, getPlacemarkTitleAndIndex, newAnimationView, isImageLayer,
+    AUTO_LAYER_ID,
+    getFigureViewTitle,
+    getPlacemarkTitleAndIndex,
+    isImageLayer,
+    isVectorLayer,
+    newAnimationView,
+    newFigureView,
+    newTableView,
+    newWorldView,
+    PLACEMARK_ID_PREFIX,
+    updateAutoLayer,
 } from './state-util';
 import {
-    removeViewFromLayout, removeViewFromViewArray, ViewState, addViewToViewArray,
-    addViewToLayout, selectViewInLayout, getViewPanel, findViewPanel, splitViewPanel, changeViewSplitPos,
-    addViewToPanel, moveView, selectView
+    addViewToLayout,
+    addViewToPanel,
+    addViewToViewArray,
+    changeViewSplitPos,
+    findViewPanel,
+    getViewPanel,
+    moveView,
+    removeViewFromLayout,
+    removeViewFromViewArray,
+    selectView,
+    selectViewInLayout,
+    splitViewPanel,
+    ViewState
 } from './components/ViewState';
 import { isString } from '../common/types';
 import { featurePropertiesFromSimpleStyle } from '../common/geojson-simple-style';
 import {
-    INITIAL_COMMUNICATION_STATE, INITIAL_CONTROL_STATE, INITIAL_DATA_STATE,
-    INITIAL_SESSION_STATE, INITIAL_LOCATION_STATE
+    INITIAL_COMMUNICATION_STATE,
+    INITIAL_CONTROL_STATE,
+    INITIAL_DATA_STATE,
+    INITIAL_LOCATION_STATE,
+    INITIAL_SESSION_STATE
 } from './initial-state';
 import { NEW_CTX_OPERATION_STEP_DIALOG_ID } from './containers/operation-step-dialog-ids';
+import deepEqual = require('deep-equal');
 
 // Note: reducers are unit-tested through actions.spec.ts
 
@@ -657,6 +685,8 @@ const sessionReducer = (state: SessionState = INITIAL_SESSION_STATE, action: Act
             }
             break;
         }
+        case actions.UPDATE_INITIAL_STATE:
+            return {...state, ...action.payload.session};
         case actions.UPDATE_SESSION_STATE:
             return {...state, ...action.payload};
         case actions.SET_SHOW_SELECTED_VARIABLE_LAYER:

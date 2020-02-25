@@ -1,15 +1,19 @@
-import * as React from "react";
-import * as actions from "../actions";
-import {connect} from "react-redux";
+import * as React from 'react';
+import * as actions from '../actions';
+import { connect } from 'react-redux';
 import {
+    CATE_MODE_CONDA_DIR,
+    CATE_MODE_NEW_CATE_DIR,
+    CATE_MODE_OLD_CATE_DIR,
     CateMode,
-    CATE_MODE_CONDA_DIR, CATE_MODE_OLD_CATE_DIR, CATE_MODE_NEW_CATE_DIR, SetupReason, SETUP_REASON_INSTALL_CATE,
-    SETUP_REASON_UPDATE_CATE
-} from "../../../common/setup";
-import {State} from "../state";
-import {Radio, RadioGroup} from "@blueprintjs/core";
-import {PathField} from "../components/PathField";
-import {SetupScreen} from "../components/SetupScreen";
+    SETUP_REASON_INSTALL_CATE,
+    SETUP_REASON_UPDATE_CATE,
+    SetupReason
+} from '../../../common/setup';
+import { State } from '../state';
+import { Radio, RadioGroup } from '@blueprintjs/core';
+import { PathField } from '../components/PathField';
+import { SetupScreen } from '../components/SetupScreen';
 
 interface IConfigScreenProps {
     setupReason: SetupReason;
@@ -35,8 +39,8 @@ class _ConfigScreen extends React.PureComponent<IConfigScreenProps & actions.Dis
 
     render() {
 
-        let newRecommended = this.props.setupReason === SETUP_REASON_INSTALL_CATE ? " (recommended)" : "";
-        let oldRecommended = this.props.setupReason === SETUP_REASON_UPDATE_CATE ? " (recommended)" : "";
+        let newRecommended = this.props.setupReason === SETUP_REASON_INSTALL_CATE ? ' (recommended)' : '';
+        let oldRecommended = this.props.setupReason === SETUP_REASON_UPDATE_CATE ? ' (recommended)' : '';
 
         let pathField;
         if (this.props.cateMode === CATE_MODE_NEW_CATE_DIR) {
@@ -65,10 +69,12 @@ class _ConfigScreen extends React.PureComponent<IConfigScreenProps & actions.Dis
         const panel = (
             <div>
 
-                <p>Here you can customize how you want the Python package <code>cate</code> to be installed or updated.</p>
+                <p>Here you can customize how you want the Python package <code>cate</code> to be installed or updated.
+                </p>
 
-                <p className="pt-text-muted">Please note, the latter option requires you to select an
-                    existing <a href="https://www.anaconda.com/download/" target="_blank">Anaconda</a> or <a href="https://conda.io/miniconda.html" target="_blank">Miniconda</a> Python
+                <p className="bp3-text-muted">Please note, the latter option requires you to select an
+                    existing <a href="https://www.anaconda.com/download/" target="_blank">Anaconda</a> or <a
+                        href="https://conda.io/miniconda.html" target="_blank">Miniconda</a> Python
                     distribution.
                 </p>
 

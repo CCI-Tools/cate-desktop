@@ -1,9 +1,9 @@
 import * as React from 'react';
-import {IValueEditorProps, ValueEditorCallback, ValueEditorValue} from "./ValueEditor";
-import {AnchorButton} from "@blueprintjs/core";
-import * as actions from "../../actions";
-import {OperationInputState} from "../../state";
-import {TextField} from "../../components/field/TextField";
+import { AnchorButton, ControlGroup, Intent } from '@blueprintjs/core';
+import { IValueEditorProps, ValueEditorCallback, ValueEditorValue } from './ValueEditor';
+import * as actions from '../../actions';
+import { OperationInputState } from '../../state';
+import { TextField } from '../../components/field/TextField';
 
 interface IFileValueEditorProps extends IValueEditorProps<string> {
 }
@@ -29,16 +29,16 @@ export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, 
         }
 
         return (
-            <div className="pt-control-group" style={FileValueEditor.DIV_STYLE}>
+            <ControlGroup style={FileValueEditor.DIV_STYLE}>
                 <TextField style={FileValueEditor.TEXT_FIELD_STYLE}
                            value={value}
                            placeholder="Enter local file path"
                            onChange={value => onChange(input, value)}
                            nullable={this.props.input.nullable}
                 />
-                <AnchorButton className="pt-intent-primary" style={FileValueEditor.BUTTON_STYLE}
+                <AnchorButton intent={Intent.PRIMARY} style={FileValueEditor.BUTTON_STYLE}
                               onClick={() => showFileDialogCallback(input, value, onChange)}>...</AnchorButton>
-            </div>
+            </ControlGroup>
         );
     }
 
@@ -46,9 +46,9 @@ export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, 
                           value: ValueEditorValue<string>,
                           onChange: ValueEditorCallback<string>) {
         const openDialogOptions = {
-            title: "Open File",
+            title: 'Open File',
             defaultPath: value as string,
-            buttonLabel: "Open",
+            buttonLabel: 'Open',
             filters: input.fileFilters,
             properties: input.fileProps as any,
         };
@@ -63,9 +63,9 @@ export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, 
                           value: ValueEditorValue<string>,
                           onChange: ValueEditorCallback<string>) {
         const saveDialogOptions = {
-            title: "Save File",
+            title: 'Save File',
             defaultPath: value as string,
-            buttonLabel: "Save",
+            buttonLabel: 'Save',
             filters: input.fileFilters,
         };
         actions.showFileSaveDialog(saveDialogOptions, (filePath: string) => {

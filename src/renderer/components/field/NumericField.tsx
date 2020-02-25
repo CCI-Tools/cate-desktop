@@ -1,8 +1,8 @@
 import * as React from 'react'
 
-import {Field, FieldType, FieldValue, IFieldProps} from "./Field";
-import {NumericInput, Intent} from "@blueprintjs/core";
-import {isNumber, isUndefinedOrNull} from "../../../common/types";
+import { Field, FieldType, FieldValue, IFieldProps } from './Field';
+import { Intent, NumericInput } from '@blueprintjs/core';
+import { isNumber, isUndefinedOrNull } from '../../../common/types';
 
 
 export type NumericFieldType = FieldType<number>;
@@ -66,7 +66,7 @@ export class NumericField extends Field<INumericFieldProps> {
                               intent={this.getError() ? Intent.DANGER : Intent.NONE}
                               min={this.props.min}
                               max={this.props.max}
-                              cols={this.props.cols}
+            // cols={this.props.cols}
                               size={this.props.size}
                               minorStepSize={this.props.isInt ? 1 : 0.1}
                               selectAllOnFocus={true}

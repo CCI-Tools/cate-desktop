@@ -11,7 +11,7 @@ export type TextLine = string;
 export class TextLineType implements LineType<TextLine> {
 
     newLine(): TextLine {
-        return "";
+        return '';
     }
 
     getLastLineText(lines: TextLine[]): string {

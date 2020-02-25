@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {IValueEditorProps} from "./ValueEditor";
-import {ValueSetValueEditor} from "./ValueSetValueEditor";
-import {TextField} from "../../components/field/TextField";
+import { IValueEditorProps } from './ValueEditor';
+import { ValueSetValueEditor } from './ValueSetValueEditor';
+import { TextField } from '../../components/field/TextField';
 
 
 export function TextValueEditor(props: IValueEditorProps<string>) {

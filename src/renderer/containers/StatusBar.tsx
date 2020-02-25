@@ -1,12 +1,21 @@
-import * as React from "react";
-import {CSSProperties} from "react";
-import {connect, DispatchProp} from "react-redux";
+import * as React from 'react';
+import { CSSProperties } from 'react';
+import { connect, DispatchProp } from 'react-redux';
 import { GeographicPosition, State, TaskState, WebAPIStatus } from '../state';
-import * as selectors from "../selectors";
-import * as actions from "../actions";
-import {Intent, Popover, PopoverInteractionKind, Position, ProgressBar, Tooltip} from "@blueprintjs/core";
-import {JobStatusEnum} from "../webapi";
-import TaskComponent from "./TaskComponent";
+import * as selectors from '../selectors';
+import * as actions from '../actions';
+import {
+    Icon,
+    IconName,
+    Intent,
+    Popover,
+    PopoverInteractionKind,
+    Position,
+    ProgressBar,
+    Tooltip
+} from '@blueprintjs/core';
+import { JobStatusEnum } from '../webapi';
+import TaskComponent from './TaskComponent';
 
 interface IStatusBarProps {
     webAPIStatus: WebAPIStatus;
@@ -42,18 +51,14 @@ const mapDispatchToProps = {
 class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & DispatchProp<State>, null> {
 
     static readonly DIV_STYLE: CSSProperties = {
-        flex: "none",
-        display: "flex",
-        flexFlow: "row nowrap",
-        height: "1.5em",
-        fontSize: "small",
-        backgroundColor: "#2B95D6",
-        overflow: "hidden",
+        flex: 'none',
+        display: 'flex',
+        flexFlow: 'row nowrap',
+        height: '1.5em',
+        fontSize: 'small',
+        backgroundColor: '#2B95D6',
+        overflow: 'hidden',
     };
-
-    constructor(props: IStatusBarProps & IStatusBarDispatch & DispatchProp<State>) {
-        super(props);
-    }
 
     private renderTasks() {
         const tasks: { [jobId: number]: TaskState } = this.props.tasks;
@@ -96,25 +101,25 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
             if (numRunningTasks > 0) {
                 spinner = (
                     <div style={{
-                        display: "flex",
-                        flexFlow: "column",
-                        justifyContent: "center",
-                        width: "12em",
-                        height: "1.5em"
+                        display: 'flex',
+                        flexFlow: 'column',
+                        justifyContent: 'center',
+                        width: '12em',
+                        height: '1.5em'
                     }}>
                         <ProgressBar intent={Intent.SUCCESS}/>
                     </div>);
             }
-            const tasksInPopover = <div style={{width: "300px"}}>{taskComponents}</div>;
+            const tasksInPopover = <div style={{width: '300px'}}>{taskComponents}</div>;
             return (
                 <Popover
                     content={tasksInPopover}
                     position={Position.TOP}
                     interactionKind={PopoverInteractionKind.HOVER}>
-                    <div style={{display: "flex", flexFlow: "row nowrap"}}>
+                    <div style={{display: 'flex', flexFlow: 'row nowrap'}}>
                         {spinner}
                         <div
-                            style={{display: "flex", flexFlow: "column", justifyContent: "center", paddingLeft: "5px"}}>
+                            style={{display: 'flex', flexFlow: 'column', justifyContent: 'center', paddingLeft: '5px'}}>
                             {msg}
                         </div>
                     </div>
@@ -126,34 +131,34 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
     }
 
     private renderBackendStatus() {
-        let iconName = null;
+        let icon: IconName | null = null;
         let tooltipText = null;
         if (this.props.webAPIStatus === 'connecting') {
-            iconName = "pt-icon-link";
-            tooltipText = "Connecting";
+            icon = 'link';
+            tooltipText = 'Connecting';
         } else if (this.props.webAPIStatus === 'open') {
-            iconName = "pt-icon-link";
-            tooltipText = "Connected";
+            icon = 'link';
+            tooltipText = 'Connected';
         } else if (this.props.webAPIStatus === 'error') {
-            iconName = "pt-icon-offline";
-            tooltipText = "Error";
+            icon = 'offline';
+            tooltipText = 'Error';
         } else if (this.props.webAPIStatus === 'closed') {
-            iconName = "pt-icon-offline";
-            tooltipText = "Closed";
+            icon = 'offline';
+            tooltipText = 'Closed';
         } else {
-            iconName = "pt-icon-help";
-            tooltipText = "Unknown";
+            icon = 'help';
+            tooltipText = 'Unknown';
         }
         return (
             <Tooltip content={tooltipText} hoverOpenDelay={1500} position={Position.LEFT_TOP}>
-                <span className={`pt-icon-small ${iconName}`}/>
+                <Icon icon={icon} iconSize={12}/>
             </Tooltip>
         );
     };
 
     render() {
         // TODO dummy
-        const message = "Ready.";
+        const message = 'Ready.';
 
         let cursor;
         let position = this.props.globePosition;
@@ -165,11 +170,11 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
 
         return (
             <div style={StatusBar.DIV_STYLE}>
-                <div style={{flex: "60 1 auto", padding: 2}}>{message}</div>
-                <div style={{flex: "20 1 auto", padding: 2}}>{this.renderTasks()}</div>
-                <div style={{flex: "20 1 auto", padding: 1}}>{cursor}</div>
+                <div style={{flex: '60 1 auto', padding: 2}}>{message}</div>
+                <div style={{flex: '20 1 auto', padding: 2}}>{this.renderTasks()}</div>
+                <div style={{flex: '20 1 auto', padding: 1}}>{cursor}</div>
                 <div style={{
-                    flex: "0 1 auto",
+                    flex: '0 1 auto',
                     padding: 2
                 }}>{this.renderBackendStatus()}</div>
             </div>

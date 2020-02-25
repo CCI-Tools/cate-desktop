@@ -1,11 +1,11 @@
-import * as React from "react";
-import {connect, DispatchProp} from "react-redux";
-import {State, TaskState} from "../state";
-import {JobStatusEnum} from "../webapi";
-import * as actions from "../actions";
-import {Card} from "../components/Card";
-import {ScrollablePanelContent} from "../components/ScrollableContent";
-import TaskComponent from "./TaskComponent";
+import * as React from 'react';
+import { connect, DispatchProp } from 'react-redux';
+import { State, TaskState } from '../state';
+import { JobStatusEnum } from '../webapi';
+import * as actions from '../actions';
+import { Card } from '../components/Card';
+import { ScrollablePanelContent } from '../components/ScrollableContent';
+import TaskComponent from './TaskComponent';
 
 interface ITaskPanelProps {
     tasks: { [jobId: number]: TaskState };
@@ -13,6 +13,7 @@ interface ITaskPanelProps {
 
 interface ITaskPanelDispatch {
     cancelJob(number): void;
+
     removeJob(number): void;
 }
 
@@ -34,14 +35,11 @@ const mapDispatchToProps = {
  * @author Marco Zuehlke
  */
 class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch & DispatchProp<State>, null> {
-    constructor(props: ITaskPanelProps & ITaskPanelDispatch & DispatchProp<State>) {
-        super(props);
-    }
 
     render() {
         const tasks: { [jobId: number]: TaskState } = this.props.tasks;
 
-        const taskComponents= [];
+        const taskComponents = [];
         for (let jobId in tasks) {
             if (tasks[jobId].status !== JobStatusEnum.DONE) {
                 taskComponents.push(<TaskComponent
@@ -64,4 +62,5 @@ class TasksPanel extends React.Component<ITaskPanelProps & ITaskPanelDispatch & 
         }
     }
 }
+
 export default connect(mapStateToProps, mapDispatchToProps)(TasksPanel as any);

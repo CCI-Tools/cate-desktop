@@ -1,11 +1,11 @@
 import * as React from 'react';
-import {IValueEditorProps} from "./ValueEditor";
-import {DateRange} from "@blueprintjs/datetime";
-import {FieldValue} from "../../components/field/Field";
-import {DateRangeField} from "../../components/field/DateRangeField";
-import {parseDate} from "../../components/field/DateField";
+import { IValueEditorProps } from './ValueEditor';
+import { DateRange } from '@blueprintjs/datetime';
+import { FieldValue } from '../../components/field/Field';
+import { DateRangeField } from '../../components/field/DateRangeField';
+import { parseDate } from '../../components/field/DateField';
 
-interface ITimeRangeValueEditorProps extends IValueEditorProps<string>  {
+interface ITimeRangeValueEditorProps extends IValueEditorProps<string> {
 }
 
 export class TimeRangeValueEditor extends React.PureComponent<ITimeRangeValueEditorProps, null> {
