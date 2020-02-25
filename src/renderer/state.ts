@@ -53,9 +53,7 @@ export interface AppConfigState {
 
 export interface WebAPIConfig {
     // Values read by main.ts from ./cate-config.js
-    servicePort?: number | null;
-    serviceAddress: string;
-    serviceProtocol?: 'http' | 'https';
+    serviceURL: string;
     serviceFile?: string;
     processOptions?: Object;
 }

@@ -8,6 +8,11 @@ import { SETUP_REASON_INSTALL_CATE, SETUP_REASON_UPDATE_CATE, SetupInfo } from '
 import * as assert from '../common/assert';
 import { WebAPIConfig } from '../renderer/state';
 
+/**
+ * Cate's default URL for Cate Web API service running locally.
+ * @type {string}
+ */
+export const CATE_DEFAULT_LOCAL_SERVICE_URL = 'http://localhost:9090';
 
 /**
  * Identifies the required version of the Cate WebAPI.
@@ -58,8 +63,6 @@ export const CATE_EXECUTABLES = (() => {
     return [CATE_CLI_EXECUTABLE, CATE_WEBAPI_EXECUTABLE].concat(CONDA_EXECUTABLES);
 })();
 
-const DEFAULT_SERVICE_ADDRESS = 'localhost';
-
 
 let _cateDir = null;
 
@@ -85,38 +88,19 @@ export function isWebAPIVersionCompatible(version: string, pep440?: boolean) {
 }
 
 export function getWebAPIStartCommand(webAPIConfig: WebAPIConfig): string {
-    let command = `cate-webapi-start --caller cate-desktop --port ${webAPIConfig.servicePort} --file "${webAPIConfig.serviceFile}" --verbose`;
-    if (webAPIConfig.serviceAddress) {
-        command += ` --address "${webAPIConfig.serviceAddress}"`;
+    const url = new URL(webAPIConfig.serviceURL);
+    const port = url.port || 9090;
+    const host = url.hostname || 'localhost';
+    let command = `cate-webapi-start --caller cate-desktop --port ${port} --file "${webAPIConfig.serviceFile}" --verbose`;
+    if (!(host === 'localhost' || host === '127.0.0.1')) {
+        command += ` --address "${host}"`;
     }
     return getCommandInActivatedCate(getCateDirSafe(), command);
 }
 
 export function getWebAPIRestUrl(webAPIConfig: WebAPIConfig): string {
-    const protocol = getWebAPIHttpServiceProtocol(webAPIConfig);
-    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
-    return `${protocol}://${addressAndPort}/`;
-}
-
-export function isLocalWebAPIService(webAPIConfig: WebAPIConfig) {
-    const serviceAddress = webAPIConfig.serviceAddress;
-    return !serviceAddress
-           || serviceAddress === ''
-           || serviceAddress === 'localhost'
-           || serviceAddress === '127.0.0.1'
-           || serviceAddress === '::1';
-}
-
-function getWebAPIHttpServiceProtocol(webAPIConfig: WebAPIConfig): 'http' | 'https' {
-    return webAPIConfig.serviceProtocol || 'http';
-}
-
-function getWebAPIAddressAndPort(webAPIConfig: WebAPIConfig): string {
-    const serviceAddress = webAPIConfig.serviceAddress || DEFAULT_SERVICE_ADDRESS;
-    if (typeof(webAPIConfig.servicePort) === 'number') {
-        return `${serviceAddress}:${webAPIConfig.servicePort}`;
-    }
-    return serviceAddress;
+    const normalizedUrl = new URL(webAPIConfig.serviceURL || CATE_DEFAULT_LOCAL_SERVICE_URL).toString();
+    return normalizedUrl.endsWith('/') ? normalizedUrl : normalizedUrl + '/';
 }
 
 export function getCateDirSafe() {

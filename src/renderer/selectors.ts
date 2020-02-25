@@ -92,49 +92,34 @@ export const mplWebSocketUrlSelector = createSelector(
 );
 
 function getRestUrl(webAPIConfig: WebAPIConfig): string {
-    const protocol = getWebAPIHttpServiceProtocol(webAPIConfig);
-    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
-    return `${protocol}://${addressAndPort}/`;
+    return makeURL(webAPIConfig.serviceURL, false, '/');
 }
 
 function getAPIWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
-    const protocol = getWebAPIWebSocketServiceProtocol(webAPIConfig);
-    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
-    return `${protocol}://${addressAndPort}/api`;
+    return makeURL(webAPIConfig.serviceURL, true, 'api');
 }
 
 function getMPLWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
-    const protocol = getWebAPIWebSocketServiceProtocol(webAPIConfig);
-    const addressAndPort = getWebAPIAddressAndPort(webAPIConfig);
-    return `${protocol}://${addressAndPort}/mpl/figures/`;
+    return makeURL(webAPIConfig.serviceURL, true, 'mpl/figures/');
 }
 
-function isLocalWebAPIService(webAPIConfig: WebAPIConfig) {
-    const serviceAddress = webAPIConfig.serviceAddress;
-    return !serviceAddress
-           || serviceAddress === ''
-           || serviceAddress === 'localhost'
-           || serviceAddress === '127.0.0.1'
-           || serviceAddress === '::1';
-}
-
-function getWebAPIHttpServiceProtocol(webAPIConfig: WebAPIConfig): 'http' | 'https' {
-    return webAPIConfig.serviceProtocol || 'http';
-}
-
-function getWebAPIWebSocketServiceProtocol(webAPIConfig: WebAPIConfig): 'wss' | 'ws' {
-    const protocol = getWebAPIHttpServiceProtocol(webAPIConfig);
-    return protocol === 'https' ? 'wss' : 'ws'
-}
-
-function getWebAPIAddressAndPort(webAPIConfig: WebAPIConfig): string {
-    const serviceAddress = webAPIConfig.serviceAddress || 'localhost';
-    if (typeof (webAPIConfig.servicePort) === 'number') {
-        return `${serviceAddress}:${webAPIConfig.servicePort}`;
+function makeURL(url: string, ws: boolean, path: string): string {
+    const _url = new URL(url);
+    const protocol = ws ? (_url.protocol === 'https:' ? 'wss:' : 'ws:') : _url.protocol;
+    const pathname = _url.pathname;
+    let newUrl = `${protocol}//${ _url.host}`;
+    if (pathname && pathname !== '/') {
+        newUrl += pathname
     }
-    return serviceAddress;
+    if (path) {
+        if (!(path.startsWith('/') || newUrl.endsWith('/'))) {
+            newUrl += '/';
+        }
+        newUrl += path
+    }
+    console.log(`makeUrl: [${newUrl}]`);
+    return newUrl;
 }
-
 
 export const backendConfigAPISelector = createSelector(
     webAPIClientSelector,

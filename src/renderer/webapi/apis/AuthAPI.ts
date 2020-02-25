@@ -1,15 +1,10 @@
 import { WebAPIConfig } from '../../state';
 
-const CATE_HUB_DOMAIN = 'catehub.192.171.139.57.nip.io';
-
-const CATE_SERVICE_PROTOCOL = 'https';
-const CATE_SERVICE_ADDRESS = CATE_HUB_DOMAIN + '/user/{username}';
-const CATE_SERVICE_PORT = null;
-
-const CATE_HUB_API_URL = CATE_SERVICE_PROTOCOL + '://' + CATE_HUB_DOMAIN + '/hub/api/';
-const CATE_HUB_TOKEN_URL = CATE_HUB_API_URL + 'authorizations/token';
-const CATE_HUB_USER_SERVER_URL = CATE_HUB_API_URL + 'users/{username}/server';
-const CATE_HUB_USER_URL = CATE_HUB_API_URL + 'users/{username}';
+const CATE_HUB_SERVER_BASE = 'https://catehub.192.171.139.57.nip.io';
+const CATE_SERVICE_URL = CATE_HUB_SERVER_BASE + '/user/{username}';
+const CATE_HUB_TOKEN_URL = CATE_HUB_SERVER_BASE + '/hub/api/authorizations/token';
+const CATE_HUB_USER_SERVER_URL = CATE_HUB_SERVER_BASE + '/hub/api/users/{username}/server';
+const CATE_HUB_USER_URL = CATE_HUB_SERVER_BASE + '/hub/api/users/{username}';
 
 export interface AuthInfo {
     token: string;
@@ -34,9 +29,7 @@ export class AuthAPI {
     // noinspection JSMethodCanBeStatic
     getWebAPIConfig(username: string): WebAPIConfig {
         return {
-            serviceProtocol: CATE_SERVICE_PROTOCOL,
-            serviceAddress: CATE_SERVICE_ADDRESS.replace('{username}', username),
-            servicePort: CATE_SERVICE_PORT,
+            serviceURL: new URL(CATE_SERVICE_URL).toString(),
         };
     }
 

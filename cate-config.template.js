@@ -10,17 +10,9 @@ module.exports = {
      */
     webAPIConfig: {
         /**
-         * The port used by the Cate WebAPI service, or null if not used.
+         * The URL of the Cate Web API service.
          */
-        servicePort: 9090,
-        /**
-         * The address used by the Cate WebAPI service, use empty string to denote localhost (127.0.0.1)
-         */
-        serviceAddress: '',
-        /**
-         * The protocol used by the Cate WebAPI service, must be 'http' or 'https'.
-         */
-        serviceProtocol: 'http',
+        serviceURL: 'http://localhost:9090',
         /**
          * The file in which Cate WebAPI service stores its configuration while it is running.
          */
