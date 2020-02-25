@@ -3,7 +3,6 @@ import installDevToolsExtension from 'electron-devtools-installer';
 import * as devTools from 'electron-devtools-installer';
 import * as log from 'electron-log';
 import * as path from 'path';
-import * as url from 'url';
 import * as fs from 'fs';
 import * as child_process from 'child_process'
 import { request } from './request';
@@ -618,21 +617,17 @@ class CateDesktopApp {
     }
 
     private loadMainWindow() {
-        this.mainWindow.loadURL(url.format({
-                                               pathname: path.join(electron.app.getAppPath(), 'index.html'),
-                                               protocol: 'file:',
-                                               slashes: true
-                                           })).then(() => {
+        this.mainWindow.loadFile(path.join(electron.app.getAppPath(), 'index.html')).then(() => {
 
             electron.Menu.setApplicationMenu(null);
 
-            if (this.configuration.data.devToolsExtensions) {
+            if (this.configuration.data.devToolsExtensions && this.configuration.data.devToolsExtensions.length) {
                 this.updateInitMessage('Installing developer tools...');
                 for (let devToolsExtensionName of this.configuration.data.devToolsExtensions) {
                     const devToolExtension = devTools[devToolsExtensionName];
                     if (devToolExtension) {
-                        installDevToolsExtension(devToolExtension)
-                            .then(() => log.info(`Added DevTools extension "${devToolsExtensionName}"`))
+                        installDevToolsExtension(devToolExtension, true)
+                            .then((name: string) => log.info(`Added DevTools extension "${name}"`))
                             .catch((err) => log.error('Failed to add DevTools extension: ', err));
                     }
                 }
