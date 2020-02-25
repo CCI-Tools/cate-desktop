@@ -1,15 +1,15 @@
-import {IActionProps, ILinkProps, Intent, IToaster, Position, Toaster} from "@blueprintjs/core";
-import {MessageState} from "./state";
+import { IActionProps, ILinkProps, Intent, IToaster, Position, Toaster } from '@blueprintjs/core';
+import { MessageState } from './state';
 
-let MessageToaster: IToaster|null = null;
+let MessageToaster: IToaster | null = null;
 
 export function showToast(message: MessageState) {
 
     if (!MessageToaster) {
         MessageToaster = Toaster.create({
-            className: "cate-toaster",
-            position: Position.BOTTOM,
-        });
+                                            className: 'cate-toaster',
+                                            position: Position.BOTTOM,
+                                        });
     }
 
     let icon;
@@ -49,10 +49,10 @@ export function showToast(message: MessageState) {
     }
 
     MessageToaster.show({
-        message: message.text,
-        icon,
-        intent,
-        action,
-        timeout,
-    });
+                            message: message.text,
+                            icon,
+                            intent,
+                            action,
+                            timeout,
+                        });
 }

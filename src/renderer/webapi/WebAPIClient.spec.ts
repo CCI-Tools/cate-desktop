@@ -1,8 +1,8 @@
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import {WebSocketMock} from './WebSocketMock';
-import {JobStatus, JobProgress, JobStatusEnum} from './Job';
-import {WebAPIClient, newWebAPIClient} from './WebAPIClient';
+import { WebSocketMock } from './WebSocketMock';
+import { JobProgress, JobStatusEnum } from './Job';
+import { newWebAPIClient, WebAPIClient } from './WebAPIClient';
 
 const expect = chai.expect;
 chai.should();
@@ -25,7 +25,7 @@ describe('WebAPIClient', function () {
             const job = webAPI.call('anyMethod', ['A', 2, true]);
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrpc: "2.0",
+                    jsonrpc: '2.0',
                     id: 0,
                     response: 'ok',
                 }
@@ -38,7 +38,7 @@ describe('WebAPIClient', function () {
             const job = webAPI.call('anyMethod', ['A', 2, true]);
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrpc: "2.0",
+                    jsonrpc: '2.0',
                     id: 0,
                     error: {
                         message: 'out of memory',
@@ -47,9 +47,9 @@ describe('WebAPIClient', function () {
                 }
             );
             return expect(job).to.be.rejectedWith({
-                message: 'out of memory',
-                code: 512,
-            } as any);
+                                                      message: 'out of memory',
+                                                      code: 512,
+                                                  } as any);
         });
 
         it('calls "onProgress" handler while running', function () {
@@ -60,7 +60,7 @@ describe('WebAPIClient', function () {
             const job = webAPI.call('anyMethod', ['A', 2, true], onProgress);
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrpc: "2.0",
+                    jsonrpc: '2.0',
                     id: 0,
                     progress: {
                         worked: 30,
@@ -68,7 +68,7 @@ describe('WebAPIClient', function () {
                     },
                 },
                 {
-                    jsonrpc: "2.0",
+                    jsonrpc: '2.0',
                     id: 0,
                     progress: {
                         message: 'warning: low memory',
@@ -77,24 +77,24 @@ describe('WebAPIClient', function () {
                     },
                 },
                 {
-                    jsonrpc: "2.0",
+                    jsonrpc: '2.0',
                     id: 0,
                     response: 'that was hard!',
                 }
             );
             expect(progresses).to.deep.equal([
-                {
-                    id: 0,
-                    worked: 30,
-                    total: 100
-                },
-                {
-                    id: 0,
-                    message: 'warning: low memory',
-                    worked: 60,
-                    total: 100
-                }
-            ]);
+                                                 {
+                                                     id: 0,
+                                                     worked: 30,
+                                                     total: 100
+                                                 },
+                                                 {
+                                                     id: 0,
+                                                     message: 'warning: low memory',
+                                                     worked: 60,
+                                                     total: 100
+                                                 }
+                                             ]);
             return expect(job).to.eventually.equal('that was hard!');
         });
 
@@ -107,7 +107,7 @@ describe('WebAPIClient', function () {
             expect(job.getStatus()).to.equal(JobStatusEnum.SUBMITTED);
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrpc: "2.0",
+                    jsonrpc: '2.0',
                     id: 0,
                     response: 'ok',
                 }
@@ -125,7 +125,7 @@ describe('WebAPIClient', function () {
             expect(job.getStatus()).to.equal(JobStatusEnum.SUBMITTED);
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrpc: "2.0",
+                    jsonrpc: '2.0',
                     id: 0,
                     error: {
                         message: 'out of memory',
@@ -146,7 +146,7 @@ describe('WebAPIClient', function () {
             expect(job.getStatus()).to.equal(JobStatusEnum.SUBMITTED);
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrpc: "2.0",
+                    jsonrpc: '2.0',
                     id: 0,
                     error: {
                         message: 'cancelled',
@@ -163,7 +163,7 @@ describe('WebAPIClient', function () {
 
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrpc: "2.0",
+                    jsonrpc: '2.0',
                     id: 0,
                     progress: {
                         worked: 30,
@@ -175,7 +175,7 @@ describe('WebAPIClient', function () {
 
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrpc: "2.0",
+                    jsonrpc: '2.0',
                     id: 0,
                     progress: {
                         message: 'warning: low memory',
@@ -188,7 +188,7 @@ describe('WebAPIClient', function () {
 
             webSocket.emulateIncomingMessages(
                 {
-                    jsonrpc: "2.0",
+                    jsonrpc: '2.0',
                     id: 0,
                     response: 'ok',
                 }
@@ -241,39 +241,39 @@ describe('WebAPIClient', function () {
 
             webSocket.emulateIncomingRawMessages('this is no valid JSON');
             expect(actualWarningEvent).to.deep.equal({
-                type: 'warning',
-                message: 'Received invalid JSON-RCP message from Cate service. Message is no valid JSON. Ignoring it.\n' +
-                '--------------------\n' +
-                'this is no valid JSON\n' +
-                '--------------------',
-            });
+                                                         type: 'warning',
+                                                         message: 'Received invalid JSON-RCP message from Cate service. Message is no valid JSON. Ignoring it.\n' +
+                                                                  '--------------------\n' +
+                                                                  'this is no valid JSON\n' +
+                                                                  '--------------------',
+                                                     });
 
             webSocket.emulateIncomingMessages({id: 0, response: 42});
             expect(actualWarningEvent).to.deep.equal({
-                type: 'warning',
-                message: 'Received invalid JSON-RCP message from Cate service. Message is not JSON-RCP 2.0 compliant. Ignoring it.\n' +
-                '--------------------\n' +
-                '{"id":0,"response":42}\n' +
-                '--------------------'
-            });
+                                                         type: 'warning',
+                                                         message: 'Received invalid JSON-RCP message from Cate service. Message is not JSON-RCP 2.0 compliant. Ignoring it.\n' +
+                                                                  '--------------------\n' +
+                                                                  '{"id":0,"response":42}\n' +
+                                                                  '--------------------'
+                                                     });
 
-            webSocket.emulateIncomingMessages({jsonrpc: "2.0", response: 42});
+            webSocket.emulateIncomingMessages({jsonrpc: '2.0', response: 42});
             expect(actualWarningEvent).to.deep.equal({
-                type: 'warning',
-                message: 'Received invalid JSON-RCP message from Cate service. Message is not JSON-RCP 2.0 compliant. Ignoring it.\n' +
-                '--------------------\n' +
-                '{"jsonrpc":"2.0","response":42}\n' +
-                '--------------------'
-            });
+                                                         type: 'warning',
+                                                         message: 'Received invalid JSON-RCP message from Cate service. Message is not JSON-RCP 2.0 compliant. Ignoring it.\n' +
+                                                                  '--------------------\n' +
+                                                                  '{"jsonrpc":"2.0","response":42}\n' +
+                                                                  '--------------------'
+                                                     });
 
-            webSocket.emulateIncomingMessages({jsonrpc: "2.0", id: 2, response: 42});
+            webSocket.emulateIncomingMessages({jsonrpc: '2.0', id: 2, response: 42});
             expect(actualWarningEvent).to.deep.equal({
-                type: 'warning',
-                message: 'Received invalid JSON-RCP message from Cate service. Method with "id"=2 has no associated job. Ignoring it.\n' +
-                '--------------------\n' +
-                '{"jsonrpc":"2.0","id":2,"response":42}\n' +
-                '--------------------'
-            });
+                                                         type: 'warning',
+                                                         message: 'Received invalid JSON-RCP message from Cate service. Method with "id"=2 has no associated job. Ignoring it.\n' +
+                                                                  '--------------------\n' +
+                                                                  '{"jsonrpc":"2.0","id":2,"response":42}\n' +
+                                                                  '--------------------'
+                                                     });
 
         });
     });
@@ -308,21 +308,21 @@ describe('WebSocketMock', function () {
         };
 
         webSocket.send(JSON.stringify({
-            jsonrpc: "2.0",
-            id: 754934,
-            method: 'generateSausages',
-            params: [350, true]
-        }));
+                                          jsonrpc: '2.0',
+                                          id: 754934,
+                                          method: 'generateSausages',
+                                          params: [350, true]
+                                      }));
 
         expect(JSON.parse(actualMessage)).to.deep.equal({
-            jsonrpc: "2.0",
-            id: 754934,
-            response: {
-                num: 350,
-                veggie: true,
-                state: "me"
-            }
-        });
+                                                            jsonrpc: '2.0',
+                                                            id: 754934,
+                                                            response: {
+                                                                num: 350,
+                                                                veggie: true,
+                                                                state: 'me'
+                                                            }
+                                                        });
     });
 
     it('catches exceptions from methods of a service object', function () {
@@ -333,20 +333,20 @@ describe('WebSocketMock', function () {
         };
 
         webSocket.send(JSON.stringify({
-            jsonrpc: "2.0",
-            id: 754934,
-            method: 'generateSausages',
-            params: [-3, true]
-        }));
+                                          jsonrpc: '2.0',
+                                          id: 754934,
+                                          method: 'generateSausages',
+                                          params: [-3, true]
+                                      }));
 
         expect(JSON.parse(actualMessage)).to.deep.equal({
-            jsonrpc: "2.0",
-            id: 754934,
-            error: {
-                code: 2,
-                message: "generateSausages(): Error: illegal num"
-            }
-        });
+                                                            jsonrpc: '2.0',
+                                                            id: 754934,
+                                                            error: {
+                                                                code: 2,
+                                                                message: 'generateSausages(): Error: illegal num'
+                                                            }
+                                                        });
     });
 
     it('fails with an unknown method', function () {
@@ -357,19 +357,19 @@ describe('WebSocketMock', function () {
         };
 
         webSocket.send(JSON.stringify({
-            jsonrpc: "2.0",
-            id: 754935,
-            method: 'generateSteaks',
-            params: [-3, true]
-        }));
+                                          jsonrpc: '2.0',
+                                          id: 754935,
+                                          method: 'generateSteaks',
+                                          params: [-3, true]
+                                      }));
 
         expect(JSON.parse(actualMessage)).to.deep.equal({
-            jsonrpc: "2.0",
-            id: 754935,
-            error: {
-                code: 1,
-                message: "generateSteaks(): no such method"
-            }
-        });
+                                                            jsonrpc: '2.0',
+                                                            id: 754935,
+                                                            error: {
+                                                                code: 1,
+                                                                message: 'generateSteaks(): no such method'
+                                                            }
+                                                        });
     });
 });

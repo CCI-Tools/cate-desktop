@@ -1,7 +1,7 @@
-import {pep440ToSemver} from "./version"
-import {satisfies} from "semver"
+import { pep440ToSemver } from './version'
+import { satisfies } from 'semver'
 
-import {expect} from 'chai';
+import { expect } from 'chai';
 
 describe('Version-related utilities', function () {
 
@@ -23,7 +23,7 @@ describe('Version-related utilities', function () {
     });
 
     it('uses semver correctly', function () {
-        let requiredVersion = ">=0.8.0-rc.3 <0.9";
+        let requiredVersion = '>=0.8.0-rc.3 <0.9';
         expect(satisfies('0.8.0-rc.3', requiredVersion)).to.be.true;
         expect(satisfies('0.8.0-rc.4', requiredVersion)).to.be.true;
         expect(satisfies('0.8.0-rc.4.dev.2', requiredVersion)).to.be.true;
@@ -31,7 +31,7 @@ describe('Version-related utilities', function () {
         expect(satisfies('0.8.1', requiredVersion)).to.be.true;
         expect(satisfies('0.8.24', requiredVersion)).to.be.true;
 
-        requiredVersion = "1.0.x";
+        requiredVersion = '1.0.x';
         expect(satisfies('0.9.9', requiredVersion)).to.be.false;
         expect(satisfies('1.0.0-dev.3', requiredVersion)).to.be.false;
         expect(satisfies('1.0.0', requiredVersion)).to.be.true;
@@ -50,7 +50,7 @@ describe('Version-related utilities', function () {
         expect(satisfies('0.9.0', requiredVersion)).to.be.false;
         expect(satisfies('0.9.0-dev.1', requiredVersion)).to.be.false;
 
-        requiredVersion = ">=2.1.0-dev.0 <=2.1.0";
+        requiredVersion = '>=2.1.0-dev.0 <=2.1.0';
         expect(satisfies('2.1.0-dev.0', requiredVersion)).to.be.true;
         expect(satisfies('2.0.0', requiredVersion)).to.be.false;
         expect(satisfies('2.2.0-dev.1', requiredVersion)).to.be.false;

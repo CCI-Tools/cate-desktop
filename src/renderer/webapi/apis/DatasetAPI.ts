@@ -1,6 +1,6 @@
 import { WebAPIClient } from '../WebAPIClient';
-import { JobPromise, JobProgress } from '../Job';
-import { DataStoreState, DataSourceState, DimSizes } from '../../state';
+import { JobProgress, JobPromise } from '../Job';
+import { DataSourceState, DataStoreState, DimSizes } from '../../state';
 
 
 function responseToTemporalCoverage(response: any): [string, string] | null {

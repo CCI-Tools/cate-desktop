@@ -7,27 +7,27 @@ chai.use(chaiAsPromised);
 
 describe('check out async/await', () => {
     it('T1', () => {
-        return expect(selectOne(["A"])).to.eventually.become("A" as any);
+        return expect(selectOne(['A'])).to.eventually.become('A' as any);
     });
 
     it('T2', () => {
-        return expect(selectOne(["Z", "A"])).to.eventually.become("A" as any);
+        return expect(selectOne(['Z', 'A'])).to.eventually.become('A' as any);
     });
 
     it('T3', () => {
-        return expect(selectOne(["B", "Z", "A"], "Z")).to.eventually.become("Z" as any);
+        return expect(selectOne(['B', 'Z', 'A'], 'Z')).to.eventually.become('Z' as any);
     });
 
     it('T4', () => {
-        return expect(selectOne(["B", "Z", "A"], "Z", "A")).to.eventually.become("Z" as any);
+        return expect(selectOne(['B', 'Z', 'A'], 'Z', 'A')).to.eventually.become('Z' as any);
     });
 
     it('T5', () => {
-        return expect(selectOne(["Z"], "Z", "Z")).to.eventually.become(null);
+        return expect(selectOne(['Z'], 'Z', 'Z')).to.eventually.become(null);
     });
 
     it('T6', () => {
-        return expect(selectOne(["A"], "Z", "Z")).to.eventually.become("A" as any);
+        return expect(selectOne(['A'], 'Z', 'Z')).to.eventually.become('A' as any);
     });
 });
 

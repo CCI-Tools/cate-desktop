@@ -24,7 +24,7 @@ export function formatDateAsISODateString(date: Date) {
  * @param fullyQualified if the type name should be (kept) fully qualified
  * @returns {any}
  */
-export function formatDataTypeName(name: string|null, fullyQualified: boolean): string {
+export function formatDataTypeName(name: string | null, fullyQualified: boolean): string {
     if (name && !fullyQualified) {
         const indexColon = name.lastIndexOf(':');
         if (indexColon >= 1) {

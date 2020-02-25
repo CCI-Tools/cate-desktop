@@ -1,5 +1,5 @@
-import {expect} from 'chai';
-import {isBox, validateGeometryValue} from "./geometry-util";
+import { expect } from 'chai';
+import { isBox, validateGeometryValue } from './geometry-util';
 
 describe('geometry-util', function () {
 
@@ -52,11 +52,11 @@ describe('geometry-util', function () {
     });
 
     it('isBox', function () {
-        const point = {type: "Point", coordinates: [-4, -4]};
-        const line = {type: "LineString", coordinates: [[-4, -4], [4, -4]]};
-        const triangle = {type: "Polygon", coordinates: [[[-4, -4], [4, -4], [4, 4], [-4, -4]]]};
-        const caro = {type: "Polygon", coordinates: [[[-4, 0], [0, -4], [4, 0], [0, 4], [-4, 0]]]};
-        const box = {type: "Polygon", coordinates: [[[-4, -4], [4, -4], [4, 4], [-4, 4], [-4, -4]]]};
+        const point = {type: 'Point', coordinates: [-4, -4]};
+        const line = {type: 'LineString', coordinates: [[-4, -4], [4, -4]]};
+        const triangle = {type: 'Polygon', coordinates: [[[-4, -4], [4, -4], [4, 4], [-4, -4]]]};
+        const caro = {type: 'Polygon', coordinates: [[[-4, 0], [0, -4], [4, 0], [0, 4], [-4, 0]]]};
+        const box = {type: 'Polygon', coordinates: [[[-4, -4], [4, -4], [4, 4], [-4, 4], [-4, -4]]]};
         expect(isBox(point)).to.be.false;
         expect(isBox(line)).to.be.false;
         expect(isBox(triangle)).to.be.false;

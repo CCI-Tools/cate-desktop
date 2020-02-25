@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { AnchorButton, ControlGroup, Intent } from '@blueprintjs/core';
-import { IValueEditorProps } from "./ValueEditor";
-import { FieldValue, toTextValue } from "../../components/field/Field";
-import { TextField } from "../../components/field/TextField";
-import { VariablesDialog } from "../VariablesDialog";
-import { ResourceState } from "../../state";
+import { IValueEditorProps } from './ValueEditor';
+import { FieldValue, toTextValue } from '../../components/field/Field';
+import { TextField } from '../../components/field/TextField';
+import { VariablesDialog } from '../VariablesDialog';
+import { ResourceState } from '../../state';
 
 interface IVariableNamesValueEditorProps extends IValueEditorProps<string> {
     resource: ResourceState;

@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { State, TableViewDataState, ResourceState } from '../state';
+import { CSSProperties } from 'react';
+import { ResourceState, State, TableViewDataState } from '../state';
 import { connect, DispatchProp } from 'react-redux';
 import { ViewState } from '../components/ViewState';
 import { Spinner } from '@blueprintjs/core';
@@ -8,7 +9,6 @@ import * as assert from '../../common/assert';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
 import { LOADING_TABLE_DATA_FAILED, NO_TABLE_DATA } from '../messages';
-import { CSSProperties } from 'react';
 
 interface ITableViewOwnProps {
     view: ViewState<TableViewDataState>;

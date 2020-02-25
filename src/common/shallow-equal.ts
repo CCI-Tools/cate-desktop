@@ -1,4 +1,3 @@
-
 export function shallowEqual(v1: any, v2: any): boolean {
     if (v1 === v2) {
         return true;

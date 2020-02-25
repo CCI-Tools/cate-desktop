@@ -1,12 +1,16 @@
-import * as React from "react";
-import { connect } from "react-redux";
-import { Icon, Radio, RadioGroup, Intent } from "@blueprintjs/core";
+import * as React from 'react';
+import { connect } from 'react-redux';
+import { Icon, Intent, Radio, RadioGroup } from '@blueprintjs/core';
 import {
-    SETUP_MODE_AUTO, SETUP_MODE_USER, SETUP_REASON_INSTALL_CATE, SetupMode, SetupReason,
-} from "../../../common/setup";
-import * as actions from "../actions";
-import { State } from "../state";
-import { SetupScreen } from "../components/SetupScreen";
+    SETUP_MODE_AUTO,
+    SETUP_MODE_USER,
+    SETUP_REASON_INSTALL_CATE,
+    SetupMode,
+    SetupReason,
+} from '../../../common/setup';
+import * as actions from '../actions';
+import { State } from '../state';
+import { SetupScreen } from '../components/SetupScreen';
 
 interface IStartScreenProps {
     setupReason: SetupReason;

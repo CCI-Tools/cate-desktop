@@ -1,11 +1,11 @@
 import * as React from 'react';
-import {DataSourceState, DialogState, State, DataStoreState} from "../state";
-import {ModalDialog} from "../components/ModalDialog";
-import {connect, DispatchProp} from "react-redux";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import {IDataAccessComponentOptions, DataAccessComponent} from "./DataAccessComponent";
-import {renderInputErrors} from "./OperationStepDialog";
+import { DataSourceState, DataStoreState, DialogState, State } from '../state';
+import { ModalDialog } from '../components/ModalDialog';
+import { connect, DispatchProp } from 'react-redux';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import { DataAccessComponent, IDataAccessComponentOptions } from './DataAccessComponent';
+import { renderInputErrors } from './OperationStepDialog';
 
 type TimeRangeValue = [string, string];
 
@@ -67,11 +67,13 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps & Dispat
         const options = this.state.options;
         // clear hasVariablesConstraint, variableNames
         // keep time and geo constraint
-        const dialogState = {options:
-            {...options,
-                hasVariablesConstraint: false,
-                variableNames: null,
-            }
+        const dialogState = {
+            options:
+                {
+                    ...options,
+                    hasVariablesConstraint: false,
+                    variableNames: null,
+                }
         };
         this.props.dispatch(actions.hideDialog(OpenDatasetDialog.DIALOG_ID, dialogState));
         this.props.dispatch(actions.openDataset(
@@ -100,7 +102,7 @@ class OpenDatasetDialog extends React.Component<IOpenDatasetDialogProps & Dispat
         return (
             <ModalDialog
                 isOpen={isOpen}
-                title={"Open Local Dataset"}
+                title={'Open Local Dataset'}
                 icon="database"
                 confirmTitle="Open Local"
                 confirmIconName="folder-shared-open"

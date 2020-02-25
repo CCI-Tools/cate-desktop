@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Dialog, Classes, AnchorButton, Tooltip, IconName, Intent } from "@blueprintjs/core";
+import { AnchorButton, Classes, Dialog, IconName, Intent, Tooltip } from '@blueprintjs/core';
 
 interface IModalDialogProps {
     isOpen: boolean;

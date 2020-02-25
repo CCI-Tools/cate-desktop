@@ -1,7 +1,7 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 
 import * as selectors from './selectors';
-import {State, ResourceState} from "./state";
+import { ResourceState, State } from './state';
 
 describe('API selectors', function () {
     const getState = () => {

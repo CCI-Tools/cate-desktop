@@ -1,9 +1,6 @@
 import * as React from 'react';
 import { ModalDialog } from '../components/ModalDialog';
-import {
-    getJobFailureIconName, getJobFailureTitle, isDeveloperError, isUserError,
-    JobFailure
-} from '../webapi';
+import { getJobFailureIconName, getJobFailureTitle, isDeveloperError, isUserError, JobFailure } from '../webapi';
 import { Button, Checkbox, Collapse, Icon, IconName, Intent } from '@blueprintjs/core';
 import * as selectors from '../selectors';
 import { State } from '../state';
@@ -123,7 +120,11 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
                     <Button onClick={this.handleShowDetails}>{this.state.showDetails ? 'Hide' : 'Show'} Details</Button>
                     <Collapse isOpen={this.state.showDetails}>
                         <pre className="user-selectable"
-                             style={{overflow: 'auto', width: '36em', height: '20em'}}>{this.props.jobFailure.data.traceback}</pre>
+                             style={{
+                                 overflow: 'auto',
+                                 width: '36em',
+                                 height: '20em'
+                             }}>{this.props.jobFailure.data.traceback}</pre>
                     </Collapse>
                 </div>
             );
@@ -151,11 +152,11 @@ class JobFailureDialog extends React.Component<DispatchProp<State> & IJobFailure
         }
 
         return (
-            <div style={{display: "flex"}}>
-                <div style={{fontSize: "4em", flex: "0 1 1em"}}>
+            <div style={{display: 'flex'}}>
+                <div style={{fontSize: '4em', flex: '0 1 1em'}}>
                     <Icon icon={icon} intent={iconIntent}/>
                 </div>
-                <div style={{flex: "1 1 90%", marginLeft: "1em"}}>
+                <div style={{flex: '1 1 90%', marginLeft: '1em'}}>
                     {messageDiv}
                     {traceback}
                     {reporting}

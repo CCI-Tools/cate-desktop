@@ -1,5 +1,5 @@
-import * as assert from "./assert";
-import {expect} from "chai";
+import * as assert from './assert';
+import { expect } from 'chai';
 
 describe('assert.ok', function () {
 

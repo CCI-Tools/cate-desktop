@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {IValueEditorProps} from "./ValueEditor";
-import {FieldValue, toTextValue} from "../../components/field/Field";
-import {TextField} from "../../components/field/TextField";
+import { IValueEditorProps } from './ValueEditor';
+import { FieldValue, toTextValue } from '../../components/field/Field';
+import { TextField } from '../../components/field/TextField';
 
 // Note: DictValueEditor and ArbitraryValueEditor are almost the same - use the React HLC pattern
 
@@ -36,7 +36,7 @@ export class DictValueEditor extends React.Component<IDictValueEditorProps, null
     }
 }
 
-export function validateDictText(value: string|null) {
+export function validateDictText(value: string | null) {
     if (!value || value.trim() === '') {
         return;
     }

@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { Checkbox, Collapse, InputGroup, Label, Tooltip } from '@blueprintjs/core';
-import { DataSourceState, ResourceState, VariableState } from "../state";
-import { formatDateAsISODateString } from "../../common/format";
-import * as types from "../../common/cate-types";
-import { Region, RegionValue, GLOBAL } from "../components/Region";
-import { VarNameValueEditor } from "./editor/VarNameValueEditor";
-import { TextFieldValue } from "../components/field/TextField";
-import { DateRangeField, DateRangeFieldValue, validateDateRange } from "../components/field/DateRangeField";
+import { DataSourceState, ResourceState, VariableState } from '../state';
+import { formatDateAsISODateString } from '../../common/format';
+import * as types from '../../common/cate-types';
+import { GLOBAL, Region, RegionValue } from '../components/Region';
+import { VarNameValueEditor } from './editor/VarNameValueEditor';
+import { TextFieldValue } from '../components/field/TextField';
+import { DateRangeField, DateRangeFieldValue, validateDateRange } from '../components/field/DateRangeField';
 
 type TimeRangeValue = [string, string];
 
@@ -202,10 +202,10 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
 
                 <Checkbox
                     style={DataAccessComponent.OPTION_CHECK_STYLE}
-                          disabled={!temporalCoverage}
-                          checked={hasTimeConstraint}
-                          label="Time constraint"
-                          onChange={this.onHasTimeConstraintChange}
+                    disabled={!temporalCoverage}
+                    checked={hasTimeConstraint}
+                    label="Time constraint"
+                    onChange={this.onHasTimeConstraintChange}
                 />
                 <Collapse isOpen={hasTimeConstraint}>
                     <div style={DataAccessComponent.OPTION_DIV_STYLE}>
@@ -299,10 +299,10 @@ export class DataAccessComponent extends React.Component<IDataAccessComponentPro
     static optionsToErrors(options: IDataAccessComponentOptions) {
         const inputErrors = {};
         if (options.hasTimeConstraint && options.dateRange && options.dateRange.error) {
-            inputErrors["Time constraint"] = options.dateRange.error
+            inputErrors['Time constraint'] = options.dateRange.error
         }
         if (options.hasVariablesConstraint && options.variableNames && options.variableNames.error) {
-            inputErrors["Variables constraint"] = options.variableNames.error
+            inputErrors['Variables constraint'] = options.variableNames.error
         }
         return inputErrors;
     }

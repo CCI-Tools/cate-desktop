@@ -1,4 +1,5 @@
 import * as React from 'react'
+
 //import './ListBox.css'
 
 export enum ListBoxSelectionMode {
@@ -15,7 +16,7 @@ export interface IListBoxProps {
     onItemDoubleClick?: (item: any, itemIndex: number) => void;
     onSelection?: (newSelection: React.Key[], oldSelection: React.Key[]) => void;
     selectionMode?: ListBoxSelectionMode;
-    selection?: React.Key[]|React.Key|null;
+    selection?: React.Key[] | React.Key | null;
     style?: Object;
     itemStyle?: Object;
 }
@@ -27,7 +28,7 @@ export interface IListBoxProps {
  */
 export class ListBox extends React.PureComponent<IListBoxProps, any> {
 
-    handleClick(event: MouseEvent, itemIndex, key: string|number) {
+    handleClick(event: MouseEvent, itemIndex, key: string | number) {
         // console.log('handleClick', event.button, event.buttons,event.bubbles, event.detail);
         if (event.detail === 2) {
             return;
@@ -72,19 +73,6 @@ export class ListBox extends React.PureComponent<IListBoxProps, any> {
             return null;
         }
 
-        // see http://www.w3schools.com/css/tryit.asp?filename=trycss_list-style-border
-        // const border = '1px solid #ddd';
-        const listStyle = Object.assign({
-            //listStyleType: 'none',
-            //padding: 0,
-            //border
-        }, this.props.style || {});
-        const normalItemStyle = Object.assign({
-            //padding: '0.4em',
-            //borderBottom: border,
-        }, this.props.itemStyle || {});
-        const selectedItemStyle = Object.assign({}, normalItemStyle, {});
-
         const selection = new Set<any>(toSelectionArray(this.props.selection));
         const getItemKey = this.props.getItemKey || ((item: any, itemIndex: number) => itemIndex);
         const renderItem = this.props.renderItem;
@@ -95,21 +83,20 @@ export class ListBox extends React.PureComponent<IListBoxProps, any> {
             const key = getItemKey(item, itemIndex);
             const renderedItem = renderItem(item, itemIndex);
             const selected = selection.has(key);
-            const itemStyle = selected ? selectedItemStyle : normalItemStyle;
             const className = selected ? 'cate-selected' : null;
             renderedItems.push(
                 <li key={key}
                     onClick={(event) => this.handleClick(event as any, itemIndex, key)}
                     onDoubleClick={(event) => this.handleDoubleClick(event as any, itemIndex)}
                     className={className}
-                    style={itemStyle}>
+                    style={this.props.itemStyle}>
                     {renderedItem}
                 </li>
             );
         }
 
         return (
-            <ul className="cate-list-box" style={listStyle}>
+            <ul className="cate-list-box" style={this.props.style}>
                 {renderedItems}
             </ul>
         );

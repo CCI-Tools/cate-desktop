@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {CSSProperties, ReactNode} from "react";
+import { CSSProperties, ReactNode } from 'react'
 
 interface IScrollablePanelContentProps {
     children?: ReactNode;

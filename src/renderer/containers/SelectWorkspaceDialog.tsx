@@ -1,11 +1,11 @@
-import * as React from "react";
+import * as React from 'react';
 import { AnchorButton, ControlGroup, InputGroup, Intent } from '@blueprintjs/core';
-import { DialogState, State } from "../state";
-import { ModalDialog } from "../components/ModalDialog";
-import { connect, DispatchProp } from "react-redux";
-import * as actions from "../actions";
-import { OpenDialogProperty } from "../actions";
-import * as selectors from "../selectors";
+import { DialogState, State } from '../state';
+import { ModalDialog } from '../components/ModalDialog';
+import { connect, DispatchProp } from 'react-redux';
+import * as actions from '../actions';
+import { OpenDialogProperty } from '../actions';
+import * as selectors from '../selectors';
 
 interface ISelectWorkspaceDialogState extends DialogState {
     workspaceDir: string | null;
@@ -112,9 +112,9 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
 
     private showSelectDirectoryDialog() {
         const openDialogOptions = {
-            title: "Select Directory",
+            title: 'Select Directory',
             defaultPath: this.state.workspaceDir,
-            buttonLabel: "Select",
+            buttonLabel: 'Select',
             properties: [
                 'openDirectory' as OpenDialogProperty,
             ],
@@ -136,8 +136,8 @@ class SelectWorkspaceDialog extends React.Component<ISelectWorkspaceDialogProps 
         return (
             <ModalDialog
                 isOpen={isOpen}
-                title={this.props.isNewDialog ? "New Workspace" : "Save Workspace As"}
-                confirmTitle={this.props.isNewDialog ? "New" : "Save As"}
+                title={this.props.isNewDialog ? 'New Workspace' : 'Save Workspace As'}
+                confirmTitle={this.props.isNewDialog ? 'New' : 'Save As'}
                 onCancel={this.onCancel}
                 canConfirm={this.canConfirm}
                 onConfirm={this.onConfirm}

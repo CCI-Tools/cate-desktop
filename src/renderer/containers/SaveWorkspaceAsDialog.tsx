@@ -1,5 +1,5 @@
-import * as React from "react";
-import SelectWorkspaceDialog from "./SelectWorkspaceDialog";
+import * as React from 'react';
+import SelectWorkspaceDialog from './SelectWorkspaceDialog';
 
 
 export default function SaveWorkspaceAsDialog() {

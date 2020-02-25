@@ -1,6 +1,5 @@
 import * as electron from 'electron';
-import installDevToolsExtension from 'electron-devtools-installer';
-import * as devTools from 'electron-devtools-installer';
+import installDevToolsExtension, * as devTools from 'electron-devtools-installer';
 import * as log from 'electron-log';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -9,17 +8,17 @@ import { request } from './request';
 import { Configuration } from './configuration';
 import { getMenuTemplate } from './menu';
 import {
+    defaultSpawnShellOption,
+    EXPECTED_CATE_WEBAPI_VERSION,
     getAppDataDir,
     getAppIconPath,
     getCateWebAPISetupInfo,
-    setCateDir,
-    getWebAPIStartCommand,
-    getWebAPIRestUrl,
-    defaultSpawnShellOption,
-    isWebAPIVersionCompatible,
-    EXPECTED_CATE_WEBAPI_VERSION,
     getProxySettings,
     getSessionProxyConfig,
+    getWebAPIRestUrl,
+    getWebAPIStartCommand,
+    isWebAPIVersionCompatible,
+    setCateDir,
 } from './appenv';
 import * as net from 'net';
 import { installAutoUpdate } from './update-frontend';

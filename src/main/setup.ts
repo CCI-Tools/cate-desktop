@@ -7,10 +7,14 @@ import { CATE_EXECUTABLES, CONDA_EXECUTABLES, getAppIconPath } from './appenv';
 import { ifInternet } from './dnsutil';
 import {
     CATE_MODE_CONDA_DIR,
-    CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, SETUP_MODE_AUTO, SETUP_REASON_INSTALL_CATE,
+    CATE_MODE_NEW_CATE_DIR,
+    CATE_MODE_OLD_CATE_DIR,
+    SETUP_MODE_AUTO,
+    SETUP_REASON_INSTALL_CATE,
     SETUP_REASON_UPDATE_CATE,
     SetupInfo,
-    SetupOptions, SetupResult
+    SetupOptions,
+    SetupResult
 } from '../common/setup';
 import { DownloadMiniconda, InstallCondaEnv, InstallMiniconda, InstallOrUpdateCate } from './update-backend';
 import { TransactionError, TransactionProgress, TransactionSet } from '../common/transaction';

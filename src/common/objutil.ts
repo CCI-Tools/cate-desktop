@@ -4,7 +4,7 @@
  * @author Norman Fomferra
  */
 
-import {isDefined, isUndefined} from "./types";
+import { isDefined, isUndefined } from './types';
 
 /**
  * Encapsulate the idea of passing a new object as the first parameter

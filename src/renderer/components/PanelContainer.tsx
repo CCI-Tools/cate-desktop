@@ -1,17 +1,8 @@
 import { IconName } from '@blueprintjs/icons';
 import * as React from 'react'
-import {
-    Colors, Icon,
-    Position,
-    Tooltip,
-    // MenuItem,
-    // MenuDivider,
-    // Menu,
-    // PopoverInteractionKind,
-    // Popover
-} from "@blueprintjs/core";
-import { Splitter } from "./Splitter";
-import { CSSProperties } from "react";
+import { CSSProperties } from 'react'
+import { Colors, Icon, PopoverPosition, Tooltip, } from '@blueprintjs/core';
+import { Splitter } from './Splitter';
 
 
 export interface PanelContainerLayout {
@@ -20,7 +11,7 @@ export interface PanelContainerLayout {
 }
 
 export interface IPanelContainerProps {
-    position?: "left" | "right";
+    position?: 'left' | 'right';
     selectedTopPanelId?: string | null;
     selectedBottomPanelId?: string | null;
     onSelectedTopPanelChange?: (panelId: string | null) => void;
@@ -107,7 +98,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
 
     private onHorSplitterPosChange(delta: number) {
         let horPos = this.state.layout.horPos;
-        if ((this.props.position || "left") === "left") {
+        if ((this.props.position || 'left') === 'left') {
             horPos += delta;
         } else {
             horPos -= delta;
@@ -157,7 +148,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
         const selectedBottomPanel = this.getSelectedBottomPanel();
 
         const panelPaneWidth = this.state.layout.horPos;
-        let panelPaneHeight: string | number = "100%";
+        let panelPaneHeight: string | number = '100%';
 
         let topPanelPane;
         if (selectedTopPanel) {
@@ -203,15 +194,15 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
 
         // Important: panelContainerStyle must have flex="none"
         const panelContainerStyle = {
-            display: "flex",
-            flexFlow: "row nowrap",
-            flex: "none",
-            maxHeight: "100%",
+            display: 'flex',
+            flexFlow: 'row nowrap',
+            flex: 'none',
+            maxHeight: '100%',
             //opacity: .5,
         };
 
-        const position = this.props.position || "left";
-        if (position === "left") {
+        const position = this.props.position || 'left';
+        if (position === 'left') {
             return (
                 <div style={panelContainerStyle}>
                     {panelBar}
@@ -238,7 +229,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
     private renderTwoPanelsPane(topPanelPane, bottomPanelPane) {
         const verSplitter = <Splitter dir="ver" onChange={this.onVerSplitterPosChange}/>;
         return (
-            <div style={{display: "flex", flexDirection: "column"}}>
+            <div style={{display: 'flex', flexDirection: 'column'}}>
                 {topPanelPane}
                 {verSplitter}
                 {bottomPanelPane}
@@ -248,13 +239,13 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
 
     private renderResizablePanelPane(panelPane) {
         const undockedMode = this.props.undockedMode || false;
-        const position = this.props.position || "left";
+        const position = this.props.position || 'left';
 
         let undockedModeStyle;
         if (undockedMode) {
-            if (position === "left") {
+            if (position === 'left') {
                 undockedModeStyle = {
-                    position: "absolute",
+                    position: 'absolute',
                     top: 0,
                     left: PanelContainer.PANEL_BAR_SIZE,
                     backgroundColor: PANEL_UNDOCKED_BACKGROUND_COLOR,
@@ -262,7 +253,7 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
                 };
             } else {
                 undockedModeStyle = {
-                    position: "absolute",
+                    position: 'absolute',
                     top: 0,
                     right: PanelContainer.PANEL_BAR_SIZE,
                     backgroundColor: PANEL_UNDOCKED_BACKGROUND_COLOR,
@@ -273,18 +264,18 @@ export class PanelContainer extends React.PureComponent<IPanelContainerProps, IP
 
         const resizablePanelPaneStyle = {
             paddingTop: PanelContainer.PANEL_PANE_PADDING,
-            paddingLeft: position === "left" ? PanelContainer.PANEL_PANE_PADDING : 0,
-            paddingRight: position === "left" ? 0 : PanelContainer.PANEL_PANE_PADDING,
-            flex: "auto",
-            display: "flex",
-            flexFlow: "row nowrap",
-            maxHeight: "100%",
+            paddingLeft: position === 'left' ? PanelContainer.PANEL_PANE_PADDING : 0,
+            paddingRight: position === 'left' ? 0 : PanelContainer.PANEL_PANE_PADDING,
+            flex: 'auto',
+            display: 'flex',
+            flexFlow: 'row nowrap',
+            maxHeight: '100%',
             ...undockedModeStyle
         };
 
         const horSplitter = <Splitter dir="hor" onChange={this.onHorSplitterPosChange}/>;
 
-        if (position === "left") {
+        if (position === 'left') {
             return (
                 <div style={resizablePanelPaneStyle}>
                     {panelPane}
@@ -311,15 +302,15 @@ interface IPanelHeaderProps {
 }
 
 function PanelHeader(props: IPanelHeaderProps): JSX.Element | null {
-    const panelIcon = <Icon icon={props.icon} className={"cate-panel-header-item"}/>;
-    const panelTitle = <span className={"cate-panel-text cate-panel-header-item"}>{props.title.toUpperCase()}</span>;
+    const panelIcon = <Icon icon={props.icon} className={'cate-panel-header-item'}/>;
+    const panelTitle = <span className={'cate-panel-text cate-panel-header-item'}>{props.title.toUpperCase()}</span>;
 
     const panelCloseIcon = (
-        <Icon icon={"cross"} className={"cate-icon-small cate-panel-header-item"} onClick={props.onClose}/>
+        <Icon icon={'cross'} className={'cate-icon-small cate-panel-header-item'} onClick={props.onClose}/>
     );
 
     return (
-        <div className="cate-panel-header" style={{flex: "none"}}>
+        <div className="cate-panel-header" style={{flex: 'none'}}>
             {panelIcon}
             {panelTitle}
             {/*{panelMenuIcon}*/}
@@ -337,28 +328,28 @@ const PANEL_BAR_ITEM_SELECTED_STYLE = {
 };
 
 // This is Colors.DARK_GRAY5 with 0.5 opacity
-const PANEL_UNDOCKED_BACKGROUND_COLOR = "rgba(57, 75, 89, 0.5)";
+const PANEL_UNDOCKED_BACKGROUND_COLOR = 'rgba(57, 75, 89, 0.5)';
 
-const TOP_PANEL_BAR_STYLE = {flex: "none", listStyleType: "none", padding: 0, margin: 0, border: "none"};
-const BOTTOM_PANEL_BAR_STYLE = {flex: "none", listStyleType: "none", padding: 0, margin: 0, border: "none"};
-const SPACER_STYLE = {flex: "auto"};
+const TOP_PANEL_BAR_STYLE = {flex: 'none', listStyleType: 'none', padding: 0, margin: 0, border: 'none'};
+const BOTTOM_PANEL_BAR_STYLE = {flex: 'none', listStyleType: 'none', padding: 0, margin: 0, border: 'none'};
+const SPACER_STYLE = {flex: 'auto'};
 const CONTAINER_STYLE: CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    flex: "none",
-    maxHeight: "100%",
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 'none',
+    maxHeight: '100%',
     minWidth: PanelContainer.PANEL_BAR_SIZE,
-    overflow: "hidden",
+    overflow: 'hidden',
     backgroundColor: Colors.DARK_GRAY2,
     paddingTop: PanelContainer.PANEL_BAR_PADDING,
     paddingBottom: PanelContainer.PANEL_BAR_PADDING,
 };
-const PANEL_BUTTON_STYLE: CSSProperties = {textAlign: "center", verticalAlign: "middle"};
+const PANEL_BUTTON_STYLE: CSSProperties = {textAlign: 'center', verticalAlign: 'middle'};
 
 const PANEL_BODY_CONTAINER_STYLE: CSSProperties = {
     flex: 1,
     padding: PanelContainer.PANEL_BODY_PADDING,
-    overflow: "auto",
+    overflow: 'auto',
 };
 
 
@@ -368,12 +359,12 @@ interface IPanelBarProps {
     selectedBottomPanelId: string | null;
     onTopPanelSelected: (panelId: string) => void;
     onBottomPanelSelected: (panelId: string) => void;
-    position: "left" | "right";
+    position: 'left' | 'right';
 }
 
 function PanelBar(props: IPanelBarProps) {
-    const position = props.position || "left";
-    const tooltipPos = position === "left" ? Position.RIGHT : Position.LEFT;
+    const position = props.position || 'left';
+    const tooltipPos = position === 'left' ? PopoverPosition.RIGHT : PopoverPosition.LEFT;
     const panels = props.panels || [];
 
     function renderPanelButton(panel, selectedPanelId: string) {
@@ -382,8 +373,8 @@ function PanelBar(props: IPanelBarProps) {
         const panelIcon: IconName = panel.props.icon as IconName;
         const selected = panelId === selectedPanelId;
         const style = selected ? PANEL_BAR_ITEM_SELECTED_STYLE : PANEL_BAR_ITEM_NORMAL_STYLE;
-        const panelPosition: string = panel.props.position || "top";
-        const onClick = () => panelPosition === "top" ? props.onTopPanelSelected(panelId) : props.onBottomPanelSelected(panelId);
+        const panelPosition: string = panel.props.position || 'top';
+        const onClick = () => panelPosition === 'top' ? props.onTopPanelSelected(panelId) : props.onBottomPanelSelected(panelId);
         return (
             <li key={panelId}
                 onClick={onClick}
@@ -404,8 +395,8 @@ function PanelBar(props: IPanelBarProps) {
             console.error('PanelBar children must be of type Panel');
             continue;
         }
-        const panelPosition: string = panel.props.position || "top";
-        if (panelPosition === "top") {
+        const panelPosition: string = panel.props.position || 'top';
+        if (panelPosition === 'top') {
             topPanelButtons.push(renderPanelButton(panel, props.selectedTopPanelId));
         } else {
             bottomPanelButtons.push(renderPanelButton(panel, props.selectedBottomPanelId));
@@ -426,7 +417,7 @@ function PanelBar(props: IPanelBarProps) {
 }
 
 interface IPanelPaneProps {
-    position: "left" | "right";
+    position: 'left' | 'right';
     style?: { [key: string]: any };
     panel: JSX.Element | null;
     onClose: (panelId: string) => void;
@@ -442,9 +433,9 @@ function PanelPane(props: IPanelPaneProps) {
     const panelBody = panel.props.body;
 
     let panelParentStyle: CSSProperties = {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'stretch',
         ...props.style,
     };
 

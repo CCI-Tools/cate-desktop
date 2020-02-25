@@ -1,16 +1,20 @@
-import * as React from "react";
-import {connect} from "react-redux";
-import {Button, Colors, ProgressBar} from "@blueprintjs/core";
+import * as React from 'react';
+import { connect } from 'react-redux';
+import { Button, Colors, ProgressBar } from '@blueprintjs/core';
 import {
-    SETUP_STATUS_CANCELLED, SETUP_STATUS_FAILED, SETUP_STATUS_IN_PROGRESS, SETUP_STATUS_SUCCEEDED, SETUP_TEST_MODE,
+    SETUP_STATUS_CANCELLED,
+    SETUP_STATUS_FAILED,
+    SETUP_STATUS_IN_PROGRESS,
+    SETUP_STATUS_SUCCEEDED,
+    SETUP_TEST_MODE,
     SetupStatus,
     State
-} from "../state";
-import * as actions from "../actions";
-import {TransactionProgress} from "../../../common/transaction";
-import {LogField} from "../components/LogField";
-import {SetupScreen} from "../components/SetupScreen";
-import {isDefined, isNumber} from "../../../common/types";
+} from '../state';
+import * as actions from '../actions';
+import { TransactionProgress } from '../../../common/transaction';
+import { LogField } from '../components/LogField';
+import { SetupScreen } from '../components/SetupScreen';
+import { isDefined, isNumber } from '../../../common/types';
 
 interface IRunScreenProps {
     setupStatus: SetupStatus;
@@ -39,8 +43,8 @@ const PROGRESS_TIMEOUT = PROGRESS_TIME / NUM_PROGRESSES;
 
 
 class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchProp> {
-    static readonly SCREEN_STYLE: React.CSSProperties = {display: "flex", flexDirection: "column", height: "100%"};
-    static readonly BUTTON_STYLE: React.CSSProperties = {marginTop: 4, marginBottom: 2, alignSelf: "flex-end"};
+    static readonly SCREEN_STYLE: React.CSSProperties = {display: 'flex', flexDirection: 'column', height: '100%'};
+    static readonly BUTTON_STYLE: React.CSSProperties = {marginTop: 4, marginBottom: 2, alignSelf: 'flex-end'};
     static readonly ITEM_STYLE: React.CSSProperties = {marginBottom: 4};
 
     private timerId;
@@ -140,7 +144,7 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
             let worked = progress.worked;
             let totalWork = progress.totalWork;
             if (progress.done) {
-                className = "bp3-no-stripes";
+                className = 'bp3-no-stripes';
                 value = 1;
             } else if (isNumber(worked) && isNumber(totalWork)) {
                 let subWorked = progress.subWorked;
@@ -215,26 +219,26 @@ class _RunScreen extends React.PureComponent<IRunScreenProps & actions.DispatchP
         let color;
         switch (this.props.setupStatus) {
             case SETUP_STATUS_IN_PROGRESS: {
-                message = message || "Executing background tasks...";
+                message = message || 'Executing background tasks...';
                 break;
             }
             case SETUP_STATUS_SUCCEEDED: {
-                message= "Setup complete.";
+                message = 'Setup complete.';
                 color = dark ? Colors.GREEN1 : Colors.GREEN5;
                 break;
             }
             case SETUP_STATUS_FAILED: {
                 let error = this.props.error;
                 if (error && error.message) {
-                    message= "Setup failed: " + error.message;
+                    message = 'Setup failed: ' + error.message;
                 } else {
-                    message= "Setup failed.";
+                    message = 'Setup failed.';
                 }
                 color = dark ? Colors.RED1 : Colors.RED5;
                 break;
             }
             case SETUP_STATUS_CANCELLED: {
-                message = "Setup cancelled.";
+                message = 'Setup cancelled.';
                 color = dark ? Colors.BLUE1 : Colors.BLUE5;
                 break;
             }

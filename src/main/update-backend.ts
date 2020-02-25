@@ -1,19 +1,15 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { URL } from "url";
+import { URL } from 'url';
 import * as log from 'electron-log';
-import { existsFile, deleteFile, downloadFile, ExecOutput, spawnAsync, execAsync } from './fileutil';
-import {
-    Transaction,
-    TransactionContext,
-    TransactionProgressHandler, TransactionState
-} from '../common/transaction';
-import { defaultExecShellOption, defaultSpawnShellOption, getCommandInActivatedCondaEnv } from "./appenv";
+import { deleteFile, downloadFile, execAsync, ExecOutput, existsFile, spawnAsync } from './fileutil';
+import { Transaction, TransactionContext, TransactionProgressHandler, TransactionState } from '../common/transaction';
+import { defaultExecShellOption, defaultSpawnShellOption, getCommandInActivatedCondaEnv } from './appenv';
 import { ExecOptions, SpawnOptions } from 'child_process';
 
 // const MINICONDA_VERSION = "latest";
-const MINICONDA_VERSION = "4.5.12";
+const MINICONDA_VERSION = '4.5.12';
 
 const MINICONDA_INSTALLER_URLS = {
     win32: `https://repo.anaconda.com/miniconda/Miniconda3-${MINICONDA_VERSION}-Windows-x86_64.exe`,
@@ -105,7 +101,7 @@ export class InstallMiniconda extends Transaction {
 
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
         let args;
-        if (process.platform === "win32") {
+        if (process.platform === 'win32') {
             args = ['/S', '/InstallationType=JustMe', '/AddToPath=0', '/RegisterPython=0', `/D=${this.minicondaInstallDir}`];
         } else {
             args = ['-b', '-f', '-p', this.minicondaInstallDir];
@@ -138,7 +134,7 @@ export class InstallCondaEnv extends Transaction {
     }
 
     getCondaEnvDir() {
-        return path.join(this.getCondaDir(), "envs", "cate-env");
+        return path.join(this.getCondaDir(), 'envs', 'cate-env');
     }
 
     newInitialState(context: TransactionContext): TransactionState {
@@ -152,7 +148,7 @@ export class InstallCondaEnv extends Transaction {
     }
 
     fulfill(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<any> {
-        const command = getCommandInActivatedCondaEnv(this.getCondaDir(), this.getCondaDir(), "conda create --name cate-env -c conda-forge python=3.7");
+        const command = getCommandInActivatedCondaEnv(this.getCondaDir(), this.getCondaDir(), 'conda create --name cate-env -c conda-forge python=3.7');
         notifyExecCommand(command, onProgress);
         return spawnAsyncAndLog(command, undefined, defaultSpawnShellOption(), onProgress);
     }
@@ -180,11 +176,11 @@ export class InstallOrUpdateCate extends Transaction {
     }
 
     fulfilled(context: TransactionContext, onProgress: TransactionProgressHandler): Promise<boolean> {
-        const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), "cate --version");
+        const command = getCommandInActivatedCondaEnv(this.getCateDir(), this.getCateDir(), 'cate --version');
         notifyExecCommand(command, onProgress);
         return execAsyncAndLog(command, defaultExecShellOption()).then((output: ExecOutput) => {
             const line = _getOutput(output);
-            return line.startsWith("cate " + this.cateVersion);
+            return line.startsWith('cate ' + this.cateVersion);
         }).catch((e) => {
             log.warn('Retrieving Cate version failed (and this may be ok):', e);
             return false;
@@ -205,11 +201,11 @@ export class InstallOrUpdateCate extends Transaction {
 }
 
 function isCompatiblePython(condaDir: string, condaEnvDir: string, onProgress: TransactionProgressHandler): Promise<boolean> {
-    const command = getCommandInActivatedCondaEnv(condaDir, condaEnvDir, "python --version");
+    const command = getCommandInActivatedCondaEnv(condaDir, condaEnvDir, 'python --version');
     notifyExecCommand(command, onProgress);
     return execAsyncAndLog(command, defaultExecShellOption()).then((output: ExecOutput) => {
         const line = _getOutput(output);
-        return line.startsWith("Python 3.");
+        return line.startsWith('Python 3.');
     }).catch((e) => {
         log.warn('Python compatibility check failed (and this may be ok):', e);
         return false;

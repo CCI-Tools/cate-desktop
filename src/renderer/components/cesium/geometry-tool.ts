@@ -1,4 +1,4 @@
-import * as Cesium from "cesium"
+import * as Cesium from 'cesium'
 
 
 export const pointHeight = 10;
@@ -10,7 +10,7 @@ export const polylineColor = Cesium.Color.YELLOW.withAlpha(0.9);
 export const polylineWidth = 2;
 export const polygonColor = Cesium.Color.AQUA.withAlpha(0.5);
 
-export type GeometryToolType = "PointTool" | "PolylineTool" | "PolygonTool" | "BoxTool" | "NoTool";
+export type GeometryToolType = 'PointTool' | 'PolylineTool' | 'PolygonTool' | 'BoxTool' | 'NoTool';
 
 export interface ToolContext {
     newEntity(entityTemplate): void;
@@ -88,7 +88,7 @@ export class CesiumToolContext extends ToolContextBase {
         super();
         this._viewer = viewer;
         this._ellipsoid = viewer.scene.globe.ellipsoid;
-        this._toolDataSource = new Cesium.CustomDataSource("Tool Data Source");
+        this._toolDataSource = new Cesium.CustomDataSource('Tool Data Source');
         viewer.dataSources.add(this._toolDataSource);
         const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
         handler.setInputAction(leftClick => {
@@ -210,7 +210,7 @@ abstract class ToolBase implements Tool {
 
 export class NoTool extends ToolBase {
     constructor() {
-        super("NoTool");
+        super('NoTool');
     }
 }
 
@@ -219,7 +219,7 @@ export const NO_TOOL = new NoTool();
 export class PointTool extends ToolBase {
 
     constructor() {
-        super("PointTool");
+        super('PointTool');
     }
 
     handleLeftClick(leftClick) {
@@ -410,14 +410,14 @@ class PolyTool extends ToolBase {
 export class PolylineTool extends PolyTool {
 
     constructor() {
-        super("PolylineTool", false);
+        super('PolylineTool', false);
     }
 }
 
 export class PolygonTool extends PolyTool {
 
     constructor() {
-        super("PolygonTool", true);
+        super('PolygonTool', true);
     }
 }
 
@@ -428,7 +428,7 @@ export class BoxTool extends ToolBase {
     private polygonEntity;
 
     constructor() {
-        super("BoxTool");
+        super('BoxTool');
     }
 
     deactivate() {

@@ -1,19 +1,33 @@
 import { IconName } from '@blueprintjs/core';
 import {
-    VariableState, VariableRefState, ResourceState, LayerState,
-    VariableImageLayerState, OperationState, WorldViewDataState,
-    TableViewDataState, FigureViewDataState, SavedLayers, VariableDataRefState, ResourceRefState,
-    ResourceVectorLayerState, VectorLayerBase, Placemark, PlacemarkCollection, AnimationViewDataState,
-    DimSizes, SPLIT_MODE_OFF
-} from "./state";
-import {ViewState} from "./components/ViewState";
-import * as assert from "../common/assert";
-import {isNumber, isString} from "../common/types";
-import {EMPTY_ARRAY, EMPTY_OBJECT} from "./selectors";
-import * as Cesium from "cesium";
-import {GeometryWKTGetter} from "./containers/editor/ValueEditor";
-import {entityToGeometryWkt} from "./components/cesium/cesium-util";
-import {SIMPLE_STYLE_DEFAULTS, SimpleStyle} from "../common/geojson-simple-style";
+    AnimationViewDataState,
+    DimSizes,
+    FigureViewDataState,
+    LayerState,
+    OperationState,
+    Placemark,
+    PlacemarkCollection,
+    ResourceRefState,
+    ResourceState,
+    ResourceVectorLayerState,
+    SavedLayers,
+    SPLIT_MODE_OFF,
+    TableViewDataState,
+    VariableDataRefState,
+    VariableImageLayerState,
+    VariableRefState,
+    VariableState,
+    VectorLayerBase,
+    WorldViewDataState
+} from './state';
+import { ViewState } from './components/ViewState';
+import * as assert from '../common/assert';
+import { isNumber, isString } from '../common/types';
+import { EMPTY_ARRAY, EMPTY_OBJECT } from './selectors';
+import * as Cesium from 'cesium';
+import { GeometryWKTGetter } from './containers/editor/ValueEditor';
+import { entityToGeometryWkt } from './components/cesium/cesium-util';
+import { SIMPLE_STYLE_DEFAULTS, SimpleStyle } from '../common/geojson-simple-style';
 
 export const AUTO_LAYER_ID = 'auto';
 export const COUNTRIES_LAYER_ID = 'countries';
@@ -32,7 +46,7 @@ export const COUNTRIES_LAYER = {
     visible: false,
     style: {
         ...SIMPLE_STYLE_DEFAULTS,
-        fill: "#FFFFFF",
+        fill: '#FFFFFF',
     },
 };
 
@@ -42,18 +56,18 @@ export const MY_PLACES_LAYER = {
     type: 'Vector',
     visible: true,
     style: {
-        markerSize: "small",
-        markerColor: "#ff0000",
-        markerSymbol: "",
-        fill: "#0000ff",
+        markerSize: 'small',
+        markerColor: '#ff0000',
+        markerSymbol: '',
+        fill: '#0000ff',
         fillOpacity: 0.5,
-        stroke: "#ffff00",
+        stroke: '#ffff00',
         strokeOpacity: 0.5,
         strokeWidth: 1,
     },
 };
 
-export const PLACEMARK_ID_PREFIX = "placemark-";
+export const PLACEMARK_ID_PREFIX = 'placemark-';
 
 export function getTileUrl(baseUrl: string, baseDir: string, layer: VariableImageLayerState): string {
     return baseUrl + `ws/res/tile/${encodeURIComponent(baseDir)}/${layer.resId}/{z}/{y}/{x}.png?`
@@ -145,11 +159,11 @@ export function getLayerDisplayName(layer: LayerState): string {
 
 export function getLayerTypeIconName(layer: LayerState): IconName {
     if (isVectorLayer(layer)) {
-        return "map-marker";
-    } else if (layer.type === "Image" || layer.type === "VariableImage") {
-        return "layout-grid";
+        return 'map-marker';
+    } else if (layer.type === 'Image' || layer.type === 'VariableImage') {
+        return 'layout-grid';
     }
-    return "layer";
+    return 'layer';
 }
 
 export function findResource(resources: ResourceState[], ref: ResourceRefState): ResourceState | null {
@@ -259,7 +273,7 @@ export function getNonSpatialIndexers(resource: ResourceState, ref: VariableData
 
 function newInitialWorldViewData(): WorldViewDataState {
     return {
-        viewMode: "3D",
+        viewMode: '3D',
         projectionCode: 'EPSG:4326',
         layers: [
             {...AUTO_LAYER},
@@ -297,7 +311,7 @@ export function newWorldView(): ViewState<WorldViewDataState> {
         title: `World (${viewNumber})`,
         id: genSimpleId('world-'),
         type: 'world',
-        icon: "globe",
+        icon: 'globe',
         data: newInitialWorldViewData(),
     };
 }
@@ -308,7 +322,7 @@ export function newFigureView(resource: ResourceState): ViewState<FigureViewData
         title: getFigureViewTitle(resource.name),
         id: `fig-${resource.id}`,
         type: 'figure',
-        icon: "timeline-area-chart",
+        icon: 'timeline-area-chart',
         data: newInitialFigureViewData(resource.id),
     };
 }
@@ -322,7 +336,7 @@ export function newAnimationView(resource: ResourceState): ViewState<AnimationVi
         title: getAnimationViewTitle(resource.name),
         id: `anim-${resource.id}`,
         type: 'animation',
-        icon: "play",
+        icon: 'play',
         data: newInitialAnimationViewData(resource.id),
     };
 }
@@ -336,7 +350,7 @@ export function newTableView(resName: string, varName: string): ViewState<TableV
         title: varName ? `${resName}.${varName}` : resName,
         id: genSimpleId('table-'),
         type: 'table',
-        icon: "th",
+        icon: 'th',
         data: newInitialTableViewData(resName, varName),
     };
 }
@@ -345,11 +359,11 @@ export function newTableView(resName: string, varName: string): ViewState<TableV
  * An object that is used by CesiumGlobe to store the Cesium.Viewer instances.
  * It can't be a part of our global state object.
  */
-export const EXTERNAL_OBJECT_STORE = {id: "global_external_object_store"};
+export const EXTERNAL_OBJECT_STORE = {id: 'global_external_object_store'};
 
 function getWorldViewExternalObject(view: ViewState<any>): any {
     if (view && view.type === 'world') {
-        return EXTERNAL_OBJECT_STORE["CesiumGlobe-" + view.id];
+        return EXTERNAL_OBJECT_STORE['CesiumGlobe-' + view.id];
     }
 }
 
@@ -414,29 +428,29 @@ export function getWorldViewSelectedGeometryWKTGetter(view: ViewState<any>): Geo
 }
 
 export function isVectorLayer(layer: LayerState) {
-    return layer.type === "Vector" || layer.type === "ResourceVector";
+    return layer.type === 'Vector' || layer.type === 'ResourceVector';
 }
 
 export function isImageLayer(layer: LayerState) {
-    return layer.type === "Image" || layer.type === "VariableImage";
+    return layer.type === 'Image' || layer.type === 'VariableImage';
 }
 
 
 const STROKE_COLORS = [
-    "#550000",
-    "#005500",
-    "#000055",
-    "#555555",
+    '#550000',
+    '#005500',
+    '#000055',
+    '#555555',
 ];
 
 const FILL_COLORS = [
-    "#FF0000",
-    "#FFA500",
-    "#FFFF00",
-    "#00FF00",
-    "#0000FF",
-    "#FF00FF",
-    "#00FFFF",
+    '#FF0000',
+    '#FFA500',
+    '#FFFF00',
+    '#00FF00',
+    '#0000FF',
+    '#FF00FF',
+    '#00FFFF',
 ];
 
 export function newVariableLayer(resource: ResourceState,
@@ -614,10 +628,10 @@ export function hasWebGL(): boolean {
             _hasWebGL = true;
             context = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
             extensions = context.getSupportedExtensions();
-            console.log("WebGL supported extensions:", extensions);
+            console.log('WebGL supported extensions:', extensions);
         } catch (e) {
             _hasWebGL = false;
-            console.warn("WebGL not supported but required by world view");
+            console.warn('WebGL not supported but required by world view');
             return false;
         }
     }

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import AceEditor from 'react-ace';
-import { ModalDialog } from "./ModalDialog";
+import { ModalDialog } from './ModalDialog';
 
 import 'brace/mode/python';
 import 'brace/theme/monokai';
@@ -27,7 +27,7 @@ const LIBS = [
 ];
 
 export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDialogState> {
-    private static readonly DIALOG_STYLE: React.CSSProperties = {width: "54em"};
+    private static readonly DIALOG_STYLE: React.CSSProperties = {width: '54em'};
 
     constructor(props: IScriptDialogProps) {
         super(props);
@@ -47,7 +47,7 @@ export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDia
     }
 
     onChange(value: string) {
-        console.log("onChange: value =", value);
+        console.log('onChange: value =', value);
         this.setState(this.toState(value));
     }
 
@@ -91,7 +91,7 @@ export class ScriptDialog extends React.Component<IScriptDialogProps, IScriptDia
             <React.Fragment>
                 <AceEditor mode={this.props.scriptLang}
                            theme="monokai"
-                           width={"100%"}
+                           width={'100%'}
                            fontSize={14}
                            showGutter={true}
                            highlightActiveLine={true}

@@ -1,24 +1,17 @@
 import * as React from 'react';
+import { CSSProperties } from 'react';
 import { connect, DispatchProp } from 'react-redux';
-import {
-    State,
-    VariableState,
-    ResourceState,
-    SavedLayers,
-    Placemark,
-    GeographicPosition
-} from '../state';
+import { GeographicPosition, Placemark, ResourceState, SavedLayers, State, VariableState } from '../state';
 import * as assert from '../../common/assert';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import { ContentWithDetailsPanel } from '../components/ContentWithDetailsPanel';
 import { LabelWithType } from '../components/LabelWithType';
-import { Position, Colors, ButtonGroup } from '@blueprintjs/core';
+import { ButtonGroup, Colors } from '@blueprintjs/core';
 import { Cell, Column, Table, TruncatedFormat } from '@blueprintjs/table';
 import { ScrollablePanelContent } from '../components/ScrollableContent';
 import { NO_VARIABLES, NO_VARIABLES_EMPTY_RESOURCE } from '../messages';
-import { CSSProperties } from 'react';
 import * as Cesium from 'cesium';
 import { ToolButton } from '../components/ToolButton';
 import { isSpatialImageVariable, isSpatialVectorVariable } from '../state-util';
@@ -204,32 +197,23 @@ class VariablesPanel extends React.Component<IVariablesPanelProps & DispatchProp
         return (
             <ButtonGroup>
                 <ToolButton tooltipContent="Toggle image layer visibility"
-                            tooltipPosition={Position.LEFT}
                             icon={this.props.showSelectedVariableLayer ? 'eye-open' : 'eye-off'}
                             onClick={this.handleShowSelectedVariableLayer}/>
                 <ToolButton tooltipContent="Add a new image layer"
-                            tooltipPosition={Position.LEFT}
                             disabled={!canAddLayer}
                             icon="layer"
-                            onClick={this.handleAddVariableLayer}
-                />
+                            onClick={this.handleAddVariableLayer}/>
                 <ToolButton tooltipContent="Create a time series plot from selected placemark"
-                            tooltipPosition={Position.LEFT}
                             disabled={!canAddTimeSeriesPlot}
                             icon="timeline-line-chart"
-                            onClick={this.handleAddVariableTimeSeriesPlot}
-                />
+                            onClick={this.handleAddVariableTimeSeriesPlot}/>
                 <ToolButton tooltipContent="Create a histogram plot"
-                            tooltipPosition={Position.LEFT}
                             disabled={!canAddHistogramPlot}
                             icon="timeline-bar-chart"
-                            onClick={this.handleAddVariableHistogramPlot}
-                />
+                            onClick={this.handleAddVariableHistogramPlot}/>
                 <ToolButton tooltipContent={`Show data in table (only first ${maxSize} values)`}
-                            tooltipPosition={Position.LEFT}
                             icon="th"
-                            onClick={this.handleShowVariableTableView}
-                />
+                            onClick={this.handleShowVariableTableView}/>
             </ButtonGroup>
         );
     }

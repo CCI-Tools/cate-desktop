@@ -1,11 +1,11 @@
 import * as React from 'react';
-import {State, ResourceState, AnimationViewDataState} from "../state";
-import {connect, DispatchProp} from "react-redux";
-import {ViewState} from "../components/ViewState";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import {Card} from "../components/Card";
-import {isNumber} from "../../common/types";
+import { AnimationViewDataState, ResourceState, State } from '../state';
+import { connect, DispatchProp } from 'react-redux';
+import { ViewState } from '../components/ViewState';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import { Card } from '../components/Card';
+import { isNumber } from '../../common/types';
 
 
 interface IAnimationViewOwnProps {
@@ -66,7 +66,7 @@ class AnimationView extends React.Component<IAnimationViewProps & DispatchProp<S
         this.divElement = divElement;
 
         if (divElement && this.props.view.data.innerHTML) {
-            const elements = divElement.getElementsByTagName("script");
+            const elements = divElement.getElementsByTagName('script');
             for (let element of elements) {
                 let script = element.innerHTML;
                 try {

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ListBoxSelectionMode, ListBox } from '../components/ListBox';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import { ModalDialog } from '../components/ModalDialog';
 import { ScrollablePanelContent } from '../components/ScrollableContent';
 

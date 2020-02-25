@@ -21,7 +21,8 @@ import {
     VariableImageLayerState,
     VariableLayerBase,
     VariableState,
-    VectorLayerState, WebAPIConfig,
+    VectorLayerState,
+    WebAPIConfig,
     WorkflowStepState,
     WorkspaceState,
     WorldViewDataState
@@ -111,10 +112,10 @@ function getMPLWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
 function isLocalWebAPIService(webAPIConfig: WebAPIConfig) {
     const serviceAddress = webAPIConfig.serviceAddress;
     return !serviceAddress
-        || serviceAddress === ''
-        || serviceAddress === 'localhost'
-        || serviceAddress === '127.0.0.1'
-        || serviceAddress === '::1';
+           || serviceAddress === ''
+           || serviceAddress === 'localhost'
+           || serviceAddress === '127.0.0.1'
+           || serviceAddress === '::1';
 }
 
 function getWebAPIHttpServiceProtocol(webAPIConfig: WebAPIConfig): 'http' | 'https' {
@@ -851,8 +852,8 @@ export const vectorStyleSelector = createSelector<State, SimpleStyle, ViewState<
                 const entityVectorLayer = getWorldViewVectorLayerForEntity(view, selectedEntity);
                 const entityVectorLayerStyle = entityVectorLayer && entityVectorLayer.style;
                 const savedEntityStyle = entityVectorLayer
-                    && entityVectorLayer.entityStyles
-                    && entityVectorLayer.entityStyles[selectedEntity.id];
+                                         && entityVectorLayer.entityStyles
+                                         && entityVectorLayer.entityStyles[selectedEntity.id];
                 style = {...selectedLayerStyle, ...entityVectorLayerStyle, ...entityStyle, ...savedEntityStyle};
             }
         }

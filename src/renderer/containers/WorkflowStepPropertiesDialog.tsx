@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { State, ResourceState, DialogState, WorkflowStepState } from '../state';
+import { DialogState, ResourceState, State, WorkflowStepState } from '../state';
 import { connect, DispatchProp } from 'react-redux';
 import * as actions from '../actions';
 import * as selectors from '../selectors';

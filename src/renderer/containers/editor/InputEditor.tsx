@@ -1,11 +1,11 @@
-import * as React from "react";
-import { Tooltip, Switch, Popover, PopoverInteractionKind, Position, HTMLSelect } from "@blueprintjs/core";
-import { LabelWithType } from "../../components/LabelWithType";
-import { ResourceState } from "../../state";
-import { isAssignableFrom } from "../../../common/cate-types";
-import { formatDataTypeName } from "../../../common/format";
-import * as cateTypes from "../../../common/cate-types";
-import { ReactChild } from "react";
+import * as React from 'react';
+import { ReactChild } from 'react';
+import { HTMLSelect, Popover, PopoverInteractionKind, PopoverPosition, Switch, Tooltip } from '@blueprintjs/core';
+import { LabelWithType } from '../../components/LabelWithType';
+import { ResourceState } from '../../state';
+import * as cateTypes from '../../../common/cate-types';
+import { isAssignableFrom } from '../../../common/cate-types';
+import { formatDataTypeName } from '../../../common/format';
 
 export interface IInputEditorProps {
     name: string;
@@ -31,13 +31,6 @@ export interface IInputEditorProps {
  */
 export class InputEditor extends React.PureComponent<IInputEditorProps, null> {
 
-    private handleChange(resourceName: string, isValueEditorShown: boolean) {
-        // console.log('InputEditor: handleChange', resourceName, isValueEditorShown);
-        if (this.props.onChange) {
-            this.props.onChange(resourceName, isValueEditorShown);
-        }
-    }
-
     render() {
 
         let editor;
@@ -59,6 +52,13 @@ export class InputEditor extends React.PureComponent<IInputEditorProps, null> {
                 {editorSwitch}
             </div>
         );
+    }
+
+    private handleChange(resourceName: string, isValueEditorShown: boolean) {
+        // console.log('InputEditor: handleChange', resourceName, isValueEditorShown);
+        if (this.props.onChange) {
+            this.props.onChange(resourceName, isValueEditorShown);
+        }
     }
 
     private renderResourceNameEditor() {
@@ -84,7 +84,7 @@ export class InputEditor extends React.PureComponent<IInputEditorProps, null> {
         if (otherResourceOptions.length === 0) {
             editor = (
                 <Popover interactionKind={PopoverInteractionKind.HOVER} hoverOpenDelay={0} hoverCloseDelay={0}
-                         position={Position.TOP}>
+                         position={PopoverPosition.TOP}>
                     {editor}
                     <div style={{padding: 8}}>
                         This parameter requires a resource of type <span
@@ -108,7 +108,7 @@ export class InputEditor extends React.PureComponent<IInputEditorProps, null> {
         return (
             <div>
                 <Tooltip
-                    content={(valueEditorShown ? "Switch to resource selection" : "Switch to value entry") + (switchDisabled ? ' (disabled)' : '')}>
+                    content={(valueEditorShown ? 'Switch to resource selection' : 'Switch to value entry') + (switchDisabled ? ' (disabled)' : '')}>
                     <Switch checked={valueEditorShown}
                             disabled={switchDisabled}
                             style={{marginLeft: '1em', marginBottom: 0}}
@@ -158,9 +158,9 @@ function renderTypeInstanceHintText(targetDataType: string): ReactChild {
             return <span>You can use operations like <code>read_csv</code>, <code>read_geo_data</code>,<br/>
                 or <code>open_dataset</code> to produce resources of this type.</span>;
         case cateTypes.ND_ARRAY_TYPE:
-            return "";
+            return '';
         case cateTypes.SERIES_TYPE:
-            return "";
+            return '';
     }
-    return "";
+    return '';
 }

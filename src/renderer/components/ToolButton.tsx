@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {CSSProperties} from "react";
-import { AnchorButton, IconName, Tooltip, Position, Intent } from "@blueprintjs/core";
+import { CSSProperties } from 'react';
+import { AnchorButton, IconName, Intent, PopoverPosition, Tooltip } from '@blueprintjs/core';
 
 export interface IToolButtonProps {
     onClick?: () => void;
@@ -9,7 +9,7 @@ export interface IToolButtonProps {
     icon?: IconName;
     intent?: Intent;
     tooltipContent?: JSX.Element | string;
-    tooltipPosition?: Position;
+    tooltipPosition?: PopoverPosition;
     style?: CSSProperties;
     text?: string;
     active?: boolean;
@@ -19,9 +19,9 @@ export interface IToolButtonProps {
 export function ToolButton(props: IToolButtonProps) {
     let className;
     if (!props.large) {
-        className = "bp3-small";
+        className = 'bp3-small';
     }
-    if (props.className && props.className !== "") {
+    if (props.className && props.className !== '') {
         className = `${className} ${props.className}`;
     }
     const button = (
@@ -37,7 +37,8 @@ export function ToolButton(props: IToolButtonProps) {
     );
     if (props.tooltipContent) {
         return (
-            <Tooltip content={props.tooltipContent} position={props.tooltipPosition}>{button}</Tooltip>
+            <Tooltip content={props.tooltipContent}
+                     position={props.tooltipPosition || PopoverPosition.AUTO}>{button}</Tooltip>
         );
     } else {
         return button;

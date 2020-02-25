@@ -1,9 +1,9 @@
-import * as React from "react";
-import {CSSProperties} from "react";
-import {connect, DispatchProp} from "react-redux";
-import { GeographicPosition, State, TaskState, WebAPIStatus } from "../state";
-import * as selectors from "../selectors";
-import * as actions from "../actions";
+import * as React from 'react';
+import { CSSProperties } from 'react';
+import { connect, DispatchProp } from 'react-redux';
+import { GeographicPosition, State, TaskState, WebAPIStatus } from '../state';
+import * as selectors from '../selectors';
+import * as actions from '../actions';
 import {
     Icon,
     IconName,
@@ -13,9 +13,9 @@ import {
     Position,
     ProgressBar,
     Tooltip
-} from "@blueprintjs/core";
-import {JobStatusEnum} from "../webapi";
-import TaskComponent from "./TaskComponent";
+} from '@blueprintjs/core';
+import { JobStatusEnum } from '../webapi';
+import TaskComponent from './TaskComponent';
 
 interface IStatusBarProps {
     webAPIStatus: WebAPIStatus;
@@ -51,13 +51,13 @@ const mapDispatchToProps = {
 class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & DispatchProp<State>, null> {
 
     static readonly DIV_STYLE: CSSProperties = {
-        flex: "none",
-        display: "flex",
-        flexFlow: "row nowrap",
-        height: "1.5em",
-        fontSize: "small",
-        backgroundColor: "#2B95D6",
-        overflow: "hidden",
+        flex: 'none',
+        display: 'flex',
+        flexFlow: 'row nowrap',
+        height: '1.5em',
+        fontSize: 'small',
+        backgroundColor: '#2B95D6',
+        overflow: 'hidden',
     };
 
     private renderTasks() {
@@ -101,25 +101,25 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
             if (numRunningTasks > 0) {
                 spinner = (
                     <div style={{
-                        display: "flex",
-                        flexFlow: "column",
-                        justifyContent: "center",
-                        width: "12em",
-                        height: "1.5em"
+                        display: 'flex',
+                        flexFlow: 'column',
+                        justifyContent: 'center',
+                        width: '12em',
+                        height: '1.5em'
                     }}>
                         <ProgressBar intent={Intent.SUCCESS}/>
                     </div>);
             }
-            const tasksInPopover = <div style={{width: "300px"}}>{taskComponents}</div>;
+            const tasksInPopover = <div style={{width: '300px'}}>{taskComponents}</div>;
             return (
                 <Popover
                     content={tasksInPopover}
                     position={Position.TOP}
                     interactionKind={PopoverInteractionKind.HOVER}>
-                    <div style={{display: "flex", flexFlow: "row nowrap"}}>
+                    <div style={{display: 'flex', flexFlow: 'row nowrap'}}>
                         {spinner}
                         <div
-                            style={{display: "flex", flexFlow: "column", justifyContent: "center", paddingLeft: "5px"}}>
+                            style={{display: 'flex', flexFlow: 'column', justifyContent: 'center', paddingLeft: '5px'}}>
                             {msg}
                         </div>
                     </div>
@@ -134,20 +134,20 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
         let icon: IconName | null = null;
         let tooltipText = null;
         if (this.props.webAPIStatus === 'connecting') {
-            icon = "link";
-            tooltipText = "Connecting";
+            icon = 'link';
+            tooltipText = 'Connecting';
         } else if (this.props.webAPIStatus === 'open') {
-            icon = "link";
-            tooltipText = "Connected";
+            icon = 'link';
+            tooltipText = 'Connected';
         } else if (this.props.webAPIStatus === 'error') {
-            icon = "offline";
-            tooltipText = "Error";
+            icon = 'offline';
+            tooltipText = 'Error';
         } else if (this.props.webAPIStatus === 'closed') {
-            icon = "offline";
-            tooltipText = "Closed";
+            icon = 'offline';
+            tooltipText = 'Closed';
         } else {
-            icon = "help";
-            tooltipText = "Unknown";
+            icon = 'help';
+            tooltipText = 'Unknown';
         }
         return (
             <Tooltip content={tooltipText} hoverOpenDelay={1500} position={Position.LEFT_TOP}>
@@ -158,7 +158,7 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
 
     render() {
         // TODO dummy
-        const message = "Ready.";
+        const message = 'Ready.';
 
         let cursor;
         let position = this.props.globePosition;
@@ -170,11 +170,11 @@ class StatusBar extends React.Component<IStatusBarProps & IStatusBarDispatch & D
 
         return (
             <div style={StatusBar.DIV_STYLE}>
-                <div style={{flex: "60 1 auto", padding: 2}}>{message}</div>
-                <div style={{flex: "20 1 auto", padding: 2}}>{this.renderTasks()}</div>
-                <div style={{flex: "20 1 auto", padding: 1}}>{cursor}</div>
+                <div style={{flex: '60 1 auto', padding: 2}}>{message}</div>
+                <div style={{flex: '20 1 auto', padding: 2}}>{this.renderTasks()}</div>
+                <div style={{flex: '20 1 auto', padding: 1}}>{cursor}</div>
                 <div style={{
-                    flex: "0 1 auto",
+                    flex: '0 1 auto',
                     padding: 2
                 }}>{this.renderBackendStatus()}</div>
             </div>

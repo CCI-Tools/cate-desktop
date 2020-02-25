@@ -1,7 +1,7 @@
-import {DateRange} from "@blueprintjs/datetime";
-import {Field, FieldType, IFieldProps} from "./Field";
-import {formatDateAsISODateString} from "../../../common/format";
-import {isUndefinedOrNull} from "../../../common/types";
+import { DateRange } from '@blueprintjs/datetime';
+import { Field, FieldType, IFieldProps } from './Field';
+import { formatDateAsISODateString } from '../../../common/format';
+import { isUndefinedOrNull } from '../../../common/types';
 
 export type DateFieldType = FieldType<Date>;
 
@@ -36,7 +36,7 @@ export class DateField extends Field<IDateFieldProps> {
     }
 }
 
-export function parseDate(textValue: string, nullable: boolean, name?: string): Date|null {
+export function parseDate(textValue: string, nullable: boolean, name?: string): Date | null {
     if (!textValue || textValue.trim() === '') {
         if (nullable) {
             return null;
@@ -45,7 +45,7 @@ export function parseDate(textValue: string, nullable: boolean, name?: string): 
     }
     const dateRegex = /^\d\d\d\d-\d\d-\d\d$/;
     if (!dateRegex.test(textValue.trim())) {
-        throw new Error('Date not valid: >'+ textValue+'<');
+        throw new Error('Date not valid: >' + textValue + '<');
     }
     let millis;
     try {
@@ -56,14 +56,14 @@ export function parseDate(textValue: string, nullable: boolean, name?: string): 
     return new Date(millis);
 }
 
-export function formatDate(value: Date|null): string {
+export function formatDate(value: Date | null): string {
     if (isUndefinedOrNull(value)) {
         return '';
     }
     return formatDateAsISODateString(value);
 }
 
-export function validateDate(date: Date|null, nullable: boolean|null, min: Date|null, max: Date|null, name?: string) {
+export function validateDate(date: Date | null, nullable: boolean | null, min: Date | null, max: Date | null, name?: string) {
     if (!date) {
         if (!nullable) {
             throw Error('Date value expected.');

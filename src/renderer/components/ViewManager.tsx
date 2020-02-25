@@ -1,11 +1,17 @@
 import * as React from 'react';
-import { Colors, Icon, IconName, Menu, MenuItem, NonIdealState, Popover, Position } from "@blueprintjs/core";
-import {Splitter, SplitDir} from "./Splitter";
+import { CSSProperties } from 'react';
+import { Colors, Icon, IconName, Menu, MenuItem, NonIdealState, Popover, PopoverPosition, } from '@blueprintjs/core';
+import { SplitDir, Splitter } from './Splitter';
 import {
-    isViewSplitState, ViewState, ViewSplitState, ViewPanelState, ViewLayoutState, ViewPath,
-    ViewRenderer, findMoveTargetViewIds
-} from "./ViewState";
-import {CSSProperties} from "react";
+    findMoveTargetViewIds,
+    isViewSplitState,
+    ViewLayoutState,
+    ViewPanelState,
+    ViewPath,
+    ViewRenderer,
+    ViewSplitState,
+    ViewState
+} from './ViewState';
 
 /**
  * Mapping from view type name to ViewRenderer
@@ -27,7 +33,7 @@ interface IViewManagerProps {
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
     onCloseView: (viewPath: ViewPath, viewId: string) => void;
     onCloseAllViews: (viewPath: ViewPath) => void;
-    onMoveView: (sourceViewId: string, placement: "before"|"after", targetViewId: string) => void;
+    onMoveView: (sourceViewId: string, placement: 'before' | 'after', targetViewId: string) => void;
     onSplitViewPanel: (viewPath: ViewPath, dir: SplitDir, pos: number) => void;
     onChangeViewSplitPos: (viewPath: ViewPath, delta: number) => void;
 }
@@ -37,25 +43,25 @@ interface IViewManagerState {
 
 export class ViewManager extends React.PureComponent<IViewManagerProps, IViewManagerState> {
     static readonly NO_VIEW_CONTAINER_STYLE = {
-        width: "100%",
-        height: "100%",
-        flex: "auto"
+        width: '100%',
+        height: '100%',
+        flex: 'auto'
     };
     static readonly HOR_SPLIT_CONTAINER_STYLE = {
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexFlow: "row nowrap",
-        flex: "auto",
-        boxSizing: "border-box",
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexFlow: 'row nowrap',
+        flex: 'auto',
+        boxSizing: 'border-box',
     };
     static readonly VER_SPLIT_CONTAINER_STYLE = {
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexFlow: "column nowrap",
-        flex: "auto",
-        boxSizing: "border-box",
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexFlow: 'column nowrap',
+        flex: 'auto',
+        boxSizing: 'border-box',
     };
 
     private viewMap: ViewMap;
@@ -192,7 +198,7 @@ interface IViewPanelProps {
     onSelectView: (viewPath: ViewPath, viewId: string) => void;
     onCloseView: (viewPath: ViewPath, viewId: string) => void;
     onCloseAllViews: (viewPath: ViewPath) => void;
-    onMoveView: (sourceViewId: string, placement: "before"|"after", targetViewId: string) => void;
+    onMoveView: (sourceViewId: string, placement: 'before' | 'after', targetViewId: string) => void;
     onSplitViewPanel: (viewPath: ViewPath, dir: SplitDir, pos: number) => void;
 }
 
@@ -201,7 +207,7 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
     static readonly SELECTED_BG_COLOR = Colors.DARK_GRAY1;
     static readonly TAB_STYLE_SELECTED: CSSProperties = {
         padding: 2,
-        flex: "none",
+        flex: 'none',
         color: Colors.WHITE,
         backgroundColor: ViewPanel.SELECTED_BG_COLOR
     };
@@ -217,38 +223,38 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
 
     static readonly MENU_ICON_STYLE: CSSProperties = {color: Colors.GRAY5, marginLeft: 5, fontSize: 12};
 
-    static readonly TABS_STYLE: CSSProperties = {flex: "none", display: "flex", flexDirection: "row"};
-    static readonly SPACER_STYLE: CSSProperties = {flex: "auto"};
-    static readonly MENU_STYLE: CSSProperties = {flex: "none", height: "100%"};
+    static readonly TABS_STYLE: CSSProperties = {flex: 'none', display: 'flex', flexDirection: 'row'};
+    static readonly SPACER_STYLE: CSSProperties = {flex: 'auto'};
+    static readonly MENU_STYLE: CSSProperties = {flex: 'none', height: '100%'};
 
     static readonly VIEW_HEADER_STYLE: CSSProperties = {
-        display: "flex",
-        flexDirection: "row",
-        flex: "none",
-        width: "100%",
+        display: 'flex',
+        flexDirection: 'row',
+        flex: 'none',
+        width: '100%',
         marginTop: 2,
-        borderBottomStyle: "solid",
+        borderBottomStyle: 'solid',
         borderBottomWidth: 2,
         borderBottomColor: ViewPanel.SELECTED_BG_COLOR,
-        boxSizing: "border-box",
-        overflow: "hidden",
+        boxSizing: 'border-box',
+        overflow: 'hidden',
     };
 
     static readonly VIEW_BODY_STYLE: CSSProperties = {
-        display: "flex",
-        flexDirection: "column",
+        display: 'flex',
+        flexDirection: 'column',
         flex: 'auto',
-        width: "100%",
-        height: "100%",
-        overflow: "hidden",
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
     };
 
     static readonly CONTAINER_STYLE: CSSProperties = {
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-        height: "100%",
-        overflow: "hidden",
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
     };
 
 
@@ -262,11 +268,11 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
     }
 
     onSplitHor() {
-        this.props.onSplitViewPanel(this.props.viewPath, "hor", 0.5 * this.contentElement.clientWidth);
+        this.props.onSplitViewPanel(this.props.viewPath, 'hor', 0.5 * this.contentElement.clientWidth);
     }
 
     onSplitVer() {
-        this.props.onSplitViewPanel(this.props.viewPath, "ver", 0.5 * this.contentElement.clientHeight);
+        this.props.onSplitViewPanel(this.props.viewPath, 'ver', 0.5 * this.contentElement.clientHeight);
     }
 
     onContentDivRef(contentElement: HTMLDivElement) {
@@ -383,7 +389,7 @@ class ViewPanel extends React.PureComponent<IViewPanelProps, null> {
             if (moveBeforeMenuItem || moveAfterMenuItem) {
                 const moreMenu = (<Menu>{moveBeforeMenuItem}{moveAfterMenuItem}</Menu>);
                 moreMenuEntry = (
-                    <Popover content={moreMenu} position={Position.BOTTOM}>
+                    <Popover content={moreMenu} position={PopoverPosition.BOTTOM}>
                         <Icon key="more" style={menuIconStyle} icon="more"/>
                     </Popover>
                 );

@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {IValueEditorProps} from "./ValueEditor";
-import {Checkbox} from "@blueprintjs/core";
+import { IValueEditorProps } from './ValueEditor';
+import { Checkbox } from '@blueprintjs/core';
 
 export function BooleanValueEditor(props: IValueEditorProps<boolean>) {
     return (

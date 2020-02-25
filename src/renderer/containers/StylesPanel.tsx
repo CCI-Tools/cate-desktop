@@ -3,10 +3,13 @@ import {
     ColorMapCategoryState,
     ColorMapState,
     ImageLayerState,
-    LayerState, Placemark,
+    LayerState,
+    Placemark,
     ResourceState,
     ResourceVectorLayerState,
-    State, STYLE_CONTEXT_ENTITY, STYLE_CONTEXT_LAYER,
+    State,
+    STYLE_CONTEXT_ENTITY,
+    STYLE_CONTEXT_LAYER,
     VariableImageLayerState,
     VariableState,
     VectorLayerState
@@ -16,18 +19,22 @@ import { NO_ENTITY_FOR_STYLE, NO_LAYER_FOR_STYLE } from '../messages';
 import { SubPanelHeader } from '../components/SubPanelHeader';
 import {
     AnchorButton,
-    Button, Colors, HTMLSelect,
+    Button,
+    Colors,
+    ControlGroup,
+    HTMLSelect,
+    Intent,
+    Label,
     NumberRange,
     Popover,
     PopoverInteractionKind,
-    Position,
+    PopoverPosition,
     Radio,
     RadioGroup,
     RangeSlider,
     Slider,
     Switch,
-    Tooltip,
-    Intent, InputGroup, Label
+    Tooltip
 } from '@blueprintjs/core';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
@@ -223,8 +230,9 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                                            onChange={this.handleChangedDisplayMinMax}
                                            uncontrolled={true}
                         />
-                        <ToolButton tooltipContent="Compute valid min/max" tooltipPosition={Position.LEFT}
-                                    intent={Intent.PRIMARY} icon="arrows-horizontal"
+                        <ToolButton tooltipContent="Compute valid min/max"
+                                    intent={Intent.PRIMARY}
+                                    icon="arrows-horizontal"
                                     style={{flex: 'none', marginTop: '5px'}}
                                     disabled={this.props.isComputingVariableStatistics}
                                     onClick={this.handleUpdateDisplayStatistics}/>
@@ -250,7 +258,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                 <Popover content={popoverContent}
                          interactionKind={PopoverInteractionKind.CLICK}
                          popoverClassName="bp3-popover-content-sizing cate-color-bars-popover"
-                         position={Position.LEFT}>
+                         position={PopoverPosition.LEFT}>
                     {this.renderColorBarButton(layer, false)}
                 </Popover>
             );
@@ -353,7 +361,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         return (
             <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Colour</span>
-                <InputGroup style={{lineHeight: '0', flex: 'auto 1'}}>
+                <ControlGroup style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.fill}
                                style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
                                size={8}
@@ -363,7 +371,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     <Popover
                         interactionKind={PopoverInteractionKind.CLICK}
                         popoverClassName="bp3-minimal"
-                        position={Position.LEFT}
+                        position={PopoverPosition.LEFT}
                         className="bp3-input-action"
                     >
                         <Button style={{backgroundColor: this.props.vectorStyle.fill}}/>
@@ -373,7 +381,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                             disableAlpha={true}
                         />
                     </Popover>
-                </InputGroup>
+                </ControlGroup>
             </Label>
         );
     }
@@ -414,7 +422,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         return (
             <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Colour</span>
-                <InputGroup style={{lineHeight: '0', flex: 'auto 1'}}>
+                <ControlGroup style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.stroke}
                                style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
                                size={8}
@@ -424,7 +432,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     <Popover
                         interactionKind={PopoverInteractionKind.CLICK}
                         popoverClassName="bp3-minimal"
-                        position={Position.LEFT}
+                        position={PopoverPosition.LEFT}
                         className="bp3-input-action"
                     >
                         <Button style={{backgroundColor: this.props.vectorStyle.stroke}}/>
@@ -434,7 +442,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                             disableAlpha={true}
                         />
                     </Popover>
-                </InputGroup>
+                </ControlGroup>
             </Label>
         );
     }
@@ -460,7 +468,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
         return (
             <Label className="bp3-inline" style={StylesPanel.LABEL_BOTTOM_MARGIN}>
                 <span style={StylesPanel.LABEL_SPAN_STYLE_100}>Colour</span>
-                <InputGroup style={{lineHeight: '0', flex: 'auto 1'}}>
+                <ControlGroup style={{lineHeight: '0', flex: 'auto 1'}}>
                     <TextField value={this.props.vectorStyle.markerColor}
                                style={{flex: 'auto', fontFamily: 'courier', textAlign: 'right', paddingRight: '40px'}}
                                size={8}
@@ -470,7 +478,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                     <Popover
                         interactionKind={PopoverInteractionKind.CLICK}
                         popoverClassName="bp3-minimal"
-                        position={Position.LEFT}
+                        position={PopoverPosition.LEFT}
                         className="bp3-input-action"
                     >
                         <Button style={{backgroundColor: this.props.vectorStyle.markerColor}}/>
@@ -480,7 +488,7 @@ class StylesPanel extends React.Component<IStylesPanelProps & DispatchProp<State
                             disableAlpha={true}
                         />
                     </Popover>
-                </InputGroup>
+                </ControlGroup>
             </Label>
         );
     }

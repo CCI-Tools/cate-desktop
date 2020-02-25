@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { AnchorButton, ControlGroup, Intent } from '@blueprintjs/core';
-import { IValueEditorProps, ValueEditorCallback, ValueEditorValue } from "./ValueEditor";
-import * as actions from "../../actions";
-import { OperationInputState } from "../../state";
-import { TextField } from "../../components/field/TextField";
+import { IValueEditorProps, ValueEditorCallback, ValueEditorValue } from './ValueEditor';
+import * as actions from '../../actions';
+import { OperationInputState } from '../../state';
+import { TextField } from '../../components/field/TextField';
 
 interface IFileValueEditorProps extends IValueEditorProps<string> {
 }
@@ -46,9 +46,9 @@ export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, 
                           value: ValueEditorValue<string>,
                           onChange: ValueEditorCallback<string>) {
         const openDialogOptions = {
-            title: "Open File",
+            title: 'Open File',
             defaultPath: value as string,
-            buttonLabel: "Open",
+            buttonLabel: 'Open',
             filters: input.fileFilters,
             properties: input.fileProps as any,
         };
@@ -63,9 +63,9 @@ export class FileValueEditor extends React.PureComponent<IFileValueEditorProps, 
                           value: ValueEditorValue<string>,
                           onChange: ValueEditorCallback<string>) {
         const saveDialogOptions = {
-            title: "Save File",
+            title: 'Save File',
             defaultPath: value as string,
-            buttonLabel: "Save",
+            buttonLabel: 'Save',
             filters: input.fileFilters,
         };
         actions.showFileSaveDialog(saveDialogOptions, (filePath: string) => {

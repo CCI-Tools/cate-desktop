@@ -1,8 +1,13 @@
 import {
-    DataState, LocationState, SessionState, CommunicationState, ControlState, WorldViewDataState,
-    STYLE_CONTEXT_ENTITY
+    CommunicationState,
+    ControlState,
+    DataState,
+    LocationState,
+    SessionState,
+    STYLE_CONTEXT_ENTITY,
+    WorldViewDataState
 } from './state';
-import { newWorldView, hasWebGL, MY_PLACES_LAYER } from './state-util';
+import { hasWebGL, MY_PLACES_LAYER, newWorldView } from './state-util';
 import { SimpleStyle } from '../common/geojson-simple-style';
 import { ViewState } from './components/ViewState';
 

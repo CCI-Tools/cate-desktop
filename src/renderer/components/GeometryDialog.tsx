@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {ModalDialog} from "./ModalDialog";
-import {validateGeometryValue, GeometryType} from "../../common/geometry-util";
+import { ModalDialog } from './ModalDialog';
+import { GeometryType, validateGeometryValue } from '../../common/geometry-util';
 import { FormGroup, Label } from '@blueprintjs/core';
 
 interface IGeometryDialogProps {
@@ -16,11 +16,13 @@ interface IGeometryDialogState {
     error?: Error;
 }
 
-const WKT_LINK = (<a href="https://en.wikipedia.org/wiki/Well-known_text" target="_blank" rel="noopener noreferrer">Well-Known Text (WKT)</a>);
+const WKT_LINK = (
+    <a href="https://en.wikipedia.org/wiki/Well-known_text" target="_blank" rel="noopener noreferrer">Well-Known Text
+        (WKT)</a>);
 
 export class GeometryDialog extends React.Component<IGeometryDialogProps, IGeometryDialogState> {
-    static readonly NOMINAL_CLASS = "bp3-input bp3-fill";
-    static readonly ERROR_CLASS = "bp3-input bp3-fill bp3-intent-danger";
+    static readonly NOMINAL_CLASS = 'bp3-input bp3-fill';
+    static readonly ERROR_CLASS = 'bp3-input bp3-fill bp3-intent-danger';
 
     constructor(props: IGeometryDialogProps) {
         super(props);
@@ -81,7 +83,7 @@ export class GeometryDialog extends React.Component<IGeometryDialogProps, IGeome
                     {`Enter Geometry of type ${this.props.geometryType}`}
                     <span className="bp3-text-muted"> (WGS84 coordinates in degree)</span>
                 </Label>
-                <div className="bp3-form-content" style={{width: "100%"}}>
+                <div className="bp3-form-content" style={{width: '100%'}}>
                     <textarea id="wkt"
                               className={hasError ? GeometryDialog.ERROR_CLASS : GeometryDialog.NOMINAL_CLASS}
                               rows={10}

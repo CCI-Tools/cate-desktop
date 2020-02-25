@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {IValueEditorProps} from "./ValueEditor";
-import {ValueSetValueEditor} from "./ValueSetValueEditor";
-import {NumericField} from "../../components/field/NumericField";
+import { IValueEditorProps } from './ValueEditor';
+import { ValueSetValueEditor } from './ValueSetValueEditor';
+import { NumericField } from '../../components/field/NumericField';
 
 // TODO (forman): complete me, i.e. use input.valueRange!
 

@@ -1,6 +1,6 @@
-import {WebAPIClient} from "../WebAPIClient";
-import {JobPromise} from "../Job";
-import {OperationState, OperationInputState, OperationOutputState} from "../../state";
+import { WebAPIClient } from '../WebAPIClient';
+import { JobPromise } from '../Job';
+import { OperationInputState, OperationOutputState, OperationState } from '../../state';
 
 function responseToOperations(operationsResponse: any): OperationState[] {
     return operationsResponse ? operationsResponse.map(responseOperationToOperation) : null;

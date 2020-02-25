@@ -1,8 +1,14 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 import {
-    ToolContextBase, PolygonTool, PolylineTool, polylineColor, polygonColor, PointTool,
-    BoxTool, NO_TOOL
-} from "./geometry-tool";
+    BoxTool,
+    NO_TOOL,
+    PointTool,
+    polygonColor,
+    PolygonTool,
+    polylineColor,
+    PolylineTool,
+    ToolContextBase
+} from './geometry-tool';
 
 
 class Point {

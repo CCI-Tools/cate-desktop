@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Intent } from "@blueprintjs/core";
+import { Button, Intent } from '@blueprintjs/core';
 
 
 interface ISetupScreenProps {
@@ -18,16 +18,16 @@ interface ISetupScreenProps {
 }
 
 export class SetupScreen extends React.PureComponent<ISetupScreenProps> {
-    static readonly headerHeight = "34px";
-    static readonly footerHeight = "52px";
+    static readonly headerHeight = '34px';
+    static readonly footerHeight = '52px';
     static readonly middleHeight = `calc(100% - ${SetupScreen.headerHeight} - ${SetupScreen.footerHeight})`;
 
     static readonly headerStyle: React.CSSProperties = {
-        fontSize: "1.1em",
-        fontWeight: "bold",
+        fontSize: '1.1em',
+        fontWeight: 'bold',
         height: SetupScreen.headerHeight,
         lineHeight: SetupScreen.headerHeight,
-        backgroundColor: "#EEEEEE",
+        backgroundColor: '#EEEEEE',
         paddingLeft: 10
     };
 
@@ -35,8 +35,8 @@ export class SetupScreen extends React.PureComponent<ISetupScreenProps> {
         height: SetupScreen.footerHeight,
         margin: 0,
         padding: 10,
-        display: "flex",
-        justifyContent: "flex-end"
+        display: 'flex',
+        justifyContent: 'flex-end'
     };
 
     static readonly middleStyle: React.CSSProperties = {
@@ -46,7 +46,7 @@ export class SetupScreen extends React.PureComponent<ISetupScreenProps> {
     };
 
     static readonly containerStyle: React.CSSProperties = {
-        height: "100%",
+        height: '100%',
         margin: 0,
         padding: 0
     };
@@ -66,8 +66,8 @@ export class SetupScreen extends React.PureComponent<ISetupScreenProps> {
         let nextButton;
         if (!this.props.noNextButton) {
             nextButton = <Button style={{marginRight: 24}}
-                                 rightIcon={this.props.nextButtonIcon as any || "arrow-right"}
-                                 text={this.props.nextButtonLabel || "Next"}
+                                 rightIcon={this.props.nextButtonIcon as any || 'arrow-right'}
+                                 text={this.props.nextButtonLabel || 'Next'}
                                  intent={this.props.nextButtonIntent || Intent.PRIMARY}
                                  disabled={this.props.nextButtonDisabled}
                                  onClick={this.props.onNextButtonClick}/>;

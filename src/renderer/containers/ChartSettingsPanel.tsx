@@ -1,10 +1,10 @@
-import * as React from "react";
-import {connect} from "react-redux";
-import {ResourceState, State} from "../state";
-import {NO_CHARTS} from "../messages";
-import {ListBox, ListBoxSelectionMode} from "../components/ListBox";
-import {ScrollablePanelContent} from "../components/ScrollableContent";
-import * as selectors from "../selectors";
+import * as React from 'react';
+import { connect } from 'react-redux';
+import { ResourceState, State } from '../state';
+import { NO_CHARTS } from '../messages';
+import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
+import { ScrollablePanelContent } from '../components/ScrollableContent';
+import * as selectors from '../selectors';
 
 interface IChartSettingsPanelProps {
     figureResources: ResourceState[];
@@ -30,7 +30,7 @@ class ChartSettingsPanel extends React.Component<IChartSettingsPanelProps, null>
 
     render() {
         let figureResources = this.props.figureResources;
-        if (figureResources&& figureResources.length) {
+        if (figureResources && figureResources.length) {
             return this.renderChartList();
         }
         return NO_CHARTS;
@@ -57,4 +57,5 @@ class ChartSettingsPanel extends React.Component<IChartSettingsPanelProps, null>
         );
     }
 }
+
 export default connect(mapStateToProps)(ChartSettingsPanel);

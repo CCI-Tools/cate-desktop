@@ -1,10 +1,10 @@
 import * as React from 'react';
-import {RangeSlider, NumberRange} from "@blueprintjs/core";
-import {formatMillisAsISODateString} from "../../common/format";
+import { NumberRange, RangeSlider } from '@blueprintjs/core';
+import { formatMillisAsISODateString } from '../../common/format';
 
 interface ITimeRangeProps {
-    coverage: NumberRange|null;
-    value: NumberRange|null;
+    coverage: NumberRange | null;
+    value: NumberRange | null;
     onChange: (range: NumberRange) => void;
 }
 
@@ -17,7 +17,7 @@ export function TimeRange(props: ITimeRangeProps) {
         if (startMillis && endMillis && startMillis < endMillis) {
             const stepSize = (endMillis - startMillis) / 4;
             return (
-                <div style={{ width: "100%", padding: 10}}>
+                <div style={{width: '100%', padding: 10}}>
                     <RangeSlider
                         min={startMillis}
                         max={endMillis}
@@ -31,14 +31,14 @@ export function TimeRange(props: ITimeRangeProps) {
             );
         } else {
             return (
-                <div style={{ width: "100%", padding: 10}}>
+                <div style={{width: '100%', padding: 10}}>
                     No time information available.
                 </div>
             );
         }
     } else {
         return (
-            <div style={{ width: "100%", padding: 10}}>
+            <div style={{width: '100%', padding: 10}}>
                 Loading time coverage...
             </div>
         );

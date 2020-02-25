@@ -1,22 +1,32 @@
 import * as React from 'react';
-import * as Cesium from "cesium";
-import { diff } from "deep-object-diff"
-import { Feature, FeatureCollection, Point } from "geojson";
-import { ContextMenu } from "@blueprintjs/core";
-import { IExternalObjectComponentProps, ExternalObjectComponent } from '../ExternalObjectComponent'
-import * as assert from "../../../common/assert";
-import { isBoolean, isNumber, isString } from "../../../common/types";
-import { arrayDiff } from "../../../common/array-diff";
-import { SimpleStyle } from "../../../common/geojson-simple-style";
-import { SplitSlider } from "./SplitSlider";
+import * as Cesium from 'cesium';
+import { diff } from 'deep-object-diff'
+import { Feature, FeatureCollection, Point } from 'geojson';
+import { ContextMenu } from '@blueprintjs/core';
+import { ExternalObjectComponent, IExternalObjectComponentProps } from '../ExternalObjectComponent'
+import * as assert from '../../../common/assert';
+import { isBoolean, isNumber, isString } from '../../../common/types';
+import { arrayDiff } from '../../../common/array-diff';
+import { SimpleStyle } from '../../../common/geojson-simple-style';
+import { SplitSlider } from './SplitSlider';
 import {
-    applyStyleToEntity, applyStyleToEntityCollection, getEntityByEntityId, canvasToCartographic,
-    simpleStyleToCesium, pickEntity, clientToCanvas
-} from "./cesium-util";
+    applyStyleToEntity,
+    applyStyleToEntityCollection,
+    canvasToCartographic,
+    clientToCanvas,
+    getEntityByEntityId,
+    pickEntity,
+    simpleStyleToCesium
+} from './cesium-util';
 import {
-    BoxTool, CesiumToolContext, GeometryToolType, NO_TOOL, PointTool, PolygonTool,
+    BoxTool,
+    CesiumToolContext,
+    GeometryToolType,
+    NO_TOOL,
+    PointTool,
+    PolygonTool,
     PolylineTool
-} from "./geometry-tool";
+} from './geometry-tool';
 
 
 interface Placemark extends Feature<Point> {
@@ -46,7 +56,7 @@ export interface ImageLayerDescriptor extends LayerDescriptor {
     hue?: number;
     saturation?: number;
     gamma?: number;
-    splitMode: "right" | "left" | "off";
+    splitMode: 'right' | 'left' | 'off';
 
     imageryProvider: ((viewer: Cesium.Viewer, options: any) => Cesium.ImageryProvider) | Cesium.ImageryProvider;
     imageryProviderOptions: any;
@@ -146,9 +156,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     }
 
     newContainer(id: string): HTMLElement {
-        const div = document.createElement("div");
-        div.setAttribute("id", "cesium-container-" + id);
-        div.setAttribute("style", "width: 100%; height: 100%; overflow: hidden;");
+        const div = document.createElement('div');
+        div.setAttribute('id', 'cesium-container-' + id);
+        div.setAttribute('style', 'width: 100%; height: 100%; overflow: hidden;');
         return div;
     }
 
@@ -283,14 +293,14 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const prevVectorLayerDescriptors = (prevState && prevState.vectorLayerDescriptors) || EMPTY_ARRAY;
         const prevOverlayHtml = (prevState && prevState.overlayHtml) || null;
         const prevSplitLayerPosition = (prevState && prevState.splitLayerPosition);
-        const prevGeometryToolType = (prevState && prevState.geometryToolType) || "NoTool";
+        const prevGeometryToolType = (prevState && prevState.geometryToolType) || 'NoTool';
 
         const nextSelectedPlacemarkId = nextState.selectedPlacemarkId || null;
         const nextImageLayerDescriptors = nextState.imageLayerDescriptors || EMPTY_ARRAY;
         const nextVectorLayerDescriptors = nextState.vectorLayerDescriptors || EMPTY_ARRAY;
         const nextOverlayHtml = nextState.overlayHtml;
         const nextSplitLayerPosition = nextState.splitLayerPosition;
-        const nextGeometryToolType = nextState.geometryToolType || "NoTool";
+        const nextGeometryToolType = nextState.geometryToolType || 'NoTool';
 
         let shouldRequestRender = false;
 
@@ -585,7 +595,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
             if (prevOverlayHtml) {
                 if (!viewer.container.contains(prevOverlayHtml)) {
                     // TODO (forman): Check, if we still get here.
-                    console.warn("CesiumGlobe: previous HTML element is not a child", prevOverlayHtml);
+                    console.warn('CesiumGlobe: previous HTML element is not a child', prevOverlayHtml);
                     return;
                 }
                 viewer.container.replaceChild(nextOverlayHtml, prevOverlayHtml);
@@ -595,7 +605,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         } else if (prevOverlayHtml) {
             if (!viewer.container.contains(prevOverlayHtml)) {
                 // TODO (forman): Check, if we still get here.
-                console.warn("CesiumGlobe: previous HTML element is not a child", prevOverlayHtml);
+                console.warn('CesiumGlobe: previous HTML element is not a child', prevOverlayHtml);
                 return;
             }
             viewer.container.removeChild(prevOverlayHtml);
@@ -661,7 +671,7 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         const layerId = newLayer.id;
         const dataSource = dataSourceMap[layerId];
         if (!dataSource) {
-            console.warn("CesiumGlobe: dataSource for vector layer not ready yet, layerId =", layerId);
+            console.warn('CesiumGlobe: dataSource for vector layer not ready yet, layerId =', layerId);
             return;
         }
         const oldData = oldLayer.dataSourceOptions.data;
@@ -739,9 +749,9 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
         imageryLayer.minificationFilter = Cesium.TextureMinificationFilter.NEAREST;
         imageryLayer.magnificationFilter = Cesium.TextureMagnificationFilter.NEAREST;
 
-        if (layerDescriptor.splitMode === "left") {
+        if (layerDescriptor.splitMode === 'left') {
             imageryLayer.splitDirection = Cesium.ImagerySplitDirection.LEFT;
-        } else if (layerDescriptor.splitMode === "right") {
+        } else if (layerDescriptor.splitMode === 'right') {
             imageryLayer.splitDirection = Cesium.ImagerySplitDirection.RIGHT;
         } else {
             imageryLayer.splitDirection = Cesium.ImagerySplitDirection.NONE;
@@ -768,15 +778,15 @@ export class CesiumGlobe extends ExternalObjectComponent<Cesium.Viewer, CesiumGl
     activateGeometryTool(viewer: Cesium.Viewer, geometryToolType: GeometryToolType) {
         const tool = this.toolContext.tool;
         if (geometryToolType !== tool.type) {
-            if (geometryToolType === "NoTool") {
+            if (geometryToolType === 'NoTool') {
                 this.toolContext.tool = NO_TOOL;
-            } else if (geometryToolType === "PointTool") {
+            } else if (geometryToolType === 'PointTool') {
                 this.toolContext.tool = new PointTool();
-            } else if (geometryToolType === "PolylineTool") {
+            } else if (geometryToolType === 'PolylineTool') {
                 this.toolContext.tool = new PolylineTool();
-            } else if (geometryToolType === "PolygonTool") {
+            } else if (geometryToolType === 'PolygonTool') {
                 this.toolContext.tool = new PolygonTool();
-            } else if (geometryToolType === "BoxTool") {
+            } else if (geometryToolType === 'BoxTool') {
                 this.toolContext.tool = new BoxTool();
             }
         }

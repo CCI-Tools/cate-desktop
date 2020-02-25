@@ -1,7 +1,7 @@
-import * as dns from "dns";
+import * as dns from 'dns';
 
 
-const DEFAULT_HOST_NAMES = ["google.com", "microsoft.com", "apple.com", "amazon.com", "github.com"];
+const DEFAULT_HOST_NAMES = ['google.com', 'microsoft.com', 'apple.com', 'amazon.com', 'github.com'];
 
 /**
  * Check if there is an internet connection.
@@ -19,8 +19,8 @@ export function checkInternet(callback: (isConnected: boolean) => any, hostNames
         if (index === hostNames.length) {
             callback(false);
         } else {
-            dns.lookup(hostNames[index],(err: NodeJS.ErrnoException) => {
-                if (err && err.code === "ENOTFOUND") {
+            dns.lookup(hostNames[index], (err: NodeJS.ErrnoException) => {
+                if (err && err.code === 'ENOTFOUND') {
                     checkHost(index + 1);
                 } else {
                     callback(true);
@@ -38,7 +38,7 @@ export function ifInternet(hostNames?: string[]): Promise<boolean> {
             if (isConnected) {
                 resolve(true);
             } else {
-                reject(new Error("No internet connection"));
+                reject(new Error('No internet connection'));
             }
         }, hostNames);
     });

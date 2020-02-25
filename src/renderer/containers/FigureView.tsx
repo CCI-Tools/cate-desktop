@@ -1,12 +1,12 @@
 import * as React from 'react';
-import {State, ResourceState, FigureViewDataState} from "../state";
-import {connect, DispatchProp} from "react-redux";
-import {ViewState} from "../components/ViewState";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
-import {MplFigurePanel} from "../components/matplotlib/MplFigurePanel";
-import {getMPLDownloadUrl, getMPLWebSocketUrl} from "../state-util";
-import {Card} from "../components/Card";
+import { FigureViewDataState, ResourceState, State } from '../state';
+import { connect, DispatchProp } from 'react-redux';
+import { ViewState } from '../components/ViewState';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
+import { MplFigurePanel } from '../components/matplotlib/MplFigurePanel';
+import { getMPLDownloadUrl, getMPLWebSocketUrl } from '../state-util';
+import { Card } from '../components/Card';
 
 
 interface IFigureViewOwnProps {

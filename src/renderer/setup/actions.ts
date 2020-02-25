@@ -1,7 +1,12 @@
 import { ipcRenderer } from 'electron';
 import { Dispatch } from 'react-redux';
 import {
-    CateMode, SetupMode, CATE_MODE_NEW_CATE_DIR, CATE_MODE_OLD_CATE_DIR, CATE_MODE_CONDA_DIR, SetupInfo,
+    CATE_MODE_CONDA_DIR,
+    CATE_MODE_NEW_CATE_DIR,
+    CATE_MODE_OLD_CATE_DIR,
+    CateMode,
+    SetupInfo,
+    SetupMode,
 } from '../../common/setup';
 import {
     SCREEN_ID_CONFIG,
@@ -9,7 +14,6 @@ import {
     SCREEN_ID_START,
     SETUP_STATUS_FAILED,
     SETUP_STATUS_IN_PROGRESS,
-    SETUP_STATUS_NOT_STARTED,
     SETUP_STATUS_SUCCEEDED,
     SETUP_TEST_MODE,
     SetupStatus,

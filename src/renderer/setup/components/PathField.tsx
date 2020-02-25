@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Classes, ControlGroup, InputGroup, Label, Tooltip } from '@blueprintjs/core';
+import { Button, Classes, ControlGroup, InputGroup, Label } from '@blueprintjs/core';
 
 export interface IPathFieldProps {
     label: string;

@@ -7,4 +7,4 @@ export function isElectron() {
     return _isElectron;
 }
 
-console.log("isElectron? ", isElectron(), navigator.userAgent);
+console.log('isElectron? ', isElectron(), navigator.userAgent);

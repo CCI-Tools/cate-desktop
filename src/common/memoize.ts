@@ -1,4 +1,4 @@
-import {isUndefinedOrNull} from "./types";
+import { isUndefinedOrNull } from './types';
 
 export interface MemoizedFunction {
     (...args): any;

@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { AnchorButton, Intent, ControlGroup } from "@blueprintjs/core";
-import { toTextValue } from "./Field";
-import { TextField, TextFieldValue } from "./TextField";
-import { GeometryDialog } from "../GeometryDialog";
-import { GeometryType, validateGeometryValue } from "../../../common/geometry-util";
-import { GeometryWKTGetter } from "../../containers/editor/ValueEditor";
+import { AnchorButton, ControlGroup, Intent } from '@blueprintjs/core';
+import { toTextValue } from './Field';
+import { TextField, TextFieldValue } from './TextField';
+import { GeometryDialog } from '../GeometryDialog';
+import { GeometryType, validateGeometryValue } from '../../../common/geometry-util';
+import { GeometryWKTGetter } from '../../containers/editor/ValueEditor';
 
 
 interface IGeometryFieldProps {
@@ -44,7 +44,7 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
             wkt = this.props.geometryWKTGetter && this.props.geometryWKTGetter();
         } catch (error) {
             console.error(error);
-            wkt = "Error: " + error;
+            wkt = 'Error: ' + error;
         }
         this.props.onChange({textValue: wkt, value: wkt});
     }
@@ -53,9 +53,9 @@ export class GeometryField extends React.Component<IGeometryFieldProps, IGeometr
         let placeholder = this.props.placeholder;
         if (!placeholder) {
             if (this.props.geometryType === 'Point') {
-                placeholder = "<lon>,<lat> or Point WKT";
+                placeholder = '<lon>,<lat> or Point WKT';
             } else if (this.props.geometryType === 'Polygon') {
-                placeholder = "<lon1>,<lat1>,<lon2>,<lat2> or Polygon WKT";
+                placeholder = '<lon1>,<lat1>,<lon2>,<lat2> or Polygon WKT';
             } else {
                 placeholder = `Enter ${this.props.geometryType} WKT`;
             }

@@ -1,16 +1,21 @@
-import {createStore, applyMiddleware} from 'redux';
+import { applyMiddleware, createStore } from 'redux';
 import * as actions from './actions';
-import {stateReducer} from './reducers';
+import { stateReducer } from './reducers';
 import thunk from 'redux-thunk'
-import {LayerState, OperationState, Placemark, ResourceState, SPLIT_MODE_OFF, State, VariableState} from "./state";
-import {should, expect} from 'chai';
+import { LayerState, OperationState, Placemark, ResourceState, SPLIT_MODE_OFF, State, VariableState } from './state';
+import { expect, should } from 'chai';
 import {
-    AUTO_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID, EXTERNAL_OBJECT_STORE,
-    MY_PLACES_LAYER, COUNTRIES_LAYER, AUTO_LAYER
-} from "./state-util";
-import {DATA_ARRAY_TYPE, DATASET_LIKE_TYPE, POINT_LIKE_TYPE, VAR_NAME_LIKE_TYPE} from "../common/cate-types";
-import {InputAssignments} from "./containers/editor/value-editor-assign";
-import {NEW_CTX_OPERATION_STEP_DIALOG_ID} from "./containers/operation-step-dialog-ids";
+    AUTO_LAYER,
+    AUTO_LAYER_ID,
+    COUNTRIES_LAYER,
+    COUNTRIES_LAYER_ID,
+    EXTERNAL_OBJECT_STORE,
+    MY_PLACES_LAYER,
+    MY_PLACES_LAYER_ID
+} from './state-util';
+import { DATA_ARRAY_TYPE, DATASET_LIKE_TYPE, POINT_LIKE_TYPE, VAR_NAME_LIKE_TYPE } from '../common/cate-types';
+import { InputAssignments } from './containers/editor/value-editor-assign';
+import { NEW_CTX_OPERATION_STEP_DIALOG_ID } from './containers/operation-step-dialog-ids';
 
 should();
 
@@ -47,7 +52,7 @@ describe('Actions', () => {
             expect(getState().control.views).to.not.be.null;
             expect(getState().control.views).to.not.be.undefined;
             expect(getState().control.views.length).to.equal(1);
-            expect(getState().control.views[0].id.startsWith("world-")).to.be.true;
+            expect(getState().control.views[0].id.startsWith('world-')).to.be.true;
         });
     });
 
@@ -363,14 +368,14 @@ describe('Actions', () => {
                 [
                     {
                         id: AUTO_LAYER_ID,
-                        name: "Auto res_1.analysed_sst",
-                        type: "VariableImage",
+                        name: 'Auto res_1.analysed_sst',
+                        type: 'VariableImage',
                         visible: true,
                         resId: 0,
-                        resName: "res_1",
-                        varName: "analysed_sst",
+                        resName: 'res_1',
+                        varName: 'analysed_sst',
                         varIndex: [0],
-                        colorMapName: "inferno",
+                        colorMapName: 'inferno',
                         alphaBlending: false,
                         displayMin: 270,
                         displayMax: 310,
@@ -395,8 +400,8 @@ describe('Actions', () => {
                 [
                     {
                         id: AUTO_LAYER_ID,
-                        type: "Unknown",
-                        name: "Auto profile (geo-ref not found or recognized)",
+                        type: 'Unknown',
+                        name: 'Auto profile (geo-ref not found or recognized)',
                         visible: true,
                     },
                     defaultCountriesLayer,
@@ -407,14 +412,14 @@ describe('Actions', () => {
         it('setSelectedVariable - can restore previous layer state', () => {
             const autoLayerOld = {
                 id: AUTO_LAYER_ID,
-                type: "VariableImage",
-                name: "Auto res_1.analysed_sst",
+                type: 'VariableImage',
+                name: 'Auto res_1.analysed_sst',
                 visible: true,
                 resId: 0,
-                resName: "res_1",
-                varName: "analysed_sst",
+                resName: 'res_1',
+                varName: 'analysed_sst',
                 varIndex: [139],
-                colorMapName: "inferno",
+                colorMapName: 'inferno',
                 alphaBlending: false,
                 displayMin: 270,
                 displayMax: 300,
@@ -428,14 +433,14 @@ describe('Actions', () => {
             };
             const autoLayerNew = {
                 id: AUTO_LAYER_ID,
-                type: "VariableImage",
-                name: "Auto res_1.sst_error",
+                type: 'VariableImage',
+                name: 'Auto res_1.sst_error',
                 visible: true,
                 resId: 0,
-                resName: "res_1",
-                varName: "sst_error",
+                resName: 'res_1',
+                varName: 'sst_error',
                 varIndex: [0],
-                colorMapName: "inferno",
+                colorMapName: 'inferno',
                 alphaBlending: false,
                 displayMin: 0,
                 displayMax: 1,
@@ -523,27 +528,27 @@ describe('Actions', () => {
             dispatch(actions.addLayer(getActiveViewId(), {
                 id: 'layer-1',
                 visible: true,
-                type: "Vector"
+                type: 'Vector'
             } as LayerState, false));
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultAutoLayer,
                                                                   defaultCountriesLayer,
                                                                   defaultMyPlacesLayer,
-                                                                  {id: 'layer-1', visible: true, type: "Vector"},
+                                                                  {id: 'layer-1', visible: true, type: 'Vector'},
                                                               ]);
-            dispatch(actions.updateLayerStyle(getActiveViewId(), 'layer-1', {fill: "#123456", fillOpacity: 0.4}));
+            dispatch(actions.updateLayerStyle(getActiveViewId(), 'layer-1', {fill: '#123456', fillOpacity: 0.4}));
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultAutoLayer,
                                                                   defaultCountriesLayer,
                                                                   defaultMyPlacesLayer,
                                                                   {
-                                                                      id: 'layer-1', visible: true, type: "Vector",
+                                                                      id: 'layer-1', visible: true, type: 'Vector',
                                                                       style: {
-                                                                          fill: "#123456", fillOpacity: 0.4
+                                                                          fill: '#123456', fillOpacity: 0.4
                                                                       }
                                                                   },
                                                               ]);
-            dispatch(actions.updateLayerStyle(getActiveViewId(), 'layer-1', {stroke: "#3053FF", strokeOpacity: 0.6}));
+            dispatch(actions.updateLayerStyle(getActiveViewId(), 'layer-1', {stroke: '#3053FF', strokeOpacity: 0.6}));
             expect(getActiveView().data.layers).to.deep.equal([
                                                                   defaultAutoLayer,
                                                                   defaultCountriesLayer,
@@ -551,10 +556,10 @@ describe('Actions', () => {
                                                                   {
                                                                       id: 'layer-1',
                                                                       visible: true,
-                                                                      type: "Vector",
+                                                                      type: 'Vector',
                                                                       style: {
-                                                                          fill: "#123456", fillOpacity: 0.4,
-                                                                          stroke: "#3053FF", strokeOpacity: 0.6,
+                                                                          fill: '#123456', fillOpacity: 0.4,
+                                                                          stroke: '#3053FF', strokeOpacity: 0.6,
                                                                       }
                                                                   },
                                                               ]);
@@ -644,17 +649,17 @@ describe('Actions', () => {
             const layer1 = {
                 id: 'user-layer-1',
                 visible: true,
-                type: "Vector"
+                type: 'Vector'
             };
 
             // Prepare test scenario with one user layer and one placemark
             dispatch(actions.setCurrentWorkspace(workspace as any));
             dispatch(actions.addLayer(getActiveViewId(), layer1 as LayerState, false));
             const placemark = {
-                type: "Feature",
-                id: "pippo",
+                type: 'Feature',
+                id: 'pippo',
                 geometry: {
-                    type: "Point",
+                    type: 'Point',
                     coordinates: [11.8, 8.4]
                 },
                 properties: {visible: true}
@@ -664,18 +669,18 @@ describe('Actions', () => {
             const expectedPlacemark = {
                 ...placemark, properties: {
                     visible: true,
-                    title: "Point 1",
-                    "marker-symbol": "1",
+                    title: 'Point 1',
+                    'marker-symbol': '1',
                 }
             };
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal(expectedPlacemark);
 
             // Cesium entity mocks for Country layer
             let entity1 = {
-                id: "438",
+                id: '438',
             };
             let entity2 = {
-                id: "439",
+                id: '439',
             };
 
             // Cesium entity mock for Placemarks layer
@@ -709,13 +714,13 @@ describe('Actions', () => {
                     dataSourceMap: {
                         [COUNTRIES_LAYER_ID]: countriesDataSource,
                         [MY_PLACES_LAYER_ID]: myPlacesDataSource,
-                        "user-layer-1": userDataSource,
+                        'user-layer-1': userDataSource,
                     }
                 },
             };
 
             // Register our Cesium.Viewer mock instance
-            EXTERNAL_OBJECT_STORE["CesiumGlobe-" + getActiveViewId()] = externalObject;
+            EXTERNAL_OBJECT_STORE['CesiumGlobe-' + getActiveViewId()] = externalObject;
 
             const countriesLayerIndex = 1;
             const myPlacesLayerIndex = 2;
@@ -727,7 +732,7 @@ describe('Actions', () => {
 
             expect(countryLayer.id).to.equal(COUNTRIES_LAYER_ID);
             expect(myPlacesLayer.id).to.equal(MY_PLACES_LAYER_ID);
-            expect(userLayer.id).to.equal("user-layer-1");
+            expect(userLayer.id).to.equal('user-layer-1');
 
             expect(countryLayer.entityStyles).to.not.exist;
             expect(myPlacesLayer.entityStyles).to.not.exist;
@@ -736,7 +741,7 @@ describe('Actions', () => {
             // Style change on entity of Countries layer --> change in countryLayer.entityStyles
             //
             dispatch(actions.updateEntityStyle(getActiveView(), entity1, {
-                fill: "#123456",
+                fill: '#123456',
                 fillOpacity: 0.3,
             }));
 
@@ -744,49 +749,49 @@ describe('Actions', () => {
             expect(countryLayer.entityStyles).to.exist;
             expect(countryLayer.entityStyles[entity1.id]).to.exist;
             expect(countryLayer.entityStyles[entity1.id]).to.deep.equal({
-                                                                            fill: "#123456",
+                                                                            fill: '#123456',
                                                                             fillOpacity: 0.3,
                                                                         });
 
             // Another style change on entity of Countries layer--> change in countryLayer.entityStyles
             //
             dispatch(actions.updateEntityStyle(getActiveView(), entity1, {
-                stroke: "#615243",
+                stroke: '#615243',
                 strokeOpacity: 0.9,
             }));
 
             countryLayer = getActiveView().data.layers[countriesLayerIndex];
             expect(countryLayer.entityStyles[entity1.id]).to.deep.equal({
-                                                                            fill: "#123456",
+                                                                            fill: '#123456',
                                                                             fillOpacity: 0.3,
-                                                                            stroke: "#615243",
+                                                                            stroke: '#615243',
                                                                             strokeOpacity: 0.9,
                                                                         });
 
             // Yet another style change on another entity of Countries layer --> change in countryLayer.entityStyles
             //
             dispatch(actions.updateEntityStyle(getActiveView(), entity2, {
-                fill: "#112233",
+                fill: '#112233',
                 fillOpacity: 0.4,
             }));
 
             countryLayer = getActiveView().data.layers[countriesLayerIndex];
             expect(countryLayer.entityStyles[entity1.id]).to.deep.equal({
-                                                                            fill: "#123456",
+                                                                            fill: '#123456',
                                                                             fillOpacity: 0.3,
-                                                                            stroke: "#615243",
+                                                                            stroke: '#615243',
                                                                             strokeOpacity: 0.9,
                                                                         });
             expect(countryLayer.entityStyles[entity2.id]).to.deep.equal({
-                                                                            fill: "#112233",
+                                                                            fill: '#112233',
                                                                             fillOpacity: 0.4,
                                                                         });
 
             // Style change on a placemark entity --> change in state.session.placemarkCollection
             //
             dispatch(actions.updateEntityStyle(getActiveView(), entity3, {
-                markerSize: "large",
-                markerSymbol: "bus",
+                markerSize: 'large',
+                markerSymbol: 'bus',
             }));
 
             myPlacesLayer = getActiveView().data.layers[myPlacesLayerIndex];
@@ -795,21 +800,21 @@ describe('Actions', () => {
                                                                                          ...expectedPlacemark,
                                                                                          properties: {
                                                                                              ...expectedPlacemark.properties,
-                                                                                             "marker-size": "large",
-                                                                                             "marker-symbol": "bus",
+                                                                                             'marker-size': 'large',
+                                                                                             'marker-symbol': 'bus',
                                                                                          }
                                                                                      });
 
             // Style change on a user entity --> change in userLayer.entityStyles
             //
             dispatch(actions.updateEntityStyle(getActiveView(), entity5, {
-                fill: "#FF00FF",
+                fill: '#FF00FF',
                 fillOpacity: 0.21,
             }));
 
             userLayer = getActiveView().data.layers[userLayerIndex];
             expect(userLayer.entityStyles[entity5.id]).to.deep.equal({
-                                                                         fill: "#FF00FF",
+                                                                         fill: '#FF00FF',
                                                                          fillOpacity: 0.21,
                                                                      });
         });
@@ -819,10 +824,10 @@ describe('Actions', () => {
 
         it('updatePlacemarkStyle', () => {
             const placemark = {
-                type: "Feature",
-                id: "pippo",
+                type: 'Feature',
+                id: 'pippo',
                 geometry: {
-                    type: "Point",
+                    type: 'Point',
                     coordinates: [12.6, 53.1]
                 },
                 properties: {visible: true}
@@ -834,36 +839,36 @@ describe('Actions', () => {
                                                                                          ...placemark,
                                                                                          properties: {
                                                                                              visible: true,
-                                                                                             title: "Point 1",
-                                                                                             "marker-symbol": "1",
+                                                                                             title: 'Point 1',
+                                                                                             'marker-symbol': '1',
                                                                                          }
                                                                                      });
-            dispatch(actions.updatePlacemarkStyle(placemark.id, {title: "Bibo"}));
+            dispatch(actions.updatePlacemarkStyle(placemark.id, {title: 'Bibo'}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
                                                                                          ...placemark,
                                                                                          properties: {
                                                                                              visible: true,
-                                                                                             title: "Bibo",
-                                                                                             "marker-symbol": "1",
+                                                                                             title: 'Bibo',
+                                                                                             'marker-symbol': '1',
                                                                                          }
                                                                                      });
-            dispatch(actions.updatePlacemarkStyle(placemark.id, {markerSymbol: "bus"}));
+            dispatch(actions.updatePlacemarkStyle(placemark.id, {markerSymbol: 'bus'}));
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
                                                                                          ...placemark,
                                                                                          properties: {
                                                                                              visible: true,
-                                                                                             title: "Bibo",
-                                                                                             "marker-symbol": "bus",
+                                                                                             title: 'Bibo',
+                                                                                             'marker-symbol': 'bus',
                                                                                          }
                                                                                      });
         });
 
         it('updatePlacemarkGeometry', () => {
             const placemark = {
-                type: "Feature",
-                id: "pippo",
+                type: 'Feature',
+                id: 'pippo',
                 geometry: {
-                    type: "Point",
+                    type: 'Point',
                     coordinates: [12.6, 53.1]
                 },
                 properties: {}
@@ -874,8 +879,8 @@ describe('Actions', () => {
             let expectedPlacemark = {
                 ...placemark,
                 properties: {
-                    "marker-symbol": "1",
-                    "title": "Point 1",
+                    'marker-symbol': '1',
+                    'title': 'Point 1',
                 }
             };
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal(expectedPlacemark);
@@ -883,7 +888,7 @@ describe('Actions', () => {
             expect(getState().session.placemarkCollection.features[0]).to.deep.equal({
                                                                                          ...expectedPlacemark,
                                                                                          geometry: {
-                                                                                             type: "Point",
+                                                                                             type: 'Point',
                                                                                              coordinates: [13.2, 53.1],
                                                                                          }
                                                                                      });
@@ -996,10 +1001,10 @@ describe('Actions', () => {
                     isScratch: true,
                     resources: [{
                         id: 0,
-                        name: "SST_CCI",
+                        name: 'SST_CCI',
                         dataType: DATASET_LIKE_TYPE,
                         variables: [{
-                            name: "analysed_sst",
+                            name: 'analysed_sst',
                             dataType: DATA_ARRAY_TYPE,
                         }]
                     }],
@@ -1007,35 +1012,35 @@ describe('Actions', () => {
 
             // Dummy operation
             const operation: OperationState = {
-                name: "tseries_point",
-                qualifiedName: "cate.ops.tseries_point",
+                name: 'tseries_point',
+                qualifiedName: 'cate.ops.tseries_point',
                 hasMonitor: false,
                 inputs: [{
-                    name: "ds",
+                    name: 'ds',
                     dataType: DATASET_LIKE_TYPE,
                     description: null,
                 }, {
-                    name: "point",
+                    name: 'point',
                     dataType: POINT_LIKE_TYPE,
                     description: null,
                 }, {
-                    name: "var_name",
+                    name: 'var_name',
                     dataType: VAR_NAME_LIKE_TYPE,
                     description: null,
                 }],
                 outputs: [{
-                    name: "return",
+                    name: 'return',
                     dataType: DATASET_LIKE_TYPE,
                     description: null,
                 }],
-                description: "",
+                description: '',
                 tags: [],
             };
 
             const inputAssignments: InputAssignments = {
                 point: {
                     isValueUsed: true,
-                    constantValue: "POINT (12, 53)",
+                    constantValue: 'POINT (12, 53)',
                     resourceName: null,
                 }
             };
@@ -1049,7 +1054,7 @@ describe('Actions', () => {
             // Dispatch context operation action
             dispatch(actions.invokeCtxOperation(operation, inputAssignments));
 
-            expect(getState().control.selectedCtxOperationName).to.equal("tseries_point");
+            expect(getState().control.selectedCtxOperationName).to.equal('tseries_point');
             dialogState = getState().control.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
             expect(dialogState).to.deep.equal({
                                                   isOpen: true,
@@ -1066,14 +1071,14 @@ describe('Actions', () => {
 
             // Add some selections
             dispatch(actions.updateControlState({
-                                                    selectedWorkspaceResourceName: "SST_CCI",
-                                                    selectedVariableName: "analysed_sst"
+                                                    selectedWorkspaceResourceName: 'SST_CCI',
+                                                    selectedVariableName: 'analysed_sst'
                                                 }));
             // Dispatch context operation action again
             dispatch(actions.invokeCtxOperation(operation, inputAssignments));
 
             // Expect to see new context in actions
-            expect(getState().control.selectedCtxOperationName).to.equal("tseries_point");
+            expect(getState().control.selectedCtxOperationName).to.equal('tseries_point');
             dialogState = getState().control.dialogs[NEW_CTX_OPERATION_STEP_DIALOG_ID];
             expect(dialogState).to.deep.equal({
                                                   isOpen: true,
@@ -1082,11 +1087,11 @@ describe('Actions', () => {
                                                       ds: {
                                                           isValueUsed: false,
                                                           constantValue: null,
-                                                          resourceName: "SST_CCI",
+                                                          resourceName: 'SST_CCI',
                                                       },
                                                       var_name: {
                                                           isValueUsed: true,
-                                                          constantValue: "analysed_sst",
+                                                          constantValue: 'analysed_sst',
                                                           resourceName: null,
                                                       }
                                                   },

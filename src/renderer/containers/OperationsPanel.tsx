@@ -1,22 +1,22 @@
 import * as React from 'react';
 import { connect, DispatchProp } from 'react-redux';
 import {
-    Popover,
+    ButtonGroup,
+    Classes,
+    InputGroup,
+    Intent,
     Menu,
     MenuItem,
-    InputGroup,
-    Classes,
-    Tag,
-    Intent,
+    Popover,
     PopoverInteractionKind,
-    ButtonGroup
+    Tag
 } from '@blueprintjs/core';
 import { ContentWithDetailsPanel } from '../components/ContentWithDetailsPanel';
 import { LabelWithType } from '../components/LabelWithType';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
 import { Card } from '../components/Card';
 import OperationStepDialog from './OperationStepDialog';
-import { State, OperationState, WorkspaceState, OperationOutputState, OperationInputState } from '../state';
+import { OperationInputState, OperationOutputState, OperationState, State, WorkspaceState } from '../state';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
 import { ScrollablePanelContent } from '../components/ScrollableContent';
@@ -72,34 +72,6 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
         this.handleAddOperationStepButtonClicked = this.handleAddOperationStepButtonClicked.bind(this);
     }
 
-    private handleListHeightChanged(value: number) {
-        this.props.dispatch(actions.setSessionProperty('operationListHeight', value));
-    }
-
-    private handleShowDetailsChanged(value: boolean) {
-        this.props.dispatch(actions.setSessionProperty('showOperationDetails', value));
-    }
-
-    private handleOperationSelection(newSelection: Array<React.Key>) {
-        if (newSelection.length > 0) {
-            this.props.dispatch(actions.setSelectedOperationName(newSelection[0] as string));
-        } else {
-            this.props.dispatch(actions.setSelectedOperationName(null));
-        }
-    }
-
-    private handleOperationFilterExprCleared() {
-        this.props.dispatch(actions.setOperationFilterExpr(''));
-    }
-
-    private handleOperationFilterExprChange(event) {
-        this.props.dispatch(actions.setOperationFilterExpr(event.target.value));
-    }
-
-    private handleAddOperationStepButtonClicked() {
-        this.props.dispatch(actions.showOperationStepDialog('newOperationStepDialog'));
-    }
-
     private static getItemKey(operation: OperationState) {
         return operation.name;
     }
@@ -115,6 +87,35 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
             dataType = `${operation.outputs.length} types`;
         }
         return (<LabelWithType label={name} dataType={dataType}/>);
+    }
+
+    private static formatPortDescriptionText(description) {
+        if (!description || description === '') {
+            return description;
+        }
+        description = description.trim();
+        if (!description.endsWith('.')) {
+            description += '.';
+        }
+        return ' - ' + description;
+    }
+
+    private static getInputDescriptionText(input: OperationInputState) {
+        let description = OperationsPanel.formatPortDescriptionText(input.description);
+        if (typeof (input.defaultValue) === 'undefined') {
+            description += ' Mandatory value.';
+        } else {
+            description += ` Default value is "${input.defaultValue}".`
+        }
+        return description;
+    }
+
+    private static getOutputDescriptionText(output: OperationOutputState) {
+        return OperationsPanel.formatPortDescriptionText(output.description);
+    }
+
+    private static getMultiplicityText(n: number, singularText: string, pluralText?: string): string {
+        return n === 1 ? singularText : (pluralText || singularText + 's');
     }
 
     render() {
@@ -146,7 +147,7 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
             const canAddStepOperation = this.props.selectedOperation && this.props.workspace;
             const actionComponent = (
                 <ButtonGroup>
-                    <ToolButton tooltipContent="Add a new operation step to the workspace's workflow."
+                    <ToolButton tooltipContent="Add a new operation step to the workspace's workflow"
                                 intent={Intent.PRIMARY}
                                 onClick={this.handleAddOperationStepButtonClicked}
                                 disabled={!canAddStepOperation}
@@ -175,6 +176,34 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
         return body;
     }
 
+    private handleListHeightChanged(value: number) {
+        this.props.dispatch(actions.setSessionProperty('operationListHeight', value));
+    }
+
+    private handleShowDetailsChanged(value: boolean) {
+        this.props.dispatch(actions.setSessionProperty('showOperationDetails', value));
+    }
+
+    private handleOperationSelection(newSelection: Array<React.Key>) {
+        if (newSelection.length > 0) {
+            this.props.dispatch(actions.setSelectedOperationName(newSelection[0] as string));
+        } else {
+            this.props.dispatch(actions.setSelectedOperationName(null));
+        }
+    }
+
+    private handleOperationFilterExprCleared() {
+        this.props.dispatch(actions.setOperationFilterExpr(''));
+    }
+
+    private handleOperationFilterExprChange(event) {
+        this.props.dispatch(actions.setOperationFilterExpr(event.target.value));
+    }
+
+    private handleAddOperationStepButtonClicked() {
+        this.props.dispatch(actions.showOperationStepDialog('newOperationStepDialog'));
+    }
+
     private renderOperationsList() {
         return (
             <ScrollablePanelContent>
@@ -194,13 +223,14 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
         const selectedOperationTags = new Set(this.props.operationFilterTags);
         const tagCounts = this.props.operationsTagCounts;
 
-        const tagContainerStyle = {padding: '0.2em'};
+        const tagContainerStyle = {padding: '0.2em', display: 'flex', alignItems: 'center'};
         const tagStyle = {marginRight: '0.2em'};
 
         let selectedTagItems = [];
         selectedOperationTags.forEach(tagName => {
             selectedTagItems.push(
                 <Tag intent={Intent.PRIMARY}
+                     minimal={true}
                      style={tagStyle}
                      onRemove={() => this.removeTagName(tagName)}>
                     {`${tagName}`}
@@ -220,10 +250,9 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
         if (tagMenuItems.length) {
             const tagMenu = (<Menu>{tagMenuItems}</Menu>);
             addTagButton = (
-                <Popover
-                    content={tagMenu}
-                    interactionKind={PopoverInteractionKind.CLICK}>
-                    <Tag intent={Intent.SUCCESS} icon="small-plus" style={tagStyle}/>
+                <Popover content={tagMenu}
+                         interactionKind={PopoverInteractionKind.CLICK}>
+                    <Tag intent={Intent.SUCCESS} minimal={true} icon="small-plus" style={tagStyle}/>
                 </Popover>
             );
         }
@@ -245,35 +274,6 @@ class OperationsPanel extends React.Component<IOperationsPanelProps & DispatchPr
         const tags = new Set<string>(this.props.operationFilterTags);
         tags.delete(tagName);
         this.props.dispatch(actions.setOperationFilterTags(Array.from(tags)));
-    }
-
-    private static formatPortDescriptionText(description) {
-        if (!description || description === '') {
-            return description;
-        }
-        description = description.trim();
-        if (!description.endsWith('.')) {
-            description += '.';
-        }
-        return ' - ' + description;
-    }
-
-    private static getInputDescriptionText(input: OperationInputState) {
-        let description = OperationsPanel.formatPortDescriptionText(input.description);
-        if (typeof (input.defaultValue) === 'undefined') {
-            description += ' Mandatory value.';
-        } else {
-            description += ` Default value is "${input.defaultValue}".`
-        }
-        return description;
-    }
-
-    private static getOutputDescriptionText(output: OperationOutputState) {
-        return OperationsPanel.formatPortDescriptionText(output.description);
-    }
-
-    private static getMultiplicityText(n: number, singularText: string, pluralText?: string): string {
-        return n === 1 ? singularText : (pluralText || singularText + 's');
     }
 
     private renderOperationDetailsCard() {

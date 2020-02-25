@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { AnchorButton, ControlGroup, Intent } from '@blueprintjs/core';
-import { IFieldProps, toTextValue } from "./Field";
-import { TextField } from "./TextField";
-import { ScriptDialog } from "../ScriptDialog";
+import { IFieldProps, toTextValue } from './Field';
+import { TextField } from './TextField';
+import { ScriptDialog } from '../ScriptDialog';
 
 
 interface IScriptFieldProps extends IFieldProps {

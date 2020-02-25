@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { Store, createStore, Middleware, applyMiddleware, Dispatch } from 'redux';
+import { applyMiddleware, createStore, Dispatch, Middleware, Store } from 'redux';
 import { createLogger } from 'redux-logger';
 import thunkMiddleware from 'redux-thunk';
 import { Provider } from 'react-redux';

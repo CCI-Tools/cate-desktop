@@ -1,14 +1,21 @@
 import {
+    LayerState,
+    PlacemarkCollection,
+    ResourceState,
+    ResourceVectorLayerState,
     VariableImageLayerState,
-    VectorLayerState, ResourceState,
-    ResourceVectorLayerState, LayerState, PlacemarkCollection
+    VectorLayerState
 } from '../state';
+import { ImageLayerDescriptor, LayerDescriptors, VectorLayerDescriptor, } from '../components/cesium/CesiumGlobe';
 import {
-    ImageLayerDescriptor, VectorLayerDescriptor, LayerDescriptors,
-} from '../components/cesium/CesiumGlobe';
-import {
-    findVariable, findResource, getTileUrl, getFeatureCollectionUrl, getGeoJSONCountriesUrl,
-    AUTO_LAYER_ID, COUNTRIES_LAYER_ID, MY_PLACES_LAYER_ID,
+    AUTO_LAYER_ID,
+    COUNTRIES_LAYER_ID,
+    findResource,
+    findVariable,
+    getFeatureCollectionUrl,
+    getGeoJSONCountriesUrl,
+    getTileUrl,
+    MY_PLACES_LAYER_ID,
 } from '../state-util';
 import { memoize } from '../../common/memoize';
 import { EMPTY_OBJECT } from '../selectors';

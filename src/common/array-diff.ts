@@ -1,7 +1,7 @@
 import * as assert from './assert';
-import deepEqual = require("deep-equal");
+import deepEqual = require('deep-equal');
 
-type ObjectWithId = {id: any;}
+type ObjectWithId = { id: any; }
 
 /**
  * An action on an array of objects.
@@ -10,7 +10,7 @@ export interface ArrayAction<T extends ObjectWithId> {
     /**
      * Action type, must be one of:  'ADD', 'REMOVE', 'UPDATE', 'MOVE'
      */
-    type: 'ADD'|'REMOVE'|'UPDATE'|'MOVE';
+    type: 'ADD' | 'REMOVE' | 'UPDATE' | 'MOVE';
     /**
      * For type 'ADD': the insertion index.
      * For type 'UPDATE': the index of the element to be updated.

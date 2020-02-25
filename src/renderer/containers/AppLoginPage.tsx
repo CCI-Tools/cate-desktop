@@ -1,9 +1,9 @@
 import * as React from 'react';
+import { CSSProperties } from 'react';
 import { connect, Dispatch } from 'react-redux';
 import * as actions from '../actions';
 import { Button, InputGroup, Intent } from '@blueprintjs/core';
 import { State } from '../state';
-import { CSSProperties } from 'react';
 
 
 interface IDispatch {
@@ -106,7 +106,8 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
                             autoFocus={true}>Login</Button>
                     </div>
                     <div style={{marginTop: 18, alignSelf: 'center'}}>
-                        <span>Don't have an account yet?&nbsp;</span><a href={'mailto:climate.office@esa.int?subject=Apply%20for%20ESA%20CCI%20Toolbox'}>Apply!</a>
+                        <span>Don't have an account yet?&nbsp;</span><a
+                        href={'mailto:climate.office@esa.int?subject=Apply%20for%20ESA%20CCI%20Toolbox'}>Apply!</a>
                     </div>
                 </div>
             </div>

@@ -1,8 +1,8 @@
 import * as React from 'react'
 
-import { Field, FieldType, FieldValue, IFieldProps } from "./Field";
-import { NumericInput, Intent } from "@blueprintjs/core";
-import { isNumber, isUndefinedOrNull } from "../../../common/types";
+import { Field, FieldType, FieldValue, IFieldProps } from './Field';
+import { Intent, NumericInput } from '@blueprintjs/core';
+import { isNumber, isUndefinedOrNull } from '../../../common/types';
 
 
 export type NumericFieldType = FieldType<number>;

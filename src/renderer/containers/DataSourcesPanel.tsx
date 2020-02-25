@@ -1,18 +1,24 @@
 import * as React from 'react';
 import { CSSProperties } from 'react';
 import { connect } from 'react-redux';
-import { Table, Column, Cell, TruncatedFormat } from '@blueprintjs/table';
+import { Cell, Column, Table, TruncatedFormat } from '@blueprintjs/table';
 import ReactMarkdown from 'react-markdown';
-import { State, DataStoreState, DataSourceState, DataStoreNotice } from '../state';
+import { DataSourceState, DataStoreNotice, DataStoreState, State } from '../state';
 import {
     AnchorButton,
-    InputGroup,
-    Classes,
-    Tag,
-    Tabs,
-    Tab,
+    ButtonGroup,
+    Callout,
     Checkbox,
-    Colors, Collapse, Callout, Intent, HTMLSelect, Label, ButtonGroup
+    Classes,
+    Collapse,
+    Colors,
+    HTMLSelect,
+    InputGroup,
+    Intent,
+    Label,
+    Tab,
+    Tabs,
+    Tag
 } from '@blueprintjs/core';
 import { IconName } from '@blueprintjs/core/src/components/icon/icon';
 import { ListBox, ListBoxSelectionMode } from '../components/ListBox';
@@ -27,7 +33,7 @@ import AddDatasetDialog from './AddDatasetDialog';
 import RemoveDatasetDialog from './RemoveDatasetDialog';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
-import { NO_DATA_STORES_FOUND, NO_DATA_SOURCES_FOUND, NO_LOCAL_DATA_SOURCES } from '../messages';
+import { NO_DATA_SOURCES_FOUND, NO_DATA_STORES_FOUND, NO_LOCAL_DATA_SOURCES } from '../messages';
 
 
 const INTENTS = {

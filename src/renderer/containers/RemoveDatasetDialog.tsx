@@ -1,14 +1,14 @@
-import * as React from "react";
-import {Checkbox} from "@blueprintjs/core";
-import {DataSourceState, DialogState, State} from "../state";
-import {ModalDialog} from "../components/ModalDialog";
-import {connect, DispatchProp} from "react-redux";
-import * as actions from "../actions";
-import * as selectors from "../selectors";
+import * as React from 'react';
+import { Checkbox } from '@blueprintjs/core';
+import { DataSourceState, DialogState, State } from '../state';
+import { ModalDialog } from '../components/ModalDialog';
+import { connect, DispatchProp } from 'react-redux';
+import * as actions from '../actions';
+import * as selectors from '../selectors';
 
 interface IRemoveDatasetDialogProps {
     isOpen: boolean;
-    dataSource: DataSourceState|null;
+    dataSource: DataSourceState | null;
 }
 
 interface IRemoveDatasetDialogState extends DialogState {
@@ -89,4 +89,5 @@ class RemoveDatasetDialog extends React.Component<IRemoveDatasetDialogProps & Di
         );
     }
 }
+
 export default connect(mapStateToProps)(RemoveDatasetDialog);

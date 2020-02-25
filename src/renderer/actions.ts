@@ -1,27 +1,60 @@
 import {
-    WorkspaceState, DataStoreState, TaskState, ResourceState,
-    LayerState, ColorMapCategoryState, ImageStatisticsState, DataSourceState,
-    OperationState, BackendConfigState, VariableState,
-    OperationKWArgs, WorldViewMode, SavedLayers, VariableLayerBase, State, GeographicPosition, MessageState, Placemark,
-    SplitMode, WebAPIConfig, WebAPIStatus, WebAPIMode
+    BackendConfigState,
+    ColorMapCategoryState,
+    DataSourceState,
+    DataStoreState,
+    GeographicPosition,
+    ImageStatisticsState,
+    LayerState,
+    MessageState,
+    OperationKWArgs,
+    OperationState,
+    Placemark,
+    ResourceState,
+    SavedLayers,
+    SplitMode,
+    State,
+    TaskState,
+    VariableLayerBase,
+    VariableState,
+    WebAPIConfig,
+    WebAPIMode,
+    WebAPIStatus,
+    WorkspaceState,
+    WorldViewMode
 } from './state';
-import { ViewState, ViewPath } from './components/ViewState';
+import { ViewPath, ViewState } from './components/ViewState';
 import {
-    JobProgress,
+    ERROR_CODE_CANCELLED,
+    ERROR_CODE_INVALID_PARAMS,
     JobFailure,
-    JobStatusEnum,
-    JobPromise,
+    JobProgress,
     JobProgressHandler,
-    ERROR_CODE_INVALID_PARAMS, newWebAPIClient, WebAPIClient
+    JobPromise,
+    JobStatusEnum,
+    newWebAPIClient,
+    WebAPIClient
 } from './webapi';
 import * as selectors from './selectors';
 import * as assert from '../common/assert';
 import { PanelContainerLayout } from './components/PanelContainer';
 import {
-    newVariableLayer, getCsvUrl, AUTO_LAYER_ID, isFigureResource, findResourceByName,
-    getLockForGetWorkspaceVariableStatistics, hasWebGL, getLockForLoadDataSources, getFeatureUrl,
-    isAnimationResource, getHtmlUrl, MY_PLACES_LAYER_ID, getNonSpatialIndexers, genSimpleId, PLACEMARK_ID_PREFIX,
-    getWorldViewVectorLayerForEntity
+    AUTO_LAYER_ID,
+    findResourceByName,
+    genSimpleId,
+    getCsvUrl,
+    getFeatureUrl,
+    getHtmlUrl,
+    getLockForGetWorkspaceVariableStatistics,
+    getLockForLoadDataSources,
+    getNonSpatialIndexers,
+    getWorldViewVectorLayerForEntity,
+    hasWebGL,
+    isAnimationResource,
+    isFigureResource,
+    MY_PLACES_LAYER_ID,
+    newVariableLayer,
+    PLACEMARK_ID_PREFIX
 } from './state-util';
 import { SplitDir } from './components/Splitter';
 import { updateObject } from '../common/objutil';
@@ -37,10 +70,11 @@ import { GeometryToolType } from './components/cesium/geometry-tool';
 import { getEntityByEntityId } from './components/cesium/cesium-util';
 import { isAssignableFrom, VAR_NAME_LIKE_TYPE, VAR_NAMES_LIKE_TYPE } from '../common/cate-types';
 import {
-    assignConstantValueInput, assignResourceNameInput, InputAssignments,
+    assignConstantValueInput,
+    assignResourceNameInput,
+    InputAssignments,
     isInputAssigned
 } from './containers/editor/value-editor-assign';
-import { ERROR_CODE_CANCELLED } from './webapi';
 import { DELETE_WORKSPACE_DIALOG_ID, OPEN_WORKSPACE_DIALOG_ID } from './containers/ChooseWorkspaceDialog';
 import { AuthAPI, AuthInfo, User } from './webapi/apis/AuthAPI'
 
@@ -1391,7 +1425,7 @@ export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: 
                 if (resource && resource.variables && resource.variables.length) {
                     const variable = resource.variables.find(variable => !!variable.isDefault);
                     dispatch(setSelectedVariable(resource,
-                                                 variable || resource.variables[0],
+                        variable || resource.variables[0],
                                                  selectors.savedLayersSelector(getState())));
                 }
             }

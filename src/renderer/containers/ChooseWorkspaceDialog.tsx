@@ -92,7 +92,7 @@ class ChooseWorkspaceDialog extends React.Component<IChooseWorkspaceDialogProps 
     }
 
     private canConfirm(): boolean {
-        if (this.state.selectedWorkspaceName === "undefined" || !this.state.selectedWorkspaceName) {
+        if (this.state.selectedWorkspaceName === 'undefined' || !this.state.selectedWorkspaceName) {
             return false;
         }
         return /^([A-Za-z_\-\s0-9.]+)$/.test(this.state.selectedWorkspaceName);

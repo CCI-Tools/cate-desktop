@@ -8,7 +8,7 @@ export interface Element {
 }
 
 export interface ElementGroup<E extends Element> extends Element {
-    type: "ElementGroup";
+    type: 'ElementGroup';
     elements: E[];
 }
 
@@ -21,7 +21,7 @@ export interface GroupElement<E extends Element> extends Element {
 }
 
 export interface DataArray extends DataElement {
-    type: "DataArray";
+    type: 'DataArray';
     name: string;
     numDims?: number;
     dimNames?: string[];
@@ -38,11 +38,11 @@ export interface DataArray extends DataElement {
 }
 
 export interface Dataset extends GroupElement<DataArray> {
-    type: "Dataset";
+    type: 'Dataset';
 }
 
 export interface Series extends DataElement {
-    type: "Series";
+    type: 'Series';
     name: string;
     shape?: number[];
     units?: string;
@@ -52,7 +52,7 @@ export interface Series extends DataElement {
 }
 
 export interface DataFrame extends GroupElement<Series> {
-    type: "DataFrame";
+    type: 'DataFrame';
 }
 
 /**

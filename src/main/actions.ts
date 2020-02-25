@@ -1,5 +1,5 @@
 import * as electron from 'electron';
-import { getAppDataDir, getAppIconPath, CATE_WEBAPI_VERSION_RANGE, getCateDir, getWebAPIRestUrl } from './appenv';
+import { CATE_WEBAPI_VERSION_RANGE, getAppDataDir, getAppIconPath, getCateDir, getWebAPIRestUrl } from './appenv';
 import { Configuration } from './configuration';
 
 
@@ -306,8 +306,11 @@ export function getActions(configuration: Configuration) {
             click: () => {
                 const title = `About ${electron.app.getName()}`;
                 const message = `${electron.app.getName()}, version ${electron.app.getVersion()}`;
-                const webAPIConfig = configuration.get('webAPIConfig') || {protocol: 'http', serviceAddress: 'unknown.com'};
-                const user = configuration.get('user') || {name: process.env["USER"]};
+                const webAPIConfig = configuration.get('webAPIConfig') || {
+                    protocol: 'http',
+                    serviceAddress: 'unknown.com'
+                };
+                const user = configuration.get('user') || {name: process.env['USER']};
                 const detail = '' +
                                `Program: ${electron.app.getAppPath()}\n` +
                                `User: ${user.name}\n` +

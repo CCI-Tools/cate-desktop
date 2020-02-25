@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { AnchorButton, Switch, Tabs, Tab, Intent, ControlGroup } from '@blueprintjs/core';
-import { State, SessionState } from '../state';
+import { AnchorButton, ControlGroup, Intent, Switch, Tab, Tabs } from '@blueprintjs/core';
+import { SessionState, State } from '../state';
 import { connect, DispatchProp } from 'react-redux';
 import * as actions from '../actions';
+import { OpenDialogProperty, showMessageBox } from '../actions';
 import * as selectors from '../selectors';
 import { TextField } from '../components/field/TextField';
-import { OpenDialogProperty, showMessageBox } from '../actions';
 import deepEqual from 'deep-equal';
 import { ModalDialog } from '../components/ModalDialog';
 import { showToast } from '../toast';

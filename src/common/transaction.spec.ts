@@ -1,14 +1,14 @@
-import {expect, assert} from 'chai';
+import { expect } from 'chai';
 import 'chai-as-promised';
-import deepEqual = require("deep-equal");
-import {isDefined} from "./types";
+import { isDefined } from './types';
 import {
-    TransactionSet,
     Transaction,
-    TransactionError,
     TransactionContext,
-    TransactionProgressHandler
+    TransactionError,
+    TransactionProgressHandler,
+    TransactionSet
 } from './transaction';
+import deepEqual = require('deep-equal');
 
 describe('TransactionSet', function () {
 
@@ -73,16 +73,16 @@ describe('TransactionSet', function () {
         return expect(promise).to.eventually.become([
                                                         {worked: 0, totalWork: 3, subWorked: 0, done: false},
                                                         {name: 'r1'},
-                                                        {message: "checking r1"},
-                                                        {message: "fulfilling r1"},
+                                                        {message: 'checking r1'},
+                                                        {message: 'fulfilling r1'},
                                                         {worked: 1, totalWork: 3, subWorked: 0, done: false},
                                                         {name: 'r2'},
-                                                        {message: "checking r2"},
-                                                        {message: "fulfilling r2"},
+                                                        {message: 'checking r2'},
+                                                        {message: 'fulfilling r2'},
                                                         {worked: 2, totalWork: 3, subWorked: 0, done: false},
                                                         {name: 'r3'},
-                                                        {message: "checking r3"},
-                                                        {message: "fulfilling r3"},
+                                                        {message: 'checking r3'},
+                                                        {message: 'fulfilling r3'},
                                                         {worked: 3, totalWork: 3, subWorked: 0, done: true},
                                                     ] as any);
     });
@@ -162,15 +162,15 @@ describe('TransactionSet', function () {
             ];
             //promise.then(r => console.log(r));
 
-            const p1 = expect(promise, "number of events").to.eventually.satisfy((actualProgressTrace) => {
+            const p1 = expect(promise, 'number of events').to.eventually.satisfy((actualProgressTrace) => {
                 return actualProgressTrace.length === expectedProgressTrace.length;
             });
 
-            const p2 = expect(promise, "error at index 12").to.eventually.satisfy((actualProgressTrace) => {
+            const p2 = expect(promise, 'error at index 12').to.eventually.satisfy((actualProgressTrace) => {
                 return isDefined(actualProgressTrace[12].error);
             });
 
-            const p3 = expect(promise, "all events are deeply equal").to.eventually.satisfy((actualProgressTrace) => {
+            const p3 = expect(promise, 'all events are deeply equal').to.eventually.satisfy((actualProgressTrace) => {
                 // Exclude error at index 12 from comparison
                 actualProgressTrace[12] = null;
                 expectedProgressTrace[12] = null;

@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { CSSProperties } from 'react';
 import { MplFigureCommandListener, MplFigureCommandSourceImpl } from './MplFigure';
 import { MplFigureContainer } from './MplFigureContainer';
 import { ButtonGroup, Tag } from '@blueprintjs/core';
-import { CSSProperties } from 'react';
 import { ToolButton } from '../ToolButton';
 
 
@@ -172,7 +172,7 @@ class MplFigureToolbar extends React.PureComponent<IMplFigureToolbarProps, null>
             <div style={MplFigureToolbar.DIV_STYLE}>
                 {messageTag}
                 <span style={{flex: 'auto'}}/>
-                <ButtonGroup >{buttons}</ButtonGroup >
+                <ButtonGroup>{buttons}</ButtonGroup>
             </div>
         );
     }

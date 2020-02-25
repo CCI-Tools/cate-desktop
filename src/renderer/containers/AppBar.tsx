@@ -9,7 +9,7 @@ import {
     NavbarDivider,
     NavbarGroup,
     Popover,
-    Position
+    PopoverPosition,
 } from '@blueprintjs/core';
 import * as actions from '../actions';
 import { State } from '../state';
@@ -39,7 +39,7 @@ class _AppBar extends React.PureComponent<IAppBarProps & IDispatch, null> {
             <Navbar>
                 <NavbarGroup><span className="bp3-ui-text-large">Cate - CCI Toolbox</span></NavbarGroup>
                 <NavbarGroup align="right">
-                    <Popover content={<WorkspacesMenu/>} position={Position.BOTTOM}>
+                    <Popover content={<WorkspacesMenu/>} position={PopoverPosition.BOTTOM}>
                         <Button className="bp3-minimal">Workspaces</Button>
                     </Popover>
                     <NavbarDivider/>

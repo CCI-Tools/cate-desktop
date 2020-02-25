@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
-import { State } from "../state";
+import { State } from '../state';
 import { AnchorButton, Checkbox, ControlGroup, Icon, InputGroup, Label } from '@blueprintjs/core';
-import * as selectors from "../selectors";
-import * as actions from "../actions";
-import { ViewState } from "../components/ViewState";
-import { NO_ACTIVE_VIEW } from "../messages";
+import * as selectors from '../selectors';
+import * as actions from '../actions';
+import { ViewState } from '../components/ViewState';
+import { NO_ACTIVE_VIEW } from '../messages';
 
 interface IViewPanelDispatch {
     dispatch: Dispatch<State>;
@@ -32,8 +32,8 @@ function mapStateToProps(state: State): IViewPanelProps {
  */
 class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, null> {
 
-    private static ACTION_ITEM_STYLE = {margin: "0.1em 0em 2em 0em"};
-    private static PROPERTY_ITEM_STYLE = {margin: "0.1em 0em 0.6em 0em"};
+    private static ACTION_ITEM_STYLE = {margin: '0.1em 0em 2em 0em'};
+    private static PROPERTY_ITEM_STYLE = {margin: '0.1em 0em 0.6em 0em'};
 
     constructor(props: IViewPanelProps & IViewPanelDispatch) {
         super(props);
@@ -57,7 +57,7 @@ class ViewPanel extends React.Component<IViewPanelProps & IViewPanelDispatch, nu
 
     render() {
         return (
-            <div style={{margin: "0.2em 0.2em 0.2em 0.2em"}}>
+            <div style={{margin: '0.2em 0.2em 0.2em 0.2em'}}>
                 <AnchorButton icon="globe"
                               style={ViewPanel.ACTION_ITEM_STYLE}
                               onClick={this.onAddWorldView}>New World View</AnchorButton>

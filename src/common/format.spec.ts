@@ -1,5 +1,5 @@
-import {should, expect} from "chai";
-import {formatDataTypeName} from "./format";
+import { expect, should } from 'chai';
+import { formatDataTypeName } from './format';
 
 should();
 

@@ -138,12 +138,12 @@ export class WebSocketMock implements WebSocketMin {
         if (!method) {
             this.emulateIncomingMessages({
                                              jsonrpc: '2.0',
-                id: requestMessage.id,
-                error: {
-                    code: 1,
-                    message: `${requestMessage.method}(): no such method`
-                }
-            });
+                                             id: requestMessage.id,
+                                             error: {
+                                                 code: 1,
+                                                 message: `${requestMessage.method}(): no such method`
+                                             }
+                                         });
             return;
         }
 
@@ -156,42 +156,42 @@ export class WebSocketMock implements WebSocketMin {
 
         for (let i = 0; i < numSteps; i++) {
             responseTasks.push({
-                delay: delayPerStep,
-                perform: () => {
-                    this.emulateIncomingMessages({
+                                   delay: delayPerStep,
+                                   perform: () => {
+                                       this.emulateIncomingMessages({
                                                                         jsonrpc: '2.0',
-                        id: requestMessage.id,
-                        progress: {
-                            worked: i + 1,
-                            total: numSteps
-                        }
-                    });
-                }
-            });
+                                                                        id: requestMessage.id,
+                                                                        progress: {
+                                                                            worked: i + 1,
+                                                                            total: numSteps
+                                                                        }
+                                                                    });
+                                   }
+                               });
         }
 
         responseTasks.push({
-            delay: delay,
-            perform: () => {
-                try {
-                    const result = method.apply(this.serviceObj, requestMessage.params);
-                    this.emulateIncomingMessages({
+                               delay: delay,
+                               perform: () => {
+                                   try {
+                                       const result = method.apply(this.serviceObj, requestMessage.params);
+                                       this.emulateIncomingMessages({
                                                                         jsonrpc: '2.0',
-                        id: requestMessage.id,
-                        response: result
-                    });
-                } catch (e) {
-                    this.emulateIncomingMessages({
+                                                                        id: requestMessage.id,
+                                                                        response: result
+                                                                    });
+                                   } catch (e) {
+                                       this.emulateIncomingMessages({
                                                                         jsonrpc: '2.0',
-                        id: requestMessage.id,
-                        error: {
-                            code: 2,
-                            message: `${requestMessage.method}(): ${e}`,
-                        }
-                    });
-                }
-            }
-        });
+                                                                        id: requestMessage.id,
+                                                                        error: {
+                                                                            code: 2,
+                                                                            message: `${requestMessage.method}(): ${e}`,
+                                                                        }
+                                                                    });
+                                   }
+                               }
+                           });
 
         if (!this.asyncCalls) {
             responseTasks.forEach(task => task.perform());
@@ -200,20 +200,20 @@ export class WebSocketMock implements WebSocketMin {
                 if (webSocketMock.cancelledJobsIds.has(requestMessage.id)) {
                     webSocketMock.emulateIncomingMessages({
                                                               jsonrpc: '2.0',
-                        id: requestMessage.id,
-                        error: {
-                            code: 999,
-                            message: `Cancelled ${requestMessage.method}()`,
-                        }
-                    });
+                                                              id: requestMessage.id,
+                                                              error: {
+                                                                  code: 999,
+                                                                  message: `Cancelled ${requestMessage.method}()`,
+                                                              }
+                                                          });
                 } else {
                     if (i < responseTasks.length) {
                         const task = responseTasks[i];
                         setTimeout(() => {
-                                task.perform();
-                                performDeferred(i + 1, webSocketMock);
-                            },
-                            task.delay
+                                       task.perform();
+                                       performDeferred(i + 1, webSocketMock);
+                                   },
+                                   task.delay
                         );
                     }
                 }

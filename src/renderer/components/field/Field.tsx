@@ -1,6 +1,6 @@
 import { Classes, InputGroup } from '@blueprintjs/core';
 import * as React from 'react'
-import { isString, isUndefinedOrNull, isDefined, isDefinedAndNotNull } from '../../../common/types';
+import { isDefined, isDefinedAndNotNull, isString, isUndefinedOrNull } from '../../../common/types';
 
 export type FieldType<T> = T | null;
 

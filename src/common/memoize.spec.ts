@@ -1,5 +1,5 @@
-import {expect} from 'chai';
-import {memoize} from "./memoize";
+import { expect } from 'chai';
+import { memoize } from './memoize';
 
 describe('memoize', function () {
 

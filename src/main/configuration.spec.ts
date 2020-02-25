@@ -1,7 +1,7 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 import * as fs from 'fs';
 
-import {Configuration} from './configuration';
+import { Configuration } from './configuration';
 
 
 describe('Configuration', function () {
@@ -22,10 +22,10 @@ describe('Configuration', function () {
         let file = '__config__.json';
 
         let config1 = new Configuration({
-            lastDir: '/user/norman',
-            openFiles: ['data/im.png', 'data\\inf.txt'],
-            numScreens: 2,
-        });
+                                            lastDir: '/user/norman',
+                                            openFiles: ['data/im.png', 'data\\inf.txt'],
+                                            numScreens: 2,
+                                        });
 
         config1.store(file);
         let config2 = new Configuration();
@@ -33,7 +33,8 @@ describe('Configuration', function () {
 
         expect(config1.data).to.deep.equal(config2.data);
 
-        fs.unlink(file, () => {});
+        fs.unlink(file, () => {
+        });
     });
 
     it('can load data from JS', function () {
@@ -46,6 +47,7 @@ describe('Configuration', function () {
 
         expect(config.data).to.deep.equal({a: 1, b: 2 + 5});
 
-        fs.unlink(file, () => {});
+        fs.unlink(file, () => {
+        });
     });
 });

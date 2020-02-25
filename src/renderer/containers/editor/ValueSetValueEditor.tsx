@@ -1,7 +1,7 @@
 import { HTMLSelect } from '@blueprintjs/core';
 import * as React from 'react';
-import { IValueEditorProps } from "./ValueEditor";
-import { OperationInputState } from "../../state";
+import { IValueEditorProps } from './ValueEditor';
+import { OperationInputState } from '../../state';
 
 
 export class ValueSetValueEditor extends React.PureComponent<IValueEditorProps<any>, null> {

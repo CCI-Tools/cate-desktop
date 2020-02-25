@@ -28,14 +28,15 @@ import { IconName, Intent } from '@blueprintjs/core';
 import { WebSocketMin } from './WebSocketMock'
 import {
     Job,
+    JobFailure,
+    JobFailureHandler,
+    JobProgress,
+    JobProgressHandler,
     JobPromise,
     JobRequest,
-    JobProgress,
-    JobFailure,
-    JobStatus,
-    JobProgressHandler,
     JobResponseHandler,
-    JobFailureHandler, JobStatusEnum
+    JobStatus,
+    JobStatusEnum
 } from './Job'
 
 // IMPORTANT NOTE: The following error codes MUST BE COPIED from cate/util/web/jsonrpchandler.py

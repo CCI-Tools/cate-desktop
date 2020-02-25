@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Splitter, SplitDir} from "./Splitter";
+import { SplitDir, Splitter } from './Splitter';
 
 
 export interface ISplitPaneProps {
@@ -26,7 +26,7 @@ export class SplitPane extends React.PureComponent<ISplitPaneProps, ISplitPaneSt
     constructor(props: ISplitPaneProps) {
         super(props);
         this.handleSplitDelta = this.handleSplitDelta.bind(this);
-        this.state = { size: props.initialSize };
+        this.state = {size: props.initialSize};
     }
 
     private handleSplitDelta(delta: number) {
