@@ -417,19 +417,21 @@ class CateDesktopApp {
     }
 
     private startLocalWebAPIService(callback: () => void) {
+        const url = new URL(this.webAPIConfig.serviceURL);
+        const desiredPort = url.port ? parseInt(url.port) : null;
 
         this.updateInitMessage('Searching unused port...');
-        findFreePort(this.webAPIConfig.servicePort, null, (freePort: number) => {
-            if (freePort < this.webAPIConfig.servicePort) {
+        findFreePort(desiredPort, null, (freePort: number) => {
+            if (freePort === -1) {
                 log.error('Can\'t find any free port');
                 electron.dialog.showErrorBox(`${electron.app.getName()} - Error`, 'Can\'t find any free port');
                 electron.app.exit(ERRCODE_WEBAPI_NO_FREE_PORT);
                 return;
             }
-            if (freePort !== this.webAPIConfig.servicePort) {
-                log.warn(`Cate has been configured to use port ${this.webAPIConfig.servicePort}, but next free port is ${freePort}`);
+            if (freePort !== desiredPort) {
+                log.warn(`Cate has been configured to use port ${desiredPort}, but next free port is ${freePort}`);
             }
-            this.webAPIConfig.servicePort = freePort;
+            this.webAPIConfig.serviceURL = `${url.protocol}://${url.hostname}:${freePort}`;
 
             const webAPIStartCommand = getWebAPIStartCommand(this.webAPIConfig);
             log.info(`Starting Cate service: ${webAPIStartCommand}`);
@@ -814,7 +816,7 @@ class CateDesktopApp {
 }
 
 
-function findFreePort(fromPort?: number, toPort?: number, callback?: (port: number) => void) {
+function findFreePort(fromPort?: number | null, toPort?: number | null, callback?: (port: number) => void) {
     fromPort = fromPort || 49152;
     toPort = toPort || 65535;
 

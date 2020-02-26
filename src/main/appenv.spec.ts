@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import * as semver from 'semver';
-import { CATE_WEBAPI_VERSION_RANGE, getProxySettings, getSessionProxyConfig, isLocalWebAPIService } from './appenv';
-import { WebAPIConfig } from '../renderer/state';
+import { CATE_WEBAPI_VERSION_RANGE, getProxySettings, getSessionProxyConfig } from './appenv';
 
 describe('appenv', function () {
 
@@ -79,17 +78,5 @@ describe('appenv', function () {
                 proxyRules: 'http://ofsquid.dwd.de:8080;https://ofsquid.dwd.de:80;ws:ws.bc.com',
                 proxyBypassRules: '<local>;dev.virtualearth.net;dwd.de;*.foogle.com'
             });
-    });
-
-    it('implements isLocalWebAPIService() correctly', function () {
-
-        expect(isLocalWebAPIService({} as WebAPIConfig)).to.be.true;
-        expect(isLocalWebAPIService({serviceAddress: ''} as WebAPIConfig)).to.be.true;
-        expect(isLocalWebAPIService({serviceAddress: 'localhost'} as WebAPIConfig)).to.be.true;
-        expect(isLocalWebAPIService({serviceAddress: '::1'} as WebAPIConfig)).to.be.true;
-        expect(isLocalWebAPIService({serviceAddress: '127.0.0.1'} as WebAPIConfig)).to.be.true;
-
-        expect(isLocalWebAPIService({serviceAddress: '192.171.139.57'} as WebAPIConfig)).to.be.false;
-        expect(isLocalWebAPIService({serviceAddress: 'cate-webapi.192.171.139.57.nip.io'} as WebAPIConfig)).to.be.false;
     });
 });

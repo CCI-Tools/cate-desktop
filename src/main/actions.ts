@@ -306,16 +306,13 @@ export function getActions(configuration: Configuration) {
             click: () => {
                 const title = `About ${electron.app.getName()}`;
                 const message = `${electron.app.getName()}, version ${electron.app.getVersion()}`;
-                const webAPIConfig = configuration.get('webAPIConfig') || {
-                    protocol: 'http',
-                    serviceAddress: 'unknown.com'
-                };
+                const webAPIConfig = configuration.get('webAPIConfig') || {};
                 const user = configuration.get('user') || {name: process.env['USER']};
                 const detail = '' +
                                `Program: ${electron.app.getAppPath()}\n` +
                                `User: ${user.name}\n` +
                                `Data folder: ${getAppDataDir()}\n` +
-                               `Web API: ${getWebAPIRestUrl(webAPIConfig)}\n` +
+                               `Service URL: ${webAPIConfig.serviceURL || 'https://unknown.com'}\n` +
                                `CLI env: ${getCateDir() ? getCateDir() : '<unknown>'}\n` +
                                `Requires Cate Core ${CATE_WEBAPI_VERSION_RANGE}\n` +
                                '\n' +
