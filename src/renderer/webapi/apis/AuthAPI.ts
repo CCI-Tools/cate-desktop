@@ -71,8 +71,8 @@ export class AuthAPI {
         return fetch(url.toString(), {
             method: 'post',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `token ${token}`,
+                'Content-Type': 'application/json',
             },
             body: '{"profile" : "Cate Web-API Service"}',
         }).then((response: Response) => {
@@ -83,11 +83,14 @@ export class AuthAPI {
         });
     }
 
-    stopWebAPI(username: string): Promise<boolean> {
+    stopWebAPI(username: string, token: string): Promise<boolean> {
         const url = new URL(CATE_HUB_USER_SERVER_URL.replace('{username}', username)).toString();
         console.log('DELETE: ', url);
         return fetch(url.toString(), {
             method: 'delete',
+            headers: {
+                'Authorization': `token ${token}`,
+            },
         }).then((response: Response) => {
             if (response.ok) {
                 return true;

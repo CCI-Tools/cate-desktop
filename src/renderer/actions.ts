@@ -228,7 +228,7 @@ export function logout(): ThunkAction {
         dispatch(disconnectWebAPIClient());
         const authAPI = new AuthAPI();
         try {
-            await authAPI.stopWebAPI(getState().communication.username);
+            await authAPI.stopWebAPI(getState().communication.username, getState().communication.token);
         } catch (error) {
             console.info('error: ', error);
             showToast({type: 'warning', text: 'Failed to shut down Cate service.'});
