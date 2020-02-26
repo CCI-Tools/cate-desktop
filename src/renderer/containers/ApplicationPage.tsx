@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { CSSProperties } from 'react';
+import { connect, Dispatch } from 'react-redux';
 import { isElectron } from '../is-electron';
 import AppBar from './AppBar';
 import AppLoginPage from './AppLoginPage';
@@ -10,6 +11,7 @@ import FigureView from './FigureView';
 import TableView from './TableView';
 import DataSourcesPanel from './DataSourcesPanel';
 import OperationsPanel from './OperationsPanel';
+import WebAPIStatusBox from './WebAPIStatusBox';
 import WorkspacePanel from './WorkspacePanel';
 import VariablePanel from './VariablesPanel';
 import PlacemarksPanel from './PlacemarksPanel';
@@ -23,7 +25,6 @@ import SaveWorkspaceAsDialog from './SaveWorkspaceAsDialog';
 import PreferencesDialog from './PreferencesDialog';
 import { PanelContainer, PanelContainerLayout } from '../components/PanelContainer';
 import { Panel } from '../components/Panel';
-import { connect, Dispatch } from 'react-redux';
 import { AnimationViewDataState, FigureViewDataState, State, TableViewDataState, WorldViewDataState } from '../state';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
@@ -126,6 +127,7 @@ class _ApplicationPage extends React.PureComponent<IApplicationPageProps & IDisp
                 <ChooseWorkspaceDialog dialogId={DELETE_WORKSPACE_DIALOG_ID}/>
                 <OperationStepDialog id={NEW_CTX_OPERATION_STEP_DIALOG_ID}/>
                 <JobFailureDialog/>
+                <WebAPIStatusBox/>
             </div>
         );
     }

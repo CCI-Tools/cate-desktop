@@ -1,4 +1,3 @@
-import { isElectron } from './is-electron';
 import {
     BackendConfigState,
     ColorMapCategoryState,
@@ -65,7 +64,7 @@ import * as d3 from 'd3-fetch';
 import * as Cesium from 'cesium';
 import { isDefined, isNumber } from '../common/types';
 import { reloadEntityWithOriginalGeometry } from './containers/globe-view-layers';
-import { DirectGeometryObject, Feature } from 'geojson';
+import { DirectGeometryObject } from 'geojson';
 import { SimpleStyle } from '../common/geojson-simple-style';
 import { GeometryToolType } from './components/cesium/geometry-tool';
 import { getEntityByEntityId } from './components/cesium/cesium-util';
@@ -129,6 +128,8 @@ export function login(): ThunkAction {
     return async (dispatch: Dispatch, getState: GetState) => {
 
         const authAPI = new AuthAPI();
+        const webAPIConfig = authAPI.getWebAPIConfig(getState().communication.username);
+        dispatch(setWebAPIConfig(webAPIConfig));
 
         dispatch(setWebAPIStatus('login'));
 
@@ -145,30 +146,81 @@ export function login(): ThunkAction {
 
         dispatch(setAuthInfo(authInfo));
 
-        const user = getState().communication.user;
+        let user = getState().communication.user;
 
-        if (!user || !user.server) {
+        function hasServer(user: User | null) {
+            return user !== null && user.server !== null && user.server.length > 0 && user.pending === null;
+        }
+
+        if (!hasServer(user)) {
+            const handleError = (error) => {
+                console.info('error: ', error);
+                showToast({type: 'error', text: 'Failed to launch remote Cate service.'});
+            };
+
             dispatch(setWebAPIStatus('launching'));
-            let webAPIConfig;
+
             try {
                 await authAPI.startWebAPI(getState().communication.username,
                                           getState().communication.token);
             } catch (error) {
-                console.info('error: ', error);
-                showToast({type: 'error', text: 'Failed to launch remote Cate service.'});
+                handleError(error);
                 return;
             }
+
+            const getUserAsync = async () => {
+                try {
+                    return await authAPI.getUser(getState().communication.username,
+                                                 getState().communication.token);
+                } catch (error) {
+                    console.info('error: ', error);
+                    return null;
+                }
+            };
+
+            invokeUntil(getUserAsync,
+                        hasServer,
+                        connectWebAPIClient,
+                        handleError,
+                        250,
+                        10000);
+        } else {
+            dispatch(connectWebAPIClient());
         }
-
-        const webAPIConfig = authAPI.getWebAPIConfig(getState().communication.username);
-        dispatch(setWebAPIConfig(webAPIConfig));
-
-        // const userInfo = await authAPI.getUser(getState().communication.username,
-        //                                        getState().communication.token);
-
-        dispatch(connectWebAPIClient());
     };
 }
+
+function invokeUntil(callback: () => Promise<any>,
+                     condition: (result: any) => boolean,
+                     onSuccess: (result: any) => any,
+                     onError: (error: any) => any,
+                     interval: number,
+                     timeout: number) {
+    let startTime = new Date().getTime();
+    let func;
+    let attempt = 0;
+    let error = null;
+    const _func = async () => {
+        attempt++;
+        let result;
+        try {
+            result = await callback();
+            console.log(attempt, "result =", result);
+        } catch (e) {
+            error = e;
+        }
+        if (condition(result)) {
+            onSuccess(result);
+        } else if ((new Date().getTime() - startTime) > timeout) {
+            onError(error || new Error('Timeout'));
+        } else {
+            setTimeout(func, interval);
+        }
+    };
+    func = _func;
+    setTimeout(func, interval);
+}
+
 
 export function logout(): ThunkAction {
     return async (dispatch: Dispatch, getState: GetState) => {
@@ -1425,7 +1477,7 @@ export function setSelectedWorkspaceResourceName(selectedWorkspaceResourceName: 
                 if (resource && resource.variables && resource.variables.length) {
                     const variable = resource.variables.find(variable => !!variable.isDefault);
                     dispatch(setSelectedVariable(resource,
-                        variable || resource.variables[0],
+                                                 variable || resource.variables[0],
                                                  selectors.savedLayersSelector(getState())));
                 }
             }

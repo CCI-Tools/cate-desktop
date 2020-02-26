@@ -89,7 +89,6 @@ const dataReducer = (state: DataState = INITIAL_DATA_STATE, action: Action) => {
         }
         case actions.LOGOUT: {
             if (isElectron()) {
-                const webAPIConfig = action.payload.webAPIConfig;
                 const appConfig = {...state.appConfig, webAPIMode: null};
                 return {...state, appConfig};
             }
