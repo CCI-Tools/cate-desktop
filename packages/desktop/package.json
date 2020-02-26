@@ -1,0 +1,134 @@
+{
+  "name": "cate-desktop",
+  "productName": "Cate Desktop",
+  "version": "2.1.0-dev.0",
+  "description": "A graphical user interface for the ESA CCI Toolbox (Cate)",
+  "private": true,
+  "scripts": {
+    "start": "electron app",
+    "test:e2e": "mocha \\\"e2e/**/*-test.js\\\"",
+    "pretest": "yarn run compile",
+    "test": "mocha \\\"app/main/**/*.spec.js\\\" \\\"app/renderer/**/*.spec.js\\\" \\\"app/common/**/*.spec.js\\\"",
+    "postinstall": "electron-builder install-app-deps",
+    "compile": "tsc",
+    "compile:trace": "tsc --traceResolution",
+    "build": "yarn run copy_cesium_assets && electron-builder --x64 --publish never",
+    "publish": "electron-builder --x64 --publish always",
+    "publish:win": "electron-builder --x64 --win --publish always",
+    "publish:mac": "electron-builder --x64 --mac --publish always",
+    "dist": "yarn run clean && yarn run compile && yarn run build",
+    "pack": "yarn run clean && yarn run compile && electron-builder --x64 --publish never --dir",
+    "clean": "rimraf app/main app/renderer app/common",
+    "clean:dist": "rimraf dist",
+    "clean:all": "yarn run clean && rimraf dist app/node_modules",
+    "copy_cesium_assets": "copyfiles -u 5 app/node_modules/cesium/Build/Cesium/**/* app/cesium"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CCI-Tools/cate-desktop.git"
+  },
+  "keywords": [
+    "esa",
+    "cci",
+    "toolbox",
+    "climate",
+    "science"
+  ],
+  "author": "CCI Toolbox (Cate) Development Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/CCI-Tools/cate-desktop/issues"
+  },
+  "homepage": "https://github.com/CCI-Tools/cate-desktop",
+  "devDependencies": {
+    "@blueprintjs/core": "^3.23.1",
+    "@blueprintjs/datetime": "^3.15.2",
+    "@blueprintjs/table": "^3.8.3",
+    "@blueprintjs/icons": "^3.13.0",
+    "@types/chai": "^4.2.9",
+    "@types/chai-as-promised": "^7.1.2",
+    "@types/classnames": "0.0.32",
+    "@types/d3-fetch": "^1.1.5",
+    "@types/deep-equal": "0.0.30",
+    "@types/dom4": "^1.5.20",
+    "@types/electron-devtools-installer": "^2.2.0",
+    "@types/geojson": "^1.0.6",
+    "@types/mocha": "^2.2.41",
+    "@types/node": "^13.7.4",
+    "@types/oboe": "^2.0.28",
+    "@types/openlayers": "^3.20.6",
+    "@types/proj4": "^2.5.0",
+    "@types/react": "^16.9.22",
+    "@types/react-color": "^2.17.3",
+    "@types/react-dom": "^16.9.5",
+    "@types/react-redux": "^5.0.21",
+    "@types/react-test-renderer": "^16.8.1",
+    "@types/redux-logger": "^3.0.7",
+    "@types/tether": "^1.4.4",
+    "cesium": "1.66.0",
+    "cesium-typings": "^1.50.2",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "classnames": "^2.2.6",
+    "copyfiles": "^2.1.1",
+    "d3-fetch": "^1.1.2",
+    "deep-equal": "^1.0.1",
+    "deep-object-diff": "^1.1.0",
+    "electron": "8.0.1",
+    "electron-builder": "22.3.2",
+    "electron-devtools-installer": "2.2.4",
+    "electron-log": "4.0.6",
+    "electron-updater": "4.2.2",
+    "jsdom": "16.2.0",
+    "jsdom-global": "3.0.2",
+    "mocha": "^5.2.0",
+    "normalize.css": "^8.0.1",
+    "npm": "^6.13.7",
+    "oboe": "^2.1.5",
+    "react": "16.12.0",
+    "react-ace": "^5.9.0",
+    "react-addons-css-transition-group": "^15.6.2",
+    "react-color": "^2.17.3",
+    "react-dom": "^16.12.0",
+    "react-linkify": "^0.2.2",
+    "react-markdown": "^4.3.1",
+    "react-redux": "^5.1.2",
+    "react-test-renderer": "^16.12.0",
+    "react-transition-group": "^1.2.1",
+    "redux": "^3.7.2",
+    "redux-logger": "^3.0.6",
+    "redux-thunk": "2.2.0",
+    "reselect": "^2.5.4",
+    "rimraf": "^2.6.3",
+    "semver": "^5.6.0",
+    "spectron": "^3.8.0",
+    "ts-node": "^8.6.2",
+    "typescript": "3.8.2"
+  },
+  "build": {
+    "appId": "org.esa.ccitools.Cate",
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "publisherName": "Brockmann Consult GmbH"
+    },
+    "nsis": {
+      "oneClick": true
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.education"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Science"
+    }
+  },
+  "dependencies": {}
+}
