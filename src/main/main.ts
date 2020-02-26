@@ -228,6 +228,8 @@ class CateDesktopApp {
         // Emitted when all windows have been closed and the application will quit.
         electron.app.on('quit', () => {
             log.info('Quit!');
+            // TODO (forman): Only quit after we have successfully logged out OR after timeout
+            this.mainWindow.webContents.send('logout');
             this.maybeStopLocalWebAPIService();
             // Unconditionally exit the application.
             // This is not nice but should be solid fix for annoying issue

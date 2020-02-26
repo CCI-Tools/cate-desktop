@@ -104,6 +104,7 @@ function getMPLWebSocketsUrl(webAPIConfig: WebAPIConfig): string {
 }
 
 function makeURL(url: string, ws: boolean, path: string): string {
+    console.log(`>> makeUrl: [${url}] [${ws}] [${path}]`);
     const _url = new URL(url);
     const protocol = ws ? (_url.protocol === 'https:' ? 'wss:' : 'ws:') : _url.protocol;
     const pathname = _url.pathname;
@@ -117,7 +118,7 @@ function makeURL(url: string, ws: boolean, path: string): string {
         }
         newUrl += path
     }
-    console.log(`makeUrl: [${newUrl}]`);
+    console.log(`<< makeUrl: [${newUrl}]`);
     return newUrl;
 }
 

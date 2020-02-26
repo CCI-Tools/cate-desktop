@@ -1,3 +1,4 @@
+import { isElectron } from './is-electron';
 import {
     BackendConfigState,
     ColorMapCategoryState,
@@ -122,7 +123,7 @@ export const UPDATE_SESSION_STATE = 'UPDATE_SESSION_STATE';
 export const INVOKE_CTX_OPERATION = 'INVOKE_CTX_OPERATION';
 export const SET_USER_CREDENTIALS = 'SET_USER_CREDENTIALS';
 export const SET_AUTH_INFO = 'SET_AUTH_INFO';
-export const CLEAR_AUTH_INFO = 'CLEAR_AUTH_INFO';
+export const LOGOUT = 'LOGOUT';
 
 export function login(): ThunkAction {
     return async (dispatch: Dispatch, getState: GetState) => {
@@ -146,8 +147,6 @@ export function login(): ThunkAction {
 
         const user = getState().communication.user;
 
-        const webAPIConfig = authAPI.getWebAPIConfig(getState().communication.username);
-
         if (!user || !user.server) {
             dispatch(setWebAPIStatus('launching'));
             let webAPIConfig;
@@ -161,10 +160,12 @@ export function login(): ThunkAction {
             }
         }
 
+        const webAPIConfig = authAPI.getWebAPIConfig(getState().communication.username);
+        dispatch(setWebAPIConfig(webAPIConfig));
+
         // const userInfo = await authAPI.getUser(getState().communication.username,
         //                                        getState().communication.token);
 
-        dispatch(setWebAPIConfig(webAPIConfig));
         dispatch(connectWebAPIClient());
     };
 }
@@ -178,10 +179,9 @@ export function logout(): ThunkAction {
             await authAPI.stopWebAPI(getState().communication.username);
         } catch (error) {
             console.info('error: ', error);
-            showToast({type: 'error', text: 'Failed to logout.'});
-            return;
+            showToast({type: 'warning', text: 'Failed to shut down Cate service.'});
         }
-        dispatch(clearAuthInfo());
+        dispatch(_logout());
     };
 }
 
@@ -189,8 +189,8 @@ function setAuthInfo(authInfo: AuthInfo): Action {
     return {type: SET_AUTH_INFO, payload: {...authInfo}}
 }
 
-function clearAuthInfo(): Action {
-    return {type: CLEAR_AUTH_INFO}
+function _logout(): Action {
+    return {type: LOGOUT}
 }
 
 export function setWebAPIMode(webAPIMode: WebAPIMode): ThunkAction {

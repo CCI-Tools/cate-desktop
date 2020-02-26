@@ -53,6 +53,17 @@
   
 - Preferences are not effective anymore
   * Fix preferences not loaded or not stored by main OR not passed from main to renderer or the other way round
+    Reproduce: enable "open last workspace on restart" --> no effect
+  * Remove preferences that do not apply in remote mode
+    - local data path
+    - offline mode (?)   
 
 - CateHub login
   * Fix error 502  
+
+- Coding issues
+  * Replace `updateObject(a, b, ...)` calls by `{...a, ...b, ...}`.
+  * Replace `Object.assign({}, a, b, ...)` calls by `{...a, ...b, ...}`.
+
+- App logic:
+  * Electron main, remote mode: Only quit after we have successfully logged out OR after timeout

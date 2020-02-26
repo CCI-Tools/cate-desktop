@@ -66,12 +66,20 @@ export function main() {
         store.dispatch(actions.saveWorkspaceAsInteractive());
     });
 
+    ipcRenderer.on('delete-workspace', () => {
+        store.dispatch(actions.deleteWorkspaceInteractive());
+    });
+
     ipcRenderer.on('show-preferences-dialog', () => {
         store.dispatch(actions.showPreferencesDialog());
     });
 
     ipcRenderer.on('get-preferences', () => {
         store.dispatch(actions.sendPreferencesToMain() as any);
+    });
+
+    ipcRenderer.on('logout', () => {
+        store.dispatch(actions.logout() as any);
     });
 
     document.addEventListener('drop', function (event: any) {

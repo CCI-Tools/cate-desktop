@@ -1,4 +1,6 @@
 import { combineReducers, Reducer } from 'redux';
+import { setWebAPIMode, setWebAPIStatus } from './actions';
+import { isElectron } from './is-electron';
 import {
     CommunicationState,
     ControlState,
@@ -84,6 +86,14 @@ const dataReducer = (state: DataState = INITIAL_DATA_STATE, action: Action) => {
             const webAPIConfig = action.payload.webAPIConfig;
             const appConfig = {...state.appConfig, webAPIConfig};
             return {...state, appConfig};
+        }
+        case actions.LOGOUT: {
+            if (isElectron()) {
+                const webAPIConfig = action.payload.webAPIConfig;
+                const appConfig = {...state.appConfig, webAPIMode: null};
+                return {...state, appConfig};
+            }
+            return state;
         }
         case actions.UPDATE_WORKSPACE_NAMES: {
             const workspaceNames = action.payload.workspaceNames || null;
@@ -777,8 +787,8 @@ const communicationReducer = (state: CommunicationState = INITIAL_COMMUNICATION_
             const {token, user} = action.payload;
             return {...state, token, user};
         }
-        case actions.CLEAR_AUTH_INFO: {
-            return {...state, token: null, user: null};
+        case actions.LOGOUT: {
+            return {...state, token: null, user: null, webAPIStatus: null};
         }
     }
     return state;

@@ -33,6 +33,10 @@ class _AppBar extends React.PureComponent<IAppBarProps & IDispatch, null> {
         this.props.dispatch(actions.showPreferencesDialog());
     };
 
+    handleLogoutClick = () => {
+        this.props.dispatch(actions.logout());
+    };
+
     // TODO (forman): implement drop down menus
     render() {
         return (
@@ -43,7 +47,7 @@ class _AppBar extends React.PureComponent<IAppBarProps & IDispatch, null> {
                         <Button className="bp3-minimal">Workspaces</Button>
                     </Popover>
                     <NavbarDivider/>
-                    <Button className="bp3-minimal" icon="log-out">Logout</Button>
+                    <Button className="bp3-minimal" icon="log-out" onClick={this.handleLogoutClick}>Logout</Button>
                     <NavbarDivider/>
                     <Button className="bp3-minimal" icon='cog' onClick={this.handlePreferencesClick}/>
                 </NavbarGroup>
