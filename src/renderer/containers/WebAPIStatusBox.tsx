@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
-import { Classes, Button, Dialog, IconName, Intent, ProgressBar } from '@blueprintjs/core';
+import { Classes, Button, Dialog, IconName, Intent, ProgressBar, Icon } from '@blueprintjs/core';
 import { State, WebAPIStatus } from '../state';
-
-// import * as actions from '../actions';
+import * as actions from '../actions';
 
 
 interface IDispatch {
@@ -23,29 +22,38 @@ function mapStateToProps(state: State): IWebAPIStatusBoxProps {
 const _WebAPIStatusBox: React.FC<IWebAPIStatusBoxProps & IDispatch> = (props) => {
     switch (props.webAPIStatus) {
         case 'login':
-            return <AlertBox
+            return (<AlertBox
                 message={'Logging in...'}
                 icon="log-in"
-                intent={Intent.PRIMARY}
-            />;
+                isWaiting={true}
+            />);
         case 'launching':
-            return <AlertBox
+            return (<AlertBox
                 message={'Launching Cate service instance...'}
-                icon="globe-network"
-                intent={Intent.PRIMARY}
-            />;
+                icon="log-in"
+                isWaiting={true}
+            />);
         case 'connecting':
-            return <AlertBox
+            return (<AlertBox
                 message={'Connecting to Cate service instance...'}
-                icon="globe-network"
-                intent={Intent.PRIMARY}
-            />;
+                icon="log-in"
+                isWaiting={true}
+            />);
         case 'logoff':
-            return <AlertBox
+            return (<AlertBox
                 message={'Closing Cate service instance...'}
                 icon="log-out"
-                intent={Intent.PRIMARY}
-            />;
+                isWaiting={true}
+            />);
+        case 'closed':
+        case 'error':
+            return (<AlertBox
+                message={'Oops! The connection to the Cate service has been closed unexpectedly.'}
+                icon="offline"
+                isWaiting={false}
+                onRetry={() => props.dispatch(actions.connectWebAPIClient())}
+                onCancel={() => props.dispatch(actions.setWebAPIStatus(null))}
+            />);
         default:
             return null;
     }
@@ -56,30 +64,36 @@ export default WebAPIStatusBox;
 
 interface IAlertBoxProps {
     message: string;
-    icon?: IconName;
-    intent?: Intent;
-    onConfirm?: () => void;
+    icon: IconName;
+    isWaiting: boolean;
+    onRetry?: () => void;
     onCancel?: () => void;
 }
 
 const AlertBox: React.FC<IAlertBoxProps> = ({
                                                 message,
-                                                onConfirm,
-                                                onCancel,
                                                 icon,
-                                                intent
+                                                isWaiting,
+                                                onRetry,
+                                                onCancel,
                                             }) => {
 
-    let cancelControl;
-    if (onCancel) {
-        cancelControl = (
+    let progress;
+    if (isWaiting) {
+        progress = (<p><ProgressBar intent={Intent.SUCCESS}/></p>);
+    }
+    let footer;
+    if (onRetry || onCancel) {
+        let cancelButton = onCancel ? (<Button onClick={onCancel} intent={Intent.PRIMARY}>Cancel</Button>) : null;
+        let retryButton = onRetry ? (<Button onClick={onRetry}>Retry</Button>) : null;
+        footer = (
             <div className={Classes.DIALOG_FOOTER}>
                 <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                    <Button onClick={this.handleClose}>Cancel</Button>
+                    {cancelButton}
+                    {retryButton}
                 </div>
             </div>
         );
-
     }
     return (
         <Dialog
@@ -88,10 +102,11 @@ const AlertBox: React.FC<IAlertBoxProps> = ({
             canOutsideClickClose={false}
         >
             <div className={Classes.DIALOG_BODY}>
+                <p><Icon icon={icon} iconSize={32}/></p>
                 <p>{message}</p>
-                <p><ProgressBar intent={intent}/></p>
+                {progress}
             </div>
-            {cancelControl}
+            {footer}
         </Dialog>
     );
 };

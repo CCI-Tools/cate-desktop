@@ -156,6 +156,7 @@ export function login(): ThunkAction {
             const handleError = (error) => {
                 console.info('error: ', error);
                 showToast({type: 'error', text: 'Failed to launch remote Cate service.'});
+                dispatch(setWebAPIStatus(null));
             };
 
             dispatch(setWebAPIStatus('launching'));
@@ -178,12 +179,15 @@ export function login(): ThunkAction {
                 }
             };
 
+            const SECOND = 1000;
+            const MINUTE = 60 * SECOND;
+
             invokeUntil(getUserAsync,
                         hasServer,
                         () => dispatch(connectWebAPIClient),
                         handleError,
-                        250,
-                        10000);
+                        SECOND,
+                        10 * MINUTE);
         } else {
             dispatch(connectWebAPIClient());
         }
@@ -274,7 +278,7 @@ function updateWebAPIInfoInMain(webAPIMode: WebAPIMode, webAPIConfig: WebAPIConf
     electron.ipcRenderer.send('update-webapi-info', webAPIInfo);
 }
 
-function connectWebAPIClient(): ThunkAction {
+export function connectWebAPIClient(): ThunkAction {
     return (dispatch: Dispatch, getState: GetState) => {
         updateWebAPIInfoInMain(getState().data.appConfig.webAPIMode,
                                getState().data.appConfig.webAPIConfig,

@@ -61,7 +61,7 @@ class _AppLoginPage extends React.PureComponent<IAppLoginPageProps & IDispatch, 
         return (
             <div style={_AppLoginPage.CENTER_DIV_STYLE}>
                 <div style={_AppLoginPage.BOX_STYLE}>
-                    <h4>CateHub Login</h4>
+                    <h2>CateHub Login</h2>
 
                     {/*<div style={{marginTop: 24, alignContent: 'center', textAlign: 'center', display: 'flex'}}>*/}
                     {/*<img width={32} height={32} src={'resources/images/github-120.png'} alt={'github icon'}/>*/}
