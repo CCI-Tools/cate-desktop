@@ -180,7 +180,7 @@ export function login(): ThunkAction {
 
             invokeUntil(getUserAsync,
                         hasServer,
-                        connectWebAPIClient,
+                        () => dispatch(connectWebAPIClient),
                         handleError,
                         250,
                         10000);
