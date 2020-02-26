@@ -1,6 +1,38 @@
 ## Version 2.1.0-dev.0
 
+* Simplified development configuration `./cate-config.js` (see template `./cate-config.template.js`). Instead of 
+  
+  ```javascript
+  module.exports = {  
+      webAPIConfig: {
+          servicePort: 9090,
+          serviceAddress: '',
+          serviceProtocol: 'http',
+          serviceFile: 'webapi-info.json',
+      },
+      // ...
+  };
+  ```
+  
+  you now write
+
+  ```javascript
+  module.exports = {  
+      webAPIConfig: {
+          serviceURL: 'http://localhost:9090',
+          serviceFile: 'webapi-info.json',
+      },
+      // ...
+  };
+  ```
+
 * Added icon for Sea Surface Salinity CCI ECV. 
+* Upgraded the following dependencies to recent versions:
+  * Electron 8.0.x 
+  * React 16.12.x 
+  * BlueprintJS 3.x
+  * Cesium 0.66+
+  * TypeScript 3.8+
 
 ## Version 2.0.0
 
