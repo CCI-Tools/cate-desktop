@@ -184,10 +184,10 @@ export function login(): ThunkAction {
 
             invokeUntil(getUserAsync,
                         hasServer,
-                        () => dispatch(connectWebAPIClient),
+                        () => dispatch(connectWebAPIClient()),
                         handleError,
                         SECOND,
-                        10 * MINUTE);
+                        15 * MINUTE);
         } else {
             dispatch(connectWebAPIClient());
         }
