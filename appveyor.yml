@@ -14,10 +14,11 @@ cache:
 install:
   - ps: $apiUrl
   - ps: Install-Product node $env:nodejs_version
-  - npm -g install npm
-  - npm install
+  - ps: Install-Product yarn
+  - yarn -g install npm
+  - yarn install
   
 test_script:
   - node --version
-  - npm --version
-  - npm test
+  - yarn --version
+  - yarn test
