@@ -20,7 +20,7 @@
     "pack": "yarn run clean && yarn run compile && electron-builder --x64 --publish never --dir",
     "clean": "rimraf app/main app/renderer app/common yarn-debug.log",
     "clean:dist": "rimraf dist",
-    "clean:all": "yarn run clean && rimraf dist app/node_modules && yarn prune",
+    "clean:all": "yarn run clean && rimraf dist app/node_modules",
     "copy_cesium_assets": "copyfiles -u 5 ./app/node_modules/cesium/Build/Cesium/**/* ./app/cesium"
   },
   "repository": {
