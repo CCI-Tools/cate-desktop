@@ -54,7 +54,7 @@ import {
     INITIAL_SESSION_STATE
 } from './initial-state';
 import { NEW_CTX_OPERATION_STEP_DIALOG_ID } from './containers/operation-step-dialog-ids';
-import deepEqual = require('deep-equal');
+import deepEqual from 'deep-equal';
 
 // Note: reducers are unit-tested through actions.spec.ts
 

@@ -1,5 +1,5 @@
 import * as assert from './assert';
-import deepEqual = require('deep-equal');
+import deepEqual from 'deep-equal';
 
 type ObjectWithId = { id: any; }
 
@@ -49,9 +49,9 @@ export interface ArrayAction<T extends ObjectWithId> {
  *        Signature: (element1, element2) => any
  * @returns {ArrayAction<T>[]} An array of actions to be performed to make oldArray equal to newArray.
  */
-export function arrayDiff<T extends ObjectWithId>(oldArray: T[], newArray: T[], computeChange?): ArrayAction<T>[] {
+export function arrayDiff<T extends ObjectWithId>(oldArray: T[], newArray: T[], computeChange?: (e1: any, e2: any) => any): ArrayAction<T>[] {
 
-    const actions = <ArrayAction<T>[]>[];
+    const actions = [] as ArrayAction<T>[];
     const currentArray = oldArray.slice();
 
     // REMOVE first, so we have less actions afterwards

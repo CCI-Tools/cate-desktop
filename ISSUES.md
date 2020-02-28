@@ -66,4 +66,9 @@
   * Replace `Object.assign({}, a, b, ...)` calls by `{...a, ...b, ...}`.
 
 - App logic:
+  * When authentication fails we always say "Wrong username or password", but reasons may be very different,
+    e.g. CORS stuff (TypeError), 40x and 50x errors
+  * Getting message "Opps! Connection ... closed" when logging out.
   * Electron main, remote mode: Only quit after we have successfully logged out OR after timeout
+  * When going back from first screen, `webAPIConfig` will be the one from CateHub. To fix this
+    we need `interface { local: WebAPIConfig, remote: WebAPIConfig }`
