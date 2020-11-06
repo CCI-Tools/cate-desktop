@@ -1,3 +1,8 @@
+| :exclamation:  Important   |
+|----------------------------|
+
+Development of Cate Desktop has currently been discontinued if favor of the new [Cate Web UI (Cate App)](https://github.com/CCI-Tools/cate-webui) that rns in all modern browsers. To use Cate in stand-alone mode, follow suggestions made in [Cate's README](https://github.com/CCI-Tools/cate#running-cate-app-in-stand-alone-mode). Note, many browsers allow installing Cate App as a Desktop App (it's a progressive web application).
+
 # cate-desktop
 
 [![Build Status](https://travis-ci.org/CCI-Tools/cate-desktop.svg?branch=master)](https://travis-ci.org/CCI-Tools/cate-desktop)
